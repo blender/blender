@@ -462,7 +462,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
      * children.
      */
     Collection *collection = (Collection *)id;
-    bool do_add_collection = false;
+    /* We always add collections directly selected by the user. */
+    bool do_add_collection = (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0;
     LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
       Object *ob = coll_ob->ob;
       if (!object_in_any_scene(bmain, ob)) {
@@ -619,6 +620,13 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
+  const bool do_recursive = (data->lapp_data->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
+  if (!do_recursive && cb_data->id_owner->lib != id->lib) {
+    /* When `do_recursive` is false, we only make local IDs from same library(-ies) as the
+     * initially directly linked ones. */
+    return IDWALK_RET_NOP;
+  }
+
   WMLinkAppendDataItem *item = BLI_ghash_lookup(data->lapp_data->new_id_to_item, id);
   if (item == NULL) {
     item = wm_link_append_data_item_add(data->lapp_data, id->name, GS(id->name), NULL);
@@ -651,7 +659,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 {
   BLI_assert((lapp_data->flag & FILE_LINK) == 0);
 
-  const bool do_recursive = (lapp_data->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
   const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
   const bool do_reuse_local_id = (lapp_data->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
 
@@ -723,8 +730,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
     /* Only check dependencies if we are not keeping linked data, nor re-using existing local data.
      */
-    if (do_recursive &&
-        !ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
+    if (!ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
       WMLinkAppendDataCallBack cb_data = {
           .lapp_data = lapp_data, .item = item, .reports = reports};
       BKE_library_foreach_ID_link(

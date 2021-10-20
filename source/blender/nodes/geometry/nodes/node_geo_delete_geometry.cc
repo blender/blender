@@ -202,7 +202,7 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, 
   BLI_assert(src_mesh.totedge == edge_map.size());
   for (const int i_src : IndexRange(src_mesh.totedge)) {
     const int i_dst = edge_map[i_src];
-    if (i_dst == -1 || i_dst == -2) {
+    if (ELEM(i_dst, -1, -2)) {
       continue;
     }
 

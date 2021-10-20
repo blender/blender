@@ -3078,13 +3078,7 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
-        props = layout.operator("object.transfer_mode", text="Transfer Sculpt Mode")
-        props.use_eyedropper = True
-        props.flash_object = False
-
-        layout.separator()
-
-        layout.operator("sculpt.reset_brushes")
+        layout.operator("object.transfer_mode", text="Transfer Sculpt Mode")
 
 
 class VIEW3D_MT_mask(Menu):
@@ -3636,6 +3630,8 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
         layout.operator("pose.paths_calculate", text="Calculate Motion Paths")
         layout.operator("pose.paths_clear", text="Clear Motion Paths")
+        layout.operator("pose.paths_update", text="Update Armature Motion Paths")
+        layout.operator("object.paths_update_visible", text="Update All Motion Paths")
 
         layout.separator()
 

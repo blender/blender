@@ -26,6 +26,10 @@ namespace blender::nodes {
 static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Object>("Object").hide_label();
+  b.add_input<decl::Bool>("As Instance")
+      .description(
+          "Output the entire object as single instance. "
+          "This allows instancing non-geometry object types");
   b.add_output<decl::Vector>("Location");
   b.add_output<decl::Vector>("Rotation");
   b.add_output<decl::Vector>("Scale");
@@ -54,12 +58,11 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
   const Object *self_object = params.self_object();
 
   if (object != nullptr) {
-    float transform[4][4];
-    mul_m4_m4m4(transform, self_object->imat, object->obmat);
+    const float4x4 transform = float4x4(self_object->imat) * float4x4(object->obmat);
 
     float quaternion[4];
     if (transform_space_relative) {
-      mat4_decompose(location, quaternion, scale, transform);
+      mat4_decompose(location, quaternion, scale, transform.values);
     }
     else {
       mat4_decompose(location, quaternion, scale, object->obmat);
@@ -67,16 +70,23 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
     quat_to_eul(rotation, quaternion);
 
     if (object != self_object) {
-      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-      const int handle = instances.add_reference(*object);
-
-      if (transform_space_relative) {
-        instances.add_instance(handle, transform);
+      if (params.get_input<bool>("As Instance")) {
+        InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+        const int handle = instances.add_reference(*object);
+        if (transform_space_relative) {
+          instances.add_instance(handle, transform);
+        }
+        else {
+          float unit_transform[4][4];
+          unit_m4(unit_transform);
+          instances.add_instance(handle, unit_transform);
+        }
       }
       else {
-        float unit_transform[4][4];
-        unit_m4(unit_transform);
-        instances.add_instance(handle, unit_transform);
+        geometry_set = bke::object_get_evaluated_geometry_set(*object);
+        if (transform_space_relative) {
+          transform_geometry_set(geometry_set, transform, *params.depsgraph());
+        }
       }
     }
   }

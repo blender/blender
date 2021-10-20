@@ -9,6 +9,7 @@
         widget_emboss="#00000026"
         editor_outline="#1f1f1f"
         widget_text_cursor="#3399e6"
+        panel_roundness="0.4"
         transparent_checker_primary="#333333"
         transparent_checker_secondary="#262626"
         transparent_checker_size="8"

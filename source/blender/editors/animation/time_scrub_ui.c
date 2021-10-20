@@ -101,6 +101,7 @@ static void draw_current_frame(const Scene *scene,
   float text_width = UI_fontstyle_string_width(fstyle, frame_str);
   float box_width = MAX2(text_width + 8 * UI_DPI_FAC, 24 * UI_DPI_FAC);
   float box_padding = 3 * UI_DPI_FAC;
+  const int line_outline = max_ii(1, round_fl_to_int(1 * UI_DPI_FAC));
 
   float bg_color[4];
   UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
@@ -109,7 +110,19 @@ static void draw_current_frame(const Scene *scene,
   const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_ctime_get(scene));
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  /* Outline. */
+  immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
+  immRectf(pos,
+           subframe_x - (line_outline + U.pixelsize),
+           scrub_region_rect->ymax - box_padding,
+           subframe_x + (line_outline + U.pixelsize),
+           0.0f);
+
+  /* Line. */
   immUniformThemeColor(TH_CFRAME);
   immRectf(pos,
            subframe_x - U.pixelsize,
@@ -117,6 +130,7 @@ static void draw_current_frame(const Scene *scene,
            subframe_x + U.pixelsize,
            0.0f);
   immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
@@ -194,7 +208,7 @@ bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
 {
   rcti rect = region->winrct;
   rect.ymin = rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
-  return BLI_rcti_isect_pt(&rect, event->x, event->y);
+  return BLI_rcti_isect_pt(&rect, event->xy[0], event->xy[1]);
 }
 
 void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet)

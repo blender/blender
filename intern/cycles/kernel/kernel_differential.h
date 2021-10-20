@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* See "Tracing Ray Differentials", Homan Igehy, 1999. */
 
-ccl_device void differential_transfer(ccl_addr_space differential3 *surface_dP,
+ccl_device void differential_transfer(ccl_private differential3 *surface_dP,
                                       const differential3 ray_dP,
                                       float3 ray_D,
                                       const differential3 ray_dD,
@@ -38,7 +38,7 @@ ccl_device void differential_transfer(ccl_addr_space differential3 *surface_dP,
   surface_dP->dy = tmpy - dot(tmpy, surface_Ng) * tmp;
 }
 
-ccl_device void differential_incoming(ccl_addr_space differential3 *dI, const differential3 dD)
+ccl_device void differential_incoming(ccl_private differential3 *dI, const differential3 dD)
 {
   /* compute dIdx/dy at a shading point, we just need to negate the
    * differential of the ray direction */
@@ -47,8 +47,8 @@ ccl_device void differential_incoming(ccl_addr_space differential3 *dI, const di
   dI->dy = -dD.dy;
 }
 
-ccl_device void differential_dudv(ccl_addr_space differential *du,
-                                  ccl_addr_space differential *dv,
+ccl_device void differential_dudv(ccl_private differential *du,
+                                  ccl_private differential *dv,
                                   float3 dPdu,
                                   float3 dPdv,
                                   differential3 dP,
@@ -132,7 +132,7 @@ ccl_device_forceinline float differential_make_compact(const differential3 D)
   return 0.5f * (len(D.dx) + len(D.dy));
 }
 
-ccl_device_forceinline void differential_transfer_compact(ccl_addr_space differential3 *surface_dP,
+ccl_device_forceinline void differential_transfer_compact(ccl_private differential3 *surface_dP,
                                                           const float ray_dP,
                                                           const float3 /* ray_D */,
                                                           const float ray_dD,
@@ -149,7 +149,7 @@ ccl_device_forceinline void differential_transfer_compact(ccl_addr_space differe
   surface_dP->dy = dy * scale;
 }
 
-ccl_device_forceinline void differential_incoming_compact(ccl_addr_space differential3 *dI,
+ccl_device_forceinline void differential_incoming_compact(ccl_private differential3 *dI,
                                                           const float3 D,
                                                           const float dD)
 {

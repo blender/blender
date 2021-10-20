@@ -207,7 +207,7 @@ ccl_device_inline float2 normalize(const float2 &a)
   return a / len(a);
 }
 
-ccl_device_inline float2 normalize_len(const float2 &a, float *t)
+ccl_device_inline float2 normalize_len(const float2 &a, ccl_private float *t)
 {
   *t = len(a);
   return a / (*t);

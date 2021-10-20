@@ -423,7 +423,9 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
+static const char *wm_context_member_from_ptr(const bContext *C,
+                                              const PointerRNA *ptr,
+                                              bool *r_is_id)
 {
   const char *member_id = NULL;
   bool is_id = false;
@@ -541,50 +543,52 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       case ID_SCR: {
         CTX_TEST_PTR_ID(C, "screen", ptr->owner_id);
 
-        SpaceLink *space_data = CTX_wm_space_data(C);
-
-        TEST_PTR_DATA_TYPE("space_data", RNA_Space, ptr, space_data);
         TEST_PTR_DATA_TYPE("area", RNA_Area, ptr, CTX_wm_area(C));
         TEST_PTR_DATA_TYPE("region", RNA_Region, ptr, CTX_wm_region(C));
 
-        switch (space_data->spacetype) {
-          case SPACE_VIEW3D: {
-            const View3D *v3d = (View3D *)space_data;
-            const View3DShading *shading = &v3d->shading;
+        SpaceLink *space_data = CTX_wm_space_data(C);
+        if (space_data != NULL) {
+          TEST_PTR_DATA_TYPE("space_data", RNA_Space, ptr, space_data);
 
-            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
-            TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
-            break;
-          }
-          case SPACE_GRAPH: {
-            const SpaceGraph *sipo = (SpaceGraph *)space_data;
-            const bDopeSheet *ads = sipo->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
-          }
-          case SPACE_FILE: {
-            const SpaceFile *sfile = (SpaceFile *)space_data;
-            const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-            TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
-            break;
-          }
-          case SPACE_IMAGE: {
-            const SpaceImage *sima = (SpaceImage *)space_data;
-            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
-            TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
-            break;
-          }
-          case SPACE_NLA: {
-            const SpaceNla *snla = (SpaceNla *)space_data;
-            const bDopeSheet *ads = snla->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
-          }
-          case SPACE_ACTION: {
-            const SpaceAction *sact = (SpaceAction *)space_data;
-            const bDopeSheet *ads = &sact->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
+          switch (space_data->spacetype) {
+            case SPACE_VIEW3D: {
+              const View3D *v3d = (View3D *)space_data;
+              const View3DShading *shading = &v3d->shading;
+
+              TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
+              TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
+              break;
+            }
+            case SPACE_GRAPH: {
+              const SpaceGraph *sipo = (SpaceGraph *)space_data;
+              const bDopeSheet *ads = sipo->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
+            case SPACE_FILE: {
+              const SpaceFile *sfile = (SpaceFile *)space_data;
+              const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+              TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
+              break;
+            }
+            case SPACE_IMAGE: {
+              const SpaceImage *sima = (SpaceImage *)space_data;
+              TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
+              TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
+              break;
+            }
+            case SPACE_NLA: {
+              const SpaceNla *snla = (SpaceNla *)space_data;
+              const bDopeSheet *ads = snla->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
+            case SPACE_ACTION: {
+              const SpaceAction *sact = (SpaceAction *)space_data;
+              const bDopeSheet *ads = &sact->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
           }
         }
 
@@ -607,7 +611,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-char *WM_context_path_resolve_property_full(bContext *C,
+char *WM_context_path_resolve_property_full(const bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             int index)
@@ -2270,11 +2274,11 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
 
-  rc->initial_mouse[0] = event->x;
-  rc->initial_mouse[1] = event->y;
+  rc->initial_mouse[0] = event->xy[0];
+  rc->initial_mouse[1] = event->xy[1];
 
-  rc->initial_co[0] = event->x;
-  rc->initial_co[1] = event->y;
+  rc->initial_co[0] = event->xy[0];
+  rc->initial_co[1] = event->xy[1];
 
   switch (rc->subtype) {
     case PROP_NONE:
@@ -2950,7 +2954,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            const float position[2] = {event->x, event->y};
+            const float position[2] = {event->xy[0], event->xy[1]};
 
             /* calculate the initial angle here first */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2970,7 +2974,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 
             dist = len_v2(delta);
 
-            delta[0] = event->x - rc->slow_mouse[0];
+            delta[0] = event->xy[0] - rc->slow_mouse[0];
 
             if (rc->zoom_prop) {
               delta[0] /= zoom[0];
@@ -2980,8 +2984,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          delta[0] = rc->initial_mouse[0] - event->x;
-          delta[1] = rc->initial_mouse[1] - event->y;
+          delta[0] = rc->initial_mouse[0] - event->xy[0];
+          delta[1] = rc->initial_mouse[1] - event->xy[1];
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];
@@ -3048,8 +3052,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     case EVT_LEFTSHIFTKEY:
     case EVT_RIGHTSHIFTKEY: {
       if (event->val == KM_PRESS) {
-        rc->slow_mouse[0] = event->x;
-        rc->slow_mouse[1] = event->y;
+        rc->slow_mouse[0] = event->xy[0];
+        rc->slow_mouse[1] = event->xy[1];
         rc->slow_mode = true;
         if (rc->subtype == PROP_ANGLE) {
           const float initial_position[2] = {UNPACK2(rc->initial_mouse)};

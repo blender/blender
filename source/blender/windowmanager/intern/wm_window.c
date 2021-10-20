@@ -368,7 +368,8 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
   CTX_wm_window_set(C, win);
 
   if (U.uiflag & USER_SAVE_PROMPT) {
-    if (wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C)) && !G.background) {
+    if (wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)) &&
+        !G.background) {
       wm_window_raise(win);
       wm_confirm_quit(C);
     }
@@ -520,7 +521,7 @@ void WM_window_set_dpi(const wmWindow *win)
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_cursor_position_get(win, &win->eventstate->x, &win->eventstate->y);
+  wm_cursor_position_get(win, &win->eventstate->xy[0], &win->eventstate->xy[1]);
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -772,7 +773,7 @@ wmWindow *WM_window_open(bContext *C,
                          bool toplevel,
                          bool dialog,
                          bool temp,
-                         WindowAlignment alignment)
+                         eWindowAlignment alignment)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -989,8 +990,8 @@ void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
 void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
-    *r_x = win->eventstate->x;
-    *r_y = win->eventstate->y;
+    *r_x = win->eventstate->xy[0];
+    *r_y = win->eventstate->xy[1];
     return;
   }
   GHOST_GetCursorPosition(g_system, r_x, r_y);
@@ -1265,8 +1266,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wmEvent event;
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
-        event.prevx = event.x;
-        event.prevy = event.y;
+        copy_v2_v2_int(event.prev_xy, event.xy);
         event.is_repeat = false;
 
         wm_event_add(win, &event);
@@ -1397,8 +1397,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* activate region */
         event.type = MOUSEMOVE;
-        event.prevx = event.x;
-        event.prevy = event.y;
+        copy_v2_v2_int(event.prev_xy, event.xy);
         event.is_repeat = false;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
@@ -2098,11 +2097,11 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
     wm_cursor_position_to_ghost(win, &x, &y);
     GHOST_SetCursorPosition(g_system, x, y);
 
-    win->eventstate->prevx = oldx;
-    win->eventstate->prevy = oldy;
+    win->eventstate->prev_xy[0] = oldx;
+    win->eventstate->prev_xy[1] = oldy;
 
-    win->eventstate->x = oldx;
-    win->eventstate->y = oldy;
+    win->eventstate->xy[0] = oldx;
+    win->eventstate->xy[1] = oldy;
   }
 }
 

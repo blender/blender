@@ -36,42 +36,42 @@ CCL_NAMESPACE_BEGIN
 
 /* REFLECTION */
 
-ccl_device int bsdf_reflection_setup(MicrofacetBsdf *bsdf)
+ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_REFLECTION_ID;
   return SD_BSDF;
 }
 
-ccl_device float3 bsdf_reflection_eval_reflect(const ShaderClosure *sc,
+ccl_device float3 bsdf_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
                                                const float3 I,
                                                const float3 omega_in,
-                                               float *pdf)
+                                               ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc,
+ccl_device float3 bsdf_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
                                                 const float3 I,
                                                 const float3 omega_in,
-                                                float *pdf)
+                                                ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_reflection_sample(const ShaderClosure *sc,
+ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
                                       float3 dIdx,
                                       float3 dIdy,
                                       float randu,
                                       float randv,
-                                      float3 *eval,
-                                      float3 *omega_in,
-                                      float3 *domega_in_dx,
-                                      float3 *domega_in_dy,
-                                      float *pdf)
+                                      ccl_private float3 *eval,
+                                      ccl_private float3 *omega_in,
+                                      ccl_private float3 *domega_in_dx,
+                                      ccl_private float3 *domega_in_dy,
+                                      ccl_private float *pdf)
 {
-  const MicrofacetBsdf *bsdf = (const MicrofacetBsdf *)sc;
+  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float3 N = bsdf->N;
 
   // only one direction is possible

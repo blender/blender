@@ -44,56 +44,56 @@ CCL_NAMESPACE_BEGIN
 
 /* Stack */
 
-ccl_device_inline float3 stack_load_float3(float *stack, uint a)
+ccl_device_inline float3 stack_load_float3(ccl_private float *stack, uint a)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
 
-  float *stack_a = stack + a;
+  ccl_private float *stack_a = stack + a;
   return make_float3(stack_a[0], stack_a[1], stack_a[2]);
 }
 
-ccl_device_inline void stack_store_float3(float *stack, uint a, float3 f)
+ccl_device_inline void stack_store_float3(ccl_private float *stack, uint a, float3 f)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
 
-  float *stack_a = stack + a;
+  ccl_private float *stack_a = stack + a;
   stack_a[0] = f.x;
   stack_a[1] = f.y;
   stack_a[2] = f.z;
 }
 
-ccl_device_inline float stack_load_float(float *stack, uint a)
+ccl_device_inline float stack_load_float(ccl_private float *stack, uint a)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   return stack[a];
 }
 
-ccl_device_inline float stack_load_float_default(float *stack, uint a, uint value)
+ccl_device_inline float stack_load_float_default(ccl_private float *stack, uint a, uint value)
 {
   return (a == (uint)SVM_STACK_INVALID) ? __uint_as_float(value) : stack_load_float(stack, a);
 }
 
-ccl_device_inline void stack_store_float(float *stack, uint a, float f)
+ccl_device_inline void stack_store_float(ccl_private float *stack, uint a, float f)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   stack[a] = f;
 }
 
-ccl_device_inline int stack_load_int(float *stack, uint a)
+ccl_device_inline int stack_load_int(ccl_private float *stack, uint a)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   return __float_as_int(stack[a]);
 }
 
-ccl_device_inline int stack_load_int_default(float *stack, uint a, uint value)
+ccl_device_inline int stack_load_int_default(ccl_private float *stack, uint a, uint value)
 {
   return (a == (uint)SVM_STACK_INVALID) ? (int)value : stack_load_int(stack, a);
 }
 
-ccl_device_inline void stack_store_int(float *stack, uint a, int i)
+ccl_device_inline void stack_store_int(ccl_private float *stack, uint a, int i)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
@@ -107,14 +107,14 @@ ccl_device_inline bool stack_valid(uint a)
 
 /* Reading Nodes */
 
-ccl_device_inline uint4 read_node(const KernelGlobals *kg, int *offset)
+ccl_device_inline uint4 read_node(KernelGlobals kg, ccl_private int *offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
   (*offset)++;
   return node;
 }
 
-ccl_device_inline float4 read_node_float(const KernelGlobals *kg, int *offset)
+ccl_device_inline float4 read_node_float(KernelGlobals kg, ccl_private int *offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
   float4 f = make_float4(__uint_as_float(node.x),
@@ -125,7 +125,7 @@ ccl_device_inline float4 read_node_float(const KernelGlobals *kg, int *offset)
   return f;
 }
 
-ccl_device_inline float4 fetch_node_float(const KernelGlobals *kg, int offset)
+ccl_device_inline float4 fetch_node_float(KernelGlobals kg, int offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, offset);
   return make_float4(__uint_as_float(node.x),
@@ -134,20 +134,26 @@ ccl_device_inline float4 fetch_node_float(const KernelGlobals *kg, int offset)
                      __uint_as_float(node.w));
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar2(uint i, uint *x, uint *y)
+ccl_device_forceinline void svm_unpack_node_uchar2(uint i,
+                                                   ccl_private uint *x,
+                                                   ccl_private uint *y)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar3(uint i, uint *x, uint *y, uint *z)
+ccl_device_forceinline void svm_unpack_node_uchar3(uint i,
+                                                   ccl_private uint *x,
+                                                   ccl_private uint *y,
+                                                   ccl_private uint *z)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);
   *z = ((i >> 16) & 0xFF);
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
+ccl_device_forceinline void svm_unpack_node_uchar4(
+    uint i, ccl_private uint *x, ccl_private uint *y, ccl_private uint *z, ccl_private uint *w)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);
@@ -219,11 +225,12 @@ CCL_NAMESPACE_END
 CCL_NAMESPACE_BEGIN
 
 /* Main Interpreter Loop */
-template<uint node_feature_mask, ShaderType type>
-ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
+template<uint node_feature_mask, ShaderType type, typename ConstIntegratorGenericState>
+ccl_device void svm_eval_nodes(KernelGlobals kg,
+                               ConstIntegratorGenericState state,
                                ShaderData *sd,
                                ccl_global float *render_buffer,
-                               int path_flag)
+                               uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
   int offset = sd->shader & SHADER_MASK;
@@ -250,12 +257,14 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
             kg, sd, stack, node, path_flag, offset);
         break;
       case NODE_CLOSURE_EMISSION:
-        if (KERNEL_NODES_FEATURE(EMISSION)) {
+        IF_KERNEL_NODES_FEATURE(EMISSION)
+        {
           svm_node_closure_emission(sd, stack, node);
         }
         break;
       case NODE_CLOSURE_BACKGROUND:
-        if (KERNEL_NODES_FEATURE(EMISSION)) {
+        IF_KERNEL_NODES_FEATURE(EMISSION)
+        {
           svm_node_closure_background(sd, stack, node);
         }
         break;
@@ -266,7 +275,8 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         svm_node_closure_weight(sd, stack, node.y);
         break;
       case NODE_EMISSION_WEIGHT:
-        if (KERNEL_NODES_FEATURE(EMISSION)) {
+        IF_KERNEL_NODES_FEATURE(EMISSION)
+        {
           svm_node_emission_weight(kg, sd, stack, node);
         }
         break;
@@ -303,27 +313,32 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         svm_node_vertex_color(kg, sd, stack, node.y, node.z, node.w);
         break;
       case NODE_GEOMETRY_BUMP_DX:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z);
         }
         break;
       case NODE_GEOMETRY_BUMP_DY:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z);
         }
         break;
       case NODE_SET_DISPLACEMENT:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_set_displacement(kg, sd, stack, node.y);
         }
         break;
       case NODE_DISPLACEMENT:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_displacement(kg, sd, stack, node);
         }
         break;
       case NODE_VECTOR_DISPLACEMENT:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           offset = svm_node_vector_displacement(kg, sd, stack, node, offset);
         }
         break;
@@ -337,52 +352,62 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         offset = svm_node_tex_noise(kg, sd, stack, node.y, node.z, node.w, offset);
         break;
       case NODE_SET_BUMP:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_set_bump(kg, sd, stack, node);
         }
         break;
       case NODE_ATTR_BUMP_DX:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_attr_bump_dx(kg, sd, stack, node);
         }
         break;
       case NODE_ATTR_BUMP_DY:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_attr_bump_dy(kg, sd, stack, node);
         }
         break;
       case NODE_VERTEX_COLOR_BUMP_DX:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_vertex_color_bump_dx(kg, sd, stack, node.y, node.z, node.w);
         }
         break;
       case NODE_VERTEX_COLOR_BUMP_DY:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_vertex_color_bump_dy(kg, sd, stack, node.y, node.z, node.w);
         }
         break;
       case NODE_TEX_COORD_BUMP_DX:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           offset = svm_node_tex_coord_bump_dx(kg, sd, path_flag, stack, node, offset);
         }
         break;
       case NODE_TEX_COORD_BUMP_DY:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           offset = svm_node_tex_coord_bump_dy(kg, sd, path_flag, stack, node, offset);
         }
         break;
       case NODE_CLOSURE_SET_NORMAL:
-        if (KERNEL_NODES_FEATURE(BUMP)) {
+        IF_KERNEL_NODES_FEATURE(BUMP)
+        {
           svm_node_set_normal(kg, sd, stack, node.y, node.z);
         }
         break;
       case NODE_ENTER_BUMP_EVAL:
-        if (KERNEL_NODES_FEATURE(BUMP_STATE)) {
+        IF_KERNEL_NODES_FEATURE(BUMP_STATE)
+        {
           svm_node_enter_bump_eval(kg, sd, stack, node.y);
         }
         break;
       case NODE_LEAVE_BUMP_EVAL:
-        if (KERNEL_NODES_FEATURE(BUMP_STATE)) {
+        IF_KERNEL_NODES_FEATURE(BUMP_STATE)
+        {
           svm_node_leave_bump_eval(kg, sd, stack, node.y);
         }
         break;
@@ -400,12 +425,14 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         svm_node_layer_weight(sd, stack, node);
         break;
       case NODE_CLOSURE_VOLUME:
-        if (KERNEL_NODES_FEATURE(VOLUME)) {
+        IF_KERNEL_NODES_FEATURE(VOLUME)
+        {
           svm_node_closure_volume<type>(kg, sd, stack, node);
         }
         break;
       case NODE_PRINCIPLED_VOLUME:
-        if (KERNEL_NODES_FEATURE(VOLUME)) {
+        IF_KERNEL_NODES_FEATURE(VOLUME)
+        {
           offset = svm_node_principled_volume<type>(kg, sd, stack, node, path_flag, offset);
         }
         break;
@@ -425,7 +452,7 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         svm_node_brightness(sd, stack, node.y, node.z, node.w);
         break;
       case NODE_LIGHT_PATH:
-        svm_node_light_path(INTEGRATOR_STATE_PASS, sd, stack, node.y, node.z, path_flag);
+        svm_node_light_path<node_feature_mask>(kg, state, sd, stack, node.y, node.z, path_flag);
         break;
       case NODE_OBJECT_INFO:
         svm_node_object_info(kg, sd, stack, node.y, node.z);
@@ -435,7 +462,8 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         break;
 #if defined(__HAIR__)
       case NODE_HAIR_INFO:
-        if (KERNEL_NODES_FEATURE(HAIR)) {
+        IF_KERNEL_NODES_FEATURE(HAIR)
+        {
           svm_node_hair_info(kg, sd, stack, node.y, node.z);
         }
         break;
@@ -547,15 +575,16 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         break;
 #ifdef __SHADER_RAYTRACE__
       case NODE_BEVEL:
-        svm_node_bevel<node_feature_mask>(INTEGRATOR_STATE_PASS, sd, stack, node);
+        svm_node_bevel<node_feature_mask>(kg, state, sd, stack, node);
         break;
       case NODE_AMBIENT_OCCLUSION:
-        svm_node_ao<node_feature_mask>(INTEGRATOR_STATE_PASS, sd, stack, node);
+        svm_node_ao<node_feature_mask>(kg, state, sd, stack, node);
         break;
 #endif
 
       case NODE_TEX_VOXEL:
-        if (KERNEL_NODES_FEATURE(VOLUME)) {
+        IF_KERNEL_NODES_FEATURE(VOLUME)
+        {
           offset = svm_node_tex_voxel(kg, sd, stack, node, offset);
         }
         break;
@@ -565,10 +594,10 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
         }
         break;
       case NODE_AOV_COLOR:
-        svm_node_aov_color(INTEGRATOR_STATE_PASS, sd, stack, node, render_buffer);
+        svm_node_aov_color<node_feature_mask>(kg, state, sd, stack, node, render_buffer);
         break;
       case NODE_AOV_VALUE:
-        svm_node_aov_value(INTEGRATOR_STATE_PASS, sd, stack, node, render_buffer);
+        svm_node_aov_value<node_feature_mask>(kg, state, sd, stack, node, render_buffer);
         break;
       default:
         kernel_assert(!"Unknown node type was passed to the SVM machine");

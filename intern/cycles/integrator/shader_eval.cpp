@@ -34,9 +34,10 @@ ShaderEval::ShaderEval(Device *device, Progress &progress) : device_(device), pr
 }
 
 bool ShaderEval::eval(const ShaderEvalType type,
-                      const int max_num_points,
+                      const int max_num_inputs,
+                      const int num_channels,
                       const function<int(device_vector<KernelShaderEvalInput> &)> &fill_input,
-                      const function<void(device_vector<float4> &)> &read_output)
+                      const function<void(device_vector<float> &)> &read_output)
 {
   bool first_device = true;
   bool success = true;
@@ -50,26 +51,27 @@ bool ShaderEval::eval(const ShaderEvalType type,
     first_device = false;
 
     device_vector<KernelShaderEvalInput> input(device, "ShaderEval input", MEM_READ_ONLY);
-    device_vector<float4> output(device, "ShaderEval output", MEM_READ_WRITE);
+    device_vector<float> output(device, "ShaderEval output", MEM_READ_WRITE);
 
     /* Allocate and copy device buffers. */
     DCHECK_EQ(input.device, device);
     DCHECK_EQ(output.device, device);
     DCHECK_LE(output.size(), input.size());
 
-    input.alloc(max_num_points);
+    input.alloc(max_num_inputs);
     int num_points = fill_input(input);
     if (num_points == 0) {
       return;
     }
 
     input.copy_to_device();
-    output.alloc(num_points);
+    output.alloc(num_points * num_channels);
     output.zero_to_device();
 
     /* Evaluate on CPU or GPU. */
-    success = (device->info.type == DEVICE_CPU) ? eval_cpu(device, type, input, output) :
-                                                  eval_gpu(device, type, input, output);
+    success = (device->info.type == DEVICE_CPU) ?
+                  eval_cpu(device, type, input, output, num_points) :
+                  eval_gpu(device, type, input, output, num_points);
 
     /* Copy data back from device if not canceled. */
     if (success) {
@@ -87,7 +89,8 @@ bool ShaderEval::eval(const ShaderEvalType type,
 bool ShaderEval::eval_cpu(Device *device,
                           const ShaderEvalType type,
                           device_vector<KernelShaderEvalInput> &input,
-                          device_vector<float4> &output)
+                          device_vector<float> &output,
+                          const int64_t work_size)
 {
   vector<CPUKernelThreadGlobals> kernel_thread_globals;
   device->get_cpu_kernel_thread_globals(kernel_thread_globals);
@@ -96,9 +99,8 @@ bool ShaderEval::eval_cpu(Device *device,
   const CPUKernels &kernels = *(device->get_cpu_kernels());
 
   /* Simple parallel_for over all work items. */
-  const int64_t work_size = output.size();
   KernelShaderEvalInput *input_data = input.data();
-  float4 *output_data = output.data();
+  float *output_data = output.data();
   bool success = true;
 
   tbb::task_arena local_arena(device->info.cpu_threads);
@@ -111,7 +113,7 @@ bool ShaderEval::eval_cpu(Device *device,
       }
 
       const int thread_index = tbb::this_task_arena::current_thread_index();
-      KernelGlobals *kg = &kernel_thread_globals[thread_index];
+      const KernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
 
       switch (type) {
         case SHADER_EVAL_DISPLACE:
@@ -119,6 +121,9 @@ bool ShaderEval::eval_cpu(Device *device,
           break;
         case SHADER_EVAL_BACKGROUND:
           kernels.shader_eval_background(kg, input_data, output_data, work_index);
+          break;
+        case SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+          kernels.shader_eval_curve_shadow_transparency(kg, input_data, output_data, work_index);
           break;
       }
     });
@@ -130,7 +135,8 @@ bool ShaderEval::eval_cpu(Device *device,
 bool ShaderEval::eval_gpu(Device *device,
                           const ShaderEvalType type,
                           device_vector<KernelShaderEvalInput> &input,
-                          device_vector<float4> &output)
+                          device_vector<float> &output,
+                          const int64_t work_size)
 {
   /* Find required kernel function. */
   DeviceKernel kernel;
@@ -140,6 +146,9 @@ bool ShaderEval::eval_gpu(Device *device,
       break;
     case SHADER_EVAL_BACKGROUND:
       kernel = DEVICE_KERNEL_SHADER_EVAL_BACKGROUND;
+      break;
+    case SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+      kernel = DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY;
       break;
   };
 
@@ -151,7 +160,6 @@ bool ShaderEval::eval_gpu(Device *device,
    * TODO : query appropriate size from device.*/
   const int64_t chunk_size = 65536;
 
-  const int64_t work_size = output.size();
   void *d_input = (void *)input.device_pointer;
   void *d_output = (void *)output.device_pointer;
 

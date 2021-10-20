@@ -91,7 +91,7 @@ void OSLShaderManager::reset(Scene * /*scene*/)
   shading_system_init();
 }
 
-void OSLShaderManager::host_update_specific(Device *device, Scene *scene, Progress &progress)
+void OSLShaderManager::host_update_specific(Scene *scene, Progress &progress)
 {
   if (!need_update()) {
     return;
@@ -109,7 +109,6 @@ void OSLShaderManager::host_update_specific(Device *device, Scene *scene, Progre
   scene->image_manager->set_osl_texture_system((void *)ts);
 
   /* create shaders */
-  OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
   Shader *background_shader = scene->background->get_shader(scene);
 
   for (Shader *shader : scene->shaders) {
@@ -126,7 +125,7 @@ void OSLShaderManager::host_update_specific(Device *device, Scene *scene, Progre
 
     OSLCompiler compiler(this, services, ss, scene);
     compiler.background = (shader == background_shader);
-    compiler.compile(og, shader);
+    compiler.compile(shader);
 
     if (shader->get_use_mis() && shader->has_surface_emission) {
       scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
@@ -178,13 +177,21 @@ void OSLShaderManager::device_update_specific(Device *device,
   og->ts = ts;
   og->services = services;
 
-  const int background_id = scene->shader_manager->get_shader_id(background_shader);
-  og->background_state = og->surface_state[background_id & SHADER_MASK];
-  og->use = true;
+  for (Shader *shader : scene->shaders) {
+    /* push state to array for lookup */
+    og->surface_state.push_back(shader->osl_surface_ref);
+    og->volume_state.push_back(shader->osl_volume_ref);
+    og->displacement_state.push_back(shader->osl_displacement_ref);
+    og->bump_state.push_back(shader->osl_surface_bump_ref);
 
-  foreach (Shader *shader, scene->shaders) {
     shader->clear_modified();
   }
+
+  const int background_id = scene->shader_manager->get_shader_id(background_shader);
+  const int background_state_index = (background_id & SHADER_MASK);
+  DCHECK_LT(background_state_index, og->surface_state.size());
+  og->background_state = og->surface_state[background_state_index];
+  og->use = true;
 
   update_flags = UPDATE_NONE;
 
@@ -1151,7 +1158,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
   return group;
 }
 
-void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
+void OSLCompiler::compile(Shader *shader)
 {
   if (shader->is_modified()) {
     ShaderGraph *graph = shader->graph;
@@ -1213,12 +1220,6 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     else
       shader->osl_displacement_ref = OSL::ShaderGroupRef();
   }
-
-  /* push state to array for lookup */
-  og->surface_state.push_back(shader->osl_surface_ref);
-  og->volume_state.push_back(shader->osl_volume_ref);
-  og->displacement_state.push_back(shader->osl_displacement_ref);
-  og->bump_state.push_back(shader->osl_surface_bump_ref);
 }
 
 void OSLCompiler::parameter_texture(const char *name, ustring filename, ustring colorspace)

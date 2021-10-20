@@ -36,12 +36,13 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
-                                     const Ray *ray,
-                                     Intersection *isect_array,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
+                                     ccl_private const Ray *ray,
+                                     IntegratorShadowState state,
                                      const uint visibility,
                                      const uint max_hits,
-                                     uint *num_hits)
+                                     ccl_private uint *num_recorded_hits,
+                                     ccl_private float *throughput)
 {
   /* todo:
    * - likely and unlikely for if() statements
@@ -57,21 +58,29 @@ ccl_device_inline
   int node_addr = kernel_data.bvh.root;
 
   /* ray parameters in registers */
-  const float tmax = ray->t;
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
   int object = OBJECT_NONE;
-  float isect_t = tmax;
+  uint num_hits = 0;
 
 #if BVH_FEATURE(BVH_MOTION)
   Transform ob_itfm;
 #endif
 
+  /* Max distance in world space. May be dynamically reduced when max number of
+   * recorded hits is exceeded and we no longer need to find hits beyond the max
+   * distance found. */
+  float t_max_world = ray->t;
+  /* Equal to t_max_world when traversing top level BVH, transformed into local
+   * space when entering instances. */
+  float t_max_current = t_max_world;
+  /* Conversion from world to local space for the current instance if any, 1.0
+   * otherwise. */
   float t_world_to_instance = 1.0f;
 
-  *num_hits = 0;
-  Intersection *isect = isect_array;
+  *num_recorded_hits = 0;
+  *throughput = 1.0f;
 
   /* traversal loop */
   do {
@@ -88,7 +97,7 @@ ccl_device_inline
                                        dir,
 #endif
                                        idir,
-                                       isect_t,
+                                       t_max_current,
                                        node_addr,
                                        visibility,
                                        dist);
@@ -144,17 +153,18 @@ ccl_device_inline
             /* todo: specialized intersect functions which don't fill in
              * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
              * might give a few % performance improvement */
+            Intersection isect ccl_optional_struct_init;
 
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 hit = triangle_intersect(
-                    kg, isect, P, dir, isect_t, visibility, object, prim_addr);
+                    kg, &isect, P, dir, t_max_current, visibility, object, prim_addr);
                 break;
               }
 #if BVH_FEATURE(BVH_MOTION)
               case PRIMITIVE_MOTION_TRIANGLE: {
                 hit = motion_triangle_intersect(
-                    kg, isect, P, dir, isect_t, ray->time, visibility, object, prim_addr);
+                    kg, &isect, P, dir, t_max_current, ray->time, visibility, object, prim_addr);
                 break;
               }
 #endif
@@ -171,11 +181,20 @@ ccl_device_inline
                   }
                 }
 
-                const int curve_object = kernel_tex_fetch(__prim_object, prim_addr);
+                const int curve_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
-                hit = curve_intersect(
-                    kg, isect, P, dir, isect_t, curve_object, curve_prim, ray->time, curve_type);
+                hit = curve_intersect(kg,
+                                      &isect,
+                                      P,
+                                      dir,
+                                      t_max_current,
+                                      curve_object,
+                                      curve_prim,
+                                      ray->time,
+                                      curve_type);
 
                 break;
               }
@@ -189,47 +208,68 @@ ccl_device_inline
             /* shadow ray early termination */
             if (hit) {
               /* Convert intersection distance to world space. */
-              isect->t /= t_world_to_instance;
+              isect.t /= t_world_to_instance;
 
               /* detect if this surface has a shader with transparent shadows */
-
               /* todo: optimize so primitive visibility flag indicates if
                * the primitive has a transparent shadow shader? */
-              const int flags = intersection_get_shader_flags(kg, isect);
+              const int flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
 
-              if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || max_hits == 0) {
+              if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || num_hits >= max_hits) {
                 /* If no transparent shadows, all light is blocked and we can
                  * stop immediately. */
                 return true;
               }
 
-              /* Increase the number of hits, possibly beyond max_hits, we will
-               * simply not record those and only keep the max_hits closest. */
-              (*num_hits)++;
+              num_hits++;
 
-              if (*num_hits >= max_hits) {
-                /* If maximum number of hits reached, find the intersection with
-                 * the largest distance to potentially replace when another hit
-                 * is found. */
-                const int num_recorded_hits = min(max_hits, *num_hits);
-                float max_recorded_t = isect_array[0].t;
-                int max_recorded_hit = 0;
+              bool record_intersection = true;
 
-                for (int i = 1; i < num_recorded_hits; i++) {
-                  if (isect_array[i].t > max_recorded_t) {
-                    max_recorded_t = isect_array[i].t;
-                    max_recorded_hit = i;
+              /* Always use baked shadow transparency for curves. */
+              if (isect.type & PRIMITIVE_ALL_CURVE) {
+                *throughput *= intersection_curve_shadow_transparency(
+                    kg, isect.object, isect.prim, isect.u);
+
+                if (*throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+                  return true;
+                }
+                else {
+                  record_intersection = false;
+                }
+              }
+
+              if (record_intersection) {
+                /* Increase the number of hits, possibly beyond max_hits, we will
+                 * simply not record those and only keep the max_hits closest. */
+                uint record_index = (*num_recorded_hits)++;
+
+                const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+                if (record_index >= max_record_hits - 1) {
+                  /* If maximum number of hits reached, find the intersection with
+                   * the largest distance to potentially replace when another hit
+                   * is found. */
+                  const int num_recorded_hits = min(max_record_hits, record_index);
+                  float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
+                  int max_recorded_hit = 0;
+
+                  for (int i = 1; i < num_recorded_hits; i++) {
+                    const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+                    if (isect_t > max_recorded_t) {
+                      max_recorded_t = isect_t;
+                      max_recorded_hit = i;
+                    }
                   }
+
+                  if (record_index >= max_record_hits) {
+                    record_index = max_recorded_hit;
+                  }
+
+                  /* Limit the ray distance and stop counting hits beyond this. */
+                  t_max_world = max(max_recorded_t, isect.t);
+                  t_max_current = t_max_world * t_world_to_instance;
                 }
 
-                isect = isect_array + max_recorded_hit;
-
-                /* Limit the ray distance and stop counting hits beyond this. */
-                isect_t = max_recorded_t * t_world_to_instance;
-              }
-              else {
-                /* Still have space for intersection, use next hit. */
-                isect = isect + 1;
+                integrator_state_write_shadow_isect(state, &isect, record_index);
               }
             }
 
@@ -248,7 +288,7 @@ ccl_device_inline
 #endif
 
           /* Convert intersection to object space. */
-          isect_t *= t_world_to_instance;
+          t_max_current *= t_world_to_instance;
 
           ++stack_ptr;
           kernel_assert(stack_ptr < BVH_STACK_SIZE);
@@ -269,10 +309,8 @@ ccl_device_inline
       bvh_instance_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX);
 #endif
 
-      /* Restore world space ray length. If max number of hits exceeded this
-       * distance is reduced to recorded only the closest hits. If not use
-       * the original ray length. */
-      isect_t = (max_hits && *num_hits > max_hits) ? isect->t : tmax;
+      /* Restore world space ray length. */
+      t_max_current = t_max_world;
 
       object = OBJECT_NONE;
       t_world_to_instance = 1.0f;
@@ -284,14 +322,16 @@ ccl_device_inline
   return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
-                                         const Ray *ray,
-                                         Intersection *isect_array,
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
+                                         ccl_private const Ray *ray,
+                                         IntegratorShadowState state,
                                          const uint visibility,
                                          const uint max_hits,
-                                         uint *num_hits)
+                                         ccl_private uint *num_recorded_hits,
+                                         ccl_private float *throughput)
 {
-  return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect_array, visibility, max_hits, num_hits);
+  return BVH_FUNCTION_FULL_NAME(BVH)(
+      kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
 }
 
 #undef BVH_FUNCTION_NAME

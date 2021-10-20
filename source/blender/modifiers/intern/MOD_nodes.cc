@@ -151,6 +151,12 @@ static void addIdsUsedBySocket(const ListBase *sockets, Set<ID *> &ids)
         ids.add(&texture->id);
       }
     }
+    else if (socket->type == SOCK_IMAGE) {
+      Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
+      if (image != nullptr) {
+        ids.add(&image->id);
+      }
+    }
   }
 }
 
@@ -236,6 +242,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
           add_collection_relation(ctx, *collection);
           break;
         }
+        case ID_IM:
         case ID_TE: {
           DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
         }
@@ -420,6 +427,12 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       idprop.id = (ID *)value->value;
       return IDP_New(IDP_ID, &idprop, socket.identifier);
     }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *value = (bNodeSocketValueImage *)socket.default_value;
+      IDPropertyTemplate idprop = {0};
+      idprop.id = (ID *)value->value;
+      return IDP_New(IDP_ID, &idprop, socket.identifier);
+    }
     case SOCK_MATERIAL: {
       bNodeSocketValueMaterial *value = (bNodeSocketValueMaterial *)socket.default_value;
       IDPropertyTemplate idprop = {0};
@@ -448,6 +461,7 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
     case SOCK_OBJECT:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
+    case SOCK_IMAGE:
     case SOCK_MATERIAL:
       return property.type == IDP_ID;
   }
@@ -517,6 +531,12 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       *(Tex **)r_value = texture;
       break;
     }
+    case SOCK_IMAGE: {
+      ID *id = IDP_Id(&property);
+      Image *image = (id && GS(id->name) == ID_IM) ? (Image *)id : nullptr;
+      *(Image **)r_value = image;
+      break;
+    }
     case SOCK_MATERIAL: {
       ID *id = IDP_Id(&property);
       Material *material = (id && GS(id->name) == ID_MA) ? (Material *)id : nullptr;
@@ -579,7 +599,7 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       }
     }
 
-    if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+    if (socket_type_has_attribute_toggle(*socket)) {
       const std::string use_attribute_id = socket->identifier + use_attribute_suffix;
       const std::string attribute_name_id = socket->identifier + attribute_name_suffix;
 
@@ -904,7 +924,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
 {
   blender::ResourceScope scope;
   blender::LinearAllocator<> &allocator = scope.linear_allocator();
-  blender::nodes::NodeMultiFunctions mf_by_node{tree, scope};
+  blender::nodes::NodeMultiFunctions mf_by_node{tree};
 
   Map<DOutputSocket, GMutablePointer> group_inputs;
 
@@ -1073,12 +1093,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   modifyGeometry(md, ctx, geometry_set);
 
-  if (ctx->flag & MOD_APPLY_TO_BASE_MESH) {
-    /* In this case it makes sense to realize instances, otherwise in some cases there might be no
-     * results when applying the modifier. */
-    geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
-  }
-
   Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
   if (new_mesh == nullptr) {
     return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
@@ -1143,6 +1157,10 @@ static void draw_property_for_socket(uiLayout *layout,
     }
     case SOCK_TEXTURE: {
       uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      break;
+    }
+    case SOCK_IMAGE: {
+      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
       break;
     }
     default: {

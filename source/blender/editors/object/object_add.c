@@ -259,8 +259,8 @@ static bool object_add_drop_xy_get(bContext *C, wmOperator *op, int (*r_mval)[2]
 static int object_add_drop_xy_generic_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!object_add_drop_xy_is_set(op)) {
-    RNA_int_set(op->ptr, "drop_x", event->x);
-    RNA_int_set(op->ptr, "drop_y", event->y);
+    RNA_int_set(op->ptr, "drop_x", event->xy[0]);
+    RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
   return op->type->exec(C, op);
 }
@@ -1487,7 +1487,7 @@ static void object_add_ui(bContext *UNUSED(C), wmOperator *op)
   uiItemR(layout, op->ptr, "type", 0, NULL, ICON_NONE);
 
   int type = RNA_enum_get(op->ptr, "type");
-  if (type == GP_LRT_COLLECTION || type == GP_LRT_OBJECT || type == GP_LRT_SCENE) {
+  if (ELEM(type, GP_LRT_COLLECTION, GP_LRT_OBJECT, GP_LRT_SCENE)) {
     uiItemR(layout, op->ptr, "use_lights", 0, NULL, ICON_NONE);
     uiItemR(layout, op->ptr, "use_in_front", 0, NULL, ICON_NONE);
     bool in_front = RNA_boolean_get(op->ptr, "use_in_front");
@@ -1691,8 +1691,8 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 static int object_instance_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!object_add_drop_xy_is_set(op)) {
-    RNA_int_set(op->ptr, "drop_x", event->x);
-    RNA_int_set(op->ptr, "drop_y", event->y);
+    RNA_int_set(op->ptr, "drop_x", event->xy[0]);
+    RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
 
   if (!RNA_struct_property_is_set(op->ptr, "name")) {
@@ -1997,6 +1997,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool use_global = RNA_boolean_get(op->ptr, "use_global");
+  const bool confirm = op->flag & OP_IS_INVOKE;
   uint changed_count = 0;
   uint tagged_count = 0;
 
@@ -2075,7 +2076,9 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     BKE_id_multi_tagged_delete(bmain);
   }
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
+  if (confirm) {
+    BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
+  }
 
   /* delete has to handle all open scenes */
   BKE_main_id_tag_listbase(&bmain->scenes, LIB_TAG_DOIT, true);

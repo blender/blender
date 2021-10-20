@@ -177,24 +177,6 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   }
 
  private:
-  template<typename T>
-  ReadAttributeLookup layer_to_read_attribute(const CustomDataLayer &layer,
-                                              const int domain_size) const
-  {
-    return {std::make_unique<fn::GVArray_For_Span<T>>(
-                Span(static_cast<const T *>(layer.data), domain_size)),
-            domain_};
-  }
-
-  template<typename T>
-  WriteAttributeLookup layer_to_write_attribute(CustomDataLayer &layer,
-                                                const int domain_size) const
-  {
-    return {std::make_unique<fn::GVMutableArray_For_MutableSpan<T>>(
-                MutableSpan(static_cast<T *>(layer.data), domain_size)),
-            domain_};
-  }
-
   bool type_is_supported(CustomDataType data_type) const
   {
     return ((1ULL << data_type) & supported_types_mask) != 0;

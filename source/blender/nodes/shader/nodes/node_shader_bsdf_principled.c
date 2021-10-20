@@ -183,7 +183,7 @@ static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
       }
     }
 
-    if (STREQ(sock->name, "Subsurface IOR") || STREQ(sock->name, "Subsurface Anisotropy")) {
+    if (STR_ELEM(sock->name, "Subsurface IOR", "Subsurface Anisotropy")) {
       if (sss_method == SHD_SUBSURFACE_BURLEY) {
         sock->flag |= SOCK_UNAVAIL;
       }

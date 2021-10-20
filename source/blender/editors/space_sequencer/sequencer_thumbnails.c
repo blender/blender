@@ -85,7 +85,7 @@ static void thumbnail_endjob(void *data)
 
 static bool check_seq_need_thumbnails(Sequence *seq, rctf *view_area)
 {
-  if (seq->type != SEQ_TYPE_MOVIE && seq->type != SEQ_TYPE_IMAGE) {
+  if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
   if (min_ii(seq->startdisp, seq->start) > view_area->xmax) {
@@ -165,6 +165,8 @@ static void thumbnail_start_job(void *data,
   float start_frame, frame_step;
 
   GHashIterator gh_iter;
+
+  /* First pass: render visible images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
   while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
     Sequence *seq_orig = BLI_ghashIterator_getKey(&gh_iter);
@@ -176,6 +178,21 @@ static void thumbnail_start_job(void *data,
       start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails(
           &tj->context, val->seq_dupli, seq_orig, start_frame, frame_step, tj->view_area, stop);
+      SEQ_relations_sequence_free_anim(val->seq_dupli);
+    }
+    BLI_ghashIterator_step(&gh_iter);
+  }
+
+  /* Second pass: render "guaranteed" set of images. */
+  BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
+  while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
+    Sequence *seq_orig = BLI_ghashIterator_getKey(&gh_iter);
+    ThumbDataItem *val = BLI_ghash_lookup(tj->sequences_ghash, seq_orig);
+
+    if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
+      seq_get_thumb_image_dimensions(
+          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, NULL, NULL, NULL);
+      start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
@@ -291,20 +308,26 @@ static void sequencer_thumbnail_start_job_if_necessary(const bContext *C,
     return;
   }
 
-  /* `thumbnail_is_missing` should be set to true if missing image in strip. False when normal call
-   * to all strips done.  */
-  if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax || thumbnail_is_missing) {
-
-    /* Stop the job first as view has changed. Pointless to continue old job. */
-    if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-        v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
-      WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
-    }
-
-    sequencer_thumbnail_init_job(C, v2d, ed);
-    sseq->runtime.last_thumbnail_area = v2d->cur;
+  /* During rendering, cache is wiped, it doesn't make sense to render thumbnails. */
+  if (G.is_rendering) {
+    return;
   }
+
+  /* Job start requested, but over area which has been processed. Unless `thumbnail_is_missing` is
+   * true, ignore this request as all images are in view. */
+  if (v2d->cur.xmax == sseq->runtime.last_thumbnail_area.xmax &&
+      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing) {
+    return;
+  }
+
+  /* Stop the job first as view has changed. Pointless to continue old job. */
+  if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
+      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
+    WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
+  }
+
+  sequencer_thumbnail_init_job(C, v2d, ed);
+  sseq->runtime.last_thumbnail_area = v2d->cur;
 }
 
 void last_displayed_thumbnails_list_free(void *val)

@@ -34,8 +34,8 @@ CCL_NAMESPACE_BEGIN
  * normals */
 
 /* return 3 triangle vertex normals */
-ccl_device_noinline void motion_triangle_shader_setup(const KernelGlobals *kg,
-                                                      ShaderData *sd,
+ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
+                                                      ccl_private ShaderData *sd,
                                                       const float3 P,
                                                       const float3 D,
                                                       const float ray_t,
@@ -56,8 +56,7 @@ ccl_device_noinline void motion_triangle_shader_setup(const KernelGlobals *kg,
   int step = min((int)(sd->time * maxstep), maxstep - 1);
   float t = sd->time * maxstep - step;
   /* Find attribute. */
-  AttributeElement elem;
-  int offset = find_attribute_motion(kg, sd->object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+  int offset = intersection_find_attribute(kg, sd->object, ATTR_STD_MOTION_VERTEX_POSITION);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
   /* Fetch vertex coordinates. */
   float3 verts[3], next_verts[3];
@@ -96,8 +95,7 @@ ccl_device_noinline void motion_triangle_shader_setup(const KernelGlobals *kg,
   /* Compute smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
     /* Find attribute. */
-    AttributeElement elem;
-    int offset = find_attribute_motion(kg, sd->object, ATTR_STD_MOTION_VERTEX_NORMAL, &elem);
+    int offset = intersection_find_attribute(kg, sd->object, ATTR_STD_MOTION_VERTEX_NORMAL);
     kernel_assert(offset != ATTR_STD_NOT_FOUND);
     /* Fetch vertex coordinates. */
     float3 normals[3], next_normals[3];

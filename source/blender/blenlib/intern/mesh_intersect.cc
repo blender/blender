@@ -1162,7 +1162,7 @@ static int filter_plane_side(const double3 &p,
 }
 
 /*
- * interesect_tri_tri and helper functions.
+ * #intersect_tri_tri and helper functions.
  * This code uses the algorithm of Guigue and Devillers, as described
  * in "Faster Triangle-Triangle Intersection Tests".
  * Adapted from code by Eric Haines:

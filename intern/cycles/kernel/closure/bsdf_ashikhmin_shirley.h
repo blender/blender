@@ -30,7 +30,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device int bsdf_ashikhmin_shirley_setup(MicrofacetBsdf *bsdf)
+ccl_device int bsdf_ashikhmin_shirley_setup(ccl_private MicrofacetBsdf *bsdf)
 {
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
@@ -39,9 +39,9 @@ ccl_device int bsdf_ashikhmin_shirley_setup(MicrofacetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_ashikhmin_shirley_blur(ShaderClosure *sc, float roughness)
+ccl_device void bsdf_ashikhmin_shirley_blur(ccl_private ShaderClosure *sc, float roughness)
 {
-  MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)sc;
 
   bsdf->alpha_x = fmaxf(roughness, bsdf->alpha_x);
   bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
@@ -52,12 +52,13 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
   return 2.0f / (roughness * roughness) - 2.0f;
 }
 
-ccl_device_forceinline float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc,
-                                                                  const float3 I,
-                                                                  const float3 omega_in,
-                                                                  float *pdf)
+ccl_device_forceinline float3
+bsdf_ashikhmin_shirley_eval_reflect(ccl_private const ShaderClosure *sc,
+                                    const float3 I,
+                                    const float3 omega_in,
+                                    ccl_private float *pdf)
 {
-  const MicrofacetBsdf *bsdf = (const MicrofacetBsdf *)sc;
+  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float3 N = bsdf->N;
 
   float NdotI = dot(N, I);        /* in Cycles/OSL convention I is omega_out */
@@ -119,16 +120,20 @@ ccl_device_forceinline float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderCl
   return make_float3(out, out, out);
 }
 
-ccl_device float3 bsdf_ashikhmin_shirley_eval_transmit(const ShaderClosure *sc,
+ccl_device float3 bsdf_ashikhmin_shirley_eval_transmit(ccl_private const ShaderClosure *sc,
                                                        const float3 I,
                                                        const float3 omega_in,
-                                                       float *pdf)
+                                                       ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(
-    float n_x, float n_y, float randu, float randv, float *phi, float *cos_theta)
+ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
+                                                                    float n_y,
+                                                                    float randu,
+                                                                    float randv,
+                                                                    ccl_private float *phi,
+                                                                    ccl_private float *cos_theta)
 {
   *phi = atanf(sqrtf((n_x + 1.0f) / (n_y + 1.0f)) * tanf(M_PI_2_F * randu));
   float cos_phi = cosf(*phi);
@@ -136,20 +141,20 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(
   *cos_theta = powf(randv, 1.0f / (n_x * cos_phi * cos_phi + n_y * sin_phi * sin_phi + 1.0f));
 }
 
-ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc,
+ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
                                              float3 I,
                                              float3 dIdx,
                                              float3 dIdy,
                                              float randu,
                                              float randv,
-                                             float3 *eval,
-                                             float3 *omega_in,
-                                             float3 *domega_in_dx,
-                                             float3 *domega_in_dy,
-                                             float *pdf)
+                                             ccl_private float3 *eval,
+                                             ccl_private float3 *omega_in,
+                                             ccl_private float3 *domega_in_dx,
+                                             ccl_private float3 *domega_in_dy,
+                                             ccl_private float *pdf)
 {
-  const MicrofacetBsdf *bsdf = (const MicrofacetBsdf *)sc;
+  ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float3 N = bsdf->N;
   int label = LABEL_REFLECT | LABEL_GLOSSY;
 

@@ -208,7 +208,7 @@ static void geo_node_curve_endpoints_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_curve_endpoints()
+void register_node_type_geo_legacy_curve_endpoints()
 {
   static bNodeType ntype;
 

@@ -31,9 +31,9 @@
  * BVH_MOTION: motion blur rendering
  */
 
-ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
-                                                     const Ray *ray,
-                                                     Intersection *isect,
+ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
+                                                     ccl_private const Ray *ray,
+                                                     ccl_private Intersection *isect,
                                                      const uint visibility)
 {
   /* todo:
@@ -172,7 +172,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
                   }
                 }
 
-                const int curve_object = kernel_tex_fetch(__prim_object, prim_addr);
+                const int curve_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
                 const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const bool hit = curve_intersect(
@@ -226,9 +228,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
   return (isect->prim != PRIM_NONE);
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
-                                         const Ray *ray,
-                                         Intersection *isect,
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
+                                         ccl_private const Ray *ray,
+                                         ccl_private Intersection *isect,
                                          const uint visibility)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect, visibility);

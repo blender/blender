@@ -34,6 +34,8 @@
 #include "kernel/bvh/bvh_types.h"
 #include "kernel/bvh/bvh_util.h"
 
+#include "kernel/integrator/integrator_state_util.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_OPTIX__
@@ -139,7 +141,7 @@ CCL_NAMESPACE_BEGIN
 
 #endif /* __KERNEL_OPTIX__ */
 
-ccl_device_inline bool scene_intersect_valid(const Ray *ray)
+ccl_device_inline bool scene_intersect_valid(ccl_private const Ray *ray)
 {
   /* NOTE: Due to some vectorization code  non-finite origin point might
    * cause lots of false-positive intersections which will overflow traversal
@@ -154,10 +156,10 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
   return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
 }
 
-ccl_device_intersect bool scene_intersect(const KernelGlobals *kg,
-                                          const Ray *ray,
+ccl_device_intersect bool scene_intersect(KernelGlobals kg,
+                                          ccl_private const Ray *ray,
                                           const uint visibility,
-                                          Intersection *isect)
+                                          ccl_private Intersection *isect)
 {
 #ifdef __KERNEL_OPTIX__
   uint p0 = 0;
@@ -248,18 +250,18 @@ ccl_device_intersect bool scene_intersect(const KernelGlobals *kg,
 }
 
 #ifdef __BVH_LOCAL__
-ccl_device_intersect bool scene_intersect_local(const KernelGlobals *kg,
-                                                const Ray *ray,
-                                                LocalIntersection *local_isect,
+ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
+                                                ccl_private const Ray *ray,
+                                                ccl_private LocalIntersection *local_isect,
                                                 int local_object,
-                                                uint *lcg_state,
+                                                ccl_private uint *lcg_state,
                                                 int max_hits)
 {
 #  ifdef __KERNEL_OPTIX__
-  uint p0 = ((uint64_t)lcg_state) & 0xFFFFFFFF;
-  uint p1 = (((uint64_t)lcg_state) >> 32) & 0xFFFFFFFF;
-  uint p2 = ((uint64_t)local_isect) & 0xFFFFFFFF;
-  uint p3 = (((uint64_t)local_isect) >> 32) & 0xFFFFFFFF;
+  uint p0 = pointer_pack_to_uint_0(lcg_state);
+  uint p1 = pointer_pack_to_uint_1(lcg_state);
+  uint p2 = pointer_pack_to_uint_0(local_isect);
+  uint p3 = pointer_pack_to_uint_1(local_isect);
   uint p4 = local_object;
   /* Is set to zero on miss or if ray is aborted, so can be used as return value. */
   uint p5 = max_hits;
@@ -360,16 +362,18 @@ ccl_device_intersect bool scene_intersect_local(const KernelGlobals *kg,
 #endif
 
 #ifdef __SHADOW_RECORD_ALL__
-ccl_device_intersect bool scene_intersect_shadow_all(const KernelGlobals *kg,
-                                                     const Ray *ray,
-                                                     Intersection *isect,
+ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
+                                                     IntegratorShadowState state,
+                                                     ccl_private const Ray *ray,
                                                      uint visibility,
                                                      uint max_hits,
-                                                     uint *num_hits)
+                                                     ccl_private uint *num_recorded_hits,
+                                                     ccl_private float *throughput)
 {
 #  ifdef __KERNEL_OPTIX__
-  uint p0 = ((uint64_t)isect) & 0xFFFFFFFF;
-  uint p1 = (((uint64_t)isect) >> 32) & 0xFFFFFFFF;
+  uint p0 = state;
+  uint p1 = __float_as_uint(1.0f); /* Throughput. */
+  uint p2 = 0;                     /* Number of hits. */
   uint p3 = max_hits;
   uint p4 = visibility;
   uint p5 = false;
@@ -379,7 +383,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(const KernelGlobals *kg,
     ray_mask = 0xFF;
   }
 
-  *num_hits = 0; /* Initialize hit count to zero. */
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
              ray->P,
              ray->D,
@@ -394,29 +397,35 @@ ccl_device_intersect bool scene_intersect_shadow_all(const KernelGlobals *kg,
              0,
              p0,
              p1,
-             *num_hits,
+             p2,
              p3,
              p4,
              p5);
 
+  *num_recorded_hits = uint16_unpack_from_uint_0(p2);
+  *throughput = __uint_as_float(p1);
+
   return p5;
 #  else /* __KERNEL_OPTIX__ */
   if (!scene_intersect_valid(ray)) {
-    *num_hits = 0;
+    *num_recorded_hits = 0;
+    *throughput = 1.0f;
     return false;
   }
 
 #    ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
-    ctx.isect_s = isect;
+    Intersection *isect_array = (Intersection *)state->shadow_isect;
+    ctx.isect_s = isect_array;
     ctx.max_hits = max_hits;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
     rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
 
-    *num_hits = ctx.num_hits;
+    *num_recorded_hits = ctx.num_recorded_hits;
+    *throughput = ctx.throughput;
     return ctx.opaque_hit;
   }
 #    endif /* __EMBREE__ */
@@ -425,29 +434,33 @@ ccl_device_intersect bool scene_intersect_shadow_all(const KernelGlobals *kg,
   if (kernel_data.bvh.have_motion) {
 #      ifdef __HAIR__
     if (kernel_data.bvh.have_curves) {
-      return bvh_intersect_shadow_all_hair_motion(kg, ray, isect, visibility, max_hits, num_hits);
+      return bvh_intersect_shadow_all_hair_motion(
+          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
     }
 #      endif /* __HAIR__ */
 
-    return bvh_intersect_shadow_all_motion(kg, ray, isect, visibility, max_hits, num_hits);
+    return bvh_intersect_shadow_all_motion(
+        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
   }
 #    endif   /* __OBJECT_MOTION__ */
 
 #    ifdef __HAIR__
   if (kernel_data.bvh.have_curves) {
-    return bvh_intersect_shadow_all_hair(kg, ray, isect, visibility, max_hits, num_hits);
+    return bvh_intersect_shadow_all_hair(
+        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
   }
 #    endif /* __HAIR__ */
 
-  return bvh_intersect_shadow_all(kg, ray, isect, visibility, max_hits, num_hits);
+  return bvh_intersect_shadow_all(
+      kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
 #  endif   /* __KERNEL_OPTIX__ */
 }
 #endif /* __SHADOW_RECORD_ALL__ */
 
 #ifdef __VOLUME__
-ccl_device_intersect bool scene_intersect_volume(const KernelGlobals *kg,
-                                                 const Ray *ray,
-                                                 Intersection *isect,
+ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
+                                                 ccl_private const Ray *ray,
+                                                 ccl_private Intersection *isect,
                                                  const uint visibility)
 {
 #  ifdef __KERNEL_OPTIX__
@@ -507,9 +520,9 @@ ccl_device_intersect bool scene_intersect_volume(const KernelGlobals *kg,
 #endif /* __VOLUME__ */
 
 #ifdef __VOLUME_RECORD_ALL__
-ccl_device_intersect uint scene_intersect_volume_all(const KernelGlobals *kg,
-                                                     const Ray *ray,
-                                                     Intersection *isect,
+ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
+                                                     ccl_private const Ray *ray,
+                                                     ccl_private Intersection *isect,
                                                      const uint max_hits,
                                                      const uint visibility)
 {

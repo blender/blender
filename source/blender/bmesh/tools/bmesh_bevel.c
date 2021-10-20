@@ -4691,7 +4691,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
            * vertices to snap to the midline on the pipe, not just to one plane or the other. */
           bool even = (ns % 2) == 0;
           bool midline = even && k == half_ns &&
-                         ((i == 0 && j == half_ns) || (i == ipipe1 || i == ipipe2));
+                         ((i == 0 && j == half_ns) || (ELEM(i, ipipe1, ipipe2)));
           snap_to_pipe_profile(vpipe, midline, mesh_vert(vm, i, j, k)->co);
         }
       }
@@ -5217,7 +5217,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
   for (int i = 0; i < n_bndv; i++) {
     for (int j = 0; j <= ns2; j++) {
       for (int k = 0; k <= ns; k++) {
-        if (j == 0 && (k == 0 || k == ns)) {
+        if (j == 0 && (ELEM(k, 0, ns))) {
           continue; /* Boundary corners already made. */
         }
         if (!is_canon(vm, i, j, k)) {
@@ -5794,7 +5794,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 
   /* Make sure the pipe case ADJ mesh is used for both the "Grid Fill" (ADJ) and cutoff options. */
   BoundVert *vpipe = NULL;
-  if ((vm->count == 3 || vm->count == 4) && bp->seg > 1) {
+  if (ELEM(vm->count, 3, 4) && bp->seg > 1) {
     /* Result is passed to bevel_build_rings to avoid overhead. */
     vpipe = pipe_test(bv);
     if (vpipe) {

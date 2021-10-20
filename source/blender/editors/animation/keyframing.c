@@ -425,7 +425,7 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         if (flag & INSERTKEY_CYCLE_AWARE) {
           /* If replacing an end point of a cyclic curve without offset,
            * modify the other end too. */
-          if ((i == 0 || i == fcu->totvert - 1) &&
+          if (ELEM(i, 0, fcu->totvert - 1) &&
               BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT) {
             replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
           }

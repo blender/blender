@@ -34,7 +34,14 @@ struct bContext;
  *
  * \return whether the datablock was marked as asset; false when it is not capable of becoming an
  * asset, or when it already was an asset. */
-bool ED_asset_mark_id(const struct bContext *C, struct ID *id);
+bool ED_asset_mark_id(struct ID *id);
+
+/**
+ * Generate preview image for the given datablock.
+ *
+ * The preview image might be generated using a background thread.
+ */
+void ED_asset_generate_preview(const struct bContext *C, struct ID *id);
 
 /**
  * Remove the asset metadata, turning the ID into a "normal" ID.

@@ -939,7 +939,7 @@ typedef enum eTrackToAxis_Modes {
 
 /* Shrinkwrap flags */
 typedef enum eShrinkwrap_Flags {
-  /* Also raycast in the opposite direction. */
+  /* Also ray-cast in the opposite direction. */
   CON_SHRINKWRAP_PROJECT_OPPOSITE = (1 << 0),
   /* Invert the cull mode when projecting opposite. */
   CON_SHRINKWRAP_PROJECT_INVERT_CULL = (1 << 1),

@@ -52,7 +52,7 @@
 #include "WM_types.h"
 
 /* NOTE: image_panel_properties() uses pointer to sima->image directly. */
-Image *ED_space_image(SpaceImage *sima)
+Image *ED_space_image(const SpaceImage *sima)
 {
   return sima->image;
 }
@@ -113,7 +113,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
   }
 }
 
-Mask *ED_space_image_get_mask(SpaceImage *sima)
+Mask *ED_space_image_get_mask(const SpaceImage *sima)
 {
   return sima->mask_info.mask;
 }
@@ -434,7 +434,7 @@ void ED_space_image_scopes_update(const struct bContext *C,
   /* We also don't update scopes of render result during render. */
   if (G.is_rendering) {
     const Image *image = sima->image;
-    if (image != NULL && (image->type == IMA_TYPE_R_RESULT || image->type == IMA_TYPE_COMPOSITE)) {
+    if (image != NULL && (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))) {
       return;
     }
   }

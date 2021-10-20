@@ -26,8 +26,8 @@ namespace blender::nodes {
 static void geo_node_set_curve_handles_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Vector>("Position").implicit_field();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>("Position").implicit_field();
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -78,17 +78,21 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
         if (selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
             if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Vector) {
+              bezier.ensure_auto_handles();
               bezier.handle_types_left()[i] = BezierSpline::HandleType::Free;
             }
             else if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Auto) {
+              bezier.ensure_auto_handles();
               bezier.handle_types_left()[i] = BezierSpline::HandleType::Align;
             }
           }
           else {
             if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Vector) {
+              bezier.ensure_auto_handles();
               bezier.handle_types_right()[i] = BezierSpline::HandleType::Free;
             }
             else if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Auto) {
+              bezier.ensure_auto_handles();
               bezier.handle_types_right()[i] = BezierSpline::HandleType::Align;
             }
           }

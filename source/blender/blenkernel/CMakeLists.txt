@@ -90,6 +90,7 @@ set(SRC
   intern/asset_catalog.cc
   intern/asset_catalog_path.cc
   intern/asset_library.cc
+  intern/asset_library_service.cc
   intern/attribute.c
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -479,6 +480,7 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
+  intern/asset_library_service.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -807,8 +809,9 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
-    intern/asset_catalog_test.cc
     intern/asset_catalog_path_test.cc
+    intern/asset_catalog_test.cc
+    intern/asset_library_service_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
     intern/cryptomatte_test.cc

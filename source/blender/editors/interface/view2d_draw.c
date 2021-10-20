@@ -394,29 +394,33 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   const int font_id = BLF_default();
   UI_FontThemeColor(font_id, colorid);
 
-  BLF_enable(font_id, BLF_ROTATION);
-  BLF_rotation(font_id, M_PI_2);
-
   BLF_batch_draw_begin();
 
-  const float xpos = rect->xmax - 2.0f * UI_DPI_FAC;
+  BLF_enable(font_id, BLF_SHADOW);
+  const float shadow_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  BLF_shadow(font_id, 5, shadow_color);
+  BLF_shadow_offset(font_id, 1, -1);
+
+  const float x_offset = 8.0f;
+  const float xpos = (rect->xmin + x_offset) * UI_DPI_FAC;
   const float ymin = rect->ymin;
   const float ymax = rect->ymax;
+  const float y_offset = (BLF_height(font_id, "0", 1) / 2.0f) - U.pixelsize;
 
   for (uint i = 0; i < steps; i++) {
     const float ypos_view = start + i * distance;
     const float ypos_region = UI_view2d_view_to_region_y(v2d, ypos_view + display_offset);
     char text[32];
     to_string(to_string_data, ypos_view, distance, sizeof(text), text);
-    const float text_width = BLF_width(font_id, text, strlen(text));
 
-    if (ypos_region - text_width / 2.0f >= ymin && ypos_region + text_width / 2.0f <= ymax) {
-      BLF_draw_default(xpos, ypos_region - text_width / 2.0f, 0.0f, text, sizeof(text));
+    if (ypos_region - y_offset >= ymin && ypos_region + y_offset <= ymax) {
+      BLF_draw_default(xpos, ypos_region - y_offset, 0.0f, text, sizeof(text));
     }
   }
 
+  BLF_disable(font_id, BLF_SHADOW);
+
   BLF_batch_draw_end();
-  BLF_disable(font_id, BLF_ROTATION);
 
   GPU_matrix_pop_projection();
 }

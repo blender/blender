@@ -43,6 +43,7 @@ namespace blender::nodes {
 static void geo_node_point_distribute_points_on_faces_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>("Distance Min").min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Density Max").default_value(10.0f).min(0.0f);
   b.add_input<decl::Float>("Density").default_value(10.0f).supports_field();
@@ -53,7 +54,6 @@ static void geo_node_point_distribute_points_on_faces_declare(NodeDeclarationBui
       .subtype(PROP_FACTOR)
       .supports_field();
   b.add_input<decl::Int>("Seed");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
 
   b.add_output<decl::Geometry>("Points");
   b.add_output<decl::Vector>("Normal").field_source();
@@ -70,7 +70,7 @@ static void geo_node_point_distribute_points_on_faces_layout(uiLayout *layout,
 
 static void node_point_distribute_points_on_faces_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  bNodeSocket *sock_distance_min = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *sock_distance_min = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sock_density_max = (bNodeSocket *)sock_distance_min->next;
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
@@ -255,18 +255,26 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
 {
   switch (source_domain) {
     case ATTR_DOMAIN_POINT: {
-      bke::mesh_surface_sample::sample_point_attribute(
-          mesh, looptri_indices, bary_coords, source_data, output_data);
+      bke::mesh_surface_sample::sample_point_attribute(mesh,
+                                                       looptri_indices,
+                                                       bary_coords,
+                                                       source_data,
+                                                       IndexMask(output_data.size()),
+                                                       output_data);
       break;
     }
     case ATTR_DOMAIN_CORNER: {
-      bke::mesh_surface_sample::sample_corner_attribute(
-          mesh, looptri_indices, bary_coords, source_data, output_data);
+      bke::mesh_surface_sample::sample_corner_attribute(mesh,
+                                                        looptri_indices,
+                                                        bary_coords,
+                                                        source_data,
+                                                        IndexMask(output_data.size()),
+                                                        output_data);
       break;
     }
     case ATTR_DOMAIN_FACE: {
       bke::mesh_surface_sample::sample_face_attribute(
-          mesh, looptri_indices, source_data, output_data);
+          mesh, looptri_indices, source_data, IndexMask(output_data.size()), output_data);
       break;
     }
     default: {

@@ -52,6 +52,7 @@ using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
 using blender::fn::GVArray_For_GSpan;
 using blender::fn::GVArray_For_SingleValue;
+using blender::fn::GVMutableArray_For_GMutableSpan;
 
 namespace blender::bke {
 
@@ -233,6 +234,109 @@ OutputAttribute::~OutputAttribute()
   }
 }
 
+static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data,
+                                                         const CustomDataType data_type,
+                                                         const int domain_size,
+                                                         const AttributeInit &initializer)
+{
+  switch (initializer.type) {
+    case AttributeInit::Type::Default: {
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
+      return data != nullptr;
+    }
+    case AttributeInit::Type::VArray: {
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
+      if (data == nullptr) {
+        return false;
+      }
+      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
+      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
+      return true;
+    }
+    case AttributeInit::Type::MoveArray: {
+      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *data = CustomData_add_layer(
+          &custom_data, data_type, CD_ASSIGN, source_data, domain_size);
+      if (data == nullptr) {
+        MEM_freeN(source_data);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
+static void *add_generic_custom_data_layer(CustomData &custom_data,
+                                           const CustomDataType data_type,
+                                           const eCDAllocType alloctype,
+                                           void *layer_data,
+                                           const int domain_size,
+                                           const AttributeIDRef &attribute_id)
+{
+  if (attribute_id.is_named()) {
+    char attribute_name_c[MAX_NAME];
+    attribute_id.name().copy(attribute_name_c);
+    return CustomData_add_layer_named(
+        &custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
+  }
+  const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
+  return CustomData_add_layer_anonymous(
+      &custom_data, data_type, alloctype, layer_data, domain_size, &anonymous_id);
+}
+
+static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
+                                                      CustomData &custom_data,
+                                                      const CustomDataType data_type,
+                                                      const int domain_size,
+                                                      const AttributeInit &initializer)
+{
+  switch (initializer.type) {
+    case AttributeInit::Type::Default: {
+      void *data = add_generic_custom_data_layer(
+          custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_id);
+      return data != nullptr;
+    }
+    case AttributeInit::Type::VArray: {
+      void *data = add_generic_custom_data_layer(
+          custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_id);
+      if (data == nullptr) {
+        return false;
+      }
+      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
+      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
+      return true;
+    }
+    case AttributeInit::Type::MoveArray: {
+      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *data = add_generic_custom_data_layer(
+          custom_data, data_type, CD_ASSIGN, source_data, domain_size, attribute_id);
+      if (data == nullptr) {
+        MEM_freeN(source_data);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
+static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
+                                                   const AttributeIDRef &attribute_id)
+{
+  if (!attribute_id) {
+    return false;
+  }
+  if (attribute_id.is_anonymous()) {
+    return layer.anonymous_id == &attribute_id.anonymous_id();
+  }
+  return layer.name == attribute_id.name();
+}
+
 GVArrayPtr BuiltinCustomDataLayerProvider::try_get_for_read(
     const GeometryComponent &component) const
 {
@@ -295,41 +399,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   return delete_success;
 }
 
-static bool add_custom_data_layer_from_attribute_init(CustomData &custom_data,
-                                                      const CustomDataType data_type,
-                                                      const int domain_size,
-                                                      const AttributeInit &initializer)
-{
-  switch (initializer.type) {
-    case AttributeInit::Type::Default: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
-      return data != nullptr;
-    }
-    case AttributeInit::Type::VArray: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
-      if (data == nullptr) {
-        return false;
-      }
-      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
-      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
-      return true;
-    }
-    case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
-      void *data = CustomData_add_layer(
-          &custom_data, data_type, CD_ASSIGN, source_data, domain_size);
-      if (data == nullptr) {
-        MEM_freeN(source_data);
-        return false;
-      }
-      return true;
-    }
-  }
-
-  BLI_assert_unreachable();
-  return false;
-}
-
 bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,
                                                 const AttributeInit &initializer) const
 {
@@ -346,7 +415,7 @@ bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,
   }
 
   const int domain_size = component.attribute_domain_size(domain_);
-  const bool success = add_custom_data_layer_from_attribute_init(
+  const bool success = add_builtin_type_custom_data_layer_from_init(
       *custom_data, stored_type_, domain_size, initializer);
   if (success) {
     custom_data_access_.update_custom_data_pointers(component);
@@ -364,18 +433,6 @@ bool BuiltinCustomDataLayerProvider::exists(const GeometryComponent &component) 
   return data != nullptr;
 }
 
-static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
-                                                   const AttributeIDRef &attribute_id)
-{
-  if (!attribute_id) {
-    return false;
-  }
-  if (attribute_id.is_anonymous()) {
-    return layer.anonymous_id == &attribute_id.anonymous_id();
-  }
-  return layer.name == attribute_id.name();
-}
-
 ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
     const GeometryComponent &component, const AttributeIDRef &attribute_id) const
 {
@@ -388,23 +445,12 @@ ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    const CustomDataType data_type = (CustomDataType)layer.type;
-    switch (data_type) {
-      case CD_PROP_FLOAT:
-        return this->layer_to_read_attribute<float>(layer, domain_size);
-      case CD_PROP_FLOAT2:
-        return this->layer_to_read_attribute<float2>(layer, domain_size);
-      case CD_PROP_FLOAT3:
-        return this->layer_to_read_attribute<float3>(layer, domain_size);
-      case CD_PROP_INT32:
-        return this->layer_to_read_attribute<int>(layer, domain_size);
-      case CD_PROP_COLOR:
-        return this->layer_to_read_attribute<ColorGeometry4f>(layer, domain_size);
-      case CD_PROP_BOOL:
-        return this->layer_to_read_attribute<bool>(layer, domain_size);
-      default:
-        break;
+    const CPPType *type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+    if (type == nullptr) {
+      continue;
     }
+    GSpan data{*type, layer.data, domain_size};
+    return {std::make_unique<GVArray_For_GSpan>(data), domain_};
   }
   return {};
 }
@@ -429,23 +475,12 @@ WriteAttributeLookup CustomDataAttributeProvider::try_get_for_write(
       CustomData_duplicate_referenced_layer_anonymous(
           custom_data, layer.type, &attribute_id.anonymous_id(), domain_size);
     }
-    const CustomDataType data_type = (CustomDataType)layer.type;
-    switch (data_type) {
-      case CD_PROP_FLOAT:
-        return this->layer_to_write_attribute<float>(layer, domain_size);
-      case CD_PROP_FLOAT2:
-        return this->layer_to_write_attribute<float2>(layer, domain_size);
-      case CD_PROP_FLOAT3:
-        return this->layer_to_write_attribute<float3>(layer, domain_size);
-      case CD_PROP_INT32:
-        return this->layer_to_write_attribute<int>(layer, domain_size);
-      case CD_PROP_COLOR:
-        return this->layer_to_write_attribute<ColorGeometry4f>(layer, domain_size);
-      case CD_PROP_BOOL:
-        return this->layer_to_write_attribute<bool>(layer, domain_size);
-      default:
-        break;
+    const CPPType *type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+    if (type == nullptr) {
+      continue;
     }
+    GMutableSpan data{*type, layer.data, domain_size};
+    return {std::make_unique<GVMutableArray_For_GMutableSpan>(data), domain_};
   }
   return {};
 }
@@ -466,62 +501,6 @@ bool CustomDataAttributeProvider::try_delete(GeometryComponent &component,
       return true;
     }
   }
-  return false;
-}
-
-static void *add_generic_custom_data_layer(CustomData &custom_data,
-                                           const CustomDataType data_type,
-                                           const eCDAllocType alloctype,
-                                           void *layer_data,
-                                           const int domain_size,
-                                           const AttributeIDRef &attribute_id)
-{
-  if (attribute_id.is_named()) {
-    char attribute_name_c[MAX_NAME];
-    attribute_id.name().copy(attribute_name_c);
-    return CustomData_add_layer_named(
-        &custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
-  }
-  const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
-  return CustomData_add_layer_anonymous(
-      &custom_data, data_type, alloctype, layer_data, domain_size, &anonymous_id);
-}
-
-static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
-                                                      CustomData &custom_data,
-                                                      const CustomDataType data_type,
-                                                      const int domain_size,
-                                                      const AttributeInit &initializer)
-{
-  switch (initializer.type) {
-    case AttributeInit::Type::Default: {
-      void *data = add_generic_custom_data_layer(
-          custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_id);
-      return data != nullptr;
-    }
-    case AttributeInit::Type::VArray: {
-      void *data = add_generic_custom_data_layer(
-          custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_id);
-      if (data == nullptr) {
-        return false;
-      }
-      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
-      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
-      return true;
-    }
-    case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
-      void *data = add_generic_custom_data_layer(
-          custom_data, data_type, CD_ASSIGN, source_data, domain_size, attribute_id);
-      if (data == nullptr) {
-        MEM_freeN(source_data);
-        return false;
-      }
-      return true;
-    }
-  }
-
-  BLI_assert_unreachable();
   return false;
 }
 
@@ -1081,7 +1060,7 @@ std::unique_ptr<blender::fn::GVArray> GeometryComponent::attribute_try_get_for_r
   }
 
   std::unique_ptr<blender::fn::GVArray> varray = std::move(attribute.varray);
-  if (domain != ATTR_DOMAIN_AUTO && attribute.domain != domain) {
+  if (!ELEM(domain, ATTR_DOMAIN_AUTO, attribute.domain)) {
     varray = this->attribute_try_adapt_domain(std::move(varray), attribute.domain, domain);
     if (!varray) {
       return {};

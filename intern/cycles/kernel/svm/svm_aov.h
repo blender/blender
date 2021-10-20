@@ -18,23 +18,26 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline bool svm_node_aov_check(const int path_flag, ccl_global float *render_buffer)
+ccl_device_inline bool svm_node_aov_check(const uint32_t path_flag,
+                                          ccl_global float *render_buffer)
 {
   bool is_primary = (path_flag & PATH_RAY_CAMERA) && (!(path_flag & PATH_RAY_SINGLE_PASS_DONE));
 
   return ((render_buffer != NULL) && is_primary);
 }
 
-ccl_device void svm_node_aov_color(INTEGRATOR_STATE_CONST_ARGS,
-                                   ShaderData *sd,
-                                   float *stack,
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
+ccl_device void svm_node_aov_color(KernelGlobals kg,
+                                   ConstIntegratorGenericState state,
+                                   ccl_private ShaderData *sd,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
-  float3 val = stack_load_float3(stack, node.y);
-
-  if (render_buffer && !INTEGRATOR_STATE_IS_NULL) {
-    const uint32_t render_pixel_index = INTEGRATOR_STATE(path, render_pixel_index);
+  IF_KERNEL_NODES_FEATURE(AOV)
+  {
+    const float3 val = stack_load_float3(stack, node.y);
+    const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
     const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                           kernel_data.film.pass_stride;
     ccl_global float *buffer = render_buffer + render_buffer_offset +
@@ -43,16 +46,18 @@ ccl_device void svm_node_aov_color(INTEGRATOR_STATE_CONST_ARGS,
   }
 }
 
-ccl_device void svm_node_aov_value(INTEGRATOR_STATE_CONST_ARGS,
-                                   ShaderData *sd,
-                                   float *stack,
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
+ccl_device void svm_node_aov_value(KernelGlobals kg,
+                                   ConstIntegratorGenericState state,
+                                   ccl_private ShaderData *sd,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
-  float val = stack_load_float(stack, node.y);
-
-  if (render_buffer && !INTEGRATOR_STATE_IS_NULL) {
-    const uint32_t render_pixel_index = INTEGRATOR_STATE(path, render_pixel_index);
+  IF_KERNEL_NODES_FEATURE(AOV)
+  {
+    const float val = stack_load_float(stack, node.y);
+    const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
     const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                           kernel_data.film.pass_stride;
     ccl_global float *buffer = render_buffer + render_buffer_offset +

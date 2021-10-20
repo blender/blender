@@ -786,9 +786,17 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
+  ARegion *region = CTX_wm_region(C);
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (region->regiontype == RGN_TYPE_PREVIEW) {
+    const SpaceSeq *sseq = CTX_wm_space_seq(C);
+    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+      return OPERATOR_CANCELLED;
+    }
   }
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -801,7 +809,6 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  ARegion *region = CTX_wm_region(C);
   int handle_clicked = SEQ_SIDE_NONE;
   Sequence *seq = NULL;
   if (region->regiontype == RGN_TYPE_PREVIEW) {

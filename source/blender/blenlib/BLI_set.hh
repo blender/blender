@@ -423,6 +423,8 @@ class Set {
     int64_t total_slots_;
     int64_t current_slot_;
 
+    friend Set;
+
    public:
     Iterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
         : slots_(slots), total_slots_(total_slots), current_slot_(current_slot)
@@ -467,6 +469,12 @@ class Set {
     {
       return !(a != b);
     }
+
+   protected:
+    const Slot &current_slot() const
+    {
+      return slots_[current_slot_];
+    }
   };
 
   Iterator begin() const
@@ -482,6 +490,20 @@ class Set {
   Iterator end() const
   {
     return Iterator(slots_.data(), slots_.size(), slots_.size());
+  }
+
+  /**
+   * Remove the key that the iterator is currently pointing at. It is valid to call this method
+   * while iterating over the set. However, after this method has been called, the removed element
+   * must not be accessed anymore.
+   */
+  void remove(const Iterator &iterator)
+  {
+    /* The const cast is valid because this method itself is not const. */
+    Slot &slot = const_cast<Slot &>(iterator.current_slot());
+    BLI_assert(slot.is_occupied());
+    slot.remove();
+    removed_slots_++;
   }
 
   /**

@@ -54,7 +54,7 @@ using namespace OSL;
 ///
 class GenericBackgroundClosure : public CClosurePrimitive {
  public:
-  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
     background_setup(sd, weight);
   }
@@ -69,7 +69,7 @@ class GenericBackgroundClosure : public CClosurePrimitive {
 ///
 class HoldoutClosure : CClosurePrimitive {
  public:
-  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
     closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, weight);
     sd->flag |= SD_HOLDOUT;

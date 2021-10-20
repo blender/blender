@@ -222,7 +222,7 @@ class AssetCatalogTest : public testing::Test {
     const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
     /* Mock that the blend file is written to the directory already containing a CDF. */
-    ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
+    ASSERT_TRUE(service.write_to_disk(blendfilename));
 
     /* Test that the CDF still exists in the expected location. */
     EXPECT_TRUE(BLI_exists(cdf_toplevel.c_str()));
@@ -489,7 +489,7 @@ TEST_F(AssetCatalogTest, no_writing_empty_files)
 {
   const CatalogFilePath temp_lib_root = create_temp_path();
   AssetCatalogService service(temp_lib_root);
-  service.write_to_disk_on_blendfile_save(temp_lib_root + "phony.blend");
+  service.write_to_disk(temp_lib_root + "phony.blend");
 
   const CatalogFilePath default_cdf_path = temp_lib_root +
                                            AssetCatalogService::DEFAULT_CATALOG_FILENAME;
@@ -515,7 +515,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
   const CatalogFilePath blendfilename = top_level_dir + "subdir/some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
+  ASSERT_TRUE(service.write_to_disk(blendfilename));
   EXPECT_EQ(cdf_filename, service.get_catalog_definition_file()->file_path);
 
   /* Test that the CDF was created in the expected location. */
@@ -542,7 +542,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
   const CatalogFilePath blendfilename = target_dir + "some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
+  ASSERT_TRUE(service.write_to_disk(blendfilename));
 
   /* Test that the CDF was created in the expected location. */
   const CatalogFilePath expected_cdf_path = target_dir +
@@ -575,7 +575,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
 
   /* Mock that the blend file is written to a subdirectory of the asset library. */
   const CatalogFilePath blendfilename = target_dir + "some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
+  ASSERT_TRUE(service.write_to_disk(blendfilename));
 
   /* Test that the CDF still exists in the expected location. */
   const CatalogFilePath backup_filename = writable_cdf_file + "~";
@@ -630,7 +630,7 @@ TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
   EXPECT_FALSE(BLI_exists(temp_lib_root.c_str()));
 
   /* Writing to disk should create the directory + the default file. */
-  service.write_to_disk_on_blendfile_save(temp_lib_root + "phony.blend");
+  service.write_to_disk(temp_lib_root + "phony.blend");
   EXPECT_TRUE(BLI_is_dir(temp_lib_root.c_str()));
 
   const CatalogFilePath definition_file_path = temp_lib_root + "/" +
@@ -681,7 +681,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
       << "expecting newly added catalog to not yet be saved to " << temp_lib_root;
 
   /* Write and reload the catalog file. */
-  service.write_to_disk_on_blendfile_save(temp_lib_root + "phony.blend");
+  service.write_to_disk(temp_lib_root + "phony.blend");
   AssetCatalogService reloaded_service(temp_lib_root);
   reloaded_service.load_from_disk();
   EXPECT_NE(nullptr, reloaded_service.find_catalog(UUID_POSES_ELLIE))
@@ -867,7 +867,7 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
   ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
 
   /* Overwrite the modified file. This should merge the on-disk file with our catalogs. */
-  service.write_to_disk_on_blendfile_save(cdf_dir + "phony.blend");
+  service.write_to_disk(cdf_dir + "phony.blend");
 
   AssetCatalogService loaded_service(cdf_dir);
   loaded_service.load_from_disk();
@@ -897,7 +897,7 @@ TEST_F(AssetCatalogTest, backups)
   AssetCatalogService service(cdf_dir);
   service.load_from_disk();
   service.delete_catalog_by_id(UUID_POSES_ELLIE);
-  service.write_to_disk_on_blendfile_save(cdf_dir + "phony.blend");
+  service.write_to_disk(cdf_dir + "phony.blend");
 
   const CatalogFilePath backup_path = writable_cdf_file + "~";
   ASSERT_TRUE(BLI_is_file(backup_path.c_str()));

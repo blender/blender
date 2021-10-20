@@ -280,7 +280,7 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
 
         col.separator()
 
-        col.menu("RENDER_MT_lineset_context_menu", icon="DOWNARROW_HLT", text="")
+        col.menu("RENDER_MT_lineset_context_menu", icon='DOWNARROW_HLT', text="")
 
         if is_sortable:
             col.separator()

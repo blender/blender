@@ -53,6 +53,15 @@ float hash_float_to_float(float2 k);
 float hash_float_to_float(float3 k);
 float hash_float_to_float(float4 k);
 
+float2 hash_float_to_float2(float2 k);
+
+float3 hash_float_to_float3(float k);
+float3 hash_float_to_float3(float2 k);
+float3 hash_float_to_float3(float3 k);
+float3 hash_float_to_float3(float4 k);
+
+float4 hash_float_to_float4(float4 k);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -100,6 +109,199 @@ float3 perlin_float3_fractal_distorted(float4 position,
                                        float octaves,
                                        float roughness,
                                        float distortion);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Musgrave Multi Fractal
+ * \{ */
+
+float musgrave_ridged_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+
+float musgrave_hybrid_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+
+float musgrave_fBm(const float co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float2 co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float3 co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float4 co, const float H, const float lacunarity, const float octaves);
+
+float musgrave_multi_fractal(const float co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float2 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float3 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float4 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+
+float musgrave_hetero_terrain(const float co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float2 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float3 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float4 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Voronoi Noise
+ * \{ */
+
+void voronoi_f1(
+    const float w, const float randomness, float *r_distance, float3 *r_color, float *r_w);
+void voronoi_smooth_f1(const float w,
+                       const float smoothness,
+                       const float randomness,
+                       float *r_distance,
+                       float3 *r_color,
+                       float *r_w);
+void voronoi_f2(
+    const float w, const float randomness, float *r_distance, float3 *r_color, float *r_w);
+void voronoi_distance_to_edge(const float w, const float randomness, float *r_distance);
+void voronoi_n_sphere_radius(const float w, const float randomness, float *r_radius);
+
+void voronoi_f1(const float2 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float2 *r_position);
+void voronoi_smooth_f1(const float2 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float2 *r_position);
+void voronoi_f2(const float2 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float2 *r_position);
+void voronoi_distance_to_edge(const float2 coord, const float randomness, float *r_distance);
+void voronoi_n_sphere_radius(const float2 coord, const float randomness, float *r_radius);
+
+void voronoi_f1(const float3 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float3 *r_position);
+void voronoi_smooth_f1(const float3 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float3 *r_position);
+void voronoi_f2(const float3 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float3 *r_position);
+void voronoi_distance_to_edge(const float3 coord, const float randomness, float *r_distance);
+void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *r_radius);
+
+void voronoi_f1(const float4 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float4 *r_position);
+void voronoi_smooth_f1(const float4 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float4 *r_position);
+void voronoi_f2(const float4 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float4 *r_position);
+void voronoi_distance_to_edge(const float4 coord, const float randomness, float *r_distance);
+void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *r_radius);
 
 /** \} */
 

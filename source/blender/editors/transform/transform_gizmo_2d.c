@@ -96,6 +96,9 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
       if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_TOOL)) {
         return false;
       }
+      if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+        return false;
+      }
       Scene *scene = CTX_data_scene(C);
       Editing *ed = SEQ_editing_get(scene);
       if (ed == NULL) {
@@ -652,7 +655,6 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
   float c[3] = {mid[0], mid[1], 0.0f};
 
   float orient_matrix[3][3];
-  unit_m3(orient_matrix);
 
   ScrArea *area = CTX_wm_area(C);
 
@@ -673,7 +675,7 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
 
     rotate_around_center_v2(c, origin, ggd->rotation);
 
-    rotate_m3(orient_matrix, ggd->rotation);
+    axis_angle_to_mat3_single(orient_matrix, 'Z', ggd->rotation);
   }
 
   int orient_type = gizmo2d_calc_transform_orientation(C);

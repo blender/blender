@@ -156,7 +156,7 @@ ccl_device float fast_cosf(float x)
   return u;
 }
 
-ccl_device void fast_sincosf(float x, float *sine, float *cosine)
+ccl_device void fast_sincosf(float x, ccl_private float *sine, ccl_private float *cosine)
 {
   /* Same argument reduction as fast_sin. */
   int q = fast_rint(x * M_1_PI_F);

@@ -454,10 +454,10 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
               mloopuv->uv[1] = (v % dl->nr) / (float)orco_sizeu;
 
               /* cyclic correction */
-              if ((i == 1 || i == 2) && mloopuv->uv[0] == 0.0f) {
+              if ((ELEM(i, 1, 2)) && mloopuv->uv[0] == 0.0f) {
                 mloopuv->uv[0] = 1.0f;
               }
-              if ((i == 0 || i == 1) && mloopuv->uv[1] == 0.0f) {
+              if ((ELEM(i, 0, 1)) && mloopuv->uv[1] == 0.0f) {
                 mloopuv->uv[1] = 1.0f;
               }
             }

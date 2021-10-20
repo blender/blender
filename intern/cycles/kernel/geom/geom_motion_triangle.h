@@ -27,42 +27,13 @@
 
 #pragma once
 
+#include "kernel/bvh/bvh_util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Time interpolation of vertex positions and normals */
 
-ccl_device_inline int find_attribute_motion(const KernelGlobals *kg,
-                                            int object,
-                                            uint id,
-                                            AttributeElement *elem)
-{
-  /* todo: find a better (faster) solution for this, maybe store offset per object */
-  uint attr_offset = object_attribute_map_offset(kg, object);
-  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-
-  while (attr_map.x != id) {
-    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-      if (UNLIKELY(attr_map.y == 0)) {
-        return (int)ATTR_STD_NOT_FOUND;
-      }
-      else {
-        /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.z;
-      }
-    }
-    else {
-      attr_offset += ATTR_PRIM_TYPES;
-    }
-    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-  }
-
-  *elem = (AttributeElement)attr_map.y;
-
-  /* return result */
-  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
-}
-
-ccl_device_inline void motion_triangle_verts_for_step(const KernelGlobals *kg,
+ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
                                                       uint4 tri_vindex,
                                                       int offset,
                                                       int numverts,
@@ -89,7 +60,7 @@ ccl_device_inline void motion_triangle_verts_for_step(const KernelGlobals *kg,
   }
 }
 
-ccl_device_inline void motion_triangle_normals_for_step(const KernelGlobals *kg,
+ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
                                                         uint4 tri_vindex,
                                                         int offset,
                                                         int numverts,
@@ -117,7 +88,7 @@ ccl_device_inline void motion_triangle_normals_for_step(const KernelGlobals *kg,
 }
 
 ccl_device_inline void motion_triangle_vertices(
-    const KernelGlobals *kg, int object, int prim, float time, float3 verts[3])
+    KernelGlobals kg, int object, int prim, float time, float3 verts[3])
 {
   /* get motion info */
   int numsteps, numverts;
@@ -129,8 +100,7 @@ ccl_device_inline void motion_triangle_vertices(
   float t = time * maxstep - step;
 
   /* find attribute */
-  AttributeElement elem;
-  int offset = find_attribute_motion(kg, object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+  int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_POSITION);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* fetch vertex coordinates */
@@ -147,7 +117,7 @@ ccl_device_inline void motion_triangle_vertices(
 }
 
 ccl_device_inline float3 motion_triangle_smooth_normal(
-    const KernelGlobals *kg, float3 Ng, int object, int prim, float u, float v, float time)
+    KernelGlobals kg, float3 Ng, int object, int prim, float u, float v, float time)
 {
   /* get motion info */
   int numsteps, numverts;
@@ -159,8 +129,7 @@ ccl_device_inline float3 motion_triangle_smooth_normal(
   float t = time * maxstep - step;
 
   /* find attribute */
-  AttributeElement elem;
-  int offset = find_attribute_motion(kg, object, ATTR_STD_MOTION_VERTEX_NORMAL, &elem);
+  int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_NORMAL);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* fetch normals */

@@ -328,7 +328,7 @@ void BKE_main_relations_free(Main *bmain)
 
 /** Set or clear given `tag` in all relation entries of given `bmain`. */
 void BKE_main_relations_tag_set(struct Main *bmain,
-                                const MainIDRelationsEntryTags tag,
+                                const eMainIDRelationsEntryTags tag,
                                 const bool value)
 {
   if (bmain->relations == NULL) {

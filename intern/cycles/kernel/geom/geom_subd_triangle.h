@@ -22,15 +22,15 @@ CCL_NAMESPACE_BEGIN
 
 /* Patch index for triangle, -1 if not subdivision triangle */
 
-ccl_device_inline uint subd_triangle_patch(const KernelGlobals *kg, const ShaderData *sd)
+ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   return (sd->prim != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, sd->prim) : ~0;
 }
 
 /* UV coords of triangle within patch */
 
-ccl_device_inline void subd_triangle_patch_uv(const KernelGlobals *kg,
-                                              const ShaderData *sd,
+ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,
+                                              ccl_private const ShaderData *sd,
                                               float2 uv[3])
 {
   uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
@@ -42,7 +42,7 @@ ccl_device_inline void subd_triangle_patch_uv(const KernelGlobals *kg,
 
 /* Vertex indices of patch */
 
-ccl_device_inline uint4 subd_triangle_patch_indices(const KernelGlobals *kg, int patch)
+ccl_device_inline uint4 subd_triangle_patch_indices(KernelGlobals kg, int patch)
 {
   uint4 indices;
 
@@ -56,23 +56,21 @@ ccl_device_inline uint4 subd_triangle_patch_indices(const KernelGlobals *kg, int
 
 /* Originating face for patch */
 
-ccl_device_inline uint subd_triangle_patch_face(const KernelGlobals *kg, int patch)
+ccl_device_inline uint subd_triangle_patch_face(KernelGlobals kg, int patch)
 {
   return kernel_tex_fetch(__patches, patch + 4);
 }
 
 /* Number of corners on originating face */
 
-ccl_device_inline uint subd_triangle_patch_num_corners(const KernelGlobals *kg, int patch)
+ccl_device_inline uint subd_triangle_patch_num_corners(KernelGlobals kg, int patch)
 {
   return kernel_tex_fetch(__patches, patch + 5) & 0xffff;
 }
 
 /* Indices of the four corners that are used by the patch */
 
-ccl_device_inline void subd_triangle_patch_corners(const KernelGlobals *kg,
-                                                   int patch,
-                                                   int corners[4])
+ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg, int patch, int corners[4])
 {
   uint4 data;
 
@@ -103,11 +101,11 @@ ccl_device_inline void subd_triangle_patch_corners(const KernelGlobals *kg,
 
 /* Reading attributes on various subdivision triangle elements */
 
-ccl_device_noinline float subd_triangle_attribute_float(const KernelGlobals *kg,
-                                                        const ShaderData *sd,
+ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
+                                                        ccl_private const ShaderData *sd,
                                                         const AttributeDescriptor desc,
-                                                        float *dx,
-                                                        float *dy)
+                                                        ccl_private float *dx,
+                                                        ccl_private float *dy)
 {
   int patch = subd_triangle_patch(kg, sd);
 
@@ -242,11 +240,11 @@ ccl_device_noinline float subd_triangle_attribute_float(const KernelGlobals *kg,
   }
 }
 
-ccl_device_noinline float2 subd_triangle_attribute_float2(const KernelGlobals *kg,
-                                                          const ShaderData *sd,
+ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
+                                                          ccl_private const ShaderData *sd,
                                                           const AttributeDescriptor desc,
-                                                          float2 *dx,
-                                                          float2 *dy)
+                                                          ccl_private float2 *dx,
+                                                          ccl_private float2 *dy)
 {
   int patch = subd_triangle_patch(kg, sd);
 
@@ -385,11 +383,11 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(const KernelGlobals *k
   }
 }
 
-ccl_device_noinline float3 subd_triangle_attribute_float3(const KernelGlobals *kg,
-                                                          const ShaderData *sd,
+ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
+                                                          ccl_private const ShaderData *sd,
                                                           const AttributeDescriptor desc,
-                                                          float3 *dx,
-                                                          float3 *dy)
+                                                          ccl_private float3 *dx,
+                                                          ccl_private float3 *dy)
 {
   int patch = subd_triangle_patch(kg, sd);
 
@@ -527,11 +525,11 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(const KernelGlobals *k
   }
 }
 
-ccl_device_noinline float4 subd_triangle_attribute_float4(const KernelGlobals *kg,
-                                                          const ShaderData *sd,
+ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
+                                                          ccl_private const ShaderData *sd,
                                                           const AttributeDescriptor desc,
-                                                          float4 *dx,
-                                                          float4 *dy)
+                                                          ccl_private float4 *dx,
+                                                          ccl_private float4 *dy)
 {
   int patch = subd_triangle_patch(kg, sd);
 

@@ -87,9 +87,8 @@ static TransData *SeqToTransData(const Scene *scene,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
-  unit_m3(td->axismtx);
 
-  rotate_m3(td->axismtx, transform->rotation);
+  axis_angle_to_mat3_single(td->axismtx, 'Z', transform->rotation);
   normalize_m3(td->axismtx);
 
   tdseq->seq = seq;
@@ -122,6 +121,13 @@ void createTransSeqImageData(TransInfo *t)
 
   if (ed == NULL) {
     return;
+  }
+
+  {
+    const SpaceSeq *sseq = t->area->spacedata.first;
+    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+      return;
+    }
   }
 
   ListBase *seqbase = SEQ_active_seqbase_get(ed);

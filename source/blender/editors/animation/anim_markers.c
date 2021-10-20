@@ -872,7 +872,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     ARegion *region = CTX_wm_region(C);
     View2D *v2d = &region->v2d;
     ListBase *markers = ED_context_get_markers(C);
-    if (!region_position_is_over_marker(v2d, markers, event->x - region->winrct.xmin)) {
+    if (!region_position_is_over_marker(v2d, markers, event->xy[0] - region->winrct.xmin)) {
       return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
     }
   }
@@ -880,8 +880,8 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   if (ed_marker_move_init(C, op)) {
     MarkerMove *mm = op->customdata;
 
-    mm->evtx = event->x;
-    mm->firstx = event->x;
+    mm->evtx = event->xy[0];
+    mm->firstx = event->xy[0];
     mm->event_type = event->type;
 
     /* add temp handler */
@@ -993,11 +993,11 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 
           dx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 
-          if (event->x != mm->evtx) { /* XXX maybe init for first time */
+          if (event->xy[0] != mm->evtx) { /* XXX maybe init for first time */
             float fac;
 
-            mm->evtx = event->x;
-            fac = ((float)(event->x - mm->firstx) * dx);
+            mm->evtx = event->xy[0];
+            fac = ((float)(event->xy[0] - mm->firstx) * dx);
 
             apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
 
@@ -1354,7 +1354,8 @@ static int ed_marker_box_select_invoke(bContext *C, wmOperator *op, const wmEven
   View2D *v2d = &region->v2d;
 
   ListBase *markers = ED_context_get_markers(C);
-  bool over_marker = region_position_is_over_marker(v2d, markers, event->x - region->winrct.xmin);
+  bool over_marker = region_position_is_over_marker(
+      v2d, markers, event->xy[0] - region->winrct.xmin);
 
   bool tweak = RNA_boolean_get(op->ptr, "tweak");
   if (tweak && over_marker) {

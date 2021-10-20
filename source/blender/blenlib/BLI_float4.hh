@@ -44,6 +44,11 @@ struct float4 {
     return &x;
   }
 
+  friend float4 operator+(const float4 &a, const float &b)
+  {
+    return {a.x + b, a.y + b, a.z + b, a.w + b};
+  }
+
   operator const float *() const
   {
     return &x;
@@ -58,9 +63,25 @@ struct float4 {
     return *this;
   }
 
+  friend float4 operator-(const float4 &a, const float4 &b)
+  {
+    return {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+  }
+
+  friend float4 operator-(const float4 &a, const float &b)
+  {
+    return {a.x - b, a.y - b, a.z - b, a.w - b};
+  }
+
   friend float4 operator+(const float4 &a, const float4 &b)
   {
     return {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+  }
+
+  friend float4 operator/(const float4 &a, float f)
+  {
+    BLI_assert(f != 0.0f);
+    return a * (1.0f / f);
   }
 
   float4 &operator*=(float factor)
@@ -80,6 +101,37 @@ struct float4 {
   friend float4 operator*(float a, const float4 &b)
   {
     return b * a;
+  }
+
+  float length() const
+  {
+    return len_v4(*this);
+  }
+
+  static float distance(const float4 &a, const float4 &b)
+  {
+    return (a - b).length();
+  }
+
+  static float4 safe_divide(const float4 &a, const float b)
+  {
+    return (b != 0.0f) ? a / b : float4(0.0f);
+  }
+
+  static float4 interpolate(const float4 &a, const float4 &b, float t)
+  {
+    return a * (1 - t) + b * t;
+  }
+
+  static float4 floor(const float4 &a)
+  {
+    return float4(floorf(a.x), floorf(a.y), floorf(a.z), floorf(a.w));
+  }
+
+  static float4 normalize(const float4 &a)
+  {
+    const float t = len_v4(a);
+    return (t != 0.0f) ? a / t : float4(0.0f);
   }
 };
 

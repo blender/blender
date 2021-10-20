@@ -79,7 +79,7 @@ class OSLShaderManager : public ShaderManager {
     return true;
   }
 
-  void host_update_specific(Device *device, Scene *scene, Progress &progress) override;
+  void host_update_specific(Scene *scene, Progress &progress) override;
 
   void device_update_specific(Device *device,
                               DeviceScene *dscene,
@@ -140,7 +140,7 @@ class OSLCompiler {
               OSL::ShadingSystem *shadingsys,
               Scene *scene);
 #endif
-  void compile(OSLGlobals *og, Shader *shader);
+  void compile(Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 

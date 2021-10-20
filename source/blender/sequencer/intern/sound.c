@@ -111,12 +111,8 @@ void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
       /* We have to take into account start frame of the sequence's scene! */
       int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
 
-      BKE_sound_move_scene_sound(scene,
-                                 seq->scene_sound,
-                                 seq->startdisp,
-                                 seq->enddisp,
-                                 startofs,
-                                 seq->sound->offset_time);
+      BKE_sound_move_scene_sound(
+          scene, seq->scene_sound, seq->startdisp, seq->enddisp, startofs, 0.0);
     }
   }
   else {

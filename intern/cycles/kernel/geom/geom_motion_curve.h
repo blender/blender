@@ -27,32 +27,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
-ccl_device_inline int find_attribute_curve_motion(const KernelGlobals *kg,
-                                                  int object,
-                                                  uint id,
-                                                  AttributeElement *elem)
-{
-  /* todo: find a better (faster) solution for this, maybe store offset per object.
-   *
-   * NOTE: currently it's not a bottleneck because in test scenes the loop below runs
-   * zero iterations and rendering is really slow with motion curves. For until other
-   * areas are speed up it's probably not so crucial to optimize this out.
-   */
-  uint attr_offset = object_attribute_map_offset(kg, object) + ATTR_PRIM_GEOMETRY;
-  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-
-  while (attr_map.x != id) {
-    attr_offset += ATTR_PRIM_TYPES;
-    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-  }
-
-  *elem = (AttributeElement)attr_map.y;
-
-  /* return result */
-  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
-}
-
-ccl_device_inline void motion_curve_keys_for_step_linear(const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
                                                          int offset,
                                                          int numkeys,
                                                          int numsteps,
@@ -80,20 +55,19 @@ ccl_device_inline void motion_curve_keys_for_step_linear(const KernelGlobals *kg
 
 /* return 2 curve key locations */
 ccl_device_inline void motion_curve_keys_linear(
-    const KernelGlobals *kg, int object, int prim, float time, int k0, int k1, float4 keys[2])
+    KernelGlobals kg, int object, int prim, float time, int k0, int k1, float4 keys[2])
 {
   /* get motion info */
   int numsteps, numkeys;
   object_motion_info(kg, object, &numsteps, NULL, &numkeys);
 
   /* figure out which steps we need to fetch and their interpolation factor */
-  int maxstep = numsteps * 2;
-  int step = min((int)(time * maxstep), maxstep - 1);
-  float t = time * maxstep - step;
+  const int maxstep = numsteps * 2;
+  const int step = min((int)(time * maxstep), maxstep - 1);
+  const float t = time * maxstep - step;
 
   /* find attribute */
-  AttributeElement elem;
-  int offset = find_attribute_curve_motion(kg, object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+  const int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_POSITION);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* fetch key coordinates */
@@ -107,7 +81,7 @@ ccl_device_inline void motion_curve_keys_linear(
   keys[1] = (1.0f - t) * keys[1] + t * next_keys[1];
 }
 
-ccl_device_inline void motion_curve_keys_for_step(const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
                                                   int offset,
                                                   int numkeys,
                                                   int numsteps,
@@ -140,7 +114,7 @@ ccl_device_inline void motion_curve_keys_for_step(const KernelGlobals *kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys(const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys(KernelGlobals kg,
                                          int object,
                                          int prim,
                                          float time,
@@ -155,13 +129,12 @@ ccl_device_inline void motion_curve_keys(const KernelGlobals *kg,
   object_motion_info(kg, object, &numsteps, NULL, &numkeys);
 
   /* figure out which steps we need to fetch and their interpolation factor */
-  int maxstep = numsteps * 2;
-  int step = min((int)(time * maxstep), maxstep - 1);
-  float t = time * maxstep - step;
+  const int maxstep = numsteps * 2;
+  const int step = min((int)(time * maxstep), maxstep - 1);
+  const float t = time * maxstep - step;
 
   /* find attribute */
-  AttributeElement elem;
-  int offset = find_attribute_curve_motion(kg, object, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+  const int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_POSITION);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* fetch key coordinates */

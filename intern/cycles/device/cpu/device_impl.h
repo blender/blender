@@ -44,7 +44,7 @@ CCL_NAMESPACE_BEGIN
 
 class CPUDevice : public Device {
  public:
-  KernelGlobals kernel_globals;
+  KernelGlobalsCPU kernel_globals;
 
   device_vector<TextureInfo> texture_info;
   bool need_texture_info;

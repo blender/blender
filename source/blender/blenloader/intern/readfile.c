@@ -222,7 +222,7 @@ typedef struct BHeadN {
  * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-void BLO_reportf_wrap(BlendFileReadReport *reports, ReportType type, const char *format, ...)
+void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
 
@@ -1230,13 +1230,13 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
   else if (BLI_file_magic_is_gzip(header)) {
     file = BLI_filereader_new_gzip(rawfile);
     if (file != NULL) {
-      rawfile = NULL; /* The Gzip FileReader takes ownership of `rawfile`. */
+      rawfile = NULL; /* The `Gzip` #FileReader takes ownership of `rawfile`. */
     }
   }
   else if (BLI_file_magic_is_zstd(header)) {
     file = BLI_filereader_new_zstd(rawfile);
     if (file != NULL) {
-      rawfile = NULL; /* The Zstd FileReader takes ownership of `rawfile`. */
+      rawfile = NULL; /* The `Zstd` #FileReader takes ownership of `rawfile`. */
     }
   }
 

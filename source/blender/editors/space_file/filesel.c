@@ -528,6 +528,45 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
   WM_main_add_notifier(NC_ASSET | NA_SELECTED, NULL);
 }
 
+static void on_reload_select_by_relpath(SpaceFile *sfile, onReloadFnData custom_data)
+{
+  const char *relative_path = custom_data;
+  ED_fileselect_activate_by_relpath(sfile, relative_path);
+}
+
+void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_path)
+{
+  /* If there are filelist operations running now ("pending" true) or soon ("force reset" true),
+   * there is a fair chance that the to-be-activated file at relative_path will only be present
+   * after these operations have completed. Defer activation until then. */
+  struct FileList *files = sfile->files;
+  if (files == NULL || filelist_pending(files) || filelist_needs_force_reset(files)) {
+    /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
+     * up in another call to this function, and then it's a const char* again. */
+    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
+    return;
+  }
+
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  const int num_files_filtered = filelist_files_ensure(files);
+
+  for (int file_index = 0; file_index < num_files_filtered; ++file_index) {
+    const FileDirEntry *file = filelist_file(files, file_index);
+
+    if (STREQ(file->relpath, relative_path)) {
+      params->active_file = file_index;
+      filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+    }
+  }
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+}
+
+void ED_fileselect_deselect_all(SpaceFile *sfile)
+{
+  file_select_deselect_all(sfile, FILE_SEL_SELECTED);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+}
+
 /* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
  * may also be remembered, but only conditionally. */
 #define PARAMS_FLAGS_REMEMBERED (FILE_HIDE_DOT)

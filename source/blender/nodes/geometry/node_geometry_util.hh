@@ -50,10 +50,14 @@ void update_attribute_input_socket_availabilities(bNode &node,
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
                                                   const AttributeDomain domain);
 
-void transform_mesh(Mesh *mesh,
+void transform_mesh(Mesh &mesh,
                     const float3 translation,
                     const float3 rotation,
                     const float3 scale);
+
+void transform_geometry_set(GeometrySet &geometry,
+                            const float4x4 &transform,
+                            const Depsgraph &depsgraph);
 
 Mesh *create_line_mesh(const float3 start, const float3 delta, const int count);
 

@@ -24,9 +24,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
+ccl_device void kernel_displace_evaluate(KernelGlobals kg,
                                          ccl_global const KernelShaderEvalInput *input,
-                                         ccl_global float4 *output,
+                                         ccl_global float *output,
                                          const int offset)
 {
   /* Setup shader data. */
@@ -37,7 +37,7 @@ ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
 
   /* Evaluate displacement shader. */
   const float3 P = sd.P;
-  shader_eval_displacement(INTEGRATOR_STATE_PASS_NULL, &sd);
+  shader_eval_displacement(kg, INTEGRATOR_STATE_NULL, &sd);
   float3 D = sd.P - P;
 
   object_inverse_dir_transform(kg, &sd, &D);
@@ -53,12 +53,14 @@ ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
   D = ensure_finite3(D);
 
   /* Write output. */
-  output[offset] += make_float4(D.x, D.y, D.z, 0.0f);
+  output[offset * 3 + 0] += D.x;
+  output[offset * 3 + 1] += D.y;
+  output[offset * 3 + 2] += D.z;
 }
 
-ccl_device void kernel_background_evaluate(const KernelGlobals *kg,
+ccl_device void kernel_background_evaluate(KernelGlobals kg,
                                            ccl_global const KernelShaderEvalInput *input,
-                                           ccl_global float4 *output,
+                                           ccl_global float *output,
                                            const int offset)
 {
   /* Setup ray */
@@ -73,9 +75,10 @@ ccl_device void kernel_background_evaluate(const KernelGlobals *kg,
 
   /* Evaluate shader.
    * This is being evaluated for all BSDFs, so path flag does not contain a specific type. */
-  const int path_flag = PATH_RAY_EMISSION;
-  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-      INTEGRATOR_STATE_PASS_NULL, &sd, NULL, path_flag);
+  const uint32_t path_flag = PATH_RAY_EMISSION;
+  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
+                      ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
+      kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
   float3 color = shader_background_eval(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
@@ -88,7 +91,30 @@ ccl_device void kernel_background_evaluate(const KernelGlobals *kg,
   color = ensure_finite3(color);
 
   /* Write output. */
-  output[offset] += make_float4(color.x, color.y, color.z, 0.0f);
+  output[offset * 3 + 0] += color.x;
+  output[offset * 3 + 1] += color.y;
+  output[offset * 3 + 2] += color.z;
+}
+
+ccl_device void kernel_curve_shadow_transparency_evaluate(
+    KernelGlobals kg,
+    ccl_global const KernelShaderEvalInput *input,
+    ccl_global float *output,
+    const int offset)
+{
+  /* Setup shader data. */
+  const KernelShaderEvalInput in = input[offset];
+
+  ShaderData sd;
+  shader_setup_from_curve(kg, &sd, in.object, in.prim, __float_as_int(in.v), in.u);
+
+  /* Evaluate transparency. */
+  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
+                      ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
+      kg, INTEGRATOR_STATE_NULL, &sd, NULL, PATH_RAY_SHADOW);
+
+  /* Write output. */
+  output[offset] = clamp(average(shader_bsdf_transparency(kg, &sd)), 0.0f, 1.0f);
 }
 
 CCL_NAMESPACE_END

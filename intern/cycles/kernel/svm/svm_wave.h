@@ -83,7 +83,7 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
 }
 
 ccl_device_noinline int svm_node_tex_wave(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint4 node2 = read_node(kg, &offset);
   uint4 node3 = read_node(kg, &offset);

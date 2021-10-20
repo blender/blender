@@ -61,6 +61,15 @@ CCL_NAMESPACE_BEGIN
 #define ID_NONE (0.0f)
 #define PASS_UNUSED (~0)
 
+#define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024U
+#define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4U
+
+#ifdef __KERNEL_CPU__
+#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
+#else
+#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_GPU
+#endif
+
 /* Kernel features */
 #define __SOBOL__
 #define __DPDU__
@@ -197,30 +206,30 @@ enum PathRayFlag {
    * NOTE: Recalculated after a surface bounce.
    */
 
-  PATH_RAY_CAMERA = (1 << 0),
-  PATH_RAY_REFLECT = (1 << 1),
-  PATH_RAY_TRANSMIT = (1 << 2),
-  PATH_RAY_DIFFUSE = (1 << 3),
-  PATH_RAY_GLOSSY = (1 << 4),
-  PATH_RAY_SINGULAR = (1 << 5),
-  PATH_RAY_TRANSPARENT = (1 << 6),
-  PATH_RAY_VOLUME_SCATTER = (1 << 7),
+  PATH_RAY_CAMERA = (1U << 0U),
+  PATH_RAY_REFLECT = (1U << 1U),
+  PATH_RAY_TRANSMIT = (1U << 2U),
+  PATH_RAY_DIFFUSE = (1U << 3U),
+  PATH_RAY_GLOSSY = (1U << 4U),
+  PATH_RAY_SINGULAR = (1U << 5U),
+  PATH_RAY_TRANSPARENT = (1U << 6U),
+  PATH_RAY_VOLUME_SCATTER = (1U << 7U),
 
   /* Shadow ray visibility. */
-  PATH_RAY_SHADOW_OPAQUE = (1 << 8),
-  PATH_RAY_SHADOW_TRANSPARENT = (1 << 9),
+  PATH_RAY_SHADOW_OPAQUE = (1U << 8U),
+  PATH_RAY_SHADOW_TRANSPARENT = (1U << 9U),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
-   * in the node (either it should be intersected as AABB or as OBB). */
-  PATH_RAY_NODE_UNALIGNED = (1 << 10),
+   * in the node (either it should be intersected as AABB or as OBBU). */
+  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
 
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1 << 11) - 1),
+  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
 
   /* --------------------------------------------------------------------
    * Path flags.
@@ -228,69 +237,69 @@ enum PathRayFlag {
 
   /* Don't apply multiple importance sampling weights to emission from
    * lamp or surface hits, because they were not direct light sampled. */
-  PATH_RAY_MIS_SKIP = (1 << 11),
+  PATH_RAY_MIS_SKIP = (1U << 11U),
 
   /* Diffuse bounce earlier in the path, skip SSS to improve performance
    * and avoid branching twice with disk sampling SSS. */
-  PATH_RAY_DIFFUSE_ANCESTOR = (1 << 12),
+  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 12U),
 
   /* Single pass has been written. */
-  PATH_RAY_SINGLE_PASS_DONE = (1 << 13),
+  PATH_RAY_SINGLE_PASS_DONE = (1U << 13U),
 
   /* Zero background alpha, for camera or transparent glass rays. */
-  PATH_RAY_TRANSPARENT_BACKGROUND = (1 << 14),
+  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 14U),
 
   /* Terminate ray immediately at next bounce. */
-  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1 << 15),
-  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1 << 16),
+  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 15U),
+  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 16U),
 
   /* Ray is to be terminated, but continue with transparent bounces and
    * emission as long as we encounter them. This is required to make the
    * MIS between direct and indirect light rays match, as shadow rays go
    * through transparent surfaces to reach emission too. */
-  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1 << 17),
+  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 17U),
 
   /* Terminate ray immediately after volume shading. */
-  PATH_RAY_TERMINATE_AFTER_VOLUME = (1 << 18),
+  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 18U),
 
   /* Ray is to be terminated. */
   PATH_RAY_TERMINATE = (PATH_RAY_TERMINATE_ON_NEXT_SURFACE | PATH_RAY_TERMINATE_IN_NEXT_VOLUME |
                         PATH_RAY_TERMINATE_AFTER_TRANSPARENT | PATH_RAY_TERMINATE_AFTER_VOLUME),
 
   /* Path and shader is being evaluated for direct lighting emission. */
-  PATH_RAY_EMISSION = (1 << 19),
+  PATH_RAY_EMISSION = (1U << 19U),
 
   /* Perform subsurface scattering. */
-  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1 << 20),
-  PATH_RAY_SUBSURFACE_DISK = (1 << 21),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1 << 22),
+  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 20U),
+  PATH_RAY_SUBSURFACE_DISK = (1U << 21U),
+  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 22U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
                          PATH_RAY_SUBSURFACE_USE_FRESNEL),
 
   /* Contribute to denoising features. */
-  PATH_RAY_DENOISING_FEATURES = (1 << 23),
+  PATH_RAY_DENOISING_FEATURES = (1U << 23U),
 
   /* Render pass categories. */
-  PATH_RAY_REFLECT_PASS = (1 << 24),
-  PATH_RAY_TRANSMISSION_PASS = (1 << 25),
-  PATH_RAY_VOLUME_PASS = (1 << 26),
+  PATH_RAY_REFLECT_PASS = (1U << 24U),
+  PATH_RAY_TRANSMISSION_PASS = (1U << 25U),
+  PATH_RAY_VOLUME_PASS = (1U << 26U),
   PATH_RAY_ANY_PASS = (PATH_RAY_REFLECT_PASS | PATH_RAY_TRANSMISSION_PASS | PATH_RAY_VOLUME_PASS),
 
   /* Shadow ray is for a light or surface. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1 << 27),
+  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
 
   /* A shadow catcher object was hit and the path was split into two. */
-  PATH_RAY_SHADOW_CATCHER_HIT = (1 << 28),
+  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 28U),
 
   /* A shadow catcher object was hit and this path traces only shadow catchers, writing them into
    * their dedicated pass for later division.
    *
    * NOTE: Is not covered with `PATH_RAY_ANY_PASS` because shadow catcher does special handling
    * which is separate from the light passes. */
-  PATH_RAY_SHADOW_CATCHER_PASS = (1 << 29),
+  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 29U),
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
-  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1 << 30),
+  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 30U),
 };
 
 /* Configure ray visibility bits for rays and objects respectively,
@@ -489,9 +498,6 @@ typedef struct Ray {
 /* Intersection */
 
 typedef struct Intersection {
-#ifdef __EMBREE__
-  float3 Ng;
-#endif
   float t, u, v;
   int prim;
   int object;
@@ -585,6 +591,7 @@ typedef enum AttributeStandard {
   ATTR_STD_VOLUME_VELOCITY,
   ATTR_STD_POINTINESS,
   ATTR_STD_RANDOM_PER_ISLAND,
+  ATTR_STD_SHADOW_TRANSPARENCY,
   ATTR_STD_NUM,
 
   ATTR_STD_NOT_FOUND = ~0
@@ -636,7 +643,7 @@ typedef struct AttributeDescriptor {
   float sample_weight; \
   float3 N
 
-typedef ccl_addr_space struct ccl_align(16) ShaderClosure
+typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
 
@@ -747,7 +754,7 @@ enum ShaderDataObjectFlag {
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES)
 };
 
-typedef ccl_addr_space struct ccl_align(16) ShaderData
+typedef struct ccl_align(16) ShaderData
 {
   /* position */
   float3 P;
@@ -813,8 +820,9 @@ typedef ccl_addr_space struct ccl_align(16) ShaderData
   float ray_dP;
 
 #ifdef __OSL__
-  const struct KernelGlobals *osl_globals;
+  const struct KernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
+  const struct IntegratorShadowStateCPU *osl_shadow_path_state;
 #endif
 
   /* LCG state for closures that require additional random numbers. */
@@ -837,27 +845,28 @@ ShaderData;
 
 /* ShaderDataTinyStorage needs the same alignment as ShaderData, or else
  * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
-typedef ccl_addr_space struct ccl_align(16) ShaderDataTinyStorage
+typedef struct ccl_align(16) ShaderDataTinyStorage
 {
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
 }
 ShaderDataTinyStorage;
-#define AS_SHADER_DATA(shader_data_tiny_storage) ((ShaderData *)shader_data_tiny_storage)
+#define AS_SHADER_DATA(shader_data_tiny_storage) \
+  ((ccl_private ShaderData *)shader_data_tiny_storage)
 
 /* Compact volume closures storage.
  *
  * Used for decoupled direct/indirect light closure storage. */
 
-ccl_addr_space struct ShaderVolumeClosure {
+typedef struct ShaderVolumeClosure {
   float3 weight;
   float sample_weight;
   float g;
-};
+} ShaderVolumeClosure;
 
-ccl_addr_space struct ShaderVolumePhases {
+typedef struct ShaderVolumePhases {
   ShaderVolumeClosure closure[MAX_VOLUME_CLOSURE];
   int num_closure;
-};
+} ShaderVolumePhases;
 
 /* Volume Stack */
 
@@ -1453,6 +1462,7 @@ typedef enum DeviceKernel {
 
   DEVICE_KERNEL_SHADER_EVAL_DISPLACE,
   DEVICE_KERNEL_SHADER_EVAL_BACKGROUND,
+  DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
 
 #define DECLARE_FILM_CONVERT_KERNEL(variant) \
   DEVICE_KERNEL_FILM_CONVERT_##variant, DEVICE_KERNEL_FILM_CONVERT_##variant##_HALF_RGBA
@@ -1504,63 +1514,77 @@ enum KernelFeatureFlag : unsigned int {
   KERNEL_FEATURE_NODE_BUMP_STATE = (1U << 5U),
   KERNEL_FEATURE_NODE_VORONOI_EXTRA = (1U << 6U),
   KERNEL_FEATURE_NODE_RAYTRACE = (1U << 7U),
+  KERNEL_FEATURE_NODE_AOV = (1U << 8U),
+  KERNEL_FEATURE_NODE_LIGHT_PATH = (1U << 9U),
 
   /* Use denoising kernels and output denoising passes. */
-  KERNEL_FEATURE_DENOISING = (1U << 8U),
+  KERNEL_FEATURE_DENOISING = (1U << 10U),
 
   /* Use path tracing kernels. */
-  KERNEL_FEATURE_PATH_TRACING = (1U << 9U),
+  KERNEL_FEATURE_PATH_TRACING = (1U << 11U),
 
   /* BVH/sampling kernel features. */
-  KERNEL_FEATURE_HAIR = (1U << 10U),
-  KERNEL_FEATURE_HAIR_THICK = (1U << 11U),
-  KERNEL_FEATURE_OBJECT_MOTION = (1U << 12U),
-  KERNEL_FEATURE_CAMERA_MOTION = (1U << 13U),
+  KERNEL_FEATURE_HAIR = (1U << 12U),
+  KERNEL_FEATURE_HAIR_THICK = (1U << 13U),
+  KERNEL_FEATURE_OBJECT_MOTION = (1U << 14U),
+  KERNEL_FEATURE_CAMERA_MOTION = (1U << 15U),
 
   /* Denotes whether baking functionality is needed. */
-  KERNEL_FEATURE_BAKING = (1U << 14U),
+  KERNEL_FEATURE_BAKING = (1U << 16U),
 
   /* Use subsurface scattering materials. */
-  KERNEL_FEATURE_SUBSURFACE = (1U << 15U),
+  KERNEL_FEATURE_SUBSURFACE = (1U << 17U),
 
   /* Use volume materials. */
-  KERNEL_FEATURE_VOLUME = (1U << 16U),
+  KERNEL_FEATURE_VOLUME = (1U << 18U),
 
   /* Use OpenSubdiv patch evaluation */
-  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 17U),
+  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 19U),
 
   /* Use Transparent shadows */
-  KERNEL_FEATURE_TRANSPARENT = (1U << 18U),
+  KERNEL_FEATURE_TRANSPARENT = (1U << 20U),
 
   /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 19U),
+  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 21U),
 
   /* Per-uber shader usage flags. */
-  KERNEL_FEATURE_PRINCIPLED = (1U << 20U),
+  KERNEL_FEATURE_PRINCIPLED = (1U << 22U),
 
   /* Light render passes. */
-  KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
+  KERNEL_FEATURE_LIGHT_PASSES = (1U << 23U),
 
   /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
+  KERNEL_FEATURE_SHADOW_PASS = (1U << 24U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
 
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
   (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
    KERNEL_FEATURE_NODE_HAIR | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE | \
-   KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE \
-  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE)
+  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
+   KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_VOLUME \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
+   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_DISPLACEMENT \
   (KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE)
 #define KERNEL_FEATURE_NODE_MASK_BUMP KERNEL_FEATURE_NODE_MASK_DISPLACEMENT
 
-#define KERNEL_NODES_FEATURE(feature) ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+/* Must be constexpr on the CPU to avoid compile errors because the state types
+ * are different depending on the main, shadow or null path. For GPU we don't have
+ * C++17 everywhere so can't use it. */
+#ifdef __KERNEL_CPU__
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#else
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#endif
 
 CCL_NAMESPACE_END

@@ -215,8 +215,8 @@ ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, f
 }
 
 ccl_device_inline void spherical_stereo_transform(ccl_constant KernelCamera *cam,
-                                                  float3 *P,
-                                                  float3 *D)
+                                                  ccl_private float3 *P,
+                                                  ccl_private float3 *D)
 {
   float interocular_offset = cam->interocular_offset;
 

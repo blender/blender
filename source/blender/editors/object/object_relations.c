@@ -2605,9 +2605,10 @@ static void drop_named_material_face_set_slots_update(bContext *C,
   Mesh *mesh = BKE_mesh_from_object(ob);
 
   bScreen *screen = CTX_wm_screen(C);
-  ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->x, event->y);
+  ARegion *region = BKE_screen_find_main_region_at_xy(
+      screen, SPACE_VIEW3D, event->xy[0], event->xy[1]);
 
-  const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+  const float mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
   const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
 
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);

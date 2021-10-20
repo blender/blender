@@ -2274,8 +2274,8 @@ void add_face_constraints(CDT_state<T> *cdt_state,
        * making valid BMesh faces. */
       int id = cdt_state->need_ids ? f : 0;
       add_face_ids(cdt_state, face_symedge0, id, fedge_start, fedge_end);
-      if (cdt_state->need_ids || (output_type == CDT_CONSTRAINTS_VALID_BMESH ||
-                                  output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES)) {
+      if (cdt_state->need_ids ||
+          ELEM(output_type, CDT_CONSTRAINTS_VALID_BMESH, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES)) {
         add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
       }
     }

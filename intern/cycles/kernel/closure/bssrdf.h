@@ -18,7 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef ccl_addr_space struct Bssrdf {
+typedef struct Bssrdf {
   SHADER_CLOSURE_BASE;
 
   float3 radius;
@@ -66,7 +66,9 @@ ccl_device float bssrdf_dipole_compute_alpha_prime(float rd, float fourthirdA)
   return xmid;
 }
 
-ccl_device void bssrdf_setup_radius(Bssrdf *bssrdf, const ClosureType type, const float eta)
+ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf,
+                                    const ClosureType type,
+                                    const float eta)
 {
   if (type == CLOSURE_BSSRDF_BURLEY_ID || type == CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID) {
     /* Scale mean free path length so it gives similar looking result to older
@@ -114,7 +116,7 @@ ccl_device_inline float3 bssrdf_burley_compatible_mfp(float3 r)
   return 0.25f * M_1_PI_F * r;
 }
 
-ccl_device void bssrdf_burley_setup(Bssrdf *bssrdf)
+ccl_device void bssrdf_burley_setup(ccl_private Bssrdf *bssrdf)
 {
   /* Mean free path length. */
   const float3 l = bssrdf_burley_compatible_mfp(bssrdf->radius);
@@ -195,7 +197,10 @@ ccl_device_forceinline float bssrdf_burley_root_find(float xi)
   return r;
 }
 
-ccl_device void bssrdf_burley_sample(const float d, float xi, float *r, float *h)
+ccl_device void bssrdf_burley_sample(const float d,
+                                     float xi,
+                                     ccl_private float *r,
+                                     ccl_private float *h)
 {
   const float Rm = BURLEY_TRUNCATE * d;
   const float r_ = bssrdf_burley_root_find(xi * BURLEY_TRUNCATE_CDF) * d;
@@ -221,7 +226,10 @@ ccl_device float bssrdf_num_channels(const float3 radius)
   return channels;
 }
 
-ccl_device void bssrdf_sample(const float3 radius, float xi, float *r, float *h)
+ccl_device void bssrdf_sample(const float3 radius,
+                              float xi,
+                              ccl_private float *r,
+                              ccl_private float *h)
 {
   const float num_channels = bssrdf_num_channels(radius);
   float sampled_radius;
@@ -261,9 +269,10 @@ ccl_device_forceinline float bssrdf_pdf(const float3 radius, float r)
 
 /* Setup */
 
-ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
+ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, float3 weight)
 {
-  Bssrdf *bssrdf = (Bssrdf *)closure_alloc(sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
+  ccl_private Bssrdf *bssrdf = (ccl_private Bssrdf *)closure_alloc(
+      sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
 
   if (bssrdf == NULL) {
     return NULL;
@@ -274,13 +283,16 @@ ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
   return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? bssrdf : NULL;
 }
 
-ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, const float ior)
+ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
+                            ccl_private Bssrdf *bssrdf,
+                            ClosureType type,
+                            const float ior)
 {
   int flag = 0;
 
   /* Add retro-reflection component as separate diffuse BSDF. */
   if (bssrdf->roughness != FLT_MAX) {
-    PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
+    ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
         sd, sizeof(PrincipledDiffuseBsdf), bssrdf->weight);
 
     if (bsdf) {
@@ -321,7 +333,7 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, co
     /* Add diffuse BSDF if any radius too small. */
 #ifdef __PRINCIPLED__
     if (bssrdf->roughness != FLT_MAX) {
-      PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
+      ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
           sd, sizeof(PrincipledDiffuseBsdf), diffuse_weight);
 
       if (bsdf) {
@@ -333,7 +345,8 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, co
     else
 #endif /* __PRINCIPLED__ */
     {
-      DiffuseBsdf *bsdf = (DiffuseBsdf *)bsdf_alloc(sd, sizeof(DiffuseBsdf), diffuse_weight);
+      ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
+          sd, sizeof(DiffuseBsdf), diffuse_weight);
 
       if (bsdf) {
         bsdf->N = bssrdf->N;

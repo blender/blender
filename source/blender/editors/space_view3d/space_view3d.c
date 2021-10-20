@@ -30,6 +30,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -473,7 +474,7 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *region)
 static bool view3d_drop_in_main_region_poll(bContext *C, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
-  return ED_region_overlap_isect_any_xy(area, &event->x) == false;
+  return ED_region_overlap_isect_any_xy(area, event->xy) == false;
 }
 
 static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
@@ -482,7 +483,7 @@ static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
 {
   const ScrArea *area = CTX_wm_area(C);
 
-  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
+  if (ED_region_overlap_isect_any_xy(area, event->xy)) {
     return 0;
   }
   if (!view3d_drop_in_main_region_poll(C, event)) {
@@ -563,7 +564,7 @@ static char *view3d_object_data_drop_tooltip(bContext *UNUSED(C),
 
 static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), &event->x)) {
+  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), event->xy)) {
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {
@@ -1576,10 +1577,7 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
     case NC_SCENE:
       switch (wmn->data) {
         case ND_WORLD: {
-          const bool use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
-                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                                       ((v3d->shading.type == OB_RENDER) &&
-                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+          const bool use_scene_world = V3D_USES_SCENE_WORLD(v3d);
           if (v3d->flag2 & V3D_HIDE_OVERLAYS || use_scene_world) {
             ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }

@@ -332,7 +332,8 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], cons
 /**
  * Use for mouse-move events.
  */
-static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
+static bool view3d_ruler_item_mousemove(const bContext *C,
+                                        struct Depsgraph *depsgraph,
                                         RulerInfo *ruler_info,
                                         RulerItem *ruler_item,
                                         const int mval[2],
@@ -401,7 +402,6 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
 #endif
     {
       View3D *v3d = ruler_info->area->spacedata.first;
-      const float mval_fl[2] = {UNPACK2(mval)};
       float *prev_point = NULL;
 
       if (inter->co_index != 1) {
@@ -420,11 +420,8 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
             snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
       }
 
-      ED_gizmotypes_snap_3d_update(
-          snap_gizmo, depsgraph, ruler_info->region, v3d, ruler_info->wm, mval_fl);
-
       if (ED_gizmotypes_snap_3d_is_enabled(snap_gizmo)) {
-        ED_gizmotypes_snap_3d_data_get(snap_gizmo, co, NULL, NULL, NULL);
+        ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, NULL, NULL, NULL);
       }
 
 #ifdef USE_AXIS_CONSTRAINTS
@@ -1050,7 +1047,8 @@ static int gizmo_ruler_modal(bContext *C,
   if (do_cursor_update) {
     if (ruler_info->state == RULER_STATE_DRAG) {
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      if (view3d_ruler_item_mousemove(depsgraph,
+      if (view3d_ruler_item_mousemove(C,
+                                      depsgraph,
                                       ruler_info,
                                       ruler_item,
                                       event->mval,
@@ -1117,7 +1115,8 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 
       /* update the new location */
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      view3d_ruler_item_mousemove(depsgraph,
+      view3d_ruler_item_mousemove(C,
+                                  depsgraph,
                                   ruler_info,
                                   ruler_item_pick,
                                   event->mval,
@@ -1236,7 +1235,7 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
                  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
                   /* SCE_SNAP_MODE_VOLUME | SCE_SNAP_MODE_GRID | SCE_SNAP_MODE_INCREMENT | */
                   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT));
-    ED_gizmotypes_snap_3d_flag_set(gizmo, ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE);
+    ED_gizmotypes_snap_3d_flag_set(gizmo, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE);
     WM_gizmo_set_color(gizmo, (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
 
     wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_ruler_add", true);
@@ -1321,7 +1320,8 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       /* snap the first point added, not essential but handy */
       inter->co_index = 0;
-      view3d_ruler_item_mousemove(depsgraph,
+      view3d_ruler_item_mousemove(C,
+                                  depsgraph,
                                   ruler_info,
                                   ruler_item,
                                   event->mval,

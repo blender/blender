@@ -30,6 +30,7 @@
 #include "GPU_texture.h"
 
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_colortools.h"
 
@@ -60,14 +61,8 @@ static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene &sc
 {
 
   const bool use_workbench = BKE_scene_uses_blender_workbench(&scene);
-  const bool use_scene_lights = ((v3d.shading.type == OB_MATERIAL) &&
-                                 (v3d.shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
-                                ((v3d.shading.type == OB_RENDER) &&
-                                 (v3d.shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
-  const bool use_scene_world = ((v3d.shading.type == OB_MATERIAL) &&
-                                (v3d.shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                               ((v3d.shading.type == OB_RENDER) &&
-                                (v3d.shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+  const bool use_scene_lights = V3D_USES_SCENE_LIGHTS(&v3d);
+  const bool use_scene_world = V3D_USES_SCENE_WORLD(&v3d);
 
   if ((use_workbench && v3d.shading.type == OB_RENDER) || use_scene_lights || use_scene_world) {
     return eDRWColorManagementType::UseRenderSettings;

@@ -24,7 +24,6 @@ namespace blender::nodes {
 
 static void fn_node_string_length_declare(NodeDeclarationBuilder &b)
 {
-  b.is_function_node();
   b.add_input<decl::String>("String");
   b.add_output<decl::Int>("Length");
 };

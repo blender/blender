@@ -31,8 +31,11 @@ CCL_NAMESPACE_BEGIN
  * Magnus Wrenninge, Ryusuke Villemin, Christophe Hery.
  * https://graphics.pixar.com/library/PathTracedSubsurface/ */
 
-ccl_device void subsurface_random_walk_remap(
-    const float albedo, const float d, float g, float *sigma_t, float *alpha)
+ccl_device void subsurface_random_walk_remap(const float albedo,
+                                             const float d,
+                                             float g,
+                                             ccl_private float *sigma_t,
+                                             ccl_private float *alpha)
 {
   /* Compute attenuation and scattering coefficients from albedo. */
   const float g2 = g * g;
@@ -78,9 +81,9 @@ ccl_device void subsurface_random_walk_remap(
 ccl_device void subsurface_random_walk_coefficients(const float3 albedo,
                                                     const float3 radius,
                                                     const float anisotropy,
-                                                    float3 *sigma_t,
-                                                    float3 *alpha,
-                                                    float3 *throughput)
+                                                    ccl_private float3 *sigma_t,
+                                                    ccl_private float3 *alpha,
+                                                    ccl_private float3 *throughput)
 {
   float sigma_t_x, sigma_t_y, sigma_t_z;
   float alpha_x, alpha_y, alpha_z;
@@ -164,7 +167,7 @@ ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, f
 ccl_device_forceinline float3 subsurface_random_walk_pdf(float3 sigma_t,
                                                          float t,
                                                          bool hit,
-                                                         float3 *transmittance)
+                                                         ccl_private float3 *transmittance)
 {
   float3 T = volume_color_transmittance(sigma_t, t);
   if (transmittance) {
@@ -177,20 +180,21 @@ ccl_device_forceinline float3 subsurface_random_walk_pdf(float3 sigma_t,
  * and the value represents the cutoff level */
 #define SUBSURFACE_RANDOM_WALK_SIMILARITY_LEVEL 9
 
-ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
+ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
+                                              IntegratorState state,
                                               RNGState rng_state,
-                                              Ray &ray,
-                                              LocalIntersection &ss_isect)
+                                              ccl_private Ray &ray,
+                                              ccl_private LocalIntersection &ss_isect)
 {
   float bssrdf_u, bssrdf_v;
   path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 
-  const float3 P = INTEGRATOR_STATE(ray, P);
-  const float3 N = INTEGRATOR_STATE(ray, D);
-  const float ray_dP = INTEGRATOR_STATE(ray, dP);
-  const float time = INTEGRATOR_STATE(ray, time);
-  const float3 Ng = INTEGRATOR_STATE(isect, Ng);
-  const int object = INTEGRATOR_STATE(isect, object);
+  const float3 P = INTEGRATOR_STATE(state, ray, P);
+  const float3 N = INTEGRATOR_STATE(state, ray, D);
+  const float ray_dP = INTEGRATOR_STATE(state, ray, dP);
+  const float time = INTEGRATOR_STATE(state, ray, time);
+  const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
+  const int object = INTEGRATOR_STATE(state, isect, object);
 
   /* Sample diffuse surface scatter into the object. */
   float3 D;
@@ -216,12 +220,12 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
 
   /* Convert subsurface to volume coefficients.
    * The single-scattering albedo is named alpha to avoid confusion with the surface albedo. */
-  const float3 albedo = INTEGRATOR_STATE(subsurface, albedo);
-  const float3 radius = INTEGRATOR_STATE(subsurface, radius);
-  const float anisotropy = INTEGRATOR_STATE(subsurface, anisotropy);
+  const float3 albedo = INTEGRATOR_STATE(state, subsurface, albedo);
+  const float3 radius = INTEGRATOR_STATE(state, subsurface, radius);
+  const float anisotropy = INTEGRATOR_STATE(state, subsurface, anisotropy);
 
   float3 sigma_t, alpha;
-  float3 throughput = INTEGRATOR_STATE_WRITE(path, throughput);
+  float3 throughput = INTEGRATOR_STATE_WRITE(state, path, throughput);
   subsurface_random_walk_coefficients(albedo, radius, anisotropy, &sigma_t, &alpha, &throughput);
   float3 sigma_s = sigma_t * alpha;
 
@@ -456,7 +460,7 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
 
   if (hit) {
     kernel_assert(isfinite3_safe(throughput));
-    INTEGRATOR_STATE_WRITE(path, throughput) = throughput;
+    INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
   }
 
   return hit;

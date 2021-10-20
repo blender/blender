@@ -41,6 +41,7 @@ set(SRC
   intern/asset_ops.cc
   intern/asset_temp_id_consumer.cc
 
+  ED_asset_catalog.h
   ED_asset_catalog.hh
   ED_asset_filter.h
   ED_asset_handle.h

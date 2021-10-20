@@ -85,7 +85,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
   ThemeSpace *ts = NULL;
   static uchar error[4] = {240, 0, 240, 255};
   static uchar alert[4] = {240, 60, 60, 255};
-  static uchar headerdesel[4] = {0, 0, 0, 255};
+  static uchar header_active[4] = {0, 0, 0, 255};
   static uchar back[4] = {0, 0, 0, 255};
   static uchar setting = 0;
   const uchar *cp = error;
@@ -249,15 +249,17 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_HEADER:
           cp = ts->header;
           break;
-        case TH_HEADERDESEL:
-          /* We calculate a dynamic builtin header deselect color, also for pull-downs. */
+
+        case TH_HEADER_ACTIVE:
           cp = ts->header;
-          headerdesel[0] = cp[0] > 10 ? cp[0] - 10 : 0;
-          headerdesel[1] = cp[1] > 10 ? cp[1] - 10 : 0;
-          headerdesel[2] = cp[2] > 10 ? cp[2] - 10 : 0;
-          headerdesel[3] = cp[3];
-          cp = headerdesel;
+          /* Lighten the header color when editor is active. */
+          header_active[0] = cp[0] > 245 ? cp[0] - 10 : cp[0] + 10;
+          header_active[1] = cp[1] > 245 ? cp[1] - 10 : cp[1] + 10;
+          header_active[2] = cp[2] > 245 ? cp[2] - 10 : cp[2] + 10;
+          header_active[3] = cp[3];
+          cp = header_active;
           break;
+
         case TH_HEADER_TEXT:
           cp = ts->header_text;
           break;

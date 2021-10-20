@@ -56,7 +56,7 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 /**
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
-static GeometrySet object_get_geometry_set_for_read(const Object &object)
+GeometrySet object_get_evaluated_geometry_set(const Object &object)
 {
   if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
     GeometrySet geometry_set;
@@ -100,7 +100,7 @@ static void geometry_set_collect_recursive_object(const Object &object,
                                                   const float4x4 &transform,
                                                   Vector<GeometryInstanceGroup> &r_sets)
 {
-  GeometrySet instance_geometry_set = object_get_geometry_set_for_read(object);
+  GeometrySet instance_geometry_set = object_get_evaluated_geometry_set(object);
   geometry_set_collect_recursive(instance_geometry_set, transform, r_sets);
 
   if (object.type == OB_EMPTY) {
@@ -224,8 +224,7 @@ void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> se
   }
 }
 
-static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGroup> set_groups,
-                                                       const bool convert_points_to_vertices)
+static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGroup> set_groups)
 {
   int totverts = 0;
   int totloops = 0;
@@ -254,10 +253,6 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
         Material *material = mesh.mat[slot_index];
         materials.add(material);
       }
-    }
-    if (convert_points_to_vertices && set.has_pointcloud()) {
-      const PointCloud &pointcloud = *set.get_pointcloud_for_read();
-      totverts += pointcloud.totpoint * tot_transforms;
     }
   }
 
@@ -343,24 +338,6 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
         loop_offset += mesh.totloop;
         edge_offset += mesh.totedge;
         poly_offset += mesh.totpoly;
-      }
-    }
-
-    const float3 point_normal{0.0f, 0.0f, 1.0f};
-    short point_normal_short[3];
-    normal_float_to_short_v3(point_normal_short, point_normal);
-
-    if (convert_points_to_vertices && set.has_pointcloud()) {
-      const PointCloud &pointcloud = *set.get_pointcloud_for_read();
-      for (const float4x4 &transform : set_group.transforms) {
-        for (const int i : IndexRange(pointcloud.totpoint)) {
-          MVert &new_vert = new_mesh->mvert[vert_offset + i];
-          const float3 old_position = pointcloud.co[i];
-          const float3 new_position = transform * old_position;
-          copy_v3_v3(new_vert.co, new_position);
-          memcpy(&new_vert.no, point_normal_short, sizeof(point_normal_short));
-        }
-        vert_offset += pointcloud.totpoint;
       }
     }
   }
@@ -495,12 +472,9 @@ static CurveEval *join_curve_splines_and_builtin_attributes(Span<GeometryInstanc
   return new_curve;
 }
 
-static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
-                                      bool convert_points_to_vertices,
-                                      GeometrySet &result)
+static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
 {
-  Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups,
-                                                             convert_points_to_vertices);
+  Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups);
   if (new_mesh == nullptr) {
     return;
   }
@@ -508,21 +482,17 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
 
-  Vector<GeometryComponentType> component_types;
-  component_types.append(GEO_COMPONENT_TYPE_MESH);
-  if (convert_points_to_vertices) {
-    component_types.append(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  }
-
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set_gather_instances_attribute_info(
       set_groups,
-      component_types,
+      {GEO_COMPONENT_TYPE_MESH},
       {"position", "material_index", "normal", "shade_smooth", "crease"},
       attributes);
-  join_attributes(
-      set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
+  join_attributes(set_groups,
+                  {GEO_COMPONENT_TYPE_MESH},
+                  attributes,
+                  static_cast<GeometryComponent &>(dst_component));
 }
 
 static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_groups,
@@ -582,24 +552,6 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
                   static_cast<GeometryComponent &>(dst_component));
 }
 
-GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set)
-{
-  if (!geometry_set.has_instances() && !geometry_set.has_pointcloud()) {
-    return geometry_set;
-  }
-
-  GeometrySet new_geometry_set = geometry_set;
-  Vector<GeometryInstanceGroup> set_groups;
-  geometry_set_gather_instances(geometry_set, set_groups);
-  join_instance_groups_mesh(set_groups, true, new_geometry_set);
-  /* Remove all instances, even though some might contain other non-mesh data. We can't really
-   * keep only non-mesh instances in general. */
-  new_geometry_set.remove<InstancesComponent>();
-  /* If there was a point cloud, it is now part of the mesh. */
-  new_geometry_set.remove<PointCloudComponent>();
-  return new_geometry_set;
-}
-
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 {
   if (!geometry_set.has_instances()) {
@@ -610,7 +562,7 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 
   Vector<GeometryInstanceGroup> set_groups;
   geometry_set_gather_instances(geometry_set, set_groups);
-  join_instance_groups_mesh(set_groups, false, new_geometry_set);
+  join_instance_groups_mesh(set_groups, new_geometry_set);
   join_instance_groups_pointcloud(set_groups, new_geometry_set);
   join_instance_groups_volume(set_groups, new_geometry_set);
   join_instance_groups_curve(set_groups, new_geometry_set);
@@ -628,14 +580,14 @@ void InstancesComponent::foreach_referenced_geometry(
     switch (reference.type()) {
       case InstanceReference::Type::Object: {
         const Object &object = reference.object();
-        const GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(object);
         callback(object_geometry_set);
         break;
       }
       case InstanceReference::Type::Collection: {
         Collection &collection = reference.collection();
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
-          const GeometrySet object_geometry_set = object_get_geometry_set_for_read(*object);
+          const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
           callback(object_geometry_set);
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -676,7 +628,7 @@ void InstancesComponent::ensure_geometry_instances()
         /* Create a new reference that contains the geometry set of the object. We may want to
          * treat e.g. lamps and similar object types separately here. */
         const Object &object = reference.object();
-        GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        GeometrySet object_geometry_set = object_get_evaluated_geometry_set(object);
         if (object_geometry_set.has_instances()) {
           InstancesComponent &component =
               object_geometry_set.get_component_for_write<InstancesComponent>();

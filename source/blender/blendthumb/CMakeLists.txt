@@ -19,23 +19,59 @@
 # ***** END GPL LICENSE BLOCK *****
 
 #-----------------------------------------------------------------------------
-include_directories(${ZLIB_INCLUDE_DIRS})
+# Shared Thumbnail Extraction Logic
+
+include_directories(
+  ../blenlib
+  ../makesdna
+  ../../../intern/guardedalloc
+)
+
+include_directories(
+  SYSTEM
+  ${ZLIB_INCLUDE_DIRS}
+)
 
 set(SRC
-  src/BlenderThumb.cpp
-  src/BlendThumb.def
-  src/BlendThumb.rc
-  src/Dll.cpp
+  src/blendthumb.hh
+  src/blendthumb_extract.cc
+  src/blendthumb_png.cc
 )
 
-string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")
+if(WIN32)
+  # -----------------------------------------------------------------------------
+  # Build `BlendThumb.dll`
 
-add_library(BlendThumb SHARED ${SRC})
-setup_platform_linker_flags(BlendThumb)
-target_link_libraries(BlendThumb ${ZLIB_LIBRARIES})
+  set(SRC_WIN32
+    src/blendthumb_win32.cc
+    src/blendthumb_win32.def
+    src/blendthumb_win32.rc
+    src/blendthumb_win32_dll.cc
+  )
 
-install(
-  FILES $<TARGET_FILE:BlendThumb>
-  COMPONENT Blender
-  DESTINATION "."
-)
+  add_definitions(-DNOMINMAX)
+
+  add_library(BlendThumb SHARED ${SRC} ${SRC_WIN32})
+
+  target_link_libraries(BlendThumb bf_blenlib dbghelp.lib Version.lib)
+  set_target_properties(BlendThumb PROPERTIES LINK_FLAGS_DEBUG "/NODEFAULTLIB:msvcrt")
+
+  install(
+    FILES $<TARGET_FILE:BlendThumb>
+    COMPONENT Blender
+    DESTINATION "."
+  )
+else()
+  # -----------------------------------------------------------------------------
+  # Build `blender-thumbnailer` executable
+
+  add_executable(blender-thumbnailer ${SRC} src/blender_thumbnailer.cc)
+  target_link_libraries(blender-thumbnailer bf_blenlib)
+  target_link_libraries(blender-thumbnailer ${PTHREADS_LIBRARIES})
+
+  install(
+    FILES $<TARGET_FILE:blender-thumbnailer>
+    COMPONENT Blender
+    DESTINATION "."
+  )
+endif()

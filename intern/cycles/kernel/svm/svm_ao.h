@@ -21,15 +21,17 @@ CCL_NAMESPACE_BEGIN
 #ifdef __SHADER_RAYTRACE__
 
 #  ifdef __KERNEL_OPTIX__
-extern "C" __device__ float __direct_callable__svm_node_ao(INTEGRATOR_STATE_CONST_ARGS,
+extern "C" __device__ float __direct_callable__svm_node_ao(
 #  else
-ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device float svm_ao(
 #  endif
-                                                           ShaderData *sd,
-                                                           float3 N,
-                                                           float max_dist,
-                                                           int num_samples,
-                                                           int flags)
+    KernelGlobals kg,
+    ConstIntegratorState state,
+    ccl_private ShaderData *sd,
+    float3 N,
+    float max_dist,
+    int num_samples,
+    int flags)
 {
   if (flags & NODE_AO_GLOBAL_RADIUS) {
     max_dist = kernel_data.integrator.ao_bounces_distance;
@@ -54,7 +56,7 @@ ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
 
   /* TODO: support ray-tracing in shadow shader evaluation? */
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   int unoccluded = 0;
   for (int sample = 0; sample < num_samples; sample++) {
@@ -89,14 +91,18 @@ ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
   return ((float)unoccluded) / num_samples;
 }
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else
 ccl_device_noinline
 #  endif
     void
-    svm_node_ao(INTEGRATOR_STATE_CONST_ARGS, ShaderData *sd, float *stack, uint4 node)
+    svm_node_ao(KernelGlobals kg,
+                ConstIntegratorGenericState state,
+                ccl_private ShaderData *sd,
+                ccl_private float *stack,
+                uint4 node)
 {
   uint flags, dist_offset, normal_offset, out_ao_offset;
   svm_unpack_node_uchar4(node.y, &flags, &dist_offset, &normal_offset, &out_ao_offset);
@@ -104,16 +110,17 @@ ccl_device_noinline
   uint color_offset, out_color_offset, samples;
   svm_unpack_node_uchar3(node.z, &color_offset, &out_color_offset, &samples);
 
-  float dist = stack_load_float_default(stack, dist_offset, node.w);
-  float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
-
   float ao = 1.0f;
 
-  if (KERNEL_NODES_FEATURE(RAYTRACE)) {
+  IF_KERNEL_NODES_FEATURE(RAYTRACE)
+  {
+    float dist = stack_load_float_default(stack, dist_offset, node.w);
+    float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
+
 #  ifdef __KERNEL_OPTIX__
-    ao = optixDirectCall<float>(0, INTEGRATOR_STATE_PASS, sd, normal, dist, samples, flags);
+    ao = optixDirectCall<float>(0, kg, state, sd, normal, dist, samples, flags);
 #  else
-    ao = svm_ao(INTEGRATOR_STATE_PASS, sd, normal, dist, samples, flags);
+    ao = svm_ao(kg, state, sd, normal, dist, samples, flags);
 #  endif
   }
 

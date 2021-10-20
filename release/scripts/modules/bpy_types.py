@@ -378,10 +378,9 @@ class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     def children(self):
         obj = self.id_data
         pbones = obj.pose.bones
-        self_bone = self.bone
 
-        return tuple(pbones[bone.name] for bone in obj.data.bones
-                     if bone.parent == self_bone)
+        # Use Bone.children, which is a native RNA property.
+        return tuple(pbones[bone.name] for bone in self.bone.children)
 
 
 class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):

@@ -783,25 +783,26 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = sseq->flag & SEQ_SHOW_OVERLAY;
   const bool draw_frame_overlay = (scene->ed &&
-                                   (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) &&
+                                   (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_SHOW) &&
                                    draw_overlay);
   const bool is_playing = ED_screen_animation_playing(wm);
 
-  if (!draw_frame_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
+  if (!(draw_frame_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE))) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
   }
 
-  if (draw_frame_overlay && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
+  if (draw_frame_overlay && sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_CURRENT) {
     int over_cfra;
 
-    if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) {
-      over_cfra = scene->ed->over_cfra;
+    if (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_ABS) {
+      over_cfra = scene->ed->overlay_frame_abs;
     }
     else {
-      over_cfra = scene->r.cfra + scene->ed->over_ofs;
+      over_cfra = scene->r.cfra + scene->ed->overlay_frame_ofs;
     }
 
-    if (over_cfra != scene->r.cfra || sseq->overlay_type != SEQ_DRAW_OVERLAY_RECT) {
+    if ((over_cfra != scene->r.cfra) ||
+        (sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_RECT)) {
       sequencer_draw_preview(
           C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
     }

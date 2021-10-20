@@ -151,6 +151,9 @@ void ED_fileselect_activate_by_id(struct SpaceFile *sfile,
                                   struct ID *asset_id,
                                   const bool deferred);
 
+void ED_fileselect_deselect_all(struct SpaceFile *sfile);
+void ED_fileselect_activate_by_relpath(struct SpaceFile *sfile, const char *relative_path);
+
 void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],
                                      bool *is_maximized);

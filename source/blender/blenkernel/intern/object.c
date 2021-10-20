@@ -5628,7 +5628,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
 
     /* skip subframe if object is parented
      * to vertex of a dynamic paint canvas */
-    if (no_update && (ob->partype == PARVERT1 || ob->partype == PARVERT3)) {
+    if (no_update && (ELEM(ob->partype, PARVERT1, PARVERT3))) {
       return false;
     }
 

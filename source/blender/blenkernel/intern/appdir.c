@@ -148,11 +148,12 @@ static char *blender_version_decimal(const int version)
  * \{ */
 
 /**
- * Get the folder that's the "natural" starting point for browsing files on an OS. On Unix that is
- * $HOME, on Windows it is %userprofile%/Documents.
+ * Get the folder that's the "natural" starting point for browsing files on an OS.
+ * - Unix: `$HOME`
+ * - Windows: `%userprofile%/Documents`
  *
  * \note On Windows `Users/{MyUserName}/Documents` is used as it's the default location to save
- *       documents.
+ * documents.
  */
 const char *BKE_appdir_folder_default(void)
 {
@@ -170,7 +171,9 @@ const char *BKE_appdir_folder_default(void)
 }
 
 /**
- * Get the user's home directory, i.e. $HOME on UNIX, %userprofile% on Windows.
+ * Get the user's home directory, i.e.
+ * - Unix: `$HOME`
+ * - Windows: `%userprofile%`
  */
 const char *BKE_appdir_folder_home(void)
 {
@@ -182,8 +185,11 @@ const char *BKE_appdir_folder_home(void)
 }
 
 /**
- * Get the user's document directory, i.e. $HOME/Documents on Linux, %userprofile%/Documents on
- * Windows. If this can't be found using OS queries (via Ghost), try manually finding it.
+ * Get the user's document directory, i.e.
+ * - Linux: `$HOME/Documents`
+ * - Windows: `%userprofile%/Documents`
+ *
+ * If this can't be found using OS queries (via Ghost), try manually finding it.
  *
  * \returns True if the path is valid and points to an existing directory.
  */
@@ -218,13 +224,13 @@ bool BKE_appdir_folder_documents(char *dir)
 }
 
 /**
- * Get the user's cache directory, i.e. $HOME/.cache/blender/ on Linux,
- * %USERPROFILE%\AppData\Local\Blender Foundation\Blender\ on Windows and
- * /Library/Caches/Blender on MacOS.
+ * Get the user's cache directory, i.e.
+ * - Linux: `$HOME/.cache/blender/`
+ * - Windows: `%USERPROFILE%\AppData\Local\Blender Foundation\Blender\`
+ * - MacOS: `/Library/Caches/Blender`
  *
  * \returns True if the path is valid. It doesn't create or checks format
- *     if the `blender` folder exists. It does check if the parent of the
- *     path exists.
+ * if the `blender` folder exists. It does check if the parent of the path exists.
  */
 bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
 {

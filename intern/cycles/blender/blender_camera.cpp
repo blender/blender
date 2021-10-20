@@ -80,8 +80,9 @@ struct BlenderCamera {
   int render_height;
 
   BoundBox2D border;
-  BoundBox2D pano_viewplane;
   BoundBox2D viewport_camera_border;
+  BoundBox2D pano_viewplane;
+  float pano_aspectratio;
 
   float passepartout_alpha;
 
@@ -123,10 +124,11 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->motion_position = Camera::MOTION_POSITION_CENTER;
   bcam->border.right = 1.0f;
   bcam->border.top = 1.0f;
-  bcam->pano_viewplane.right = 1.0f;
-  bcam->pano_viewplane.top = 1.0f;
   bcam->viewport_camera_border.right = 1.0f;
   bcam->viewport_camera_border.top = 1.0f;
+  bcam->pano_viewplane.right = 1.0f;
+  bcam->pano_viewplane.top = 1.0f;
+  bcam->pano_aspectratio = 0.0f;
   bcam->passepartout_alpha = 0.5f;
   bcam->offscreen_dicing_scale = 1.0f;
   bcam->matrix = transform_identity();
@@ -358,9 +360,21 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   }
 
   if (bcam->type == CAMERA_PANORAMA) {
-    /* set viewplane */
+    /* Set viewplane for panoramic camera. */
     if (viewplane != NULL) {
       *viewplane = bcam->pano_viewplane;
+
+      /* Modify viewplane for camera shift. */
+      const float shift_factor = (bcam->pano_aspectratio == 0.0f) ?
+                                     1.0f :
+                                     *aspectratio / bcam->pano_aspectratio;
+      const float dx = bcam->shift.x * shift_factor;
+      const float dy = bcam->shift.y * shift_factor;
+
+      viewplane->left += dx;
+      viewplane->right += dx;
+      viewplane->bottom += dy;
+      viewplane->top += dy;
     }
   }
   else {
@@ -375,8 +389,8 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
       *viewplane = (*viewplane) * bcam->zoom;
 
       /* modify viewplane with camera shift and 3d camera view offset */
-      float dx = 2.0f * (*aspectratio * bcam->shift.x + bcam->offset.x * xaspect * 2.0f);
-      float dy = 2.0f * (*aspectratio * bcam->shift.y + bcam->offset.y * yaspect * 2.0f);
+      const float dx = 2.0f * (*aspectratio * bcam->shift.x + bcam->offset.x * xaspect * 2.0f);
+      const float dy = 2.0f * (*aspectratio * bcam->shift.y + bcam->offset.y * yaspect * 2.0f);
 
       viewplane->left += dx;
       viewplane->right += dx;
@@ -652,7 +666,8 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
                                        int width,
                                        int height,
                                        BoundBox2D *view_box,
-                                       BoundBox2D *cam_box);
+                                       BoundBox2D *cam_box,
+                                       float *view_aspect);
 
 static void blender_camera_from_view(BlenderCamera *bcam,
                                      BL::RenderEngine &b_engine,
@@ -682,6 +697,7 @@ static void blender_camera_from_view(BlenderCamera *bcam,
       if (!skip_panorama && bcam->type == CAMERA_PANORAMA) {
         /* in panorama camera view, we map viewplane to camera border */
         BoundBox2D view_box, cam_box;
+        float view_aspect;
 
         BL::RenderSettings b_render_settings(b_scene.render());
         blender_camera_view_subset(b_engine,
@@ -693,9 +709,11 @@ static void blender_camera_from_view(BlenderCamera *bcam,
                                    width,
                                    height,
                                    &view_box,
-                                   &cam_box);
+                                   &cam_box,
+                                   &view_aspect);
 
         bcam->pano_viewplane = view_box.make_relative_to(cam_box);
+        bcam->pano_aspectratio = view_aspect;
       }
       else {
         /* magic zoom formula */
@@ -743,17 +761,18 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
                                        int width,
                                        int height,
                                        BoundBox2D *view_box,
-                                       BoundBox2D *cam_box)
+                                       BoundBox2D *cam_box,
+                                       float *view_aspect)
 {
   BoundBox2D cam, view;
-  float view_aspect, cam_aspect, sensor_size;
+  float cam_aspect, sensor_size;
 
   /* Get viewport viewplane. */
   BlenderCamera view_bcam;
   blender_camera_init(&view_bcam, b_render);
   blender_camera_from_view(&view_bcam, b_engine, b_scene, b_v3d, b_rv3d, width, height, true);
 
-  blender_camera_viewplane(&view_bcam, width, height, &view, &view_aspect, &sensor_size);
+  blender_camera_viewplane(&view_bcam, width, height, &view, view_aspect, &sensor_size);
 
   /* Get camera viewplane. */
   BlenderCamera cam_bcam;
@@ -768,7 +787,7 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
       &cam_bcam, cam_bcam.full_width, cam_bcam.full_height, &cam, &cam_aspect, &sensor_size);
 
   /* Return */
-  *view_box = view * (1.0f / view_aspect);
+  *view_box = view * (1.0f / *view_aspect);
   *cam_box = cam * (1.0f / cam_aspect);
 }
 
@@ -785,8 +804,18 @@ static void blender_camera_border_subset(BL::RenderEngine &b_engine,
 {
   /* Determine camera viewport subset. */
   BoundBox2D view_box, cam_box;
-  blender_camera_view_subset(
-      b_engine, b_render, b_scene, b_ob, b_v3d, b_rv3d, width, height, &view_box, &cam_box);
+  float view_aspect;
+  blender_camera_view_subset(b_engine,
+                             b_render,
+                             b_scene,
+                             b_ob,
+                             b_v3d,
+                             b_rv3d,
+                             width,
+                             height,
+                             &view_box,
+                             &cam_box,
+                             &view_aspect);
 
   /* Determine viewport subset matching given border. */
   cam_box = cam_box.make_relative_to(view_box);

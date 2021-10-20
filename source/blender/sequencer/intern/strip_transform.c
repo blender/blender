@@ -490,36 +490,41 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
     image_size[1] = seq->strip->stripdata->orig_height;
   }
 
-  float transform_matrix[3][3];
-  loc_rot_size_to_mat3(transform_matrix,
-                       (const float[]){transform->xofs, transform->yofs},
-                       apply_rotation ? transform->rotation : 0.0f,
-                       (const float[]){transform->scale_x, transform->scale_y});
+  float transform_matrix[4][4];
+
+  float rotation_matrix[3][3];
+  axis_angle_to_mat3_single(rotation_matrix, 'Z', apply_rotation ? transform->rotation : 0.0f);
+  loc_rot_size_to_mat4(transform_matrix,
+                       (const float[]){transform->xofs, transform->yofs, 0.0f},
+                       rotation_matrix,
+                       (const float[]){transform->scale_x, transform->scale_y, 1.0f});
   const float origin[2] = {image_size[0] * transform->origin[0],
                            image_size[1] * transform->origin[1]};
-  const float pivot[2] = {origin[0] - (image_size[0] / 2), origin[1] - (image_size[1] / 2)};
-  transform_pivot_set_m3(transform_matrix, pivot);
+  const float pivot[3] = {origin[0] - (image_size[0] / 2), origin[1] - (image_size[1] / 2), 0.0f};
+  transform_pivot_set_m4(transform_matrix, pivot);
 
-  r_quad[0][0] = (image_size[0] / 2) - crop->right;
-  r_quad[0][1] = (image_size[1] / 2) - crop->top;
-  r_quad[1][0] = (image_size[0] / 2) - crop->right;
-  r_quad[1][1] = (-image_size[1] / 2) + crop->bottom;
-  r_quad[2][0] = (-image_size[0] / 2) + crop->left;
-  r_quad[2][1] = (-image_size[1] / 2) + crop->bottom;
-  r_quad[3][0] = (-image_size[0] / 2) + crop->left;
-  r_quad[3][1] = (image_size[1] / 2) - crop->top;
+  float quad_temp[4][3];
+  for (int i = 0; i < 4; i++) {
+    zero_v2(quad_temp[i]);
+  }
 
-  mul_m3_v2(transform_matrix, r_quad[0]);
-  mul_m3_v2(transform_matrix, r_quad[1]);
-  mul_m3_v2(transform_matrix, r_quad[2]);
-  mul_m3_v2(transform_matrix, r_quad[3]);
+  quad_temp[0][0] = (image_size[0] / 2) - crop->right;
+  quad_temp[0][1] = (image_size[1] / 2) - crop->top;
+  quad_temp[1][0] = (image_size[0] / 2) - crop->right;
+  quad_temp[1][1] = (-image_size[1] / 2) + crop->bottom;
+  quad_temp[2][0] = (-image_size[0] / 2) + crop->left;
+  quad_temp[2][1] = (-image_size[1] / 2) + crop->bottom;
+  quad_temp[3][0] = (-image_size[0] / 2) + crop->left;
+  quad_temp[3][1] = (image_size[1] / 2) - crop->top;
 
   float mirror[2];
   SEQ_image_transform_mirror_factor_get(seq, mirror);
-  mul_v2_v2(r_quad[0], mirror);
-  mul_v2_v2(r_quad[1], mirror);
-  mul_v2_v2(r_quad[2], mirror);
-  mul_v2_v2(r_quad[3], mirror);
+
+  for (int i = 0; i < 4; i++) {
+    mul_m4_v3(transform_matrix, quad_temp[i]);
+    mul_v2_v2(quad_temp[i], mirror);
+    copy_v2_v2(r_quad[i], quad_temp[i]);
+  }
 }
 
 void SEQ_image_transform_quad_get(const Scene *scene,

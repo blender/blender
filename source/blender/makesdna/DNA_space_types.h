@@ -643,7 +643,7 @@ typedef struct SpaceSeq {
   float zoom DNA_DEPRECATED;
   /** See SEQ_VIEW_* below. */
   char view;
-  char overlay_type;
+  char overlay_frame_type;
   /** Overlay an image of the editing on below the strips. */
   char draw_flag;
   char gizmo_flag;
@@ -741,11 +741,11 @@ enum {
 };
 
 /* SpaceSeq.mainb */
-typedef enum eSpaceSeq_OverlayType {
-  SEQ_DRAW_OVERLAY_RECT = 0,
-  SEQ_DRAW_OVERLAY_REFERENCE = 1,
-  SEQ_DRAW_OVERLAY_CURRENT = 2,
-} eSpaceSeq_OverlayType;
+typedef enum eSpaceSeq_OverlayFrameType {
+  SEQ_OVERLAY_FRAME_TYPE_RECT = 0,
+  SEQ_OVERLAY_FRAME_TYPE_REFERENCE = 1,
+  SEQ_OVERLAY_FRAME_TYPE_CURRENT = 2,
+} eSpaceSeq_OverlayFrameType;
 
 /** \} */
 
@@ -773,7 +773,7 @@ typedef struct FileSelectParams {
   const ID *rename_id;
   void *_pad3;
 
-  /** List of filetypes to filter (FILE_MAXFILE). */
+  /** List of file-types to filter (#FILE_MAXFILE). */
   char filter_glob[256];
 
   /** Text items name must match to be shown. */
@@ -1151,7 +1151,6 @@ typedef struct FileDirEntryArr {
   ListBase entries;
   int nbr_entries;
   int nbr_entries_filtered;
-  int entry_idx_start, entry_idx_end;
 
   /** FILE_MAX. */
   char root[1024];

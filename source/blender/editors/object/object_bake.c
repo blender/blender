@@ -198,7 +198,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
               ok = false;
             }
 
-            if (ibuf->rect_float && !(ibuf->channels == 0 || ibuf->channels == 4)) {
+            if (ibuf->rect_float && !(ELEM(ibuf->channels, 0, 4))) {
               ok = false;
             }
 

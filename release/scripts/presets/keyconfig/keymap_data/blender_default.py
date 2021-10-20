@@ -2358,7 +2358,7 @@ def km_sequencercommon(params):
     items.extend([*_template_space_region_type_toggle(toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
+         {"properties": [("data_path", 'scene.sequence_editor.show_overlay_frame')]}),
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.view_type'), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
         ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),])
@@ -2528,7 +2528,7 @@ def km_sequencerpreview(params):
              {"properties": [("data_path", 'space_data.show_gizmo')]}),
             op_menu_pie("SEQUENCER_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
             ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
-             {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+             {"properties": [("data_path", "space_data.show_overlays")]}),
         ])
 
     # 2D cursor.
@@ -4419,6 +4419,9 @@ def km_mesh(params):
         op_tool_optional(("mesh.bevel", {"type": 'B', "value": 'PRESS', "ctrl": True},
              {"properties": [("affect", 'EDGES')]}),
             (op_tool_cycle, "builtin.bevel"), params),
+        op_tool_optional(
+            ("transform.shrink_fatten", {"type": 'S', "value": 'PRESS', "alt": True}, None),
+            (op_tool_cycle, "builtin.shrink_fatten"), params),
         ("mesh.bevel", {"type": 'B', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("affect", 'VERTICES')]}),
         # Selection modes.
@@ -4482,7 +4485,6 @@ def km_mesh(params):
         ("mesh.rip_edge_move", {"type": 'D', "value": 'PRESS', "alt": True}, None),
         op_menu("VIEW3D_MT_edit_mesh_merge", {"type": 'M', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_mesh_split", {"type": 'M', "value": 'PRESS', "alt": True}),
-        ("transform.shrink_fatten", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("mesh.edge_face_add", {"type": 'F', "value": 'PRESS', "repeat": True}, None),
         ("mesh.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         op_menu("VIEW3D_MT_mesh_add", {"type": 'A', "value": 'PRESS', "shift": True}),

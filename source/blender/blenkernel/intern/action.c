@@ -1211,7 +1211,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   /* copy bone group */
   pchan->agrp_index = pchan_from->agrp_index;
 
-  /* ik (dof) settings */
+  /* IK (DOF) settings. */
   pchan->ikflag = pchan_from->ikflag;
   copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
   copy_v3_v3(pchan->limitmax, pchan_from->limitmax);

@@ -360,8 +360,8 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
     WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
-  vpd->x = event->x;
-  vpd->y = event->y;
+  vpd->x = event->xy[0];
+  vpd->y = event->xy[1];
   vpd->xof = sima->xof;
   vpd->yof = sima->yof;
   vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
@@ -406,8 +406,8 @@ static int image_view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     SpaceImage *sima = CTX_wm_space_image(C);
     float offset[2];
 
-    offset[0] = (event->prevx - event->x) / sima->zoom;
-    offset[1] = (event->prevy - event->y) / sima->zoom;
+    offset[0] = (event->prev_xy[0] - event->xy[0]) / sima->zoom;
+    offset[1] = (event->prev_xy[1] - event->xy[1]) / sima->zoom;
     RNA_float_set_array(op->ptr, "offset", offset);
 
     image_view_pan_exec(C, op);
@@ -428,8 +428,8 @@ static int image_view_pan_modal(bContext *C, wmOperator *op, const wmEvent *even
     case MOUSEMOVE:
       sima->xof = vpd->xof;
       sima->yof = vpd->yof;
-      offset[0] = (vpd->x - event->x) / sima->zoom;
-      offset[1] = (vpd->y - event->y) / sima->zoom;
+      offset[0] = (vpd->x - event->xy[0]) / sima->zoom;
+      offset[1] = (vpd->y - event->xy[1]) / sima->zoom;
       RNA_float_set_array(op->ptr, "offset", offset);
       image_view_pan_exec(C, op);
       break;
@@ -516,8 +516,8 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
     WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
 
-  vpd->origx = event->x;
-  vpd->origy = event->y;
+  vpd->origx = event->xy[0];
+  vpd->origy = event->xy[1];
   vpd->zoom = sima->zoom;
   vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
@@ -584,7 +584,7 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     UI_view2d_region_to_view(
         &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 
-    delta = event->prevx - event->x + event->prevy - event->y;
+    delta = event->prev_xy[0] - event->xy[0] + event->prev_xy[1] - event->xy[1];
 
     if (U.uiflag & USER_ZOOM_INVERT) {
       delta *= -1;
@@ -675,8 +675,8 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *eve
     const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
     image_zoom_apply(vpd,
                      op,
-                     event->x,
-                     event->y,
+                     event->xy[0],
+                     event->xy[1],
                      U.viewzoom,
                      (U.uiflag & USER_ZOOM_INVERT) != 0,
                      (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
@@ -3628,13 +3628,8 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ARegion *region = CTX_wm_region(C);
 
   if (region->regiontype == RGN_TYPE_WINDOW) {
-    SpaceImage *sima = CTX_wm_space_image(C);
-
-    /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
-    const rcti *rect_visible = ED_region_visible_rect(region);
-    const int region_bottom = rect_visible->ymin;
-
-    if (event->mval[1] > (region_bottom + 16 * UI_DPI_FAC) || !ED_space_image_show_cache(sima)) {
+    const SpaceImage *sima = CTX_wm_space_image(C);
+    if (!ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
       return OPERATOR_PASS_THROUGH;
     }
   }

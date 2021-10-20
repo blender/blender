@@ -480,7 +480,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   BLI_stat_t st;
 
   BLI_strncpy(filepath_abs, file, FILE_MAX);
-  if (relpath) { /* can be NULL (bg mode) */
+  if (relpath) { /* Can be NULL (background mode). */
     BLI_path_abs(filepath_abs, relpath);
   }
 

@@ -35,13 +35,15 @@ struct CCLIntersectContext {
     RAY_VOLUME_ALL = 4,
   } RayType;
 
-  const KernelGlobals *kg;
+  KernelGlobals kg;
   RayType type;
 
   /* for shadow rays */
   Intersection *isect_s;
-  int max_hits;
-  int num_hits;
+  uint max_hits;
+  uint num_hits;
+  uint num_recorded_hits;
+  float throughput;
   float max_t;
   bool opaque_hit;
 
@@ -50,12 +52,14 @@ struct CCLIntersectContext {
   int local_object_id;
   uint *lcg_state;
 
-  CCLIntersectContext(const KernelGlobals *kg_, RayType type_)
+  CCLIntersectContext(KernelGlobals kg_, RayType type_)
   {
     kg = kg_;
     type = type_;
     max_hits = 1;
     num_hits = 0;
+    num_recorded_hits = 0;
+    throughput = 1.0f;
     max_t = FLT_MAX;
     opaque_hit = false;
     isect_s = NULL;
@@ -101,13 +105,12 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
   rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
 }
 
-ccl_device_inline void kernel_embree_convert_hit(const KernelGlobals *kg,
+ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
                                                  Intersection *isect)
 {
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
     RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
         rtcGetGeometry(kernel_data.bvh.scene, hit->instID[0]));
@@ -137,12 +140,11 @@ ccl_device_inline void kernel_embree_convert_hit(const KernelGlobals *kg,
 }
 
 ccl_device_inline void kernel_embree_convert_sss_hit(
-    const KernelGlobals *kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
+    KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
 {
   isect->u = 1.0f - hit->v - hit->u;
   isect->v = hit->u;
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
       rtcGetGeometry(kernel_data.bvh.scene, object * 2));
   isect->prim = hit->primID +

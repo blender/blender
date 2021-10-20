@@ -78,9 +78,10 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
   SpaceSeq *space_sequencer = CTX_wm_space_seq(C);
   /* NOTE: We can only reliably show metadata for the original (current)
    * frame when split view is used. */
-  const bool show_split = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) &&
+  const bool show_split = (scene->ed &&
+                           (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_SHOW) &&
                            (space_sequencer->mainb == SEQ_DRAW_IMG_IMBUF));
-  if (show_split && space_sequencer->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) {
+  if (show_split && (space_sequencer->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE)) {
     return;
   }
   /* NOTE: We disable multiview for drawing, since we don't know what is the

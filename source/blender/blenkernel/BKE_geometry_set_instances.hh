@@ -20,6 +20,8 @@
 
 namespace blender::bke {
 
+GeometrySet object_get_evaluated_geometry_set(const Object &object);
+
 /**
  * Used to keep track of a group of instances using the same geometry data.
  */
@@ -42,7 +44,6 @@ struct GeometryInstanceGroup {
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups);
 
-GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set);
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
 
 /**

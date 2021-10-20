@@ -35,6 +35,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
@@ -1279,7 +1280,19 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MeshElemMap *vert_map = &ss->pmap[index.i];
+      MSculptVert *mv = ss->mdyntopo_verts + index.i;
+
+      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+
       for (int j = 0; j < ss->pmap[index.i].count; j++) {
+        MPoly *mp = ss->mpoly + vert_map->indices[j];
+        MLoop *ml = ss->mloop + mp->loopstart;
+
+        for (int k = 0; k < mp->totloop; k++, ml++) {
+          MSculptVert *mv2 = ss->mdyntopo_verts + ml->v;
+          MV_ADD_FLAG(mv2, SCULPTVERT_NEED_BOUNDARY);
+        }
+
         if (ss->face_sets[vert_map->indices[j]] > 0) {
           ss->face_sets[vert_map->indices[j]] = abs(face_set);
         }
@@ -1290,14 +1303,17 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
       BMLoop *l;
       BMVert *v = (BMVert *)index.i;
 
+      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
+
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
         if (fset >= 0 && fset != abs(face_set)) {
-          MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-
-          MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
           BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
         }
+
+        MSculptVert *mv_l = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, l->v);
+        MV_ADD_FLAG(mv_l, SCULPTVERT_NEED_BOUNDARY);
       }
 
       break;
@@ -8027,8 +8043,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 
   /* Restore the mesh before continuing with anchored stroke. */
   if ((brush->flag & BRUSH_ANCHORED) ||
-      ((brush->sculpt_tool == SCULPT_TOOL_GRAB ||
-        brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
+      ((ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM)) &&
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
@@ -8621,7 +8636,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   /* For tablet rotation. */
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
-  if (ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
+  if (ignore_background_click && !over_mesh(C, op, event->xy[0], event->xy[1])) {
     paint_stroke_free(C, op);
     return OPERATOR_PASS_THROUGH;
   }

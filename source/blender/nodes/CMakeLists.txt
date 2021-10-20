@@ -33,6 +33,7 @@ set(INC
   ../bmesh
   ../depsgraph
   ../functions
+  ../geometry
   ../gpu
   ../imbuf
   ../makesdna
@@ -140,11 +141,12 @@ set(SRC
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
+  function/nodes/node_fn_input_color.cc
   function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
-  function/nodes/node_fn_input_color.cc
   function/nodes/node_fn_random_value.cc
+  function/nodes/node_fn_replace_string.cc
   function/nodes/node_fn_rotate_euler.cc
   function/nodes/node_fn_string_length.cc
   function/nodes/node_fn_string_substring.cc
@@ -190,7 +192,6 @@ set(SRC
   geometry/nodes/legacy/node_geo_raycast.cc
   geometry/nodes/legacy/node_geo_select_by_material.cc
   geometry/nodes/legacy/node_geo_subdivision_surface.cc
-
   geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_statistic.cc
@@ -199,6 +200,7 @@ set(SRC
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
+  geometry/nodes/node_geo_curve_endpoint_selection.cc
   geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_fillet.cc
   geometry/nodes/node_geo_curve_handle_type_selection.cc
@@ -223,7 +225,7 @@ set(SRC
   geometry/nodes/node_geo_distribute_points_on_faces.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_curve_handles.cc
-  geometry/nodes/node_geo_input_curve_tilt.cc  
+  geometry/nodes/node_geo_input_curve_tilt.cc
   geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_material_index.cc
@@ -249,11 +251,13 @@ set(SRC
   geometry/nodes/node_geo_mesh_primitive_line.cc
   geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
   geometry/nodes/node_geo_mesh_subdivide.cc
+  geometry/nodes/node_geo_mesh_to_curve.cc
   geometry/nodes/node_geo_mesh_to_points.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_points_to_vertices.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_proximity.cc
+  geometry/nodes/node_geo_raycast.cc
   geometry/nodes/node_geo_realize_instances.cc
   geometry/nodes/node_geo_rotate_instances.cc
   geometry/nodes/node_geo_scale_instances.cc
@@ -261,7 +265,7 @@ set(SRC
   geometry/nodes/node_geo_separate_geometry.cc
   geometry/nodes/node_geo_set_curve_handles.cc
   geometry/nodes/node_geo_set_curve_radius.cc
-  geometry/nodes/node_geo_set_curve_tilt.cc  
+  geometry/nodes/node_geo_set_curve_tilt.cc
   geometry/nodes/node_geo_set_material.cc
   geometry/nodes/node_geo_set_material_index.cc
   geometry/nodes/node_geo_set_point_radius.cc
@@ -271,7 +275,9 @@ set(SRC
   geometry/nodes/node_geo_set_spline_resolution.cc
   geometry/nodes/node_geo_string_join.cc
   geometry/nodes/node_geo_string_to_curves.cc
+  geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
+  geometry/nodes/node_geo_transfer_attribute.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_translate_instances.cc
   geometry/nodes/node_geo_triangulate.cc
@@ -447,6 +453,7 @@ set(SRC
 set(LIB
   bf_bmesh
   bf_functions
+  bf_geometry
   bf_intern_sky
 )
 

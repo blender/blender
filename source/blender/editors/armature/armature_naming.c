@@ -265,7 +265,7 @@ void ED_armature_bone_rename(Main *bmain,
         }
       }
 
-      if (BKE_modifiers_uses_armature(ob, arm)) {
+      if (BKE_modifiers_uses_armature(ob, arm) && BKE_object_supports_vertex_groups(ob)) {
         bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
         if (dg) {
           BLI_strncpy(dg->name, newname, MAXBONENAME);

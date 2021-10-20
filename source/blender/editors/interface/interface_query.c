@@ -247,7 +247,7 @@ bool ui_but_contains_point_px(const uiBut *but, const ARegion *region, int x, in
 bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEvent *event)
 {
   rcti rect;
-  int x = event->x, y = event->y;
+  int x = event->xy[0], y = event->xy[1];
 
   ui_window_to_block(region, but->block, &x, &y);
 
@@ -333,7 +333,8 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
 
 uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(region, event->x, event->y, event->ctrl != 0, NULL, NULL);
+  return ui_but_find_mouse_over_ex(
+      region, event->xy[0], event->xy[1], event->ctrl != 0, NULL, NULL);
 }
 
 uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
@@ -398,7 +399,7 @@ uiBut *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
     /* If there is no info about the mouse, just act as if there is nothing underneath it. */
     return NULL;
   }
-  return ui_list_find_mouse_over_ex(region, event->x, event->y);
+  return ui_list_find_mouse_over_ex(region, event->xy[0], event->xy[1]);
 }
 
 uiList *UI_list_find_mouse_over(const ARegion *region, const wmEvent *event)
@@ -707,7 +708,7 @@ uiBlock *ui_block_find_mouse_over_ex(const ARegion *region,
 
 uiBlock *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, bool only_clip)
 {
-  return ui_block_find_mouse_over_ex(region, event->x, event->y, only_clip);
+  return ui_block_find_mouse_over_ex(region, event->xy[0], event->xy[1], only_clip);
 }
 
 /** \} */
@@ -819,7 +820,7 @@ ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, int x, int y)
 
 ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 {
-  return ui_screen_region_find_mouse_over_ex(screen, event->x, event->y);
+  return ui_screen_region_find_mouse_over_ex(screen, event->xy[0], event->xy[1]);
 }
 
 /** \} */

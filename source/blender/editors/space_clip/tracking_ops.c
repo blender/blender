@@ -181,8 +181,8 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
 
       ED_clip_point_stable_pos(sc,
                                region,
-                               event->x - region->winrct.xmin,
-                               event->y - region->winrct.ymin,
+                               event->xy[0] - region->winrct.xmin,
+                               event->xy[1] - region->winrct.ymin,
                                &pos[0],
                                &pos[1]);
 

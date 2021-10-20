@@ -77,7 +77,10 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
   return x;
 }
 
-ccl_device void svm_bevel_cubic_sample(const float radius, float xi, float *r, float *h)
+ccl_device void svm_bevel_cubic_sample(const float radius,
+                                       float xi,
+                                       ccl_private float *r,
+                                       ccl_private float *h)
 {
   float Rm = radius;
   float r_ = svm_bevel_cubic_quintic_root_find(xi);
@@ -96,13 +99,15 @@ ccl_device void svm_bevel_cubic_sample(const float radius, float xi, float *r, f
  */
 
 #  ifdef __KERNEL_OPTIX__
-extern "C" __device__ float3 __direct_callable__svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS,
+extern "C" __device__ float3 __direct_callable__svm_node_bevel(
 #  else
-ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device float3 svm_bevel(
 #  endif
-                                                               ShaderData *sd,
-                                                               float radius,
-                                                               int num_samples)
+    KernelGlobals kg,
+    ConstIntegratorState state,
+    ccl_private ShaderData *sd,
+    float radius,
+    int num_samples)
 {
   /* Early out if no sampling needed. */
   if (radius <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
@@ -115,15 +120,15 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
   }
 
   /* Don't bevel for blurry indirect rays. */
-  if (INTEGRATOR_STATE(path, min_ray_pdf) < 8.0f) {
+  if (INTEGRATOR_STATE(state, path, min_ray_pdf) < 8.0f) {
     return sd->N;
   }
 
   /* Setup for multi intersection. */
   LocalIntersection isect;
-  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(path, rng_hash),
-                                  INTEGRATOR_STATE(path, rng_offset),
-                                  INTEGRATOR_STATE(path, sample),
+  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+                                  INTEGRATOR_STATE(state, path, rng_offset),
+                                  INTEGRATOR_STATE(state, path, sample),
                                   0x64c6a40e);
 
   /* Sample normals from surrounding points on surface. */
@@ -131,7 +136,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 
   /* TODO: support ray-tracing in shadow shader evaluation? */
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   for (int sample = 0; sample < num_samples; sample++) {
     float disk_u, disk_v;
@@ -277,27 +282,32 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
   return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
 }
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else
 ccl_device_noinline
 #  endif
     void
-    svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS, ShaderData *sd, float *stack, uint4 node)
+    svm_node_bevel(KernelGlobals kg,
+                   ConstIntegratorGenericState state,
+                   ccl_private ShaderData *sd,
+                   ccl_private float *stack,
+                   uint4 node)
 {
   uint num_samples, radius_offset, normal_offset, out_offset;
   svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
 
-  float radius = stack_load_float(stack, radius_offset);
-
   float3 bevel_N = sd->N;
 
-  if (KERNEL_NODES_FEATURE(RAYTRACE)) {
+  IF_KERNEL_NODES_FEATURE(RAYTRACE)
+  {
+    float radius = stack_load_float(stack, radius_offset);
+
 #  ifdef __KERNEL_OPTIX__
-    bevel_N = optixDirectCall<float3>(1, INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+    bevel_N = optixDirectCall<float3>(1, kg, state, sd, radius, num_samples);
 #  else
-    bevel_N = svm_bevel(INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+    bevel_N = svm_bevel(kg, state, sd, radius, num_samples);
 #  endif
 
     if (stack_valid(normal_offset)) {

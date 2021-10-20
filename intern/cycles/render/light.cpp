@@ -50,6 +50,7 @@ static void shade_background_pixels(Device *device,
   device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
   const int size = width * height;
+  const int num_channels = 3;
   pixels.resize(size);
 
   /* Evaluate shader on device. */
@@ -57,6 +58,7 @@ static void shade_background_pixels(Device *device,
   shader_eval.eval(
       SHADER_EVAL_BACKGROUND,
       size,
+      num_channels,
       [&](device_vector<KernelShaderEvalInput> &d_input) {
         /* Fill coordinates for shading. */
         KernelShaderEvalInput *d_input_data = d_input.data();
@@ -77,15 +79,15 @@ static void shade_background_pixels(Device *device,
 
         return size;
       },
-      [&](device_vector<float4> &d_output) {
+      [&](device_vector<float> &d_output) {
         /* Copy output to pixel buffer. */
-        float4 *d_output_data = d_output.data();
+        float *d_output_data = d_output.data();
 
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
-            pixels[y * width + x].x = d_output_data[y * width + x].x;
-            pixels[y * width + x].y = d_output_data[y * width + x].y;
-            pixels[y * width + x].z = d_output_data[y * width + x].z;
+            pixels[y * width + x].x = d_output_data[(y * width + x) * num_channels + 0];
+            pixels[y * width + x].y = d_output_data[(y * width + x) * num_channels + 1];
+            pixels[y * width + x].z = d_output_data[(y * width + x) * num_channels + 2];
           }
         }
       });

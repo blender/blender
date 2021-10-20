@@ -2592,7 +2592,7 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
   TextScroll *tsc = op->customdata;
-  const int mval[2] = {event->x, event->y};
+  const int mval[2] = {event->xy[0], event->xy[1]};
 
   text_update_character_width(st);
 
@@ -2757,11 +2757,11 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (event->type == MOUSEPAN) {
     text_update_character_width(st);
 
-    tsc->mval_prev[0] = event->x;
-    tsc->mval_prev[1] = event->y;
+    tsc->mval_prev[0] = event->xy[0];
+    tsc->mval_prev[1] = event->xy[1];
     /* Sensitivity of scroll set to 4pix per line/char */
-    tsc->mval_delta[0] = (event->x - event->prevx) * st->runtime.cwidth_px / 4;
-    tsc->mval_delta[1] = (event->y - event->prevy) * st->runtime.lheight_px / 4;
+    tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime.cwidth_px / 4;
+    tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime.lheight_px / 4;
     tsc->is_first = false;
     tsc->is_scrollbar = false;
     text_scroll_apply(C, op, event);

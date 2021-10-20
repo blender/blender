@@ -497,7 +497,7 @@ ccl_device_inline float4 reduce_max(const float4 &a)
 #  endif
 }
 
-ccl_device_inline float4 load_float4(const float *v)
+ccl_device_inline float4 load_float4(ccl_private const float *v)
 {
 #  ifdef __KERNEL_SSE__
   return float4(_mm_loadu_ps(v));

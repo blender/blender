@@ -187,7 +187,7 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
 
   /* Give the panel the special flag that says it was built here and corresponds to a
    * modifier rather than a #PanelType. */
-  panel_type->flag = PANEL_TYPE_HEADER_EXPAND | PANEL_TYPE_DRAW_BOX | PANEL_TYPE_INSTANCED;
+  panel_type->flag = PANEL_TYPE_HEADER_EXPAND | PANEL_TYPE_INSTANCED;
   panel_type->reorder = fmodifier_reorder;
   panel_type->get_list_data_expand_flag = get_fmodifier_expand_flag;
   panel_type->set_list_data_expand_flag = set_fmodifier_expand_flag;
@@ -221,7 +221,7 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
   panel_type->poll = poll;
-  panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED | PANEL_TYPE_DRAW_BOX;
+  panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
   BLI_assert(parent != NULL);
   BLI_strncpy(panel_type->parent_id, parent->idname, BKE_ST_MAXNAME);

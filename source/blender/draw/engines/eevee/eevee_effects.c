@@ -488,7 +488,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_depth_of_field_draw(vedata);
 
   /* NOTE: Lookdev drawing happens before TAA but after
-   * motion blur and dof to avoid distortions.
+   * motion blur and DOF to avoid distortions.
    * Velocity resolve use a hack to exclude lookdev
    * spheres from creating shimmering re-projection vectors. */
   EEVEE_lookdev_draw(vedata);
@@ -500,7 +500,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
    * the swapping of the buffers. */
   EEVEE_renderpasses_output_accumulate(sldata, vedata, true);
 
-  /* Save the final texture and framebuffer for final transformation or read. */
+  /* Save the final texture and frame-buffer for final transformation or read. */
   effects->final_tx = effects->source_buffer;
   effects->final_fb = (effects->target_buffer != fbl->main_color_fb) ? fbl->main_fb :
                                                                        fbl->effect_fb;

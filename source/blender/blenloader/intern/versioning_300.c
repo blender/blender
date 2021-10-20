@@ -47,6 +47,7 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_brush.h"
 #include "BKE_brush_engine.h"
@@ -57,6 +58,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 
 #include "RNA_access.h"
@@ -458,6 +460,22 @@ static bool do_versions_sequencer_color_tags(Sequence *seq, void *UNUSED(user_da
   return true;
 }
 
+static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void *UNUSED(user_data))
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    if (smd->type == seqModifierType_ColorBalance) {
+      StripColorBalance *cb = &((ColorBalanceModifierData *)smd)->color_balance;
+      cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
+      for (int i = 0; i < 3; i++) {
+        copy_v3_fl(cb->slope, 1.0f);
+        copy_v3_fl(cb->offset, 1.0f);
+        copy_v3_fl(cb->power, 1.0f);
+      }
+    }
+  }
+  return true;
+}
+
 static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -501,17 +519,17 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (ELEM(node->type,
-             GEO_NODE_ATTRIBUTE_CAPTURE,
+             GEO_NODE_CAPTURE_ATTRIBUTE,
              GEO_NODE_SEPARATE_COMPONENTS,
              GEO_NODE_CONVEX_HULL,
              GEO_NODE_CURVE_LENGTH,
-             GEO_NODE_BOOLEAN,
-             GEO_NODE_CURVE_FILLET,
-             GEO_NODE_CURVE_RESAMPLE,
+             GEO_NODE_MESH_BOOLEAN,
+             GEO_NODE_FILLET_CURVE,
+             GEO_NODE_RESAMPLE_CURVE,
              GEO_NODE_CURVE_TO_MESH,
-             GEO_NODE_CURVE_TRIM,
-             GEO_NODE_MATERIAL_REPLACE,
-             GEO_NODE_MESH_SUBDIVIDE,
+             GEO_NODE_TRIM_CURVE,
+             GEO_NODE_REPLACE_MATERIAL,
+             GEO_NODE_SUBDIVIDE_MESH,
              GEO_NODE_ATTRIBUTE_REMOVE,
              GEO_NODE_TRIANGULATE)) {
       bNodeSocket *geometry_socket = node->inputs.first;
@@ -523,6 +541,54 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
       add_realize_instances_before_socket(ntree, node, profile_socket);
     }
   }
+}
+
+/**
+ * The geometry nodes modifier used to realize instances for the next modifier implicitly. Now it
+ * is done with the realize instances node. It also used to convert meshes to point clouds
+ * automatically, which is also now done with a specific node.
+ */
+static bNodeTree *add_realize_node_tree(Main *bmain)
+{
+  bNodeTree *node_tree = ntreeAddTree(bmain, "Realize Instances 2.93 Legacy", "GeometryNodeTree");
+
+  ntreeAddSocketInterface(node_tree, SOCK_IN, "NodeSocketGeometry", "Geometry");
+  ntreeAddSocketInterface(node_tree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
+
+  bNode *group_input = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_INPUT);
+  group_input->locx = -400.0f;
+  bNode *group_output = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_OUTPUT);
+  group_output->locx = 500.0f;
+  group_output->flag |= NODE_DO_OUTPUT;
+
+  bNode *join = nodeAddStaticNode(NULL, node_tree, GEO_NODE_JOIN_GEOMETRY);
+  join->locx = group_output->locx - 175.0f;
+  join->locy = group_output->locy;
+  bNode *conv = nodeAddStaticNode(NULL, node_tree, GEO_NODE_POINTS_TO_VERTICES);
+  conv->locx = join->locx - 175.0f;
+  conv->locy = join->locy - 70.0;
+  bNode *separate = nodeAddStaticNode(NULL, node_tree, GEO_NODE_SEPARATE_COMPONENTS);
+  separate->locx = join->locx - 350.0f;
+  separate->locy = join->locy + 50.0f;
+  bNode *realize = nodeAddStaticNode(NULL, node_tree, GEO_NODE_REALIZE_INSTANCES);
+  realize->locx = separate->locx - 200.0f;
+  realize->locy = join->locy;
+
+  nodeAddLink(node_tree, group_input, group_input->outputs.first, realize, realize->inputs.first);
+  nodeAddLink(node_tree, realize, realize->outputs.first, separate, separate->inputs.first);
+  nodeAddLink(node_tree, conv, conv->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 3), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 1), conv, conv->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 2), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, separate->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, join, join->outputs.first, group_output, group_output->inputs.first);
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    nodeSetSelected(node, false);
+  }
+
+  ntreeUpdateTree(bmain, node_tree);
+  return node_tree;
 }
 
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
@@ -654,6 +720,38 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         if (BKE_object_defgroup_active_index_get(object) == 0) {
           BKE_object_defgroup_active_index_set(object, object->actdef);
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 35)) {
+    /* Add a new modifier to realize instances from previous modifiers.
+     * Previously that was done automatically by geometry nodes. */
+    bNodeTree *realize_instances_node_tree = NULL;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH_MUTABLE (ModifierData *, md, &ob->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        if (md->next == NULL) {
+          break;
+        }
+        if (md->next->type == eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        if (nmd->node_group == NULL) {
+          continue;
+        }
+
+        NodesModifierData *new_nmd = (NodesModifierData *)BKE_modifier_new(eModifierType_Nodes);
+        STRNCPY(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
+        BKE_modifier_unique_name(&ob->modifiers, &new_nmd->modifier);
+        BLI_insertlinkafter(&ob->modifiers, md, new_nmd);
+        if (realize_instances_node_tree == NULL) {
+          realize_instances_node_tree = add_realize_node_tree(bmain);
+        }
+        new_nmd->node_group = realize_instances_node_tree;
       }
     }
   }
@@ -809,9 +907,9 @@ static bool geometry_node_is_293_legacy(const short node_type)
     /* Not legacy: No attribute inputs or outputs. */
     case GEO_NODE_TRIANGULATE:
     case GEO_NODE_TRANSFORM:
-    case GEO_NODE_BOOLEAN:
+    case GEO_NODE_MESH_BOOLEAN:
     case GEO_NODE_IS_VIEWPORT:
-    case GEO_NODE_MESH_SUBDIVIDE:
+    case GEO_NODE_SUBDIVIDE_MESH:
     case GEO_NODE_MESH_PRIMITIVE_CUBE:
     case GEO_NODE_MESH_PRIMITIVE_CIRCLE:
     case GEO_NODE_MESH_PRIMITIVE_UV_SPHERE:
@@ -821,9 +919,9 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_MESH_PRIMITIVE_LINE:
     case GEO_NODE_MESH_PRIMITIVE_GRID:
     case GEO_NODE_BOUNDING_BOX:
-    case GEO_NODE_CURVE_RESAMPLE:
+    case GEO_NODE_RESAMPLE_CURVE:
     case GEO_NODE_INPUT_MATERIAL:
-    case GEO_NODE_MATERIAL_REPLACE:
+    case GEO_NODE_REPLACE_MATERIAL:
     case GEO_NODE_CURVE_LENGTH:
     case GEO_NODE_CONVEX_HULL:
     case GEO_NODE_SEPARATE_COMPONENTS:
@@ -835,8 +933,8 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_VIEWER:
     case GEO_NODE_CURVE_PRIMITIVE_LINE:
     case GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL:
-    case GEO_NODE_CURVE_FILL:
-    case GEO_NODE_CURVE_TRIM:
+    case GEO_NODE_FILL_CURVE:
+    case GEO_NODE_TRIM_CURVE:
     case GEO_NODE_CURVE_TO_MESH:
       return false;
 
@@ -845,7 +943,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_SET_POSITION:
     case GEO_NODE_INPUT_INDEX:
     case GEO_NODE_INPUT_NORMAL:
-    case GEO_NODE_ATTRIBUTE_CAPTURE:
+    case GEO_NODE_CAPTURE_ATTRIBUTE:
       return false;
 
     /* Maybe legacy: Might need special attribute handling, depending on design. */
@@ -1002,6 +1100,112 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
   }
 }
 
+/* Copy of the function before the fixes. */
+static void legacy_vec_roll_to_mat3_normalized(const float nor[3],
+                                               const float roll,
+                                               float r_mat[3][3])
+{
+  const float SAFE_THRESHOLD = 1.0e-5f;     /* theta above this value has good enough precision. */
+  const float CRITICAL_THRESHOLD = 1.0e-9f; /* above this is safe under certain conditions. */
+  const float THRESHOLD_SQUARED = CRITICAL_THRESHOLD * CRITICAL_THRESHOLD;
+
+  const float x = nor[0];
+  const float y = nor[1];
+  const float z = nor[2];
+
+  const float theta = 1.0f + y;          /* remapping Y from [-1,+1] to [0,2]. */
+  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations.*/
+  float rMatrix[3][3], bMatrix[3][3];
+
+  BLI_ASSERT_UNIT_V3(nor);
+
+  /* When theta is close to zero (nor is aligned close to negative Y Axis),
+   * we have to check we do have non-null X/Z components as well.
+   * Also, due to float precision errors, nor can be (0.0, -0.99999994, 0.0) which results
+   * in theta being close to zero. This will cause problems when theta is used as divisor.
+   */
+  if (theta > SAFE_THRESHOLD || (theta > CRITICAL_THRESHOLD && theta_alt > THRESHOLD_SQUARED)) {
+    /* nor is *not* aligned to negative Y-axis (0,-1,0). */
+
+    bMatrix[0][1] = -x;
+    bMatrix[1][0] = x;
+    bMatrix[1][1] = y;
+    bMatrix[1][2] = z;
+    bMatrix[2][1] = -z;
+
+    if (theta > SAFE_THRESHOLD) {
+      /* nor differs significantly from negative Y axis (0,-1,0): apply the general case. */
+      bMatrix[0][0] = 1 - x * x / theta;
+      bMatrix[2][2] = 1 - z * z / theta;
+      bMatrix[2][0] = bMatrix[0][2] = -x * z / theta;
+    }
+    else {
+      /* nor is close to negative Y axis (0,-1,0): apply the special case. */
+      bMatrix[0][0] = (x + z) * (x - z) / -theta_alt;
+      bMatrix[2][2] = -bMatrix[0][0];
+      bMatrix[2][0] = bMatrix[0][2] = 2.0f * x * z / theta_alt;
+    }
+  }
+  else {
+    /* nor is very close to negative Y axis (0,-1,0): use simple symmetry by Z axis. */
+    unit_m3(bMatrix);
+    bMatrix[0][0] = bMatrix[1][1] = -1.0;
+  }
+
+  /* Make Roll matrix */
+  axis_angle_normalized_to_mat3(rMatrix, nor, roll);
+
+  /* Combine and output result */
+  mul_m3_m3m3(r_mat, rMatrix, bMatrix);
+}
+
+static void correct_bone_roll_value(const float head[3],
+                                    const float tail[3],
+                                    const float check_x_axis[3],
+                                    const float check_y_axis[3],
+                                    float *r_roll)
+{
+  const float SAFE_THRESHOLD = 1.0e-5f;
+  float vec[3], bone_mat[3][3], vec2[3];
+
+  /* Compute the Y axis vector. */
+  sub_v3_v3v3(vec, tail, head);
+  normalize_v3(vec);
+
+  /* Only correct when in the danger zone. */
+  if (1.0f + vec[1] < SAFE_THRESHOLD * 2 && (vec[0] || vec[2])) {
+    /* Use the armature matrix to double-check if adjustment is needed.
+     * This should minimize issues if the file is bounced back and forth between
+     * 2.92 and 2.91, provided Edit Mode isn't entered on the armature in 2.91. */
+    vec_roll_to_mat3(vec, *r_roll, bone_mat);
+
+    BLI_assert(dot_v3v3(bone_mat[1], check_y_axis) > 0.999f);
+
+    if (dot_v3v3(bone_mat[0], check_x_axis) < 0.999f) {
+      /* Recompute roll using legacy code to interpret the old value. */
+      legacy_vec_roll_to_mat3_normalized(vec, *r_roll, bone_mat);
+      mat3_to_vec_roll(bone_mat, vec2, r_roll);
+      BLI_assert(compare_v3v3(vec, vec2, FLT_EPSILON));
+    }
+  }
+}
+
+/* Update the armature Bone roll fields for bones very close to -Y direction. */
+static void do_version_bones_roll(ListBase *lb)
+{
+  LISTBASE_FOREACH (Bone *, bone, lb) {
+    /* Parent-relative orientation (used for posing). */
+    correct_bone_roll_value(
+        bone->head, bone->tail, bone->bone_mat[0], bone->bone_mat[1], &bone->roll);
+
+    /* Absolute orientation (used for Edit mode). */
+    correct_bone_roll_value(
+        bone->arm_head, bone->arm_tail, bone->arm_mat[0], bone->arm_mat[1], &bone->arm_roll);
+
+    do_version_bones_roll(&bone->childbase);
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1081,7 +1285,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "int", "import_type")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "short", "import_type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1215,7 +1419,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_MESH_SUBDIVIDE) {
+          if (node->type == GEO_NODE_SUBDIVIDE_MESH) {
             strcpy(node->idname, "GeometryNodeMeshSubdivide");
           }
         }
@@ -1750,6 +1954,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Set defaults for new color balance modifier parameters. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_balance_sop, NULL);
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
@@ -1776,6 +1987,34 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 36)) {
+    /* Update the `idnames` for renamed geometry and function nodes. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, FN_NODE_COMPARE_FLOATS, "FunctionNodeCompareFloats");
+      version_node_id(ntree, GEO_NODE_CAPTURE_ATTRIBUTE, "GeometryNodeCaptureAttribute");
+      version_node_id(ntree, GEO_NODE_MESH_BOOLEAN, "GeometryNodeMeshBoolean");
+      version_node_id(ntree, GEO_NODE_FILL_CURVE, "GeometryNodeFillCurve");
+      version_node_id(ntree, GEO_NODE_FILLET_CURVE, "GeometryNodeFilletCurve");
+      version_node_id(ntree, GEO_NODE_REVERSE_CURVE, "GeometryNodeReverseCurve");
+      version_node_id(ntree, GEO_NODE_SAMPLE_CURVE, "GeometryNodeSampleCurve");
+      version_node_id(ntree, GEO_NODE_RESAMPLE_CURVE, "GeometryNodeResampleCurve");
+      version_node_id(ntree, GEO_NODE_SUBDIVIDE_CURVE, "GeometryNodeSubdivideCurve");
+      version_node_id(ntree, GEO_NODE_TRIM_CURVE, "GeometryNodeTrimCurve");
+      version_node_id(ntree, GEO_NODE_REPLACE_MATERIAL, "GeometryNodeReplaceMaterial");
+      version_node_id(ntree, GEO_NODE_SUBDIVIDE_MESH, "GeometryNodeSubdivideMesh");
+      version_node_id(ntree, GEO_NODE_SET_MATERIAL, "GeometryNodeSetMaterial");
+      version_node_id(ntree, GEO_NODE_SPLIT_EDGES, "GeometryNodeSplitEdges");
+    }
+
+    /* Update bone roll after a fix to vec_roll_to_mat3_normalized. */
+    LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+      do_version_bones_roll(&arm->bonebase);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1787,23 +2026,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    /* Update the idname for the Assign Material Node to SetMaterial */
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_SET_MATERIAL) {
-          continue;
-        }
-        if (strstr(node->idname, "SetMaterial")) {
-          /* Make sure we haven't changed this idname already. */
-          continue;
-        }
-        strcpy(node->idname, "GeometryNodeSetMaterial");
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {

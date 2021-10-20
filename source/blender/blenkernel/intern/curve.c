@@ -3347,7 +3347,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
 
   if (skip_align ||
       /* when one handle is free, alignming makes no sense, see: T35952 */
-      (ELEM(HD_FREE, bezt->h1, bezt->h2)) ||
+      ELEM(HD_FREE, bezt->h1, bezt->h2) ||
       /* also when no handles are aligned, skip this step */
       (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
     /* handles need to be updated during animation and applying stuff like hooks,

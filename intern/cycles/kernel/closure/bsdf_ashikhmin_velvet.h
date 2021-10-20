@@ -36,7 +36,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef ccl_addr_space struct VelvetBsdf {
+typedef struct VelvetBsdf {
   SHADER_CLOSURE_BASE;
 
   float sigma;
@@ -45,7 +45,7 @@ typedef ccl_addr_space struct VelvetBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(VelvetBsdf), "VelvetBsdf is too large!");
 
-ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)
+ccl_device int bsdf_ashikhmin_velvet_setup(ccl_private VelvetBsdf *bsdf)
 {
   float sigma = fmaxf(bsdf->sigma, 0.01f);
   bsdf->invsigma2 = 1.0f / (sigma * sigma);
@@ -55,12 +55,12 @@ ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc,
+ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderClosure *sc,
                                                      const float3 I,
                                                      const float3 omega_in,
-                                                     float *pdf)
+                                                     ccl_private float *pdf)
 {
-  const VelvetBsdf *bsdf = (const VelvetBsdf *)sc;
+  ccl_private const VelvetBsdf *bsdf = (ccl_private const VelvetBsdf *)sc;
   float m_invsigma2 = bsdf->invsigma2;
   float3 N = bsdf->N;
 
@@ -97,28 +97,28 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc,
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderClosure *sc,
+ccl_device float3 bsdf_ashikhmin_velvet_eval_transmit(ccl_private const ShaderClosure *sc,
                                                       const float3 I,
                                                       const float3 omega_in,
-                                                      float *pdf)
+                                                      ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc,
+ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
                                             float3 Ng,
                                             float3 I,
                                             float3 dIdx,
                                             float3 dIdy,
                                             float randu,
                                             float randv,
-                                            float3 *eval,
-                                            float3 *omega_in,
-                                            float3 *domega_in_dx,
-                                            float3 *domega_in_dy,
-                                            float *pdf)
+                                            ccl_private float3 *eval,
+                                            ccl_private float3 *omega_in,
+                                            ccl_private float3 *domega_in_dx,
+                                            ccl_private float3 *domega_in_dy,
+                                            ccl_private float *pdf)
 {
-  const VelvetBsdf *bsdf = (const VelvetBsdf *)sc;
+  ccl_private const VelvetBsdf *bsdf = (ccl_private const VelvetBsdf *)sc;
   float m_invsigma2 = bsdf->invsigma2;
   float3 N = bsdf->N;
 

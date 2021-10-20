@@ -268,6 +268,36 @@ ccl_device_inline float4 __int4_as_float4(int4 i)
 #endif
 }
 
+template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
+{
+  return ((uint64_t)ptr) & 0xFFFFFFFF;
+}
+
+template<typename T> ccl_device_inline uint pointer_pack_to_uint_1(T *ptr)
+{
+  return (((uint64_t)ptr) >> 32) & 0xFFFFFFFF;
+}
+
+template<typename T> ccl_device_inline T *pointer_unpack_from_uint(const uint a, const uint b)
+{
+  return (T *)(((uint64_t)b << 32) | a);
+}
+
+ccl_device_inline uint uint16_pack_to_uint(const uint a, const uint b)
+{
+  return (a << 16) | b;
+}
+
+ccl_device_inline uint uint16_unpack_from_uint_0(const uint i)
+{
+  return i >> 16;
+}
+
+ccl_device_inline uint uint16_unpack_from_uint_1(const uint i)
+{
+  return i & 0xFFFF;
+}
+
 /* Versions of functions which are safe for fast math. */
 ccl_device_inline bool isnan_safe(float f)
 {
@@ -338,7 +368,7 @@ ccl_device_inline int quick_floor_to_int(float x)
   return float_to_int(x) - ((x < 0) ? 1 : 0);
 }
 
-ccl_device_inline float floorfrac(float x, int *i)
+ccl_device_inline float floorfrac(float x, ccl_private int *i)
 {
   *i = quick_floor_to_int(x);
   return x - *i;
@@ -465,14 +495,18 @@ template<class A, class B> A lerp(const A &a, const A &b, const B &t)
 
 /* Triangle */
 
-ccl_device_inline float triangle_area(const float3 &v1, const float3 &v2, const float3 &v3)
+ccl_device_inline float triangle_area(ccl_private const float3 &v1,
+                                      ccl_private const float3 &v2,
+                                      ccl_private const float3 &v3)
 {
   return len(cross(v3 - v2, v1 - v2)) * 0.5f;
 }
 
 /* Orthonormal vectors */
 
-ccl_device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
+ccl_device_inline void make_orthonormals(const float3 N,
+                                         ccl_private float3 *a,
+                                         ccl_private float3 *b)
 {
 #if 0
   if (fabsf(N.y) >= 0.999f) {

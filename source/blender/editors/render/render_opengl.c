@@ -1263,7 +1263,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   oglrender = op->customdata;
-  render_view_open(C, event->x, event->y, op->reports);
+  render_view_open(C, event->xy[0], event->xy[1], op->reports);
 
   /* View may be changed above #USER_RENDER_DISPLAY_WINDOW. */
   oglrender->win = CTX_wm_window(C);

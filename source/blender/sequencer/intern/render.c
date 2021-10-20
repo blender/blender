@@ -403,7 +403,7 @@ static void sequencer_image_crop_transform_matrix(const Sequence *seq,
                                                   const ImBuf *out,
                                                   const float image_scale_factor,
                                                   const float preview_scale_factor,
-                                                  float r_transform_matrix[3][3])
+                                                  float r_transform_matrix[4][4])
 {
   const StripTransform *transform = seq->strip->transform;
   const float scale_x = transform->scale_x * image_scale_factor;
@@ -412,13 +412,16 @@ static void sequencer_image_crop_transform_matrix(const Sequence *seq,
   const float image_center_offs_y = (out->y - in->y) / 2;
   const float translate_x = transform->xofs * preview_scale_factor + image_center_offs_x;
   const float translate_y = transform->yofs * preview_scale_factor + image_center_offs_y;
-  const float pivot[2] = {in->x * transform->origin[0], in->y * transform->origin[1]};
-  loc_rot_size_to_mat3(r_transform_matrix,
-                       (const float[]){translate_x, translate_y},
-                       transform->rotation,
-                       (const float[]){scale_x, scale_y});
-  transform_pivot_set_m3(r_transform_matrix, pivot);
-  invert_m3(r_transform_matrix);
+  const float pivot[3] = {in->x * transform->origin[0], in->y * transform->origin[1], 0.0f};
+
+  float rotation_matrix[3][3];
+  axis_angle_to_mat3_single(rotation_matrix, 'Z', transform->rotation);
+  loc_rot_size_to_mat4(r_transform_matrix,
+                       (const float[]){translate_x, translate_y, 0.0f},
+                       rotation_matrix,
+                       (const float[]){scale_x, scale_y, 1.0f});
+  transform_pivot_set_m4(r_transform_matrix, pivot);
+  invert_m4(r_transform_matrix);
 }
 
 static void sequencer_image_crop_init(const Sequence *seq,
@@ -438,20 +441,23 @@ static void sequencer_image_crop_init(const Sequence *seq,
 static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
 {
   float image_scale_factor = (float)out->x / in->x;
-  float transform_matrix[3][3];
+  float transform_matrix[4][4];
 
   /* Set to keep same loc,scale,rot but change scale to thumb size limit. */
   const float scale_x = 1 * image_scale_factor;
   const float scale_y = 1 * image_scale_factor;
   const float image_center_offs_x = (out->x - in->x) / 2;
   const float image_center_offs_y = (out->y - in->y) / 2;
-  const float pivot[2] = {in->x / 2, in->y / 2};
-  loc_rot_size_to_mat3(transform_matrix,
-                       (const float[]){image_center_offs_x, image_center_offs_y},
-                       0,
-                       (const float[]){scale_x, scale_y});
-  transform_pivot_set_m3(transform_matrix, pivot);
-  invert_m3(transform_matrix);
+  const float pivot[3] = {in->x / 2, in->y / 2, 0.0f};
+
+  float rotation_matrix[3][3];
+  unit_m3(rotation_matrix);
+  loc_rot_size_to_mat4(transform_matrix,
+                       (const float[]){image_center_offs_x, image_center_offs_y, 0.0f},
+                       rotation_matrix,
+                       (const float[]){scale_x, scale_y, 1.0f});
+  transform_pivot_set_m4(transform_matrix, pivot);
+  invert_m4(transform_matrix);
 
   /* No crop. */
   rctf source_crop;
@@ -471,7 +477,7 @@ static void sequencer_preprocess_transform_crop(
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(seq, is_proxy_image);
   const float image_scale_factor = do_scale_to_render_size ? 1.0f : preview_scale_factor;
 
-  float transform_matrix[3][3];
+  float transform_matrix[4][4];
   sequencer_image_crop_transform_matrix(
       seq, in, out, image_scale_factor, preview_scale_factor, transform_matrix);
 

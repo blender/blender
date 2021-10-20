@@ -251,7 +251,7 @@ static void setup_app_data(bContext *C,
        * replace it with 'curscene' if its needed */
     }
     /* and we enforce curscene to be in current screen */
-    else if (win) { /* can run in bgmode */
+    else if (win) { /* The window may be NULL in background-mode. */
       win->scene = curscene;
     }
 

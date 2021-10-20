@@ -169,8 +169,6 @@ class SEQUENCER_HT_header(Header):
 
         st = context.space_data
 
-        show_region_tool_header = st.show_region_tool_header
-
         layout.template_header()
 
         layout.prop(st, "view_type", text="")
@@ -217,10 +215,10 @@ class SEQUENCER_HT_header(Header):
             )
 
         row = layout.row(align=True)
-        row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')
+        row.prop(st, "show_overlays", text="", icon='OVERLAY')
         sub = row.row(align=True)
         sub.popover(panel="SEQUENCER_PT_overlay", text="")
-        sub.active = st.show_strip_overlay
+        sub.active = st.show_overlays
 
 
 class SEQUENCER_MT_editor_menus(Menu):
@@ -291,9 +289,9 @@ class SEQUENCER_PT_preview_overlay(Panel):
         overlay_settings = st.preview_overlay
         layout = self.layout
 
-        layout.active = st.show_strip_overlay
+        layout.active = st.show_overlays
         layout.prop(overlay_settings, "show_image_outline")
-        layout.prop(ed, "show_overlay", text="Frame Overlay")
+        layout.prop(ed, "show_overlay_frame", text="Frame Overlay")
         layout.prop(overlay_settings, "show_safe_areas", text="Safe Areas")
         layout.prop(overlay_settings, "show_metadata", text="Metadata")
         layout.prop(overlay_settings, "show_annotation", text="Annotations")
@@ -315,7 +313,7 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         overlay_settings = st.timeline_overlay
         layout = self.layout
 
-        layout.active = st.show_strip_overlay
+        layout.active = st.show_overlays
 
         layout.prop(overlay_settings, "show_strip_name", text="Name")
         layout.prop(overlay_settings, "show_strip_source", text="Source")
@@ -421,6 +419,7 @@ class SEQUENCER_MT_view(Menu):
             # wm_keymap_item_find_props() (see T32595).
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.prop(st, "show_region_ui")
+        layout.prop(st, "show_region_tool_header")
         layout.prop(st, "show_region_toolbar")
         layout.operator_context = 'INVOKE_DEFAULT'
 
@@ -1141,7 +1140,7 @@ class SEQUENCER_PT_color_tag_picker(SequencerColorTagPicker, Panel):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("sequencer.strip_color_tag_set", icon="X").color = 'NONE'
+        row.operator("sequencer.strip_color_tag_set", icon='X').color = 'NONE'
         for i in range(1, 10):
             icon = 'SEQUENCE_COLOR_%02d' % i
             row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_%02d' % i
@@ -1314,15 +1313,15 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip_type == 'SPEED':
             col = layout.column(align=True)
             col.prop(strip, "speed_control", text="Speed Control")
-            if strip.speed_control == "MULTIPLY":
+            if strip.speed_control == 'MULTIPLY':
                 col.prop(strip, "speed_factor", text=" ")
-            elif strip.speed_control == "LENGTH":
+            elif strip.speed_control == 'LENGTH':
                 col.prop(strip, "speed_length", text=" ")
-            elif strip.speed_control == "FRAME_NUMBER":
+            elif strip.speed_control == 'FRAME_NUMBER':
                 col.prop(strip, "speed_frame_number", text=" ")
 
             row = layout.row(align=True)
-            row.enabled = strip.speed_control != "STRETCH"
+            row.enabled = strip.speed_control != 'STRETCH'
             row = layout.row(align=True, heading="Interpolation")
             row.prop(strip, "use_frame_interpolate", text="")
 
@@ -2266,7 +2265,7 @@ class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
         scene = context.scene
         ed = scene.sequence_editor
 
-        self.layout.prop(ed, "show_overlay", text="")
+        self.layout.prop(ed, "show_overlay_frame", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -2282,12 +2281,12 @@ class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
         scene = context.scene
         ed = scene.sequence_editor
 
-        layout.active = ed.show_overlay
+        layout.active = ed.show_overlay_frame
 
         col = layout.column()
         col.prop(ed, "overlay_frame", text="Frame Offset")
-        col.prop(st, "overlay_type")
-        col.prop(ed, "use_overlay_lock")
+        col.prop(st, "overlay_frame_type")
+        col.prop(ed, "use_overlay_frame_lock")
 
 
 class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):

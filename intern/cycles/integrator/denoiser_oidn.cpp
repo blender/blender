@@ -169,6 +169,7 @@ class OIDNDenoiseContext {
     OIDNPass oidn_color_access_pass = read_input_pass(oidn_color_pass, oidn_output_pass);
 
     oidn::DeviceRef oidn_device = oidn::newDevice();
+    oidn_device.set("setAffinity", false);
     oidn_device.commit();
 
     /* Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too.

@@ -335,8 +335,8 @@ bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, struct BMVert *v, int stroke_id);
 void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id);
 
 /* Hierarchical Search in the BVH, two methods:
- * - for each hit calling a callback
- * - gather nodes in an array (easy to multithread) */
+ * - For each hit calling a callback.
+ * - Gather nodes in an array (easy to multi-thread). */
 
 void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_SearchCallback scb,
@@ -347,7 +347,7 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
 
-/* Raycast
+/* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */

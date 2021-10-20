@@ -301,8 +301,6 @@ enum {
   PANEL_TYPE_LAYOUT_VERT_BAR = (1 << 3),
   /** This panel type represents data external to the UI. */
   PANEL_TYPE_INSTANCED = (1 << 4),
-  /** Draw panel like a box widget. */
-  PANEL_TYPE_DRAW_BOX = (1 << 6),
   /** Don't search panels with this type during property search. */
   PANEL_TYPE_NO_SEARCH = (1 << 7),
 };

@@ -16,8 +16,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_vector_math(float *value,
-                                float3 *vector,
+ccl_device void svm_vector_math(ccl_private float *value,
+                                ccl_private float3 *vector,
                                 NodeVectorMathType type,
                                 float3 a,
                                 float3 b,

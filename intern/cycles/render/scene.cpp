@@ -228,7 +228,7 @@ void Scene::free_memory(bool final)
   }
 }
 
-void Scene::host_update(Device *device, Progress &progress)
+void Scene::host_update(Progress &progress)
 {
   if (update_stats) {
     update_stats->clear();
@@ -241,7 +241,7 @@ void Scene::host_update(Device *device, Progress &progress)
   });
 
   progress.set_status("Updating Shaders");
-  shader_manager->host_update(device, this, progress);
+  shader_manager->host_update(this, progress);
 }
 
 void Scene::device_update(Device *device_, Progress &progress)
@@ -552,7 +552,7 @@ bool Scene::update(Progress &progress)
   /* Update scene data on the host side.
    * Only updates which do not depend on the kernel (including kernel features). */
   progress.set_status("Updating Scene");
-  MEM_GUARDED_CALL(&progress, host_update, device, progress);
+  MEM_GUARDED_CALL(&progress, host_update, progress);
 
   /* Load render kernels. After host scene update so that the required kernel features are known.
    */

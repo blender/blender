@@ -702,13 +702,13 @@ void *BKE_sound_scene_add_scene_sound(
     Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene && scene != sequence->scene && sequence->sound) {
+  if (sequence->scene && scene != sequence->scene) {
     const double fps = FPS;
     return AUD_Sequence_add(scene->sound_scene,
                             sequence->scene->sound_scene,
                             startframe / fps,
                             endframe / fps,
-                            frameskip / fps + sequence->sound->offset_time);
+                            frameskip / fps);
   }
   return NULL;
 }
@@ -774,13 +774,13 @@ void BKE_sound_move_scene_sound(
 void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene_sound && sequence->sound) {
+  if (sequence->scene_sound) {
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
                                sequence->startdisp,
                                sequence->enddisp,
                                sequence->startofs + sequence->anim_startofs,
-                               sequence->sound->offset_time);
+                               0.0);
   }
 }
 

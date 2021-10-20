@@ -3577,9 +3577,14 @@ static void std_node_socket_draw(
       }
       break;
     case SOCK_RGBA: {
-      uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-      uiItemL(row, text, 0);
-      uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      if (text[0] == '\0') {
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      }
+      else {
+        uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+        uiItemL(row, text, 0);
+        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      }
       break;
     }
     case SOCK_STRING: {

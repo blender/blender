@@ -128,7 +128,7 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_subdivision_surface()
+void register_node_type_geo_legacy_subdivision_surface()
 {
   static bNodeType ntype;
 

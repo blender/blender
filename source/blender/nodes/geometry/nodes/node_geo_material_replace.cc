@@ -62,7 +62,7 @@ void register_node_type_geo_material_replace()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_MATERIAL_REPLACE, "Replace Material", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_REPLACE_MATERIAL, "Replace Material", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_material_replace_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_material_replace_exec;
   nodeRegisterType(&ntype);

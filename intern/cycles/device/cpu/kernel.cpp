@@ -44,6 +44,7 @@ CPUKernels::CPUKernels()
       /* Shader evaluation. */
       REGISTER_KERNEL(shader_eval_displace),
       REGISTER_KERNEL(shader_eval_background),
+      REGISTER_KERNEL(shader_eval_curve_shadow_transparency),
       /* Adaptive sampling. */
       REGISTER_KERNEL(adaptive_sampling_convergence_check),
       REGISTER_KERNEL(adaptive_sampling_filter_x),

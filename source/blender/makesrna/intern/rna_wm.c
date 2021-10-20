@@ -1883,22 +1883,9 @@ static void rna_def_operator_options_runtime(BlenderRNA *brna)
       prop, "Focus Region", "Enable to use the region under the cursor for modal execution");
 }
 
-static void rna_def_operator(BlenderRNA *brna)
+static void rna_def_operator_common(StructRNA *srna)
 {
-  StructRNA *srna;
   PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "Operator", NULL);
-  RNA_def_struct_ui_text(
-      srna, "Operator", "Storage of an operator being executed, or registered after execution");
-  RNA_def_struct_sdna(srna, "wmOperator");
-  RNA_def_struct_refine_func(srna, "rna_Operator_refine");
-#  ifdef WITH_PYTHON
-  RNA_def_struct_register_funcs(
-      srna, "rna_Operator_register", "rna_Operator_unregister", "rna_Operator_instance");
-#  endif
-  RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-  RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE_INHERIT);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1918,15 +1905,6 @@ static void rna_def_operator(BlenderRNA *brna)
       prop,
       "Has Reports",
       "Operator has a set of reports (warnings and errors) from last execution");
-
-  prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "UILayout");
-
-  prop = RNA_def_property(srna, "options", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_struct_type(prop, "OperatorOptions");
-  RNA_def_property_pointer_funcs(prop, "rna_Operator_options_get", NULL, NULL, NULL);
-  RNA_def_property_ui_text(prop, "Options", "Runtime options");
 
   /* Registration */
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
@@ -1981,6 +1959,45 @@ static void rna_def_operator(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
+  prop = RNA_def_property(srna, "bl_cursor_pending", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "type->cursor_pending");
+  RNA_def_property_enum_items(prop, rna_enum_window_cursor_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Idle Cursor",
+      "Cursor to use when waiting for the user to select a location to activate the operator "
+      "(when ``bl_options`` has ``DEPENDS_ON_CURSOR`` set)");
+}
+
+static void rna_def_operator(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "Operator", NULL);
+  RNA_def_struct_ui_text(
+      srna, "Operator", "Storage of an operator being executed, or registered after execution");
+  RNA_def_struct_sdna(srna, "wmOperator");
+  RNA_def_struct_refine_func(srna, "rna_Operator_refine");
+#  ifdef WITH_PYTHON
+  RNA_def_struct_register_funcs(
+      srna, "rna_Operator_register", "rna_Operator_unregister", "rna_Operator_instance");
+#  endif
+  RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+  RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE_INHERIT);
+
+  rna_def_operator_common(srna);
+
+  prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "UILayout");
+
+  prop = RNA_def_property(srna, "options", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "OperatorOptions");
+  RNA_def_property_pointer_funcs(prop, "rna_Operator_options_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "Options", "Runtime options");
+
   prop = RNA_def_property(srna, "macros", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "macro", NULL);
   RNA_def_property_struct_type(prop, "Macro");
@@ -2000,7 +2017,6 @@ static void rna_def_operator(BlenderRNA *brna)
 static void rna_def_macro_operator(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "Macro", NULL);
   RNA_def_struct_ui_text(
@@ -2016,68 +2032,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
   RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE_INHERIT);
 
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
-  RNA_def_property_ui_text(prop, "Name", "");
-
-  prop = RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_struct_type(prop, "OperatorProperties");
-  RNA_def_property_ui_text(prop, "Properties", "");
-  RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL, NULL);
-
-  /* Registration */
-  prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "type->idname");
-  RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_REGISTER);
-  RNA_def_struct_name_property(srna, prop);
-
-  prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "type->name");
-  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_label_set");
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_REGISTER);
-
-  prop = RNA_def_property(srna, "bl_translation_context", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
-  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
-  RNA_def_property_string_funcs(prop,
-                                "rna_Operator_bl_translation_context_get",
-                                "rna_Operator_bl_translation_context_length",
-                                "rna_Operator_bl_translation_context_set");
-  RNA_def_property_string_default(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-  prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "type->description");
-  RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
-  RNA_def_property_string_funcs(prop,
-                                "rna_Operator_bl_description_get",
-                                "rna_Operator_bl_description_length",
-                                "rna_Operator_bl_description_set");
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-  prop = RNA_def_property(srna, "bl_undo_group", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "type->undo_group");
-  RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
-  RNA_def_property_string_funcs(prop,
-                                "rna_Operator_bl_undo_group_get",
-                                "rna_Operator_bl_undo_group_length",
-                                "rna_Operator_bl_undo_group_set");
-  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-  prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "type->flag");
-  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
-  RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
+  rna_def_operator_common(srna);
 
   RNA_api_macro(srna);
 }
@@ -2184,13 +2139,13 @@ static void rna_def_event(BlenderRNA *brna)
 
   /* mouse */
   prop = RNA_def_property(srna, "mouse_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "x");
+  RNA_def_property_int_sdna(prop, NULL, "xy[0]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse X Position", "The window relative horizontal location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "y");
+  RNA_def_property_int_sdna(prop, NULL, "xy[1]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Y Position", "The window relative vertical location of the mouse");
@@ -2208,13 +2163,13 @@ static void rna_def_event(BlenderRNA *brna)
       prop, "Mouse Y Position", "The region relative vertical location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_prev_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prevx");
+  RNA_def_property_int_sdna(prop, NULL, "prev_xy[0]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Previous X Position", "The window relative horizontal location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_prev_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prevy");
+  RNA_def_property_int_sdna(prop, NULL, "prev_xy[1]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Previous Y Position", "The window relative vertical location of the mouse");

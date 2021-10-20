@@ -2103,11 +2103,11 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* first time the event is not enabled to show help lines. */
       if ((tgpf->oldkey != -1) || (!help_lines)) {
         ARegion *region = BKE_area_find_region_xy(
-            CTX_wm_area(C), RGN_TYPE_ANY, event->x, event->y);
+            CTX_wm_area(C), RGN_TYPE_ANY, event->xy[0], event->xy[1]);
         if (region) {
           bool in_bounds = false;
           /* Perform bounds check */
-          in_bounds = BLI_rcti_isect_pt(&region->winrct, event->x, event->y);
+          in_bounds = BLI_rcti_isect_pt(&region->winrct, event->xy[0], event->xy[1]);
 
           if ((in_bounds) && (region->regiontype == RGN_TYPE_WINDOW)) {
             tgpf->mouse[0] = event->mval[0];

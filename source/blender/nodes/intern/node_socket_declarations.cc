@@ -254,6 +254,7 @@ bNodeSocket &String::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_ou
 {
   bNodeSocket &socket = *nodeAddStaticSocket(
       &ntree, &node, in_out, SOCK_STRING, PROP_NONE, identifier_.c_str(), name_.c_str());
+  STRNCPY(((bNodeSocketValueString *)socket.default_value)->value, default_value_.c_str());
   this->set_common_flags(socket);
   return socket;
 }

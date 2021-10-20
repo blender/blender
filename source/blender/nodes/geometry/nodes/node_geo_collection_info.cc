@@ -25,13 +25,16 @@
 
 #include "node_geometry_util.hh"
 
+#include <algorithm>
+
 namespace blender::nodes {
 
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Collection>("Collection").hide_label();
   b.add_input<decl::Bool>("Separate Children")
-      .description("Output each child of the collection as a separate instance");
+      .description(
+          "Output each child of the collection as a separate instance, sorted alphabetically");
   b.add_input<decl::Bool>("Reset Children")
       .description(
           "Reset the transforms of every child instance in the output. Only used when Separate "
@@ -51,6 +54,12 @@ static void geo_node_collection_info_node_init(bNodeTree *UNUSED(tree), bNode *n
   data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;
   node->storage = data;
 }
+
+struct InstanceListEntry {
+  int handle;
+  char *name;
+  float4x4 transform;
+};
 
 static void geo_node_collection_info_exec(GeoNodeExecParams params)
 {
@@ -85,6 +94,8 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
     }
 
     instances.reserve(children_collections.size() + children_objects.size());
+    Vector<InstanceListEntry> entries;
+    entries.reserve(children_collections.size() + children_objects.size());
 
     for (Collection *child_collection : children_collections) {
       float4x4 transform = float4x4::identity();
@@ -98,7 +109,7 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
         }
       }
       const int handle = instances.add_reference(*child_collection);
-      instances.add_instance(handle, transform);
+      entries.append({handle, &(child_collection->id.name[2]), transform});
     }
     for (Object *child_object : children_objects) {
       const int handle = instances.add_reference(*child_object);
@@ -112,7 +123,16 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
         }
         mul_m4_m4_post(transform.values, child_object->obmat);
       }
-      instances.add_instance(handle, transform);
+      entries.append({handle, &(child_object->id.name[2]), transform});
+    }
+
+    std::sort(entries.begin(),
+              entries.end(),
+              [](const InstanceListEntry &a, const InstanceListEntry &b) {
+                return BLI_strcasecmp_natural(a.name, b.name) <= 0;
+              });
+    for (const InstanceListEntry &entry : entries) {
+      instances.add_instance(entry.handle, entry.transform);
     }
   }
   else {

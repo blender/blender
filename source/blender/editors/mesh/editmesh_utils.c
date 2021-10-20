@@ -166,7 +166,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 
   eBMOpErrorLevel level;
   while (BMO_error_pop(em->bm, &errmsg, NULL, &level)) {
-    ReportType type = RPT_INFO;
+    eReportType type = RPT_INFO;
     switch (level) {
       case BMO_ERROR_CANCEL: {
         changed_was_set = true;

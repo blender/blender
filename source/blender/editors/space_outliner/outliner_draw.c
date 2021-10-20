@@ -1841,16 +1841,20 @@ static bool outliner_draw_overrides_buts(uiBlock *block,
       if (tip == NULL) {
         tip = TIP_("Some sub-items require attention");
       }
-      uiBut *bt = uiDefIconBlockBut(block,
-                                    NULL,
-                                    NULL,
-                                    1,
-                                    ICON_ERROR,
-                                    (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
-                                    te->ys,
-                                    UI_UNIT_X,
-                                    UI_UNIT_Y,
-                                    tip);
+      uiBut *bt = uiDefIconBut(block,
+                               UI_BTYPE_BUT,
+                               1,
+                               ICON_ERROR,
+                               (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
+                               te->ys,
+                               UI_UNIT_X,
+                               UI_UNIT_Y,
+                               NULL,
+                               0.0,
+                               0.0,
+                               0.0,
+                               0.0,
+                               tip);
       UI_but_flag_enable(bt, but_flag);
     }
     any_item_has_warnings = any_item_has_warnings || item_has_warnings || any_child_has_warnings;

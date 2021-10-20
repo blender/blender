@@ -34,7 +34,44 @@ class TestBlendLibLinkHelper(TestHelper):
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
         # Take care to keep the name unique so multiple test jobs can run at once.
-        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib"))
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_basic"))
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        return output_lib_path
+
+    def init_lib_data_indirect_lib(self):
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+
+        # Create an indirect library containing a material.
+        self.reset_blender()
+
+        ma = bpy.data.materials.new("LibMaterial")
+        ma.use_fake_user = True
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_indirect_material"))
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        # Create a main library containing object etc., and linking material from indirect library.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Material")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
+        ma = bpy.data.materials[0]
+
+        me = bpy.data.meshes.new("LibMesh")
+        me.materials.append(ma)
+        ob = bpy.data.objects.new("LibMesh", me)
+        coll = bpy.data.collections.new("LibMesh")
+        coll.objects.link(ob)
+        bpy.context.scene.collection.children.link(coll)
+
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_indirect_main"))
 
         bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
 
@@ -158,7 +195,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
     def test_append(self):
         output_dir = self.args.output_dir
-        output_lib_path = self.init_lib_data_basic()
+        output_lib_path = self.init_lib_data_indirect_lib()
 
         # Simple append of a single ObData.
         self.reset_blender()
@@ -167,6 +204,11 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
+        print(bpy.data.materials[:], bpy.data.materials[0].library, bpy.data.materials[0].users, bpy.data.materials[0].use_fake_user)
+
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is not None)
+        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
         assert(len(bpy.data.meshes) == 1)
         assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].use_fake_user is False)
@@ -181,6 +223,9 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=True, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is not None)
+        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
         assert(len(bpy.data.meshes) == 1)
         assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].use_fake_user is False)
@@ -196,6 +241,9 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=True, use_recursive=False, do_reuse_local_id=False)
 
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is not None)
+        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
         assert(len(bpy.data.meshes) == 1)
         assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].use_fake_user is True)
@@ -210,9 +258,11 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is not None)
+        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
         assert(len(bpy.data.meshes) == 1)
-        # This one fails currently, for unclear reasons.
-        assert(bpy.data.meshes[0].library is not None)
+        assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].users == 1)
         assert(len(bpy.data.objects) == 1)
         assert(bpy.data.objects[0].library is None)
@@ -226,6 +276,9 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is None)
+        assert(bpy.data.materials[0].users == 1)  # Fake user is cleared when appending.
         assert(len(bpy.data.meshes) == 1)
         assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].users == 1)
@@ -241,6 +294,9 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
+        assert(len(bpy.data.materials) == 1)
+        assert(bpy.data.materials[0].library is None)
+        assert(bpy.data.materials[0].users == 1)  # Fake user is cleared when appending.
         assert(bpy.data.meshes[0].library is None)
         assert(bpy.data.meshes[0].users == 1)
         assert(len(bpy.data.objects) == 1)

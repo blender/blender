@@ -403,8 +403,8 @@ static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, const wmEv
   region = ac.region;
   v2d = &region->v2d;
 
-  mval[0] = (event->x - region->winrct.xmin);
-  mval[1] = (event->y - region->winrct.ymin);
+  mval[0] = (event->xy[0] - region->winrct.xmin);
+  mval[1] = (event->xy[1] - region->winrct.ymin);
 
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 

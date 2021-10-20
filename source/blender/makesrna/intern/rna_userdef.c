@@ -1560,6 +1560,13 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
       prop, "Text Cursor", "Color of the interface widgets text insertion cursor (caret)");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "panel_roundness", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(
+      prop, "Panel Roundness", "Roundness of the corners of panels and sub-panels");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 0.4f);
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* Transparent Grid */
   prop = RNA_def_property(srna, "transparent_checker_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "transparent_checker_primary");

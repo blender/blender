@@ -34,7 +34,7 @@ struct OSLThreadData;
 struct OSLShadingSystem;
 #endif
 
-typedef struct KernelGlobals {
+typedef struct KernelGlobalsCPU {
 #define KERNEL_TEX(type, name) texture<type> name;
 #include "kernel/kernel_textures.h"
 
@@ -51,7 +51,9 @@ typedef struct KernelGlobals {
   /* **** Run-time data ****  */
 
   ProfilingState profiler;
-} KernelGlobals;
+} KernelGlobalsCPU;
+
+typedef const KernelGlobalsCPU *ccl_restrict KernelGlobals;
 
 /* Abstraction macros */
 #define kernel_tex_fetch(tex, index) (kg->tex.fetch(index))

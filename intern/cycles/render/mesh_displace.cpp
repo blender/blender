@@ -115,7 +115,7 @@ static int fill_shader_input(const Scene *scene,
 /* Read back mesh displacement shader output. */
 static void read_shader_output(const Scene *scene,
                                Mesh *mesh,
-                               const device_vector<float4> &d_output)
+                               const device_vector<float> &d_output)
 {
   const array<int> &mesh_shaders = mesh->get_shader();
   const array<Node *> &mesh_used_shaders = mesh->get_used_shaders();
@@ -125,7 +125,7 @@ static void read_shader_output(const Scene *scene,
   const int num_motion_steps = mesh->get_motion_steps();
   vector<bool> done(num_verts, false);
 
-  const float4 *d_output_data = d_output.data();
+  const float *d_output_data = d_output.data();
   int d_output_index = 0;
 
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -144,7 +144,11 @@ static void read_shader_output(const Scene *scene,
     for (int j = 0; j < 3; j++) {
       if (!done[t.v[j]]) {
         done[t.v[j]] = true;
-        float3 off = float4_to_float3(d_output_data[d_output_index++]);
+        float3 off = make_float3(d_output_data[d_output_index + 0],
+                                 d_output_data[d_output_index + 1],
+                                 d_output_data[d_output_index + 2]);
+        d_output_index += 3;
+
         /* Avoid illegal vertex coordinates. */
         off = ensure_finite3(off);
         mesh_verts[t.v[j]] += off;
@@ -159,8 +163,7 @@ static void read_shader_output(const Scene *scene,
   }
 }
 
-bool GeometryManager::displace(
-    Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress)
+bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress &progress)
 {
   /* verify if we have a displacement shader */
   if (!mesh->has_true_displacement()) {
@@ -187,13 +190,11 @@ bool GeometryManager::displace(
     }
   }
 
-  /* Needs to be up to data for attribute access. */
-  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
   /* Evaluate shader on device. */
   ShaderEval shader_eval(device, progress);
   if (!shader_eval.eval(SHADER_EVAL_DISPLACE,
                         num_verts,
+                        3,
                         function_bind(&fill_shader_input, scene, mesh, object_index, _1),
                         function_bind(&read_shader_output, scene, mesh, _1))) {
     return false;

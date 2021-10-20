@@ -66,6 +66,21 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 {
 }
 
+void AssetCatalogService::tag_has_unsaved_changes()
+{
+  has_unsaved_changes_ = true;
+}
+
+void AssetCatalogService::untag_has_unsaved_changes()
+{
+  has_unsaved_changes_ = false;
+}
+
+bool AssetCatalogService::has_unsaved_changes() const
+{
+  return has_unsaved_changes_;
+}
+
 bool AssetCatalogService::is_empty() const
 {
   return catalog_collection_->catalogs_.is_empty();
@@ -243,7 +258,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
 {
   BLI_stat_t status;
   if (BLI_stat(file_or_directory_path.data(), &status) == -1) {
-    // TODO(@sybren): throw an appropriate exception.
+    /* TODO(@sybren): throw an appropriate exception. */
     return;
   }
 
@@ -254,7 +269,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
     load_directory_recursive(file_or_directory_path);
   }
   else {
-    // TODO(@sybren): throw an appropriate exception.
+    /* TODO(@sybren): throw an appropriate exception. */
   }
 
   /* TODO: Should there be a sanitize step? E.g. to remove catalogs with identical paths? */
@@ -264,8 +279,8 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
 
 void AssetCatalogService::load_directory_recursive(const CatalogFilePath &directory_path)
 {
-  // TODO(@sybren): implement proper multi-file support. For now, just load
-  // the default file if it is there.
+  /* TODO(@sybren): implement proper multi-file support. For now, just load
+   * the default file if it is there. */
   CatalogFilePath file_path = asset_definition_default_file_path_from_dir(directory_path);
 
   if (!BLI_exists(file_path.data())) {
@@ -297,7 +312,7 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
   auto catalog_parsed_callback = [this, catalog_definition_file_path](
                                      std::unique_ptr<AssetCatalog> catalog) {
     if (catalog_collection_->catalogs_.contains(catalog->catalog_id)) {
-      // TODO(@sybren): apparently another CDF was already loaded. This is not supported yet.
+      /* TODO(@sybren): apparently another CDF was already loaded. This is not supported yet. */
       std::cerr << catalog_definition_file_path << ": multiple definitions of catalog "
                 << catalog->catalog_id << " in multiple files, ignoring this one." << std::endl;
       /* Don't store 'catalog'; unique_ptr will free its memory. */
@@ -344,7 +359,17 @@ void AssetCatalogService::merge_from_disk_before_writing()
   cdf->parse_catalog_file(cdf->file_path, catalog_parsed_callback);
 }
 
-bool AssetCatalogService::write_to_disk_on_blendfile_save(const CatalogFilePath &blend_file_path)
+bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
+{
+  if (!write_to_disk_ex(blend_file_path)) {
+    return false;
+  }
+
+  untag_has_unsaved_changes();
+  return true;
+}
+
+bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_path)
 {
   /* TODO(Sybren): expand to support multiple CDFs. */
 
@@ -805,16 +830,16 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
 
   std::ofstream output(dest_file_path);
 
-  // TODO(@sybren): remember the line ending style that was originally read, then use that to write
-  // the file again.
+  /* TODO(@sybren): remember the line ending style that was originally read, then use that to write
+   * the file again. */
 
-  // Write the header.
+  /* Write the header. */
   output << HEADER;
   output << "" << std::endl;
   output << VERSION_MARKER << SUPPORTED_VERSION << std::endl;
   output << "" << std::endl;
 
-  // Write the catalogs, ordered by path (primary) and UUID (secondary).
+  /* Write the catalogs, ordered by path (primary) and UUID (secondary). */
   AssetCatalogOrderedSet catalogs_by_path;
   for (const AssetCatalog *catalog : catalogs_.values()) {
     if (catalog->flags.is_deleted) {

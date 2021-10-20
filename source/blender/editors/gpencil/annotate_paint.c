@@ -2560,7 +2560,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
       if ((p->region) && (p->region->regiontype == RGN_TYPE_TOOLS)) {
         /* Change to whatever region is now under the mouse */
         ARegion *current_region = BKE_area_find_region_xy(
-            p->area, RGN_TYPE_ANY, event->x, event->y);
+            p->area, RGN_TYPE_ANY, event->xy[0], event->xy[1]);
 
         if (current_region) {
           /* Assume that since we found the cursor in here, it is in bounds

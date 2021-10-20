@@ -178,12 +178,12 @@ void WM_opengl_context_dispose(void *context);
 void WM_opengl_context_activate(void *context);
 void WM_opengl_context_release(void *context);
 
-/* WM_window_open alignment */
-typedef enum WindowAlignment {
+/* #WM_window_open alignment */
+typedef enum eWindowAlignment {
   WIN_ALIGN_ABSOLUTE = 0,
   WIN_ALIGN_LOCATION_CENTER,
   WIN_ALIGN_PARENT_CENTER,
-} WindowAlignment;
+} eWindowAlignment;
 
 struct wmWindow *WM_window_open(struct bContext *C,
                                 const char *title,
@@ -195,7 +195,7 @@ struct wmWindow *WM_window_open(struct bContext *C,
                                 bool toplevel,
                                 bool dialog,
                                 bool temp,
-                                WindowAlignment alignment);
+                                eWindowAlignment alignment);
 
 void WM_window_set_dpi(const wmWindow *win);
 
@@ -272,13 +272,16 @@ typedef struct wmEventHandler_KeymapResult {
 } wmEventHandler_KeymapResult;
 
 typedef void(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
+                                             struct wmWindow *win,
                                              struct wmEventHandler_Keymap *handler,
                                              struct wmEventHandler_KeymapResult *km_result);
 
 void WM_event_get_keymap_from_toolsystem_fallback(struct wmWindowManager *wm,
+                                                  struct wmWindow *win,
                                                   struct wmEventHandler_Keymap *handler,
                                                   wmEventHandler_KeymapResult *km_result);
 void WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
+                                         struct wmWindow *win,
                                          struct wmEventHandler_Keymap *handler,
                                          wmEventHandler_KeymapResult *km_result);
 
@@ -293,6 +296,7 @@ void WM_event_set_keymap_handler_post_callback(struct wmEventHandler_Keymap *han
                                                                 void *user_data),
                                                void *user_data);
 void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       struct wmWindow *win,
                                        struct wmEventHandler_Keymap *handler,
                                        struct wmEventHandler_KeymapResult *km_result);
 
@@ -302,6 +306,7 @@ wmKeyMapItem *WM_event_match_keymap_item(struct bContext *C,
 
 wmKeyMapItem *WM_event_match_keymap_item_from_handlers(struct bContext *C,
                                                        struct wmWindowManager *wm,
+                                                       struct wmWindow *win,
                                                        struct ListBase *handlers,
                                                        const struct wmEvent *event);
 
@@ -367,8 +372,8 @@ void WM_main_remap_editor_id_reference(struct ID *old_id, struct ID *new_id);
 /* reports */
 void WM_report_banner_show(void);
 void WM_report_banners_cancel(struct Main *bmain);
-void WM_report(ReportType type, const char *message);
-void WM_reportf(ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+void WM_report(eReportType type, const char *message);
+void WM_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 
 struct wmEvent *wm_event_add_ex(struct wmWindow *win,
                                 const struct wmEvent *event_to_add,
@@ -592,7 +597,7 @@ void WM_operator_py_idname(char *to, const char *from);
 bool WM_operator_py_idname_ok_or_report(struct ReportList *reports,
                                         const char *classname,
                                         const char *idname);
-char *WM_context_path_resolve_property_full(struct bContext *C,
+char *WM_context_path_resolve_property_full(const struct bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             int index);

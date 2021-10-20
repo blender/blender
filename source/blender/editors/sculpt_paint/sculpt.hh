@@ -891,22 +891,11 @@ class SculptImpl {
           proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
           bool modified = false;
 
-          int i = 0;
           for (auto viter : verts) {
-            // if (i == 0) {
-            //  i++;
-            //  continue;
-            //}
-
             float fade = viter.fade;
 
             mul_v3_v3fl(proxy[viter.i], offset, fade);
             modified = true;
-
-            i++;
-            // if (vd.mvert) {
-            //  vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-            //}
           }
         },
         [](PBVHNode *node, int node_i, void *userdata) {});

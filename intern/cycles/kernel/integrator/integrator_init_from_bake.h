@@ -43,8 +43,9 @@ ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
 /* Return false to indicate that this pixel is finished.
  * Used by CPU implementation to not attempt to sample pixel for multiple samples once its known
  * that the pixel did converge. */
-ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
-                                          const ccl_global KernelWorkTile *ccl_restrict tile,
+ccl_device bool integrator_init_from_bake(KernelGlobals kg,
+                                          IntegratorState state,
+                                          ccl_global const KernelWorkTile *ccl_restrict tile,
                                           ccl_global float *render_buffer,
                                           const int x,
                                           const int y,
@@ -53,18 +54,18 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   PROFILING_INIT(kg, PROFILING_RAY_SETUP);
 
   /* Initialize path state to give basic buffer access and allow early outputs. */
-  path_state_init(INTEGRATOR_STATE_PASS, tile, x, y);
+  path_state_init(state, tile, x, y);
 
   /* Check whether the pixel has converged and should not be sampled anymore. */
-  if (!kernel_need_sample_pixel(INTEGRATOR_STATE_PASS, render_buffer)) {
+  if (!kernel_need_sample_pixel(kg, state, render_buffer)) {
     return false;
   }
 
   /* Always count the sample, even if the camera sample will reject the ray. */
-  const int sample = kernel_accum_sample(INTEGRATOR_STATE_PASS, render_buffer, scheduled_sample);
+  const int sample = kernel_accum_sample(kg, state, render_buffer, scheduled_sample);
 
   /* Setup render buffers. */
-  const int index = INTEGRATOR_STATE(path, render_pixel_index);
+  const int index = INTEGRATOR_STATE(state, path, render_pixel_index);
   const int pass_stride = kernel_data.film.pass_stride;
   render_buffer += index * pass_stride;
 
@@ -91,7 +92,7 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   }
 
   /* Initialize path state for path integration. */
-  path_state_init_integrator(INTEGRATOR_STATE_PASS, sample, rng_hash);
+  path_state_init_integrator(kg, state, sample, rng_hash);
 
   /* Barycentric UV with sub-pixel offset. */
   float u = primitive[2];
@@ -131,7 +132,7 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
     ray.time = 0.5f;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
-    integrator_state_write_ray(INTEGRATOR_STATE_PASS, &ray);
+    integrator_state_write_ray(kg, state, &ray);
 
     /* Setup next kernel to execute. */
     INTEGRATOR_PATH_INIT(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
@@ -169,7 +170,7 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
     ray.dD = differential_zero_compact();
 
     /* Write ray. */
-    integrator_state_write_ray(INTEGRATOR_STATE_PASS, &ray);
+    integrator_state_write_ray(kg, state, &ray);
 
     /* Setup and write intersection. */
     Intersection isect ccl_optional_struct_init;
@@ -179,10 +180,7 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
     isect.v = v;
     isect.t = 1.0f;
     isect.type = PRIMITIVE_TRIANGLE;
-#ifdef __EMBREE__
-    isect.Ng = Ng;
-#endif
-    integrator_state_write_isect(INTEGRATOR_STATE_PASS, &isect);
+    integrator_state_write_isect(kg, state, &isect);
 
     /* Setup next kernel to execute. */
     const int shader_index = shader & SHADER_MASK;

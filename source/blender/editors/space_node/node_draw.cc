@@ -916,6 +916,9 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
   else if (type.is<Tex *>()) {
     id_to_inspection_string((ID *)*value.get<Tex *>(), ID_TE);
   }
+  else if (type.is<Image *>()) {
+    id_to_inspection_string((ID *)*value.get<Image *>(), ID_IM);
+  }
   else if (type.is<Collection *>()) {
     id_to_inspection_string((ID *)*value.get<Collection *>(), ID_GR);
   }
@@ -2217,8 +2220,8 @@ void node_draw_space(const bContext *C, ARegion *region)
   /* XXX `snode->runtime->cursor` set in coordinate-space for placing new nodes,
    * used for drawing noodles too. */
   UI_view2d_region_to_view(&region->v2d,
-                           win->eventstate->x - region->winrct.xmin,
-                           win->eventstate->y - region->winrct.ymin,
+                           win->eventstate->xy[0] - region->winrct.xmin,
+                           win->eventstate->xy[1] - region->winrct.ymin,
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
   snode->runtime->cursor[0] /= UI_DPI_FAC;

@@ -21,7 +21,6 @@ namespace blender::nodes {
 
 static void fn_node_value_to_string_declare(NodeDeclarationBuilder &b)
 {
-  b.is_function_node();
   b.add_input<decl::Float>("Value");
   b.add_input<decl::Int>("Decimals").min(0);
   b.add_output<decl::String>("String");

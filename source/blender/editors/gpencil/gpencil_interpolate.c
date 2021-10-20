@@ -586,7 +586,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 static void gpencil_mouse_update_shift(tGPDinterpolate *tgpi, wmOperator *op, const wmEvent *event)
 {
   float mid = (float)(tgpi->region->winx - tgpi->region->winrct.xmin) / 2.0f;
-  float mpos = event->x - tgpi->region->winrct.xmin;
+  float mpos = event->xy[0] - tgpi->region->winrct.xmin;
 
   if (mpos >= mid) {
     tgpi->shift = ((mpos - mid) * tgpi->high_limit) / mid;

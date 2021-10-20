@@ -89,7 +89,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
     total_written += output.pos;
   }
 
-  /* Finalize the Zstd frame. */
+  /* Finalize the `Zstd` frame. */
   size_t ret = 1;
   while (ret != 0) {
     ZSTD_outBuffer output = {out_buf, out_len, 0};

@@ -21,18 +21,14 @@ CCL_NAMESPACE_BEGIN
 
 /* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */
 
-ccl_device_inline float fetch_float(const KernelGlobals *kg, int offset)
+ccl_device_inline float fetch_float(KernelGlobals kg, int offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, offset);
   return __uint_as_float(node.x);
 }
 
-ccl_device_inline float float_ramp_lookup(const KernelGlobals *kg,
-                                          int offset,
-                                          float f,
-                                          bool interpolate,
-                                          bool extrapolate,
-                                          int table_size)
+ccl_device_inline float float_ramp_lookup(
+    KernelGlobals kg, int offset, float f, bool interpolate, bool extrapolate, int table_size)
 {
   if ((f < 0.0f || f > 1.0f) && extrapolate) {
     float t0, dy;
@@ -63,12 +59,8 @@ ccl_device_inline float float_ramp_lookup(const KernelGlobals *kg,
   return a;
 }
 
-ccl_device_inline float4 rgb_ramp_lookup(const KernelGlobals *kg,
-                                         int offset,
-                                         float f,
-                                         bool interpolate,
-                                         bool extrapolate,
-                                         int table_size)
+ccl_device_inline float4 rgb_ramp_lookup(
+    KernelGlobals kg, int offset, float f, bool interpolate, bool extrapolate, int table_size)
 {
   if ((f < 0.0f || f > 1.0f) && extrapolate) {
     float4 t0, dy;
@@ -100,7 +92,7 @@ ccl_device_inline float4 rgb_ramp_lookup(const KernelGlobals *kg,
 }
 
 ccl_device_noinline int svm_node_rgb_ramp(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint fac_offset, color_offset, alpha_offset;
   uint interpolate = node.z;
@@ -122,7 +114,7 @@ ccl_device_noinline int svm_node_rgb_ramp(
 }
 
 ccl_device_noinline int svm_node_curves(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint fac_offset, color_offset, out_offset;
   svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &out_offset);
@@ -148,7 +140,7 @@ ccl_device_noinline int svm_node_curves(
 }
 
 ccl_device_noinline int svm_node_curve(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint fac_offset, value_in_offset, out_offset;
   svm_unpack_node_uchar3(node.y, &fac_offset, &value_in_offset, &out_offset);

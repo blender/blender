@@ -1151,9 +1151,12 @@ static bool raycastObjects(SnapObjectContext *sctx,
                            float r_obmat[4][4],
                            ListBase *r_hit_list)
 {
-  if (v3d && (params->edit_mode_type == SNAP_GEOM_EDIT) && XRAY_FLAG_ENABLED(v3d)) {
-    /* Use of occlude geometry in editing mode disabled. */
-    return false;
+  if (params->use_occlusion_test && v3d && XRAY_FLAG_ENABLED(v3d)) {
+    /* General testing of occlusion geometry is disabled if the snap is not intended for the edit
+     * cage. */
+    if (params->edit_mode_type == SNAP_GEOM_EDIT) {
+      return false;
+    }
   }
 
   sctx->runtime.depsgraph = depsgraph;
@@ -3020,7 +3023,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
     float r_no[3],
     int *r_index,
     Object **r_ob,
-    float r_obmat[4][4])
+    float r_obmat[4][4],
+    float r_face_nor[3])
 {
   BLI_assert((snap_to_flag & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
                               SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) !=
@@ -3067,22 +3071,27 @@ static short transform_snap_context_project_view3d_mixed_impl(
                              &ob_eval,
                              obmat,
                              NULL);
+    if (has_hit) {
+      if (r_face_nor) {
+        copy_v3_v3(r_face_nor, no);
+      }
 
-    if (has_hit && (snap_to_flag & SCE_SNAP_MODE_FACE)) {
-      retval = SCE_SNAP_MODE_FACE;
+      if ((snap_to_flag & SCE_SNAP_MODE_FACE)) {
+        retval = SCE_SNAP_MODE_FACE;
 
-      copy_v3_v3(r_loc, loc);
-      if (r_no) {
-        copy_v3_v3(r_no, no);
-      }
-      if (r_ob) {
-        *r_ob = ob_eval;
-      }
-      if (r_obmat) {
-        copy_m4_m4(r_obmat, obmat);
-      }
-      if (r_index) {
-        *r_index = index;
+        copy_v3_v3(r_loc, loc);
+        if (r_no) {
+          copy_v3_v3(r_no, no);
+        }
+        if (r_ob) {
+          *r_ob = ob_eval;
+        }
+        if (r_obmat) {
+          copy_m4_m4(r_obmat, obmat);
+        }
+        if (r_index) {
+          *r_index = index;
+        }
       }
     }
   }
@@ -3182,6 +3191,10 @@ static short transform_snap_context_project_view3d_mixed_impl(
       if (r_index) {
         *r_index = index;
       }
+      if (r_face_nor && !has_hit) {
+        /* Fallback. */
+        copy_v3_v3(r_face_nor, no);
+      }
 
       *dist_px = dist_px_tmp;
     }
@@ -3203,7 +3216,8 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  float r_no[3],
                                                  int *r_index,
                                                  Object **r_ob,
-                                                 float r_obmat[4][4])
+                                                 float r_obmat[4][4],
+                                                 float r_face_nor[3])
 {
   return transform_snap_context_project_view3d_mixed_impl(sctx,
                                                           depsgraph,
@@ -3218,7 +3232,8 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                           r_no,
                                                           r_index,
                                                           r_ob,
-                                                          r_obmat);
+                                                          r_obmat,
+                                                          r_face_nor);
 }
 
 /**
@@ -3257,6 +3272,7 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                                     dist_px,
                                                     r_loc,
                                                     r_no,
+                                                    NULL,
                                                     NULL,
                                                     NULL,
                                                     NULL) != 0;

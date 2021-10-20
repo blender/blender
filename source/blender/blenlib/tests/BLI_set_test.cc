@@ -544,6 +544,32 @@ TEST(set, GenericAlgorithms)
   EXPECT_EQ(std::count(set.begin(), set.end(), 20), 1);
 }
 
+TEST(set, RemoveDuringIteration)
+{
+  Set<int> set;
+  set.add(6);
+  set.add(5);
+  set.add(2);
+  set.add(3);
+
+  EXPECT_EQ(set.size(), 4);
+
+  using Iter = Set<int>::Iterator;
+  Iter begin = set.begin();
+  Iter end = set.end();
+  for (Iter iter = begin; iter != end; ++iter) {
+    int item = *iter;
+    if (item == 2) {
+      set.remove(iter);
+    }
+  }
+
+  EXPECT_EQ(set.size(), 3);
+  EXPECT_TRUE(set.contains(5));
+  EXPECT_TRUE(set.contains(6));
+  EXPECT_TRUE(set.contains(3));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

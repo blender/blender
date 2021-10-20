@@ -332,7 +332,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     sampling_pattern: EnumProperty(
         name="Sampling Pattern",
-        description="Random sampling pattern used by the integrator",
+        description="Random sampling pattern used by the integrator. When adaptive sampling is enabled, Progressive Multi-Jitter is always used instead of Sobol",
         items=enum_sampling_pattern,
         default='PROGRESSIVE_MUTI_JITTER',
     )

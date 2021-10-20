@@ -306,6 +306,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_node.movie[3] = U_theme_default.space_node.movie[3];
   }
 
+  if (!USER_VERSION_ATLEAST(300, 34)) {
+    btheme->tui.panel_roundness = 0.4f;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
