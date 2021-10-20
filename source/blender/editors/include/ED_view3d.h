@@ -229,6 +229,11 @@ typedef enum {
   (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
    V3D_PROJ_TEST_CLIP_WIN)
 
+/* view3d_snap.c */
+bool ED_view3d_snap_selected_to_location(struct bContext *C,
+                                         const float snap_target_global[3],
+                                         const int pivot_point);
+
 /* view3d_cursor_snap.c */
 #define USE_SNAP_DETECT_FROM_KEYMAP_HACK
 typedef enum {
