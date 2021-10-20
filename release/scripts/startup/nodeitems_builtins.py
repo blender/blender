@@ -724,6 +724,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeReplaceString"),
     ]),
     GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
+        NodeItem("ShaderNodeTexChecker"),
         NodeItem("ShaderNodeTexGradient"),
         NodeItem("ShaderNodeTexMagic"),
         NodeItem("ShaderNodeTexMusgrave"),
