@@ -103,6 +103,7 @@ def curve_node_items(context):
 
     yield NodeItem("GeometryNodeCurveLength")
     yield NodeItem("GeometryNodeCurveToMesh")
+    yield NodeItem("GeometryNodeCurveToPoints")
     yield NodeItem("GeometryNodeFillCurve")
     yield NodeItem("GeometryNodeFilletCurve")
     yield NodeItem("GeometryNodeResampleCurve")

@@ -286,17 +286,7 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
       });
 }
 
-void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                             Span<float3> normals,
-                                             MutableSpan<float3> rotations)
-{
-  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      rotations[i] =
-          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
-    }
-  });
-}
+
 
 static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 {
@@ -354,7 +344,7 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_curve_to_points()
+void register_node_type_geo_legacy_curve_to_points()
 {
   static bNodeType ntype;
 

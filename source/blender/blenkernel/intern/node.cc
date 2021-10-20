@@ -5752,6 +5752,7 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_edge_split();
   register_node_type_geo_legacy_subdivision_surface();
   register_node_type_geo_legacy_raycast();
+  register_node_type_geo_legacy_curve_to_points();
 
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_capture();
