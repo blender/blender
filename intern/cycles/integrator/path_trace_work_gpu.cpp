@@ -731,7 +731,6 @@ void PathTraceWorkGPU::enqueue_work_tiles(DeviceKernel kernel,
 
 int PathTraceWorkGPU::num_active_main_paths_paths()
 {
-  /* TODO: this is wrong, does not account for duplicates with shadow! */
   IntegratorQueueCounter *queue_counter = integrator_queue_counter_.data();
 
   int num_paths = 0;
@@ -739,7 +738,10 @@ int PathTraceWorkGPU::num_active_main_paths_paths()
     DCHECK_GE(queue_counter->num_queued[i], 0)
         << "Invalid number of queued states for kernel "
         << device_kernel_as_string(static_cast<DeviceKernel>(i));
-    num_paths += queue_counter->num_queued[i];
+
+    if (!kernel_is_shadow_path((DeviceKernel)i)) {
+      num_paths += queue_counter->num_queued[i];
+    }
   }
 
   return num_paths;
