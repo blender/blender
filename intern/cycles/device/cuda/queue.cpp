@@ -41,13 +41,19 @@ CUDADeviceQueue::~CUDADeviceQueue()
 
 int CUDADeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  int num_states = max(cuda_device_->get_num_multiprocessors() *
-                           cuda_device_->get_max_num_threads_per_multiprocessor() * 16,
-                       1048576);
+  const int max_num_threads = cuda_device_->get_num_multiprocessors() *
+                              cuda_device_->get_max_num_threads_per_multiprocessor();
+  int num_states = max(max_num_threads, 65536) * 16;
 
   const char *factor_str = getenv("CYCLES_CONCURRENT_STATES_FACTOR");
   if (factor_str) {
-    num_states = max((int)(num_states * atof(factor_str)), 1024);
+    const float factor = (float)atof(factor_str);
+    if (factor != 0.0f) {
+      num_states = max((int)(num_states * factor), 1024);
+    }
+    else {
+      VLOG(3) << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
+    }
   }
 
   VLOG(3) << "GPU queue concurrent states: " << num_states << ", using up to "
