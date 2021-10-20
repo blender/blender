@@ -430,7 +430,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   return (result == hipSuccess);
 }
 
-void HIPDevice::reserve_local_memory(const uint)
+void HIPDevice::reserve_local_memory(const uint kernel_features)
 {
   /* Together with hipDeviceLmemResizeToMax, this reserves local memory
    * needed for kernel launches, so that we can reliably figure out when
@@ -444,7 +444,9 @@ void HIPDevice::reserve_local_memory(const uint)
 
   {
     /* Use the biggest kernel for estimation. */
-    const DeviceKernel test_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE;
+    const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
     /* Launch kernel, using just 1 block appears sufficient to reserve memory for all
      * multiprocessors. It would be good to do this in parallel for the multi GPU case
