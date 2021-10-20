@@ -264,26 +264,26 @@ class RaycastFunction : public fn::MultiFunction {
                     params.uninitialized_single_output_if_required<float>(6, "Distance"),
                     hit_count);
 
-    IndexMask hit_mask;
-    Vector<int64_t> hit_mask_indices;
-    if (hit_count < mask.size()) {
-      /* Not all rays hit the target. Create a corrected mask to avoid transferring attribute data
-       * to invalid indices. An alternative would be handling -1 indices in a separate case in
-       * #MeshAttributeInterpolator, but since it already has an IndexMask in its constructor, it's
-       * simpler to use that. */
-      hit_mask_indices.reserve(hit_count);
-      for (const int64_t i : mask) {
-        if (hit_indices[i] != -1) {
-          hit_mask_indices.append(i);
-        }
-        hit_mask = IndexMask(hit_mask_indices);
-      }
-    }
-    else {
-      hit_mask = mask;
-    }
-
     if (target_data_) {
+      IndexMask hit_mask;
+      Vector<int64_t> hit_mask_indices;
+      if (hit_count < mask.size()) {
+        /* Not all rays hit the target. Create a corrected mask to avoid transferring attribute
+         * data to invalid indices. An alternative would be handling -1 indices in a separate case
+         * in #MeshAttributeInterpolator, but since it already has an IndexMask in its constructor,
+         * it's simpler to use that. */
+        hit_mask_indices.reserve(hit_count);
+        for (const int64_t i : mask) {
+          if (hit_indices[i] != -1) {
+            hit_mask_indices.append(i);
+          }
+          hit_mask = IndexMask(hit_mask_indices);
+        }
+      }
+      else {
+        hit_mask = mask;
+      }
+
       GMutableSpan result = params.uninitialized_single_output_if_required(7, "Attribute");
       if (!result.is_empty()) {
         MeshAttributeInterpolator interp(&mesh, hit_mask, hit_positions, hit_indices);
@@ -393,11 +393,11 @@ static void geo_node_raycast_exec(GeoNodeExecParams params)
     if (target.has_realized_data()) {
       params.error_message_add(
           NodeWarningType::Info,
-          TIP_("Only realized geometry is supported, instances will not be used"));
+          TIP_("The node only supports realized mesh data, instances are ignored"));
     }
     else {
       params.error_message_add(NodeWarningType::Error,
-                               TIP_("Target target must contain realized data"));
+                               TIP_("The target geometry must contain realized data"));
       return return_default();
     }
   }
