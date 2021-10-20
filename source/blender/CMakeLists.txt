@@ -131,7 +131,10 @@ add_subdirectory(io)
 add_subdirectory(functions)
 add_subdirectory(makesdna)
 add_subdirectory(makesrna)
-add_subdirectory(blendthumb)
+
+if(WITH_BLENDER_THUMBNAILER)
+  add_subdirectory(blendthumb)
+endif()
 
 if(WITH_COMPOSITOR)
   add_subdirectory(compositor)
