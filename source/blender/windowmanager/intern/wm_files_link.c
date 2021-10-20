@@ -462,7 +462,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
      * children.
      */
     Collection *collection = (Collection *)id;
-    bool do_add_collection = false;
+    /* We always add collections directly selected by the user. */
+    bool do_add_collection = (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0;
     LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
       Object *ob = coll_ob->ob;
       if (!object_in_any_scene(bmain, ob)) {
