@@ -326,7 +326,7 @@ static int snap_selected_to_location(bContext *C,
   int a;
 
   if (use_offset) {
-    if ((v3d && scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) &&
+    if ((scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) &&
         snap_calc_active_center(C, true, center_global)) {
       /* pass */
     }
