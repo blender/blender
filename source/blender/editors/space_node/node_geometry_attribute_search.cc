@@ -74,14 +74,11 @@ static StringRef attribute_domain_string(const AttributeDomain domain)
   return StringRef(IFACE_(name));
 }
 
-/* Unicode arrow. */
-#define MENU_SEP "\xe2\x96\xb6"
-
 static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttributeInfo &item)
 {
   const StringRef data_type_name = attribute_data_type_string(item.data_type);
   const StringRef domain_name = attribute_domain_string(item.domain);
-  std::string search_item_text = domain_name + " " + MENU_SEP + item.name + UI_SEP_CHAR +
+  std::string search_item_text = domain_name + " " + UI_MENU_ARROW_SEP + item.name + UI_SEP_CHAR +
                                  data_type_name;
 
   return UI_search_item_add(
@@ -198,7 +195,7 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
       AttributeSearchData, {node_tree, node, (bNodeSocket *)socket_ptr->data});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, MENU_SEP);
+  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
   UI_but_func_search_set(but,
                          nullptr,
                          attribute_search_update_fn,

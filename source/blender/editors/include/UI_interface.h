@@ -96,6 +96,9 @@ typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
 #define UI_SEP_CHAR '|'
 #define UI_SEP_CHAR_S "|"
 
+/* Separator for text in search menus. */
+#define UI_MENU_ARROW_SEP "▶"
+
 /* names */
 #define UI_MAX_DRAW_STR 400
 #define UI_MAX_NAME_STR 128
