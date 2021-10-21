@@ -1412,7 +1412,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.val = KM_RELEASE;
         event.custom = EVT_DATA_DRAGDROP;
         event.customdata = &wm->drags;
-        event.customdatafree = 1;
+        event.customdata_free = true;
 
         wm_event_add(win, &event);
 

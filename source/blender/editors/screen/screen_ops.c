@@ -1051,7 +1051,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
   event.val = KM_NOTHING;
   event.is_repeat = false;
   event.customdata = op->customdata;
-  event.customdatafree = true;
+  event.customdata_free = true;
   op->customdata = NULL;
 
   wm_event_add(win, &event);

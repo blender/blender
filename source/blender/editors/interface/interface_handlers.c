@@ -9034,7 +9034,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   event.val = KM_PRESS;
   event.is_repeat = false;
   event.customdata = but;
-  event.customdatafree = false;
+  event.customdata_free = false;
 
   ui_do_button(C, but->block, but, &event);
 }

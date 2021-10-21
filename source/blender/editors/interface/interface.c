@@ -7013,7 +7013,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
   event.val = KM_PRESS;
   event.is_repeat = false;
   event.customdata = but;
-  event.customdatafree = false;
+  event.customdata_free = false;
 
   wm_event_add(win, &event);
 }

@@ -1097,8 +1097,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
-        if ((t->flag & T_RELEASE_CONFIRM) && (event->prevval == KM_RELEASE) &&
-            event->prevtype == t->launch_event) {
+        if ((t->flag & T_RELEASE_CONFIRM) && (event->prev_val == KM_RELEASE) &&
+            event->prev_type == t->launch_event) {
           /* Confirm transform if launch key is released after mouse move. */
           t->state = TRANS_CONFIRM;
         }
@@ -1137,13 +1137,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case TFM_MODAL_PRECISION:
-        if (event->prevval == KM_PRESS) {
+        if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
           /* Shift is modifier for higher precision transform. */
           t->mouse.precision = 1;
           t->redraw |= TREDRAW_HARD;
         }
-        else if (event->prevval == KM_RELEASE) {
+        else if (event->prev_val == KM_RELEASE) {
           t->modifiers &= ~MOD_PRECISION;
           t->mouse.precision = 0;
           t->redraw |= TREDRAW_HARD;
