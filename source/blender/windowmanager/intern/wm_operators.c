@@ -2979,7 +2979,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          sub_v2_v2v2(delta, rc->initial_mouse, event->xy);
+          sub_v2_v2v2_int(delta, rc->initial_mouse, event->xy);
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];

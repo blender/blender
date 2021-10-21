@@ -10648,7 +10648,7 @@ static int ui_handle_menu_event(bContext *C,
                 menu->menuretval = UI_RETURN_OUT;
               }
             }
-            else if (saferct && !BLI_rctf_isect_pt_v(&saferct->parent, event->xy)) {
+            else if (saferct && !BLI_rctf_isect_pt(&saferct->parent, (float)event->xy[0], (float)event->xy[1])) {
               if (block->flag & UI_BLOCK_OUT_1) {
                 menu->menuretval = UI_RETURN_OK;
               }
