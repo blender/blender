@@ -4480,6 +4480,8 @@ static void object_base_instance_init(
   }
 
   if (flag & FILE_AUTOSELECT) {
+    /* All objects that use #FILE_AUTOSELECT must be selectable (unless linking data). */
+    BLI_assert((base->flag & BASE_SELECTABLE) || (flag & FILE_LINK));
     if (base->flag & BASE_SELECTABLE) {
       base->flag |= BASE_SELECTED;
     }
@@ -4503,6 +4505,13 @@ void BLO_object_instantiate_object_base_instance_init(Main *bmain,
                                                       const int flag,
                                                       bool set_active)
 {
+  /* Auto-select and appending. */
+  if ((flag & FILE_AUTOSELECT) && ((flag & FILE_LINK) == 0)) {
+    /* While in general the object should not be manipulated,
+     * when the user requests the object to be selected, ensure it's visible and selectable. */
+    ob->visibility_flag &= ~(OB_HIDE_VIEWPORT | OB_HIDE_SELECT);
+  }
+
   BKE_collection_object_add(bmain, collection, ob);
 
   object_base_instance_init(ob, view_layer, v3d, flag, set_active);
