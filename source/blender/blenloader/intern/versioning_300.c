@@ -754,6 +754,19 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_BOUNDING_BOX) {
+            bNodeSocket *geometry_socket = node->inputs.first;
+            add_realize_instances_before_socket(ntree, node, geometry_socket);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
