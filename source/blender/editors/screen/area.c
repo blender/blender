@@ -972,8 +972,8 @@ static void fullscreen_azone_init(ScrArea *area, ARegion *region)
 #define AZONEPAD_ICON (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *region)
 {
-  /* If region is overlapped (transparent background), move AZone to content.
-   * Note this is an arbitrary amount that matches nicely with numbers elswhere. */
+  /* If region is overlapped (transparent background), move #AZone to content.
+   * Note this is an arbitrary amount that matches nicely with numbers elsewhere. */
   int overlap_padding = (region->overlap) ? (int)(0.4f * U.widget_unit) : 0;
 
   switch (az->edge) {

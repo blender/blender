@@ -2245,8 +2245,8 @@ void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
  */
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3])
 {
-  const float SAFE_THRESHOLD = 6.1e-3f;     /* theta above this value has good enough precision. */
-  const float CRITICAL_THRESHOLD = 2.5e-4f; /* true singularity if xz distance is below this. */
+  const float SAFE_THRESHOLD = 6.1e-3f;     /* Theta above this value has good enough precision. */
+  const float CRITICAL_THRESHOLD = 2.5e-4f; /* True singularity if XZ distance is below this. */
   const float THRESHOLD_SQUARED = CRITICAL_THRESHOLD * CRITICAL_THRESHOLD;
 
   const float x = nor[0];

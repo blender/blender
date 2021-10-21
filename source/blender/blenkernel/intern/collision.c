@@ -577,7 +577,7 @@ static float compute_collision_point_edge_tri(const float a1[3],
   return dist;
 }
 
-// w3 is not perfect
+/* `w3` is not perfect. */
 static void collision_compute_barycentric(const float pv[3],
                                           const float p1[3],
                                           const float p2[3],

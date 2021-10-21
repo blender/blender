@@ -1361,7 +1361,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* WORKAROUND: properties with `_funcs_runtime` should not be saved in keymaps.
-   *             So reasign the #PROP_IDPROPERTY flag to trick the property as not being set.
+   *             So reassign the #PROP_IDPROPERTY flag to trick the property as not being set.
    *             (See #RNA_property_is_set). */
   PropertyFlag unsalvageable = PROP_SKIP_SAVE | PROP_HIDDEN | PROP_PTR_NO_OWNERSHIP |
                                PROP_IDPROPERTY;
