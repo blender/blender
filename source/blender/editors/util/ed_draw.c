@@ -360,7 +360,7 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   /* Reduced factor delta in precision mode (shift held). */
   slider->raw_factor += slider->precision ? (factor_delta / 8) : factor_delta;
   slider->factor = slider->raw_factor;
-  copy_v2_v2_int(slider->last_cursor, event->xy);
+  copy_v2fl_v2i(slider->last_cursor, event->xy);
 
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, 0, 1);
@@ -402,7 +402,7 @@ tSlider *ED_slider_create(struct bContext *C)
  */
 void ED_slider_init(struct tSlider *slider, const wmEvent *event)
 {
-  copy_v2_v2_int(slider->last_cursor, event->xy);
+  copy_v2fl_v2i(slider->last_cursor, event->xy);
 }
 
 /**

@@ -2956,7 +2956,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
             delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
 
             /* precision angle gets calculated from dial and gets added later */
-            angle_precision = -0.1f * BLI_dial_angle(rc->dial, event->xy);
+            angle_precision = -0.1f * BLI_dial_angle(rc->dial, (float[2]){UNPACK2(event->xy)});
           }
           else {
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2979,7 +2979,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          sub_v2_v2v2_int(delta, rc->initial_mouse, event->xy);
+          delta[0] = (float)(rc->initial_mouse[0] - event->xy[0]);
+          delta[1] = (float)(rc->initial_mouse[1] - event->xy[1]);
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];
