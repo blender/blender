@@ -1177,6 +1177,7 @@ static void correct_bone_roll_value(const float head[3],
      * 2.92 and 2.91, provided Edit Mode isn't entered on the armature in 2.91. */
     vec_roll_to_mat3(vec, *r_roll, bone_mat);
 
+    UNUSED_VARS_NDEBUG(check_y_axis);
     BLI_assert(dot_v3v3(bone_mat[1], check_y_axis) > 0.999f);
 
     if (dot_v3v3(bone_mat[0], check_x_axis) < 0.999f) {
