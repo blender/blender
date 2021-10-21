@@ -647,8 +647,12 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
   /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
-    /* header size depends on DPI, let's verify */
-    WM_window_set_dpi(win);
+
+    /* Called even when creating the ghost window fails in #WM_window_open. */
+    if (win->ghostwin) {
+      /* Header size depends on DPI, let's verify. */
+      WM_window_set_dpi(win);
+    }
 
     ED_screen_global_areas_refresh(win);
 
