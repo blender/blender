@@ -377,9 +377,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
     group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
         "__direct_callable__svm_node_bevel";
-    group_descs[PG_CALL_AO_PASS].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[PG_CALL_AO_PASS].callables.moduleDC = optix_module;
-    group_descs[PG_CALL_AO_PASS].callables.entryFunctionNameDC = "__direct_callable__ao_pass";
   }
 
   optix_assert(optixProgramGroupCreate(

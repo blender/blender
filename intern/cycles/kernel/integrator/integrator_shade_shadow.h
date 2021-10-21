@@ -136,6 +136,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
 
       INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput;
       INTEGRATOR_STATE_WRITE(state, shadow_path, transparent_bounce) += 1;
+      INTEGRATOR_STATE_WRITE(state, shadow_path, rng_offset) += PRNG_BOUNCE_NUM;
     }
 
     /* Note we do not need to check max_transparent_bounce here, the number
