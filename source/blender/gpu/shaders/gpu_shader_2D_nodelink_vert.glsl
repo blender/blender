@@ -48,6 +48,7 @@ uniform bool doMuted;
 uniform float dim_factor;
 uniform float thickness;
 uniform float dash_factor;
+uniform float dash_alpha;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
