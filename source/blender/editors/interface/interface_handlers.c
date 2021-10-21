@@ -395,9 +395,6 @@ typedef struct uiHandleButtonData {
   char *origstr;
   double value, origvalue, startvalue;
   float vec[3], origvec[3];
-#if 0 /* UNUSED */
-  int togdual, togonly;
-#endif
   ColorBand *coba;
 
   /* Tool-tip. */
@@ -4470,10 +4467,6 @@ static bool ui_do_but_ANY_drag_toggle(
 {
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_but_is_drag_toggle(but)) {
-#  if 0 /* UNUSED */
-      data->togdual = event->ctrl;
-      data->togonly = !event->shift;
-#  endif
       ui_apply_but(C, but->block, but, data, true);
       button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
       data->dragstartx = event->xy[0];
@@ -4767,10 +4760,6 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
     }
 
     if (do_activate) {
-#if 0 /* UNUSED */
-      data->togdual = event->ctrl;
-      data->togonly = !event->shift;
-#endif
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return WM_UI_HANDLER_BREAK;
     }
