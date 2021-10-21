@@ -222,7 +222,8 @@ static int dot_v3_array_find_max_index(const float dirs[][3],
   return index_found;
 }
 
-static wmGizmoGroup *idp_gizmogroup_from_region(ARegion *region)
+static UNUSED_FUNCTION_WITH_RETURN_TYPE(wmGizmoGroup *,
+                                        idp_gizmogroup_from_region)(ARegion *region)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   return gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;

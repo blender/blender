@@ -94,7 +94,7 @@ typedef struct SnapCursorDataIntern {
   bool is_initiated;
 } SnapCursorDataIntern;
 
-static void v3d_cursor_snap_state_init(V3DSnapCursorState *state)
+static void UNUSED_FUNCTION(v3d_cursor_snap_state_init)(V3DSnapCursorState *state)
 {
   state->prevpoint = NULL;
   state->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
