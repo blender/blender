@@ -300,6 +300,26 @@ TEST_F(AssetCatalogTest, load_single_file)
   EXPECT_EQ("Another Ružena", another_ruzena->simple_name);
 }
 
+TEST_F(AssetCatalogTest, load_catalog_path_backslashes)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  const bUUID ELLIE_BACKSLASHES_UUID("a51e17ae-34fc-47d5-ba0f-64c2c9b771f7");
+  const AssetCatalog *found_by_id = service.find_catalog(ELLIE_BACKSLASHES_UUID);
+  ASSERT_NE(nullptr, found_by_id);
+  EXPECT_EQ(AssetCatalogPath("character/Ellie/backslashes"), found_by_id->path)
+      << "Backslashes should be normalised when loading from disk.";
+  EXPECT_EQ(StringRefNull("Windows For Life!"), found_by_id->simple_name);
+
+  const AssetCatalog *found_by_path = service.find_catalog_by_path("character/Ellie/backslashes");
+  EXPECT_EQ(found_by_id, found_by_path)
+      << "Catalog with backslashed path should be findable by the normalized path.";
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path("character\\Ellie\\backslashes"))
+      << "Nothing should be found when searching for backslashes.";
+}
+
 TEST_F(AssetCatalogTest, is_first_loaded_flag)
 {
   AssetCatalogService service(asset_library_root_);
@@ -413,6 +433,7 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -759,6 +780,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -795,7 +817,8 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
   /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
-   * This creates some duplicates that are bound to occur in production asset libraries as well. */
+   * This creates some duplicates that are bound to occur in production asset libraries as well.
+   */
   const bUUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
   const bUUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
 
@@ -814,6 +837,7 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -889,9 +913,9 @@ TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
   service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
 
-  /* This may not be valid forever; maybe at some point we'll expose the simple name to users & let
-   * them change it from the UI. Until then, automatically updating it is better, because otherwise
-   * all simple names would be "Catalog". */
+  /* This may not be valid forever; maybe at some point we'll expose the simple name to users &
+   * let them change it from the UI. Until then, automatically updating it is better, because
+   * otherwise all simple names would be "Catalog". */
   EXPECT_EQ("charlib-Ružena", service.find_catalog(UUID_POSES_RUZENA)->simple_name)
       << "Changing the path should update the simplename.";
   EXPECT_EQ("charlib-Ružena-face", service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
