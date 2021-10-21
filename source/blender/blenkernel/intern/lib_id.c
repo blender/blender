@@ -1141,6 +1141,11 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
+      /* This is important in 'readfile doversion after liblink' context mainly, but is a good
+       * consistency change in general: ID created for a Main should get that main's current
+       * library pointer. */
+      id->lib = bmain->curlib;
+
       /* TODO: to be removed from here! */
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
