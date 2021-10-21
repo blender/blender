@@ -55,6 +55,7 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(ao_bounces, "AO Bounces", 0);
   SOCKET_FLOAT(ao_factor, "AO Factor", 0.0f);
   SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
+  SOCKET_FLOAT(ao_additive_factor, "AO Additive Factor", 0.0f);
 
   SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
   SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
@@ -159,6 +160,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->ao_bounces = ao_bounces;
   kintegrator->ao_bounces_distance = ao_distance;
   kintegrator->ao_bounces_factor = ao_factor;
+  kintegrator->ao_additive_factor = ao_additive_factor;
 
   /* Transparent Shadows
    * We only need to enable transparent shadows, if we actually have
@@ -266,6 +268,17 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();
   }
+}
+
+uint Integrator::get_kernel_features(const Scene *scene) const
+{
+  uint kernel_features = 0;
+
+  if (ao_additive_factor != 0.0f) {
+    kernel_features |= KERNEL_FEATURE_AO_ADDITIVE;
+  }
+
+  return kernel_features;
 }
 
 AdaptiveSampling Integrator::get_adaptive_sampling() const

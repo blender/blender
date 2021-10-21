@@ -1375,6 +1375,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 {
   Background *background = scene->background;
   Integrator *integrator = scene->integrator;
+  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
   BL::World b_world = b_scene.world();
 
@@ -1466,14 +1467,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       graph->connect(background->output("Background"), out->input("Surface"));
     }
 
+    /* Visibility */
     if (b_world) {
-      /* AO */
-      BL::WorldLighting b_light = b_world.light_settings();
-
-      integrator->set_ao_factor(b_light.ao_factor());
-      integrator->set_ao_distance(b_light.distance());
-
-      /* visibility */
       PointerRNA cvisibility = RNA_pointer_get(&b_world.ptr, "cycles_visibility");
       uint visibility = 0;
 
@@ -1485,16 +1480,38 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
       background->set_visibility(visibility);
     }
-    else {
-      integrator->set_ao_factor(1.0f);
-      integrator->set_ao_distance(10.0f);
-    }
 
     shader->set_graph(graph);
     shader->tag_update(scene);
   }
 
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  /* Fast GI */
+  if (b_world) {
+    BL::WorldLighting b_light = b_world.light_settings();
+    enum { FAST_GI_METHOD_REPLACE = 0, FAST_GI_METHOD_ADD = 1, FAST_GI_METHOD_NUM };
+
+    const bool use_fast_gi = get_boolean(cscene, "use_fast_gi");
+    if (use_fast_gi) {
+      const int fast_gi_method = get_enum(
+          cscene, "fast_gi_method", FAST_GI_METHOD_NUM, FAST_GI_METHOD_REPLACE);
+      integrator->set_ao_factor((fast_gi_method == FAST_GI_METHOD_REPLACE) ? b_light.ao_factor() :
+                                                                             0.0f);
+      integrator->set_ao_additive_factor(
+          (fast_gi_method == FAST_GI_METHOD_ADD) ? b_light.ao_factor() : 0.0f);
+    }
+    else {
+      integrator->set_ao_factor(0.0f);
+      integrator->set_ao_additive_factor(0.0f);
+    }
+
+    integrator->set_ao_distance(b_light.distance());
+  }
+  else {
+    integrator->set_ao_factor(0.0f);
+    integrator->set_ao_additive_factor(0.0f);
+    integrator->set_ao_distance(10.0f);
+  }
+
   background->set_transparent(b_scene.render().film_transparent());
 
   if (background->get_transparent()) {

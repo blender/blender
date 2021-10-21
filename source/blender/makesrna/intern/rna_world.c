@@ -128,6 +128,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "aodist");
+  RNA_def_property_range(prop, 0, FLT_MAX);
   RNA_def_property_ui_text(
       prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect");
   RNA_def_property_update(prop, 0, "rna_World_update");

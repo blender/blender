@@ -1147,6 +1147,7 @@ typedef struct KernelIntegrator {
   int ao_bounces;
   float ao_bounces_distance;
   float ao_bounces_factor;
+  float ao_additive_factor;
 
   /* transparent */
   int transparent_min_bounce;
@@ -1179,7 +1180,7 @@ typedef struct KernelIntegrator {
   int has_shadow_catcher;
 
   /* padding */
-  int pad1, pad2;
+  int pad1;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
@@ -1561,6 +1562,11 @@ enum KernelFeatureFlag : unsigned int {
 
   /* Shadow render pass. */
   KERNEL_FEATURE_SHADOW_PASS = (1U << 24U),
+
+  /* AO. */
+  KERNEL_FEATURE_AO_PASS = (1U << 25U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 26U),
+  KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

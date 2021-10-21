@@ -42,7 +42,10 @@ KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput. */
 KERNEL_STRUCT_MEMBER(shadow_path, float3, throughput, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput for shadow pass. */
-KERNEL_STRUCT_MEMBER(shadow_path, float3, unshadowed_throughput, KERNEL_FEATURE_SHADOW_PASS)
+KERNEL_STRUCT_MEMBER(shadow_path,
+                     float3,
+                     unshadowed_throughput,
+                     KERNEL_FEATURE_SHADOW_PASS | KERNEL_FEATURE_AO_ADDITIVE)
 /* Ratio of throughput to distinguish diffuse and glossy render passes. */
 KERNEL_STRUCT_MEMBER(shadow_path, float3, diffuse_glossy_ratio, KERNEL_FEATURE_LIGHT_PASSES)
 /* Number of intersections found by ray-tracing. */

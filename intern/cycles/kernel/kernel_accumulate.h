@@ -410,7 +410,13 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 
   /* Ambient occlusion. */
   if (path_flag & PATH_RAY_SHADOW_FOR_AO) {
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_ao, contribution);
+    if ((kernel_data.kernel_features & KERNEL_FEATURE_AO_PASS) && (path_flag & PATH_RAY_CAMERA)) {
+      kernel_write_pass_float3(buffer + kernel_data.film.pass_ao, contribution);
+    }
+    if (kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) {
+      const float3 ao_weight = INTEGRATOR_STATE(state, shadow_path, unshadowed_throughput);
+      kernel_accum_combined_pass(kg, path_flag, sample, contribution * ao_weight, buffer);
+    }
     return;
   }
 

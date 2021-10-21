@@ -325,17 +325,25 @@ ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState
 #endif
 
 #if defined(__AO__)
-ccl_device_forceinline void integrate_surface_ao_pass(
-    KernelGlobals kg,
-    IntegratorState state,
-    ccl_private const ShaderData *ccl_restrict sd,
-    ccl_private const RNGState *ccl_restrict rng_state,
-    ccl_global float *ccl_restrict render_buffer)
+ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
+                                                 IntegratorState state,
+                                                 ccl_private const ShaderData *ccl_restrict sd,
+                                                 ccl_private const RNGState *ccl_restrict
+                                                     rng_state,
+                                                 ccl_global float *ccl_restrict render_buffer)
 {
+  if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
+      !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
+    return;
+  }
+
   float bsdf_u, bsdf_v;
   path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
 
-  const float3 ao_N = shader_bsdf_ao_normal(kg, sd);
+  float3 ao_N;
+  const float3 ao_weight = shader_bsdf_ao(
+      kg, sd, kernel_data.integrator.ao_additive_factor, &ao_N);
+
   float3 ao_D;
   float ao_pdf;
   sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
@@ -379,6 +387,10 @@ ccl_device_forceinline void integrate_surface_ao_pass(
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
+
+  if (kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = ao_weight;
+  }
 }
 #endif /* defined(__AO__) */
 
@@ -487,10 +499,9 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 
 #if defined(__AO__)
     /* Ambient occlusion pass. */
-    if ((kernel_data.film.pass_ao != PASS_UNUSED) &&
-        (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
+    if (kernel_data.kernel_features & KERNEL_FEATURE_AO) {
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_AO);
-      integrate_surface_ao_pass(kg, state, &sd, &rng_state, render_buffer);
+      integrate_surface_ao(kg, state, &sd, &rng_state, render_buffer);
     }
 #endif
 

@@ -1082,7 +1082,7 @@ bool PathTraceWorkGPU::kernel_creates_shadow_paths(DeviceKernel kernel)
 
 bool PathTraceWorkGPU::kernel_creates_ao_paths(DeviceKernel kernel)
 {
-  return (device_scene_->data.film.pass_ao != PASS_UNUSED) &&
+  return (device_scene_->data.kernel_features & KERNEL_FEATURE_AO) &&
          (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
 }

@@ -47,6 +47,7 @@ class Integrator : public Node {
   NODE_SOCKET_API(int, ao_bounces)
   NODE_SOCKET_API(float, ao_factor)
   NODE_SOCKET_API(float, ao_distance)
+  NODE_SOCKET_API(float, ao_additive_factor)
 
   NODE_SOCKET_API(int, volume_max_steps)
   NODE_SOCKET_API(float, volume_step_rate)
@@ -100,6 +101,8 @@ class Integrator : public Node {
   void device_free(Device *device, DeviceScene *dscene, bool force_free = false);
 
   void tag_update(Scene *scene, uint32_t flag);
+
+  uint get_kernel_features(const Scene *scene) const;
 
   AdaptiveSampling get_adaptive_sampling() const;
   DenoiseParams get_denoise_params() const;

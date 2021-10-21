@@ -522,6 +522,7 @@ void Scene::update_kernel_features()
   }
 
   kernel_features |= film->get_kernel_features(this);
+  kernel_features |= integrator->get_kernel_features(this);
 
   dscene.data.kernel_features = kernel_features;
 
