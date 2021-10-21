@@ -48,7 +48,7 @@ int64_t ED_asset_types_supported_as_filter_flags(void);
  * strings with this (not all UI code supports dynamic strings nicely).
  * Should start with a consonant, so usages can prefix it with "a" (not "an").
  */
-#define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING "Pose Action"
+#define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING "Material, Pose Action, or World"
 
 #ifdef __cplusplus
 }
