@@ -245,6 +245,10 @@ enum {
   /** In case caller code already knows this ID should be made local using copying. */
   LIB_ID_MAKELOCAL_FORCE_COPY = 1 << 2,
 
+  /** Clear asset data (in case the ID can actually be made local, in copy case asset data is never
+   * copied over). */
+  LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR = 1 << 3,
+
   /* Special type-specific options. */
   /** For Objects, do not clear the proxy pointers while making the data-block local. */
   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING = 1 << 16,
@@ -271,13 +275,13 @@ void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 
 void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_hint);
-void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id);
+void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, const int flags);
 
 bool BKE_id_new_name_validate(struct ListBase *lb,
                               struct ID *id,
                               const char *name,
                               const bool do_linked_data) ATTR_NONNULL(1, 2);
-void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id);
+void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id, const int flags);
 
 /* Affect whole Main database. */
 void BKE_main_id_tag_idcode(struct Main *mainvar,

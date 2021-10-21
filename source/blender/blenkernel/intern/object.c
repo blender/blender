@@ -357,8 +357,8 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
   }
 
   if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, &ob->id);
-    BKE_lib_id_expand_local(bmain, &ob->id);
+    BKE_lib_id_clear_library_data(bmain, &ob->id, flags);
+    BKE_lib_id_expand_local(bmain, &ob->id, flags);
     if (clear_proxy) {
       if (ob->proxy_from != NULL) {
         ob->proxy_from->proxy = NULL;

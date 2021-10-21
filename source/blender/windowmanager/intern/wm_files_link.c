@@ -630,6 +630,12 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
   const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
   const bool do_reuse_local_id = (lapp_data->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
 
+  const int make_local_common_flags = LIB_ID_MAKELOCAL_FULL_LIBRARY |
+                                      ((lapp_data->flag & BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) !=
+                                               0 ?
+                                           LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
+                                           0);
+
   LinkNode *itemlink;
 
   /* Generate a mapping between newly linked IDs and their items, and tag linked IDs used as
@@ -731,16 +737,14 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
 
     switch (item->append_action) {
-      case WM_APPEND_ACT_COPY_LOCAL: {
-        BKE_lib_id_make_local(
-            bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
+      case WM_APPEND_ACT_COPY_LOCAL:
+        BKE_lib_id_make_local(bmain, id, make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_COPY);
         local_appended_new_id = id->newid;
         break;
-      }
       case WM_APPEND_ACT_MAKE_LOCAL:
         BKE_lib_id_make_local(bmain,
                               id,
-                              LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_LOCAL |
+                              make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
         BLI_assert(id->newid == NULL);
         local_appended_new_id = id;
