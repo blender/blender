@@ -265,6 +265,62 @@ ccl_device_inline void integrator_state_move(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
 }
 
+ccl_device_inline void integrator_shadow_state_copy_only(KernelGlobals kg,
+                                                         ConstIntegratorShadowState to_state,
+                                                         ConstIntegratorShadowState state)
+{
+  int index;
+
+  /* Rely on the compiler to optimize out unused assignments and `while(false)`'s. */
+
+#  define KERNEL_STRUCT_BEGIN(name) \
+    index = 0; \
+    do {
+
+#  define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
+    if (kernel_integrator_state.parent_struct.name != nullptr) { \
+      kernel_integrator_state.parent_struct.name[to_state] = \
+          kernel_integrator_state.parent_struct.name[state]; \
+    }
+
+#  define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
+    if (kernel_integrator_state.parent_struct[index].name != nullptr) { \
+      kernel_integrator_state.parent_struct[index].name[to_state] = \
+          kernel_integrator_state.parent_struct[index].name[state]; \
+    }
+
+#  define KERNEL_STRUCT_END(name) \
+    } \
+    while (false) \
+      ;
+
+#  define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
+    ++index; \
+    } \
+    while (index < gpu_array_size) \
+      ;
+
+#  define KERNEL_STRUCT_VOLUME_STACK_SIZE kernel_data.volume_stack_size
+
+#  include "kernel/integrator/integrator_shadow_state_template.h"
+
+#  undef KERNEL_STRUCT_BEGIN
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_ARRAY_MEMBER
+#  undef KERNEL_STRUCT_END
+#  undef KERNEL_STRUCT_END_ARRAY
+#  undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+}
+
+ccl_device_inline void integrator_shadow_state_move(KernelGlobals kg,
+                                                    ConstIntegratorState to_state,
+                                                    ConstIntegratorState state)
+{
+  integrator_shadow_state_copy_only(kg, to_state, state);
+
+  INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
+}
+
 #endif
 
 /* NOTE: Leaves kernel scheduling information untouched. Use INIT semantic for one of the paths

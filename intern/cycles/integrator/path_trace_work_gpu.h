@@ -86,7 +86,13 @@ class PathTraceWorkGPU : public PathTraceWork {
                                    DeviceKernel queued_kernel,
                                    const int num_paths_limit);
 
-  void compact_states(const int num_active_paths);
+  void compact_main_paths(const int num_active_paths);
+  void compact_shadow_paths();
+  void compact_paths(const int num_active_paths,
+                     const int max_active_path_index,
+                     DeviceKernel terminated_paths_kernel,
+                     DeviceKernel compact_paths_kernel,
+                     DeviceKernel compact_kernel);
 
   int num_active_main_paths_paths();
 
