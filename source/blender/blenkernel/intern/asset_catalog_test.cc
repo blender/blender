@@ -39,6 +39,7 @@ const bUUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
 const bUUID UUID_POSES_RUZENA_HAND("81811c31-1a88-4bd7-bb34-c6fc2607a12e");
 const bUUID UUID_POSES_RUZENA_FACE("82162c1f-06cc-4d91-a9bf-4f72c104e348");
 const bUUID UUID_WITHOUT_SIMPLENAME("d7916a31-6ca9-4909-955f-182ca2b81fa3");
+const bUUID UUID_ANOTHER_RUZENA("00000000-d9fa-4b91-b704-e6af1f1339ef");
 
 /* UUIDs from lib/tests/asset_library/modified_assets.cats.txt */
 const bUUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
@@ -290,6 +291,37 @@ TEST_F(AssetCatalogTest, load_single_file)
   EXPECT_EQ(UUID_POSES_RUZENA, poses_ruzena->catalog_id);
   EXPECT_EQ("character/Ružena/poselib", poses_ruzena->path.str());
   EXPECT_EQ("POSES_RUŽENA", poses_ruzena->simple_name);
+
+  /* Test getting a catalog that aliases an earlier-defined catalog. */
+  AssetCatalog *another_ruzena = service.find_catalog(UUID_ANOTHER_RUZENA);
+  ASSERT_NE(nullptr, another_ruzena);
+  EXPECT_EQ(UUID_ANOTHER_RUZENA, another_ruzena->catalog_id);
+  EXPECT_EQ("character/Ružena/poselib", another_ruzena->path.str());
+  EXPECT_EQ("Another Ružena", another_ruzena->simple_name);
+}
+
+TEST_F(AssetCatalogTest, is_first_loaded_flag)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  AssetCatalog *new_cat = service.create_catalog("never/before/seen/path");
+  EXPECT_FALSE(new_cat->flags.is_first_loaded)
+      << "Adding a catalog at runtime should never mark it as 'first loaded'; "
+         "only loading from disk is allowed to do that.";
+
+  AssetCatalog *alias_cat = service.create_catalog("character/Ružena/poselib");
+  EXPECT_FALSE(alias_cat->flags.is_first_loaded)
+      << "Adding a new catalog with an already-loaded path should not mark it as 'first loaded'";
+
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_ELLIE)->flags.is_first_loaded);
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->flags.is_first_loaded);
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_RUZENA)->flags.is_first_loaded);
+  EXPECT_FALSE(service.find_catalog(UUID_ANOTHER_RUZENA)->flags.is_first_loaded);
+
+  AssetCatalog *ruzena = service.find_catalog_by_path("character/Ružena/poselib");
+  EXPECT_EQ(UUID_POSES_RUZENA, ruzena->catalog_id)
+      << "The first-seen definition of a catalog should be returned";
 }
 
 TEST_F(AssetCatalogTest, insert_item_into_tree)

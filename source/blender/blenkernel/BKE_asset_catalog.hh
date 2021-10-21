@@ -108,8 +108,12 @@ class AssetCatalogService {
   /** Return catalog with the given ID. Return nullptr if not found. */
   AssetCatalog *find_catalog(CatalogID catalog_id) const;
 
-  /** Return first catalog with the given path. Return nullptr if not found. This is not an
-   * efficient call as it's just a linear search over the catalogs. */
+  /**
+   * Return first catalog with the given path. Return nullptr if not found. This is not an
+   * efficient call as it's just a linear search over the catalogs.
+   *
+   * If there are multiple catalogs with the same path, return the first-loaded one. If there is
+   * none marked as "first loaded", return the one with the lowest UUID. */
   AssetCatalog *find_catalog_by_path(const AssetCatalogPath &path) const;
 
   /**
@@ -416,12 +420,16 @@ class AssetCatalog {
   static std::string sensible_simple_name_for_path(const AssetCatalogPath &path);
 };
 
-/** Comparator for asset catalogs, ordering by (path, UUID). */
+/** Comparator for asset catalogs, ordering by (path, first_seen, UUID). */
 struct AssetCatalogLessThan {
   bool operator()(const AssetCatalog *lhs, const AssetCatalog *rhs) const
   {
     if (lhs->path != rhs->path) {
       return lhs->path < rhs->path;
+    }
+
+    if (lhs->flags.is_first_loaded != rhs->flags.is_first_loaded) {
+      return lhs->flags.is_first_loaded;
     }
 
     return lhs->catalog_id < rhs->catalog_id;
@@ -432,6 +440,7 @@ struct AssetCatalogLessThan {
  * Set that stores catalogs ordered by (path, UUID).
  * Being a set, duplicates are removed. The catalog's simple name is ignored in this. */
 using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogLessThan>;
+using MutableAssetCatalogOrderedSet = std::set<AssetCatalog *, AssetCatalogLessThan>;
 
 /**
  * Filter that can determine whether an asset should be visible or not, based on its catalog ID.

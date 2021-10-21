@@ -24,6 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_userdef_types.h"
@@ -108,13 +109,23 @@ AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id) const
 
 AssetCatalog *AssetCatalogService::find_catalog_by_path(const AssetCatalogPath &path) const
 {
+  /* Use an AssetCatalogOrderedSet to find the 'best' catalog for this path. This will be the first
+   * one loaded from disk, or if that does not exist the one with the lowest UUID. This ensures
+   * stable, predictable results. */
+  MutableAssetCatalogOrderedSet ordered_catalogs;
+
   for (const auto &catalog : catalog_collection_->catalogs_.values()) {
     if (catalog->path == path) {
-      return catalog.get();
+      ordered_catalogs.insert(catalog.get());
     }
   }
 
-  return nullptr;
+  if (ordered_catalogs.empty()) {
+    return nullptr;
+  }
+
+  MutableAssetCatalogOrderedSet::iterator best_choice_it = ordered_catalogs.begin();
+  return *best_choice_it;
 }
 
 AssetCatalogFilter AssetCatalogService::create_catalog_filter(
@@ -309,7 +320,10 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
   auto cdf = std::make_unique<AssetCatalogDefinitionFile>();
   cdf->file_path = catalog_definition_file_path;
 
-  auto catalog_parsed_callback = [this, catalog_definition_file_path](
+  /* TODO(Sybren): this might have to move to a higher level when supporting multiple CDFs. */
+  Set<AssetCatalogPath> seen_paths;
+
+  auto catalog_parsed_callback = [this, catalog_definition_file_path, &seen_paths](
                                      std::unique_ptr<AssetCatalog> catalog) {
     if (catalog_collection_->catalogs_.contains(catalog->catalog_id)) {
       /* TODO(@sybren): apparently another CDF was already loaded. This is not supported yet. */
@@ -318,6 +332,8 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
       /* Don't store 'catalog'; unique_ptr will free its memory. */
       return false;
     }
+
+    catalog->flags.is_first_loaded = seen_paths.add(catalog->path);
 
     /* The AssetCatalog pointer is now owned by the AssetCatalogService. */
     catalog_collection_->catalogs_.add_new(catalog->catalog_id, std::move(catalog));
@@ -648,7 +664,8 @@ void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
 
     /* If full path of this catalog already exists as parent path of a previously read catalog,
      * we can ensure this tree item's UUID is set here. */
-    if (is_last_component && BLI_uuid_is_nil(item.catalog_id_)) {
+    if (is_last_component &&
+        (BLI_uuid_is_nil(item.catalog_id_) || catalog.flags.is_first_loaded)) {
       item.catalog_id_ = catalog.catalog_id;
     }
 
