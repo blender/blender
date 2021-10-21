@@ -398,6 +398,10 @@ if(WITH_PYTHON_INSTALL)
     set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
     mark_as_advanced(PYTHON_REQUESTS_PATH)
   endif()
+
+  option(WITH_PYTHON_INSTALL_ZSTANDARD "Copy zstandard into the blender install folder" ON)
+  set(PYTHON_ZSTANDARD_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'zstandard' module")
+  mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
 option(WITH_CPU_SIMD              "Enable SIMD instruction if they're detected on the host machine" ON)
@@ -1734,6 +1738,12 @@ if(WITH_PYTHON)
   elseif(WITH_PYTHON_INSTALL_REQUESTS)
     find_python_package(requests "")
   endif()
+
+  if(WIN32 OR APPLE)
+    # pass, we have this in lib/python/site-packages
+  elseif(WITH_PYTHON_INSTALL_ZSTANDARD)
+    find_python_package(zstandard "")
+  endif()
 endif()
 
 # Select C++17 as the standard for C++ projects.
@@ -2005,6 +2015,7 @@ if(FIRST_RUN)
   endif()
   info_cfg_option(WITH_PYTHON_INSTALL)
   info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
+  info_cfg_option(WITH_PYTHON_INSTALL_ZSTANDARD)
   info_cfg_option(WITH_PYTHON_MODULE)
   info_cfg_option(WITH_PYTHON_SAFETY)
 

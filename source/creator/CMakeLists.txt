@@ -642,6 +642,24 @@ if(UNIX AND NOT APPLE)
         unset(_suffix)
       endif()
 
+      if(WITH_PYTHON_INSTALL_ZSTANDARD)
+        # Install to the same directory as the source, so debian-like
+        # distros are happy with their policy.
+        set(_suffix "site-packages")
+        if(${PYTHON_NUMPY_PATH} MATCHES "dist-packages")
+          set(_suffix "dist-packages")
+        endif()
+        install(
+          DIRECTORY ${PYTHON_NUMPY_PATH}/zstandard
+          DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+        unset(_suffix)
+      endif()
+
       # Copy requests, we need to generalize site-packages
       if(WITH_PYTHON_INSTALL_REQUESTS)
         set(_suffix "site-packages")
