@@ -2079,8 +2079,8 @@ static bool ui_but_drag_init(bContext *C,
       drag_info->pushed_state = ui_drag_toggle_but_pushed_state(but);
       drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
       drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
-      copy_v2_v2_int(drag_info->xy_init, &event->xy[0]);
-      copy_v2_v2_int(drag_info->xy_last, &event->xy[0]);
+      copy_v2_v2_int(drag_info->xy_init, event->xy);
+      copy_v2_v2_int(drag_info->xy_last, event->xy);
 
       /* needed for toggle drag on popups */
       region_prev = CTX_wm_region(C);
@@ -9915,7 +9915,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
 static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEvent *event)
 {
   keynav->is_keynav = true;
-  copy_v2_v2_int(keynav->event_xy, &event->xy[0]);
+  copy_v2_v2_int(keynav->event_xy, &event->xy);
 }
 /**
  * Return true if key-input isn't blocking mouse-motion,

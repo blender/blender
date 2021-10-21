@@ -1226,7 +1226,7 @@ bool ui_region_contains_point_px(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 bool ui_region_contains_rect_px(const struct ARegion *region, const rcti *rect_px);
 
-struct ARegion *ui_screen_region_find_mouse_over_ex(struct bScreen *screen, int x, int y);
+struct ARegion *ui_screen_region_find_mouse_over_ex(struct bScreen *screen, const int xy[2]) ATTR_NONNULL(1, 2);
 struct ARegion *ui_screen_region_find_mouse_over(struct bScreen *screen,
                                                  const struct wmEvent *event);
 

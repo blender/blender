@@ -799,14 +799,14 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
  * \{ */
 
 /** Check if the cursor is over any popups. */
-ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, int x, int y)
+ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     rcti winrct;
 
     ui_region_winrct_get_no_margin(region, &winrct);
 
-    if (BLI_rcti_isect_pt(&winrct, x, y)) {
+    if (BLI_rcti_isect_pt_v(&winrct, xy)) {
       return region;
     }
   }
@@ -815,7 +815,7 @@ ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, int x, int y)
 
 ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 {
-  return ui_screen_region_find_mouse_over_ex(screen, event->xy[0], event->xy[1]);
+  return ui_screen_region_find_mouse_over_ex(screen, event->xy);
 }
 
 /** \} */
