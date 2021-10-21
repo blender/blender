@@ -286,8 +286,6 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
       });
 }
 
-
-
 static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 {
   NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)params.node().storage;
