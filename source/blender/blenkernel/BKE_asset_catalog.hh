@@ -415,6 +415,9 @@ class AssetCatalog {
    */
   static std::unique_ptr<AssetCatalog> from_path(const AssetCatalogPath &path);
 
+  /** Make a new simple name for the catalog, based on its path. */
+  void simple_name_refresh();
+
  protected:
   /** Generate a sensible catalog ID for the given path. */
   static std::string sensible_simple_name_for_path(const AssetCatalogPath &path);

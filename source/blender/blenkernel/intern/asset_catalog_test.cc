@@ -882,6 +882,22 @@ TEST_F(AssetCatalogTest, update_catalog_path)
       << "Changing the path should update children.";
 }
 
+TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+  service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
+
+  /* This may not be valid forever; maybe at some point we'll expose the simple name to users & let
+   * them change it from the UI. Until then, automatically updating it is better, because otherwise
+   * all simple names would be "Catalog". */
+  EXPECT_EQ("charlib-Ružena", service.find_catalog(UUID_POSES_RUZENA)->simple_name)
+      << "Changing the path should update the simplename.";
+  EXPECT_EQ("charlib-Ružena-face", service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
+      << "Changing the path should update the simplename of children.";
+}
+
 TEST_F(AssetCatalogTest, merge_catalog_files)
 {
   const CatalogFilePath cdf_dir = create_temp_path();

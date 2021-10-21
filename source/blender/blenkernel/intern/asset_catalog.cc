@@ -219,6 +219,10 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
       continue;
     }
     cat->path = new_path;
+    cat->simple_name_refresh();
+
+    /* TODO(Sybren): go over all assets that are assigned to this catalog, defined in the current
+     * blend file, and update the catalog simple name stored there. */
   }
 
   this->rebuild_tree();
@@ -951,6 +955,11 @@ std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const AssetCatalogPath &pa
   const std::string simple_name = sensible_simple_name_for_path(clean_path);
   auto catalog = std::make_unique<AssetCatalog>(cat_id, clean_path, simple_name);
   return catalog;
+}
+
+void AssetCatalog::simple_name_refresh()
+{
+  this->simple_name = sensible_simple_name_for_path(this->path);
 }
 
 std::string AssetCatalog::sensible_simple_name_for_path(const AssetCatalogPath &path)
