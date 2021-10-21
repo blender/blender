@@ -361,6 +361,10 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
         continue;
       }
 
+      if (spline.evaluated_edges_size() == 0) {
+        continue;
+      }
+
       /* Return a spline with one point instead of implicitly
        * reversing the spline or switching the parameters. */
       if (ends[i] < starts[i]) {
