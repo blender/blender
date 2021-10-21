@@ -583,6 +583,7 @@ typedef struct SequencerPreviewOverlay {
 
 /* SequencerPreviewOverlay.flag */
 typedef enum eSpaceSeq_SequencerPreviewOverlay_Flag {
+  SEQ_PREVIEW_SHOW_2D_CURSOR = (1 << 1),
   SEQ_PREVIEW_SHOW_OUTLINE_SELECTED = (1 << 2),
   SEQ_PREVIEW_SHOW_SAFE_MARGINS = (1 << 3),
   SEQ_PREVIEW_SHOW_GPENCIL = (1 << 4),
