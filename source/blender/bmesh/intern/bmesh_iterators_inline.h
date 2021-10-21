@@ -192,13 +192,13 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
   /* inlining optimizes out this switch when called with the defined type */
   switch ((BMIterType)itype) {
     case BM_VERTS_OF_MESH:
-      BM_task_parallel_mempool(bm->vpool, userdata, func, settings);
+      BLI_task_parallel_mempool(bm->vpool, userdata, func, settings);
       break;
     case BM_EDGES_OF_MESH:
-      BM_task_parallel_mempool(bm->epool, userdata, func, settings);
+      BLI_task_parallel_mempool(bm->epool, userdata, func, settings);
       break;
     case BM_FACES_OF_MESH:
-      BM_task_parallel_mempool(bm->fpool, userdata, func, settings);
+      BLI_task_parallel_mempool(bm->fpool, userdata, func, settings);
       break;
     default:
       /* should never happen */

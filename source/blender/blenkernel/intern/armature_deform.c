@@ -601,11 +601,11 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     BLI_parallel_mempool_settings_defaults(&settings);
 
     if (use_dverts) {
-      BM_task_parallel_mempool(
+      BLI_task_parallel_mempool(
           em_target->bm->vpool, &data, armature_vert_task_editmesh, &settings);
     }
     else {
-      BM_task_parallel_mempool(
+      BLI_task_parallel_mempool(
           em_target->bm->vpool, &data, armature_vert_task_editmesh_no_dvert, &settings);
     }
   }

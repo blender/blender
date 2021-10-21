@@ -190,273 +190,6 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
 void bm_kill_only_edge(BMesh *bm, BMEdge *e);
 void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
-static bool bm_elem_is_free(BMElem *elem, int htype);
-
-extern char dyntopop_node_idx_layer_id[];
-extern char dyntopop_faces_areas_layer_id[];
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-
-char *cdlayer_lock_attr_name = "__bm_lock";
-
-ATTR_NO_OPT static int cdlayer_lock_begin(PBVH *pbvh, BMesh *bm)
-{
-  int idx = CustomData_get_named_layer_index(&bm->edata, CD_PROP_INT32, cdlayer_lock_attr_name);
-
-  if (idx == -1) {
-    BM_data_layer_add_named(bm, &bm->edata, CD_PROP_INT32, cdlayer_lock_attr_name);
-
-    idx = CustomData_get_named_layer_index(&bm->edata, CD_PROP_INT32, cdlayer_lock_attr_name);
-    bm->edata.layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY | CD_FLAG_ELEM_NOINTERP;
-
-    pbvh->cd_vert_node_offset = CustomData_get_named_layer_index(
-        &pbvh->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-    pbvh->cd_face_node_offset = CustomData_get_named_layer_index(
-        &pbvh->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-
-    pbvh->cd_vert_node_offset = bm->vdata.layers[pbvh->cd_vert_node_offset].offset;
-    pbvh->cd_face_node_offset = bm->pdata.layers[pbvh->cd_face_node_offset].offset;
-  }
-
-  return bm->edata.layers[idx].offset;
-}
-
-ATTR_NO_OPT static bool cdlayer_elem_lock(BMElem *elem, int cd_lock, int thread_nr)
-{
-  thread_nr++;
-
-  if (bm_elem_is_free(elem, BM_EDGE)) {
-    return false;
-  }
-
-  int *lock = BM_ELEM_CD_GET_VOID_P(elem, cd_lock);
-  int old = *lock;
-
-  if (old == thread_nr) {
-    return true;
-  }
-
-  int i = 0;
-
-  while (old > 0 || old != atomic_cas_int32(lock, old, thread_nr)) {
-    if (bm_elem_is_free(elem, BM_EDGE)) {
-      return false;
-    }
-
-    old = *lock;
-
-    if (i++ > 100000) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-static void cdlayer_elem_unlock(BMElem *elem, int cd_lock, int thread_nr)
-{
-  thread_nr++;
-
-  int *lock = BM_ELEM_CD_GET_VOID_P(elem, cd_lock);
-  // int old = *lock;
-
-  *lock = 0;
-}
-
-ATTR_NO_OPT static bool cdlayer_lock_edge(BMEdge *e, int cd_lock, int thread_nr)
-{
-  if (!cdlayer_elem_lock((BMElem *)e, cd_lock, thread_nr)) {
-    return false;
-  }
-
-  BMEdge **es = NULL;
-  BLI_array_staticdeclare(es, 32);
-
-  for (int i = 0; i < 2; i++) {
-    BMVert *v = i ? e->v2 : e->v1;
-
-    BMEdge *e2 = v->e;
-    do {
-      BMLoop *l = e2->l;
-
-      if (!l) {
-        if (!cdlayer_elem_lock((BMElem *)e2, cd_lock, thread_nr)) {
-          return false;
-        }
-
-        BLI_array_append(es, e2);
-        continue;
-      }
-
-      do {
-        BMLoop *l2 = l;
-        do {
-          if (BM_elem_is_free((BMElem *)l2, BM_LOOP)) {
-            return false;
-          }
-
-          if (!cdlayer_elem_lock((BMElem *)l2->e, cd_lock, thread_nr)) {
-            return false;
-          }
-          BLI_array_append(es, l2->e);
-        } while ((l2 = l2->next) != l);
-      } while ((l = l->radial_next) != e2->l);
-
-    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-  }
-
-  BLI_array_free(es);
-  return true;
-
-error:
-  for (int i = 0; i < BLI_array_len(es); i++) {
-    if (!es[i]) {
-      continue;
-    }
-
-    // eliminate duplicates
-    for (int j = i + 1; j < BLI_array_len(es); j++) {
-      if (es[i] == es[j]) {
-        es[j] = NULL;
-      }
-    }
-
-    cdlayer_elem_unlock((BMElem *)es[i], cd_lock, thread_nr);
-  }
-
-  BLI_array_free(es);
-  return false;
-}
-
-static void cdlayer_unlock_edge(BMEdge *e, int cd_lock, int thread_nr)
-{
-  if (BM_ELEM_CD_GET_INT(e, cd_lock) == thread_nr + 1) {
-    return;
-  }
-
-  BMEdge **es = NULL;
-  BLI_array_staticdeclare(es, 32);
-
-  const int tag = BM_ELEM_TAG_ALT;
-
-  for (int i = 0; i < 2; i++) {
-    BMVert *v = i ? e->v2 : e->v1;
-
-    BMEdge *e2 = v->e;
-    do {
-      BMLoop *l = e2->l;
-      if (!l) {
-        BLI_array_append(es, e2);
-        continue;
-      }
-
-      do {
-        BMLoop *l2 = l;
-        do {
-          l2->e->head.hflag &= ~tag;
-        } while ((l2 = l2->next) != l);
-      } while ((l = l->radial_next) != e2->l);
-
-    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-  }
-
-  for (int i = 0; i < 2; i++) {
-    BMVert *v = i ? e->v2 : e->v1;
-
-    BMEdge *e2 = v->e;
-    do {
-      BMLoop *l = e2->l;
-      if (!l) {
-        BLI_array_append(es, e2);
-        continue;
-      }
-
-      do {
-        BMLoop *l2 = l;
-        do {
-          if (!(l2->e->head.hflag & tag)) {
-            l2->e->head.hflag |= tag;
-            BLI_array_append(es, l2->e);
-          }
-        } while ((l2 = l2->next) != l);
-      } while ((l = l->radial_next) != e2->l);
-
-    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-  }
-
-  for (int i = 0; i < BLI_array_len(es); i++) {
-    BMEdge *e2 = es[i];
-
-    if (!bm_elem_is_free((BMElem *)e2, BM_EDGE) &&
-        BM_ELEM_CD_GET_INT(e2, cd_lock) == thread_nr + 1) {
-      cdlayer_elem_unlock((BMElem *)e2, cd_lock, thread_nr);
-    }
-  }
-
-  BLI_array_free(es);
-}
-
-static void cdlayer_unlock_vert(BMVert *v, int cd_lock, int thread_nr)
-{
-  BMEdge **es = NULL;
-  BLI_array_staticdeclare(es, 32);
-
-  if (!v->e) {
-    return;
-  }
-  const int tag = BM_ELEM_TAG_ALT;
-
-  BMEdge *e2 = v->e;
-  do {
-    BMLoop *l = e2->l;
-    if (!l) {
-      e2->head.hflag &= ~tag;
-      continue;
-    }
-
-    do {
-      BMLoop *l2 = l;
-      do {
-        l2->e->head.hflag &= ~tag;
-
-      } while ((l2 = l2->next) != l);
-    } while ((l = l->radial_next) != e2->l);
-
-  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-
-  e2 = v->e;
-  do {
-    BMLoop *l = e2->l;
-    if (!l) {
-      e2->head.hflag |= tag;
-      BLI_array_append(es, e2);
-      continue;
-    }
-
-    do {
-      BMLoop *l2 = l;
-      do {
-        if (!(l2->e->head.hflag & tag)) {
-          l2->e->head.hflag |= tag;
-          BLI_array_append(es, l2->e);
-        }
-      } while ((l2 = l2->next) != l);
-    } while ((l = l->radial_next) != e2->l);
-
-  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-
-  for (int i = 0; i < BLI_array_len(es); i++) {
-    BMEdge *e2 = es[i];
-
-    if (!bm_elem_is_free((BMElem *)e2, BM_EDGE) &&
-        BM_ELEM_CD_GET_INT(e2, cd_lock) == thread_nr + 1) {
-      cdlayer_elem_unlock((BMElem *)e2, cd_lock, thread_nr);
-    }
-  }
-
-  BLI_array_free(es);
-}
-#endif
 
 static void fix_mesh(PBVH *pbvh, BMesh *bm)
 {
@@ -1085,10 +818,6 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 
   BLI_assert((pbvh->totnode == 1 || node_index) && node_index <= pbvh->totnode);
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_lock(node->lock);
-#endif
-
   /* avoid initializing customdata because its quite involved */
   BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_NOP);
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
@@ -1125,10 +854,6 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   /* Log the new vertex */
   BM_log_vert_added(pbvh->bm_log, v, cd_vert_mask_offset);
   v->head.index = pbvh->bm->totvert;  // set provisional index
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_unlock(node->lock);
-#endif
 
   return v;
 }
@@ -1456,7 +1181,6 @@ static bool pbvh_bmesh_vert_relink(PBVH *pbvh, BMVert *v)
 
 static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
 {
-
   /* never match for first time */
   int f_node_index_prev = DYNTOPO_NODE_NONE;
   const int updateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris |
@@ -1465,10 +1189,6 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   PBVHNode *v_node = pbvh_bmesh_node_from_vert(pbvh, v);
 
   if (v_node) {
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-    BLI_ticket_mutex_lock(v_node->lock);
-#endif
-
     BLI_table_gset_remove(v_node->bm_unique_verts, v, NULL);
     v_node->flag |= updateflag;
   }
@@ -1490,23 +1210,12 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
       f_node_index_prev = f_node_index;
 
       PBVHNode *f_node = &pbvh->nodes[f_node_index];
-      // int flag = f_node->flag | updateflag;
-
-      // flag update of bm_other_verts
-      // atomic_add_and_fetch_int32((int32_t *)(&f_node->flag), flag);
-
-      f_node->flag |= updateflag;
+      f_node->flag |= updateflag;  // flag update of bm_other_verts
 
       BLI_assert(!BLI_table_gset_haskey(f_node->bm_unique_verts, v));
     }
   }
   BM_FACES_OF_VERT_ITER_END;
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  if (v_node) {
-    BLI_ticket_mutex_unlock(v_node->lock);
-  }
-#endif
 }
 
 static void pbvh_bmesh_face_remove(
@@ -1515,14 +1224,10 @@ static void pbvh_bmesh_face_remove(
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
 
   if (!f_node || !(f_node->flag & PBVH_Leaf)) {
-    printf("%s: pbvh corruption; node: %p\n", __func__, f_node);
+    printf("pbvh corruption\n");
     fflush(stdout);
     return;
   }
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_lock(f_node->lock);
-#endif
 
   bm_logstack_push();
 
@@ -1543,15 +1248,7 @@ static void pbvh_bmesh_face_remove(
           // BLI_assert(new_node || BM_vert_face_count_is_equal(v, 1));
 
           if (new_node) {
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-            BLI_ticket_mutex_lock(new_node->lock);
-#endif
-
             pbvh_bmesh_vert_ownership_transfer(pbvh, new_node, v);
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-            BLI_ticket_mutex_unlock(new_node->lock);
-#endif
           }
           else if (ensure_ownership_transfer && !BM_vert_face_count_is_equal(v, 1)) {
             pbvh_bmesh_vert_remove(pbvh, v);
@@ -1578,9 +1275,6 @@ static void pbvh_bmesh_face_remove(
                   PBVH_UpdateOtherVerts;
 
   bm_logstack_pop();
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_unlock(f_node->lock);
-#endif
 }
 
 void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
@@ -2055,7 +1749,6 @@ typedef struct EdgeQueueThreadData {
   int size;
   bool is_collapse;
   int seed;
-  int cd_lock;
 } EdgeQueueThreadData;
 
 static void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
@@ -3844,10 +3537,8 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return NULL;
   }
 
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
   pbvh_check_vert_boundary(pbvh, v1);
   pbvh_check_vert_boundary(pbvh, v2);
-#endif
 
   const int mupdateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_BOUNDARY |
                           SCULPTVERT_NEED_DISK_SORT;
@@ -3855,10 +3546,8 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   validate_edge(pbvh, pbvh->bm, e, true, true);
 
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
-#endif
 
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
@@ -4096,9 +3785,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       BMLoop *l = e2->l;
 
       if (e2 != e && !(e2->head.hflag & tag)) {
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
         BM_log_edge_topo_pre(pbvh->bm_log, e2);
-#endif
       }
 
       e2->head.hflag |= tag;
@@ -4110,9 +3797,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       do {
         if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
           pbvh_bmesh_face_remove(pbvh, l->f, false, false, false);
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
           BM_log_face_topo_pre(pbvh->bm_log, l->f);
-#endif
         }
       } while ((l = l->radial_next) != e2->l);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_step)) != v_step->e);
@@ -4120,10 +3805,8 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   pbvh_bmesh_vert_remove(pbvh, v_del);
 
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
   BM_log_edge_topo_pre(pbvh->bm_log, e);
   BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
-#endif
 
   BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
 
@@ -4248,9 +3931,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     if (e2->head.hflag & tag) {
       e2->head.hflag &= ~tag;
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
       BM_log_edge_topo_post(pbvh->bm_log, e2);
-#endif
     }
 
     BMLoop *lnext;
@@ -4281,9 +3962,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
       if (!fbad && BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) == DYNTOPO_NODE_NONE) {
         BKE_pbvh_bmesh_add_face(pbvh, l->f, false, false);
-#ifndef WITH_DYNTOPO_EDGE_LOCKS
         BM_log_face_topo_post(pbvh->bm_log, l->f);
-#endif
       }
 
       if (!lnext) {
@@ -4328,37 +4007,6 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   return v_conn;
 }
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-ATTR_NO_OPT static void pbvh_bmesh_collapse_short_edges_cb(void *__restrict userdata,
-                                                           const int n,
-                                                           const TaskParallelTLS *__restrict tls)
-{
-  EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
-  const int thread_nr = n;
-  const int cd_lock = tdata->cd_lock;
-
-  GHash *unused = BLI_ghash_ptr_new("unused");
-  BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
-
-  for (int i = 0; i < tdata->totedge; i++) {
-    BMEdge *e = tdata->edges[i];
-
-    if (BM_elem_is_free((BMElem *)e, BM_EDGE) || !cdlayer_lock_edge(e, cd_lock, thread_nr)) {
-      continue;
-    }
-
-    BMVert *v_conn = pbvh_bmesh_collapse_edge(
-        tdata->pbvh, e, e->v1, e->v2, unused, &deleted_faces, tdata->eq_ctx);
-    if (v_conn) {
-      cdlayer_unlock_vert(v_conn, cd_lock, thread_nr);
-    }
-  }
-
-  BLI_ghash_free(unused, NULL, NULL);
-  BLI_buffer_free(&deleted_faces);
-}
-#endif
-
 static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
                                             PBVH *pbvh,
                                             BLI_Buffer *deleted_faces,
@@ -4386,28 +4034,6 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   int step = 0;
   BMVert **checkvs = NULL;
   BLI_array_declare(checkvs);
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  int cd_lock = cdlayer_lock_begin(pbvh, pbvh->bm);
-  const int totthread = 8;
-  EdgeQueueThreadData *tdata = MEM_callocN(sizeof(EdgeQueueThreadData) * totthread,
-                                           "EdgeQueueThreadData");
-  int totedge = max_steps / totthread + 1;
-
-  int curthread = 0;
-
-  if (totedge * totthread < max_steps) {
-    totedge += ((totedge * totthread) % max_steps) + 100;
-  }
-
-  for (int i = 0; i < totthread; i++) {
-    tdata[i].edges = MEM_mallocN(sizeof(void *) * totedge, "edge queue thread data edges");
-    tdata[i].pbvh = pbvh;
-    tdata[i].eq_ctx = eq_ctx;
-    tdata[i].cd_lock = cd_lock;
-  }
-
-#endif
 
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
     if (step++ > max_steps) {
@@ -4459,14 +4085,9 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
       continue;
     }
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-    tdata[curthread].edges[tdata[curthread].totedge++] = e;
-    curthread = (curthread + 1) % totthread;
-#else
-
-#  ifdef USE_EDGEQUEUE_TAG
+#ifdef USE_EDGEQUEUE_TAG
     EDGE_QUEUE_DISABLE(e);
-#  endif
+#endif
 
     if (calc_weighted_edge_collapse(eq_ctx, v1, v2) >= limit_len_squared) {
       continue;
@@ -4491,27 +4112,12 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
       BLI_array_append(checkvs, v_conn);
     }
 
-#  ifdef TEST_COLLAPSE
+#ifdef TEST_COLLAPSE
     if (_i++ > 10) {
       break;
     }
-#  endif
 #endif
   }
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  TaskParallelSettings settings;
-
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = true;
-  BLI_task_parallel_range(0, totthread, tdata, pbvh_bmesh_collapse_short_edges_cb, &settings);
-
-  for (int i = 0; i < totthread; i++) {
-    MEM_SAFE_FREE(tdata[i].edges);
-  }
-
-  MEM_SAFE_FREE(tdata);
-#endif
 
   // add log subentry
   BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
@@ -6054,6 +5660,9 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 #endif
 }
 
+extern char dyntopop_node_idx_layer_id[];
+extern char dyntopop_faces_areas_layer_id[];
+
 typedef struct DynTopoState {
   PBVH *pbvh;
   bool is_fake_pbvh;
@@ -6078,9 +5687,6 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 
     node->flag = PBVH_Leaf | PBVH_UpdateTris | PBVH_UpdateTriAreas;
     node->bm_faces = BLI_table_gset_new_ex("node->bm_faces", bm->totface);
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-    node->lock = BLI_ticket_mutex_alloc();
-#endif
     node->bm_unique_verts = BLI_table_gset_new_ex("node->bm_unique_verts", bm->totvert);
   }
   else {

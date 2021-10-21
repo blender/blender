@@ -110,7 +110,7 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
 /* iterator type structs */
 struct BMIter__elem_of_mesh {
-  BM_mempool_iter pooliter;
+  BLI_mempool_iter pooliter;
 };
 struct BMIter__edge_of_vert {
   BMVert *vdata;

@@ -365,11 +365,6 @@ static void pbvh_bmesh_node_split(
 
   c1->bm_other_verts = c2->bm_other_verts = NULL;
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  c1->lock = BLI_ticket_mutex_alloc();
-  c2->lock = BLI_ticket_mutex_alloc();
-#endif
-
   /* Partition the parent node's faces between the two children */
   TGSET_ITER (f, n->bm_faces) {
     const BBC *bbc = &bbc_array[BM_elem_index_get(f)];
@@ -548,10 +543,6 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
     return;
   }
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_lock(node->lock);
-#endif
-
   BLI_table_gset_add(node->bm_faces, f);
 
   int updateflag = PBVH_UpdateTris | PBVH_UpdateBB | PBVH_UpdateDrawBuffers |
@@ -578,9 +569,6 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
       PBVHNode *node2 = pbvh->nodes + ni2;
 
       if (ni != ni2) {
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-        BLI_ticket_mutex_lock(node2->lock);
-#endif
         BLI_table_gset_add(node->bm_other_verts, l->v);
       }
 
@@ -588,19 +576,9 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 
       BB_expand(&node2->vb, l->v->co);
       BB_expand(&node2->orig_vb, mv->origco);
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-      if (ni != ni2) {
-        BLI_ticket_mutex_unlock(node2->lock);
-      }
-#endif
     }
     l = l->next;
   } while (l != f->l_first);
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-  BLI_ticket_mutex_unlock(node->lock);
-#endif
 }
 
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
@@ -1408,10 +1386,6 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
 
     n->flag = PBVH_Leaf | PBVH_UpdateTris;
     n->bm_faces = BLI_table_gset_new_ex("bm_faces", node->totface);
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-    n->lock = BLI_ticket_mutex_alloc();
-#endif
 
     /* Create vert hash sets */
     n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
@@ -2797,10 +2771,6 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
     node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
     node->bm_faces = BLI_table_gset_new("bm_faces");
 
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-    node->lock = BLI_ticket_mutex_alloc();
-#endif
-
     pbvh_bmesh_join_subnodes(pbvh, pbvh->nodes + node->children_offset, node);
     pbvh_bmesh_join_subnodes(pbvh, pbvh->nodes + node->children_offset + 1, node);
 
@@ -2885,10 +2855,6 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
           n3->bm_other_verts = BLI_table_gset_new("bm_other_verts");
           n3->bm_faces = BLI_table_gset_new("bm_faces");
           n3->tribuf = NULL;
-
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-          n3->lock = BLI_ticket_mutex_alloc();
-#endif
         }
         else if ((n1->flag & PBVH_Delete) && (n2->flag & PBVH_Delete)) {
           n->children_offset = 0;
@@ -2900,9 +2866,6 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
             n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
             n->bm_faces = BLI_table_gset_new("bm_faces");
             n->tribuf = NULL;
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-            n->lock = BLI_ticket_mutex_alloc();
-#endif
           }
         }
       }
@@ -3018,9 +2981,6 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
       n->bm_unique_verts = BLI_table_gset_new("bleh");
       n->bm_other_verts = BLI_table_gset_new("bleh");
       n->bm_faces = BLI_table_gset_new("bleh");
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-      n->lock = BLI_ticket_mutex_alloc();
-#endif
     }
 
     BMVert *v;
@@ -3297,9 +3257,6 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
           n3->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
           n3->bm_other_verts = BLI_table_gset_new("bm_other_verts");
           n3->bm_faces = BLI_table_gset_new("bm_faces");
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-          n3->lock = BLI_ticket_mutex_alloc();
-#endif
           n3->tribuf = NULL;
         }
         else if ((n1->flag & PBVH_Delete) && (n2->flag & PBVH_Delete)) {
@@ -3311,9 +3268,6 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
             n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
             n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
             n->bm_faces = BLI_table_gset_new("bm_faces");
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-            n->lock = BLI_ticket_mutex_alloc();
-#endif
             n->tribuf = NULL;
           }
         }
@@ -3430,9 +3384,6 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
       n->bm_unique_verts = BLI_table_gset_new("bleh");
       n->bm_other_verts = BLI_table_gset_new("bleh");
       n->bm_faces = BLI_table_gset_new("bleh");
-#ifdef WITH_DYNTOPO_EDGE_LOCKS
-      n->lock = BLI_ticket_mutex_alloc();
-#endif
     }
 
     BMVert *v;
@@ -3614,18 +3565,18 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
   for (int i = 0; i < totedge; i++) {
     BMEdge *e = edges[i];
 
-    BMVert *v2 = BM_mempool_alloc(bm->vpool);
+    BMVert *v2 = BLI_mempool_alloc(bm->vpool);
     memset(v2, 0, sizeof(*v2));
-    v2->head.data = (BLI_mempool *)BM_mempool_alloc((BM_mempool *)bm->vdata.pool);
+    v2->head.data = BLI_mempool_alloc(bm->vdata.pool);
 
     BLI_array_append(newverts, v2);
 
-    BMEdge *e2 = BM_mempool_alloc(bm->epool);
+    BMEdge *e2 = BLI_mempool_alloc(bm->epool);
     BLI_array_append(newedges, e2);
 
     memset(e2, 0, sizeof(*e2));
     if (bm->edata.pool) {
-      e2->head.data = (BLI_mempool *)BM_mempool_alloc((BM_mempool *)bm->edata.pool);
+      e2->head.data = BLI_mempool_alloc(bm->edata.pool);
     }
 
     BMLoop *l = e->l;
@@ -3636,7 +3587,7 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
 
     do {
       BLI_array_append(faces, l->f);
-      BMFace *f2 = BM_mempool_alloc(bm->fpool);
+      BMFace *f2 = BLI_mempool_alloc(bm->fpool);
 
       BLI_array_append(faces, l->f);
       BLI_array_append(fmap, v2);
@@ -3647,15 +3598,15 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
       BLI_array_append(emap, i);
 
       memset(f2, 0, sizeof(*f2));
-      f2->head.data = (BLI_mempool *)BM_mempool_alloc((BM_mempool *)bm->ldata.pool);
+      f2->head.data = BLI_mempool_alloc(bm->ldata.pool);
 
       BMLoop *prev = NULL;
       BMLoop *l2 = NULL;
 
       for (int j = 0; j < 3; j++) {
-        l2 = BM_mempool_alloc(bm->lpool);
+        l2 = BLI_mempool_alloc(bm->lpool);
         memset(l2, 0, sizeof(*l2));
-        l2->head.data = (BLI_mempool *)BM_mempool_alloc((BM_mempool *)bm->ldata.pool);
+        l2->head.data = BLI_mempool_alloc(bm->ldata.pool);
 
         l2->prev = prev;
 
@@ -3878,13 +3829,13 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     }
   }
 
-  BM_mempool_iter loopiter;
-  BM_mempool_iternew((BM_mempool *)pbvh->bm->lpool, &loopiter);
-  BMLoop *l = BM_mempool_iterstep(&loopiter);
+  BLI_mempool_iter loopiter;
+  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  BMLoop *l = BLI_mempool_iterstep(&loopiter);
   BMEdge *e;
   BMFace *f;
 
-  for (i = 0; l; l = BM_mempool_iterstep(&loopiter), i++) {
+  for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
     l->head.hflag &= ~flag;
   }
   BM_ITER_MESH (e, &iter, pbvh->bm, BM_EDGES_OF_MESH) {
@@ -4011,10 +3962,10 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     fidx[i] = (uint)f->head.index;
   }
 
-  BM_mempool_iternew(pbvh->bm->lpool, &loopiter);
-  l = BM_mempool_iterstep(&loopiter);
+  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  l = BLI_mempool_iterstep(&loopiter);
 
-  for (i = 0; l; l = BM_mempool_iterstep(&loopiter), i++) {
+  for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
     // handle orphaned loops
     if (!(l->head.hflag & flag)) {
       printf("warning in %s: orphaned loop!\n", __func__);
@@ -5034,15 +4985,15 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
                                    .no_reuse_ids = false}));
 
   // reinit pools
-  BM_mempool_destroy(bm->vpool);
-  BM_mempool_destroy(bm->epool);
-  BM_mempool_destroy(bm->lpool);
-  BM_mempool_destroy(bm->fpool);
+  BLI_mempool_destroy(bm->vpool);
+  BLI_mempool_destroy(bm->epool);
+  BLI_mempool_destroy(bm->lpool);
+  BLI_mempool_destroy(bm->fpool);
 
-  bm->vpool = BM_mempool_create(sizeof(BMVert), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->epool = BM_mempool_create(sizeof(BMEdge), 0, (int)params->echunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->lpool = BM_mempool_create(sizeof(BMLoop), 0, (int)params->lchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->fpool = BM_mempool_create(sizeof(BMFace), 0, (int)params->pchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->vpool = BLI_mempool_create(sizeof(BMVert), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->epool = BLI_mempool_create(sizeof(BMEdge), 0, (int)params->echunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->lpool = BLI_mempool_create(sizeof(BMLoop), 0, (int)params->lchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->fpool = BLI_mempool_create(sizeof(BMFace), 0, (int)params->pchunk, BLI_MEMPOOL_ALLOW_ITER);
 
   GHash *vhash = BLI_ghash_ptr_new("vhash");
 

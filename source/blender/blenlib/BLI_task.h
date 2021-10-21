@@ -34,7 +34,6 @@ extern "C" {
 #endif
 
 struct BLI_mempool;
-struct BLI_lfmempool;
 
 /* Task Scheduler
  *
@@ -237,10 +236,6 @@ void BLI_task_parallel_mempool(struct BLI_mempool *mempool,
                                void *userdata,
                                TaskParallelMempoolFunc func,
                                const TaskParallelSettings *settings);
-void BLI_task_parallel_lfmempool(struct BLI_lfmempool *mempool,
-                                 void *userdata,
-                                 TaskParallelMempoolFunc func,
-                                 const TaskParallelSettings *settings);
 
 /* TODO(sergey): Think of a better place for this. */
 BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings)

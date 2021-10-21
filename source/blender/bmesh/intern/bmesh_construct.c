@@ -43,14 +43,6 @@
 
 #define SELECT 1
 
-#ifdef BM_LOCKFREE_MEMPOOL
-#  define BM_ID_LOCK(bm) BLI_ticket_mutex_lock(bm->idmap.lock)
-#  define BM_ID_UNLOCK(bm) BLI_ticket_mutex_unlock(bm->idmap.lock)
-#else
-#  define BM_ID_LOCK(bm)
-#  define BM_ID_UNLOCK(bm)
-#endif
-
 #ifdef WITH_BM_ID_FREELIST
 static uint bm_id_freelist_pop(BMesh *bm)
 {
@@ -173,8 +165,6 @@ void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 
 void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
 {
-  BM_ID_LOCK(bm);
-
   if (check_unqiue && (bm->idmap.flag & BM_HAS_ID_MAP)) {
     if (BM_ELEM_FROM_ID(bm, id)) {
 
@@ -188,8 +178,6 @@ void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
   range_tree_uint_retake(bm->idmap.idtree, id);
 #endif
   bm_assign_id_intern(bm, elem, id);
-
-  BM_ID_UNLOCK(bm);
 }
 
 void bm_alloc_id(BMesh *bm, BMElem *elem)
@@ -197,8 +185,6 @@ void bm_alloc_id(BMesh *bm, BMElem *elem)
   if ((bm->idmap.flag & (elem->head.htype | BM_HAS_IDS)) != (elem->head.htype | BM_HAS_IDS)) {
     return;
   }
-
-  BM_ID_LOCK(bm);
 
 #ifdef WITH_BM_ID_FREELIST
   uint id;
@@ -214,7 +200,6 @@ void bm_alloc_id(BMesh *bm, BMElem *elem)
 #endif
 
   bm_assign_id_intern(bm, elem, id);
-  BM_ID_UNLOCK(bm);
 }
 
 void bm_free_id(BMesh *bm, BMElem *elem)
@@ -222,8 +207,6 @@ void bm_free_id(BMesh *bm, BMElem *elem)
   if ((bm->idmap.flag & (elem->head.htype | BM_HAS_IDS)) != (elem->head.htype | BM_HAS_IDS)) {
     return;
   }
-
-  BM_ID_LOCK(bm);
 
   uint id = (uint)BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
 
@@ -244,8 +227,6 @@ void bm_free_id(BMesh *bm, BMElem *elem)
       BLI_ghash_remove(bm->idmap.ghash, POINTER_FROM_UINT(id), NULL, NULL);
     }
   }
-
-  BM_ID_UNLOCK(bm);
 }
 
 /**
@@ -1307,11 +1288,11 @@ void bm_rebuild_idmap(BMesh *bm)
     cd_off = CustomData_get_offset(cdatas[i], CD_MESH_ID);
 
     if (bm->idmap.flag & BM_NO_REUSE_IDS) {
-      BM_mempool_iter iter;
+      BLI_mempool_iter iter;
 
-      BM_mempool_iternew((&bm->vpool)[i], &iter);
-      BMElem *elem = (BMElem *)BM_mempool_iterstep(&iter);
-      for (; elem; elem = (BMElem *)BM_mempool_iterstep(&iter)) {
+      BLI_mempool_iternew((&bm->vpool)[i], &iter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
         void **val;
 
         if (!BLI_ghash_ensure_p(bm->idmap.ghash, (void *)elem, &val)) {
@@ -1320,11 +1301,11 @@ void bm_rebuild_idmap(BMesh *bm)
       }
     }
     else {
-      BM_mempool_iter iter;
+      BLI_mempool_iter iter;
 
-      BM_mempool_iternew((&bm->vpool)[i], &iter);
-      BMElem *elem = (BMElem *)BM_mempool_iterstep(&iter);
-      for (; elem; elem = (BMElem *)BM_mempool_iterstep(&iter)) {
+      BLI_mempool_iternew((&bm->vpool)[i], &iter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
         void **val;
         int id = BM_ELEM_CD_GET_INT(elem, cd_off);
 

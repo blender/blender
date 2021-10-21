@@ -116,10 +116,10 @@ void BM_mesh_remap(BMesh *bm,
 
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,
-                     struct BM_mempool *vpool,
-                     struct BM_mempool *epool,
-                     struct BM_mempool *lpool,
-                     struct BM_mempool *fpool);
+                     struct BLI_mempool *vpool,
+                     struct BLI_mempool *epool,
+                     struct BLI_mempool *lpool,
+                     struct BLI_mempool *fpool);
 
 typedef struct BMAllocTemplate {
   int totvert, totedge, totloop, totface;

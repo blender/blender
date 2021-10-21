@@ -689,7 +689,7 @@ static void bm_log_vert_customdata(
 
   if (lv->customdata) {
     CustomData_bmesh_asan_unpoison(&entry->vdata, lv->customdata);
-    BM_mempool_free((BM_mempool *)entry->vdata.pool, lv->customdata);
+    BLI_mempool_free(entry->vdata.pool, lv->customdata);
     lv->customdata = NULL;
   }
 
@@ -706,7 +706,7 @@ static void bm_log_edge_customdata(
 {
   if (le->customdata) {
     CustomData_bmesh_asan_unpoison(&entry->edata, le->customdata);
-    BM_mempool_free((BM_mempool *)entry->edata.pool, le->customdata);
+    BLI_mempool_free(entry->edata.pool, le->customdata);
     le->customdata = NULL;
   }
 
@@ -724,7 +724,7 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
 
   if (lf->customdata_f) {
     CustomData_bmesh_asan_unpoison(&entry->pdata, lf->customdata_f);
-    BM_mempool_free((BM_mempool *)entry->pdata.pool, lf->customdata_f);
+    BLI_mempool_free(entry->pdata.pool, lf->customdata_f);
     lf->customdata_f = NULL;
   }
 
@@ -738,7 +738,7 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   do {
     if (lf->customdata[i]) {
       CustomData_bmesh_asan_unpoison(&entry->ldata, lf->customdata[i]);
-      BM_mempool_free((BM_mempool *)entry->ldata.pool, lf->customdata[i]);
+      BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
       lf->customdata[i] = NULL;
     }
 
@@ -910,14 +910,14 @@ static void bm_log_face_bmface_copy(
 
     if (lf->customdata_f) {
       CustomData_bmesh_asan_unpoison(&entry->pdata, lf->customdata_f);
-      BM_mempool_free((BM_mempool *)entry->pdata.pool, lf->customdata_f);
+      BLI_mempool_free(entry->pdata.pool, lf->customdata_f);
       lf->customdata_f = NULL;
     }
 
     for (uint i = 0; i < lf->len; i++) {
       if (lf->customdata[i]) {
         CustomData_bmesh_asan_unpoison(&entry->ldata, lf->customdata[i]);
-        BM_mempool_free((BM_mempool *)entry->ldata.pool, lf->customdata[i]);
+        BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
         lf->customdata[i] = NULL;
       }
     }
@@ -1413,7 +1413,7 @@ static void bm_log_faces_restore(
 static void bm_log_vert_values_swap(
     BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
-  void *scratch = bm->vdata.pool ? BM_mempool_alloc((BM_mempool *)bm->vdata.pool) : NULL;
+  void *scratch = bm->vdata.pool ? BLI_mempool_alloc(bm->vdata.pool) : NULL;
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
@@ -1462,14 +1462,14 @@ static void bm_log_vert_values_swap(
   }
 
   if (scratch) {
-    BM_mempool_free((BM_mempool *)bm->vdata.pool, scratch);
+    BLI_mempool_free(bm->vdata.pool, scratch);
   }
 }
 
 static void bm_log_edge_values_swap(
     BMesh *bm, BMLog *log, GHash *edges, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
-  void *scratch = bm->edata.pool ? BM_mempool_alloc((BM_mempool *)bm->edata.pool) : NULL;
+  void *scratch = bm->edata.pool ? BLI_mempool_alloc(bm->edata.pool) : NULL;
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, edges) {
@@ -1497,7 +1497,7 @@ static void bm_log_edge_values_swap(
   }
 
   if (scratch) {
-    BM_mempool_free((BM_mempool *)bm->edata.pool, scratch);
+    BLI_mempool_free(bm->edata.pool, scratch);
   }
 }
 
@@ -1506,7 +1506,7 @@ static void bm_log_face_values_swap(BMLog *log,
                                     BMLogEntry *entry,
                                     BMLogCallbacks *callbacks)
 {
-  void *scratch = log->bm->pdata.pool ? BM_mempool_alloc((BM_mempool *)log->bm->pdata.pool) : NULL;
+  void *scratch = log->bm->pdata.pool ? BLI_mempool_alloc(log->bm->pdata.pool) : NULL;
 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, faces) {
@@ -1545,7 +1545,7 @@ static void bm_log_face_values_swap(BMLog *log,
   }
 
   if (scratch) {
-    BM_mempool_free((BM_mempool *)log->bm->pdata.pool, scratch);
+    BLI_mempool_free(log->bm->pdata.pool, scratch);
   }
 }
 
@@ -1657,11 +1657,11 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
         int cd_mdisps = CustomData_get_offset(&entry->ldata, CD_MDISPS);
 
         /* iterate over cdata blocks directly */
-        BM_mempool_iter iter;
-        BM_mempool_iternew((BM_mempool *)entry->ldata.pool, &iter);
-        void *block = BM_mempool_iterstep(&iter);
+        BLI_mempool_iter iter;
+        BLI_mempool_iternew(entry->ldata.pool, &iter);
+        void *block = BLI_mempool_iterstep(&iter);
 
-        for (; block; block = BM_mempool_iterstep(&iter)) {
+        for (; block; block = BLI_mempool_iterstep(&iter)) {
           BMElem elem;
           elem.head.data = block;
 
@@ -1673,16 +1673,16 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
       }
 
       if (entry->vdata.pool) {
-        BM_mempool_destroy(entry->vdata.pool);
+        BLI_mempool_destroy(entry->vdata.pool);
       }
       if (entry->edata.pool) {
-        BM_mempool_destroy(entry->edata.pool);
+        BLI_mempool_destroy(entry->edata.pool);
       }
       if (entry->ldata.pool) {
-        BM_mempool_destroy(entry->ldata.pool);
+        BLI_mempool_destroy(entry->ldata.pool);
       }
       if (entry->pdata.pool) {
-        BM_mempool_destroy(entry->pdata.pool);
+        BLI_mempool_destroy(entry->pdata.pool);
       }
 
       CustomData_free(&entry->vdata, 0);
@@ -3426,12 +3426,11 @@ static int bmlog_entry_memsize(BMLogEntry *entry)
     ret += (int)BLI_mempool_get_size(entry->pool_verts);
     ret += (int)BLI_mempool_get_size(entry->pool_edges);
     ret += (int)BLI_mempool_get_size(entry->pool_faces);
-#ifndef BM_LOCKFREE_MEMPOOL
     ret += entry->vdata.pool ? (int)BLI_mempool_get_size(entry->vdata.pool) : 0;
     ret += entry->edata.pool ? (int)BLI_mempool_get_size(entry->edata.pool) : 0;
     ret += entry->ldata.pool ? (int)BLI_mempool_get_size(entry->ldata.pool) : 0;
     ret += entry->pdata.pool ? (int)BLI_mempool_get_size(entry->pdata.pool) : 0;
-#endif
+
     ret += BLI_memarena_size(entry->arena);
 
     if (BLI_memarena_size(entry->arena)) {

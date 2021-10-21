@@ -34,38 +34,6 @@
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
-//#define BM_LOCKFREE_MEMPOOL
-#ifdef BM_LOCKFREE_MEMPOOL
-#  include "BLI_mempool_lockfree.h"
-#  include "BLI_threads.h"
-
-#  define BM_task_parallel_mempool BLI_task_parallel_lfmempool
-
-#  define BM_mempool BLI_lfmempool
-#  define BM_mempool_create(esize, totelem, pchunk, flag) BLI_lfmempool_create(esize, pchunk)
-#  define BM_mempool_alloc(pool) BLI_lfmempool_alloc(pool)
-#  define BM_mempool_calloc(pool) BLI_lfmempool_calloc(pool)
-#  define BM_mempool_destroy(pool) BLI_lfmempool_destroy((BLI_lfmempool *)pool)
-#  define BM_mempool_iter BLI_lfmempool_iter
-#  define BM_mempool_iternew(pool, iter) BLI_lfmempool_iternew(pool, iter)
-#  define BM_mempool_iterstep(iter) BLI_lfmempool_iterstep(iter)
-#  define BM_mempool_free(pool, elem) BLI_lfmempool_free(pool, elem)
-#  define BM_mempool_findelem(pool, elem) BLI_lfmempool_findelem(pool, elem)
-#else
-#  define BM_task_parallel_mempool BLI_task_parallel_mempool
-#  define BM_mempool BLI_mempool
-#  define BM_mempool_create(esize, totelem, pchunk, flag) \
-    BLI_mempool_create(esize, totelem, pchunk, flag)
-#  define BM_mempool_alloc(pool) BLI_mempool_alloc(pool)
-#  define BM_mempool_calloc(pool) BLI_mempool_calloc(pool)
-#  define BM_mempool_destroy(pool) BLI_mempool_destroy(pool)
-#  define BM_mempool_iter BLI_mempool_iter
-#  define BM_mempool_iternew(pool, iter) BLI_mempool_iternew(pool, iter)
-#  define BM_mempool_iterstep(iter) BLI_mempool_iterstep(iter)
-#  define BM_mempool_free(pool, elem) BLI_mempool_free(pool, elem)
-#  define BM_mempool_findelem(pool, elem) BLI_mempool_findelem(pool, elem)
-#endif
-
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
@@ -344,7 +312,7 @@ typedef struct BMesh {
   char elem_table_dirty;
 
   /* element pools */
-  struct BM_mempool *vpool, *epool, *lpool, *fpool;
+  struct BLI_mempool *vpool, *epool, *lpool, *fpool;
 
   /* mempool lookup tables (optional)
    * index tables, to map indices to elements via
@@ -361,7 +329,7 @@ typedef struct BMesh {
   int ftable_tot;
 
   /* operator api stuff (must be all NULL or all alloc'd) */
-  struct BM_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
+  struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
 
   uint use_toolflags : 1;
 
@@ -427,13 +395,7 @@ typedef struct BMesh {
     struct GHash *ghash;  // used if BM_NO_REUSE_IDS is true
     int map_size;
     int cd_id_off[15];
-
-#ifdef BM_LOCKFREE_MEMPOOL
-    // XXX locks!
-    TicketMutex *lock;
-#endif
   } idmap;
-
 } BMesh;
 
 enum {

@@ -49,10 +49,10 @@ static void bm_alloc_toolflags(BMesh *bm);
 
 static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
                                const bool use_toolflags,
-                               BM_mempool **r_vpool,
-                               BM_mempool **r_epool,
-                               BM_mempool **r_lpool,
-                               BM_mempool **r_fpool)
+                               BLI_mempool **r_vpool,
+                               BLI_mempool **r_epool,
+                               BLI_mempool **r_lpool,
+                               BLI_mempool **r_fpool)
 {
   size_t vert_size, edge_size, loop_size, face_size;
 
@@ -70,19 +70,19 @@ static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
   }
 
   if (r_vpool) {
-    *r_vpool = BM_mempool_create(
+    *r_vpool = BLI_mempool_create(
         vert_size, allocsize->totvert, bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (r_epool) {
-    *r_epool = BM_mempool_create(
+    *r_epool = BLI_mempool_create(
         edge_size, allocsize->totedge, bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (r_lpool) {
-    *r_lpool = BM_mempool_create(
+    *r_lpool = BLI_mempool_create(
         loop_size, allocsize->totloop, bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (r_fpool) {
-    *r_fpool = BM_mempool_create(
+    *r_fpool = BLI_mempool_create(
         face_size, allocsize->totface, bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
   }
 }
@@ -92,7 +92,7 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize, const b
   bm_mempool_init_ex(allocsize, use_toolflags, &bm->vpool, &bm->epool, &bm->lpool, &bm->fpool);
 
 #ifdef USE_BMESH_HOLES
-  bm->looplistpool = BM_mempool_create(sizeof(BMLoopList), 512, 512, BLI_MEMPOOL_NOP);
+  bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), 512, 512, BLI_MEMPOOL_NOP);
 #endif
 }
 
@@ -104,9 +104,9 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
     return;
   }
 
-  bm->vtoolflagpool = BM_mempool_create(sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
-  bm->etoolflagpool = BM_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
-  bm->ftoolflagpool = BM_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
+  bm->vtoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
+  bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
+  bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
   bm_alloc_toolflags(bm);
 
@@ -118,15 +118,15 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
   bool haveflags = bm->vtoolflagpool || bm->etoolflagpool || bm->ftoolflagpool;
 
   if (bm->vtoolflagpool) {
-    BM_mempool_destroy(bm->vtoolflagpool);
+    BLI_mempool_destroy(bm->vtoolflagpool);
     bm->vtoolflagpool = NULL;
   }
   if (bm->etoolflagpool) {
-    BM_mempool_destroy(bm->etoolflagpool);
+    BLI_mempool_destroy(bm->etoolflagpool);
     bm->etoolflagpool = NULL;
   }
   if (bm->ftoolflagpool) {
-    BM_mempool_destroy(bm->ftoolflagpool);
+    BLI_mempool_destroy(bm->ftoolflagpool);
     bm->ftoolflagpool = NULL;
   }
 
@@ -167,10 +167,6 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
 {
   /* allocate the structure */
   BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
-
-#ifdef BM_LOCKFREE_MEMPOOL
-  bm->idmap.lock = BLI_ticket_mutex_alloc();
-#endif
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
@@ -318,16 +314,16 @@ void BM_mesh_data_free(BMesh *bm)
 
   /* Free custom data pools, This should probably go in CustomData_free? */
   if (bm->vdata.totlayer) {
-    BM_mempool_destroy(bm->vdata.pool);
+    BLI_mempool_destroy(bm->vdata.pool);
   }
   if (bm->edata.totlayer) {
-    BM_mempool_destroy(bm->edata.pool);
+    BLI_mempool_destroy(bm->edata.pool);
   }
   if (bm->ldata.totlayer) {
-    BM_mempool_destroy(bm->ldata.pool);
+    BLI_mempool_destroy(bm->ldata.pool);
   }
   if (bm->pdata.totlayer) {
-    BM_mempool_destroy(bm->pdata.pool);
+    BLI_mempool_destroy(bm->pdata.pool);
   }
 
   /* free custom data */
@@ -337,10 +333,10 @@ void BM_mesh_data_free(BMesh *bm)
   CustomData_free(&bm->pdata, 0);
 
   /* destroy element pools */
-  BM_mempool_destroy(bm->vpool);
-  BM_mempool_destroy(bm->epool);
-  BM_mempool_destroy(bm->lpool);
-  BM_mempool_destroy(bm->fpool);
+  BLI_mempool_destroy(bm->vpool);
+  BLI_mempool_destroy(bm->epool);
+  BLI_mempool_destroy(bm->lpool);
+  BLI_mempool_destroy(bm->fpool);
 
   if (bm->vtable) {
     MEM_freeN(bm->vtable);
@@ -355,20 +351,20 @@ void BM_mesh_data_free(BMesh *bm)
   /* destroy flag pools */
 
   if (bm->vtoolflagpool) {
-    BM_mempool_destroy(bm->vtoolflagpool);
+    BLI_mempool_destroy(bm->vtoolflagpool);
     bm->vtoolflagpool = NULL;
   }
   if (bm->etoolflagpool) {
-    BM_mempool_destroy(bm->etoolflagpool);
+    BLI_mempool_destroy(bm->etoolflagpool);
     bm->etoolflagpool = NULL;
   }
   if (bm->ftoolflagpool) {
-    BM_mempool_destroy(bm->ftoolflagpool);
+    BLI_mempool_destroy(bm->ftoolflagpool);
     bm->ftoolflagpool = NULL;
   }
 
 #ifdef USE_BMESH_HOLES
-  BM_mempool_destroy(bm->looplistpool);
+  BLI_mempool_destroy(bm->looplistpool);
 #endif
 
   BLI_freelistN(&bm->selected);
@@ -842,17 +838,17 @@ void BM_mesh_elem_table_free(BMesh *bm, const char htype)
 
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index)
 {
-  return BM_mempool_findelem(bm->vpool, index);
+  return BLI_mempool_findelem(bm->vpool, index);
 }
 
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index)
 {
-  return BM_mempool_findelem(bm->epool, index);
+  return BLI_mempool_findelem(bm->epool, index);
 }
 
 BMFace *BM_face_at_index_find(BMesh *bm, const int index)
 {
-  return BM_mempool_findelem(bm->fpool, index);
+  return BLI_mempool_findelem(bm->fpool, index);
 }
 
 BMLoop *BM_loop_at_index_find(BMesh *bm, const int index)
@@ -1040,12 +1036,12 @@ void BM_mesh_remap(BMesh *bm,
     BMLoop **ltable = MEM_malloc_arrayN(bm->totloop, sizeof(*ltable), "ltable");
 
     BMLoop *ed;
-    BM_mempool_iter liter;
-    BM_mempool_iternew(bm->lpool, &liter);
-    BMLoop *l = (BMLoop *)BM_mempool_iterstep(&liter);
+    BLI_mempool_iter liter;
+    BLI_mempool_iternew(bm->lpool, &liter);
+    BMLoop *l = (BMLoop *)BLI_mempool_iterstep(&liter);
 
     int i = 0;
-    for (; l; l = (BMLoop *)BM_mempool_iterstep(&liter), i++) {
+    for (; l; l = (BMLoop *)BLI_mempool_iterstep(&liter), i++) {
       l->head.index = i;
       ltable[i] = l;
     }
@@ -1416,10 +1412,10 @@ void BM_mesh_remap(BMesh *bm,
  */
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,
-                     BM_mempool *vpool_dst,
-                     BM_mempool *epool_dst,
-                     BM_mempool *lpool_dst,
-                     BM_mempool *fpool_dst)
+                     BLI_mempool *vpool_dst,
+                     BLI_mempool *epool_dst,
+                     BLI_mempool *lpool_dst,
+                     BLI_mempool *fpool_dst)
 {
   const char remap = (vpool_dst ? BM_VERT : 0) | (epool_dst ? BM_EDGE : 0) |
                      (lpool_dst ? BM_LOOP : 0) | (fpool_dst ? BM_FACE : 0);
@@ -1440,13 +1436,13 @@ void BM_mesh_rebuild(BMesh *bm,
     int index;
     BMVert *v_src;
     BM_ITER_MESH_INDEX (v_src, &iter, bm, BM_VERTS_OF_MESH, index) {
-      BMVert *v_dst = BM_mempool_alloc(vpool_dst);
+      BMVert *v_dst = BLI_mempool_alloc(vpool_dst);
       memcpy(v_dst, v_src, sizeof(BMVert));
       if (use_toolflags) {
         MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
             v_dst, bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset);
 
-        flags->flag = bm->vtoolflagpool ? BM_mempool_calloc(bm->vtoolflagpool) : NULL;
+        flags->flag = bm->vtoolflagpool ? BLI_mempool_calloc(bm->vtoolflagpool) : NULL;
       }
 
       vtable_dst[index] = v_dst;
@@ -1459,13 +1455,13 @@ void BM_mesh_rebuild(BMesh *bm,
     int index;
     BMEdge *e_src;
     BM_ITER_MESH_INDEX (e_src, &iter, bm, BM_EDGES_OF_MESH, index) {
-      BMEdge *e_dst = BM_mempool_alloc(epool_dst);
+      BMEdge *e_dst = BLI_mempool_alloc(epool_dst);
       memcpy(e_dst, e_src, sizeof(BMEdge));
       if (use_toolflags) {
         MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
             e_dst, bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset);
 
-        flags->flag = bm->etoolflagpool ? BM_mempool_calloc(bm->etoolflagpool) : NULL;
+        flags->flag = bm->etoolflagpool ? BLI_mempool_calloc(bm->etoolflagpool) : NULL;
       }
 
       etable_dst[index] = e_dst;
@@ -1480,14 +1476,14 @@ void BM_mesh_rebuild(BMesh *bm,
     BM_ITER_MESH_INDEX (f_src, &iter, bm, BM_FACES_OF_MESH, index) {
 
       if (remap & BM_FACE) {
-        BMFace *f_dst = BM_mempool_alloc(fpool_dst);
+        BMFace *f_dst = BLI_mempool_alloc(fpool_dst);
         memcpy(f_dst, f_src, sizeof(BMFace));
 
         if (use_toolflags) {
           MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
               f_dst, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
 
-          flags->flag = bm->ftoolflagpool ? BM_mempool_calloc(bm->ftoolflagpool) : NULL;
+          flags->flag = bm->ftoolflagpool ? BLI_mempool_calloc(bm->ftoolflagpool) : NULL;
         }
 
         ftable_dst[index] = f_dst;
@@ -1499,7 +1495,7 @@ void BM_mesh_rebuild(BMesh *bm,
         BMLoop *l_iter_src, *l_first_src;
         l_iter_src = l_first_src = BM_FACE_FIRST_LOOP((BMFace *)f_src);
         do {
-          BMLoop *l_dst = BM_mempool_alloc(lpool_dst);
+          BMLoop *l_dst = BLI_mempool_alloc(lpool_dst);
           memcpy(l_dst, l_iter_src, sizeof(BMLoop));
           ltable_dst[index_loop] = l_dst;
           BM_elem_index_set(l_iter_src, index_loop++); /* set_ok */
@@ -1635,7 +1631,7 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->elem_table_dirty &= ~BM_VERT;
     }
     MEM_freeN(vtable_dst);
-    BM_mempool_destroy(bm->vpool);
+    BLI_mempool_destroy(bm->vpool);
     bm->vpool = vpool_dst;
   }
 
@@ -1646,14 +1642,14 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->elem_table_dirty &= ~BM_EDGE;
     }
     MEM_freeN(etable_dst);
-    BM_mempool_destroy(bm->epool);
+    BLI_mempool_destroy(bm->epool);
     bm->epool = epool_dst;
   }
 
   if (remap & BM_LOOP) {
     /* no loop table */
     MEM_freeN(ltable_dst);
-    BM_mempool_destroy(bm->lpool);
+    BLI_mempool_destroy(bm->lpool);
     bm->lpool = lpool_dst;
   }
 
@@ -1664,7 +1660,7 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->elem_table_dirty &= ~BM_FACE;
     }
     MEM_freeN(ftable_dst);
-    BM_mempool_destroy(bm->fpool);
+    BLI_mempool_destroy(bm->fpool);
     bm->fpool = fpool_dst;
   }
 
@@ -1712,21 +1708,21 @@ static void bm_alloc_toolflags(BMesh *bm)
   bm_alloc_toolflags_cdlayers(bm, true);
 
   CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
-  BM_mempool *flagpools[3] = {bm->vtoolflagpool, bm->etoolflagpool, bm->ftoolflagpool};
-  BM_mempool *elempools[3] = {bm->vpool, bm->epool, bm->fpool};
+  BLI_mempool *flagpools[3] = {bm->vtoolflagpool, bm->etoolflagpool, bm->ftoolflagpool};
+  BLI_mempool *elempools[3] = {bm->vpool, bm->epool, bm->fpool};
 
   for (int i = 0; i < 3; i++) {
     CustomData *cdata = cdatas[i];
     int cd_tflags = CustomData_get_offset(cdata, CD_TOOLFLAGS);
 
-    BM_mempool_iter iter;
-    BM_mempool_iternew(elempools[i], &iter);
-    BMElem *elem = (BMElem *)BM_mempool_iterstep(&iter);
+    BLI_mempool_iter iter;
+    BLI_mempool_iternew(elempools[i], &iter);
+    BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
 
-    for (; elem; elem = (BMElem *)BM_mempool_iterstep(&iter)) {
+    for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
       MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
 
-      flags->flag = BM_mempool_calloc(flagpools[i]);
+      flags->flag = BLI_mempool_calloc(flagpools[i]);
     }
   }
 }
@@ -1741,9 +1737,9 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
   }
 
   if (use_toolflags == false) {
-    BM_mempool_destroy(bm->vtoolflagpool);
-    BM_mempool_destroy(bm->etoolflagpool);
-    BM_mempool_destroy(bm->ftoolflagpool);
+    BLI_mempool_destroy(bm->vtoolflagpool);
+    BLI_mempool_destroy(bm->etoolflagpool);
+    BLI_mempool_destroy(bm->ftoolflagpool);
 
     bm->vtoolflagpool = NULL;
     bm->etoolflagpool = NULL;
@@ -2054,15 +2050,14 @@ bool BM_defragment_vertex(BMesh *bm,
                           void (*on_vert_swap)(BMVert *a, BMVert *b, void *userdata),
                           void *userdata)
 {
-#if 0
   BMEdge *e = v->e;
 
-#  if 1
+#if 1
   int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   if (cd_vcol >= 0) {
     float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
-    int idx = BM_mempool_find_real_index(bm->vpool, (void *)v);
+    int idx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
     int size = BLI_mempool_get_size(bm->vpool);
 
     float f = (float)idx / (float)size / 2.0f;
@@ -2070,7 +2065,7 @@ bool BM_defragment_vertex(BMesh *bm,
     color[0] = color[1] = color[2] = f;
     color[3] = 1.0f;
   }
-#  endif
+#endif
 
   // return false;
 
@@ -2179,7 +2174,7 @@ bool BM_defragment_vertex(BMesh *bm,
       on_vert_swap(v2, elems[i], userdata);
       BM_swap_verts(bm, v2, elems[i]);
 
-#  if 0
+#if 0
       BMIter iter;
       BMEdge *et;
       int f = 0;
@@ -2191,7 +2186,7 @@ bool BM_defragment_vertex(BMesh *bm,
       BM_ITER_ELEM (et, &iter, v, BM_EDGES_OF_VERT) {
         printf("an 1edge %d\n", f++);
       }
-#  endif
+#endif
 
       // BM_swap_verts(bm, v2, elems[i]);
 
@@ -2203,7 +2198,7 @@ bool BM_defragment_vertex(BMesh *bm,
       break;
     }
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-#endif
+
   return true;
 }
 /** \} */

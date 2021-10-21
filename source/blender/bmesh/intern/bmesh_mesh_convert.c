@@ -100,16 +100,16 @@
 static void bm_free_cd_pools(BMesh *bm)
 {
   if (bm->vdata.pool) {
-    BM_mempool_destroy(bm->vdata.pool);
+    BLI_mempool_destroy(bm->vdata.pool);
   }
   if (bm->edata.pool) {
-    BM_mempool_destroy(bm->edata.pool);
+    BLI_mempool_destroy(bm->edata.pool);
   }
   if (bm->ldata.pool) {
-    BM_mempool_destroy(bm->ldata.pool);
+    BLI_mempool_destroy(bm->ldata.pool);
   }
   if (bm->pdata.pool) {
-    BM_mempool_destroy(bm->pdata.pool);
+    BLI_mempool_destroy(bm->pdata.pool);
   }
 }
 
@@ -138,7 +138,7 @@ static void bm_mark_temp_cdlayers(BMesh *bm)
       CustomDataLayer *cl = (srcdata)->layers, *cl2 = (destdata)->layers; \
       int size = 0; \
       if (!*block) { \
-        *block = BM_mempool_alloc((destdata)->pool); \
+        *block = BLI_mempool_alloc((destdata)->pool); \
       } \
       for (int j = 0; j < (srcdata)->totlayer; j++, cl++) { \
         if ((destdata)->typemap[cl->type] < 0) { \
@@ -280,9 +280,9 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  */
 
 void BM_mesh_bm_from_me(Object *ob,
-                        BMesh *bm,
-                        const Mesh *me,
-                        const struct BMeshFromMeshParams *params)
+                                    BMesh *bm,
+                                    const Mesh *me,
+                                    const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -480,11 +480,11 @@ void BM_mesh_bm_from_me(Object *ob,
     bm_alloc_toolflags_cdlayers(bm, !is_new);
 
     if (!bm->vtoolflagpool) {
-      bm->vtoolflagpool = BM_mempool_create(
+      bm->vtoolflagpool = BLI_mempool_create(
           sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
-      bm->etoolflagpool = BM_mempool_create(
+      bm->etoolflagpool = BLI_mempool_create(
           sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
-      bm->ftoolflagpool = BM_mempool_create(
+      bm->ftoolflagpool = BLI_mempool_create(
           sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
       bm->totflags = 1;
@@ -838,7 +838,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     memset(bm->idmap.free_ids, 0, bm->idmap.free_ids_size * sizeof(*bm->idmap.free_ids));
 
-    BM_mempool_iter miter;
+    BLI_mempool_iter miter;
     for (int i = 0; i < 4; i++) {
       int htype = 1 << i;
 
@@ -846,11 +846,11 @@ void BM_mesh_bm_from_me(Object *ob,
         continue;
       }
 
-      BM_mempool *pool = (&bm->vpool)[i];
-      BM_mempool_iternew(pool, &miter);
-      BMElem *elem = (BMElem *)BM_mempool_iterstep(&miter);
+      BLI_mempool *pool = (&bm->vpool)[i];
+      BLI_mempool_iternew(pool, &miter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&miter);
 
-      for (; elem; elem = (BMElem *)BM_mempool_iterstep(&miter)) {
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&miter)) {
         uint id = (uint)BM_ELEM_GET_ID(bm, elem);
 
         BLI_BITMAP_SET(bm->idmap.free_ids, id, true);

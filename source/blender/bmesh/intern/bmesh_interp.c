@@ -1292,7 +1292,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
   BMIter iter;
-  BM_mempool *oldpool = (BM_mempool *)olddata->pool;
+  BLI_mempool *oldpool = olddata->pool;
   void *block;
 
   CustomDataLayer **nocopy_layers = NULL;
@@ -1376,7 +1376,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
     /* this should never happen but can when dissolve fails - T28960. */
     BLI_assert(data->pool != oldpool);
 
-    BM_mempool_destroy((BM_mempool *)oldpool);
+    BLI_mempool_destroy(oldpool);
   }
 }
 
