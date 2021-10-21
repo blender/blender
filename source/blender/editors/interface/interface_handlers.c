@@ -9904,7 +9904,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
 static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEvent *event)
 {
   keynav->is_keynav = true;
-  copy_v2_v2_int(keynav->event_xy, &event->xy);
+  copy_v2_v2_int(keynav->event_xy, event->xy);
 }
 /**
  * Return true if key-input isn't blocking mouse-motion,
