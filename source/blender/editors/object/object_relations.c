@@ -1677,6 +1677,14 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 /** \name Make Single User Operator
  * \{ */
 
+static bool single_data_needs_duplication(ID *id)
+{
+  /* NOTE: When dealing with linked data, we always make alocal copy of it.
+   * While in theory we could rather make it local when it only has one user, this is difficult
+   * in practice with current code of this function. */
+  return (id != NULL && (id->us > 1 || ID_IS_LINKED(id)));
+}
+
 static void libblock_relink_collection(Collection *collection, const bool do_collection)
 {
   if (do_collection) {
@@ -1800,8 +1808,7 @@ static void single_obdata_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       id = ob->data;
-
-      if (id && id->us > 1 && !ID_IS_LINKED(id)) {
+      if (single_data_needs_duplication(id)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
         switch (ob->type) {
@@ -1895,8 +1902,16 @@ static void single_object_action_users(
 {
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      BKE_animdata_copy_id_action(bmain, &ob->id);
+      AnimData *adt = BKE_animdata_from_id(&ob->id);
+      if (adt == NULL) {
+        continue;
+      }
+
+      ID *id_act = (ID *)adt->action;
+      if (single_data_needs_duplication(id_act)) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
+      }
     }
   }
   FOREACH_OBJECT_FLAG_END;
@@ -1909,10 +1924,14 @@ static void single_objectdata_action_users(
     if (!ID_IS_LINKED(ob) && ob->data != NULL) {
       ID *id_obdata = (ID *)ob->data;
       AnimData *adt = BKE_animdata_from_id(id_obdata);
+      if (adt == NULL) {
+        continue;
+      }
+
       ID *id_act = (ID *)adt->action;
-      if (id_act && id_act->us > 1) {
+      if (single_data_needs_duplication(id_act)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-        BKE_animdata_copy_id_action(bmain, id_obdata);
+        BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
       }
     }
   }
@@ -1928,18 +1947,13 @@ static void single_mat_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       for (a = 1; a <= ob->totcol; a++) {
-        ma = BKE_object_material_get(ob, a);
-        if (ma) {
-          /* do not test for LIB_TAG_NEW or use newid:
-           * this functions guaranteed delivers single_users! */
+        ma = BKE_object_material_get(ob, (short)a);
+        if (single_data_needs_duplication(&ma->id)) {
+          man = (Material *)BKE_id_copy(bmain, &ma->id);
+          BKE_animdata_copy_id_action(bmain, &man->id);
 
-          if (ma->id.us > 1) {
-            man = (Material *)BKE_id_copy(bmain, &ma->id);
-            BKE_animdata_copy_id_action(bmain, &man->id);
-
-            man->id.us = 0;
-            BKE_object_material_assign(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
-          }
+          man->id.us = 0;
+          BKE_object_material_assign(bmain, ob, man, (short)a, BKE_MAT_ASSIGN_USERPREF);
         }
       }
     }
@@ -1982,9 +1996,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
   CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
     object->id.tag |= LIB_TAG_DOIT;
 
-    /* If data is also gonna to become local, mark data we're interested in
-     * as gonna-to-be-local.
-     */
+    /* If obdata is also going to become local, mark it as such too. */
     if (mode == MAKE_LOCAL_SELECT_OBDATA && object->data) {
       ID *data_id = (ID *)object->data;
       data_id->tag |= LIB_TAG_DOIT;
