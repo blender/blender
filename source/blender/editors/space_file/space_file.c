@@ -43,6 +43,7 @@
 #include "WM_message.h"
 #include "WM_types.h"
 
+#include "ED_asset.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -327,8 +328,8 @@ static void file_refresh(const bContext *C, ScrArea *area)
   }
 
   if (ED_fileselect_is_asset_browser(sfile)) {
-    /* Only poses supported as non-experimental right now. */
-    params->filter_id = U.experimental.use_extended_asset_browser ? FILTER_ID_ALL : FILTER_ID_AC;
+    /* Ask the asset code for appropriate ID filter flags for the supported assets. */
+    params->filter_id = ED_asset_types_supported_as_filter_flags();
   }
 
   filelist_settype(sfile->files, params->type);

@@ -190,8 +190,7 @@ class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
 
                 sub = row.column(align=True)
 
-                if context.preferences.experimental.use_extended_asset_browser:
-                    sub.prop(params, "use_filter_asset_only")
+                sub.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
