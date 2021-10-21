@@ -56,7 +56,7 @@ template<> inline float util_image_cast_to_float(uint16_t value)
 }
 template<> inline float util_image_cast_to_float(half value)
 {
-  return half_to_float(value);
+  return half_to_float_image(value);
 }
 
 /* Cast float value to output pixel type. */
@@ -88,7 +88,7 @@ template<> inline uint16_t util_image_cast_from_float(float value)
 }
 template<> inline half util_image_cast_from_float(float value)
 {
-  return float_to_half(value);
+  return float_to_half_image(value);
 }
 
 CCL_NAMESPACE_END

@@ -72,12 +72,12 @@ template<typename T> struct TextureInterpolator {
 
   static ccl_always_inline float4 read(half4 r)
   {
-    return half4_to_float4(r);
+    return half4_to_float4_image(r);
   }
 
   static ccl_always_inline float4 read(half r)
   {
-    float f = half_to_float(r);
+    float f = half_to_float_image(r);
     return make_float4(f, f, f, 1.0f);
   }
 
