@@ -954,6 +954,50 @@ TEST_F(AssetCatalogTest, order_by_path)
   }
 }
 
+TEST_F(AssetCatalogTest, order_by_path_and_first_seen)
+{
+  AssetCatalogService service;
+  service.load_from_disk(asset_library_root_);
+
+  const bUUID first_seen_uuid("3d451c87-27d1-40fd-87fc-f4c9e829c848");
+  const bUUID first_sorted_uuid("00000000-0000-0000-0000-000000000001");
+  const bUUID last_sorted_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
+  AssetCatalog first_seen_cat(first_seen_uuid, "simple/path/child", "");
+  const AssetCatalog first_sorted_cat(first_sorted_uuid, "simple/path/child", "");
+  const AssetCatalog last_sorted_cat(last_sorted_uuid, "simple/path/child", "");
+
+  /* Mimick that this catalog was first-seen when loading from disk. */
+  first_seen_cat.flags.is_first_loaded = true;
+
+  /* Just an assertion of the defaults; this is more to avoid confusing errors later on than an
+   * actual test of these defaults. */
+  ASSERT_FALSE(first_sorted_cat.flags.is_first_loaded);
+  ASSERT_FALSE(last_sorted_cat.flags.is_first_loaded);
+
+  AssetCatalogOrderedSet by_path;
+  by_path.insert(&first_seen_cat);
+  by_path.insert(&first_sorted_cat);
+  by_path.insert(&last_sorted_cat);
+
+  AssetCatalogOrderedSet::const_iterator set_iter = by_path.begin();
+
+  EXPECT_EQ(1, by_path.count(&first_seen_cat));
+  EXPECT_EQ(1, by_path.count(&first_sorted_cat));
+  EXPECT_EQ(1, by_path.count(&last_sorted_cat));
+  ASSERT_EQ(3, by_path.size());
+
+  EXPECT_EQ(first_seen_uuid, (*(set_iter++))->catalog_id);
+  EXPECT_EQ(first_sorted_uuid, (*(set_iter++))->catalog_id);
+  EXPECT_EQ(last_sorted_uuid, (*(set_iter++))->catalog_id);
+
+  if (set_iter != by_path.end()) {
+    const AssetCatalog *next_cat = *set_iter;
+    FAIL() << "Did not expect more items in the set, had at least " << next_cat->catalog_id << ":"
+           << next_cat->path;
+  }
+}
+
 TEST_F(AssetCatalogTest, create_missing_catalogs)
 {
   TestableAssetCatalogService new_service;

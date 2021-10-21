@@ -395,6 +395,12 @@ class AssetCatalog {
     /* Treat this catalog as deleted. Keeping deleted catalogs around is necessary to support
      * merging of on-disk changes with in-memory changes. */
     bool is_deleted = false;
+
+    /* Sort this catalog first when there are multiple catalogs with the same catalog path. This
+     * ensures that in a situation where missing catalogs were auto-created, and then
+     * load-and-merged with a file that also has these catalogs, the first one in that file is
+     * always sorted first, regardless of the sort order of its UUID. */
+    bool is_first_loaded = false;
   } flags;
 
   /**
@@ -411,20 +417,21 @@ class AssetCatalog {
 };
 
 /** Comparator for asset catalogs, ordering by (path, UUID). */
-struct AssetCatalogPathCmp {
+struct AssetCatalogLessThan {
   bool operator()(const AssetCatalog *lhs, const AssetCatalog *rhs) const
   {
-    if (lhs->path == rhs->path) {
-      return lhs->catalog_id < rhs->catalog_id;
+    if (lhs->path != rhs->path) {
+      return lhs->path < rhs->path;
     }
-    return lhs->path < rhs->path;
+
+    return lhs->catalog_id < rhs->catalog_id;
   }
 };
 
 /**
  * Set that stores catalogs ordered by (path, UUID).
  * Being a set, duplicates are removed. The catalog's simple name is ignored in this. */
-using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogPathCmp>;
+using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogLessThan>;
 
 /**
  * Filter that can determine whether an asset should be visible or not, based on its catalog ID.
