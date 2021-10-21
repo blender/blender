@@ -9,7 +9,8 @@ fi
 
 BRANCH="master"
 
-repo="git://git.blender.org/libmv.git"
+# repo="git://git.blender.org/libmv.git"
+repo="/home/sergey/Developer/libmv"
 tmp=`mktemp -d`
 
 git clone -b $BRANCH $repo $tmp/libmv
@@ -26,16 +27,16 @@ done
 
 rm -rf $tmp
 
-sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v _test.cc | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
-headers=`find ./libmv -type f -iname '*.h' | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
+sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v _test.cc | grep -v test_data_sets | sed -r 's/^\.\//    /' | sort -d`
+headers=`find ./libmv -type f -iname '*.h' | grep -v test_data_sets | sed -r 's/^\.\//    /' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | sed -r 's/^\.\//\t\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//    /' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | sed -r 's/^\.\//    /' | sort -d`
 
-tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\t\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;bf_intern_libmv;extern_ceres\")\n", name, $1) } '`
+tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", "g", $1); printf("    blender_add_test_executable(\"libmv_%s\" \"%s\" \"\${INC}\" \"\${INC_SYS}\" \"libmv_test_dataset;bf_intern_libmv;extern_ceres\")\n", name, $1) } '`
 
-src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t\t/' | sort -d | uniq`
-src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
+src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//    /' | sort -d | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | sed -r 's/^\.\//    /'  | sort -d | uniq`
 src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
@@ -119,6 +120,9 @@ set(LIB
 if(WITH_LIBMV)
   setup_libdirs()
 
+  if(WIN32)
+    add_definitions(-D_USE_MATH_DEFINES)
+  endif()
   add_definitions(\${GFLAGS_DEFINES})
   add_definitions(\${GLOG_DEFINES})
   add_definitions(\${CERES_DEFINES})
@@ -186,7 +190,9 @@ ${third_headers}
 
 
   if(WITH_GTESTS)
-    blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "")
+    include(GTestTesting)
+
+    blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "\${INC}" "\${INC_SYS}" "")
 
 ${tests}
   endif()

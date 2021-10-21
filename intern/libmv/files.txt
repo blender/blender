@@ -119,6 +119,7 @@ libmv/simple_pipeline/resect.h
 libmv/simple_pipeline/resect_test.cc
 libmv/simple_pipeline/tracks.cc
 libmv/simple_pipeline/tracks.h
+libmv/threading/threading.h
 libmv/tracking/brute_region_tracker.cc
 libmv/tracking/brute_region_tracker.h
 libmv/tracking/brute_region_tracker_test.cc
@@ -138,6 +139,7 @@ libmv/tracking/track_region.cc
 libmv/tracking/track_region.h
 libmv/tracking/trklt_region_tracker.cc
 libmv/tracking/trklt_region_tracker.h
+third_party/.clang-format
 third_party/msinttypes/inttypes.h
 third_party/msinttypes/README.libmv
 third_party/msinttypes/stdint.h
