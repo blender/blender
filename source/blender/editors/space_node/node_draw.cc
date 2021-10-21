@@ -2299,7 +2299,7 @@ void node_draw_space(const bContext *C, ARegion *region)
     GPU_line_smooth(false);
     GPU_blend(GPU_BLEND_NONE);
 
-    if (snode->flag & SNODE_SHOW_GPENCIL) {
+    if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS && snode->flag & SNODE_SHOW_GPENCIL) {
       /* Draw grease-pencil annotations. */
       ED_annotation_draw_view2d(C, true);
     }
@@ -2318,7 +2318,7 @@ void node_draw_space(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   if (snode->treepath.last) {
-    if (snode->flag & SNODE_SHOW_GPENCIL) {
+    if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS && snode->flag & SNODE_SHOW_GPENCIL) {
       /* Draw grease-pencil (screen strokes, and also paint-buffer). */
       ED_annotation_draw_view2d(C, false);
     }

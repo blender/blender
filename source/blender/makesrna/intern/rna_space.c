@@ -2348,6 +2348,15 @@ static char *rna_SpaceSequencerTimelineOverlay_path(PointerRNA *UNUSED(ptr))
 }
 
 /* Space Node Editor */
+static PointerRNA rna_SpaceNode_overlay_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_SpaceNodeOverlay, ptr->data);
+}
+
+static char *rna_SpaceNodeOverlay_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("overlay");
+}
 
 static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr,
                                               const PointerRNA value,
@@ -7004,6 +7013,32 @@ static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 }
 
+static void rna_def_space_node_overlay(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SpaceNodeOverlay", NULL);
+  RNA_def_struct_sdna(srna, "SpaceNode");
+  RNA_def_struct_nested(brna, srna, "SpaceNodeEditor");
+  RNA_def_struct_path_func(srna, "rna_SpaceNodeOverlay_path");
+  RNA_def_struct_ui_text(
+      srna, "Overlay Settings", "Settings for display of overlays in the Node Editor");
+
+  prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SN_OVERLAY_SHOW_OVERLAYS);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like colored or dashed wires");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
+  prop = RNA_def_property(srna, "show_wire_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SN_OVERLAY_SHOW_WIRE_COLORS);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Show Wire Colors", "Color node links based on their connected sockets");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+}
+
 static void rna_def_space_node(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -7187,6 +7222,15 @@ static void rna_def_space_node(BlenderRNA *brna)
       prop, "Auto-offset Direction", "Direction to offset nodes on insertion");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
+  /* Overlays */
+  prop = RNA_def_property(srna, "overlay", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "SpaceNodeOverlay");
+  RNA_def_property_pointer_funcs(prop, "rna_SpaceNode_overlay_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(
+      prop, "Overlay Settings", "Settings for display of overlays in the Node Editor");
+
+  rna_def_space_node_overlay(brna);
   RNA_api_space_node(srna);
 }
 

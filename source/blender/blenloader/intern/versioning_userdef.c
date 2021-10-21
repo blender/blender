@@ -310,6 +310,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.panel_roundness = 0.4f;
   }
 
+  if (!USER_VERSION_ATLEAST(300, 37)) {
+    btheme->space_node.dash_alpha = 0.5f;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

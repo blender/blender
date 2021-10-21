@@ -1509,6 +1509,15 @@ typedef struct bNodeTreePath {
   char display_name[64];
 } bNodeTreePath;
 
+typedef struct SpaceNodeOverlay {
+  int flag;
+} SpaceNodeOverlay;
+
+typedef enum eSpaceNodeOverlay_Flag {
+  SN_OVERLAY_SHOW_OVERLAYS = (1 << 1),
+  SN_OVERLAY_SHOW_WIRE_COLORS = (1 << 2),
+} eSpaceNodeOverlay_Flag;
+
 typedef struct SpaceNode {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1561,6 +1570,9 @@ typedef struct SpaceNode {
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;
+
+  SpaceNodeOverlay overlay;
+  char _pad2[4];
 
   SpaceNode_Runtime *runtime;
 } SpaceNode;

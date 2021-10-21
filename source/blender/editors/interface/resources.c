@@ -657,6 +657,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_GRID_LEVELS:
           cp = &ts->grid_levels;
           break;
+        case TH_NODE_DASH_ALPHA:
+          cp = &ts->dash_alpha;
+          break;
 
         case TH_SEQ_MOVIE:
           cp = ts->movie;

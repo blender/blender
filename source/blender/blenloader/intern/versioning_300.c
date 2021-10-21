@@ -1988,6 +1988,23 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    /* Node Editor: toggle overlays on. */
+    if (!DNA_struct_find(fd->filesdna, "SpaceNodeOverlay")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_NODE) {
+              SpaceNode *snode = (SpaceNode *)space;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
