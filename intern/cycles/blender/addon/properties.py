@@ -1329,7 +1329,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif entry.type == 'CPU':
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if compute_device_type != 'CPU' and compute_device_type != 'HIP':
+        if compute_device_type != 'CPU':
             devices.extend(cpu_devices)
         return devices
 

@@ -208,7 +208,7 @@ bool HIPDevice::use_adaptive_compilation()
   return DebugFlags().hip.adaptive_compile;
 }
 
-/* Common NVCC flags which stays the same regardless of shading model,
+/* Common HIPCC flags which stays the same regardless of shading model,
  * kernel sources md5 and only depends on compiler or compilation settings.
  */
 string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
@@ -239,11 +239,13 @@ string HIPDevice::compile_kernel(const uint kernel_features,
   int major, minor;
   hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
+  hipDeviceProp_t props;
+  hipGetDeviceProperties(&props, hipDevId);
 
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
-      const string fatbin = path_get(string_printf("lib/%s_sm_%d%d.cubin", name, major, minor));
+      const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, props.gcnArchName));
       VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
       if (path_exists(fatbin)) {
         VLOG(1) << "Using precompiled kernel.";
@@ -283,17 +285,21 @@ string HIPDevice::compile_kernel(const uint kernel_features,
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const char *const kernel_ext = "genco";
+  std::string options;
 #  ifdef _WIN32
-  const char *const options =
-      "save-temps -Wno-parentheses-equality -Wno-unused-value --hipcc-func-supp";
+  options.append("Wno-parentheses-equality -Wno-unused-value --hipcc-func-supp -ffast-math");
 #  else
-  const char *const options =
-      "save-temps -Wno-parentheses-equality -Wno-unused-value --hipcc-func-supp -O3 -ggdb";
+  options.append("Wno-parentheses-equality -Wno-unused-value --hipcc-func-supp -O3 -ffast-math");
 #  endif
+#  ifdef _DEBUG
+  options.append(" -save-temps");
+#  endif
+  options.append(" --amdgpu-target=").append(props.gcnArchName);
+
   const string include_path = source_path;
-  const char *const kernel_arch = force_ptx ? "compute" : "sm";
+  const char *const kernel_arch = props.gcnArchName;
   const string fatbin_file = string_printf(
-      "cycles_%s_%s_%d%d_%s", name, kernel_arch, major, minor, kernel_md5.c_str());
+      "cycles_%s_%s_%s", name, kernel_arch, kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
   VLOG(1) << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
@@ -350,7 +356,7 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 
   string command = string_printf("%s -%s -I %s --%s %s -o \"%s\"",
                                  hipcc,
-                                 options,
+                                 options.c_str(),
                                  include_path.c_str(),
                                  kernel_ext,
                                  source_path.c_str(),
