@@ -1710,7 +1710,8 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Generate new copies for objects in given collection and all its children,
    * and optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
-    Collection *collection_new = (Collection *)BKE_id_copy(bmain, &collection->id);
+    Collection *collection_new = (Collection *)BKE_id_copy_ex(
+        bmain, &collection->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     id_us_min(&collection_new->id);
     collection = ID_NEW_SET(collection, collection_new);
   }
@@ -1721,7 +1722,8 @@ static Collection *single_object_users_collection(Main *bmain,
     /* an object may be in more than one collection */
     if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
       if (!ID_IS_LINKED(ob) && BKE_object_scenes_users_get(bmain, ob) > 1) {
-        ID_NEW_SET(ob, BKE_id_copy(bmain, &ob->id));
+        ID_NEW_SET(
+            ob, BKE_id_copy_ex(bmain, &ob->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
         id_us_min(ob->id.newid);
       }
     }
@@ -1813,60 +1815,77 @@ static void single_obdata_users(
 
         switch (ob->type) {
           case OB_LAMP:
-            ob->data = la = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = la = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_CAMERA:
-            cam = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            cam = ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             ID_NEW_REMAP(cam->dof.focus_object);
             break;
           case OB_MESH:
             /* Needed to remap texcomesh below. */
-            me = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
-            if (me->key) { /* We do not need to set me->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)me->key);
-            }
+            me = ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_MBALL:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_CURVE:
           case OB_SURF:
           case OB_FONT:
-            ob->data = cu = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = cu = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
-            if (cu->key) { /* We do not need to set cu->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)cu->key);
-            }
             break;
           case OB_LATTICE:
-            ob->data = lat = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
-            if (lat->key) { /* We do not need to set lat->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)lat->key);
-            }
+            ob->data = lat = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_ARMATURE:
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             BKE_pose_rebuild(bmain, ob, ob->data, true);
             break;
           case OB_SPEAKER:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_LIGHTPROBE:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_GPENCIL:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_HAIR:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_POINTCLOUD:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_VOLUME:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
@@ -1876,13 +1895,6 @@ static void single_obdata_users(
             BKE_scene_objects_iterator_end(&iter_macro);
             return;
         }
-
-        /* Copy animation data after object data became local,
-         * otherwise old and new object data will share the same
-         * AnimData structure, which is not what we want.
-         *                                             (sergey)
-         */
-        BKE_animdata_copy_id_action(bmain, (ID *)ob->data);
 
         id_us_min(id);
       }
@@ -1949,9 +1961,8 @@ static void single_mat_users(
       for (a = 1; a <= ob->totcol; a++) {
         ma = BKE_object_material_get(ob, (short)a);
         if (single_data_needs_duplication(&ma->id)) {
-          man = (Material *)BKE_id_copy(bmain, &ma->id);
-          BKE_animdata_copy_id_action(bmain, &man->id);
-
+          man = (Material *)BKE_id_copy_ex(
+              bmain, &ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
           man->id.us = 0;
           BKE_object_material_assign(bmain, ob, man, (short)a, BKE_MAT_ASSIGN_USERPREF);
         }
