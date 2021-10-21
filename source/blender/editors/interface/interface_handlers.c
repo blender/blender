@@ -9451,7 +9451,7 @@ static int ui_list_activate_hovered_row(bContext *C,
     }
   }
 
-  const int *mouse_xy = ISTWEAK(event->type) ? &event->prev_click_xy[0] : &event->xy[0];
+  const int *mouse_xy = ISTWEAK(event->type) ? event->prev_click_xy : event->xy;
   uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy);
   if (listrow) {
     wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
@@ -9478,7 +9478,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
                                               const wmEvent *event)
 {
   /* On a tweak event, uses the coordinates from where tweaking was started. */
-  const int *mouse_xy = ISTWEAK(event->type) ? &event->prev_click_xy[0] : &event->xy[0];
+  const int *mouse_xy = ISTWEAK(event->type) ? event->prev_click_xy : event->xy;
   const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {

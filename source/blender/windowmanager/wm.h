@@ -86,7 +86,7 @@ void WM_OT_splash_about(wmOperatorType *ot);
 void wm_stereo3d_draw_sidebyside(wmWindow *win, int view);
 void wm_stereo3d_draw_topbottom(wmWindow *win, int view);
 
-void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy);
+void wm_stereo3d_mouse_offset_apply(wmWindow *win, int r_mouse_xy[2]);
 int wm_stereo3d_set_exec(bContext *C, wmOperator *op);
 int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 void wm_stereo3d_set_draw(bContext *C, wmOperator *op);

@@ -2812,7 +2812,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
    * noticeable for the node editor - where dragging on a node should move it, see: T73212.
    * note we still allow for starting the gizmo drag outside, then travel 'inside' the node. */
   if (region->type->clip_gizmo_events_by_ui) {
-    if (UI_region_block_find_mouse_over(region, &event->xy[0], true)) {
+    if (UI_region_block_find_mouse_over(region, event->xy, true)) {
       if (gz != NULL && event->type != EVT_GIZMO_UPDATE) {
         if (restore_highlight_unless_activated == false) {
           WM_tooltip_clear(C, CTX_wm_window(C));
@@ -4829,7 +4829,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       GHOST_TEventCursorData *cd = customdata;
 
       copy_v2_v2_int(event.xy, &cd->x);
-      wm_stereo3d_mouse_offset_apply(win, &event.xy[0]);
+      wm_stereo3d_mouse_offset_apply(win, event.xy);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.type = MOUSEMOVE;

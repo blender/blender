@@ -2041,7 +2041,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 
   switch (event->type) {
     case MOUSEMOVE:
-      ui_panel_drag_collapse(C, dragcol_data, &event->xy[0]);
+      ui_panel_drag_collapse(C, dragcol_data, event->xy);
 
       retval = WM_UI_HANDLER_BREAK;
       break;
