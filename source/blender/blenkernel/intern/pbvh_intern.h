@@ -38,6 +38,18 @@ typedef struct {
   float bmin[3], bmax[3], bcentroid[3];
 } BBC;
 
+//#define WITH_DYNTOPO_EDGE_LOCKS
+#ifdef WITH_DYNTOPO_EDGE_LOCKS
+#  ifndef BM_LOCKFREE_MEMPOOL
+#    error \
+        "Cannot have WITH_DYNTOPO_EDGE_LOCKS without BM_LOCKFREE_MEMPOOL (set it in bmesh_class.h)"
+#  endif
+#endif
+
+#ifdef WITH_DYNTOPO_EDGE_LOCKS
+#  include "BLI_threads.h"
+#endif
+
 /* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
 struct PBVHNode {
@@ -99,7 +111,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 32;
+  PBVHNodeFlags flag;
 
   /* Used for raycasting: how close bb is to the ray point. */
   float tmin;
@@ -125,6 +137,10 @@ struct PBVHNode {
   PBVHColorBufferNode color_buffer;
 #ifdef PROXY_ADVANCED
   ProxyVertArray proxyverts;
+#endif
+
+#ifdef WITH_DYNTOPO_EDGE_LOCKS
+  TicketMutex *lock;
 #endif
 };
 

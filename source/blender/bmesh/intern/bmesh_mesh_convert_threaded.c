@@ -318,6 +318,10 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
                                    const Mesh *me,
                                    const struct BMeshFromMeshParams *params)
 {
+#  ifdef BM_LOCKFREE_MEMPOOL
+  BM_mesh_bm_from_me(ob, bm, me, params);
+  return bm;
+#  else
   if (!bm) {
     bm = MEM_callocN(sizeof(BMesh), "BM_mesh_bm_from_me_threaded bm");
   }
@@ -585,6 +589,7 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
   bm->elem_table_dirty = BM_VERT | BM_EDGE | BM_FACE;
 
   return bm;
+#  endif
 }
 
 static void bm_unmark_temp_cdlayers(BMesh *bm)

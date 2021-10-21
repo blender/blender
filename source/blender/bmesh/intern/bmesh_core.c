@@ -61,7 +61,7 @@ void bm_elem_check_toolflags(BMesh *bm, BMElem *elem)
 {
   int cd_off = -1;
   MToolFlags *flags;
-  BLI_mempool *flagpool;
+  BM_mempool *flagpool;
 
   switch (elem->head.htype) {
     case BM_VERT:
@@ -87,7 +87,7 @@ void bm_elem_check_toolflags(BMesh *bm, BMElem *elem)
 
   flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_off);
   if (!flags->flag) {
-    flags->flag = BLI_mempool_calloc(flagpool);
+    flags->flag = BM_mempool_calloc(flagpool);
   }
 }
 
@@ -99,7 +99,7 @@ BMVert *BM_vert_create(BMesh *bm,
                        const BMVert *v_example,
                        const eBMCreateFlag create_flag)
 {
-  BMVert *v = BLI_mempool_alloc(bm->vpool);
+  BMVert *v = BM_mempool_alloc(bm->vpool);
 
   BLI_assert((v_example == NULL) || (v_example->head.htype == BM_VERT));
   BLI_assert(!(create_flag & 1));
@@ -174,7 +174,7 @@ BMVert *BM_vert_create(BMesh *bm,
   if (bm->use_toolflags && v->head.data) {
     int cd_tflags = bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset;
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(v, cd_tflags);
-    flags->flag = BLI_mempool_calloc(bm->vtoolflagpool);
+    flags->flag = BM_mempool_calloc(bm->vtoolflagpool);
   }
 
   BM_CHECK_ELEMENT(v);
@@ -203,7 +203,7 @@ BMEdge *BM_edge_create(
     return e;
   }
 
-  e = BLI_mempool_alloc(bm->epool);
+  e = BM_mempool_alloc(bm->epool);
 
   /* --- assign all members --- */
   e->head.data = NULL;
@@ -252,7 +252,7 @@ BMEdge *BM_edge_create(
   if (bm->use_toolflags && e->head.data) {
     int cd_tflags = bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset;
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(e, cd_tflags);
-    flags->flag = BLI_mempool_calloc(bm->etoolflagpool);
+    flags->flag = BM_mempool_calloc(bm->etoolflagpool);
   }
 
   BM_CHECK_ELEMENT(e);
@@ -274,7 +274,7 @@ static BMLoop *bm_loop_create(BMesh *bm,
 {
   BMLoop *l = NULL;
 
-  l = BLI_mempool_alloc(bm->lpool);
+  l = BM_mempool_alloc(bm->lpool);
 
   BLI_assert((l_example == NULL) || (l_example->head.htype == BM_LOOP));
   BLI_assert(!(create_flag & 1));
@@ -339,7 +339,7 @@ static BMLoop *bm_face_boundary_add(
     BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte, const eBMCreateFlag create_flag)
 {
 #ifdef USE_BMESH_HOLES
-  BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
+  BMLoopList *lst = BM_mempool_calloc(bm->looplistpool);
 #endif
   BMLoop *l = bm_loop_create(bm, startv, starte, f, NULL /* starte->l */, create_flag);
 
@@ -432,7 +432,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 {
   BMFace *f;
 
-  f = BLI_mempool_alloc(bm->fpool);
+  f = BM_mempool_alloc(bm->fpool);
 
   /* --- assign all members --- */
   f->head.data = NULL;
@@ -552,7 +552,7 @@ BMFace *BM_face_create(BMesh *bm,
   if (bm->use_toolflags && f->head.data) {
     int cd_tflags = bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset;
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(f, cd_tflags);
-    flags->flag = BLI_mempool_calloc(bm->ftoolflagpool);
+    flags->flag = BM_mempool_calloc(bm->ftoolflagpool);
   }
 
   BM_CHECK_ELEMENT(f);
@@ -833,7 +833,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
     MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(
         v, bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->vtoolflagpool, flags->flag);
+    BM_mempool_free(bm->vtoolflagpool, flags->flag);
     flags->flag = NULL;
 
     if (bleh) {
@@ -845,7 +845,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
     CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
   }
 
-  BLI_mempool_free(bm->vpool, v);
+  BM_mempool_free(bm->vpool, v);
 }
 
 #ifdef WITH_BM_ID_FREELIST
@@ -943,14 +943,14 @@ void bm_kill_only_edge(BMesh *bm, BMEdge *e)
     MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(
         e, bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->etoolflagpool, flags->flag);
+    BM_mempool_free(bm->etoolflagpool, flags->flag);
   }
 
   if (e->head.data) {
     CustomData_bmesh_free_block(&bm->edata, &e->head.data);
   }
 
-  BLI_mempool_free(bm->epool, e);
+  BM_mempool_free(bm->epool, e);
 }
 
 /**
@@ -976,14 +976,14 @@ void bm_kill_only_face(BMesh *bm, BMFace *f)
     MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(
         f, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->ftoolflagpool, flags->flag);
+    BM_mempool_free(bm->ftoolflagpool, flags->flag);
   }
 
   if (f->head.data) {
     CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
   }
 
-  BLI_mempool_free(bm->fpool, f);
+  BM_mempool_free(bm->fpool, f);
 }
 
 /**
@@ -1002,7 +1002,7 @@ void bm_kill_only_loop(BMesh *bm, BMLoop *l)
     CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
   }
 
-  BLI_mempool_free(bm->lpool, l);
+  BM_mempool_free(bm->lpool, l);
 }
 
 /**
@@ -1087,7 +1087,7 @@ void BM_face_kill(BMesh *bm, BMFace *f)
     } while ((l_iter = l_next) != l_first);
 
 #ifdef USE_BMESH_HOLES
-    BLI_mempool_free(bm->looplistpool, ls);
+    BM_mempool_free(bm->looplistpool, ls);
 #endif
   }
 
@@ -1146,7 +1146,7 @@ void BM_face_kill_loose(BMesh *bm, BMFace *f)
     } while ((l_iter = l_next) != l_first);
 
 #ifdef USE_BMESH_HOLES
-    BLI_mempool_free(bm->looplistpool, ls);
+    BM_mempool_free(bm->looplistpool, ls);
 #endif
   }
 
@@ -1581,7 +1581,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
   f = bm_face_create__internal(bm);
 
 #ifdef USE_BMESH_HOLES
-  lst = BLI_mempool_calloc(bm->looplistpool);
+  lst = BM_mempool_calloc(bm->looplistpool);
   BLI_addtail(&f->loops, lst);
 #endif
 
@@ -1595,7 +1595,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
   if (bm->use_toolflags && f->head.data) {
     int cd_tflags = bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset;
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(f, cd_tflags);
-    flags->flag = BLI_mempool_calloc(bm->ftoolflagpool);
+    flags->flag = BM_mempool_calloc(bm->ftoolflagpool);
   }
 
   return f;
@@ -1766,7 +1766,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
     // printf("warning: call to split face euler without holes argument; holes will be tossed.\n");
     for (lst = f->loops.last; lst != f->loops.first; lst = lst2) {
       lst2 = lst->prev;
-      BLI_mempool_free(bm->looplistpool, lst);
+      BM_mempool_free(bm->looplistpool, lst);
     }
   }
 #endif
@@ -2512,7 +2512,8 @@ static void trigger_jvke_error(int err, char *obj_text)
   printf("========= ERROR %s============\n\n%s\n\n", get_err_str(err), obj_text);
 }
 
-#if 0
+//#define JVKE_DEBUG
+#ifdef JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
     { \
       int err = 0; \
@@ -2529,9 +2530,11 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
+#ifdef JVKE_DEBUG
   char buf[LOCAL_OBJ_SIZE];
   char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
   bm_local_obj_free(saved_obj, buf);
+#endif
 
   BMFace **fs = NULL;
   BMEdge **deles = NULL;
@@ -3012,23 +3015,23 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
         l_f1->e, bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->etoolflagpool, flags->flag);
+    BM_mempool_free(bm->etoolflagpool, flags->flag);
   }
-  BLI_mempool_free(bm->epool, l_f1->e);
+  BM_mempool_free(bm->epool, l_f1->e);
   bm->totedge--;
-  BLI_mempool_free(bm->lpool, l_f1);
+  BM_mempool_free(bm->lpool, l_f1);
   bm->totloop--;
-  BLI_mempool_free(bm->lpool, l_f2);
+  BM_mempool_free(bm->lpool, l_f2);
   bm->totloop--;
 
   if (bm->ftoolflagpool) {
     MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
         f2, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->ftoolflagpool, flags->flag);
+    BM_mempool_free(bm->ftoolflagpool, flags->flag);
   }
 
-  BLI_mempool_free(bm->fpool, f2);
+  BM_mempool_free(bm->fpool, f2);
   bm->totface--;
   /* account for both above */
   bm->elem_index_dirty |= BM_EDGE | BM_LOOP | BM_FACE;

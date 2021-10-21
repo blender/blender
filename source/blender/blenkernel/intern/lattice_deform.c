@@ -405,11 +405,10 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
     BLI_parallel_mempool_settings_defaults(&settings);
 
     if (cd_dvert_offset != -1) {
-      BLI_task_parallel_mempool(
-          em_target->bm->vpool, &data, lattice_vert_task_editmesh, &settings);
+      BM_task_parallel_mempool(em_target->bm->vpool, &data, lattice_vert_task_editmesh, &settings);
     }
     else {
-      BLI_task_parallel_mempool(
+      BM_task_parallel_mempool(
           em_target->bm->vpool, &data, lattice_vert_task_editmesh_no_dvert, &settings);
     }
   }

@@ -26,6 +26,7 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
+#include "BLI_mempool_lockfree.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -1260,13 +1261,13 @@ static void bmo_flag_layer_do(BMesh *bm,
                                                int htype,
                                                int totelem,
                                                int new_totflags,
-                                               BLI_mempool **pool_ptr))
+                                               BM_mempool **pool_ptr))
 {
   int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
   int types[3] = {BM_VERT, BM_EDGE, BM_FACE};
   int tots[3] = {bm->totvert, bm->totedge, bm->totface};
 
-  BLI_mempool **pools[3] = {&bm->vtoolflagpool, &bm->etoolflagpool, &bm->ftoolflagpool};
+  BM_mempool **pools[3] = {&bm->vtoolflagpool, &bm->etoolflagpool, &bm->ftoolflagpool};
   CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
 
   for (int i = 0; i < 3; i++) {
@@ -1288,22 +1289,22 @@ static void bmo_flag_layer_alloc_do(BMesh *bm,
                                     int htype,
                                     int totelem,
                                     int new_totflags,
-                                    BLI_mempool **pool_ptr)
+                                    BM_mempool **pool_ptr)
 {
   BMIter iter;
   BMElem *elem;
   int i;
 
   const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
-  BLI_mempool *oldpool = *pool_ptr;
-  BLI_mempool *newpool = BLI_mempool_create(
+  BM_mempool *oldpool = *pool_ptr;
+  BM_mempool *newpool = BM_mempool_create(
       sizeof(BMFlagLayer) * new_totflags, totelem, 512, BLI_MEMPOOL_NOP);
 
   BM_ITER_MESH_INDEX (elem, &iter, bm, itertype, i) {
     MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
 
     short *oldflags = flags->flag;
-    flags->flag = BLI_mempool_calloc(newpool);
+    flags->flag = BM_mempool_calloc(newpool);
 
     memcpy(flags->flag, oldflags, old_totflags_size);
     BM_elem_index_set(elem, i); /* set_inline */
@@ -1311,7 +1312,7 @@ static void bmo_flag_layer_alloc_do(BMesh *bm,
   }
 
   *pool_ptr = newpool;
-  BLI_mempool_destroy(oldpool);
+  BM_mempool_destroy(oldpool);
 }
 
 /**
@@ -1346,7 +1347,7 @@ static void bmo_flag_layer_clear_do(BMesh *bm,
                                     int htype,
                                     int totelem,
                                     int totflag,
-                                    BLI_mempool **pool_ptr)
+                                    BM_mempool **pool_ptr)
 {
   BMIter iter;
   BMElem *elem;

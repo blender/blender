@@ -3980,7 +3980,12 @@ void CustomData_bmesh_init_pool_ex(CustomData *data,
 
   /* If there are no layers, no pool is needed just yet */
   if (data->totlayer) {
+#ifndef BM_LOCKFREE_MEMPOOL
     data->pool = BLI_mempool_create_ex(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP, memtag);
+#else
+    data->pool = (BLI_mempool *)BM_mempool_create(
+        data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP);
+#endif
   }
 }
 
@@ -4068,7 +4073,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
   }
 
   if (destold.pool) {
-    BLI_mempool_destroy(destold.pool);
+    BM_mempool_destroy(destold.pool);
   }
   if (destold.layers) {
     MEM_freeN(destold.layers);
@@ -4096,7 +4101,7 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   }
 
   if (data->totsize) {
-    BLI_mempool_free(data->pool, *block);
+    BM_mempool_free((BM_mempool *)data->pool, *block);
   }
 
   *block = NULL;
@@ -4137,7 +4142,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
   }
 
   if (data->totsize > 0) {
-    *block = BLI_mempool_alloc(data->pool);
+    *block = BM_mempool_alloc((BM_mempool *)data->pool);
 
     CustomData_bmesh_asan_poison(data, *block);
 

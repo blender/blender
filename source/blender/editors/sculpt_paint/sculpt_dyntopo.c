@@ -587,7 +587,9 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
 }
 
 char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
+#ifdef WITH_DYNTOPO_EDGE_LOCKS
 extern char *cdlayer_lock_attr_name;
+#endif
 
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
@@ -605,11 +607,13 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
+#ifdef WITH_DYNTOPO_EDGE_LOCKS
   BMCustomLayerReq elayers[] = {CD_PROP_INT32,
                                 cdlayer_lock_attr_name,
                                 CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY | CD_FLAG_ELEM_NOINTERP};
 
   BM_data_layers_ensure(ss->bm, &ss->bm->edata, elayers, 1);
+#endif
 
   BMCustomLayerReq flayers[] = {
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
