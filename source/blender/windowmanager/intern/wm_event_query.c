@@ -315,10 +315,8 @@ bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2]
 
 bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
 {
-  const int drag_delta[2] = {
-      prev_xy[0] - event->xy[0],
-      prev_xy[1] - event->xy[1],
-  };
+  int drag_delta[2];
+  sub_v2_v2v2_int(drag_delta, prev_xy, event->xy);
   return WM_event_drag_test_with_delta(event, drag_delta);
 }
 

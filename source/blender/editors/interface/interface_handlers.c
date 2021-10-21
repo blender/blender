@@ -10648,7 +10648,7 @@ static int ui_handle_menu_event(bContext *C,
                 menu->menuretval = UI_RETURN_OUT;
               }
             }
-            else if (saferct && !BLI_rctf_isect_pt(&saferct->parent, event->xy[0], event->xy[1])) {
+            else if (saferct && !BLI_rctf_isect_pt_v(&saferct->parent, event->xy)) {
               if (block->flag & UI_BLOCK_OUT_1) {
                 menu->menuretval = UI_RETURN_OK;
               }
@@ -10944,7 +10944,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
   const double duration = menu->scrolltimer->duration;
 
-  float event_xy[2] = {event->xy[0], event->xy[1]};
+  float event_xy[2] = {UNPACK2(event->xy)};
 
   ui_window_to_block_fl(region, block, &event_xy[0], &event_xy[1]);
 

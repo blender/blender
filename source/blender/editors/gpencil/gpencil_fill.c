@@ -2107,7 +2107,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (region) {
           bool in_bounds = false;
           /* Perform bounds check */
-          in_bounds = BLI_rcti_isect_pt(&region->winrct, event->xy[0], event->xy[1]);
+          in_bounds = BLI_rcti_isect_pt_v(&region->winrct, event->xy);
 
           if ((in_bounds) && (region->regiontype == RGN_TYPE_WINDOW)) {
             tgpf->mouse[0] = event->mval[0];

@@ -152,13 +152,11 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
 
   /* Logic for setting previous value is documented on the #wmEvent struct,
    * see #wm_event_add_ghostevent for the implementation of logic this follows. */
-
-  win->eventstate->xy[0] = event->xy[0];
-  win->eventstate->xy[1] = event->xy[1];
+  copy_v2_v2_int(win->eventstate->xy, event->xy);
 
   if (event->type == MOUSEMOVE) {
-    win->eventstate->prev_xy[0] = event->prev_xy[0] = win->eventstate->xy[0];
-    win->eventstate->prev_xy[1] = event->prev_xy[1] = win->eventstate->xy[1];
+    copy_v2_v2_int(win->eventstate->prev_xy, win->eventstate->xy);
+    copy_v2_v2_int(event->prev_xy, win->eventstate->xy);
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
     win->eventstate->prev_val = event->prev_val = win->eventstate->val;
@@ -3176,13 +3174,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (WM_event_drag_test(event, event->prev_click_xy)) {
           win->event_queue_check_drag_handled = true;
 
-          int x = event->xy[0];
-          int y = event->xy[1];
+          int xy[2] = {UNPACK2(event->xy)};
           short val = event->val;
           short type = event->type;
 
-          event->xy[0] = event->prev_click_xy[0];
-          event->xy[1] = event->prev_click_xy[1];
+          copy_v2_v2_int(event->xy, event->prev_click_xy);
           event->val = KM_CLICK_DRAG;
           event->type = event->prev_type;
 
@@ -3192,8 +3188,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
           event->val = val;
           event->type = type;
-          event->xy[0] = x;
-          event->xy[1] = y;
+          copy_v2_v2_int(event->xy, xy);
 
           win->event_queue_check_click = false;
           if (!wm_action_not_handled(action)) {
@@ -3238,11 +3233,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
               else {
                 /* Position is where the actual click happens, for more
                  * accurate selecting in case the mouse drifts a little. */
-                int x = event->xy[0];
-                int y = event->xy[1];
+                int xy[2] = {UNPACK2(event->xy)};
 
-                event->xy[0] = event->prev_click_xy[0];
-                event->xy[1] = event->prev_click_xy[1];
+                copy_v2_v2_int(event->xy, event->prev_click_xy);
                 event->val = KM_CLICK;
 
                 CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
@@ -3250,8 +3243,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
                 action |= wm_handlers_do_intern(C, win, event, handlers);
 
                 event->val = KM_RELEASE;
-                event->xy[0] = x;
-                event->xy[1] = y;
+                copy_v2_v2_int(event->xy, xy);
               }
             }
           }
@@ -3788,8 +3780,7 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* Update previous mouse position for following events to use. */
-      win->eventstate->prev_xy[0] = event->xy[0];
-      win->eventstate->prev_xy[1] = event->xy[1];
+      copy_v2_v2_int(win->eventstate->prev_xy, event->xy);
 
       /* Unlink and free here, blender-quit then frees all. */
       BLI_remlink(&win->event_queue, event);
@@ -4181,10 +4172,10 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
 
 static bool event_or_prev_in_rect(const wmEvent *event, const rcti *rect)
 {
-  if (BLI_rcti_isect_pt(rect, event->xy[0], event->xy[1])) {
+  if (BLI_rcti_isect_pt_v(rect, event->xy)) {
     return true;
   }
-  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt(rect, event->prev_xy[0], event->prev_xy[1])) {
+  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(rect, event->prev_xy)) {
     return true;
   }
   return false;
@@ -4682,8 +4673,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
     wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
     if (win_other) {
-      event->xy[0] = mval[0];
-      event->xy[1] = mval[1];
+      copy_v2_v2_int(event->xy, mval);
       return win_other;
     }
   }

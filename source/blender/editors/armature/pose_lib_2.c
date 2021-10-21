@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
@@ -379,8 +380,7 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
 
   if (pbd->release_confirm_info.use_release_confirm) {
     BLI_assert(event != NULL);
-    pbd->release_confirm_info.drag_start_xy[0] = event->xy[0];
-    pbd->release_confirm_info.drag_start_xy[1] = event->xy[1];
+    copy_v2_v2_int(pbd->release_confirm_info.drag_start_xy, event->xy);
     pbd->release_confirm_info.init_event_type = WM_userdef_event_type_from_keymap_type(
         event->type);
   }
