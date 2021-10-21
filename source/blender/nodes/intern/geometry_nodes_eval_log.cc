@@ -354,7 +354,7 @@ void LocalGeoLogger::log_value_for_sockets(Span<DSocket> sockets, GPointer value
   if (type.is<GeometrySet>()) {
     bool log_full_geometry = false;
     for (const DSocket &socket : sockets) {
-      if (main_logger_->log_full_geometry_sockets_.contains(socket)) {
+      if (main_logger_->log_full_sockets_.contains(socket)) {
         log_full_geometry = true;
         break;
       }

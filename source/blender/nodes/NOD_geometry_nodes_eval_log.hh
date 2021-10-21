@@ -181,17 +181,19 @@ class LocalGeoLogger {
 /** The root logger class. */
 class GeoLogger {
  private:
-  /** The entire geometry of sockets in this set should be cached, because e.g. the spreadsheet
-   * displays the data. We don't log the entire geometry at all places, because that would require
-   * way too much memory. */
-  Set<DSocket> log_full_geometry_sockets_;
+  /**
+   * Log the entire value for these sockets, because they may be inspected afterwards.
+   * We don't log everything, because that would take up too much memory and cause significant
+   * slowdowns.
+   */
+  Set<DSocket> log_full_sockets_;
   threading::EnumerableThreadSpecific<LocalGeoLogger> threadlocals_;
 
   friend LocalGeoLogger;
 
  public:
-  GeoLogger(Set<DSocket> log_full_geometry_sockets)
-      : log_full_geometry_sockets_(std::move(log_full_geometry_sockets)),
+  GeoLogger(Set<DSocket> log_full_sockets)
+      : log_full_sockets_(std::move(log_full_sockets)),
         threadlocals_([this]() { return LocalGeoLogger(*this); })
   {
   }

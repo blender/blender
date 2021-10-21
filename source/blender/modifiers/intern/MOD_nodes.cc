@@ -758,32 +758,33 @@ static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
   return spreadsheets;
 }
 
-static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspreadsheet,
-                                                         NodesModifierData *nmd,
-                                                         const ModifierEvalContext *ctx,
-                                                         const DerivedNodeTree &tree)
+static void find_sockets_to_preview_for_spreadsheet(SpaceSpreadsheet *sspreadsheet,
+                                                    NodesModifierData *nmd,
+                                                    const ModifierEvalContext *ctx,
+                                                    const DerivedNodeTree &tree,
+                                                    Set<DSocket> &r_sockets_to_preview)
 {
   Vector<SpreadsheetContext *> context_path = sspreadsheet->context_path;
   if (context_path.size() < 3) {
-    return {};
+    return;
   }
   if (context_path[0]->type != SPREADSHEET_CONTEXT_OBJECT) {
-    return {};
+    return;
   }
   if (context_path[1]->type != SPREADSHEET_CONTEXT_MODIFIER) {
-    return {};
+    return;
   }
   SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context_path[0];
   if (object_context->object != DEG_get_original_object(ctx->object)) {
-    return {};
+    return;
   }
   SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context_path[1];
   if (StringRef(modifier_context->modifier_name) != nmd->modifier.name) {
-    return {};
+    return;
   }
   for (SpreadsheetContext *context : context_path.as_span().drop_front(2)) {
     if (context->type != SPREADSHEET_CONTEXT_NODE) {
-      return {};
+      return;
     }
   }
 
@@ -802,11 +803,11 @@ static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspre
       }
     }
     if (found_node == nullptr) {
-      return {};
+      return;
     }
     context = context->child_context(*found_node);
     if (context == nullptr) {
-      return {};
+      return;
     }
   }
 
@@ -814,10 +815,13 @@ static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspre
   for (const NodeRef *node_ref : tree_ref.nodes_by_type("GeometryNodeViewer")) {
     if (node_ref->name() == last_context->node_name) {
       const DNode viewer_node{context, node_ref};
-      return viewer_node.input(0);
+      for (const InputSocketRef *input_socket : node_ref->inputs()) {
+        if (input_socket->is_available() && input_socket->is_logically_linked()) {
+          r_sockets_to_preview.add(DSocket{context, input_socket});
+        }
+      }
     }
   }
-  return {};
 }
 
 static void find_sockets_to_preview(NodesModifierData *nmd,
@@ -831,10 +835,7 @@ static void find_sockets_to_preview(NodesModifierData *nmd,
    * intermediate geometries cached for display. */
   Vector<SpaceSpreadsheet *> spreadsheets = find_spreadsheet_editors(bmain);
   for (SpaceSpreadsheet *sspreadsheet : spreadsheets) {
-    const DSocket socket = try_get_socket_to_preview_for_spreadsheet(sspreadsheet, nmd, ctx, tree);
-    if (socket) {
-      r_sockets_to_preview.add(socket);
-    }
+    find_sockets_to_preview_for_spreadsheet(sspreadsheet, nmd, ctx, tree, r_sockets_to_preview);
   }
 }
 
