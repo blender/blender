@@ -228,28 +228,16 @@ void Scene::free_memory(bool final)
   }
 }
 
-void Scene::host_update(Progress &progress)
-{
-  if (update_stats) {
-    update_stats->clear();
-  }
-
-  scoped_callback_timer timer([this](double time) {
-    if (update_stats) {
-      update_stats->scene.times.add_entry({"host_update", time});
-    }
-  });
-
-  progress.set_status("Updating Shaders");
-  shader_manager->host_update(this, progress);
-}
-
 void Scene::device_update(Device *device_, Progress &progress)
 {
   if (!device)
     device = device_;
 
   bool print_stats = need_data_update();
+
+  if (update_stats) {
+    update_stats->clear();
+  }
 
   scoped_callback_timer timer([this, print_stats](double time) {
     if (update_stats) {
@@ -549,17 +537,11 @@ bool Scene::update(Progress &progress)
     return false;
   }
 
-  /* Update scene data on the host side.
-   * Only updates which do not depend on the kernel (including kernel features). */
-  progress.set_status("Updating Scene");
-  MEM_GUARDED_CALL(&progress, host_update, progress);
-
-  /* Load render kernels. After host scene update so that the required kernel features are known.
-   */
+  /* Load render kernels, before device update where we upload data to the GPU. */
   load_kernels(progress, false);
 
-  /* Upload scene data to the device. */
-  progress.set_status("Updating Scene Device");
+  /* Upload scene data to the GPU. */
+  progress.set_status("Updating Scene");
   MEM_GUARDED_CALL(&progress, device_update, device, progress);
 
   return true;

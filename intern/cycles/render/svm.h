@@ -46,8 +46,6 @@ class SVMShaderManager : public ShaderManager {
 
   void reset(Scene *scene) override;
 
-  void host_update_specific(Scene *scene, Progress &progress) override;
-
   void device_update_specific(Device *device,
                               DeviceScene *dscene,
                               Scene *scene,
@@ -55,11 +53,10 @@ class SVMShaderManager : public ShaderManager {
   void device_free(Device *device, DeviceScene *dscene, Scene *scene) override;
 
  protected:
-  /* Compiled shader nodes.
-   *
-   * The compilation happens in the `host_update_specific()`, and the `device_update_specific()`
-   * moves these nodes to the device. */
-  vector<array<int4>> shader_svm_nodes_;
+  void device_update_shader(Scene *scene,
+                            Shader *shader,
+                            Progress *progress,
+                            array<int4> *svm_nodes);
 };
 
 /* Graph Compiler */
