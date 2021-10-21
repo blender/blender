@@ -25,20 +25,21 @@
 
 #include "BLI_math_base_safe.h"
 
-/* **************** Map Range ******************** */
-static bNodeSocketTemplate sh_node_map_range_in[] = {
-    {SOCK_FLOAT, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("From Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("From Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("To Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("To Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Steps"), 4.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Float>("Value").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("From Min").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("From Max").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("To Min").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("To Max").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("Steps").min(-10000.0f).max(10000.0f).default_value(4.0f);
+  b.add_output<decl::Float>("Result");
 };
-static bNodeSocketTemplate sh_node_map_range_out[] = {
-    {SOCK_FLOAT, N_("Result")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_update_map_range(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -311,7 +312,7 @@ void register_node_type_sh_map_range(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_map_range_in, sh_node_map_range_out);
+  ntype.declare = blender::nodes::sh_node_map_range_declare;
   node_type_init(&ntype, node_shader_init_map_range);
   node_type_update(&ntype, node_shader_update_map_range);
   node_type_gpu(&ntype, gpu_shader_map_range);

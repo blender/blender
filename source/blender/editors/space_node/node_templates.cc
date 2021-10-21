@@ -20,6 +20,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -39,7 +40,9 @@
 
 #include "RNA_access.h"
 
+#include "NOD_node_declaration.hh"
 #include "NOD_socket.h"
+#include "NOD_socket_declarations.hh"
 
 #include "../interface/interface_intern.h" /* XXX bad level */
 #include "UI_interface.h"
@@ -49,17 +52,20 @@
 
 #include "ED_undo.h"
 
+using blender::Vector;
+using blender::nodes::NodeDeclaration;
+
 /************************* Node Socket Manipulation **************************/
 
 /* describes an instance of a node type and a specific socket to link */
 struct NodeLinkItem {
-  int socket_index;        /* index for linking */
-  int socket_type;         /* socket type for compatibility check */
-  const char *socket_name; /* ui label of the socket */
-  const char *node_name;   /* ui label of the node */
+  int socket_index = -1;             /* index for linking */
+  int socket_type = SOCK_CUSTOM;     /* socket type for compatibility check */
+  const char *socket_name = nullptr; /* ui label of the socket */
+  const char *node_name = nullptr;   /* ui label of the node */
 
   /* extra settings */
-  bNodeTree *ngroup; /* group node tree */
+  bNodeTree *ngroup = nullptr; /* group node tree */
 };
 
 /* Compare an existing node to a link item to see if it can be reused.
@@ -319,15 +325,13 @@ struct NodeLinkArg {
   uiLayout *layout;
 };
 
-static void ui_node_link_items(NodeLinkArg *arg,
-                               int in_out,
-                               NodeLinkItem **r_items,
-                               int *r_totitems)
+static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
+                                               int in_out,
+                                               std::optional<NodeDeclaration> &r_node_decl)
 {
-  /* XXX this should become a callback for node types! */
-  NodeLinkItem *items = nullptr;
-  int totitems = 0;
+  Vector<NodeLinkItem> items;
 
+  /* XXX this should become a callback for node types! */
   if (arg->node_type->type == NODE_GROUP) {
     bNodeTree *ngroup;
     int i;
@@ -339,40 +343,66 @@ static void ui_node_link_items(NodeLinkArg *arg,
           !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
         continue;
       }
-
-      ListBase *lb = ((in_out == SOCK_IN) ? &ngroup->inputs : &ngroup->outputs);
-      totitems += BLI_listbase_count(lb);
     }
 
-    if (totitems > 0) {
-      items = (NodeLinkItem *)MEM_callocN(sizeof(NodeLinkItem) * totitems, "ui node link items");
-
-      i = 0;
-      for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
-           ngroup = (bNodeTree *)ngroup->id.next) {
-        const char *disabled_hint;
-        if ((ngroup->type != arg->ntree->type) ||
-            !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
-          continue;
-        }
-
-        ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
-        bNodeSocket *stemp;
-        int index;
-        for (stemp = (bNodeSocket *)lb->first, index = 0; stemp;
-             stemp = stemp->next, index++, i++) {
-          NodeLinkItem *item = &items[i];
-
-          item->socket_index = index;
-          /* NOTE: int stemp->type is not fully reliable, not used for node group
-           * interface sockets. use the typeinfo->type instead.
-           */
-          item->socket_type = stemp->typeinfo->type;
-          item->socket_name = stemp->name;
-          item->node_name = ngroup->id.name + 2;
-          item->ngroup = ngroup;
-        }
+    i = 0;
+    for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
+         ngroup = (bNodeTree *)ngroup->id.next) {
+      const char *disabled_hint;
+      if ((ngroup->type != arg->ntree->type) ||
+          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
+        continue;
       }
+
+      ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
+      bNodeSocket *stemp;
+      int index;
+      for (stemp = (bNodeSocket *)lb->first, index = 0; stemp; stemp = stemp->next, index++, i++) {
+        NodeLinkItem item;
+        item.socket_index = index;
+        /* NOTE: int stemp->type is not fully reliable, not used for node group
+         * interface sockets. use the typeinfo->type instead.
+         */
+        item.socket_type = stemp->typeinfo->type;
+        item.socket_name = stemp->name;
+        item.node_name = ngroup->id.name + 2;
+        item.ngroup = ngroup;
+
+        items.append(item);
+      }
+    }
+  }
+  else if (arg->node_type->declare != nullptr) {
+    using namespace blender;
+    using namespace blender::nodes;
+
+    r_node_decl.emplace(NodeDeclaration());
+    NodeDeclarationBuilder node_decl_builder{*r_node_decl};
+    arg->node_type->declare(node_decl_builder);
+    Span<SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs() :
+                                                                    r_node_decl->outputs();
+    int index = 0;
+    for (const SocketDeclarationPtr &socket_decl_ptr : socket_decls) {
+      const SocketDeclaration &socket_decl = *socket_decl_ptr;
+      NodeLinkItem item;
+      item.socket_index = index++;
+      /* A socket declaration does not necessarily map to exactly one built-in socket type. So only
+       * check for the types that matter here. */
+      if (dynamic_cast<const decl::Color *>(&socket_decl)) {
+        item.socket_type = SOCK_RGBA;
+      }
+      else if (dynamic_cast<const decl::Float *>(&socket_decl)) {
+        item.socket_type = SOCK_FLOAT;
+      }
+      else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
+        item.socket_type = SOCK_VECTOR;
+      }
+      else {
+        item.socket_type = SOCK_CUSTOM;
+      }
+      item.socket_name = socket_decl.name().c_str();
+      item.node_name = arg->node_type->ui_name;
+      items.append(item);
     }
   }
   else {
@@ -381,27 +411,18 @@ static void ui_node_link_items(NodeLinkArg *arg,
     bNodeSocketTemplate *stemp;
     int i;
 
-    for (stemp = socket_templates; stemp && stemp->type != -1; stemp++) {
-      totitems++;
-    }
-
-    if (totitems > 0) {
-      items = (NodeLinkItem *)MEM_callocN(sizeof(NodeLinkItem) * totitems, "ui node link items");
-
-      i = 0;
-      for (stemp = socket_templates; stemp && stemp->type != -1; stemp++, i++) {
-        NodeLinkItem *item = &items[i];
-
-        item->socket_index = i;
-        item->socket_type = stemp->type;
-        item->socket_name = stemp->name;
-        item->node_name = arg->node_type->ui_name;
-      }
+    i = 0;
+    for (stemp = socket_templates; stemp && stemp->type != -1; stemp++, i++) {
+      NodeLinkItem item;
+      item.socket_index = i;
+      item.socket_type = stemp->type;
+      item.socket_name = stemp->name;
+      item.node_name = arg->node_type->ui_name;
+      items.append(item);
     }
   }
 
-  *r_items = items;
-  *r_totitems = totitems;
+  return items;
 }
 
 static void ui_node_link(bContext *C, void *arg_p, void *event_p)
@@ -513,8 +534,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   /* generate UI */
   for (int j = 0; j < sorted_ntypes.size(); j++) {
     bNodeType *ntype = sorted_ntypes[j];
-    NodeLinkItem *items;
-    int totitems;
     char name[UI_MAX_NAME_STR];
     const char *cur_node_name = nullptr;
     int num = 0;
@@ -522,16 +541,17 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 
     arg->node_type = ntype;
 
-    ui_node_link_items(arg, SOCK_OUT, &items, &totitems);
+    std::optional<blender::nodes::NodeDeclaration> node_decl;
+    Vector<NodeLinkItem> items = ui_node_link_items(arg, SOCK_OUT, node_decl);
 
-    for (int i = 0; i < totitems; i++) {
-      if (ui_compatible_sockets(items[i].socket_type, sock->type)) {
+    for (const NodeLinkItem &item : items) {
+      if (ui_compatible_sockets(item.socket_type, sock->type)) {
         num++;
       }
     }
 
-    for (int i = 0; i < totitems; i++) {
-      if (!ui_compatible_sockets(items[i].socket_type, sock->type)) {
+    for (const NodeLinkItem &item : items) {
+      if (!ui_compatible_sockets(item.socket_type, sock->type)) {
         continue;
       }
 
@@ -546,8 +566,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       }
 
       if (num > 1) {
-        if (!cur_node_name || !STREQ(cur_node_name, items[i].node_name)) {
-          cur_node_name = items[i].node_name;
+        if (!cur_node_name || !STREQ(cur_node_name, item.node_name)) {
+          cur_node_name = item.node_name;
           /* XXX Do not use uiItemL here,
            * it would add an empty icon as we are in a menu! */
           uiDefBut(block,
@@ -566,11 +586,11 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                    "");
         }
 
-        BLI_snprintf(name, UI_MAX_NAME_STR, "%s", IFACE_(items[i].socket_name));
+        BLI_snprintf(name, UI_MAX_NAME_STR, "%s", IFACE_(item.socket_name));
         icon = ICON_BLANK1;
       }
       else {
-        BLI_strncpy(name, IFACE_(items[i].node_name), UI_MAX_NAME_STR);
+        BLI_strncpy(name, IFACE_(item.node_name), UI_MAX_NAME_STR);
         icon = ICON_NONE;
       }
 
@@ -591,12 +611,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                              TIP_("Add node to input"));
 
       argN = (NodeLinkArg *)MEM_dupallocN(arg);
-      argN->item = items[i];
+      argN->item = item;
       UI_but_funcN_set(but, ui_node_link, argN, nullptr);
-    }
-
-    if (items) {
-      MEM_freeN(items);
     }
   }
 }

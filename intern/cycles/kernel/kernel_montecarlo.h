@@ -30,13 +30,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __KERNEL_MONTECARLO_CL__
-#define __KERNEL_MONTECARLO_CL__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
 /* distribute uniform xy on [0,1] over unit disk [-1,1] */
-ccl_device void to_unit_disk(float *x, float *y)
+ccl_device void to_unit_disk(ccl_private float *x, ccl_private float *y)
 {
   float phi = M_2PI_F * (*x);
   float r = sqrtf(*y);
@@ -47,7 +46,10 @@ ccl_device void to_unit_disk(float *x, float *y)
 
 /* return an orthogonal tangent and bitangent given a normal and tangent that
  * may not be exactly orthogonal */
-ccl_device void make_orthonormals_tangent(const float3 N, const float3 T, float3 *a, float3 *b)
+ccl_device void make_orthonormals_tangent(const float3 N,
+                                          const float3 T,
+                                          ccl_private float3 *a,
+                                          ccl_private float3 *b)
 {
   *b = normalize(cross(N, T));
   *a = cross(*b, N);
@@ -55,7 +57,7 @@ ccl_device void make_orthonormals_tangent(const float3 N, const float3 T, float3
 
 /* sample direction with cosine weighted distributed in hemisphere */
 ccl_device_inline void sample_cos_hemisphere(
-    const float3 N, float randu, float randv, float3 *omega_in, float *pdf)
+    const float3 N, float randu, float randv, ccl_private float3 *omega_in, ccl_private float *pdf)
 {
   to_unit_disk(&randu, &randv);
   float costheta = sqrtf(max(1.0f - randu * randu - randv * randv, 0.0f));
@@ -67,7 +69,7 @@ ccl_device_inline void sample_cos_hemisphere(
 
 /* sample direction uniformly distributed in hemisphere */
 ccl_device_inline void sample_uniform_hemisphere(
-    const float3 N, float randu, float randv, float3 *omega_in, float *pdf)
+    const float3 N, float randu, float randv, ccl_private float3 *omega_in, ccl_private float *pdf)
 {
   float z = randu;
   float r = sqrtf(max(0.0f, 1.0f - z * z));
@@ -82,8 +84,12 @@ ccl_device_inline void sample_uniform_hemisphere(
 }
 
 /* sample direction uniformly distributed in cone */
-ccl_device_inline void sample_uniform_cone(
-    const float3 N, float angle, float randu, float randv, float3 *omega_in, float *pdf)
+ccl_device_inline void sample_uniform_cone(const float3 N,
+                                           float angle,
+                                           float randu,
+                                           float randv,
+                                           ccl_private float3 *omega_in,
+                                           ccl_private float *pdf)
 {
   float zMin = cosf(angle);
   float z = zMin - zMin * randu + randu;
@@ -300,5 +306,3 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __KERNEL_MONTECARLO_CL__ */

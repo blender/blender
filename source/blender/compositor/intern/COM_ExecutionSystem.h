@@ -16,22 +16,23 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class ExecutionGroup;
-
 #pragma once
 
-#include "BKE_text.h"
+#include <functional>
 
-#include "COM_ExecutionGroup.h"
-#include "COM_Node.h"
-#include "COM_NodeOperation.h"
+#include "atomic_ops.h"
+
+#include "BLI_index_range.hh"
+#include "BLI_threads.h"
+#include "BLI_vector.hh"
+
+#include "COM_CompositorContext.h"
 #include "COM_SharedOperationBuffers.h"
 
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
-
-#include "BLI_vector.hh"
-#include "atomic_ops.h"
+#include "DNA_scene_types.h"
+#include "DNA_vec_types.h"
 
 namespace blender::compositor {
 
@@ -63,8 +64,8 @@ namespace blender::compositor {
  * based on settings; like MixNode. based on the selected Mixtype a different operation will be
  * used. for more information see the page about creating new Nodes. [@subpage newnode]
  *
- * \see ExecutionSystem.convertToOperations
- * \see Node.convertToOperations
+ * \see ExecutionSystem.convert_to_operations
+ * \see Node.convert_to_operations
  * \see NodeOperation base class for all operations in the system
  *
  * \section EM_Step3 Step3: add additional conversions to the operation system
@@ -88,7 +89,7 @@ namespace blender::compositor {
  *       Bottom left of the images are aligned.
  *
  * \see COM_convert_data_type Datatype conversions
- * \see Converter.convertResolution Image size conversions
+ * \see Converter.convert_resolution Image size conversions
  *
  * \section EM_Step4 Step4: group operations in executions groups
  * ExecutionGroup are groups of operations that are calculated as being one bigger operation.
@@ -111,14 +112,16 @@ namespace blender::compositor {
  * |cFAA  |           |cFAA  |         |cFAA   |           |cFAA   |
  * +------+           +------+         +-------+           +-------+
  * </pre>
- * \see ExecutionSystem.groupOperations method doing this step
- * \see ExecutionSystem.addReadWriteBufferOperations
- * \see NodeOperation.isComplex
+ * \see ExecutionSystem.group_operations method doing this step
+ * \see ExecutionSystem.add_read_write_buffer_operations
+ * \see NodeOperation.is_complex
  * \see ExecutionGroup class representing the ExecutionGroup
  */
 
 /* Forward declarations. */
+class ExecutionGroup;
 class ExecutionModel;
+class NodeOperation;
 
 /**
  * \brief the ExecutionSystem contains the whole compositor tree.
@@ -134,17 +137,17 @@ class ExecutionSystem {
   /**
    * \brief the context used during execution
    */
-  CompositorContext m_context;
+  CompositorContext context_;
 
   /**
    * \brief vector of operations
    */
-  Vector<NodeOperation *> m_operations;
+  Vector<NodeOperation *> operations_;
 
   /**
    * \brief vector of groups
    */
-  Vector<ExecutionGroup *> m_groups;
+  Vector<ExecutionGroup *> groups_;
 
   /**
    * Active execution model implementation.
@@ -172,9 +175,9 @@ class ExecutionSystem {
                   bNodeTree *editingtree,
                   bool rendering,
                   bool fastcalculation,
-                  const ColorManagedViewSettings *viewSettings,
-                  const ColorManagedDisplaySettings *displaySettings,
-                  const char *viewName);
+                  const ColorManagedViewSettings *view_settings,
+                  const ColorManagedDisplaySettings *display_settings,
+                  const char *view_name);
 
   /**
    * Destructor
@@ -195,9 +198,9 @@ class ExecutionSystem {
   /**
    * \brief get the reference to the compositor context
    */
-  const CompositorContext &getContext() const
+  const CompositorContext &get_context() const
   {
-    return this->m_context;
+    return context_;
   }
 
   SharedOperationBuffers &get_active_buffers()

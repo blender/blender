@@ -30,11 +30,11 @@ namespace blender::compositor {
  */
 class AntiAliasingNode : public Node {
  public:
-  AntiAliasingNode(bNode *editorNode) : Node(editorNode)
+  AntiAliasingNode(bNode *editor_node) : Node(editor_node)
   {
   }
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

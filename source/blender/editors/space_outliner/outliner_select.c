@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_shader_fx_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -63,6 +64,7 @@
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_sequencer.h"
+#include "ED_text.h"
 #include "ED_undo.h"
 
 #include "SEQ_select.h"
@@ -737,6 +739,12 @@ static void tree_element_layer_collection_activate(bContext *C, TreeElement *te)
   WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, NULL);
 }
 
+static void tree_element_text_activate(bContext *C, TreeElement *te)
+{
+  Text *text = (Text *)te->store_elem->id;
+  ED_text_activate_in_screen(C, text);
+}
+
 /* ---------------------------------------------- */
 
 /* generic call for ID data check or make/check active in UI */
@@ -763,6 +771,9 @@ void tree_element_activate(bContext *C,
       break;
     case ID_CA:
       tree_element_camera_activate(C, tvc->scene, te);
+      break;
+    case ID_TXT:
+      tree_element_text_activate(C, te);
       break;
   }
 }

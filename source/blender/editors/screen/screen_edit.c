@@ -574,6 +574,17 @@ bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
   return screen_area_join_ex(C, screen, sa2, area, true);
 }
 
+void screen_area_spacelink_add(Scene *scene, ScrArea *area, eSpace_Type space_type)
+{
+  SpaceType *stype = BKE_spacetype_from_id(space_type);
+  SpaceLink *slink = stype->create(area, scene);
+
+  area->regionbase = slink->regionbase;
+
+  BLI_addhead(&area->spacedata, slink);
+  BLI_listbase_clear(&slink->regionbase);
+}
+
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
 
 /* screen sets cursor based on active region */
@@ -634,7 +645,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* exception for bg mode, we only need the screen context */
+  /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
     /* header size depends on DPI, let's verify */
     WM_window_set_dpi(win);
@@ -675,7 +686,7 @@ void ED_screens_init(Main *bmain, wmWindowManager *wm)
 
     ED_screen_refresh(wm, win);
     if (win->eventstate) {
-      ED_screen_set_active_region(NULL, win, &win->eventstate->x);
+      ED_screen_set_active_region(NULL, win, win->eventstate->xy);
     }
   }
 
@@ -948,7 +959,7 @@ int ED_screen_area_active(const bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (win && screen && area) {
-    AZone *az = ED_area_actionzone_find_xy(area, &win->eventstate->x);
+    AZone *az = ED_area_actionzone_find_xy(area, win->eventstate->xy);
 
     if (az && az->type == AZONE_REGION) {
       return 1;
@@ -1023,13 +1034,7 @@ static void screen_global_area_refresh(wmWindow *win,
   }
   else {
     area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
-    SpaceType *stype = BKE_spacetype_from_id(space_type);
-    SpaceLink *slink = stype->create(area, WM_window_get_active_scene(win));
-
-    area->regionbase = slink->regionbase;
-
-    BLI_addhead(&area->spacedata, slink);
-    BLI_listbase_clear(&slink->regionbase);
+    screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
 
     /* Data specific to global areas. */
     area->global = MEM_callocN(sizeof(*area->global), __func__);

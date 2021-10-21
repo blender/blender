@@ -25,13 +25,13 @@ namespace blender::compositor {
 class BrightnessOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputBrightnessProgram;
-  SocketReader *m_inputContrastProgram;
+  SocketReader *input_program_;
+  SocketReader *input_brightness_program_;
+  SocketReader *input_contrast_program_;
 
-  bool m_use_premultiply;
+  bool use_premultiply_;
 
  public:
   BrightnessOperation();
@@ -39,19 +39,19 @@ class BrightnessOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setUsePremultiply(bool use_premultiply);
+  void set_use_premultiply(bool use_premultiply);
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

@@ -90,7 +90,7 @@ void BKE_object_material_array_assign(struct Main *bmain,
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
-bool BKE_object_material_slot_used(struct ID *id, short actcol);
+bool BKE_object_material_slot_used(struct Object *object, short actcol);
 
 struct Material *BKE_gpencil_material(struct Object *ob, short act);
 struct MaterialGPencilStyle *BKE_gpencil_material_settings(struct Object *ob, short act);

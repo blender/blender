@@ -18,33 +18,31 @@
 
 #include "COM_MovieDistortionNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MovieDistortionOperation.h"
-#include "DNA_movieclip_types.h"
 
 namespace blender::compositor {
 
-MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)
+MovieDistortionNode::MovieDistortionNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MovieDistortionNode::convertToOperations(NodeConverter &converter,
-                                              const CompositorContext &context) const
+void MovieDistortionNode::convert_to_operations(NodeConverter &converter,
+                                                const CompositorContext &context) const
 {
-  bNode *bnode = this->getbNode();
+  bNode *bnode = this->get_bnode();
   MovieClip *clip = (MovieClip *)bnode->id;
 
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeOutput *output_socket = this->get_output_socket(0);
 
   MovieDistortionOperation *operation = new MovieDistortionOperation(bnode->custom1 == 1);
-  operation->setMovieClip(clip);
-  operation->setFramenumber(context.getFramenumber());
-  converter.addOperation(operation);
+  operation->set_movie_clip(clip);
+  operation->set_framenumber(context.get_framenumber());
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.map_input_socket(input_socket, operation->get_input_socket(0));
+  converter.map_output_socket(output_socket, operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

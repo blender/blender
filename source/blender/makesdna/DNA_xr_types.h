@@ -42,7 +42,9 @@ typedef struct XrSessionSettings {
 
   /** View3D draw flags (V3D_OFSDRAW_NONE, V3D_OFSDRAW_SHOW_ANNOTATION, ...). */
   char draw_flags;
-  char _pad2[3];
+  /** Draw style for controller visualization. */
+  char controller_draw_style;
+  char _pad2[2];
 
   /** Clipping distance. */
   float clip_start, clip_end;
@@ -60,6 +62,13 @@ typedef enum eXRSessionBasePoseType {
   XR_BASE_POSE_OBJECT = 1,
   XR_BASE_POSE_CUSTOM = 2,
 } eXRSessionBasePoseType;
+
+typedef enum eXrSessionControllerDrawStyle {
+  XR_CONTROLLER_DRAW_DARK = 0,
+  XR_CONTROLLER_DRAW_LIGHT = 1,
+  XR_CONTROLLER_DRAW_DARK_RAY = 2,
+  XR_CONTROLLER_DRAW_LIGHT_RAY = 3,
+} eXrSessionControllerDrawStyle;
 
 /** XR action type. Enum values match those in GHOST_XrActionType enum for consistency. */
 typedef enum eXrActionType {

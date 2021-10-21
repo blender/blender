@@ -159,15 +159,22 @@ const SocketLog *NodeLog::lookup_socket_log(const bNode &node, const bNodeSocket
 
 GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry)
 {
-  bke::geometry_set_instances_attribute_foreach(
-      geometry_set,
-      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+  static std::array all_component_types = {GEO_COMPONENT_TYPE_CURVE,
+                                           GEO_COMPONENT_TYPE_INSTANCES,
+                                           GEO_COMPONENT_TYPE_MESH,
+                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                           GEO_COMPONENT_TYPE_VOLUME};
+  geometry_set.attribute_foreach(
+      all_component_types,
+      true,
+      [&](const bke::AttributeIDRef &attribute_id,
+          const AttributeMetaData &meta_data,
+          const GeometryComponent &UNUSED(component)) {
         if (attribute_id.is_named()) {
           this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
         }
-        return true;
-      },
-      8);
+      });
+
   for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
     component_types_.append(component->type());
     switch (component->type()) {

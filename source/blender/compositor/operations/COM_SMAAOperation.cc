@@ -20,7 +20,6 @@
 
 #include "COM_SMAAOperation.h"
 #include "BKE_node.h"
-#include "BLI_math.h"
 #include "COM_SMAAAreaTexture.h"
 
 extern "C" {
@@ -39,7 +38,7 @@ namespace blender::compositor {
  *
  * This file is based on SMAA-CPP:
  *
- *   https://github.com/iRi-E/smaa-cpp
+ *   https://github.com/i_ri-E/smaa-cpp
  *
  * Currently only SMAA 1x mode is provided, so the operation will be done
  * with no spatial multi-sampling nor temporal super-sampling.
@@ -65,7 +64,7 @@ namespace blender::compositor {
  * #buffer->read_elem_checked. */
 static inline void sample(SocketReader *reader, int x, int y, float color[4])
 {
-  if (x < 0 || x >= reader->getWidth() || y < 0 || y >= reader->getHeight()) {
+  if (x < 0 || x >= reader->get_width() || y < 0 || y >= reader->get_height()) {
     color[0] = color[1] = color[2] = color[3] = 0.0;
     return;
   }
@@ -168,50 +167,50 @@ static void area_diag(int d1, int d2, int e1, int e2, float weights[2])
 
 SMAAEdgeDetectionOperation::SMAAEdgeDetectionOperation()
 {
-  this->addInputSocket(DataType::Color); /* image */
-  this->addInputSocket(DataType::Value); /* Depth, material ID, etc. TODO: currently unused. */
-  this->addOutputSocket(DataType::Color);
-  this->flags.complex = true;
-  this->m_imageReader = nullptr;
-  this->m_valueReader = nullptr;
-  this->setThreshold(CMP_DEFAULT_SMAA_THRESHOLD);
-  this->setLocalContrastAdaptationFactor(CMP_DEFAULT_SMAA_CONTRAST_LIMIT);
+  this->add_input_socket(DataType::Color); /* image */
+  this->add_input_socket(DataType::Value); /* Depth, material ID, etc. TODO: currently unused. */
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  image_reader_ = nullptr;
+  value_reader_ = nullptr;
+  this->set_threshold(CMP_DEFAULT_SMAA_THRESHOLD);
+  this->set_local_contrast_adaptation_factor(CMP_DEFAULT_SMAA_CONTRAST_LIMIT);
 }
 
-void SMAAEdgeDetectionOperation::initExecution()
+void SMAAEdgeDetectionOperation::init_execution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
-  this->m_valueReader = this->getInputSocketReader(1);
+  image_reader_ = this->get_input_socket_reader(0);
+  value_reader_ = this->get_input_socket_reader(1);
 }
 
-void SMAAEdgeDetectionOperation::deinitExecution()
+void SMAAEdgeDetectionOperation::deinit_execution()
 {
-  this->m_imageReader = nullptr;
-  this->m_valueReader = nullptr;
+  image_reader_ = nullptr;
+  value_reader_ = nullptr;
 }
 
-void SMAAEdgeDetectionOperation::setThreshold(float threshold)
+void SMAAEdgeDetectionOperation::set_threshold(float threshold)
 {
   /* UI values are between 0 and 1 for simplicity but algorithm expects values between 0 and 0.5 */
-  m_threshold = scalenorm(0, 0.5, threshold);
+  threshold_ = scalenorm(0, 0.5, threshold);
 }
 
-void SMAAEdgeDetectionOperation::setLocalContrastAdaptationFactor(float factor)
+void SMAAEdgeDetectionOperation::set_local_contrast_adaptation_factor(float factor)
 {
   /* UI values are between 0 and 1 for simplicity but algorithm expects values between 1 and 10 */
-  m_contrast_limit = scalenorm(1, 10, factor);
+  contrast_limit_ = scalenorm(1, 10, factor);
 }
 
-bool SMAAEdgeDetectionOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool SMAAEdgeDetectionOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  newInput.xmax = input->xmax + 1;
-  newInput.xmin = input->xmin - 2;
-  newInput.ymax = input->ymax + 1;
-  newInput.ymin = input->ymin - 2;
+  rcti new_input;
+  new_input.xmax = input->xmax + 1;
+  new_input.xmin = input->xmin - 2;
+  new_input.ymax = input->ymax + 1;
+  new_input.ymin = input->ymin - 2;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void SMAAEdgeDetectionOperation::get_area_of_interest(const int UNUSED(input_idx),
@@ -224,23 +223,23 @@ void SMAAEdgeDetectionOperation::get_area_of_interest(const int UNUSED(input_idx
   r_input_area.ymin = output_area.ymin - 2;
 }
 
-void SMAAEdgeDetectionOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void SMAAEdgeDetectionOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   float color[4];
 
   /* Calculate luma deltas: */
-  sample(m_imageReader, x, y, color);
+  sample(image_reader_, x, y, color);
   float L = IMB_colormanagement_get_luminance(color);
-  sample(m_imageReader, x - 1, y, color);
+  sample(image_reader_, x - 1, y, color);
   float Lleft = IMB_colormanagement_get_luminance(color);
-  sample(m_imageReader, x, y - 1, color);
+  sample(image_reader_, x, y - 1, color);
   float Ltop = IMB_colormanagement_get_luminance(color);
   float Dleft = fabsf(L - Lleft);
   float Dtop = fabsf(L - Ltop);
 
   /* We do the usual threshold: */
-  output[0] = (x > 0 && Dleft >= m_threshold) ? 1.0f : 0.0f;
-  output[1] = (y > 0 && Dtop >= m_threshold) ? 1.0f : 0.0f;
+  output[0] = (x > 0 && Dleft >= threshold_) ? 1.0f : 0.0f;
+  output[1] = (y > 0 && Dtop >= threshold_) ? 1.0f : 0.0f;
   output[2] = 0.0f;
   output[3] = 1.0f;
 
@@ -250,36 +249,36 @@ void SMAAEdgeDetectionOperation::executePixel(float output[4], int x, int y, voi
   }
 
   /* Calculate right and bottom deltas: */
-  sample(m_imageReader, x + 1, y, color);
+  sample(image_reader_, x + 1, y, color);
   float Lright = IMB_colormanagement_get_luminance(color);
-  sample(m_imageReader, x, y + 1, color);
+  sample(image_reader_, x, y + 1, color);
   float Lbottom = IMB_colormanagement_get_luminance(color);
   float Dright = fabsf(L - Lright);
   float Dbottom = fabsf(L - Lbottom);
 
   /* Calculate the maximum delta in the direct neighborhood: */
-  float maxDelta = fmaxf(fmaxf(Dleft, Dright), fmaxf(Dtop, Dbottom));
+  float max_delta = fmaxf(fmaxf(Dleft, Dright), fmaxf(Dtop, Dbottom));
 
   /* Calculate luma used for both left and top edges: */
-  sample(m_imageReader, x - 1, y - 1, color);
+  sample(image_reader_, x - 1, y - 1, color);
   float Llefttop = IMB_colormanagement_get_luminance(color);
 
   /* Left edge */
   if (output[0] != 0.0f) {
     /* Calculate deltas around the left pixel: */
-    sample(m_imageReader, x - 2, y, color);
+    sample(image_reader_, x - 2, y, color);
     float Lleftleft = IMB_colormanagement_get_luminance(color);
-    sample(m_imageReader, x - 1, y + 1, color);
+    sample(image_reader_, x - 1, y + 1, color);
     float Lleftbottom = IMB_colormanagement_get_luminance(color);
     float Dleftleft = fabsf(Lleft - Lleftleft);
     float Dlefttop = fabsf(Lleft - Llefttop);
     float Dleftbottom = fabsf(Lleft - Lleftbottom);
 
     /* Calculate the final maximum delta: */
-    maxDelta = fmaxf(maxDelta, fmaxf(Dleftleft, fmaxf(Dlefttop, Dleftbottom)));
+    max_delta = fmaxf(max_delta, fmaxf(Dleftleft, fmaxf(Dlefttop, Dleftbottom)));
 
     /* Local contrast adaptation: */
-    if (maxDelta > m_contrast_limit * Dleft) {
+    if (max_delta > contrast_limit_ * Dleft) {
       output[0] = 0.0f;
     }
   }
@@ -287,19 +286,19 @@ void SMAAEdgeDetectionOperation::executePixel(float output[4], int x, int y, voi
   /* Top edge */
   if (output[1] != 0.0f) {
     /* Calculate top-top delta: */
-    sample(m_imageReader, x, y - 2, color);
+    sample(image_reader_, x, y - 2, color);
     float Ltoptop = IMB_colormanagement_get_luminance(color);
-    sample(m_imageReader, x + 1, y - 1, color);
+    sample(image_reader_, x + 1, y - 1, color);
     float Ltopright = IMB_colormanagement_get_luminance(color);
     float Dtoptop = fabsf(Ltop - Ltoptop);
     float Dtopleft = fabsf(Ltop - Llefttop);
     float Dtopright = fabsf(Ltop - Ltopright);
 
     /* Calculate the final maximum delta: */
-    maxDelta = fmaxf(maxDelta, fmaxf(Dtoptop, fmaxf(Dtopleft, Dtopright)));
+    max_delta = fmaxf(max_delta, fmaxf(Dtoptop, fmaxf(Dtopleft, Dtopright)));
 
     /* Local contrast adaptation: */
-    if (maxDelta > m_contrast_limit * Dtop) {
+    if (max_delta > contrast_limit_ * Dtop) {
       output[1] = 0.0f;
     }
   }
@@ -326,8 +325,8 @@ void SMAAEdgeDetectionOperation::update_memory_buffer_partial(MemoryBuffer *outp
     const float Dtop = fabsf(L - Ltop);
 
     /* We do the usual threshold: */
-    it.out[0] = (x > 0 && Dleft >= m_threshold) ? 1.0f : 0.0f;
-    it.out[1] = (y > 0 && Dtop >= m_threshold) ? 1.0f : 0.0f;
+    it.out[0] = (x > 0 && Dleft >= threshold_) ? 1.0f : 0.0f;
+    it.out[1] = (y > 0 && Dtop >= threshold_) ? 1.0f : 0.0f;
     it.out[2] = 0.0f;
     it.out[3] = 1.0f;
 
@@ -345,7 +344,7 @@ void SMAAEdgeDetectionOperation::update_memory_buffer_partial(MemoryBuffer *outp
     const float Dbottom = fabsf(L - Lbottom);
 
     /* Calculate the maximum delta in the direct neighborhood: */
-    float maxDelta = fmaxf(fmaxf(Dleft, Dright), fmaxf(Dtop, Dbottom));
+    float max_delta = fmaxf(fmaxf(Dleft, Dright), fmaxf(Dtop, Dbottom));
 
     /* Calculate luma used for both left and top edges: */
     image->read_elem_checked(x - 1, y - 1, color);
@@ -363,10 +362,10 @@ void SMAAEdgeDetectionOperation::update_memory_buffer_partial(MemoryBuffer *outp
       const float Dleftbottom = fabsf(Lleft - Lleftbottom);
 
       /* Calculate the final maximum delta: */
-      maxDelta = fmaxf(maxDelta, fmaxf(Dleftleft, fmaxf(Dlefttop, Dleftbottom)));
+      max_delta = fmaxf(max_delta, fmaxf(Dleftleft, fmaxf(Dlefttop, Dleftbottom)));
 
       /* Local contrast adaptation: */
-      if (maxDelta > m_contrast_limit * Dleft) {
+      if (max_delta > contrast_limit_ * Dleft) {
         it.out[0] = 0.0f;
       }
     }
@@ -383,10 +382,10 @@ void SMAAEdgeDetectionOperation::update_memory_buffer_partial(MemoryBuffer *outp
       const float Dtopright = fabsf(Ltop - Ltopright);
 
       /* Calculate the final maximum delta: */
-      maxDelta = fmaxf(maxDelta, fmaxf(Dtoptop, fmaxf(Dtopleft, Dtopright)));
+      max_delta = fmaxf(max_delta, fmaxf(Dtoptop, fmaxf(Dtopleft, Dtopright)));
 
       /* Local contrast adaptation: */
-      if (maxDelta > m_contrast_limit * Dtop) {
+      if (max_delta > contrast_limit_ * Dtop) {
         it.out[1] = 0.0f;
       }
     }
@@ -399,47 +398,47 @@ void SMAAEdgeDetectionOperation::update_memory_buffer_partial(MemoryBuffer *outp
 
 SMAABlendingWeightCalculationOperation::SMAABlendingWeightCalculationOperation()
 {
-  this->addInputSocket(DataType::Color); /* edges */
-  this->addOutputSocket(DataType::Color);
-  this->flags.complex = true;
-  this->m_imageReader = nullptr;
-  this->setCornerRounding(CMP_DEFAULT_SMAA_CORNER_ROUNDING);
+  this->add_input_socket(DataType::Color); /* edges */
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  image_reader_ = nullptr;
+  this->set_corner_rounding(CMP_DEFAULT_SMAA_CORNER_ROUNDING);
 }
 
-void *SMAABlendingWeightCalculationOperation::initializeTileData(rcti *rect)
+void *SMAABlendingWeightCalculationOperation::initialize_tile_data(rcti *rect)
 {
-  return getInputOperation(0)->initializeTileData(rect);
+  return get_input_operation(0)->initialize_tile_data(rect);
 }
 
-void SMAABlendingWeightCalculationOperation::initExecution()
+void SMAABlendingWeightCalculationOperation::init_execution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
+  image_reader_ = this->get_input_socket_reader(0);
   if (execution_model_ == eExecutionModel::Tiled) {
-    sample_image_fn_ = [=](int x, int y, float *out) { sample(m_imageReader, x, y, out); };
+    sample_image_fn_ = [=](int x, int y, float *out) { sample(image_reader_, x, y, out); };
   }
 }
 
-void SMAABlendingWeightCalculationOperation::setCornerRounding(float rounding)
+void SMAABlendingWeightCalculationOperation::set_corner_rounding(float rounding)
 {
   /* UI values are between 0 and 1 for simplicity but algorithm expects values between 0 and 100 */
-  m_corner_rounding = static_cast<int>(scalenorm(0, 100, rounding));
+  corner_rounding_ = static_cast<int>(scalenorm(0, 100, rounding));
 }
 
-void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
-                                                          int x,
-                                                          int y,
-                                                          void * /*data*/)
+void SMAABlendingWeightCalculationOperation::execute_pixel(float output[4],
+                                                           int x,
+                                                           int y,
+                                                           void * /*data*/)
 {
   float edges[4], c[4];
 
   zero_v4(output);
-  sample(m_imageReader, x, y, edges);
+  sample(image_reader_, x, y, edges);
 
   /* Edge at north */
   if (edges[1] > 0.0f) {
     /* Diagonals have both north and west edges, so calculating weights for them */
     /* in one of the boundaries is enough. */
-    calculateDiagWeights(x, y, edges, output);
+    calculate_diag_weights(x, y, edges, output);
 
     /* We give priority to diagonals, so if we find a diagonal we skip. */
     /* horizontal/vertical processing. */
@@ -448,25 +447,25 @@ void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
     }
 
     /* Find the distance to the left and the right: */
-    int left = searchXLeft(x, y);
-    int right = searchXRight(x, y);
+    int left = search_xleft(x, y);
+    int right = search_xright(x, y);
     int d1 = x - left, d2 = right - x;
 
     /* Fetch the left and right crossing edges: */
     int e1 = 0, e2 = 0;
-    sample(m_imageReader, left, y - 1, c);
+    sample(image_reader_, left, y - 1, c);
     if (c[0] > 0.0) {
       e1 += 1;
     }
-    sample(m_imageReader, left, y, c);
+    sample(image_reader_, left, y, c);
     if (c[0] > 0.0) {
       e1 += 2;
     }
-    sample(m_imageReader, right + 1, y - 1, c);
+    sample(image_reader_, right + 1, y - 1, c);
     if (c[0] > 0.0) {
       e2 += 1;
     }
-    sample(m_imageReader, right + 1, y, c);
+    sample(image_reader_, right + 1, y, c);
     if (c[0] > 0.0) {
       e2 += 2;
     }
@@ -476,38 +475,38 @@ void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
     area(d1, d2, e1, e2, output); /* R, G */
 
     /* Fix corners: */
-    if (m_corner_rounding) {
-      detectHorizontalCornerPattern(output, left, right, y, d1, d2);
+    if (corner_rounding_) {
+      detect_horizontal_corner_pattern(output, left, right, y, d1, d2);
     }
   }
 
   /* Edge at west */
   if (edges[0] > 0.0f) {
     /* Did we already do diagonal search for this west edge from the left neighboring pixel? */
-    if (isVerticalSearchUnneeded(x, y)) {
+    if (is_vertical_search_unneeded(x, y)) {
       return;
     }
 
     /* Find the distance to the top and the bottom: */
-    int top = searchYUp(x, y);
-    int bottom = searchYDown(x, y);
+    int top = search_yup(x, y);
+    int bottom = search_ydown(x, y);
     int d1 = y - top, d2 = bottom - y;
 
     /* Fetch the top and bottom crossing edges: */
     int e1 = 0, e2 = 0;
-    sample(m_imageReader, x - 1, top, c);
+    sample(image_reader_, x - 1, top, c);
     if (c[1] > 0.0) {
       e1 += 1;
     }
-    sample(m_imageReader, x, top, c);
+    sample(image_reader_, x, top, c);
     if (c[1] > 0.0) {
       e1 += 2;
     }
-    sample(m_imageReader, x - 1, bottom + 1, c);
+    sample(image_reader_, x - 1, bottom + 1, c);
     if (c[1] > 0.0) {
       e2 += 1;
     }
-    sample(m_imageReader, x, bottom + 1, c);
+    sample(image_reader_, x, bottom + 1, c);
     if (c[1] > 0.0) {
       e2 += 2;
     }
@@ -516,8 +515,8 @@ void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
     area(d1, d2, e1, e2, output + 2); /* B, A */
 
     /* Fix corners: */
-    if (m_corner_rounding) {
-      detectVerticalCornerPattern(output + 2, x, top, bottom, d1, d2);
+    if (corner_rounding_) {
+      detect_vertical_corner_pattern(output + 2, x, top, bottom, d1, d2);
     }
   }
 }
@@ -545,7 +544,7 @@ void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
     if (edges[1] > 0.0f) {
       /* Diagonals have both north and west edges, so calculating weights for them */
       /* in one of the boundaries is enough. */
-      calculateDiagWeights(x, y, edges, it.out);
+      calculate_diag_weights(x, y, edges, it.out);
 
       /* We give priority to diagonals, so if we find a diagonal we skip. */
       /* horizontal/vertical processing. */
@@ -554,8 +553,8 @@ void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
       }
 
       /* Find the distance to the left and the right: */
-      int left = searchXLeft(x, y);
-      int right = searchXRight(x, y);
+      int left = search_xleft(x, y);
+      int right = search_xright(x, y);
       int d1 = x - left, d2 = right - x;
 
       /* Fetch the left and right crossing edges: */
@@ -582,21 +581,21 @@ void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
       area(d1, d2, e1, e2, it.out); /* R, G */
 
       /* Fix corners: */
-      if (m_corner_rounding) {
-        detectHorizontalCornerPattern(it.out, left, right, y, d1, d2);
+      if (corner_rounding_) {
+        detect_horizontal_corner_pattern(it.out, left, right, y, d1, d2);
       }
     }
 
     /* Edge at west */
     if (edges[0] > 0.0f) {
       /* Did we already do diagonal search for this west edge from the left neighboring pixel? */
-      if (isVerticalSearchUnneeded(x, y)) {
+      if (is_vertical_search_unneeded(x, y)) {
         continue;
       }
 
       /* Find the distance to the top and the bottom: */
-      int top = searchYUp(x, y);
-      int bottom = searchYDown(x, y);
+      int top = search_yup(x, y);
+      int bottom = search_ydown(x, y);
       int d1 = y - top, d2 = bottom - y;
 
       /* Fetch the top and bottom crossing edges: */
@@ -622,31 +621,31 @@ void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
       area(d1, d2, e1, e2, it.out + 2); /* B, A */
 
       /* Fix corners: */
-      if (m_corner_rounding) {
-        detectVerticalCornerPattern(it.out + 2, x, top, bottom, d1, d2);
+      if (corner_rounding_) {
+        detect_vertical_corner_pattern(it.out + 2, x, top, bottom, d1, d2);
       }
     }
   }
 }
 
-void SMAABlendingWeightCalculationOperation::deinitExecution()
+void SMAABlendingWeightCalculationOperation::deinit_execution()
 {
-  this->m_imageReader = nullptr;
+  image_reader_ = nullptr;
 }
 
-bool SMAABlendingWeightCalculationOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool SMAABlendingWeightCalculationOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = input->xmax + fmax(SMAA_MAX_SEARCH_STEPS, SMAA_MAX_SEARCH_STEPS_DIAG + 1);
-  newInput.xmin = input->xmin -
-                  fmax(fmax(SMAA_MAX_SEARCH_STEPS - 1, 1), SMAA_MAX_SEARCH_STEPS_DIAG + 1);
-  newInput.ymax = input->ymax + fmax(SMAA_MAX_SEARCH_STEPS, SMAA_MAX_SEARCH_STEPS_DIAG);
-  newInput.ymin = input->ymin -
-                  fmax(fmax(SMAA_MAX_SEARCH_STEPS - 1, 1), SMAA_MAX_SEARCH_STEPS_DIAG);
+  new_input.xmax = input->xmax + fmax(SMAA_MAX_SEARCH_STEPS, SMAA_MAX_SEARCH_STEPS_DIAG + 1);
+  new_input.xmin = input->xmin -
+                   fmax(fmax(SMAA_MAX_SEARCH_STEPS - 1, 1), SMAA_MAX_SEARCH_STEPS_DIAG + 1);
+  new_input.ymax = input->ymax + fmax(SMAA_MAX_SEARCH_STEPS, SMAA_MAX_SEARCH_STEPS_DIAG);
+  new_input.ymin = input->ymin -
+                   fmax(fmax(SMAA_MAX_SEARCH_STEPS - 1, 1), SMAA_MAX_SEARCH_STEPS_DIAG);
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int UNUSED(input_idx),
@@ -668,7 +667,7 @@ void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int UNUS
 /**
  * These functions allows to perform diagonal pattern searches.
  */
-int SMAABlendingWeightCalculationOperation::searchDiag1(int x, int y, int dir, bool *found)
+int SMAABlendingWeightCalculationOperation::search_diag1(int x, int y, int dir, bool *found)
 {
   float e[4];
   int end = x + SMAA_MAX_SEARCH_STEPS_DIAG * dir;
@@ -691,7 +690,7 @@ int SMAABlendingWeightCalculationOperation::searchDiag1(int x, int y, int dir, b
   return x - dir;
 }
 
-int SMAABlendingWeightCalculationOperation::searchDiag2(int x, int y, int dir, bool *found)
+int SMAABlendingWeightCalculationOperation::search_diag2(int x, int y, int dir, bool *found)
 {
   float e[4];
   int end = x + SMAA_MAX_SEARCH_STEPS_DIAG * dir;
@@ -718,10 +717,10 @@ int SMAABlendingWeightCalculationOperation::searchDiag2(int x, int y, int dir, b
 /**
  * This searches for diagonal patterns and returns the corresponding weights.
  */
-void SMAABlendingWeightCalculationOperation::calculateDiagWeights(int x,
-                                                                  int y,
-                                                                  const float edges[2],
-                                                                  float weights[2])
+void SMAABlendingWeightCalculationOperation::calculate_diag_weights(int x,
+                                                                    int y,
+                                                                    const float edges[2],
+                                                                    float weights[2])
 {
   int d1, d2;
   bool d1_found, d2_found;
@@ -735,13 +734,13 @@ void SMAABlendingWeightCalculationOperation::calculateDiagWeights(int x,
 
   /* Search for the line ends: */
   if (edges[0] > 0.0f) {
-    d1 = x - searchDiag1(x, y, -1, &d1_found);
+    d1 = x - search_diag1(x, y, -1, &d1_found);
   }
   else {
     d1 = 0;
     d1_found = true;
   }
-  d2 = searchDiag1(x, y, 1, &d2_found) - x;
+  d2 = search_diag1(x, y, 1, &d2_found) - x;
 
   if (d1 + d2 > 2) { /* d1 + d2 + 1 > 3 */
     int e1 = 0, e2 = 0;
@@ -779,10 +778,10 @@ void SMAABlendingWeightCalculationOperation::calculateDiagWeights(int x,
   }
 
   /* Search for the line ends: */
-  d1 = x - searchDiag2(x, y, -1, &d1_found);
+  d1 = x - search_diag2(x, y, -1, &d1_found);
   sample_image_fn_(x + 1, y, e);
   if (e[0] > 0.0f) {
-    d2 = searchDiag2(x, y, 1, &d2_found) - x;
+    d2 = search_diag2(x, y, 1, &d2_found) - x;
   }
   else {
     d2 = 0;
@@ -827,7 +826,7 @@ void SMAABlendingWeightCalculationOperation::calculateDiagWeights(int x,
   }
 }
 
-bool SMAABlendingWeightCalculationOperation::isVerticalSearchUnneeded(int x, int y)
+bool SMAABlendingWeightCalculationOperation::is_vertical_search_unneeded(int x, int y)
 {
   int d1, d2;
   bool found;
@@ -840,12 +839,12 @@ bool SMAABlendingWeightCalculationOperation::isVerticalSearchUnneeded(int x, int
   /* Search for the line ends: */
   sample_image_fn_(x - 1, y, e);
   if (e[1] > 0.0f) {
-    d1 = x - searchDiag2(x - 1, y, -1, &found);
+    d1 = x - search_diag2(x - 1, y, -1, &found);
   }
   else {
     d1 = 0;
   }
-  d2 = searchDiag2(x - 1, y, 1, &found) - x;
+  d2 = search_diag2(x - 1, y, 1, &found) - x;
 
   return (d1 + d2 > 2); /* d1 + d2 + 1 > 3 */
 }
@@ -853,7 +852,7 @@ bool SMAABlendingWeightCalculationOperation::isVerticalSearchUnneeded(int x, int
 /*-----------------------------------------------------------------------------*/
 /* Horizontal/Vertical Search Functions */
 
-int SMAABlendingWeightCalculationOperation::searchXLeft(int x, int y)
+int SMAABlendingWeightCalculationOperation::search_xleft(int x, int y)
 {
   int end = x - SMAA_MAX_SEARCH_STEPS;
   float e[4];
@@ -876,7 +875,7 @@ int SMAABlendingWeightCalculationOperation::searchXLeft(int x, int y)
   return x + 1;
 }
 
-int SMAABlendingWeightCalculationOperation::searchXRight(int x, int y)
+int SMAABlendingWeightCalculationOperation::search_xright(int x, int y)
 {
   int end = x + SMAA_MAX_SEARCH_STEPS;
   float e[4];
@@ -897,7 +896,7 @@ int SMAABlendingWeightCalculationOperation::searchXRight(int x, int y)
   return x - 1;
 }
 
-int SMAABlendingWeightCalculationOperation::searchYUp(int x, int y)
+int SMAABlendingWeightCalculationOperation::search_yup(int x, int y)
 {
   int end = y - SMAA_MAX_SEARCH_STEPS;
   float e[4];
@@ -920,7 +919,7 @@ int SMAABlendingWeightCalculationOperation::searchYUp(int x, int y)
   return y + 1;
 }
 
-int SMAABlendingWeightCalculationOperation::searchYDown(int x, int y)
+int SMAABlendingWeightCalculationOperation::search_ydown(int x, int y)
 {
   int end = y + SMAA_MAX_SEARCH_STEPS;
   float e[4];
@@ -944,11 +943,11 @@ int SMAABlendingWeightCalculationOperation::searchYDown(int x, int y)
 /*-----------------------------------------------------------------------------*/
 /* Corner Detection Functions */
 
-void SMAABlendingWeightCalculationOperation::detectHorizontalCornerPattern(
+void SMAABlendingWeightCalculationOperation::detect_horizontal_corner_pattern(
     float weights[2], int left, int right, int y, int d1, int d2)
 {
   float factor[2] = {1.0f, 1.0f};
-  float rounding = m_corner_rounding / 100.0f;
+  float rounding = corner_rounding_ / 100.0f;
   float e[4];
 
   /* Reduce blending for pixels in the center of a line. */
@@ -973,11 +972,11 @@ void SMAABlendingWeightCalculationOperation::detectHorizontalCornerPattern(
   weights[1] *= CLAMPIS(factor[1], 0.0f, 1.0f);
 }
 
-void SMAABlendingWeightCalculationOperation::detectVerticalCornerPattern(
+void SMAABlendingWeightCalculationOperation::detect_vertical_corner_pattern(
     float weights[2], int x, int top, int bottom, int d1, int d2)
 {
   float factor[2] = {1.0f, 1.0f};
-  float rounding = m_corner_rounding / 100.0f;
+  float rounding = corner_rounding_ / 100.0f;
   float e[4];
 
   /* Reduce blending for pixels in the center of a line. */
@@ -1008,43 +1007,43 @@ void SMAABlendingWeightCalculationOperation::detectVerticalCornerPattern(
 
 SMAANeighborhoodBlendingOperation::SMAANeighborhoodBlendingOperation()
 {
-  this->addInputSocket(DataType::Color); /* image */
-  this->addInputSocket(DataType::Color); /* blend */
-  this->addOutputSocket(DataType::Color);
-  this->flags.complex = true;
-  this->m_image1Reader = nullptr;
-  this->m_image2Reader = nullptr;
+  this->add_input_socket(DataType::Color); /* image */
+  this->add_input_socket(DataType::Color); /* blend */
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  image1Reader_ = nullptr;
+  image2Reader_ = nullptr;
 }
 
-void *SMAANeighborhoodBlendingOperation::initializeTileData(rcti *rect)
+void *SMAANeighborhoodBlendingOperation::initialize_tile_data(rcti *rect)
 {
-  return getInputOperation(0)->initializeTileData(rect);
+  return get_input_operation(0)->initialize_tile_data(rect);
 }
 
-void SMAANeighborhoodBlendingOperation::initExecution()
+void SMAANeighborhoodBlendingOperation::init_execution()
 {
-  this->m_image1Reader = this->getInputSocketReader(0);
-  this->m_image2Reader = this->getInputSocketReader(1);
+  image1Reader_ = this->get_input_socket_reader(0);
+  image2Reader_ = this->get_input_socket_reader(1);
 }
 
-void SMAANeighborhoodBlendingOperation::executePixel(float output[4],
-                                                     int x,
-                                                     int y,
-                                                     void * /*data*/)
+void SMAANeighborhoodBlendingOperation::execute_pixel(float output[4],
+                                                      int x,
+                                                      int y,
+                                                      void * /*data*/)
 {
   float w[4];
 
   /* Fetch the blending weights for current pixel: */
-  sample(m_image2Reader, x, y, w);
+  sample(image2Reader_, x, y, w);
   float left = w[2], top = w[0];
-  sample(m_image2Reader, x + 1, y, w);
+  sample(image2Reader_, x + 1, y, w);
   float right = w[3];
-  sample(m_image2Reader, x, y + 1, w);
+  sample(image2Reader_, x, y + 1, w);
   float bottom = w[1];
 
   /* Is there any blending weight with a value greater than 0.0? */
   if (right + bottom + left + top < 1e-5f) {
-    sample(m_image1Reader, x, y, output);
+    sample(image1Reader_, x, y, output);
     return;
   }
 
@@ -1068,8 +1067,8 @@ void SMAANeighborhoodBlendingOperation::executePixel(float output[4],
   }
 
   /* We exploit bilinear filtering to mix current pixel with the chosen neighbor: */
-  samplefunc(m_image1Reader, x, y, offset1, color1);
-  samplefunc(m_image1Reader, x, y, offset2, color2);
+  samplefunc(image1Reader_, x, y, offset1, color1);
+  samplefunc(image1Reader_, x, y, offset2, color2);
 
   mul_v4_v4fl(output, color1, weight1);
   madd_v4_v4fl(output, color2, weight2);
@@ -1128,23 +1127,23 @@ void SMAANeighborhoodBlendingOperation::update_memory_buffer_partial(MemoryBuffe
   }
 }
 
-void SMAANeighborhoodBlendingOperation::deinitExecution()
+void SMAANeighborhoodBlendingOperation::deinit_execution()
 {
-  this->m_image1Reader = nullptr;
-  this->m_image2Reader = nullptr;
+  image1Reader_ = nullptr;
+  image2Reader_ = nullptr;
 }
 
-bool SMAANeighborhoodBlendingOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool SMAANeighborhoodBlendingOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = input->xmax + 1;
-  newInput.xmin = input->xmin - 1;
-  newInput.ymax = input->ymax + 1;
-  newInput.ymin = input->ymin - 1;
+  new_input.xmax = input->xmax + 1;
+  new_input.xmin = input->xmin - 1;
+  new_input.ymax = input->ymax + 1;
+  new_input.ymin = input->ymin - 1;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void SMAANeighborhoodBlendingOperation::get_area_of_interest(const int UNUSED(input_idx),

@@ -48,7 +48,7 @@
 #  include <shlobj.h>
 #  include <windows.h>
 #else
-#  include "unistd.h"
+#  include <unistd.h>
 #endif /* WIN32 */
 
 #include "MEM_guardedalloc.h"
@@ -1933,6 +1933,39 @@ bool BLI_path_name_at_index(const char *__restrict path,
     i -= 1;
   }
   return false;
+}
+
+bool BLI_path_contains(const char *container_path, const char *containee_path)
+{
+  char container_native[PATH_MAX];
+  char containee_native[PATH_MAX];
+
+  /* Keep space for a trailing slash. If the path is truncated by this, the containee path is
+   * longer than PATH_MAX and the result is ill-defined.  */
+  BLI_strncpy(container_native, container_path, PATH_MAX - 1);
+  BLI_strncpy(containee_native, containee_path, PATH_MAX);
+
+  BLI_path_slash_native(container_native);
+  BLI_path_slash_native(containee_native);
+
+  BLI_path_normalize(NULL, container_native);
+  BLI_path_normalize(NULL, containee_native);
+
+#ifdef WIN32
+  BLI_str_tolower_ascii(container_native, PATH_MAX);
+  BLI_str_tolower_ascii(containee_native, PATH_MAX);
+#endif
+
+  if (STREQ(container_native, containee_native)) {
+    /* The paths are equal, they contain each other. */
+    return true;
+  }
+
+  /* Add a trailing slash to prevent same-prefix directories from matching.
+   * e.g. "/some/path" doesn't contain "/some/path_lib". */
+  BLI_path_slash_ensure(container_native);
+
+  return BLI_str_startswith(containee_native, container_native);
 }
 
 /**

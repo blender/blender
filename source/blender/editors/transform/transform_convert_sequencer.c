@@ -275,7 +275,7 @@ static void seq_transform_cancel(TransInfo *t, SeqCollection *transformed_strips
       SEQ_transform_seqbase_shuffle(seqbase, seq, t->scene);
     }
 
-    SEQ_time_update_sequence_bounds(t->scene, seq);
+    SEQ_time_update_sequence(t->scene, seqbase, seq);
   }
 }
 
@@ -327,7 +327,8 @@ static void seq_transform_update_effects(TransInfo *t, SeqCollection *collection
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, collection) {
     if ((seq->type & SEQ_TYPE_EFFECT) && (seq->seq1 || seq->seq2 || seq->seq3)) {
-      SEQ_time_update_sequence(t->scene, seq);
+      ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
+      SEQ_time_update_sequence(t->scene, seqbase, seq);
     }
   }
 }
@@ -457,6 +458,7 @@ static void seq_transform_handle_overwrite_split(const TransInfo *t,
   SEQ_edit_strip_split(
       bmain, scene, seqbase, split_strip, transformed->enddisp, SEQ_SPLIT_SOFT, NULL);
   SEQ_edit_flag_for_removal(scene, seqbase_active_get(t), split_strip);
+  SEQ_edit_remove_flagged_sequences(t->scene, seqbase_active_get(t));
 }
 
 /* Trim strips by adjusting handle position.
@@ -487,7 +489,9 @@ static void seq_transform_handle_overwrite_trim(const TransInfo *t,
       BLI_assert(overlap == STRIP_OVERLAP_RIGHT_SIDE);
       SEQ_transform_set_right_handle_frame(seq, transformed->startdisp);
     }
-    SEQ_time_update_sequence(t->scene, seq);
+
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
+    SEQ_time_update_sequence(t->scene, seqbase, seq);
   }
   SEQ_collection_free(targets);
 }
@@ -495,8 +499,8 @@ static void seq_transform_handle_overwrite_trim(const TransInfo *t,
 static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *transformed_strips)
 {
   SeqCollection *targets = query_overwrite_targets(t, transformed_strips);
+  SeqCollection *strips_to_delete = SEQ_collection_create(__func__);
 
-  bool strips_delete = false;
   Sequence *target;
   Sequence *transformed;
   SEQ_ITERATOR_FOREACH (target, targets) {
@@ -508,13 +512,10 @@ static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *tr
       const eOvelapDescrition overlap = overlap_description_get(transformed, target);
 
       if (overlap == STRIP_OVERLAP_IS_FULL) {
-        /* Remove covered strip. */
-        SEQ_edit_flag_for_removal(t->scene, seqbase_active_get(t), target);
-        strips_delete = true;
+        SEQ_collection_append_strip(target, strips_to_delete);
       }
       else if (overlap == STRIP_OVERLAP_IS_INSIDE) {
         seq_transform_handle_overwrite_split(t, transformed, target);
-        strips_delete = true;
       }
       else if (ELEM(overlap, STRIP_OVERLAP_LEFT_SIDE, STRIP_OVERLAP_RIGHT_SIDE)) {
         seq_transform_handle_overwrite_trim(t, transformed, target, overlap);
@@ -524,9 +525,16 @@ static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *tr
 
   SEQ_collection_free(targets);
 
-  if (strips_delete) {
+  /* Remove covered strips. This must be done in separate loop, because `SEQ_edit_strip_split()`
+   * also uses `SEQ_edit_remove_flagged_sequences()`. See T91096. */
+  if (SEQ_collection_len(strips_to_delete) > 0) {
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips_to_delete) {
+      SEQ_edit_flag_for_removal(t->scene, seqbase_active_get(t), seq);
+    }
     SEQ_edit_remove_flagged_sequences(t->scene, seqbase_active_get(t));
   }
+  SEQ_collection_free(strips_to_delete);
 }
 
 static void seq_transform_handle_overlap_shuffle(const TransInfo *t,
@@ -704,7 +712,9 @@ BLI_INLINE void trans_update_seq(Scene *sce, Sequence *seq, int old_start, int s
   /* Calculate this strip and all nested strips.
    * Children are ALWAYS transformed first so we don't need to do this in another loop.
    */
-  SEQ_time_update_sequence(sce, seq);
+
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(sce));
+  SEQ_time_update_sequence(sce, seqbase, seq);
 
   if (sel_flag == SELECT) {
     SEQ_offset_animdata(sce, seq, seq->start - old_start);
@@ -744,13 +754,13 @@ static void flushTransSeq(TransInfo *t)
         SEQ_transform_set_left_handle_frame(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
-        SEQ_time_update_sequence(t->scene, seq);
+        SEQ_time_update_sequence(t->scene, seqbasep, seq);
         break;
       case SEQ_RIGHTSEL: /* No vertical transform. */
         SEQ_transform_set_right_handle_frame(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
-        SEQ_time_update_sequence(t->scene, seq);
+        SEQ_time_update_sequence(t->scene, seqbasep, seq);
         break;
     }
   }
@@ -759,7 +769,7 @@ static void flushTransSeq(TransInfo *t)
   if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) {
     for (seq = seqbasep->first; seq; seq = seq->next) {
       if (seq->seq1 || seq->seq2 || seq->seq3) {
-        SEQ_time_update_sequence(t->scene, seq);
+        SEQ_time_update_sequence(t->scene, seqbasep, seq);
       }
     }
   }

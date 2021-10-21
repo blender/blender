@@ -461,7 +461,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
   reinterpret_cast<Texture *>(tex)->generate_mipmap();
 }
 
-/* Copy a texture content to a similar texture. Only Mip 0 is copied. */
+/* Copy a texture content to a similar texture. Only MIP 0 is copied. */
 void GPU_texture_copy(GPUTexture *dst_, GPUTexture *src_)
 {
   Texture *src = reinterpret_cast<Texture *>(src_);

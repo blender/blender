@@ -22,6 +22,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct DRWTextStore;
 struct Object;
@@ -57,3 +61,7 @@ enum {
 
 /* draw_manager.c */
 struct DRWTextStore *DRW_text_cache_ensure(void);
+
+#ifdef __cplusplus
+}
+#endif

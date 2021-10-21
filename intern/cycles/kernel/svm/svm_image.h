@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint flags)
+ccl_device float4 svm_image_texture(KernelGlobals kg, int id, float x, float y, uint flags)
 {
   if (id == -1) {
     return make_float4(
@@ -44,8 +44,8 @@ ccl_device_inline float3 texco_remap_square(float3 co)
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
 }
 
-ccl_device void svm_node_tex_image(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_image(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint co_offset, out_offset, alpha_offset, flags;
 
@@ -71,7 +71,7 @@ ccl_device void svm_node_tex_image(
   int num_nodes = (int)node.y;
   if (num_nodes > 0) {
     /* Remember the offset of the node following the tile nodes. */
-    int next_offset = (*offset) + num_nodes;
+    int next_offset = offset + num_nodes;
 
     /* Find the tile that the UV lies in. */
     int tx = (int)tex_co.x;
@@ -83,7 +83,7 @@ ccl_device void svm_node_tex_image(
 
       /* Find the index of the tile. */
       for (int i = 0; i < num_nodes; i++) {
-        uint4 tile_node = read_node(kg, offset);
+        uint4 tile_node = read_node(kg, &offset);
         if (tile_node.x == tile) {
           id = tile_node.y;
           break;
@@ -102,7 +102,7 @@ ccl_device void svm_node_tex_image(
     }
 
     /* Skip over the remaining nodes. */
-    *offset = next_offset;
+    offset = next_offset;
   }
   else {
     id = -num_nodes;
@@ -114,9 +114,13 @@ ccl_device void svm_node_tex_image(
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
   if (stack_valid(alpha_offset))
     stack_store_float(stack, alpha_offset, f.w);
+  return offset;
 }
 
-ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
+                                                ccl_private ShaderData *sd,
+                                                ccl_private float *stack,
+                                                uint4 node)
 {
   /* get object space normal */
   float3 N = sd->N;
@@ -138,10 +142,10 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
    * in between we blend between two textures, and in the middle we a blend
    * between three textures.
    *
-   * the Nxyz values are the barycentric coordinates in an equilateral
+   * The `Nxyz` values are the barycentric coordinates in an equilateral
    * triangle, which in case of blending, in the middle has a smaller
    * equilateral triangle where 3 textures blend. this divides things into
-   * 7 zones, with an if() test for each zone */
+   * 7 zones, with an if() test for each zone. */
 
   float3 weight = make_float3(0.0f, 0.0f, 0.0f);
   float blend = __int_as_float(node.w);
@@ -215,10 +219,10 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
     stack_store_float(stack, alpha_offset, f.w);
 }
 
-ccl_device void svm_node_tex_environment(KernelGlobals *kg,
-                                         ShaderData *sd,
-                                         float *stack,
-                                         uint4 node)
+ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
+                                                  ccl_private ShaderData *sd,
+                                                  ccl_private float *stack,
+                                                  uint4 node)
 {
   uint id = node.y;
   uint co_offset, out_offset, alpha_offset, flags;

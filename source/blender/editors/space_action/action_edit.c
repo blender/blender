@@ -276,7 +276,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   scene = ac.scene;
 
   /* set the range directly */
-  get_keyframe_extents(&ac, &min, &max, false);
+  get_keyframe_extents(&ac, &min, &max, true);
   scene->r.flag |= SCER_PRV_RANGE;
   scene->r.psfra = floorf(min);
   scene->r.pefra = ceilf(max);
@@ -295,7 +295,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_previewrange_set(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Auto-Set Preview Range";
+  ot->name = "Set Preview Range to Selected";
   ot->idname = "ACTION_OT_previewrange_set";
   ot->description = "Set Preview Range based on extents of selected Keyframes";
 

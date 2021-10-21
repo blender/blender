@@ -639,7 +639,6 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
         add_attributes(mesh.attributes)
         add_attributes(mesh.uv_layers)
-        add_attributes(mesh.vertex_colors)
         add_attributes(ob.vertex_groups)
 
         colliding_names = [name for name, layers in attributes_by_name.items() if len(layers) >= 2]

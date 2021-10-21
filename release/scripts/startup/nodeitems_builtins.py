@@ -80,6 +80,160 @@ node_tree_group_type = {
     'GeometryNodeTree': 'GeometryNodeGroup',
 }
 
+# Custom Menu for Geometry Node Curves
+def curve_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("GeometryNodeLegacyCurveEndpoints")
+        yield NodeItem("GeometryNodeLegacyCurveReverse")
+        yield NodeItem("GeometryNodeLegacyCurveSubdivide")
+        yield NodeItem("GeometryNodeLegacyCurveToPoints")
+        yield NodeItem("GeometryNodeLegacyMeshToCurve")
+        yield NodeItem("GeometryNodeLegacyCurveSelectHandles")
+        yield NodeItem("GeometryNodeLegacyCurveSetHandles")
+        yield NodeItem("GeometryNodeLegacyCurveSplineType")
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeCurveLength")
+    yield NodeItem("GeometryNodeCurveToMesh")
+    yield NodeItem("GeometryNodeCurveToPoints")
+    yield NodeItem("GeometryNodeFillCurve")
+    yield NodeItem("GeometryNodeFilletCurve")
+    yield NodeItem("GeometryNodeResampleCurve")
+    yield NodeItem("GeometryNodeReverseCurve")
+    yield NodeItem("GeometryNodeSampleCurve")
+    yield NodeItem("GeometryNodeSubdivideCurve")
+    yield NodeItem("GeometryNodeTrimCurve")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputCurveHandlePositions")
+    yield NodeItem("GeometryNodeCurveParameter")
+    yield NodeItem("GeometryNodeInputTangent")
+    yield NodeItem("GeometryNodeInputCurveTilt")
+    yield NodeItem("GeometryNodeCurveEndpointSelection")
+    yield NodeItem("GeometryNodeCurveHandleTypeSelection")
+    yield NodeItem("GeometryNodeInputSplineCyclic")
+    yield NodeItem("GeometryNodeSplineLength")
+    yield NodeItem("GeometryNodeInputSplineResolution")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeSetCurveRadius")
+    yield NodeItem("GeometryNodeSetCurveTilt")
+    yield NodeItem("GeometryNodeSetCurveHandlePositions")
+    yield NodeItem("GeometryNodeCurveSetHandles")
+    yield NodeItem("GeometryNodeSetSplineCyclic")
+    yield NodeItem("GeometryNodeSetSplineResolution")
+    yield NodeItem("GeometryNodeCurveSplineType")
+
+# Custom Menu for Geometry Node Mesh
+def mesh_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("GeometryNodeLegacyEdgeSplit", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacySubdivisionSurface", poll=geometry_nodes_legacy_poll)
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeMeshBoolean")
+    yield NodeItem("GeometryNodeMeshToCurve")
+    yield NodeItem("GeometryNodeMeshToPoints")
+    yield NodeItem("GeometryNodeSplitEdges")
+    yield NodeItem("GeometryNodeSubdivideMesh")
+    yield NodeItem("GeometryNodeSubdivisionSurface")
+    yield NodeItem("GeometryNodeTriangulate")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputShadeSmooth")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeSetShadeSmooth")
+
+# Custom Menu for Geometry Node Input Nodes
+def geometry_input_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("FunctionNodeLegacyRandomFloat"),
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeCollectionInfo")
+    yield NodeItem("FunctionNodeInputColor")
+    yield NodeItem("GeometryNodeIsViewport")
+    yield NodeItem("GeometryNodeInputMaterial")
+    yield NodeItem("GeometryNodeObjectInfo")
+    yield NodeItem("FunctionNodeInputString")
+    yield NodeItem("ShaderNodeValue")
+    yield NodeItem("FunctionNodeInputVector")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputIndex")
+    yield NodeItem("GeometryNodeInputNormal")
+    yield NodeItem("GeometryNodeInputPosition")
+    yield NodeItem("GeometryNodeInputRadius")
+
+# Custom Menu for Material Nodes
+def geometry_material_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("GeometryNodeLegacyMaterialAssign")
+        yield NodeItem("GeometryNodeLegacySelectByMaterial")
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeReplaceMaterial")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputMaterialIndex")
+    yield NodeItem("GeometryNodeMaterialSelection")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeSetMaterial")
+    yield NodeItem("GeometryNodeSetMaterialIndex")
+
+# Custom Menu for Geometry Node Points
+def point_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("GeometryNodeLegacyAlignRotationToVector", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyPointDistribute", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyPointInstance", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyPointScale", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyPointSeparate", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyPointTranslate", poll=geometry_nodes_legacy_poll)
+        yield NodeItem("GeometryNodeLegacyRotatePoints", poll=geometry_nodes_legacy_poll)
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeDistributePointsOnFaces")
+    yield NodeItem("GeometryNodePointsToVertices")
+    yield NodeItem("GeometryNodePointsToVolume")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeSetPointRadius")
 
 # generic node group items generator for shader, compositor, geometry and texture node groups
 def node_group_items(context):
@@ -180,11 +334,8 @@ def object_eevee_cycles_shader_nodes_poll(context):
             eevee_cycles_shader_nodes_poll(context))
 
 
-def geometry_nodes_fields_poll(context):
-    return context.preferences.experimental.use_geometry_nodes_fields
-
-def geometry_nodes_fields_legacy_poll(context):
-    return not context.preferences.experimental.use_geometry_nodes_fields
+def geometry_nodes_legacy_poll(context):
+    return context.preferences.experimental.use_geometry_nodes_legacy
 
 
 # All standard node categories currently used in nodes.
@@ -282,6 +433,7 @@ shader_node_categories = [
     ]),
     ShaderNodeCategory("SH_NEW_CONVERTOR", "Converter", items=[
         NodeItem("ShaderNodeMapRange"),
+        NodeItem("ShaderNodeFloatCurve"),
         NodeItem("ShaderNodeClamp"),
         NodeItem("ShaderNodeMath"),
         NodeItem("ShaderNodeValToRGB"),
@@ -483,26 +635,28 @@ texture_node_categories = [
 geometry_node_categories = [
     # Geometry Nodes
     GeometryNodeCategory("GEO_ATTRIBUTE", "Attribute", items=[
-        NodeItem("GeometryNodeLegacyAttributeRandomize", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeMath", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeClamp", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeCompare", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeConvert", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeCurveMap", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeFill", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeMix", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeProximity", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeColorRamp", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeVectorMath", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeVectorRotate", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeSampleTexture", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeCombineXYZ", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeSeparateXYZ", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeMapRange", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAttributeTransfer", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeRandomize", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeMath", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeClamp", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeCompare", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeConvert", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeCurveMap", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeFill", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeMix", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeProximity", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeColorRamp", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeVectorMath", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeVectorRotate", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeSampleTexture", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeCombineXYZ", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeSeparateXYZ", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeMapRange", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyAttributeTransfer", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeAttributeRemove", poll=geometry_nodes_legacy_poll),
 
-        NodeItem("GeometryNodeAttributeRemove"),
-        NodeItem("GeometryNodeAttributeCapture", poll=geometry_nodes_fields_poll),
+        NodeItem("GeometryNodeCaptureAttribute"),
+        NodeItem("GeometryNodeAttributeStatistic"),
+        NodeItem("GeometryNodeAttributeTransfer"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
@@ -511,22 +665,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
     ]),
-    GeometryNodeCategory("GEO_CURVE", "Curve", items=[
-        NodeItem("GeometryNodeLegacyCurveSubdivide", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyCurveReverse", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyCurveSplineType", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyCurveSetHandles", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyCurveSelectHandles", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyMeshToCurve", poll=geometry_nodes_fields_legacy_poll),
-
-        NodeItem("GeometryNodeCurveToMesh"),
-        NodeItem("GeometryNodeCurveResample"),
-        NodeItem("GeometryNodeCurveToPoints"),
-        NodeItem("GeometryNodeCurveEndpoints"),
-        NodeItem("GeometryNodeCurveFill"),
-        NodeItem("GeometryNodeCurveTrim"),
-        NodeItem("GeometryNodeCurveLength"),
-    ]),
+    GeometryNodeCategory("GEO_CURVE", "Curve", items=curve_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[
         NodeItem("GeometryNodeCurvePrimitiveLine"),
         NodeItem("GeometryNodeCurvePrimitiveCircle"),
@@ -537,42 +676,30 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurvePrimitiveBezierSegment"),
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=[
-        NodeItem("GeometryNodeLegacyDeleteGeometry", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyRaycast", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacyDeleteGeometry", poll=geometry_nodes_legacy_poll),
+        NodeItem("GeometryNodeLegacyRaycast", poll=geometry_nodes_legacy_poll),
 
+        NodeItem("GeometryNodeRaycast"),
+        NodeItem("GeometryNodeProximity"),
         NodeItem("GeometryNodeBoundBox"),
         NodeItem("GeometryNodeConvexHull"),
+        NodeItem("GeometryNodeDeleteGeometry"),
         NodeItem("GeometryNodeTransform"),
         NodeItem("GeometryNodeJoinGeometry"),
         NodeItem("GeometryNodeSeparateComponents"),
-        NodeItem("GeometryNodeSetPosition", poll=geometry_nodes_fields_poll),
+        NodeItem("GeometryNodeSeparateGeometry"),
+        NodeItem("GeometryNodeSetPosition"),
     ]),
-    GeometryNodeCategory("GEO_INPUT", "Input", items=[
-        NodeItem("GeometryNodeObjectInfo"),
-        NodeItem("GeometryNodeCollectionInfo"),
-        NodeItem("FunctionNodeRandomFloat"),
-        NodeItem("ShaderNodeValue"),
-        NodeItem("FunctionNodeInputString"),
-        NodeItem("FunctionNodeInputVector"),
-        NodeItem("GeometryNodeInputMaterial"),
-        NodeItem("GeometryNodeIsViewport"),
-        NodeItem("GeometryNodeInputPosition", poll=geometry_nodes_fields_poll),
-        NodeItem("GeometryNodeInputIndex", poll=geometry_nodes_fields_poll),
-        NodeItem("GeometryNodeInputNormal", poll=geometry_nodes_fields_poll),
+    GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
+    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=[
+        NodeItem("GeometryNodeInstanceOnPoints"),
+        NodeItem("GeometryNodeRealizeInstances"),
+        NodeItem("GeometryNodeRotateInstances"),
+        NodeItem("GeometryNodeScaleInstances"),
+        NodeItem("GeometryNodeTranslateInstances"),
     ]),
-    GeometryNodeCategory("GEO_MATERIAL", "Material", items=[
-        NodeItem("GeometryNodeLegacyMaterialAssign", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacySelectByMaterial", poll=geometry_nodes_fields_legacy_poll),
-
-        NodeItem("GeometryNodeMaterialReplace"),
-    ]),
-    GeometryNodeCategory("GEO_MESH", "Mesh", items=[
-        NodeItem("GeometryNodeBoolean"),
-        NodeItem("GeometryNodeTriangulate"),
-        NodeItem("GeometryNodeEdgeSplit"),
-        NodeItem("GeometryNodeSubdivisionSurface"),
-        NodeItem("GeometryNodeMeshSubdivide"),
-    ]),
+    GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
+    GeometryNodeCategory("GEO_MESH", "Mesh", items=mesh_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
         NodeItem("GeometryNodeMeshCircle"),
         NodeItem("GeometryNodeMeshCone"),
@@ -583,23 +710,41 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshLine"),
         NodeItem("GeometryNodeMeshUVSphere"),
     ]),
-    GeometryNodeCategory("GEO_POINT", "Point", items=[
-        NodeItem("GeometryNodeLegacyPointDistribute", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyPointInstance", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyPointSeparate", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyPointScale", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyPointTranslate", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyRotatePoints", poll=geometry_nodes_fields_legacy_poll),
-        NodeItem("GeometryNodeLegacyAlignRotationToVector", poll=geometry_nodes_fields_legacy_poll),
+    GeometryNodeCategory("GEO_OUTPUT", "Output", items=[
+        NodeItem("GeometryNodeViewer"),
+    ]),
+    GeometryNodeCategory("GEO_POINT", "Point", items=point_node_items),
+    GeometryNodeCategory("GEO_TEXT", "Text", items=[
+        NodeItem("FunctionNodeStringLength"),
+        NodeItem("FunctionNodeStringSubstring"),
+        NodeItem("FunctionNodeValueToString"),
+        NodeItem("GeometryNodeStringJoin"),
+        NodeItem("FunctionNodeInputSpecialCharacters"),
+        NodeItem("GeometryNodeStringToCurves"),
+        NodeItem("FunctionNodeReplaceString"),
+    ]),
+    GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
+        NodeItem("ShaderNodeTexChecker"),
+        NodeItem("ShaderNodeTexGradient"),
+        NodeItem("ShaderNodeTexMagic"),
+        NodeItem("ShaderNodeTexMusgrave"),
+        NodeItem("ShaderNodeTexNoise"),
+        NodeItem("ShaderNodeTexVoronoi"),
+        NodeItem("ShaderNodeTexWave"),
+        NodeItem("ShaderNodeTexWhiteNoise"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),
+        NodeItem("ShaderNodeFloatCurve"),
         NodeItem("ShaderNodeClamp"),
         NodeItem("ShaderNodeMath"),
         NodeItem("FunctionNodeBooleanMath"),
-        NodeItem("FunctionNodeFloatCompare"),
+        NodeItem("FunctionNodeRotateEuler"),
+        NodeItem("FunctionNodeCompareFloats"),
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
+        NodeItem("FunctionNodeRandomValue"),
+        NodeItem("FunctionNodeAlignEulerToVector"),
     ]),
     GeometryNodeCategory("GEO_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeVectorCurve"),
@@ -608,11 +753,8 @@ geometry_node_categories = [
         NodeItem("ShaderNodeVectorMath"),
         NodeItem("ShaderNodeVectorRotate"),
     ]),
-    GeometryNodeCategory("GEO_OUTPUT", "Output", items=[
-        NodeItem("GeometryNodeViewer"),
-    ]),
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
-        NodeItem("GeometryNodeLegacyPointsToVolume", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacyPointsToVolume", poll=geometry_nodes_legacy_poll),
 
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),

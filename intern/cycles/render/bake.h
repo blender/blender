@@ -30,8 +30,8 @@ class BakeManager {
   BakeManager();
   ~BakeManager();
 
-  void set(Scene *scene, const std::string &object_name, ShaderEvalType type, int pass_filter);
-  bool get_baking();
+  void set(Scene *scene, const std::string &object_name);
+  bool get_baking() const;
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   void device_free(Device *device, DeviceScene *dscene);
@@ -42,8 +42,6 @@ class BakeManager {
 
  private:
   bool need_update_;
-  ShaderEvalType type;
-  int pass_filter;
   std::string object_name;
 };
 

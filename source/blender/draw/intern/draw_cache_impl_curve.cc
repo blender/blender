@@ -36,9 +36,9 @@
 
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_font.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_spline.hh"
+#include "BKE_vfont.h"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
@@ -341,6 +341,9 @@ static void curve_cd_calc_used_gpu_layers(CustomDataMask *cd_layers,
           break;
         case CD_ORCO:
           *cd_layers |= CD_MASK_ORCO;
+          break;
+        case CD_HAIRLENGTH:
+          *cd_layers |= CD_MASK_HAIRLENGTH;
           break;
       }
     }

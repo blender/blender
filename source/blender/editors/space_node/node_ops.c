@@ -51,6 +51,7 @@ void node_operatortypes(void)
 
   WM_operatortype_append(NODE_OT_view_all);
   WM_operatortype_append(NODE_OT_view_selected);
+  WM_operatortype_append(NODE_OT_geometry_node_view_legacy);
 
   WM_operatortype_append(NODE_OT_mute_toggle);
   WM_operatortype_append(NODE_OT_hide_toggle);

@@ -481,7 +481,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = eye->is_undo;
         if (eye->accum_tot == 0) {
-          eyedropper_color_sample(C, eye, event->x, event->y);
+          eyedropper_color_sample(C, eye, event->xy[0], event->xy[1]);
         }
         eyedropper_exit(C, op);
         /* Could support finished & undo-skip. */
@@ -490,23 +490,23 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_BEGIN:
         /* enable accum and make first sample */
         eye->accum_start = true;
-        eyedropper_color_sample(C, eye, event->x, event->y);
+        eyedropper_color_sample(C, eye, event->xy[0], event->xy[1]);
         break;
       case EYE_MODAL_SAMPLE_RESET:
         eye->accum_tot = 0;
         zero_v3(eye->accum_col);
-        eyedropper_color_sample(C, eye, event->x, event->y);
+        eyedropper_color_sample(C, eye, event->xy[0], event->xy[1]);
         break;
     }
   }
   else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     if (eye->accum_start) {
       /* button is pressed so keep sampling */
-      eyedropper_color_sample(C, eye, event->x, event->y);
+      eyedropper_color_sample(C, eye, event->xy[0], event->xy[1]);
     }
 
     if (eye->draw_handle_sample_text) {
-      eyedropper_color_sample_text_update(C, eye, event->x, event->y);
+      eyedropper_color_sample_text_update(C, eye, event->xy[0], event->xy[1]);
       ED_region_tag_redraw(CTX_wm_region(C));
     }
   }

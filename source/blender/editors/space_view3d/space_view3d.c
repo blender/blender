@@ -30,6 +30,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -276,6 +277,13 @@ static SpaceLink *view3d_create(const ScrArea *UNUSED(area), const Scene *scene)
     v3d->camera = scene->camera;
   }
 
+  /* header */
+  region = MEM_callocN(sizeof(ARegion), "header for view3d");
+
+  BLI_addtail(&v3d->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* tool header */
   region = MEM_callocN(sizeof(ARegion), "tool header for view3d");
 
@@ -283,13 +291,6 @@ static SpaceLink *view3d_create(const ScrArea *UNUSED(area), const Scene *scene)
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for view3d");
-
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* tool shelf */
   region = MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
@@ -473,7 +474,7 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *region)
 static bool view3d_drop_in_main_region_poll(bContext *C, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
-  return ED_region_overlap_isect_any_xy(area, &event->x) == false;
+  return ED_region_overlap_isect_any_xy(area, event->xy) == false;
 }
 
 static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
@@ -482,7 +483,7 @@ static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
 {
   const ScrArea *area = CTX_wm_area(C);
 
-  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
+  if (ED_region_overlap_isect_any_xy(area, event->xy)) {
     return 0;
   }
   if (!view3d_drop_in_main_region_poll(C, event)) {
@@ -539,6 +540,11 @@ static char *view3d_mat_drop_tooltip(bContext *C,
   return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, event);
 }
 
+static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_WO);
+}
+
 static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ID_Type id_type = view3d_drop_id_in_main_region_poll_get_id_type(C, drag, event);
@@ -558,7 +564,7 @@ static char *view3d_object_data_drop_tooltip(bContext *UNUSED(C),
 
 static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), &event->x)) {
+  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), event->xy)) {
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {
@@ -625,7 +631,9 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_OB);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
-  RNA_boolean_set(drop->ptr, "duplicate", false);
+  /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
+  const bool is_imported_id = drag->type == WM_DRAG_ASSET;
+  RNA_boolean_set(drop->ptr, "duplicate", !is_imported_id);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -732,6 +740,12 @@ static void view3d_dropboxes(void)
                  view3d_id_drop_copy_with_type,
                  WM_drag_free_imported_drag_ID,
                  view3d_object_data_drop_tooltip);
+  WM_dropbox_add(lb,
+                 "VIEW3D_OT_drop_world",
+                 view3d_world_drop_poll,
+                 view3d_id_drop_copy,
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
 }
 
 static void view3d_widgets(void)
@@ -1555,11 +1569,13 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
   switch (wmn->category) {
     case NC_SCENE:
       switch (wmn->data) {
-        case ND_WORLD:
-          if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+        case ND_WORLD: {
+          const bool use_scene_world = V3D_USES_SCENE_WORLD(v3d);
+          if (v3d->flag2 & V3D_HIDE_OVERLAYS || use_scene_world) {
             ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
           break;
+        }
       }
       break;
     case NC_WORLD:
@@ -1780,6 +1796,11 @@ void ED_spacetype_view3d(void)
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: xr */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype view3d xr region");
+  art->regionid = RGN_TYPE_XR;
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);

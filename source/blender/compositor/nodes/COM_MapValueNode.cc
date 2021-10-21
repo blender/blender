@@ -18,30 +18,29 @@
 
 #include "COM_MapValueNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MapValueOperation.h"
 
 namespace blender::compositor {
 
-MapValueNode::MapValueNode(bNode *editorNode) : Node(editorNode)
+MapValueNode::MapValueNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MapValueNode::convertToOperations(NodeConverter &converter,
-                                       const CompositorContext & /*context*/) const
+void MapValueNode::convert_to_operations(NodeConverter &converter,
+                                         const CompositorContext & /*context*/) const
 {
-  TexMapping *storage = (TexMapping *)this->getbNode()->storage;
+  TexMapping *storage = (TexMapping *)this->get_bnode()->storage;
 
-  NodeInput *colorSocket = this->getInputSocket(0);
-  NodeOutput *valueSocket = this->getOutputSocket(0);
+  NodeInput *color_socket = this->get_input_socket(0);
+  NodeOutput *value_socket = this->get_output_socket(0);
 
-  MapValueOperation *convertProg = new MapValueOperation();
-  convertProg->setSettings(storage);
-  converter.addOperation(convertProg);
+  MapValueOperation *convert_prog = new MapValueOperation();
+  convert_prog->set_settings(storage);
+  converter.add_operation(convert_prog);
 
-  converter.mapInputSocket(colorSocket, convertProg->getInputSocket(0));
-  converter.mapOutputSocket(valueSocket, convertProg->getOutputSocket(0));
+  converter.map_input_socket(color_socket, convert_prog->get_input_socket(0));
+  converter.map_output_socket(value_socket, convert_prog->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

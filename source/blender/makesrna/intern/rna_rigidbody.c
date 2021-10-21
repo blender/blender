@@ -215,9 +215,10 @@ static void rna_RigidBodyWorld_constraints_collection_update(Main *bmain,
 
 static void rna_RigidBodyOb_reset(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  RigidBodyWorld *rbw = scene->rigidbody_world;
-
-  BKE_rigidbody_cache_reset(rbw);
+  if (scene != NULL) {
+    RigidBodyWorld *rbw = scene->rigidbody_world;
+    BKE_rigidbody_cache_reset(rbw);
+  }
 }
 
 static void rna_RigidBodyOb_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)

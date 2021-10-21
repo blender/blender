@@ -17,45 +17,44 @@
  */
 
 #include "COM_GammaCorrectOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
 GammaCorrectOperation::GammaCorrectOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
+  flags_.can_be_constant = true;
 }
-void GammaCorrectOperation::initExecution()
+void GammaCorrectOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-void GammaCorrectOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void GammaCorrectOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputProgram->readSampled(inputColor, x, y, sampler);
-  if (inputColor[3] > 0.0f) {
-    inputColor[0] /= inputColor[3];
-    inputColor[1] /= inputColor[3];
-    inputColor[2] /= inputColor[3];
+  float input_color[4];
+  input_program_->read_sampled(input_color, x, y, sampler);
+  if (input_color[3] > 0.0f) {
+    input_color[0] /= input_color[3];
+    input_color[1] /= input_color[3];
+    input_color[2] /= input_color[3];
   }
 
   /* check for negative to avoid nan's */
-  output[0] = inputColor[0] > 0.0f ? inputColor[0] * inputColor[0] : 0.0f;
-  output[1] = inputColor[1] > 0.0f ? inputColor[1] * inputColor[1] : 0.0f;
-  output[2] = inputColor[2] > 0.0f ? inputColor[2] * inputColor[2] : 0.0f;
-  output[3] = inputColor[3];
+  output[0] = input_color[0] > 0.0f ? input_color[0] * input_color[0] : 0.0f;
+  output[1] = input_color[1] > 0.0f ? input_color[1] * input_color[1] : 0.0f;
+  output[2] = input_color[2] > 0.0f ? input_color[2] * input_color[2] : 0.0f;
+  output[3] = input_color[3];
 
-  if (inputColor[3] > 0.0f) {
-    output[0] *= inputColor[3];
-    output[1] *= inputColor[3];
-    output[2] *= inputColor[3];
+  if (input_color[3] > 0.0f) {
+    output[0] *= input_color[3];
+    output[1] *= input_color[3];
+    output[2] *= input_color[3];
   }
 }
 
@@ -87,46 +86,46 @@ void GammaCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void GammaCorrectOperation::deinitExecution()
+void GammaCorrectOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
+  input_program_ = nullptr;
 }
 
 GammaUncorrectOperation::GammaUncorrectOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
+  flags_.can_be_constant = true;
 }
-void GammaUncorrectOperation::initExecution()
+void GammaUncorrectOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-void GammaUncorrectOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void GammaUncorrectOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputProgram->readSampled(inputColor, x, y, sampler);
+  float input_color[4];
+  input_program_->read_sampled(input_color, x, y, sampler);
 
-  if (inputColor[3] > 0.0f) {
-    inputColor[0] /= inputColor[3];
-    inputColor[1] /= inputColor[3];
-    inputColor[2] /= inputColor[3];
+  if (input_color[3] > 0.0f) {
+    input_color[0] /= input_color[3];
+    input_color[1] /= input_color[3];
+    input_color[2] /= input_color[3];
   }
 
-  output[0] = inputColor[0] > 0.0f ? sqrtf(inputColor[0]) : 0.0f;
-  output[1] = inputColor[1] > 0.0f ? sqrtf(inputColor[1]) : 0.0f;
-  output[2] = inputColor[2] > 0.0f ? sqrtf(inputColor[2]) : 0.0f;
-  output[3] = inputColor[3];
+  output[0] = input_color[0] > 0.0f ? sqrtf(input_color[0]) : 0.0f;
+  output[1] = input_color[1] > 0.0f ? sqrtf(input_color[1]) : 0.0f;
+  output[2] = input_color[2] > 0.0f ? sqrtf(input_color[2]) : 0.0f;
+  output[3] = input_color[3];
 
-  if (inputColor[3] > 0.0f) {
-    output[0] *= inputColor[3];
-    output[1] *= inputColor[3];
-    output[2] *= inputColor[3];
+  if (input_color[3] > 0.0f) {
+    output[0] *= input_color[3];
+    output[1] *= input_color[3];
+    output[2] *= input_color[3];
   }
 }
 
@@ -157,9 +156,9 @@ void GammaUncorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void GammaUncorrectOperation::deinitExecution()
+void GammaUncorrectOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
+  input_program_ = nullptr;
 }
 
 }  // namespace blender::compositor

@@ -190,7 +190,7 @@ IDTypeInfo IDType_ID_WO = {
     .name = "World",
     .name_plural = "worlds",
     .translation_context = BLT_I18NCONTEXT_ID_WORLD,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = world_init_data,
     .copy_data = world_copy_data,

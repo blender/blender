@@ -68,7 +68,7 @@ void ED_region_do_layout(struct bContext *C, struct ARegion *region);
 void ED_region_do_draw(struct bContext *C, struct ARegion *region);
 void ED_region_exit(struct bContext *C, struct ARegion *region);
 void ED_region_remove(struct bContext *C, struct ScrArea *area, struct ARegion *region);
-void ED_region_pixelspace(struct ARegion *region);
+void ED_region_pixelspace(const struct ARegion *region);
 void ED_region_update_rect(struct ARegion *region);
 void ED_region_floating_init(struct ARegion *region);
 void ED_region_tag_redraw(struct ARegion *region);
@@ -178,6 +178,10 @@ void ED_area_update_region_sizes(struct wmWindowManager *wm,
                                  struct wmWindow *win,
                                  struct ScrArea *area);
 bool ED_area_has_shared_border(struct ScrArea *a, struct ScrArea *b);
+ScrArea *ED_area_offscreen_create(struct wmWindow *win, eSpace_Type space_type);
+void ED_area_offscreen_free(struct wmWindowManager *wm,
+                            struct wmWindow *win,
+                            struct ScrArea *area);
 
 ScrArea *ED_screen_areas_iter_first(const struct wmWindow *win, const bScreen *screen);
 ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);

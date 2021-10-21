@@ -141,9 +141,6 @@ typedef struct RenderResult {
   volatile rcti renrect;
   volatile RenderLayer *renlay;
 
-  /* optional saved endresult on disk */
-  int do_exr_tile;
-
   /* for render results in Image, verify validity for sequences */
   int framenr;
 
@@ -236,7 +233,8 @@ void RE_create_render_pass(struct RenderResult *rr,
                            int channels,
                            const char *chan_id,
                            const char *layername,
-                           const char *viewname);
+                           const char *viewname,
+                           const bool allocate);
 
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re,

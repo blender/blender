@@ -16,27 +16,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_remove_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING,
-     N_("Attribute"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_MULTI_INPUT},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_attribute_remove_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_attribute_remove_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute").multi_input();
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void remove_attribute(GeometryComponent &component,
                              GeoNodeExecParams &params,
@@ -59,8 +46,6 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Vector<std::string> attribute_names = params.extract_multi_input<std::string>("Attribute");
-
-  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     remove_attribute(
@@ -85,7 +70,7 @@ void register_node_type_geo_attribute_remove()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_REMOVE, "Attribute Remove", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(&ntype, geo_node_attribute_remove_in, geo_node_attribute_remove_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_remove_exec;
+  ntype.declare = blender::nodes::geo_node_attribute_remove_declare;
   nodeRegisterType(&ntype);
 }

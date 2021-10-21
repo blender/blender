@@ -179,6 +179,7 @@ class GRAPH_MT_select(Menu):
         props.include_handles = True
 
         layout.operator("graph.select_circle")
+        layout.operator_menu_enum("graph.select_lasso", "mode")
 
         layout.separator()
         layout.operator("graph.select_column", text="Columns on Selected Keys").mode = 'KEYS'

@@ -402,9 +402,9 @@ static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_previewrange_set(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Auto-Set Preview Range";
+  ot->name = "Set Preview Range to Selected";
   ot->idname = "NLA_OT_previewrange_set";
-  ot->description = "Automatically set Preview Range based on range of keyframes";
+  ot->description = "Set Preview Range based on extends of selected strips";
 
   /* api callbacks */
   ot->exec = nlaedit_previewrange_exec;

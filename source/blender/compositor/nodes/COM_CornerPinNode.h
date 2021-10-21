@@ -29,9 +29,9 @@ namespace blender::compositor {
  */
 class CornerPinNode : public Node {
  public:
-  CornerPinNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  CornerPinNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

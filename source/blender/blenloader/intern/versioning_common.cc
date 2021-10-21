@@ -113,3 +113,17 @@ void version_node_socket_name(bNodeTree *ntree,
     }
   }
 }
+
+/**
+ * Replace the ID name of all nodes in the tree with the given type with the new name.
+ */
+void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      if (!STREQ(node->idname, new_name)) {
+        strcpy(node->idname, new_name);
+      }
+    }
+  }
+}

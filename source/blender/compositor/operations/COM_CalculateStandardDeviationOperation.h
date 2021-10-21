@@ -31,15 +31,15 @@ namespace blender::compositor {
  */
 class CalculateStandardDeviationOperation : public CalculateMeanOperation {
  protected:
-  float m_standardDeviation;
+  float standard_deviation_;
 
  public:
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
   void update_memory_buffer_started(MemoryBuffer *output,
                                     const rcti &area,

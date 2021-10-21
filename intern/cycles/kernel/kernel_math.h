@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef __KERNEL_MATH_H__
-#define __KERNEL_MATH_H__
+#pragma once
 
 #include "util/util_color.h"
 #include "util/util_math.h"
@@ -24,5 +23,3 @@
 #include "util/util_projection.h"
 #include "util/util_texture.h"
 #include "util/util_transform.h"
-
-#endif /* __KERNEL_MATH_H__ */

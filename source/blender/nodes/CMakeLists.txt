@@ -33,6 +33,7 @@ set(INC
   ../bmesh
   ../depsgraph
   ../functions
+  ../geometry
   ../gpu
   ../imbuf
   ../makesdna
@@ -45,130 +46,165 @@ set(INC
 
 
 set(SRC
-  composite/nodes/node_composite_alphaOver.c
-  composite/nodes/node_composite_antialiasing.c
-  composite/nodes/node_composite_bilateralblur.c
-  composite/nodes/node_composite_blur.c
-  composite/nodes/node_composite_bokehblur.c
-  composite/nodes/node_composite_bokehimage.c
-  composite/nodes/node_composite_boxmask.c
-  composite/nodes/node_composite_brightness.c
-  composite/nodes/node_composite_channelMatte.c
-  composite/nodes/node_composite_chromaMatte.c
-  composite/nodes/node_composite_colorMatte.c
-  composite/nodes/node_composite_colorSpill.c
-  composite/nodes/node_composite_colorbalance.c
-  composite/nodes/node_composite_colorcorrection.c
-  composite/nodes/node_composite_common.c
-  composite/nodes/node_composite_composite.c
-  composite/nodes/node_composite_cornerpin.c
-  composite/nodes/node_composite_crop.c
+  composite/nodes/node_composite_alphaOver.cc
+  composite/nodes/node_composite_antialiasing.cc
+  composite/nodes/node_composite_bilateralblur.cc
+  composite/nodes/node_composite_blur.cc
+  composite/nodes/node_composite_bokehblur.cc
+  composite/nodes/node_composite_bokehimage.cc
+  composite/nodes/node_composite_boxmask.cc
+  composite/nodes/node_composite_brightness.cc
+  composite/nodes/node_composite_channelMatte.cc
+  composite/nodes/node_composite_chromaMatte.cc
+  composite/nodes/node_composite_colorMatte.cc
+  composite/nodes/node_composite_colorSpill.cc
+  composite/nodes/node_composite_colorbalance.cc
+  composite/nodes/node_composite_colorcorrection.cc
+  composite/nodes/node_composite_common.cc
+  composite/nodes/node_composite_composite.cc
+  composite/nodes/node_composite_cornerpin.cc
+  composite/nodes/node_composite_crop.cc
   composite/nodes/node_composite_cryptomatte.cc
-  composite/nodes/node_composite_curves.c
-  composite/nodes/node_composite_defocus.c
-  composite/nodes/node_composite_denoise.c
-  composite/nodes/node_composite_despeckle.c
-  composite/nodes/node_composite_diffMatte.c
-  composite/nodes/node_composite_dilate.c
-  composite/nodes/node_composite_directionalblur.c
-  composite/nodes/node_composite_displace.c
-  composite/nodes/node_composite_distanceMatte.c
-  composite/nodes/node_composite_doubleEdgeMask.c
-  composite/nodes/node_composite_ellipsemask.c
-  composite/nodes/node_composite_exposure.c
-  composite/nodes/node_composite_filter.c
-  composite/nodes/node_composite_flip.c
-  composite/nodes/node_composite_gamma.c
-  composite/nodes/node_composite_glare.c
-  composite/nodes/node_composite_hueSatVal.c
-  composite/nodes/node_composite_huecorrect.c
-  composite/nodes/node_composite_idMask.c
-  composite/nodes/node_composite_image.c
-  composite/nodes/node_composite_inpaint.c
-  composite/nodes/node_composite_invert.c
-  composite/nodes/node_composite_keying.c
-  composite/nodes/node_composite_keyingscreen.c
-  composite/nodes/node_composite_lensdist.c
-  composite/nodes/node_composite_levels.c
-  composite/nodes/node_composite_lummaMatte.c
-  composite/nodes/node_composite_mapRange.c
-  composite/nodes/node_composite_mapUV.c
-  composite/nodes/node_composite_mapValue.c
-  composite/nodes/node_composite_mask.c
-  composite/nodes/node_composite_math.c
-  composite/nodes/node_composite_mixrgb.c
-  composite/nodes/node_composite_movieclip.c
-  composite/nodes/node_composite_moviedistortion.c
-  composite/nodes/node_composite_normal.c
-  composite/nodes/node_composite_normalize.c
-  composite/nodes/node_composite_outputFile.c
-  composite/nodes/node_composite_pixelate.c
-  composite/nodes/node_composite_planetrackdeform.c
-  composite/nodes/node_composite_posterize.c
-  composite/nodes/node_composite_premulkey.c
-  composite/nodes/node_composite_rgb.c
-  composite/nodes/node_composite_rotate.c
-  composite/nodes/node_composite_scale.c
-  composite/nodes/node_composite_sepcombHSVA.c
-  composite/nodes/node_composite_sepcombRGBA.c
-  composite/nodes/node_composite_sepcombYCCA.c
-  composite/nodes/node_composite_sepcombYUVA.c
-  composite/nodes/node_composite_setalpha.c
-  composite/nodes/node_composite_splitViewer.c
-  composite/nodes/node_composite_stabilize2d.c
-  composite/nodes/node_composite_sunbeams.c
-  composite/nodes/node_composite_switch.c
-  composite/nodes/node_composite_switchview.c
-  composite/nodes/node_composite_texture.c
-  composite/nodes/node_composite_tonemap.c
-  composite/nodes/node_composite_trackpos.c
-  composite/nodes/node_composite_transform.c
-  composite/nodes/node_composite_translate.c
-  composite/nodes/node_composite_valToRgb.c
-  composite/nodes/node_composite_value.c
-  composite/nodes/node_composite_vecBlur.c
-  composite/nodes/node_composite_viewer.c
-  composite/nodes/node_composite_zcombine.c
+  composite/nodes/node_composite_curves.cc
+  composite/nodes/node_composite_defocus.cc
+  composite/nodes/node_composite_denoise.cc
+  composite/nodes/node_composite_despeckle.cc
+  composite/nodes/node_composite_diffMatte.cc
+  composite/nodes/node_composite_dilate.cc
+  composite/nodes/node_composite_directionalblur.cc
+  composite/nodes/node_composite_displace.cc
+  composite/nodes/node_composite_distanceMatte.cc
+  composite/nodes/node_composite_doubleEdgeMask.cc
+  composite/nodes/node_composite_ellipsemask.cc
+  composite/nodes/node_composite_exposure.cc
+  composite/nodes/node_composite_filter.cc
+  composite/nodes/node_composite_flip.cc
+  composite/nodes/node_composite_gamma.cc
+  composite/nodes/node_composite_glare.cc
+  composite/nodes/node_composite_hueSatVal.cc
+  composite/nodes/node_composite_huecorrect.cc
+  composite/nodes/node_composite_idMask.cc
+  composite/nodes/node_composite_image.cc
+  composite/nodes/node_composite_inpaint.cc
+  composite/nodes/node_composite_invert.cc
+  composite/nodes/node_composite_keying.cc
+  composite/nodes/node_composite_keyingscreen.cc
+  composite/nodes/node_composite_lensdist.cc
+  composite/nodes/node_composite_levels.cc
+  composite/nodes/node_composite_lummaMatte.cc
+  composite/nodes/node_composite_mapRange.cc
+  composite/nodes/node_composite_mapUV.cc
+  composite/nodes/node_composite_mapValue.cc
+  composite/nodes/node_composite_mask.cc
+  composite/nodes/node_composite_math.cc
+  composite/nodes/node_composite_mixrgb.cc
+  composite/nodes/node_composite_movieclip.cc
+  composite/nodes/node_composite_moviedistortion.cc
+  composite/nodes/node_composite_normal.cc
+  composite/nodes/node_composite_normalize.cc
+  composite/nodes/node_composite_outputFile.cc
+  composite/nodes/node_composite_pixelate.cc
+  composite/nodes/node_composite_planetrackdeform.cc
+  composite/nodes/node_composite_posterize.cc
+  composite/nodes/node_composite_premulkey.cc
+  composite/nodes/node_composite_rgb.cc
+  composite/nodes/node_composite_rotate.cc
+  composite/nodes/node_composite_scale.cc
+  composite/nodes/node_composite_sepcombHSVA.cc
+  composite/nodes/node_composite_sepcombRGBA.cc
+  composite/nodes/node_composite_sepcombYCCA.cc
+  composite/nodes/node_composite_sepcombYUVA.cc
+  composite/nodes/node_composite_setalpha.cc
+  composite/nodes/node_composite_splitViewer.cc
+  composite/nodes/node_composite_stabilize2d.cc
+  composite/nodes/node_composite_sunbeams.cc
+  composite/nodes/node_composite_switch.cc
+  composite/nodes/node_composite_switchview.cc
+  composite/nodes/node_composite_texture.cc
+  composite/nodes/node_composite_tonemap.cc
+  composite/nodes/node_composite_trackpos.cc
+  composite/nodes/node_composite_transform.cc
+  composite/nodes/node_composite_translate.cc
+  composite/nodes/node_composite_valToRgb.cc
+  composite/nodes/node_composite_value.cc
+  composite/nodes/node_composite_vecBlur.cc
+  composite/nodes/node_composite_viewer.cc
+  composite/nodes/node_composite_zcombine.cc
 
-  composite/node_composite_tree.c
-  composite/node_composite_util.c
+  composite/node_composite_tree.cc
+  composite/node_composite_util.cc
 
+  function/nodes/legacy/node_fn_random_float.cc
+
+  function/nodes/node_fn_align_euler_to_vector.cc
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
+  function/nodes/node_fn_input_color.cc
+  function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
-  function/nodes/node_fn_random_float.cc
+  function/nodes/node_fn_random_value.cc
+  function/nodes/node_fn_replace_string.cc
+  function/nodes/node_fn_rotate_euler.cc
+  function/nodes/node_fn_string_length.cc
+  function/nodes/node_fn_string_substring.cc
+  function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 
-  geometry/nodes/node_geo_align_rotation_to_vector.cc
+  geometry/nodes/legacy/node_geo_align_rotation_to_vector.cc
+  geometry/nodes/legacy/node_geo_attribute_clamp.cc
+  geometry/nodes/legacy/node_geo_attribute_color_ramp.cc
+  geometry/nodes/legacy/node_geo_attribute_combine_xyz.cc
+  geometry/nodes/legacy/node_geo_attribute_compare.cc
+  geometry/nodes/legacy/node_geo_attribute_convert.cc
+  geometry/nodes/legacy/node_geo_attribute_curve_map.cc
+  geometry/nodes/legacy/node_geo_attribute_fill.cc
+  geometry/nodes/legacy/node_geo_attribute_map_range.cc
+  geometry/nodes/legacy/node_geo_attribute_math.cc
+  geometry/nodes/legacy/node_geo_attribute_mix.cc
+  geometry/nodes/legacy/node_geo_attribute_proximity.cc
+  geometry/nodes/legacy/node_geo_attribute_randomize.cc
+  geometry/nodes/legacy/node_geo_attribute_sample_texture.cc
+  geometry/nodes/legacy/node_geo_attribute_separate_xyz.cc
+  geometry/nodes/legacy/node_geo_attribute_transfer.cc
+  geometry/nodes/legacy/node_geo_attribute_vector_math.cc
+  geometry/nodes/legacy/node_geo_attribute_vector_rotate.cc
+  geometry/nodes/legacy/node_geo_curve_endpoints.cc
+  geometry/nodes/legacy/node_geo_curve_reverse.cc
+  geometry/nodes/legacy/node_geo_curve_select_by_handle_type.cc
+  geometry/nodes/legacy/node_geo_curve_set_handles.cc
+  geometry/nodes/legacy/node_geo_curve_spline_type.cc
+  geometry/nodes/legacy/node_geo_curve_subdivide.cc
+  geometry/nodes/legacy/node_geo_curve_to_points.cc
+  geometry/nodes/legacy/node_geo_delete_geometry.cc
+  geometry/nodes/legacy/node_geo_edge_split.cc
+  geometry/nodes/legacy/node_geo_material_assign.cc
+  geometry/nodes/legacy/node_geo_mesh_to_curve.cc
+  geometry/nodes/legacy/node_geo_point_distribute.cc
+  geometry/nodes/legacy/node_geo_point_instance.cc
+  geometry/nodes/legacy/node_geo_point_rotate.cc
+  geometry/nodes/legacy/node_geo_point_scale.cc
+  geometry/nodes/legacy/node_geo_point_separate.cc
+  geometry/nodes/legacy/node_geo_point_translate.cc
+  geometry/nodes/legacy/node_geo_points_to_volume.cc
+  geometry/nodes/legacy/node_geo_raycast.cc
+  geometry/nodes/legacy/node_geo_select_by_material.cc
+  geometry/nodes/legacy/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_attribute_capture.cc
-  geometry/nodes/node_geo_attribute_clamp.cc
-  geometry/nodes/node_geo_attribute_color_ramp.cc
-  geometry/nodes/node_geo_attribute_combine_xyz.cc
-  geometry/nodes/node_geo_attribute_compare.cc
-  geometry/nodes/node_geo_attribute_convert.cc
-  geometry/nodes/node_geo_attribute_curve_map.cc
-  geometry/nodes/node_geo_attribute_fill.cc
-  geometry/nodes/node_geo_attribute_map_range.cc
-  geometry/nodes/node_geo_attribute_math.cc
-  geometry/nodes/node_geo_attribute_mix.cc
-  geometry/nodes/node_geo_attribute_proximity.cc
-  geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_attribute_remove.cc
-  geometry/nodes/node_geo_attribute_sample_texture.cc
-  geometry/nodes/node_geo_attribute_separate_xyz.cc
-  geometry/nodes/node_geo_attribute_transfer.cc
-  geometry/nodes/node_geo_attribute_vector_math.cc
-  geometry/nodes/node_geo_attribute_vector_rotate.cc
+  geometry/nodes/node_geo_attribute_statistic.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_bounding_box.cc
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
-  geometry/nodes/node_geo_curve_endpoints.cc
+  geometry/nodes/node_geo_curve_endpoint_selection.cc
   geometry/nodes/node_geo_curve_fill.cc
+  geometry/nodes/node_geo_curve_fillet.cc
+  geometry/nodes/node_geo_curve_handle_type_selection.cc
   geometry/nodes/node_geo_curve_length.cc
+  geometry/nodes/node_geo_curve_parameter.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
   geometry/nodes/node_geo_curve_primitive_circle.cc
   geometry/nodes/node_geo_curve_primitive_line.cc
@@ -178,7 +214,7 @@ set(SRC
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
-  geometry/nodes/node_geo_curve_select_by_handle_type.cc
+  geometry/nodes/node_geo_curve_sample.cc
   geometry/nodes/node_geo_curve_set_handles.cc
   geometry/nodes/node_geo_curve_spline_type.cc
   geometry/nodes/node_geo_curve_subdivide.cc
@@ -186,15 +222,26 @@ set(SRC
   geometry/nodes/node_geo_curve_to_points.cc
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_delete_geometry.cc
+  geometry/nodes/node_geo_distribute_points_on_faces.cc
   geometry/nodes/node_geo_edge_split.cc
+  geometry/nodes/node_geo_input_curve_handles.cc
+  geometry/nodes/node_geo_input_curve_tilt.cc
+  geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material.cc
+  geometry/nodes/node_geo_input_material_index.cc
   geometry/nodes/node_geo_input_normal.cc
   geometry/nodes/node_geo_input_position.cc
-  geometry/nodes/node_geo_input_index.cc
+  geometry/nodes/node_geo_input_radius.cc
+  geometry/nodes/node_geo_input_shade_smooth.cc
+  geometry/nodes/node_geo_input_spline_cyclic.cc
+  geometry/nodes/node_geo_input_spline_length.cc
+  geometry/nodes/node_geo_input_spline_resolution.cc
+  geometry/nodes/node_geo_input_tangent.cc
+  geometry/nodes/node_geo_instance_on_points.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
-  geometry/nodes/node_geo_material_assign.cc
   geometry/nodes/node_geo_material_replace.cc
+  geometry/nodes/node_geo_material_selection.cc
   geometry/nodes/node_geo_mesh_primitive_circle.cc
   geometry/nodes/node_geo_mesh_primitive_cone.cc
   geometry/nodes/node_geo_mesh_primitive_cube.cc
@@ -205,24 +252,38 @@ set(SRC
   geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
   geometry/nodes/node_geo_mesh_subdivide.cc
   geometry/nodes/node_geo_mesh_to_curve.cc
+  geometry/nodes/node_geo_mesh_to_points.cc
   geometry/nodes/node_geo_object_info.cc
-  geometry/nodes/node_geo_point_distribute.cc
-  geometry/nodes/node_geo_point_instance.cc
-  geometry/nodes/node_geo_point_rotate.cc
-  geometry/nodes/node_geo_point_scale.cc
-  geometry/nodes/node_geo_point_separate.cc
-  geometry/nodes/node_geo_point_translate.cc
+  geometry/nodes/node_geo_points_to_vertices.cc
   geometry/nodes/node_geo_points_to_volume.cc
+  geometry/nodes/node_geo_proximity.cc
   geometry/nodes/node_geo_raycast.cc
-  geometry/nodes/node_geo_select_by_material.cc
+  geometry/nodes/node_geo_realize_instances.cc
+  geometry/nodes/node_geo_rotate_instances.cc
+  geometry/nodes/node_geo_scale_instances.cc
   geometry/nodes/node_geo_separate_components.cc
+  geometry/nodes/node_geo_separate_geometry.cc
+  geometry/nodes/node_geo_set_curve_handles.cc
+  geometry/nodes/node_geo_set_curve_radius.cc
+  geometry/nodes/node_geo_set_curve_tilt.cc
+  geometry/nodes/node_geo_set_material.cc
+  geometry/nodes/node_geo_set_material_index.cc
+  geometry/nodes/node_geo_set_point_radius.cc
   geometry/nodes/node_geo_set_position.cc
+  geometry/nodes/node_geo_set_shade_smooth.cc
+  geometry/nodes/node_geo_set_spline_cyclic.cc
+  geometry/nodes/node_geo_set_spline_resolution.cc
+  geometry/nodes/node_geo_string_join.cc
+  geometry/nodes/node_geo_string_to_curves.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
+  geometry/nodes/node_geo_transfer_attribute.cc
   geometry/nodes/node_geo_transform.cc
+  geometry/nodes/node_geo_translate_instances.cc
   geometry/nodes/node_geo_triangulate.cc
   geometry/nodes/node_geo_viewer.cc
   geometry/nodes/node_geo_volume_to_mesh.cc
+
   geometry/node_geometry_exec.cc
   geometry/node_geometry_tree.cc
   geometry/node_geometry_util.cc
@@ -288,19 +349,19 @@ set(SRC
   shader/nodes/node_shader_squeeze.c
   shader/nodes/node_shader_subsurface_scattering.c
   shader/nodes/node_shader_tangent.c
-  shader/nodes/node_shader_tex_brick.c
-  shader/nodes/node_shader_tex_checker.c
+  shader/nodes/node_shader_tex_brick.cc
+  shader/nodes/node_shader_tex_checker.cc
   shader/nodes/node_shader_tex_coord.c
   shader/nodes/node_shader_tex_environment.c
   shader/nodes/node_shader_tex_gradient.cc
-  shader/nodes/node_shader_tex_image.c
-  shader/nodes/node_shader_tex_magic.c
+  shader/nodes/node_shader_tex_image.cc
+  shader/nodes/node_shader_tex_magic.cc
   shader/nodes/node_shader_tex_musgrave.cc
   shader/nodes/node_shader_tex_noise.cc
   shader/nodes/node_shader_tex_pointdensity.c
   shader/nodes/node_shader_tex_sky.c
   shader/nodes/node_shader_tex_voronoi.cc
-  shader/nodes/node_shader_tex_wave.c
+  shader/nodes/node_shader_tex_wave.cc
   shader/nodes/node_shader_tex_white_noise.cc
   shader/nodes/node_shader_uvAlongStroke.c
   shader/nodes/node_shader_uvmap.c
@@ -347,20 +408,21 @@ set(SRC
   texture/node_texture_util.c
 
   intern/derived_node_tree.cc
+  intern/extern_implementations.cc
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
-  intern/node_common.c
+  intern/node_common.cc
+  intern/node_declaration.cc
   intern/node_exec.cc
   intern/node_geometry_exec.cc
   intern/node_multi_function.cc
-  intern/node_declaration.cc
-  intern/node_socket_declarations.cc
   intern/node_socket.cc
+  intern/node_socket_declarations.cc
   intern/node_tree_ref.cc
   intern/node_util.c
   intern/type_conversions.cc
 
-  composite/node_composite_util.h
+  composite/node_composite_util.hh
   function/node_function_util.hh
   shader/node_shader_util.h
   geometry/node_geometry_util.hh
@@ -376,10 +438,10 @@ set(SRC
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
-  NOD_socket_declarations.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_socket.h
+  NOD_socket_declarations.hh
   NOD_static_types.h
   NOD_texture.h
   NOD_type_conversions.hh
@@ -391,6 +453,7 @@ set(SRC
 set(LIB
   bf_bmesh
   bf_functions
+  bf_geometry
   bf_intern_sky
 )
 

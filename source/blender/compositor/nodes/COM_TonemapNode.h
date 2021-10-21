@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class TonemapNode : public Node {
  public:
-  TonemapNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  TonemapNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

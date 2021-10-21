@@ -33,9 +33,9 @@
 
 /* needed for calculating differentials */
 // clang-format off
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/split/kernel_split_data.h"
-#include "kernel/kernel_globals.h"
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/kernel_projection.h"
 #include "kernel/kernel_differential.h"
 #include "kernel/kernel_montecarlo.h"
@@ -169,7 +169,6 @@ Camera::Camera() : Node(get_node_type())
 
   width = 1024;
   height = 512;
-  resolution = 1;
 
   use_perspective_motion = false;
 
@@ -455,7 +454,6 @@ void Camera::update(Scene *scene)
   /* render size */
   kcam->width = width;
   kcam->height = height;
-  kcam->resolution = resolution;
 
   /* store differentials */
   kcam->dx = float3_to_float4(dx);
@@ -776,9 +774,11 @@ float Camera::world_to_raster_size(float3 P)
                            &ray);
 #endif
 
-    differential_transfer(&ray.dP, ray.dP, ray.D, ray.dD, ray.D, dist);
+    /* TODO: would it help to use more accurate differentials here? */
+    differential3 dP;
+    differential_transfer_compact(&dP, ray.dP, ray.D, ray.dD, ray.D, dist);
 
-    return max(len(ray.dP.dx), len(ray.dP.dy));
+    return max(len(dP.dx), len(dP.dy));
   }
 
   return res;
@@ -789,12 +789,11 @@ bool Camera::use_motion() const
   return motion.size() > 1;
 }
 
-void Camera::set_screen_size_and_resolution(int width_, int height_, int resolution_)
+void Camera::set_screen_size(int width_, int height_)
 {
-  if (width_ != width || height_ != height || resolution_ != resolution) {
+  if (width_ != width || height_ != height) {
     width = width_;
     height = height_;
-    resolution = resolution_;
     tag_modified();
   }
 }

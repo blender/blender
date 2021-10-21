@@ -32,9 +32,9 @@ namespace blender::compositor {
  */
 class OutputFileNode : public Node {
  public:
-  OutputFileNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  OutputFileNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 
  private:
   void add_input_sockets(OutputOpenExrMultiLayerOperation &operation) const;

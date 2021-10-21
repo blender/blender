@@ -9,6 +9,7 @@
         widget_emboss="#00000026"
         editor_outline="#1f1f1f"
         widget_text_cursor="#3399e6"
+        panel_roundness="0.4"
         transparent_checker_primary="#333333"
         transparent_checker_secondary="#262626"
         transparent_checker_size="8"
@@ -941,7 +942,7 @@
         grid="#353535"
         node_selected="#f15800"
         node_active="#f15800"
-        wire="#a7a7a7"
+        wire="#191919"
         wire_inner="#999999"
         wire_select="#ffa733"
         selected_text="#7f7070"
@@ -950,7 +951,7 @@
         color_node="#ffcb4d"
         group_node="#59b36ab9"
         group_socket_node="#dfc300"
-        frame_node="#9b9b9ba0"
+        frame_node="#9b9b9b60"
         matte_node="#977474"
         distor_node="#749797"
         noodle_curving="4"
@@ -1533,7 +1534,6 @@
     <panel_title>
       <ThemeFontStyle
         points="12"
-        font_kerning_style="FITTED"
         shadow="3"
         shadow_offset_x="0"
         shadow_offset_y="-1"
@@ -1545,7 +1545,6 @@
     <widget_label>
       <ThemeFontStyle
         points="11"
-        font_kerning_style="FITTED"
         shadow="3"
         shadow_offset_x="0"
         shadow_offset_y="-1"
@@ -1557,7 +1556,6 @@
     <widget>
       <ThemeFontStyle
         points="11"
-        font_kerning_style="FITTED"
         shadow="1"
         shadow_offset_x="0"
         shadow_offset_y="-1"

@@ -327,10 +327,10 @@ static void action_flip_pchan(Object *ob_arm,
      * the X-axis, it turns into a 180 degree rotation over the Y-axis.
      * This has only been observed with bones that can't be flipped,
      * hence the check for `pchan_flip`. */
-    const float unit_x[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-    const bool is_problematic = pchan_flip == NULL &&
-                                fabsf(dot_v4v4(pchan->bone->arm_mat[0], unit_x)) <= 1e-6;
-    if (is_problematic) {
+    const float unit_x[3] = {1.0f, 0.0f, 0.0f};
+    const bool is_x_axis_orthogonal = (pchan_flip == NULL) &&
+                                      (fabsf(dot_v3v3(pchan->bone->arm_mat[0], unit_x)) <= 1e-6f);
+    if (is_x_axis_orthogonal) {
       /* Matrix needs to flip both the X and Z axes to come out right. */
       float extra_mat[4][4] = {
           {-1.0f, 0.0f, 0.0f, 0.0f},

@@ -23,18 +23,18 @@
 
 namespace blender::io::alembic {
 
-class AbcCameraReader : public AbcObjectReader {
+class AbcCameraReader final : public AbcObjectReader {
   Alembic::AbcGeom::ICameraSchema m_schema;
 
  public:
   AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-  bool valid() const;
+  bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const;
+                           const char **err_str) const override;
 
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 };
 
 }  // namespace blender::io::alembic

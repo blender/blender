@@ -1,5 +1,6 @@
 
 uniform bool depthSet;
+uniform bool isCameraBackground;
 
 in vec3 pos;
 
@@ -7,8 +8,14 @@ out vec2 uvs;
 
 void main()
 {
-  vec3 world_pos = point_object_to_world(pos);
-  gl_Position = point_world_to_ndc(world_pos);
+  if (isCameraBackground) {
+    vec3 vP = (ModelMatrix * vec4(pos, 1.0)).xyz;
+    gl_Position = point_view_to_ndc(vP);
+  }
+  else {
+    vec3 world_pos = point_object_to_world(pos);
+    gl_Position = point_world_to_ndc(world_pos);
+  }
 
   if (depthSet) {
     /* Result in a position at 1.0 (far plane). Small epsilon to avoid precision issue.

@@ -71,88 +71,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
-/* This function should be used to compute a modified ray start position for
- * rays leaving from a surface. The algorithm slightly distorts flat surface
- * of a triangle. Surface is lifted by amount h along normal n in the incident
- * point. */
-
-ccl_device_inline float3 smooth_surface_offset(KernelGlobals *kg, ShaderData *sd, float3 Ng)
-{
-  float3 V[3], N[3];
-  triangle_vertices_and_normals(kg, sd->prim, V, N);
-
-  const float u = sd->u, v = sd->v;
-  const float w = 1 - u - v;
-  float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
-  float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
-
-  object_normal_transform(kg, sd, &n); /* Normal x scale, world space */
-
-  /* Parabolic approximation */
-  float a = dot(N[2] - N[0], V[0] - V[2]);
-  float b = dot(N[2] - N[1], V[1] - V[2]);
-  float c = dot(N[1] - N[0], V[1] - V[0]);
-  float h = a * u * (u - 1) + (a + b + c) * u * v + b * v * (v - 1);
-
-  /* Check flipped normals */
-  if (dot(n, Ng) > 0) {
-    /* Local linear envelope */
-    float h0 = max(max(dot(V[1] - V[0], N[0]), dot(V[2] - V[0], N[0])), 0.0f);
-    float h1 = max(max(dot(V[0] - V[1], N[1]), dot(V[2] - V[1], N[1])), 0.0f);
-    float h2 = max(max(dot(V[0] - V[2], N[2]), dot(V[1] - V[2], N[2])), 0.0f);
-    h0 = max(dot(V[0] - P, N[0]) + h0, 0.0f);
-    h1 = max(dot(V[1] - P, N[1]) + h1, 0.0f);
-    h2 = max(dot(V[2] - P, N[2]) + h2, 0.0f);
-    h = max(min(min(h0, h1), h2), h * 0.5f);
-  }
-  else {
-    float h0 = max(max(dot(V[0] - V[1], N[0]), dot(V[0] - V[2], N[0])), 0.0f);
-    float h1 = max(max(dot(V[1] - V[0], N[1]), dot(V[1] - V[2], N[1])), 0.0f);
-    float h2 = max(max(dot(V[2] - V[0], N[2]), dot(V[2] - V[1], N[2])), 0.0f);
-    h0 = max(dot(P - V[0], N[0]) + h0, 0.0f);
-    h1 = max(dot(P - V[1], N[1]) + h1, 0.0f);
-    h2 = max(dot(P - V[2], N[2]) + h2, 0.0f);
-    h = min(-min(min(h0, h1), h2), h * 0.5f);
-  }
-
-  return n * h;
-}
-
-/* Ray offset to avoid shadow terminator artifact. */
-
-ccl_device_inline float3 ray_offset_shadow(KernelGlobals *kg, ShaderData *sd, float3 L)
-{
-  float NL = dot(sd->N, L);
-  bool transmit = (NL < 0.0f);
-  float3 Ng = (transmit ? -sd->Ng : sd->Ng);
-  float3 P = ray_offset(sd->P, Ng);
-
-  if ((sd->type & PRIMITIVE_ALL_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
-    const float offset_cutoff =
-        kernel_tex_fetch(__objects, sd->object).shadow_terminator_geometry_offset;
-    /* Do ray offset (heavy stuff) only for close to be terminated triangles:
-     * offset_cutoff = 0.1f means that 10-20% of rays will be affected. Also
-     * make a smooth transition near the threshold. */
-    if (offset_cutoff > 0.0f) {
-      float NgL = dot(Ng, L);
-      float offset_amount = 0.0f;
-      if (NL < offset_cutoff) {
-        offset_amount = clamp(2.0f - (NgL + NL) / offset_cutoff, 0.0f, 1.0f);
-      }
-      else {
-        offset_amount = clamp(1.0f - NgL / offset_cutoff, 0.0f, 1.0f);
-      }
-      if (offset_amount > 0.0f) {
-        P += smooth_surface_offset(kg, sd, Ng) * offset_amount;
-      }
-    }
-  }
-
-  return P;
-}
-
-#if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
-/* ToDo: Move to another file? */
+#if defined(__KERNEL_CPU__)
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;
@@ -167,86 +86,141 @@ ccl_device int intersections_compare(const void *a, const void *b)
 }
 #endif
 
-#if defined(__SHADOW_RECORD_ALL__)
-ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
+/* For subsurface scattering, only sorting a small amount of intersections
+ * so bubble sort is fine for CPU and GPU. */
+ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *hits,
+                                                      ccl_private float3 *Ng,
+                                                      uint num_hits)
 {
-  kernel_assert(num_hits > 0);
-
-#  ifdef __KERNEL_GPU__
-  /* Use bubble sort which has more friendly memory pattern on GPU. */
   bool swapped;
   do {
     swapped = false;
     for (int j = 0; j < num_hits - 1; ++j) {
       if (hits[j].t > hits[j + 1].t) {
-        struct Intersection tmp = hits[j];
+        struct Intersection tmp_hit = hits[j];
+        float3 tmp_Ng = Ng[j];
         hits[j] = hits[j + 1];
-        hits[j + 1] = tmp;
+        Ng[j] = Ng[j + 1];
+        hits[j + 1] = tmp_hit;
+        Ng[j + 1] = tmp_Ng;
         swapped = true;
       }
     }
     --num_hits;
   } while (swapped);
-#  else
-  qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
-#  endif
 }
-#endif /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
 
-/* Utility to quickly get a shader flags from an intersection. */
+/* Utility to quickly get flags from an intersection. */
 
-ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals *ccl_restrict kg,
-                                                         const Intersection *isect)
+ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
+                                                         const int prim,
+                                                         const int type)
 {
-  const int prim = kernel_tex_fetch(__prim_index, isect->prim);
   int shader = 0;
 
 #ifdef __HAIR__
-  if (kernel_tex_fetch(__prim_type, isect->prim) & PRIMITIVE_ALL_TRIANGLE)
+  if (type & PRIMITIVE_ALL_TRIANGLE)
 #endif
   {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __HAIR__
   else {
-    float4 str = kernel_tex_fetch(__curves, prim);
-    shader = __float_as_int(str.z);
+    shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
 
   return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
 }
 
-ccl_device_forceinline int intersection_get_shader(KernelGlobals *ccl_restrict kg,
-                                                   const Intersection *isect)
+ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals kg,
+                                                                   const int prim,
+                                                                   const int isect_type)
 {
-  const int prim = kernel_tex_fetch(__prim_index, isect->prim);
   int shader = 0;
 
 #ifdef __HAIR__
-  if (kernel_tex_fetch(__prim_type, isect->prim) & PRIMITIVE_ALL_TRIANGLE)
+  if (isect_type & PRIMITIVE_ALL_TRIANGLE)
 #endif
   {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __HAIR__
   else {
-    float4 str = kernel_tex_fetch(__curves, prim);
-    shader = __float_as_int(str.z);
+    shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
 
   return shader & SHADER_MASK;
 }
 
-ccl_device_forceinline int intersection_get_object(KernelGlobals *ccl_restrict kg,
-                                                   const Intersection *ccl_restrict isect)
+ccl_device_forceinline int intersection_get_shader(
+    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
 {
-  if (isect->object != OBJECT_NONE) {
-    return isect->object;
+  return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
+}
+
+ccl_device_forceinline int intersection_get_object_flags(
+    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
+{
+  return kernel_tex_fetch(__object_flag, isect->object);
+}
+
+/* TODO: find a better (faster) solution for this. Maybe store offset per object for
+ * attributes needed in intersection? */
+ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
+                                                  const int object,
+                                                  const uint id)
+{
+  uint attr_offset = kernel_tex_fetch(__objects, object).attribute_map_offset;
+  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+
+  while (attr_map.x != id) {
+    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
+      if (UNLIKELY(attr_map.y == 0)) {
+        return (int)ATTR_STD_NOT_FOUND;
+      }
+      else {
+        /* Chain jump to a different part of the table. */
+        attr_offset = attr_map.z;
+      }
+    }
+    else {
+      attr_offset += ATTR_PRIM_TYPES;
+    }
+    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
   }
 
-  return kernel_tex_fetch(__prim_object, isect->prim);
+  /* return result */
+  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
+}
+
+/* Transparent Shadows */
+
+/* Cut-off value to stop transparent shadow tracing when practically opaque. */
+#define CURVE_SHADOW_TRANSPARENCY_CUTOFF 0.001f
+
+ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
+                                                               const int object,
+                                                               const int prim,
+                                                               const float u)
+{
+  /* Find attribute. */
+  const int offset = intersection_find_attribute(kg, object, ATTR_STD_SHADOW_TRANSPARENCY);
+  if (offset == ATTR_STD_NOT_FOUND) {
+    /* If no shadow transparency attribute, assume opaque. */
+    return 0.0f;
+  }
+
+  /* Interpolate transparency between curve keys. */
+  const KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(kcurve.type);
+  const int k1 = k0 + 1;
+
+  const float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
+  const float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
+
+  return (1.0f - u) * f0 + u * f1;
 }
 
 CCL_NAMESPACE_END

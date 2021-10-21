@@ -1496,7 +1496,7 @@ void multires_topology_changed(Mesh *me)
     if (!mdisp->totdisp || !mdisp->disps) {
       if (grid) {
         mdisp->totdisp = grid;
-        mdisp->disps = MEM_calloc_arrayN(sizeof(float[3]), mdisp->totdisp, "mdisp topology");
+        mdisp->disps = MEM_calloc_arrayN(mdisp->totdisp, sizeof(float[3]), "mdisp topology");
       }
 
       continue;

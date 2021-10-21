@@ -222,6 +222,37 @@ static void adapt_curve_domain_point_to_spline_impl(const CurveEval &curve,
   mixer.finalize();
 }
 
+/**
+ * A spline is selected if all of its control points were selected.
+ *
+ * \note Theoretically this interpolation does not need to compute all values at once.
+ * However, doing that makes the implementation simpler, and this can be optimized in the future if
+ * only some values are required.
+ */
+template<>
+void adapt_curve_domain_point_to_spline_impl(const CurveEval &curve,
+                                             const VArray<bool> &old_values,
+                                             MutableSpan<bool> r_values)
+{
+  const int splines_len = curve.splines().size();
+  Array<int> offsets = curve.control_point_offsets();
+  BLI_assert(r_values.size() == splines_len);
+
+  r_values.fill(true);
+
+  for (const int i_spline : IndexRange(splines_len)) {
+    const int spline_offset = offsets[i_spline];
+    const int spline_point_len = offsets[i_spline + 1] - spline_offset;
+
+    for (const int i_point : IndexRange(spline_point_len)) {
+      if (!old_values[spline_offset + i_point]) {
+        r_values[i_spline] = false;
+        break;
+      }
+    }
+  }
+}
+
 static GVArrayPtr adapt_curve_domain_point_to_spline(const CurveEval &curve, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -504,6 +535,9 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
  * array implementations try to make it workable in common situations.
  * \{ */
 
+/**
+ * Individual spans in \a data may be empty if that spline contains no data for the attribute.
+ */
 template<typename T>
 static void point_attribute_materialize(Span<Span<T>> data,
                                         Span<int> offsets,
@@ -515,7 +549,15 @@ static void point_attribute_materialize(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      r_span.slice(offset, next_offset - offset).copy_from(data[spline_index]);
+
+      Span<T> src = data[spline_index];
+      MutableSpan<T> dst = r_span.slice(offset, next_offset - offset);
+      if (src.is_empty()) {
+        dst.fill(T());
+      }
+      else {
+        dst.copy_from(src);
+      }
     }
   }
   else {
@@ -526,11 +568,20 @@ static void point_attribute_materialize(Span<Span<T>> data,
       }
 
       const int index_in_spline = dst_index - offsets[spline_index];
-      r_span[dst_index] = data[spline_index][index_in_spline];
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        r_span[dst_index] = T();
+      }
+      else {
+        r_span[dst_index] = src[index_in_spline];
+      }
     }
   }
 }
 
+/**
+ * Individual spans in \a data may be empty if that spline contains no data for the attribute.
+ */
 template<typename T>
 static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
                                                          Span<int> offsets,
@@ -543,7 +594,14 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      uninitialized_copy_n(data[spline_index].data(), next_offset - offset, dst + offset);
+
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        uninitialized_fill_n(dst + offset, next_offset - offset, T());
+      }
+      else {
+        uninitialized_copy_n(src.data(), next_offset - offset, dst + offset);
+      }
     }
   }
   else {
@@ -554,9 +612,112 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
       }
 
       const int index_in_spline = dst_index - offsets[spline_index];
-      new (dst + dst_index) T(data[spline_index][index_in_spline]);
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        new (dst + dst_index) T();
+      }
+      else {
+        new (dst + dst_index) T(src[index_in_spline]);
+      }
     }
   }
+}
+
+static GVArrayPtr varray_from_initializer(const AttributeInit &initializer,
+                                          const CustomDataType data_type,
+                                          const Span<SplinePtr> splines)
+{
+  switch (initializer.type) {
+    case AttributeInit::Type::Default:
+      /* This function shouldn't be called in this case, since there
+       * is no need to copy anything to the new custom data array. */
+      BLI_assert_unreachable();
+      return {};
+    case AttributeInit::Type::VArray:
+      return static_cast<const AttributeInitVArray &>(initializer).varray->shallow_copy();
+    case AttributeInit::Type::MoveArray:
+      int total_size = 0;
+      for (const SplinePtr &spline : splines) {
+        total_size += spline->size();
+      }
+      return std::make_unique<fn::GVArray_For_GSpan>(
+          GSpan(*bke::custom_data_type_to_cpp_type(data_type),
+                static_cast<const AttributeInitMove &>(initializer).data,
+                total_size));
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
+static bool create_point_attribute(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const AttributeInit &initializer,
+                                   const CustomDataType data_type)
+{
+  CurveEval *curve = get_curve_from_component_for_write(component);
+  if (curve == nullptr || curve->splines().size() == 0) {
+    return false;
+  }
+
+  MutableSpan<SplinePtr> splines = curve->splines();
+
+  /* First check the one case that allows us to avoid copying the input data. */
+  if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
+    void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+    if (!splines.first()->attributes.create_by_move(attribute_id, data_type, source_data)) {
+      MEM_freeN(source_data);
+      return false;
+    }
+    return true;
+  }
+
+  /* Otherwise just create a custom data layer on each of the splines. */
+  for (const int i : splines.index_range()) {
+    if (!splines[i]->attributes.create(attribute_id, data_type)) {
+      /* If attribute creation fails on one of the splines, we cannot leave the custom data
+       * layers in the previous splines around, so delete them before returning. However,
+       * this is not an expected case. */
+      BLI_assert_unreachable();
+      return false;
+    }
+  }
+
+  /* With a default initializer type, we can keep the values at their initial values. */
+  if (initializer.type == AttributeInit::Type::Default) {
+    return true;
+  }
+
+  WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(attribute_id);
+  /* We just created the attribute, it should exist. */
+  BLI_assert(write_attribute);
+
+  GVArrayPtr source_varray = varray_from_initializer(initializer, data_type, splines);
+  /* TODO: When we can call a variant of #set_all with a virtual array argument,
+   * this theoretically unnecessary materialize step could be removed. */
+  GVArray_GSpan source_varray_span{*source_varray};
+  write_attribute.varray->set_all(source_varray_span.data());
+
+  if (initializer.type == AttributeInit::Type::MoveArray) {
+    MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
+  }
+
+  return true;
+}
+
+static bool remove_point_attribute(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id)
+{
+  CurveEval *curve = get_curve_from_component_for_write(component);
+  if (curve == nullptr) {
+    return false;
+  }
+
+  /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
+  bool layer_freed = false;
+  for (SplinePtr &spline : curve->splines()) {
+    layer_freed = spline->attributes.remove(attribute_id);
+  }
+  return layer_freed;
 }
 
 /**
@@ -738,6 +899,169 @@ class VMutableArray_For_SplinePosition final : public VMutableArray<float3> {
   }
 };
 
+class VArray_For_BezierHandle final : public VArray<float3> {
+ private:
+  Span<SplinePtr> splines_;
+  Array<int> offsets_;
+  bool is_right_;
+
+ public:
+  VArray_For_BezierHandle(Span<SplinePtr> splines, Array<int> offsets, const bool is_right)
+      : VArray<float3>(offsets.last()),
+        splines_(std::move(splines)),
+        offsets_(std::move(offsets)),
+        is_right_(is_right)
+  {
+  }
+
+  static float3 get_internal(const int64_t index,
+                             Span<SplinePtr> splines,
+                             Span<int> offsets,
+                             const bool is_right)
+  {
+    const PointIndices indices = lookup_point_indices(offsets, index);
+    const Spline &spline = *splines[indices.spline_index];
+    if (spline.type() == Spline::Type::Bezier) {
+      const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
+      return is_right ? bezier_spline.handle_positions_right()[indices.point_index] :
+                        bezier_spline.handle_positions_left()[indices.point_index];
+    }
+    return float3(0);
+  }
+
+  float3 get_impl(const int64_t index) const final
+  {
+    return get_internal(index, splines_, offsets_, is_right_);
+  }
+
+  /**
+   * Utility so we can pass handle positions to the materialize functions above.
+   *
+   * \note This relies on the ability of the materialize implementations to
+   * handle empty spans, since only Bezier splines have handles.
+   */
+  static Array<Span<float3>> get_handle_spans(Span<SplinePtr> splines, const bool is_right)
+  {
+    Array<Span<float3>> spans(splines.size());
+    for (const int i : spans.index_range()) {
+      if (splines[i]->type() == Spline::Type::Bezier) {
+        BezierSpline &bezier_spline = static_cast<BezierSpline &>(*splines[i]);
+        spans[i] = is_right ? bezier_spline.handle_positions_right() :
+                              bezier_spline.handle_positions_left();
+      }
+      else {
+        spans[i] = {};
+      }
+    }
+    return spans;
+  }
+
+  static void materialize_internal(const IndexMask mask,
+                                   Span<SplinePtr> splines,
+                                   Span<int> offsets,
+                                   const bool is_right,
+                                   MutableSpan<float3> r_span)
+  {
+    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
+    point_attribute_materialize(spans.as_span(), offsets, mask, r_span);
+  }
+
+  static void materialize_to_uninitialized_internal(const IndexMask mask,
+                                                    Span<SplinePtr> splines,
+                                                    Span<int> offsets,
+                                                    const bool is_right,
+                                                    MutableSpan<float3> r_span)
+  {
+    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
+    point_attribute_materialize_to_uninitialized(spans.as_span(), offsets, mask, r_span);
+  }
+
+  void materialize_impl(const IndexMask mask, MutableSpan<float3> r_span) const final
+  {
+    materialize_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask,
+                                         MutableSpan<float3> r_span) const final
+  {
+    materialize_to_uninitialized_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+};
+
+class VMutableArray_For_BezierHandles final : public VMutableArray<float3> {
+ private:
+  MutableSpan<SplinePtr> splines_;
+  Array<int> offsets_;
+  bool is_right_;
+
+ public:
+  VMutableArray_For_BezierHandles(MutableSpan<SplinePtr> splines,
+                                  Array<int> offsets,
+                                  const bool is_right)
+      : VMutableArray<float3>(offsets.last()),
+        splines_(splines),
+        offsets_(std::move(offsets)),
+        is_right_(is_right)
+  {
+  }
+
+  float3 get_impl(const int64_t index) const final
+  {
+    return VArray_For_BezierHandle::get_internal(index, splines_, offsets_, is_right_);
+  }
+
+  void set_impl(const int64_t index, float3 value) final
+  {
+    const PointIndices indices = lookup_point_indices(offsets_, index);
+    Spline &spline = *splines_[indices.spline_index];
+    if (spline.type() == Spline::Type::Bezier) {
+      BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
+      if (is_right_) {
+        bezier_spline.set_handle_position_right(indices.point_index, value);
+      }
+      else {
+        bezier_spline.set_handle_position_left(indices.point_index, value);
+      }
+      bezier_spline.mark_cache_invalid();
+    }
+  }
+
+  void set_all_impl(Span<float3> src) final
+  {
+    for (const int spline_index : splines_.index_range()) {
+      Spline &spline = *splines_[spline_index];
+      if (spline.type() == Spline::Type::Bezier) {
+        const int offset = offsets_[spline_index];
+
+        BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
+        if (is_right_) {
+          for (const int i : IndexRange(bezier_spline.size())) {
+            bezier_spline.set_handle_position_right(i, src[offset + i]);
+          }
+        }
+        else {
+          for (const int i : IndexRange(bezier_spline.size())) {
+            bezier_spline.set_handle_position_left(i, src[offset + i]);
+          }
+        }
+        bezier_spline.mark_cache_invalid();
+      }
+    }
+  }
+
+  void materialize_impl(const IndexMask mask, MutableSpan<float3> r_span) const final
+  {
+    VArray_For_BezierHandle::materialize_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask,
+                                         MutableSpan<float3> r_span) const final
+  {
+    VArray_For_BezierHandle::materialize_to_uninitialized_internal(
+        mask, splines_, offsets_, is_right_, r_span);
+  }
+};
+
 /**
  * Provider for any builtin control point attribute that doesn't need
  * special handling like access to other arrays in the spline.
@@ -750,22 +1074,26 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   const GetSpan get_span_;
   const GetMutableSpan get_mutable_span_;
   const UpdateOnWrite update_on_write_;
+  bool stored_in_custom_data_;
 
  public:
   BuiltinPointAttributeProvider(std::string attribute_name,
-                                const WritableEnum writable,
+                                const CreatableEnum creatable,
+                                const DeletableEnum deletable,
                                 const GetSpan get_span,
                                 const GetMutableSpan get_mutable_span,
-                                const UpdateOnWrite update_on_write)
+                                const UpdateOnWrite update_on_write,
+                                const bool stored_in_custom_data)
       : BuiltinAttributeProvider(std::move(attribute_name),
                                  ATTR_DOMAIN_POINT,
                                  bke::cpp_type_to_custom_data_type(CPPType::get<T>()),
-                                 BuiltinAttributeProvider::NonCreatable,
-                                 writable,
-                                 BuiltinAttributeProvider::NonDeletable),
+                                 creatable,
+                                 WritableEnum::Writable,
+                                 deletable),
         get_span_(get_span),
         get_mutable_span_(get_mutable_span),
-        update_on_write_(update_on_write)
+        update_on_write_(update_on_write),
+        stored_in_custom_data_(stored_in_custom_data)
   {
   }
 
@@ -773,6 +1101,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   {
     const CurveEval *curve = get_curve_from_component_for_read(component);
     if (curve == nullptr) {
+      return {};
+    }
+
+    if (!this->exists(component)) {
       return {};
     }
 
@@ -797,6 +1129,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return {};
     }
 
+    if (!this->exists(component)) {
+      return {};
+    }
+
     MutableSpan<SplinePtr> splines = curve->splines();
     if (splines.size() == 1) {
       return std::make_unique<fn::GVMutableArray_For_GMutableSpan>(
@@ -815,20 +1151,53 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
     return point_data_gvarray(spans, offsets);
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  bool try_delete(GeometryComponent &component) const final
   {
-    return false;
+    if (deletable_ == DeletableEnum::NonDeletable) {
+      return false;
+    }
+    return remove_point_attribute(component, name_);
   }
 
-  bool try_create(GeometryComponent &UNUSED(component),
-                  const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final
   {
-    return false;
+    if (createable_ == CreatableEnum::NonCreatable) {
+      return false;
+    }
+    return create_point_attribute(component, name_, initializer, CD_PROP_INT32);
   }
 
   bool exists(const GeometryComponent &component) const final
   {
-    return component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return false;
+    }
+
+    Span<SplinePtr> splines = curve->splines();
+    if (splines.size() == 0) {
+      return false;
+    }
+
+    if (stored_in_custom_data_) {
+      if (!curve->splines().first()->attributes.get_for_read(name_)) {
+        return false;
+      }
+    }
+
+    bool has_point = false;
+    for (const SplinePtr &spline : curve->splines()) {
+      if (spline->size() != 0) {
+        has_point = true;
+        break;
+      }
+    }
+
+    if (!has_point) {
+      return false;
+    }
+
+    return true;
   }
 };
 
@@ -842,10 +1211,12 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
   PositionAttributeProvider()
       : BuiltinPointAttributeProvider(
             "position",
-            BuiltinAttributeProvider::Writable,
+            BuiltinAttributeProvider::NonCreatable,
+            BuiltinAttributeProvider::NonDeletable,
             [](const Spline &spline) { return spline.positions(); },
             [](Spline &spline) { return spline.positions(); },
-            [](Spline &spline) { spline.mark_cache_invalid(); })
+            [](Spline &spline) { spline.mark_cache_invalid(); },
+            false)
   {
   }
 
@@ -872,6 +1243,78 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
         offsets.last(), curve->splines(), std::move(offsets));
+  }
+};
+
+class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
+ private:
+  bool is_right_;
+
+ public:
+  BezierHandleAttributeProvider(const bool is_right)
+      : BuiltinAttributeProvider(is_right ? "handle_right" : "handle_left",
+                                 ATTR_DOMAIN_POINT,
+                                 CD_PROP_FLOAT3,
+                                 BuiltinAttributeProvider::NonCreatable,
+                                 BuiltinAttributeProvider::Writable,
+                                 BuiltinAttributeProvider::NonDeletable),
+        is_right_(is_right)
+  {
+  }
+
+  GVArrayPtr try_get_for_read(const GeometryComponent &component) const override
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return {};
+    }
+
+    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+      return {};
+    }
+
+    Array<int> offsets = curve->control_point_offsets();
+    return std::make_unique<fn::GVArray_For_EmbeddedVArray<float3, VArray_For_BezierHandle>>(
+        offsets.last(), curve->splines(), std::move(offsets), is_right_);
+  }
+
+  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const override
+  {
+    CurveEval *curve = get_curve_from_component_for_write(component);
+    if (curve == nullptr) {
+      return {};
+    }
+
+    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+      return {};
+    }
+
+    Array<int> offsets = curve->control_point_offsets();
+    return std::make_unique<
+        fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_BezierHandles>>(
+        offsets.last(), curve->splines(), std::move(offsets), is_right_);
+  }
+
+  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  {
+    return false;
+  }
+
+  bool try_create(GeometryComponent &UNUSED(component),
+                  const AttributeInit &UNUSED(initializer)) const final
+  {
+    return false;
+  }
+
+  bool exists(const GeometryComponent &component) const final
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return false;
+    }
+
+    return curve->has_spline_with_type(Spline::Type::Bezier) &&
+           component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
   }
 };
 
@@ -1000,39 +1443,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
-    if (curve == nullptr) {
-      return false;
-    }
-
-    /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
-    bool layer_freed = false;
-    for (SplinePtr &spline : curve->splines()) {
-      layer_freed = spline->attributes.remove(attribute_id);
-    }
-    return layer_freed;
-  }
-
-  static GVArrayPtr varray_from_initializer(const AttributeInit &initializer,
-                                            const CustomDataType data_type,
-                                            const int total_size)
-  {
-    switch (initializer.type) {
-      case AttributeInit::Type::Default:
-        /* This function shouldn't be called in this case, since there
-         * is no need to copy anything to the new custom data array. */
-        BLI_assert_unreachable();
-        return {};
-      case AttributeInit::Type::VArray:
-        return static_cast<const AttributeInitVArray &>(initializer).varray->shallow_copy();
-      case AttributeInit::Type::MoveArray:
-        return std::make_unique<fn::GVArray_For_GSpan>(
-            GSpan(*bke::custom_data_type_to_cpp_type(data_type),
-                  static_cast<const AttributeInitMove &>(initializer).data,
-                  total_size));
-    }
-    BLI_assert_unreachable();
-    return {};
+    return remove_point_attribute(component, attribute_id);
   }
 
   bool try_create(GeometryComponent &component,
@@ -1045,55 +1456,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     if (domain != ATTR_DOMAIN_POINT) {
       return false;
     }
-    CurveEval *curve = get_curve_from_component_for_write(component);
-    if (curve == nullptr || curve->splines().size() == 0) {
-      return false;
-    }
-
-    MutableSpan<SplinePtr> splines = curve->splines();
-
-    /* First check the one case that allows us to avoid copying the input data. */
-    if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
-      if (!splines[0]->attributes.create_by_move(attribute_id, data_type, source_data)) {
-        MEM_freeN(source_data);
-        return false;
-      }
-      return true;
-    }
-
-    /* Otherwise just create a custom data layer on each of the splines. */
-    for (const int i : splines.index_range()) {
-      if (!splines[i]->attributes.create(attribute_id, data_type)) {
-        /* If attribute creation fails on one of the splines, we cannot leave the custom data
-         * layers in the previous splines around, so delete them before returning. However,
-         * this is not an expected case. */
-        BLI_assert_unreachable();
-        return false;
-      }
-    }
-
-    /* With a default initializer type, we can keep the values at their initial values. */
-    if (initializer.type == AttributeInit::Type::Default) {
-      return true;
-    }
-
-    WriteAttributeLookup write_attribute = this->try_get_for_write(component, attribute_id);
-    /* We just created the attribute, it should exist. */
-    BLI_assert(write_attribute);
-
-    const int total_size = curve->control_point_offsets().last();
-    GVArrayPtr source_varray = varray_from_initializer(initializer, data_type, total_size);
-    /* TODO: When we can call a variant of #set_all with a virtual array argument,
-     * this theoretically unnecessary materialize step could be removed. */
-    GVArray_GSpan source_varray_span{*source_varray};
-    write_attribute.varray->set_all(source_varray_span.data());
-
-    if (initializer.type == AttributeInit::Type::MoveArray) {
-      MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
-    }
-
-    return true;
+    return create_point_attribute(component, attribute_id, initializer, data_type);
   }
 
   bool foreach_attribute(const GeometryComponent &component,
@@ -1165,25 +1528,47 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                         spline_custom_data_access);
 
   static PositionAttributeProvider position;
+  static BezierHandleAttributeProvider handles_start(false);
+  static BezierHandleAttributeProvider handles_end(true);
+
+  static BuiltinPointAttributeProvider<int> id(
+      "id",
+      BuiltinAttributeProvider::Creatable,
+      BuiltinAttributeProvider::Deletable,
+      [](const Spline &spline) {
+        std::optional<GSpan> span = spline.attributes.get_for_read("id");
+        return span ? span->typed<int>() : Span<int>();
+      },
+      [](Spline &spline) {
+        std::optional<GMutableSpan> span = spline.attributes.get_for_write("id");
+        return span ? span->typed<int>() : MutableSpan<int>();
+      },
+      {},
+      true);
 
   static BuiltinPointAttributeProvider<float> radius(
       "radius",
-      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.radii(); },
       [](Spline &spline) { return spline.radii(); },
-      nullptr);
+      nullptr,
+      false);
 
   static BuiltinPointAttributeProvider<float> tilt(
       "tilt",
-      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { return spline.tilts(); },
-      [](Spline &spline) { spline.mark_cache_invalid(); });
+      [](Spline &spline) { spline.mark_cache_invalid(); },
+      false);
 
   static DynamicPointAttributeProvider point_custom_data;
 
-  return ComponentAttributeProviders({&position, &radius, &tilt, &resolution, &cyclic},
-                                     {&spline_custom_data, &point_custom_data});
+  return ComponentAttributeProviders(
+      {&position, &id, &radius, &tilt, &handles_start, &handles_end, &resolution, &cyclic},
+      {&spline_custom_data, &point_custom_data});
 }
 
 }  // namespace blender::bke

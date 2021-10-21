@@ -28,6 +28,7 @@ namespace blender::nodes {
 
 static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Bool>("Boolean", "Boolean");
   b.add_input<decl::Bool>("Boolean", "Boolean_001");
   b.add_output<decl::Bool>("Boolean");

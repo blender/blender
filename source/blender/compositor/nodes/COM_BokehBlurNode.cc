@@ -18,61 +18,56 @@
 
 #include "COM_BokehBlurNode.h"
 #include "COM_BokehBlurOperation.h"
-#include "COM_ConvertDepthToRadiusOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_VariableSizeBokehBlurOperation.h"
-#include "DNA_camera_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
 
 namespace blender::compositor {
 
-BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
+BokehBlurNode::BokehBlurNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void BokehBlurNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext &context) const
+void BokehBlurNode::convert_to_operations(NodeConverter &converter,
+                                          const CompositorContext &context) const
 {
-  bNode *b_node = this->getbNode();
+  bNode *b_node = this->get_bnode();
 
-  NodeInput *inputSizeSocket = this->getInputSocket(2);
+  NodeInput *input_size_socket = this->get_input_socket(2);
 
-  bool connectedSizeSocket = inputSizeSocket->isLinked();
+  bool connected_size_socket = input_size_socket->is_linked();
   const bool extend_bounds = (b_node->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
-  if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
+  if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connected_size_socket) {
     VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-    operation->setQuality(context.getQuality());
-    operation->setThreshold(0.0f);
-    operation->setMaxBlur(b_node->custom4);
-    operation->setDoScaleSize(true);
+    operation->set_quality(context.get_quality());
+    operation->set_threshold(0.0f);
+    operation->set_max_blur(b_node->custom4);
+    operation->set_do_scale_size(true);
 
-    converter.addOperation(operation);
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+    converter.add_operation(operation);
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
   }
   else {
     BokehBlurOperation *operation = new BokehBlurOperation();
-    operation->setQuality(context.getQuality());
-    operation->setExtendBounds(extend_bounds);
+    operation->set_quality(context.get_quality());
+    operation->set_extend_bounds(extend_bounds);
 
-    converter.addOperation(operation);
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
+    converter.add_operation(operation);
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
 
     /* NOTE: on the bokeh blur operation the sockets are switched.
      * for this reason the next two lines are correct. Fix for T43771. */
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(3));
-    converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(2));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(3));
+    converter.map_input_socket(get_input_socket(3), operation->get_input_socket(2));
 
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
 
-    if (!connectedSizeSocket) {
-      operation->setSize(this->getInputSocket(2)->getEditorValueFloat());
+    if (!connected_size_socket) {
+      operation->set_size(this->get_input_socket(2)->get_editor_value_float());
     }
   }
 }

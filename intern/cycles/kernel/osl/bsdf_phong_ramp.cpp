@@ -34,7 +34,7 @@
 
 #include <OSL/genclosure.h>
 
-#include "kernel/kernel_compat_cpu.h"
+#include "kernel/device/cpu/compat.h"
 #include "kernel/osl/osl_closures.h"
 
 // clang-format off
@@ -52,7 +52,7 @@ class PhongRampClosure : public CBSDFClosure {
   PhongRampBsdf params;
   Color3 colors[8];
 
-  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
     PhongRampBsdf *bsdf = (PhongRampBsdf *)bsdf_alloc_osl(
         sd, sizeof(PhongRampBsdf), weight, &params);

@@ -1419,17 +1419,19 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
 
   /* restricted range or full range? */
   if (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) {
-    if ((evaltime <= fcm->sfra) || (evaltime >= fcm->efra)) {
+    if ((evaltime < fcm->sfra) || (evaltime > fcm->efra)) {
       /* out of range */
       return 0.0f;
     }
-    if ((evaltime > fcm->sfra) && (evaltime < fcm->sfra + fcm->blendin)) {
+    if ((fcm->blendin != 0.0f) && (evaltime >= fcm->sfra) &&
+        (evaltime <= fcm->sfra + fcm->blendin)) {
       /* blend in range */
       float a = fcm->sfra;
       float b = fcm->sfra + fcm->blendin;
       return influence * (evaltime - a) / (b - a);
     }
-    if ((evaltime < fcm->efra) && (evaltime > fcm->efra - fcm->blendout)) {
+    if ((fcm->blendout != 0.0f) && (evaltime <= fcm->efra) &&
+        (evaltime >= fcm->efra - fcm->blendout)) {
       /* blend out range */
       float a = fcm->efra;
       float b = fcm->efra - fcm->blendout;

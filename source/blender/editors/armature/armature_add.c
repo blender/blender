@@ -259,7 +259,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Click-Extrude";
+  ot->name = "Extrude to Cursor";
   ot->idname = "ARMATURE_OT_click_extrude";
   ot->description = "Create a new bone going from the last selected joint to the mouse position";
 
@@ -269,7 +269,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
   ot->poll = ED_operator_editarmature;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* props */
 }

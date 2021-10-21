@@ -146,7 +146,7 @@ void ED_undo_push(bContext *C, const char *str)
     }
   }
 
-  UndoPushReturn push_retval;
+  eUndoPushReturn push_retval;
 
   /* Only apply limit if this is the last undo step. */
   if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == NULL)) {

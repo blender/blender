@@ -69,7 +69,7 @@ TEST(view_layer, aov_unique_names)
   EXPECT_FALSE((aov1->flag & AOV_CONFLICT) != 0);
   EXPECT_FALSE((aov2->flag & AOV_CONFLICT) != 0);
   EXPECT_TRUE(STREQ(aov1->name, "AOV"));
-  EXPECT_TRUE(STREQ(aov2->name, "AOV.001"));
+  EXPECT_TRUE(STREQ(aov2->name, "AOV_001"));
 
   /* Revert previous resolution */
   BLI_strncpy(aov2->name, "AOV", MAX_NAME);
@@ -78,7 +78,7 @@ TEST(view_layer, aov_unique_names)
   EXPECT_FALSE((aov1->flag & AOV_CONFLICT) != 0);
   EXPECT_FALSE((aov2->flag & AOV_CONFLICT) != 0);
   EXPECT_TRUE(STREQ(aov1->name, "AOV"));
-  EXPECT_TRUE(STREQ(aov2->name, "AOV.001"));
+  EXPECT_TRUE(STREQ(aov2->name, "AOV_001"));
 
   /* Resolve by removing AOV resolution */
   BKE_view_layer_remove_aov(view_layer, aov2);

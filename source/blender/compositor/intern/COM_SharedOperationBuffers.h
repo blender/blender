@@ -19,15 +19,18 @@
 #pragma once
 
 #include "BLI_map.hh"
-#include "BLI_span.hh"
 #include "BLI_vector.hh"
-#include "COM_MemoryBuffer.h"
+
+#include "DNA_vec_types.h"
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
-#include <memory>
 
 namespace blender::compositor {
+
+class MemoryBuffer;
+class NodeOperation;
 
 /**
  * Stores and shares operations rendered buffers including render data. Buffers are
@@ -53,7 +56,7 @@ class SharedOperationBuffers {
   bool has_registered_reads(NodeOperation *op);
   void register_read(NodeOperation *read_op);
 
-  blender::Span<rcti> get_areas_to_render(NodeOperation *op);
+  Vector<rcti> get_areas_to_render(NodeOperation *op, int offset_x, int offset_y);
   bool is_operation_rendered(NodeOperation *op);
   void set_rendered_buffer(NodeOperation *op, std::unique_ptr<MemoryBuffer> buffer);
   MemoryBuffer *get_rendered_buffer(NodeOperation *op);

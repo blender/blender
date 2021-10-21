@@ -22,37 +22,37 @@ namespace blender::compositor {
 
 SetAlphaReplaceOperation::SetAlphaReplaceOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
 
-  this->m_inputColor = nullptr;
-  this->m_inputAlpha = nullptr;
-  this->flags.can_be_constant = true;
+  input_color_ = nullptr;
+  input_alpha_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void SetAlphaReplaceOperation::initExecution()
+void SetAlphaReplaceOperation::init_execution()
 {
-  this->m_inputColor = getInputSocketReader(0);
-  this->m_inputAlpha = getInputSocketReader(1);
+  input_color_ = get_input_socket_reader(0);
+  input_alpha_ = get_input_socket_reader(1);
 }
 
-void SetAlphaReplaceOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void SetAlphaReplaceOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
   float alpha_input[4];
 
-  this->m_inputColor->readSampled(output, x, y, sampler);
-  this->m_inputAlpha->readSampled(alpha_input, x, y, sampler);
+  input_color_->read_sampled(output, x, y, sampler);
+  input_alpha_->read_sampled(alpha_input, x, y, sampler);
   output[3] = alpha_input[0];
 }
 
-void SetAlphaReplaceOperation::deinitExecution()
+void SetAlphaReplaceOperation::deinit_execution()
 {
-  this->m_inputColor = nullptr;
-  this->m_inputAlpha = nullptr;
+  input_color_ = nullptr;
+  input_alpha_ = nullptr;
 }
 
 void SetAlphaReplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,

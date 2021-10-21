@@ -169,6 +169,7 @@ void view3d_operatortypes(void)
   WM_operatortype_append(VIEW3D_OT_view_persportho);
   WM_operatortype_append(VIEW3D_OT_background_image_add);
   WM_operatortype_append(VIEW3D_OT_background_image_remove);
+  WM_operatortype_append(VIEW3D_OT_drop_world);
   WM_operatortype_append(VIEW3D_OT_view_selected);
   WM_operatortype_append(VIEW3D_OT_view_lock_clear);
   WM_operatortype_append(VIEW3D_OT_view_lock_to_active);

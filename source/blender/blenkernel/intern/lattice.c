@@ -196,7 +196,7 @@ IDTypeInfo IDType_ID_LT = {
     .name = "Lattice",
     .name_plural = "lattices",
     .translation_context = BLT_I18NCONTEXT_ID_LATTICE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = lattice_init_data,
     .copy_data = lattice_copy_data,

@@ -21,6 +21,11 @@
 #include <string.h>
 #include <string>
 
+/* Use string view implementation from OIIO.
+ * Ideally, need to switch to `std::string_view`, but this first requires getting rid of using
+ * namespace OIIO as it causes symbol collision. */
+#include <OpenImageIO/string_view.h>
+
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -30,6 +35,8 @@ using std::ostringstream;
 using std::string;
 using std::stringstream;
 using std::to_string;
+
+using OIIO::string_view;
 
 #ifdef __GNUC__
 #  define PRINTF_ATTRIBUTE __attribute__((format(printf, 1, 2)))
@@ -45,12 +52,13 @@ void string_split(vector<string> &tokens,
                   const string &separators = "\t ",
                   bool skip_empty_tokens = true);
 void string_replace(string &haystack, const string &needle, const string &other);
-bool string_startswith(const string &s, const char *start);
-bool string_endswith(const string &s, const string &end);
+bool string_startswith(string_view s, string_view start);
+bool string_endswith(string_view s, string_view end);
 string string_strip(const string &s);
 string string_remove_trademark(const string &s);
 string string_from_bool(const bool var);
 string to_string(const char *str);
+string string_to_lower(const string &s);
 
 /* Wide char strings are only used on Windows to deal with non-ASCII
  * characters in file names and such. No reason to use such strings

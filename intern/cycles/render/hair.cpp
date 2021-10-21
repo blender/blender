@@ -18,7 +18,12 @@
 
 #include "render/curves.h"
 #include "render/hair.h"
+#include "render/object.h"
 #include "render/scene.h"
+
+#include "integrator/shader_eval.h"
+
+#include "util/util_progress.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -295,7 +300,8 @@ NODE_DEFINE(Hair)
 
 Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
 {
-  curvekey_offset = 0;
+  curve_key_offset = 0;
+  curve_segment_offset = 0;
   curve_shape = CURVE_RIBBON;
 }
 
@@ -440,6 +446,9 @@ void Hair::apply_transform(const Transform &tfm, const bool apply_to_motion)
     curve_radius[i] = radius;
   }
 
+  tag_curve_keys_modified();
+  tag_curve_radius_modified();
+
   if (apply_to_motion) {
     Attribute *curve_attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
@@ -462,8 +471,8 @@ void Hair::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
 void Hair::pack_curves(Scene *scene,
                        float4 *curve_key_co,
-                       float4 *curve_data,
-                       size_t curvekey_offset)
+                       KernelCurve *curves,
+                       KernelCurveSegment *curve_segments)
 {
   size_t curve_keys_size = curve_keys.size();
 
@@ -477,7 +486,10 @@ void Hair::pack_curves(Scene *scene,
   }
 
   /* pack curve segments */
+  const PrimitiveType type = primitive_type();
+
   size_t curve_num = num_curves();
+  size_t index = 0;
 
   for (size_t i = 0; i < curve_num; i++) {
     Curve curve = get_curve(i);
@@ -487,56 +499,134 @@ void Hair::pack_curves(Scene *scene,
                          scene->default_surface;
     shader_id = scene->shader_manager->get_shader_id(shader, false);
 
-    curve_data[i] = make_float4(__int_as_float(curve.first_key + curvekey_offset),
-                                __int_as_float(curve.num_keys),
-                                __int_as_float(shader_id),
-                                0.0f);
+    curves[i].shader_id = shader_id;
+    curves[i].first_key = curve_key_offset + curve.first_key;
+    curves[i].num_keys = curve.num_keys;
+    curves[i].type = type;
+
+    for (int k = 0; k < curve.num_segments(); ++k, ++index) {
+      curve_segments[index].prim = prim_offset + i;
+      curve_segments[index].type = PRIMITIVE_PACK_SEGMENT(type, k);
+    }
   }
 }
 
-void Hair::pack_primitives(PackedBVH *pack, int object, uint visibility, PackFlags pack_flags)
+PrimitiveType Hair::primitive_type() const
 {
-  if (curve_first_key.empty())
-    return;
+  return has_motion_blur() ?
+             ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
+                                              PRIMITIVE_MOTION_CURVE_THICK) :
+             ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+}
 
-  /* Separate loop as other arrays are not initialized if their packing is not required. */
-  if ((pack_flags & PACK_VISIBILITY) != 0) {
-    unsigned int *prim_visibility = &pack->prim_visibility[optix_prim_offset];
+/* Fill in coordinates for curve transparency shader evaluation on device. */
+static int fill_shader_input(const Hair *hair,
+                             const int object_index,
+                             device_vector<KernelShaderEvalInput> &d_input)
+{
+  int d_input_size = 0;
+  KernelShaderEvalInput *d_input_data = d_input.data();
 
-    size_t index = 0;
-    for (size_t j = 0; j < num_curves(); ++j) {
-      Curve curve = get_curve(j);
-      for (size_t k = 0; k < curve.num_segments(); ++k, ++index) {
-        prim_visibility[index] = visibility;
-      }
+  const int num_curves = hair->num_curves();
+  for (int i = 0; i < num_curves; i++) {
+    const Hair::Curve curve = hair->get_curve(i);
+    const int num_segments = curve.num_segments();
+
+    for (int j = 0; j < num_segments + 1; j++) {
+      KernelShaderEvalInput in;
+      in.object = object_index;
+      in.prim = hair->prim_offset + i;
+      in.u = (j < num_segments) ? 0.0f : 1.0f;
+      in.v = (j < num_segments) ? __int_as_float(j) : __int_as_float(j - 1);
+      d_input_data[d_input_size++] = in;
     }
   }
 
-  if ((pack_flags & PACK_GEOMETRY) != 0) {
-    unsigned int *prim_tri_index = &pack->prim_tri_index[optix_prim_offset];
-    int *prim_type = &pack->prim_type[optix_prim_offset];
-    int *prim_index = &pack->prim_index[optix_prim_offset];
-    int *prim_object = &pack->prim_object[optix_prim_offset];
-    // 'pack->prim_time' is unused by Embree and OptiX
+  return d_input_size;
+}
 
-    uint type = has_motion_blur() ?
-                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
-                                                     PRIMITIVE_MOTION_CURVE_THICK) :
-                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON :
-                                                     PRIMITIVE_CURVE_THICK);
+/* Read back curve transparency shader output. */
+static void read_shader_output(float *shadow_transparency,
+                               bool &is_fully_opaque,
+                               const device_vector<float> &d_output)
+{
+  const int num_keys = d_output.size();
+  const float *output_data = d_output.data();
+  bool is_opaque = true;
 
-    size_t index = 0;
-    for (size_t j = 0; j < num_curves(); ++j) {
-      Curve curve = get_curve(j);
-      for (size_t k = 0; k < curve.num_segments(); ++k, ++index) {
-        prim_tri_index[index] = -1;
-        prim_type[index] = PRIMITIVE_PACK_SEGMENT(type, k);
-        // Each curve segment points back to its curve index
-        prim_index[index] = j + prim_offset;
-        prim_object[index] = object;
-      }
+  for (int i = 0; i < num_keys; i++) {
+    shadow_transparency[i] = output_data[i];
+    if (shadow_transparency[i] > 0.0f) {
+      is_opaque = false;
     }
   }
+
+  is_fully_opaque = is_opaque;
+}
+
+bool Hair::need_shadow_transparency()
+{
+  for (const Node *node : used_shaders) {
+    const Shader *shader = static_cast<const Shader *>(node);
+    if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Hair::update_shadow_transparency(Device *device, Scene *scene, Progress &progress)
+{
+  if (!need_shadow_transparency()) {
+    /* If no shaders with shadow transparency, remove attribute. */
+    Attribute *attr = attributes.find(ATTR_STD_SHADOW_TRANSPARENCY);
+    if (attr) {
+      attributes.remove(attr);
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  string msg = string_printf("Computing Shadow Transparency %s", name.c_str());
+  progress.set_status("Updating Hair", msg);
+
+  /* Create shadow transparency attribute. */
+  Attribute *attr = attributes.find(ATTR_STD_SHADOW_TRANSPARENCY);
+  const bool attribute_exists = (attr != nullptr);
+  if (!attribute_exists) {
+    attr = attributes.add(ATTR_STD_SHADOW_TRANSPARENCY);
+  }
+
+  float *attr_data = attr->data_float();
+
+  /* Find object index. */
+  size_t object_index = OBJECT_NONE;
+
+  for (size_t i = 0; i < scene->objects.size(); i++) {
+    if (scene->objects[i]->get_geometry() == this) {
+      object_index = i;
+      break;
+    }
+  }
+
+  /* Evaluate shader on device. */
+  ShaderEval shader_eval(device, progress);
+  bool is_fully_opaque = false;
+  shader_eval.eval(SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
+                   num_keys(),
+                   1,
+                   function_bind(&fill_shader_input, this, object_index, _1),
+                   function_bind(&read_shader_output, attr_data, is_fully_opaque, _1));
+
+  if (is_fully_opaque) {
+    attributes.remove(attr);
+    return attribute_exists;
+  }
+
+  return true;
 }
 
 CCL_NAMESPACE_END

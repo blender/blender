@@ -118,6 +118,8 @@ ToolDef = namedtuple(
         "draw_settings",
         # Optional draw cursor.
         "draw_cursor",
+        # Various options, see: `bpy.types.WorkSpaceTool.setup` options argument.
+        "options",
     )
 )
 del namedtuple
@@ -133,6 +135,7 @@ def from_dict(kw_args):
         "description": None,
         "icon": None,
         "cursor": None,
+        "options": None,
         "widget": None,
         "widget_properties": None,
         "keymap": None,
@@ -187,7 +190,7 @@ class ToolActivePanelHelper:
         ToolSelectPanelHelper.draw_active_tool_header(
             context,
             layout.column(),
-            show_tool_name=True,
+            show_tool_icon=True,
             tool_key=ToolSelectPanelHelper._tool_key_from_context(context, space_type=self.bl_space_type),
         )
 
@@ -536,6 +539,9 @@ class ToolSelectPanelHelper:
                     visited.add(km_name)
 
                     yield (km_name, cls.bl_space_type, 'WINDOW', [])
+                    # Callable types don't use fall-backs.
+                    if isinstance(km_name, str):
+                        yield (km_name + " (fallback)", cls.bl_space_type, 'WINDOW', [])
 
     # -------------------------------------------------------------------------
     # Layout Generators
@@ -760,7 +766,7 @@ class ToolSelectPanelHelper:
     def draw_active_tool_header(
             context, layout,
             *,
-            show_tool_name=False,
+            show_tool_icon=False,
             tool_key=None,
     ):
         if tool_key is None:
@@ -777,9 +783,12 @@ class ToolSelectPanelHelper:
             return None
         # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
         # Add some spacing since the icon is currently assuming regular small icon size.
-        layout.label(text="    " + item.label if show_tool_name else " ", icon_value=icon_value)
-        if show_tool_name:
+        if show_tool_icon:
+            layout.label(text="    " + item.label, icon_value=icon_value)
             layout.separator()
+        else:
+            layout.label(text=item.label)
+
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)
@@ -988,16 +997,22 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
 
     gizmo_group = item.widget or ""
 
+    idname_fallback = (item_fallback and item_fallback.idname) or ""
+    keymap_fallback = (item_fallback and item_fallback.keymap and item_fallback.keymap[0]) or ""
+    if keymap_fallback:
+        keymap_fallback = keymap_fallback + " (fallback)"
+
     tool.setup(
         idname=item.idname,
         keymap=item.keymap[0] if item.keymap is not None else "",
         cursor=item.cursor or 'DEFAULT',
+        options=item.options or set(),
         gizmo_group=gizmo_group,
         data_block=item.data_block or "",
         operator=item.operator or "",
         index=index,
-        idname_fallback=(item_fallback and item_fallback.idname) or "",
-        keymap_fallback=(item_fallback and item_fallback.keymap and item_fallback.keymap[0]) or "",
+        idname_fallback=idname_fallback,
+        keymap_fallback=keymap_fallback,
     )
 
     if (

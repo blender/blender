@@ -17,26 +17,25 @@
  */
 
 #include "COM_GlareStreaksOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
-void GlareStreaksOperation::generateGlare(float *data,
-                                          MemoryBuffer *inputTile,
-                                          NodeGlare *settings)
+void GlareStreaksOperation::generate_glare(float *data,
+                                           MemoryBuffer *input_tile,
+                                           NodeGlare *settings)
 {
   int x, y, n;
   unsigned int nump = 0;
   float c1[4], c2[4], c3[4], c4[4];
   float a, ang = DEG2RADF(360.0f) / (float)settings->streaks;
 
-  int size = inputTile->getWidth() * inputTile->getHeight();
+  int size = input_tile->get_width() * input_tile->get_height();
   int size4 = size * 4;
 
   bool breaked = false;
 
-  MemoryBuffer tsrc(*inputTile);
-  MemoryBuffer tdst(DataType::Color, inputTile->get_rect());
+  MemoryBuffer tsrc(*input_tile);
+  MemoryBuffer tdst(DataType::Color, input_tile->get_rect());
   tdst.clear();
   memset(data, 0, size4 * sizeof(float));
 
@@ -51,9 +50,9 @@ void GlareStreaksOperation::generateGlare(float *data,
       /* Color-modulation amount relative to current pass. */
       const float cmo = 1.0f - (float)pow((double)settings->colmod, (double)n + 1);
 
-      float *tdstcol = tdst.getBuffer();
-      for (y = 0; y < tsrc.getHeight() && (!breaked); y++) {
-        for (x = 0; x < tsrc.getWidth(); x++, tdstcol += 4) {
+      float *tdstcol = tdst.get_buffer();
+      for (y = 0; y < tsrc.get_height() && (!breaked); y++) {
+        for (x = 0; x < tsrc.get_width(); x++, tdstcol += 4) {
           /* First pass no offset, always same for every pass, exact copy,
            * otherwise results in uneven brightness, only need once. */
           if (n == 0) {
@@ -62,9 +61,9 @@ void GlareStreaksOperation::generateGlare(float *data,
           else {
             c1[0] = c1[1] = c1[2] = 0;
           }
-          tsrc.readBilinear(c2, x + vxp, y + vyp);
-          tsrc.readBilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
-          tsrc.readBilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);
+          tsrc.read_bilinear(c2, x + vxp, y + vyp);
+          tsrc.read_bilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
+          tsrc.read_bilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);
           /* Modulate color to look vaguely similar to a color spectrum. */
           c2[1] *= cmo;
           c2[2] *= cmo;
@@ -80,14 +79,14 @@ void GlareStreaksOperation::generateGlare(float *data,
           tdstcol[2] = 0.5f * (tdstcol[2] + c1[2] + wt * (c2[2] + wt * (c3[2] + wt * c4[2])));
           tdstcol[3] = 1.0f;
         }
-        if (isBraked()) {
+        if (is_braked()) {
           breaked = true;
         }
       }
-      memcpy(tsrc.getBuffer(), tdst.getBuffer(), sizeof(float) * size4);
+      memcpy(tsrc.get_buffer(), tdst.get_buffer(), sizeof(float) * size4);
     }
 
-    float *sourcebuffer = tsrc.getBuffer();
+    float *sourcebuffer = tsrc.get_buffer();
     float factor = 1.0f / (float)(6 - settings->iter);
     for (int i = 0; i < size4; i += 4) {
       madd_v3_v3fl(&data[i], &sourcebuffer[i], factor);
@@ -95,7 +94,7 @@ void GlareStreaksOperation::generateGlare(float *data,
     }
 
     tdst.clear();
-    memcpy(tsrc.getBuffer(), inputTile->getBuffer(), sizeof(float) * size4);
+    memcpy(tsrc.get_buffer(), input_tile->get_buffer(), sizeof(float) * size4);
     nump++;
   }
 }

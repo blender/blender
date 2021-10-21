@@ -66,6 +66,10 @@ typedef struct ParticleHairCache {
   GPUVertBuf *proc_strand_buf;
   GPUTexture *strand_tex;
 
+  /* Hair Length */
+  GPUVertBuf *proc_length_buf;
+  GPUTexture *length_tex;
+
   GPUVertBuf *proc_strand_seg_buf;
   GPUTexture *strand_seg_tex;
 
@@ -93,11 +97,13 @@ bool particles_ensure_procedural_data(struct Object *object,
                                       struct ParticleSystem *psys,
                                       struct ModifierData *md,
                                       struct ParticleHairCache **r_hair_cache,
+                                      struct GPUMaterial *gpu_material,
                                       int subdiv,
                                       int thickness_res);
 
 bool hair_ensure_procedural_data(struct Object *object,
                                  struct ParticleHairCache **r_hair_cache,
+                                 struct GPUMaterial *gpu_material,
                                  int subdiv,
                                  int thickness_res);
 

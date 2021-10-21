@@ -843,17 +843,17 @@ static float rna_GPencilStrokePoints_weight_get(bGPDstroke *stroke,
     return -1.0f;
   }
 
-  if (dvert->totweight <= vertex_group_index || vertex_group_index < 0) {
-    BKE_report(reports, RPT_ERROR, "Groups: index out of range");
-    return -1.0f;
-  }
-
   if (stroke->totpoints <= point_index || point_index < 0) {
     BKE_report(reports, RPT_ERROR, "GPencilStrokePoints: index out of range");
     return -1.0f;
   }
 
   MDeformVert *pt_dvert = stroke->dvert + point_index;
+  if ((pt_dvert) && (pt_dvert->totweight <= vertex_group_index || vertex_group_index < 0)) {
+    BKE_report(reports, RPT_ERROR, "Groups: index out of range");
+    return -1.0f;
+  }
+
   MDeformWeight *dw = BKE_defvert_find_index(pt_dvert, vertex_group_index);
   if (dw) {
     return dw->weight;
@@ -906,7 +906,8 @@ static void rna_GPencil_stroke_remove(ID *id,
     return;
   }
 
-  BLI_freelinkN(&frame->strokes, stroke);
+  BLI_remlink(&frame->strokes, stroke);
+  BKE_gpencil_free_stroke(stroke);
   RNA_POINTER_INVALIDATE(stroke_ptr);
 
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);

@@ -328,5 +328,32 @@ TEST(multi_function, CustomMF_Convert)
   EXPECT_EQ(outputs[2], 9);
 }
 
+TEST(multi_function, IgnoredOutputs)
+{
+  OptionalOutputsFunction fn;
+  {
+    MFParamsBuilder params(fn, 10);
+    params.add_ignored_single_output("Out 1");
+    params.add_ignored_single_output("Out 2");
+    MFContextBuilder context;
+    fn.call(IndexRange(10), params, context);
+  }
+  {
+    Array<int> results_1(10);
+    Array<std::string> results_2(10, NoInitialization());
+
+    MFParamsBuilder params(fn, 10);
+    params.add_uninitialized_single_output(results_1.as_mutable_span(), "Out 1");
+    params.add_uninitialized_single_output(results_2.as_mutable_span(), "Out 2");
+    MFContextBuilder context;
+    fn.call(IndexRange(10), params, context);
+
+    EXPECT_EQ(results_1[0], 5);
+    EXPECT_EQ(results_1[3], 5);
+    EXPECT_EQ(results_1[9], 5);
+    EXPECT_EQ(results_2[0], "hello, this is a long string");
+  }
+}
+
 }  // namespace
 }  // namespace blender::fn::tests

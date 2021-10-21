@@ -19,6 +19,8 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
+#include "BKE_attribute_access.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_spline.hh"
 
 #include "FN_generic_virtual_array.hh"
@@ -28,6 +30,8 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::attribute_math::convert_to_static_type;
+using blender::bke::AttributeIDRef;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
 using blender::fn::GVArray;
@@ -110,10 +114,36 @@ void Spline::transform(const blender::float4x4 &matrix)
   this->mark_cache_invalid();
 }
 
+void Spline::reverse()
+{
+  this->positions().reverse();
+  this->radii().reverse();
+  this->tilts().reverse();
+
+  this->attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        std::optional<blender::fn::GMutableSpan> attribute = this->attributes.get_for_write(id);
+        if (!attribute) {
+          BLI_assert_unreachable();
+          return false;
+        }
+        convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          attribute->typed<T>().reverse();
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+
+  this->reverse_impl();
+  this->mark_cache_invalid();
+}
+
 int Spline::evaluated_edges_size() const
 {
   const int eval_size = this->evaluated_points_size();
-  if (eval_size == 1) {
+  if (eval_size < 2) {
+    /* Two points are required for an edge. */
     return 0;
   }
 
@@ -161,7 +191,7 @@ static void accumulate_lengths(Span<float3> positions,
  * Return non-owning access to the cache of accumulated lengths along the spline. Each item is the
  * length of the subsequent segment, i.e. the first value is the length of the first segment rather
  * than 0. This calculation is rather trivial, and only depends on the evaluated positions.
- * However, the results are used often, so it makes sense to cache it.
+ * However, the results are used often, and it is necessarily single threaded, so it is cached.
  */
 Span<float> Spline::evaluated_lengths() const
 {
@@ -176,9 +206,10 @@ Span<float> Spline::evaluated_lengths() const
 
   const int total = evaluated_edges_size();
   evaluated_lengths_cache_.resize(total);
-
-  Span<float3> positions = this->evaluated_positions();
-  accumulate_lengths(positions, is_cyclic_, evaluated_lengths_cache_);
+  if (total != 0) {
+    Span<float3> positions = this->evaluated_positions();
+    accumulate_lengths(positions, is_cyclic_, evaluated_lengths_cache_);
+  }
 
   length_cache_dirty_ = false;
   return evaluated_lengths_cache_;

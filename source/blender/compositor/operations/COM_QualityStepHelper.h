@@ -29,31 +29,31 @@ typedef enum QualityHelper {
 
 class QualityStepHelper {
  private:
-  eCompositorQuality m_quality;
-  int m_step;
-  int m_offsetadd;
+  eCompositorQuality quality_;
+  int step_;
+  int offsetadd_;
 
  protected:
   /**
    * Initialize the execution
    */
-  void initExecution(QualityHelper helper);
+  void init_execution(QualityHelper helper);
 
-  inline int getStep() const
+  inline int get_step() const
   {
-    return this->m_step;
+    return step_;
   }
-  inline int getOffsetAdd() const
+  inline int get_offset_add() const
   {
-    return this->m_offsetadd;
+    return offsetadd_;
   }
 
  public:
   QualityStepHelper();
 
-  void setQuality(eCompositorQuality quality)
+  void set_quality(eCompositorQuality quality)
   {
-    this->m_quality = quality;
+    quality_ = quality;
   }
 };
 

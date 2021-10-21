@@ -260,6 +260,7 @@ const bTheme U_theme_default = {
     .icon_modifier = RGBA(0x84b8ffff),
     .icon_shading = RGBA(0xea7581ff),
     .icon_folder = RGBA(0xe3c16eff),
+    .panel_roundness = 0.4f,
   },
   .space_properties = {
     .back = RGBA(0x42424200),
@@ -817,7 +818,7 @@ const bTheme U_theme_default = {
     },
     .shade2 = RGBA(0x7f707064),
     .grid = RGBA(0x23232300),
-    .wire = RGBA(0x808080ff),
+    .wire = RGBA(0x232323ff),
     .select = RGBA(0xed5700ff),
     .active = RGBA(0xffffffff),
     .edge_select = RGBA(0xffffffff),
@@ -845,7 +846,7 @@ const bTheme U_theme_default = {
     .nodeclass_layout = RGBA(0x6c696fff),
     .nodeclass_geometry = RGBA(0x00d7a4ff),
     .nodeclass_attribute = RGBA(0x3f5980ff),
-    .movie = RGBA(0x1a1a1acc),
+    .movie = RGBA(0x1a1a1a7d),
     .gp_vertex_size = 3,
     .gp_vertex = RGBA(0x97979700),
     .gp_vertex_select = RGBA(0xff8500ff),
@@ -1173,6 +1174,35 @@ const bTheme U_theme_default = {
     },
     {
       .color = RGBA(0x7a5441ff),
+    },
+  },
+  .strip_color = {
+    {
+      .color = RGBA(0xe2605bff),
+    },
+    {
+      .color = RGBA(0xf1a355ff),
+    },
+    {
+      .color = RGBA(0xf1dc55ff),
+    },
+    {
+      .color = RGBA(0x7bcc7bff),
+    },
+    {
+      .color = RGBA(0x5db6eaff),
+    },
+    {
+      .color = RGBA(0x8d59daff),
+    },
+    {
+      .color = RGBA(0xc673b8ff),
+    },
+    {
+      .color = RGBA(0x7a5441ff),
+    },
+    {
+      .color = RGBA(0x5f5f5fff),
     },
   },
 };

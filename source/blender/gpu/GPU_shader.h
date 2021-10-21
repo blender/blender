@@ -169,7 +169,7 @@ void GPU_shader_set_framebuffer_srgb_target(int use_srgb_to_linear);
 typedef enum eGPUBuiltinShader {
   /* specialized drawing */
   GPU_SHADER_TEXT,
-  GPU_SHADER_KEYFRAME_DIAMOND,
+  GPU_SHADER_KEYFRAME_SHAPE,
   GPU_SHADER_SIMPLE_LIGHTING,
   /* for simple 2D drawing */
   /**
@@ -422,6 +422,19 @@ void GPU_shader_free_builtin_shaders(void);
 
 /* Determined by the maximum uniform buffer size divided by chunk size. */
 #define GPU_MAX_UNIFORM_ATTR 8
+
+typedef enum eGPUKeyframeShapes {
+  GPU_KEYFRAME_SHAPE_DIAMOND = (1 << 0),
+  GPU_KEYFRAME_SHAPE_CIRCLE = (1 << 1),
+  GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL = (1 << 2),
+  GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL = (1 << 3),
+  GPU_KEYFRAME_SHAPE_INNER_DOT = (1 << 4),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MAX = (1 << 8),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MIN = (1 << 9),
+  GPU_KEYFRAME_SHAPE_ARROW_END_MIXED = (1 << 10),
+} eGPUKeyframeShapes;
+#define GPU_KEYFRAME_SHAPE_SQUARE \
+  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
 
 #ifdef __cplusplus
 }

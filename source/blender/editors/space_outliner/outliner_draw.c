@@ -32,6 +32,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -59,6 +60,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
+#include "ED_fileselect.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 
@@ -1839,16 +1841,20 @@ static bool outliner_draw_overrides_buts(uiBlock *block,
       if (tip == NULL) {
         tip = TIP_("Some sub-items require attention");
       }
-      uiBut *bt = uiDefIconBlockBut(block,
-                                    NULL,
-                                    NULL,
-                                    1,
-                                    ICON_ERROR,
-                                    (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
-                                    te->ys,
-                                    UI_UNIT_X,
-                                    UI_UNIT_Y,
-                                    tip);
+      uiBut *bt = uiDefIconBut(block,
+                               UI_BTYPE_BUT,
+                               1,
+                               ICON_ERROR,
+                               (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
+                               te->ys,
+                               UI_UNIT_X,
+                               UI_UNIT_Y,
+                               NULL,
+                               0.0,
+                               0.0,
+                               0.0,
+                               0.0,
+                               tip);
       UI_but_flag_enable(bt, but_flag);
     }
     any_item_has_warnings = any_item_has_warnings || item_has_warnings || any_child_has_warnings;
@@ -2356,7 +2362,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             case eGpencilModifierType_Texture:
               data.icon = ICON_TEXTURE;
               break;
-            case eGpencilModifierType_Weight:
+            case eGpencilModifierType_WeightProximity:
+              data.icon = ICON_MOD_VERTEX_WEIGHT;
+              break;
+            case eGpencilModifierType_WeightAngle:
               data.icon = ICON_MOD_VERTEX_WEIGHT;
               break;
 
@@ -2625,9 +2634,17 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_NLA:
           data.icon = ICON_NLA;
           break;
-        case ID_TXT:
-          data.icon = ICON_SCRIPT;
+        case ID_TXT: {
+          Text *text = (Text *)tselem->id;
+          if (text->filepath == NULL || (text->flags & TXT_ISMEM)) {
+            data.icon = ICON_FILE_TEXT;
+          }
+          else {
+            /* Helps distinguish text-based formats like the file-browser does. */
+            data.icon = ED_file_extension_icon(text->filepath);
+          }
           break;
+        }
         case ID_GR:
           data.icon = ICON_OUTLINER_COLLECTION;
           break;

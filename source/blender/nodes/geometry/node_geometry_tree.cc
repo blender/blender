@@ -109,6 +109,7 @@ static bool geometry_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype
                                                      SOCK_GEOMETRY,
                                                      SOCK_COLLECTION,
                                                      SOCK_TEXTURE,
+                                                     SOCK_IMAGE,
                                                      SOCK_MATERIAL);
 }
 
@@ -119,7 +120,7 @@ void register_node_tree_type_geo(void)
   tt->type = NTREE_GEOMETRY;
   strcpy(tt->idname, "GeometryNodeTree");
   strcpy(tt->ui_name, N_("Geometry Node Editor"));
-  tt->ui_icon = 0; /* defined in drawnode.c */
+  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
   strcpy(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;

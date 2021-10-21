@@ -70,10 +70,7 @@ void BKE_curveprofile_reset_view(struct CurveProfile *profile);
 
 void BKE_curveprofile_reset(struct CurveProfile *profile);
 
-void BKE_curveprofile_create_samples(struct CurveProfile *profile,
-                                     int n_segments,
-                                     bool sample_straight_edges,
-                                     struct CurveProfilePoint *r_samples);
+int BKE_curveprofile_table_size(const struct CurveProfile *profile);
 
 void BKE_curveprofile_init(struct CurveProfile *profile, short segments_len);
 
@@ -84,13 +81,6 @@ enum {
   PROF_UPDATE_CLIP = (1 << 1),
 };
 void BKE_curveprofile_update(struct CurveProfile *profile, const int update_flags);
-
-/* Need to find the total length of the curve to sample a portion of it */
-float BKE_curveprofile_total_length(const struct CurveProfile *profile);
-
-void BKE_curveprofile_create_samples_even_spacing(struct CurveProfile *profile,
-                                                  int n_segments,
-                                                  struct CurveProfilePoint *r_samples);
 
 /* Length portion is the fraction of the total path length where we want the location */
 void BKE_curveprofile_evaluate_length_portion(const struct CurveProfile *profile,

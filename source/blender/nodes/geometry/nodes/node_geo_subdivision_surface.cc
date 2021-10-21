@@ -14,13 +14,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
-#include "DNA_modifier_types.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
@@ -29,7 +33,12 @@ static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
-  b.add_input<decl::Bool>("Use Creases");
+  b.add_input<decl::Float>("Crease")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .supports_field()
+      .subtype(PROP_FACTOR);
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -37,14 +46,13 @@ static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
                                                 PointerRNA *ptr)
 {
-#ifndef WITH_OPENSUBDIV
-  UNUSED_VARS(ptr);
-  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
-#else
+#ifdef WITH_OPENSUBDIV
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
+#else
+  UNUSED_VARS(layout, ptr);
 #endif
 }
 
@@ -60,18 +68,12 @@ static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *n
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
-  if (!geometry_set.has_mesh()) {
-    params.set_output("Geometry", geometry_set);
-    return;
-  }
-
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 #else
+  Field<float> crease_field = params.extract_input<Field<float>>("Crease");
+
   const NodeGeometrySubdivisionSurface &storage =
       *(const NodeGeometrySubdivisionSurface *)params.node().storage;
   const int uv_smooth = storage.uv_smooth;
@@ -84,46 +86,68 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
     return;
   }
 
-  const bool use_crease = params.extract_input<bool>("Use Creases");
-  const Mesh *mesh_in = geometry_set.get_mesh_for_read();
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (!geometry_set.has_mesh()) {
+      return;
+    }
 
-  /* Initialize mesh settings. */
-  SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << subdiv_level) + 1;
-  mesh_settings.use_optimal_display = false;
+    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+    AttributeDomain domain = ATTR_DOMAIN_EDGE;
+    GeometryComponentFieldContext field_context{mesh_component, domain};
+    const int domain_size = mesh_component.attribute_domain_size(domain);
 
-  /* Initialize subdivision settings. */
-  SubdivSettings subdiv_settings;
-  subdiv_settings.is_simple = false;
-  subdiv_settings.is_adaptive = false;
-  subdiv_settings.use_creases = use_crease;
-  subdiv_settings.level = subdiv_level;
+    if (domain_size == 0) {
+      return;
+    }
 
-  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      boundary_smooth);
-  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
-      uv_smooth);
+    FieldEvaluator evaluator(field_context, domain_size);
+    evaluator.add(crease_field);
+    evaluator.evaluate();
+    const VArray<float> &creases = evaluator.get_evaluated<float>(0);
 
-  /* Apply subdivision to mesh. */
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
+    OutputAttribute_Typed<float> crease = mesh_component.attribute_try_get_for_output_only<float>(
+        "crease", domain);
+    MutableSpan<float> crease_span = crease.as_span();
+    for (auto i : creases.index_range()) {
+      crease_span[i] = std::clamp(creases[i], 0.0f, 1.0f);
+    }
+    crease.save();
 
-  /* In case of bad topology, skip to input mesh. */
-  if (subdiv == nullptr) {
-    params.set_output("Geometry", std::move(geometry_set));
-    return;
-  }
+    /* Initialize mesh settings. */
+    SubdivToMeshSettings mesh_settings;
+    mesh_settings.resolution = (1 << subdiv_level) + 1;
+    mesh_settings.use_optimal_display = false;
 
-  Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-  BKE_mesh_normals_tag_dirty(mesh_out);
+    /* Initialize subdivision settings. */
+    SubdivSettings subdiv_settings;
+    subdiv_settings.is_simple = false;
+    subdiv_settings.is_adaptive = false;
+    subdiv_settings.use_creases = !(creases.is_single() && creases.get_internal_single() == 0.0f);
+    subdiv_settings.level = subdiv_level;
 
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace(mesh_out);
+    subdiv_settings.vtx_boundary_interpolation =
+        BKE_subdiv_vtx_boundary_interpolation_from_subsurf(boundary_smooth);
+    subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+        uv_smooth);
 
-  // BKE_subdiv_stats_print(&subdiv->stats);
-  BKE_subdiv_free(subdiv);
+    Mesh *mesh_in = mesh_component.get_for_write();
 
+    /* Apply subdivision to mesh. */
+    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
+
+    /* In case of bad topology, skip to input mesh. */
+    if (subdiv == nullptr) {
+      return;
+    }
+
+    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
+    BKE_mesh_normals_tag_dirty(mesh_out);
+
+    mesh_component.replace(mesh_out);
+
+    BKE_subdiv_free(subdiv);
+  });
 #endif
-
   params.set_output("Geometry", std::move(geometry_set));
 }
 

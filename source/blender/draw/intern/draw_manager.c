@@ -51,6 +51,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
+#include "BKE_screen.h"
 #include "BKE_volume.h"
 
 #include "DNA_camera_types.h"
@@ -84,10 +85,12 @@
 #include "wm_window.h"
 
 #include "draw_color_management.h"
+#include "draw_manager.h"
 #include "draw_manager_profiling.h"
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 #include "draw_shader.h"
+#include "draw_texture_pool.h"
 
 /* only for callbacks */
 #include "draw_cache_impl.h"
@@ -111,7 +114,10 @@
 /** Render State: No persistent data between draw calls. */
 DRWManager DST = {NULL};
 
-static ListBase DRW_engines = {NULL, NULL};
+static struct {
+  ListBase /*DRWRegisteredDrawEngine*/ engines;
+  int len;
+} g_registered_engines = {{NULL}};
 
 static void drw_state_prepare_clean_for_draw(DRWManager *dst)
 {
@@ -315,35 +321,6 @@ struct DupliObject *DRW_object_get_dupli(const Object *UNUSED(ob))
 /** \name Viewport (DRW_viewport)
  * \{ */
 
-void *drw_viewport_engine_data_ensure(void *engine_type)
-{
-  void *data = GPU_viewport_engine_data_get(DST.viewport, engine_type);
-
-  if (data == NULL) {
-    data = GPU_viewport_engine_data_create(DST.viewport, engine_type);
-  }
-  return data;
-}
-
-void DRW_engine_viewport_data_size_get(
-    const void *engine_type_v, int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len)
-{
-  const DrawEngineType *engine_type = engine_type_v;
-
-  if (r_fbl_len) {
-    *r_fbl_len = engine_type->vedata_size->fbl_len;
-  }
-  if (r_txl_len) {
-    *r_txl_len = engine_type->vedata_size->txl_len;
-  }
-  if (r_psl_len) {
-    *r_psl_len = engine_type->vedata_size->psl_len;
-  }
-  if (r_stl_len) {
-    *r_stl_len = engine_type->vedata_size->stl_len;
-  }
-}
-
 /* WARNING: only use for custom pipeline. 99% of the time, you don't want to use this. */
 void DRW_render_viewport_size_set(const int size[2])
 {
@@ -371,39 +348,6 @@ const float *DRW_viewport_screenvecs_get(void)
 const float *DRW_viewport_pixelsize_get(void)
 {
   return &DST.pixsize;
-}
-
-static void drw_viewport_cache_resize(void)
-{
-  /* Release the memiter before clearing the mempools that references them */
-  GPU_viewport_cache_release(DST.viewport);
-
-  if (DST.vmempool != NULL) {
-    /* Release Image textures. */
-    BLI_memblock_iter iter;
-    GPUTexture **tex;
-    BLI_memblock_iternew(DST.vmempool->images, &iter);
-    while ((tex = BLI_memblock_iterstep(&iter))) {
-      GPU_texture_free(*tex);
-    }
-
-    BLI_memblock_clear(DST.vmempool->commands, NULL);
-    BLI_memblock_clear(DST.vmempool->commands_small, NULL);
-    BLI_memblock_clear(DST.vmempool->callbuffers, NULL);
-    BLI_memblock_clear(DST.vmempool->obmats, NULL);
-    BLI_memblock_clear(DST.vmempool->obinfos, NULL);
-    BLI_memblock_clear(DST.vmempool->cullstates, NULL);
-    BLI_memblock_clear(DST.vmempool->shgroups, NULL);
-    BLI_memblock_clear(DST.vmempool->uniforms, NULL);
-    BLI_memblock_clear(DST.vmempool->passes, NULL);
-    BLI_memblock_clear(DST.vmempool->views, NULL);
-    BLI_memblock_clear(DST.vmempool->images, NULL);
-
-    DRW_uniform_attrs_pool_clear_all(DST.vmempool->obattrs_ubo_pool);
-  }
-
-  DRW_instance_data_list_free_unused(DST.idatalist);
-  DRW_instance_data_list_resize(DST.idatalist);
 }
 
 /* Not a viewport variable, we could split this out. */
@@ -465,107 +409,212 @@ static void draw_unit_state_create(void)
   DRW_handle_increment(&DST.resource_handle);
 }
 
-/* It also stores viewport variable to an immutable place: DST
- * This is because a cache uniform only store reference
- * to its value. And we don't want to invalidate the cache
- * if this value change per viewport */
-static void drw_viewport_var_init(void)
+DRWData *DRW_viewport_data_create(void)
 {
-  RegionView3D *rv3d = DST.draw_ctx.rv3d;
-  ARegion *region = DST.draw_ctx.region;
+  DRWData *drw_data = MEM_callocN(sizeof(DRWData), "DRWData");
 
-  /* Refresh DST.size */
-  if (DST.viewport) {
-    int size[2];
-    GPU_viewport_size_get(DST.viewport, size);
-    DST.size[0] = size[0];
-    DST.size[1] = size[1];
-    DST.inv_size[0] = 1.0f / size[0];
-    DST.inv_size[1] = 1.0f / size[1];
+  drw_data->texture_pool = DRW_texture_pool_create();
 
-    DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(
-        DST.viewport);
-    DST.default_framebuffer = fbl->default_fb;
+  drw_data->idatalist = DRW_instance_data_list_create();
 
-    DST.vmempool = GPU_viewport_mempool_get(DST.viewport);
+  drw_data->commands = BLI_memblock_create(sizeof(DRWCommandChunk));
+  drw_data->commands_small = BLI_memblock_create(sizeof(DRWCommandSmallChunk));
+  drw_data->callbuffers = BLI_memblock_create(sizeof(DRWCallBuffer));
+  drw_data->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
+  drw_data->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
+  drw_data->views = BLI_memblock_create(sizeof(DRWView));
+  drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
+  drw_data->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
+  {
+    uint chunk_len = sizeof(DRWObjectMatrix) * DRW_RESOURCE_CHUNK_LEN;
+    drw_data->obmats = BLI_memblock_create_ex(sizeof(DRWObjectMatrix), chunk_len);
+  }
+  {
+    uint chunk_len = sizeof(DRWObjectInfos) * DRW_RESOURCE_CHUNK_LEN;
+    drw_data->obinfos = BLI_memblock_create_ex(sizeof(DRWObjectInfos), chunk_len);
+  }
+  {
+    uint chunk_len = sizeof(DRWCullingState) * DRW_RESOURCE_CHUNK_LEN;
+    drw_data->cullstates = BLI_memblock_create_ex(sizeof(DRWCullingState), chunk_len);
+  }
+  {
+    uint chunk_len = sizeof(DRWPass) * DRW_RESOURCE_CHUNK_LEN;
+    drw_data->passes = BLI_memblock_create_ex(sizeof(DRWPass), chunk_len);
+  }
 
-    if (DST.vmempool->commands == NULL) {
-      DST.vmempool->commands = BLI_memblock_create(sizeof(DRWCommandChunk));
-    }
-    if (DST.vmempool->commands_small == NULL) {
-      DST.vmempool->commands_small = BLI_memblock_create(sizeof(DRWCommandSmallChunk));
-    }
-    if (DST.vmempool->callbuffers == NULL) {
-      DST.vmempool->callbuffers = BLI_memblock_create(sizeof(DRWCallBuffer));
-    }
-    if (DST.vmempool->obmats == NULL) {
-      uint chunk_len = sizeof(DRWObjectMatrix) * DRW_RESOURCE_CHUNK_LEN;
-      DST.vmempool->obmats = BLI_memblock_create_ex(sizeof(DRWObjectMatrix), chunk_len);
-    }
-    if (DST.vmempool->obinfos == NULL) {
-      uint chunk_len = sizeof(DRWObjectInfos) * DRW_RESOURCE_CHUNK_LEN;
-      DST.vmempool->obinfos = BLI_memblock_create_ex(sizeof(DRWObjectInfos), chunk_len);
-    }
-    if (DST.vmempool->cullstates == NULL) {
-      uint chunk_len = sizeof(DRWCullingState) * DRW_RESOURCE_CHUNK_LEN;
-      DST.vmempool->cullstates = BLI_memblock_create_ex(sizeof(DRWCullingState), chunk_len);
-    }
-    if (DST.vmempool->shgroups == NULL) {
-      DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
-    }
-    if (DST.vmempool->uniforms == NULL) {
-      DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
-    }
-    if (DST.vmempool->views == NULL) {
-      DST.vmempool->views = BLI_memblock_create(sizeof(DRWView));
-    }
-    if (DST.vmempool->passes == NULL) {
-      uint chunk_len = sizeof(DRWPass) * DRW_RESOURCE_CHUNK_LEN;
-      DST.vmempool->passes = BLI_memblock_create_ex(sizeof(DRWPass), chunk_len);
-    }
-    if (DST.vmempool->images == NULL) {
-      DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *));
-    }
-    if (DST.vmempool->obattrs_ubo_pool == NULL) {
-      DST.vmempool->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
-    }
+  for (int i = 0; i < 2; i++) {
+    drw_data->view_data[i] = DRW_view_data_create(&g_registered_engines.engines);
+  }
+  return drw_data;
+}
 
-    DST.resource_handle = 0;
-    DST.pass_handle = 0;
+/* Reduce ref count of the textures used by a viewport. */
+static void draw_texture_release(DRWData *drw_data)
+{
+  /* Release Image textures. */
+  BLI_memblock_iter iter;
+  GPUTexture **tex;
+  BLI_memblock_iternew(drw_data->images, &iter);
+  while ((tex = BLI_memblock_iterstep(&iter))) {
+    GPU_texture_free(*tex);
+  }
+}
 
-    draw_unit_state_create();
+static void drw_viewport_data_reset(DRWData *drw_data)
+{
+  draw_texture_release(drw_data);
 
-    DST.idatalist = GPU_viewport_instance_data_list_get(DST.viewport);
-    DRW_instance_data_list_reset(DST.idatalist);
+  BLI_memblock_clear(drw_data->commands, NULL);
+  BLI_memblock_clear(drw_data->commands_small, NULL);
+  BLI_memblock_clear(drw_data->callbuffers, NULL);
+  BLI_memblock_clear(drw_data->obmats, NULL);
+  BLI_memblock_clear(drw_data->obinfos, NULL);
+  BLI_memblock_clear(drw_data->cullstates, NULL);
+  BLI_memblock_clear(drw_data->shgroups, NULL);
+  BLI_memblock_clear(drw_data->uniforms, NULL);
+  BLI_memblock_clear(drw_data->passes, NULL);
+  BLI_memblock_clear(drw_data->views, NULL);
+  BLI_memblock_clear(drw_data->images, NULL);
+  DRW_uniform_attrs_pool_clear_all(drw_data->obattrs_ubo_pool);
+  DRW_instance_data_list_free_unused(drw_data->idatalist);
+  DRW_instance_data_list_resize(drw_data->idatalist);
+  DRW_instance_data_list_reset(drw_data->idatalist);
+  DRW_texture_pool_reset(drw_data->texture_pool);
+}
+
+void DRW_viewport_data_free(DRWData *drw_data)
+{
+  draw_texture_release(drw_data);
+
+  BLI_memblock_destroy(drw_data->commands, NULL);
+  BLI_memblock_destroy(drw_data->commands_small, NULL);
+  BLI_memblock_destroy(drw_data->callbuffers, NULL);
+  BLI_memblock_destroy(drw_data->obmats, NULL);
+  BLI_memblock_destroy(drw_data->obinfos, NULL);
+  BLI_memblock_destroy(drw_data->cullstates, NULL);
+  BLI_memblock_destroy(drw_data->shgroups, NULL);
+  BLI_memblock_destroy(drw_data->uniforms, NULL);
+  BLI_memblock_destroy(drw_data->views, NULL);
+  BLI_memblock_destroy(drw_data->passes, NULL);
+  BLI_memblock_destroy(drw_data->images, NULL);
+  DRW_uniform_attrs_pool_free(drw_data->obattrs_ubo_pool);
+  DRW_instance_data_list_free(drw_data->idatalist);
+  DRW_texture_pool_free(drw_data->texture_pool);
+  for (int i = 0; i < 2; i++) {
+    DRW_view_data_free(drw_data->view_data[i]);
+  }
+  if (drw_data->matrices_ubo != NULL) {
+    for (int i = 0; i < drw_data->ubo_len; i++) {
+      GPU_uniformbuf_free(drw_data->matrices_ubo[i]);
+      GPU_uniformbuf_free(drw_data->obinfos_ubo[i]);
+    }
+    MEM_freeN(drw_data->matrices_ubo);
+    MEM_freeN(drw_data->obinfos_ubo);
+  }
+  MEM_freeN(drw_data);
+}
+
+static DRWData *drw_viewport_data_ensure(GPUViewport *viewport)
+{
+  DRWData **vmempool_p = GPU_viewport_data_get(viewport);
+  DRWData *vmempool = *vmempool_p;
+
+  if (vmempool == NULL) {
+    *vmempool_p = vmempool = DRW_viewport_data_create();
+  }
+  return vmempool;
+}
+
+/**
+ * Sets DST.viewport, DST.size and a lot of other important variables.
+ * Needs to be called before enabling any draw engine.
+ * - viewport can be NULL. In this case the data will not be stored and will be free at
+ *   drw_manager_exit().
+ * - size can be NULL to get it from viewport.
+ * - if viewport and size are NULL, size is set to (1, 1).
+ *
+ * Important: drw_manager_init can be called multiple times before drw_manager_exit.
+ */
+static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int size[2])
+{
+  RegionView3D *rv3d = dst->draw_ctx.rv3d;
+  ARegion *region = dst->draw_ctx.region;
+
+  int view = (viewport) ? GPU_viewport_active_view_get(viewport) : 0;
+
+  if (!dst->viewport && dst->vmempool) {
+    /* Manager was init first without a viewport, created DRWData, but is being re-init.
+     * In this case, keep the old data. */
+    /* If it is being re-init with a valid viewport, it means there is something wrong. */
+    BLI_assert(viewport == NULL);
+  }
+  else if (viewport) {
+    /* Use viewport's persistent DRWData. */
+    dst->vmempool = drw_viewport_data_ensure(viewport);
   }
   else {
-    DST.size[0] = 0;
-    DST.size[1] = 0;
-
-    DST.inv_size[0] = 0;
-    DST.inv_size[1] = 0;
-
-    DST.default_framebuffer = NULL;
-    DST.vmempool = NULL;
+    /* Create temporary DRWData. Freed in drw_manager_exit(). */
+    dst->vmempool = DRW_viewport_data_create();
   }
 
-  DST.primary_view_ct = 0;
+  dst->viewport = viewport;
+  dst->view_data_active = dst->vmempool->view_data[view];
+  dst->resource_handle = 0;
+  dst->pass_handle = 0;
+  dst->primary_view_ct = 0;
+
+  drw_viewport_data_reset(dst->vmempool);
+
+  bool do_validation = true;
+  if (size == NULL && viewport == NULL) {
+    /* Avoid division by 0. Engines will either override this or not use it. */
+    dst->size[0] = 1.0f;
+    dst->size[1] = 1.0f;
+  }
+  else if (size == NULL) {
+    BLI_assert(viewport);
+    GPUTexture *tex = GPU_viewport_color_texture(viewport, 0);
+    dst->size[0] = GPU_texture_width(tex);
+    dst->size[1] = GPU_texture_height(tex);
+  }
+  else {
+    BLI_assert(size);
+    dst->size[0] = size[0];
+    dst->size[1] = size[1];
+    /* Fix case when used in DRW_cache_restart(). */
+    do_validation = false;
+  }
+  dst->inv_size[0] = 1.0f / dst->size[0];
+  dst->inv_size[1] = 1.0f / dst->size[1];
+
+  if (do_validation) {
+    DRW_view_data_texture_list_size_validate(dst->view_data_active, (int[2]){UNPACK2(dst->size)});
+  }
+
+  if (viewport) {
+    DRW_view_data_default_lists_from_viewport(dst->view_data_active, viewport);
+  }
+
+  DefaultFramebufferList *dfbl = DRW_view_data_default_framebuffer_list_get(dst->view_data_active);
+  dst->default_framebuffer = dfbl->default_fb;
+
+  draw_unit_state_create();
 
   if (rv3d != NULL) {
-    normalize_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
-    normalize_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
+    normalize_v3_v3(dst->screenvecs[0], rv3d->viewinv[0]);
+    normalize_v3_v3(dst->screenvecs[1], rv3d->viewinv[1]);
 
-    DST.pixsize = rv3d->pixsize;
-    DST.view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
-    DRW_view_camtexco_set(DST.view_default, rv3d->viewcamtexcofac);
+    dst->pixsize = rv3d->pixsize;
+    dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
+    DRW_view_camtexco_set(dst->view_default, rv3d->viewcamtexcofac);
 
-    if (DST.draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+    if (dst->draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       int plane_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
-      DRW_view_clip_planes_set(DST.view_default, rv3d->clip, plane_len);
+      DRW_view_clip_planes_set(dst->view_default, rv3d->clip, plane_len);
     }
 
-    DST.view_active = DST.view_default;
-    DST.view_previous = NULL;
+    dst->view_active = dst->view_default;
+    dst->view_previous = NULL;
   }
   else if (region) {
     View2D *v2d = &region->v2d;
@@ -581,49 +630,64 @@ static void drw_viewport_var_init(void)
     winmat[3][0] = -1.0f;
     winmat[3][1] = -1.0f;
 
-    DST.view_default = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
-    DST.view_active = DST.view_default;
-    DST.view_previous = NULL;
+    dst->view_default = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+    dst->view_active = dst->view_default;
+    dst->view_previous = NULL;
   }
   else {
-    zero_v3(DST.screenvecs[0]);
-    zero_v3(DST.screenvecs[1]);
+    zero_v3(dst->screenvecs[0]);
+    zero_v3(dst->screenvecs[1]);
 
-    DST.pixsize = 1.0f;
-    DST.view_default = NULL;
-    DST.view_active = NULL;
-    DST.view_previous = NULL;
+    dst->pixsize = 1.0f;
+    dst->view_default = NULL;
+    dst->view_active = NULL;
+    dst->view_previous = NULL;
   }
 
   /* fclem: Is this still needed ? */
-  if (DST.draw_ctx.object_edit && rv3d) {
-    ED_view3d_init_mats_rv3d(DST.draw_ctx.object_edit, rv3d);
+  if (dst->draw_ctx.object_edit && rv3d) {
+    ED_view3d_init_mats_rv3d(dst->draw_ctx.object_edit, rv3d);
   }
 
   if (G_draw.view_ubo == NULL) {
     G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(DRWViewUboStorage), NULL, "G_draw.view_ubo");
   }
 
-  if (DST.draw_list == NULL) {
-    DST.draw_list = GPU_draw_list_create(DRW_DRAWLIST_LEN);
+  if (dst->draw_list == NULL) {
+    dst->draw_list = GPU_draw_list_create(DRW_DRAWLIST_LEN);
   }
 
-  memset(DST.object_instance_data, 0x0, sizeof(DST.object_instance_data));
+  memset(dst->object_instance_data, 0x0, sizeof(dst->object_instance_data));
+}
+
+static void drw_manager_exit(DRWManager *dst)
+{
+  if (dst->vmempool != NULL && dst->viewport == NULL) {
+    DRW_viewport_data_free(dst->vmempool);
+  }
+  dst->vmempool = NULL;
+  dst->viewport = NULL;
+#ifdef DEBUG
+  /* Avoid accidental reuse. */
+  drw_state_ensure_not_reused(dst);
+#endif
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)
 {
-  return GPU_viewport_framebuffer_list_get(DST.viewport);
+  return DRW_view_data_default_framebuffer_list_get(DST.view_data_active);
 }
 
 DefaultTextureList *DRW_viewport_texture_list_get(void)
 {
-  return GPU_viewport_texture_list_get(DST.viewport);
+  return DRW_view_data_default_texture_list_get(DST.view_data_active);
 }
 
 void DRW_viewport_request_redraw(void)
 {
-  GPU_viewport_tag_update(DST.viewport);
+  if (DST.viewport) {
+    GPU_viewport_tag_update(DST.viewport);
+  }
 }
 
 /** \} */
@@ -671,7 +735,7 @@ static void drw_duplidata_load(Object *ob)
 
   void **value;
   if (!BLI_ghash_ensure_p(DST.dupli_ghash, key, &value)) {
-    *value = MEM_callocN(sizeof(void *) * DST.enabled_engine_count, __func__);
+    *value = MEM_callocN(sizeof(void *) * g_registered_engines.len, __func__);
 
     /* TODO: Meh a bit out of place but this is nice as it is
      * only done once per instance type. */
@@ -686,7 +750,7 @@ static void drw_duplidata_load(Object *ob)
 static void duplidata_value_free(void *val)
 {
   void **dupli_datas = val;
-  for (int i = 0; i < DST.enabled_engine_count; i++) {
+  for (int i = 0; i < g_registered_engines.len; i++) {
     MEM_SAFE_FREE(dupli_datas[i]);
   }
   MEM_freeN(val);
@@ -720,13 +784,9 @@ void **DRW_duplidata_get(void *vedata)
   if (DST.dupli_source == NULL) {
     return NULL;
   }
-  /* XXX Search engine index by using vedata array */
-  for (int i = 0; i < DST.enabled_engine_count; i++) {
-    if (DST.vedata_array[i] == vedata) {
-      return &DST.dupli_datas[i];
-    }
-  }
-  return NULL;
+  ViewportEngineData *ved = (ViewportEngineData *)vedata;
+  DRWRegisteredDrawEngine *engine_type = (DRWRegisteredDrawEngine *)ved->engine_type;
+  return &DST.dupli_datas[engine_type->index];
 }
 
 /** \} */
@@ -873,7 +933,7 @@ DrawData *DRW_drawdata_ensure(ID *id,
     size_t fsize = size / sizeof(float);
     BLI_assert(fsize < MAX_INSTANCE_DATA_SIZE);
     if (DST.object_instance_data[fsize] == NULL) {
-      DST.object_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize);
+      DST.object_instance_data[fsize] = DRW_instance_data_request(DST.vmempool->idatalist, fsize);
     }
     dd = (DrawData *)DRW_instance_data_next(DST.object_instance_data[fsize]);
     memset(dd, 0, size);
@@ -967,10 +1027,11 @@ void DRW_cache_free_old_batches(Main *bmain)
 
 static void drw_engines_init(void)
 {
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     PROFILE_START(stime);
+
+    const DrawEngineDataSize *data_size = engine->vedata_size;
+    memset(data->psl->passes, 0, sizeof(*data->psl->passes) * data_size->psl_len);
 
     if (engine->engine_init) {
       engine->engine_init(data);
@@ -982,15 +1043,7 @@ static void drw_engines_init(void)
 
 static void drw_engines_cache_init(void)
 {
-  DST.enabled_engine_count = BLI_listbase_count(&DST.enabled_engines);
-  DST.vedata_array = MEM_mallocN(sizeof(void *) * DST.enabled_engine_count, __func__);
-
-  int i = 0;
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
-    DST.vedata_array[i] = data;
-
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (data->text_draw_cache) {
       DRW_text_cache_destroy(data->text_draw_cache);
       data->text_draw_cache = NULL;
@@ -1011,10 +1064,7 @@ static void drw_engines_world_update(Scene *scene)
     return;
   }
 
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
-
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (engine->id_update) {
       engine->id_update(data, &scene->world->id);
     }
@@ -1036,11 +1086,7 @@ static void drw_engines_cache_populate(Object *ob)
     drw_batch_cache_validate(ob);
   }
 
-  int i = 0;
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = DST.vedata_array[i];
-
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (engine->id_update) {
       engine->id_update(data, &ob->id);
     }
@@ -1063,25 +1109,17 @@ static void drw_engines_cache_populate(Object *ob)
 
 static void drw_engines_cache_finish(void)
 {
-  int i = 0;
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = DST.vedata_array[i];
-
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (engine->cache_finish) {
       engine->cache_finish(data);
     }
   }
-  MEM_freeN(DST.vedata_array);
 }
 
 static void drw_engines_draw_scene(void)
 {
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     PROFILE_START(stime);
-
     if (engine->draw_scene) {
       DRW_stats_group_start(engine->idname);
       engine->draw_scene(data);
@@ -1091,7 +1129,6 @@ static void drw_engines_draw_scene(void)
       }
       DRW_stats_group_end();
     }
-
     PROFILE_END_UPDATE(data->render_time, stime);
   }
   /* Reset state after drawing */
@@ -1100,9 +1137,7 @@ static void drw_engines_draw_scene(void)
 
 static void drw_engines_draw_text(void)
 {
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     PROFILE_START(stime);
 
     if (data->text_draw_cache) {
@@ -1116,10 +1151,7 @@ static void drw_engines_draw_text(void)
 /* Draw render engine info. */
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 {
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
-
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (data->info[0] != '\0') {
       char *chr_current = data->info;
       char *chr_start = chr_current;
@@ -1158,12 +1190,10 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 
 static void use_drw_engine(DrawEngineType *engine)
 {
-  LinkData *ld = MEM_callocN(sizeof(LinkData), "enabled engine link data");
-  ld->data = engine;
-  BLI_addtail(&DST.enabled_engines, ld);
+  DRW_view_data_use_engine(DST.view_data_active, engine);
 }
 
-/* Gather all draw engines needed and store them in DST.enabled_engines
+/* Gather all draw engines needed and store them in DST.view_data_active
  * That also define the rendering order of engines */
 static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, eDrawType drawtype)
 {
@@ -1197,6 +1227,18 @@ static void drw_engines_enable_basic(void)
   use_drw_engine(&draw_engine_basic_type);
 }
 
+static void drw_engine_enable_image_editor(void)
+{
+  if (DRW_engine_external_acquire_for_image_editor()) {
+    use_drw_engine(&draw_engine_external_type);
+  }
+  else {
+    use_drw_engine(&draw_engine_image_type);
+  }
+
+  use_drw_engine(&draw_engine_overlay_type);
+}
+
 static void drw_engines_enable_editors(void)
 {
   SpaceLink *space_data = DST.draw_ctx.space_data;
@@ -1205,8 +1247,7 @@ static void drw_engines_enable_editors(void)
   }
 
   if (space_data->spacetype == SPACE_IMAGE) {
-    use_drw_engine(&draw_engine_image_type);
-    use_drw_engine(&draw_engine_overlay_type);
+    drw_engine_enable_image_editor();
   }
   else if (space_data->spacetype == SPACE_NODE) {
     /* Only enable when drawing the space image backdrop. */
@@ -1241,22 +1282,12 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
 
 static void drw_engines_disable(void)
 {
-  BLI_freelistN(&DST.enabled_engines);
+  DRW_view_data_reset(DST.view_data_active);
 }
 
 static void drw_engines_data_validate(void)
 {
-  int enabled_engines = BLI_listbase_count(&DST.enabled_engines);
-  void **engine_handle_array = BLI_array_alloca(engine_handle_array, enabled_engines + 1);
-  int i = 0;
-
-  LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-    DrawEngineType *engine = link->data;
-    engine_handle_array[i++] = engine;
-  }
-  engine_handle_array[i] = NULL;
-
-  GPU_viewport_engines_data_validate(DST.viewport, engine_handle_array);
+  DRW_view_data_free_unused(DST.view_data_active);
 }
 
 /* Fast check to see if gpencil drawing engine is needed.
@@ -1283,55 +1314,57 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
   Scene *scene = update_ctx->scene;
   ViewLayer *view_layer = update_ctx->view_layer;
 
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
+  if (!viewport) {
+    return;
+  }
+
   const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
 
+  /* XXX Really nasty locking. But else this could
+   * be executed by the material previews thread
+   * while rendering a viewport. */
+  BLI_ticket_mutex_lock(DST.gl_context_mutex);
+
+  /* Reset before using it. */
+  drw_state_prepare_clean_for_draw(&DST);
+
+  DST.draw_ctx = (DRWContextState){
+      .region = region,
+      .rv3d = rv3d,
+      .v3d = v3d,
+      .scene = scene,
+      .view_layer = view_layer,
+      .obact = OBACT(view_layer),
+      .engine_type = engine_type,
+      .depsgraph = depsgraph,
+      .object_mode = OB_MODE_OBJECT,
+  };
+
+  /* Custom lightweight initialize to avoid resetting the memory-pools. */
+  DST.viewport = viewport;
+  DST.vmempool = drw_viewport_data_ensure(DST.viewport);
+
   /* Separate update for each stereo view. */
-  for (int view = 0; view < 2; view++) {
-    GPUViewport *viewport = WM_draw_region_get_viewport(region);
-    if (!viewport) {
-      continue;
-    }
-
-    /* XXX Really nasty locking. But else this could
-     * be executed by the material previews thread
-     * while rendering a viewport. */
-    BLI_ticket_mutex_lock(DST.gl_context_mutex);
-
-    /* Reset before using it. */
-    drw_state_prepare_clean_for_draw(&DST);
-
-    DST.viewport = viewport;
-    GPU_viewport_active_view_set(viewport, view);
-    DST.draw_ctx = (DRWContextState){
-        .region = region,
-        .rv3d = rv3d,
-        .v3d = v3d,
-        .scene = scene,
-        .view_layer = view_layer,
-        .obact = OBACT(view_layer),
-        .engine_type = engine_type,
-        .depsgraph = depsgraph,
-        .object_mode = OB_MODE_OBJECT,
-    };
+  int view_count = GPU_viewport_is_stereo_get(viewport) ? 2 : 1;
+  for (int view = 0; view < view_count; view++) {
+    DST.view_data_active = DST.vmempool->view_data[view];
 
     drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
     drw_engines_data_validate();
 
-    LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
-      DrawEngineType *draw_engine = link->data;
-      ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine);
-
+    DRW_ENABLED_ENGINE_ITER (DST.view_data_active, draw_engine, data) {
       if (draw_engine->view_update) {
         draw_engine->view_update(data);
       }
     }
 
-    DST.viewport = NULL;
-
     drw_engines_disable();
-
-    BLI_ticket_mutex_unlock(DST.gl_context_mutex);
   }
+
+  drw_manager_exit(&DST);
+
+  BLI_ticket_mutex_unlock(DST.gl_context_mutex);
 }
 
 /** \} */
@@ -1391,6 +1424,27 @@ void DRW_draw_callbacks_post_scene(void)
 
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
 
+#ifdef WITH_XR_OPENXR
+    /* XR callbacks (controllers, custom draw functions) for session mirror. */
+    if ((v3d->flag & V3D_XR_SESSION_MIRROR) != 0) {
+      if ((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) {
+        ARegionType *art = WM_xr_surface_controller_region_type_get();
+        if (art) {
+          ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
+        }
+      }
+      if ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0) {
+        SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
+        if (st) {
+          ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_XR);
+          if (art) {
+            ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
+          }
+        }
+      }
+    }
+#endif
+
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
@@ -1437,6 +1491,46 @@ void DRW_draw_callbacks_post_scene(void)
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
+
+#ifdef WITH_XR_OPENXR
+    if ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0) {
+      DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
+      DRW_state_reset();
+
+      GPU_framebuffer_bind(dfbl->overlay_fb);
+
+      GPU_matrix_projection_set(rv3d->winmat);
+      GPU_matrix_set(rv3d->viewmat);
+
+      /* XR callbacks (controllers, custom draw functions) for session surface. */
+      if (((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) ||
+          ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0)) {
+        GPU_depth_test(GPU_DEPTH_NONE);
+        GPU_apply_state();
+
+        if ((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) {
+          ARegionType *art = WM_xr_surface_controller_region_type_get();
+          if (art) {
+            ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
+          }
+        }
+        if ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0) {
+          SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
+          if (st) {
+            ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_XR);
+            if (art) {
+              ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
+            }
+          }
+        }
+
+        DRW_state_reset();
+      }
+
+      GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+    }
+#endif
   }
 }
 
@@ -1502,8 +1596,6 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   RegionView3D *rv3d = region->regiondata;
 
   DST.draw_ctx.evil_C = evil_C;
-  DST.viewport = viewport;
-  /* Setup viewport */
   DST.draw_ctx = (DRWContextState){
       .region = region,
       .rv3d = rv3d,
@@ -1520,8 +1612,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   drw_task_graph_init();
   drw_context_state_init();
 
-  drw_viewport_var_init();
-  DRW_viewport_colormanagement_set(DST.viewport);
+  drw_manager_init(&DST, viewport, NULL);
+  DRW_viewport_colormanagement_set(viewport);
 
   const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
   /* Check if scene needs to perform the populate loop */
@@ -1580,7 +1672,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     DRW_render_instance_buffer_finish();
 
 #ifdef USE_PROFILE
-    double *cache_time = GPU_viewport_cache_time_get(DST.viewport);
+    double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
     PROFILE_END_UPDATE(*cache_time, stime);
 #endif
   }
@@ -1620,12 +1712,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_state_reset();
   drw_engines_disable();
 
-  drw_viewport_cache_resize();
-
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 }
 
 void DRW_draw_render_loop(struct Depsgraph *depsgraph,
@@ -1662,6 +1749,9 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   }
 
   GPU_viewport_bind_from_offscreen(render_viewport, ofs);
+
+  /* Just here to avoid an assert but shouldn't be required in practice. */
+  GPU_framebuffer_restore();
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -1724,7 +1814,8 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
                                         const rcti *rect)
 {
   if (draw_engine_gpencil_type.render_to_image) {
-    ViewportEngineData *gpdata = drw_viewport_engine_data_ensure(&draw_engine_gpencil_type);
+    ViewportEngineData *gpdata = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
+                                                                      &draw_engine_gpencil_type);
     draw_engine_gpencil_type.render_to_image(gpdata, engine, render_layer, rect);
   }
 }
@@ -1758,11 +1849,9 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   };
   drw_context_state_init();
 
-  DST.viewport = GPU_viewport_create();
   const int size[2] = {engine->resolution_x, engine->resolution_y};
-  GPU_viewport_size_set(DST.viewport, size);
 
-  drw_viewport_var_init();
+  drw_manager_init(&DST, NULL, size);
 
   /* Main rendering. */
   rctf view_rect;
@@ -1782,12 +1871,11 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
     DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
   }
 
-  /* Force cache to reset. */
-  drw_viewport_cache_resize();
-  GPU_viewport_free(DST.viewport);
   DRW_state_reset();
 
   GPU_depth_test(GPU_DEPTH_NONE);
+
+  drw_manager_exit(&DST);
 
   /* Restore Drawing area. */
   GPU_framebuffer_restore();
@@ -1837,13 +1925,12 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   };
   drw_context_state_init();
 
-  DST.viewport = GPU_viewport_create();
   const int size[2] = {engine->resolution_x, engine->resolution_y};
-  GPU_viewport_size_set(DST.viewport, size);
 
-  drw_viewport_var_init();
+  drw_manager_init(&DST, NULL, size);
 
-  ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine_type);
+  ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
+                                                                  draw_engine_type);
 
   /* Main rendering. */
   rctf view_rect;
@@ -1887,16 +1974,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
     engine_type->draw_engine->store_metadata(data, final_render_result);
   }
 
-  /* Force cache to reset. */
-  drw_viewport_cache_resize();
-
-  GPU_viewport_free(DST.viewport);
   GPU_framebuffer_restore();
 
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 
   /* Reset state after drawing */
   DRW_state_reset();
@@ -1965,21 +2045,17 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   };
   drw_context_state_init();
 
-  DST.viewport = GPU_viewport_create();
-  const int size[2] = {1, 1};
-  GPU_viewport_size_set(DST.viewport, size);
-
-  drw_viewport_var_init();
+  drw_manager_init(&DST, NULL, NULL);
 
   DRW_hair_init();
 
-  ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine_type);
+  ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
+                                                                  draw_engine_type);
 
   /* Execute the callback */
   callback(data, user_data);
   DST.buffer_finish_called = false;
 
-  GPU_viewport_free(DST.viewport);
   GPU_framebuffer_restore();
 
   /* The use of custom pipeline in other thread using the same
@@ -1988,33 +2064,18 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
    * GPU_finish to sync seems to fix the issue. (see T62997) */
   GPU_finish();
 
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 }
 
 /* Used when the render engine want to redo another cache populate inside the same render frame.
  */
 void DRW_cache_restart(void)
 {
-  /* Save viewport size. */
-  float size[2], inv_size[2];
-  copy_v2_v2(size, DST.size);
-  copy_v2_v2(inv_size, DST.inv_size);
-
-  /* Force cache to reset. */
-  drw_viewport_cache_resize();
-
-  drw_viewport_var_init();
+  drw_manager_init(&DST, DST.viewport, (int[2]){UNPACK2(DST.size)});
 
   DST.buffer_finish_called = false;
 
   DRW_hair_init();
-
-  /* Restore. */
-  copy_v2_v2(DST.size, size);
-  copy_v2_v2(DST.inv_size, inv_size);
 }
 
 void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
@@ -2026,9 +2087,6 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
   DST.draw_ctx.evil_C = evil_C;
-  DST.viewport = viewport;
-
-  /* Setup viewport */
   DST.draw_ctx = (DRWContextState){
       .region = region,
       .scene = scene,
@@ -2042,8 +2100,8 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   };
 
   drw_context_state_init();
-  drw_viewport_var_init();
-  DRW_viewport_colormanagement_set(DST.viewport);
+  drw_manager_init(&DST, viewport, NULL);
+  DRW_viewport_colormanagement_set(viewport);
 
   /* TODO(jbakker): Only populate when editor needs to draw object.
    * for the image editor this is when showing UV's. */
@@ -2087,7 +2145,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
     DRW_render_instance_buffer_finish();
 
 #ifdef USE_PROFILE
-    double *cache_time = GPU_viewport_cache_time_get(DST.viewport);
+    double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
     PROFILE_END_UPDATE(*cache_time, stime);
 #endif
   }
@@ -2169,12 +2227,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   DRW_state_reset();
   drw_engines_disable();
 
-  drw_viewport_cache_resize();
-
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 }
 
 static struct DRWSelectBuffer {
@@ -2211,7 +2264,7 @@ void DRW_render_instance_buffer_finish(void)
 {
   BLI_assert_msg(!DST.buffer_finish_called, "DRW_render_instance_buffer_finish called twice!");
   DST.buffer_finish_called = true;
-  DRW_instance_buffer_finish(DST.idatalist);
+  DRW_instance_buffer_finish(DST.vmempool->idatalist);
   drw_resource_buffer_finish(DST.vmempool);
 }
 
@@ -2294,11 +2347,22 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     }
   }
 
-  const int viewport_size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
-  struct GPUViewport *viewport = GPU_viewport_create();
-  GPU_viewport_size_set(viewport, viewport_size);
+  /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
+  DST.draw_ctx = (DRWContextState){
+      .region = region,
+      .rv3d = rv3d,
+      .v3d = v3d,
+      .scene = scene,
+      .view_layer = view_layer,
+      .obact = obact,
+      .engine_type = engine_type,
+      .depsgraph = depsgraph,
+  };
+  drw_context_state_init();
 
-  DST.viewport = viewport;
+  const int viewport_size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
+  drw_manager_init(&DST, NULL, viewport_size);
+
   DST.options.is_select = true;
   DST.options.is_material_select = do_material_sub_selection;
   drw_task_graph_init();
@@ -2325,22 +2389,6 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     drw_engines_enable_overlays();
   }
   drw_engines_data_validate();
-
-  /* Setup viewport */
-
-  /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
-  DST.draw_ctx = (DRWContextState){
-      .region = region,
-      .rv3d = rv3d,
-      .v3d = v3d,
-      .scene = scene,
-      .view_layer = view_layer,
-      .obact = obact,
-      .engine_type = engine_type,
-      .depsgraph = depsgraph,
-  };
-  drw_context_state_init();
-  drw_viewport_var_init();
 
   /* Update UBO's */
   DRW_globals_update();
@@ -2445,14 +2493,10 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   DRW_state_reset();
   drw_engines_disable();
 
-#  ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#  endif
+  drw_manager_exit(&DST);
+
   GPU_framebuffer_restore();
 
-  /* Cleanup for selection state */
-  GPU_viewport_free(viewport);
 #endif /* USE_GPU_SELECT */
 }
 
@@ -2474,7 +2518,6 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
     DRW_opengl_context_enable();
   }
 
-  DST.viewport = viewport;
   DST.options.is_depth = true;
 
   /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
@@ -2488,18 +2531,21 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
       .engine_type = engine_type,
       .depsgraph = depsgraph,
   };
+  drw_context_state_init();
   drw_task_graph_init();
-  drw_engines_data_validate();
 
   /* Setup frame-buffer. */
-  DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(
-      DST.viewport);
-  GPU_framebuffer_bind(fbl->depth_only_fb);
-  GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
+  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
 
-  /* Setup viewport */
-  drw_context_state_init();
-  drw_viewport_var_init();
+  GPUFrameBuffer *depth_fb = NULL;
+  GPU_framebuffer_ensure_config(&depth_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(depth_tx),
+                                    GPU_ATTACHMENT_NONE,
+                                });
+
+  GPU_framebuffer_bind(depth_fb);
+  GPU_framebuffer_clear_depth(depth_fb, 1.0f);
 
   /* Update UBO's */
   DRW_globals_update();
@@ -2548,15 +2594,11 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   /* TODO: Reading depth for operators should be done here. */
 
   GPU_framebuffer_restore();
+  GPU_framebuffer_free(depth_fb);
 
   drw_engines_disable();
 
-  drw_viewport_cache_resize();
-
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 
   /* Changing context. */
   if (use_opengl_context) {
@@ -2574,6 +2616,11 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 {
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
+
+  /* Required by `drw_manager_init()` */
+  DST.draw_ctx.region = region;
+  DST.draw_ctx.rv3d = region->regiondata;
+  drw_manager_init(&DST, viewport, NULL);
 
   /* Get list of enabled engines */
   {
@@ -2599,6 +2646,11 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 {
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
+
+  /* Required by `drw_manager_init()` */
+  DST.draw_ctx.region = region;
+  DST.draw_ctx.rv3d = region->regiondata;
+  drw_manager_init(&DST, viewport, NULL);
 
   use_drw_engine(&draw_engine_gpencil_type);
 
@@ -2637,9 +2689,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   drw_task_graph_init();
   drw_context_state_init();
 
-  /* Setup viewport */
-  DST.viewport = viewport;
-  drw_viewport_var_init();
+  drw_manager_init(&DST, viewport, NULL);
 
   /* Update UBO's */
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
@@ -2666,7 +2716,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     DRW_render_instance_buffer_finish();
 #else
     DST.buffer_finish_called = true;
-    // DRW_instance_buffer_finish(DST.idatalist);
+    // DRW_instance_buffer_finish(DST.vmempool->idatalist);
     drw_resource_buffer_finish(DST.vmempool);
 #endif
   }
@@ -2678,12 +2728,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
 
   drw_engines_disable();
 
-  drw_viewport_cache_resize();
-
-#ifdef DEBUG
-  /* Avoid accidental reuse. */
-  drw_state_ensure_not_reused(&DST);
-#endif
+  drw_manager_exit(&DST);
 }
 
 /**
@@ -2699,10 +2744,17 @@ void DRW_draw_depth_object(
   GPU_matrix_mul(object->obmat);
 
   /* Setup frame-buffer. */
-  DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
+  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
 
-  GPU_framebuffer_bind(fbl->depth_only_fb);
-  GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
+  GPUFrameBuffer *depth_fb = NULL;
+  GPU_framebuffer_ensure_config(&depth_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(depth_tx),
+                                    GPU_ATTACHMENT_NONE,
+                                });
+
+  GPU_framebuffer_bind(depth_fb);
+  GPU_framebuffer_clear_depth(depth_fb, 1.0f);
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
   const float(*world_clip_planes)[4] = NULL;
@@ -2752,6 +2804,8 @@ void DRW_draw_depth_object(
   GPU_matrix_set(rv3d->viewmat);
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_framebuffer_restore();
+
+  GPU_framebuffer_free(depth_fb);
 }
 
 /** \} */
@@ -2884,7 +2938,12 @@ bool DRW_engine_render_support(DrawEngineType *draw_engine_type)
 
 void DRW_engine_register(DrawEngineType *draw_engine_type)
 {
-  BLI_addtail(&DRW_engines, draw_engine_type);
+  DRWRegisteredDrawEngine *draw_engine = MEM_mallocN(sizeof(DRWRegisteredDrawEngine), __func__);
+  draw_engine->draw_engine = draw_engine_type;
+  draw_engine->index = g_registered_engines.len;
+
+  BLI_addtail(&g_registered_engines.engines, draw_engine);
+  g_registered_engines.len = BLI_listbase_count(&g_registered_engines.engines);
 }
 
 void DRW_engines_register(void)
@@ -2935,8 +2994,27 @@ void DRW_engines_register(void)
   }
 }
 
+static void drw_registered_engines_free(void)
+{
+  DRWRegisteredDrawEngine *next;
+  for (DRWRegisteredDrawEngine *type = g_registered_engines.engines.first; type; type = next) {
+    next = type->next;
+    BLI_remlink(&R_engines, type);
+
+    if (type->draw_engine->engine_free) {
+      type->draw_engine->engine_free();
+    }
+    MEM_freeN(type);
+  }
+
+  BLI_listbase_clear(&g_registered_engines.engines);
+  g_registered_engines.len = 0;
+}
+
 void DRW_engines_free(void)
 {
+  drw_registered_engines_free();
+
   if (DST.gl_context == NULL) {
     /* Nothing has been setup. Nothing to clear.
      * Otherwise, DRW_opengl_context_enable can
@@ -2954,16 +3032,6 @@ void DRW_engines_free(void)
   DRW_shape_cache_free();
   DRW_stats_free();
   DRW_globals_free();
-
-  DrawEngineType *next;
-  for (DrawEngineType *type = DRW_engines.first; type; type = next) {
-    next = type->next;
-    BLI_remlink(&R_engines, type);
-
-    if (type->engine_free) {
-      type->engine_free();
-    }
-  }
 
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
@@ -3186,5 +3254,68 @@ void DRW_draw_state_init_gtests(eGPUShaderConfig sh_cfg)
 }
 
 #endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw manager context release/activation
+ *
+ * These functions are used in cases when an OpenGL context creation is needed during the draw.
+ * This happens, for example, when an external engine needs to create its own OpenGL context from
+ * the engine initialization.
+ *
+ * Example of context creation:
+ *
+ *   const bool drw_state = DRW_opengl_context_release();
+ *   gl_context = WM_opengl_context_create();
+ *   DRW_opengl_context_activate(drw_state);
+ *
+ * Example of context destruction:
+ *
+ *   const bool drw_state = DRW_opengl_context_release();
+ *   WM_opengl_context_activate(gl_context);
+ *   WM_opengl_context_dispose(gl_context);
+ *   DRW_opengl_context_activate(drw_state);
+ *
+ *
+ * NOTE: Will only perform context modification when on main thread. This way these functions can
+ * be used in an engine without check on whether it is a draw manager which manages OpenGL context
+ * on the current thread. The downside of this is that if the engine performs OpenGL creation from
+ * a non-main thread, that thread is supposed to not have OpenGL context ever bound by Blender.
+ *
+ * \{ */
+
+bool DRW_opengl_context_release(void)
+{
+  if (!BLI_thread_is_main()) {
+    return false;
+  }
+
+  if (GPU_context_active_get() != DST.gpu_context) {
+    /* Context release is requested from the outside of the draw manager main draw loop, indicate
+     * this to the `DRW_opengl_context_activate()` so that it restores drawable of the window. */
+    return false;
+  }
+
+  GPU_context_active_set(NULL);
+  WM_opengl_context_release(DST.gl_context);
+
+  return true;
+}
+
+void DRW_opengl_context_activate(bool drw_state)
+{
+  if (!BLI_thread_is_main()) {
+    return;
+  }
+
+  if (drw_state) {
+    WM_opengl_context_activate(DST.gl_context);
+    GPU_context_active_set(DST.gpu_context);
+  }
+  else {
+    wm_window_reset_drawable();
+  }
+}
 
 /** \} */

@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #ifdef __cplusplus

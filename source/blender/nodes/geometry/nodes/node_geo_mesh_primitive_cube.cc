@@ -456,12 +456,12 @@ static Mesh *create_cube_mesh(const float3 size,
     }
     if (verts_y == 1) { /* XZ plane. */
       Mesh *mesh = create_grid_mesh(verts_x, verts_z, size.x, size.z);
-      transform_mesh(mesh, float3(0), float3(M_PI_2, 0.0f, 0.0f), float3(1));
+      transform_mesh(*mesh, float3(0), float3(M_PI_2, 0.0f, 0.0f), float3(1));
       return mesh;
     }
     /* YZ plane. */
     Mesh *mesh = create_grid_mesh(verts_z, verts_y, size.z, size.y);
-    transform_mesh(mesh, float3(0), float3(0.0f, M_PI_2, 0.0f), float3(1));
+    transform_mesh(*mesh, float3(0), float3(0.0f, M_PI_2, 0.0f), float3(1));
     return mesh;
   }
 

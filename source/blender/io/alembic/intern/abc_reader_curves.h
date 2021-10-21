@@ -31,24 +31,24 @@ struct Curve;
 
 namespace blender::io::alembic {
 
-class AbcCurveReader : public AbcObjectReader {
+class AbcCurveReader final : public AbcObjectReader {
   Alembic::AbcGeom::ICurvesSchema m_curves_schema;
 
  public:
   AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-  bool valid() const;
+  bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const;
+                           const char **err_str) const override;
 
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          const int read_flag,
                          const char *velocity_name,
                          const float velocity_scale,
-                         const char **err_str);
+                         const char **err_str) override;
 
   void read_curve_sample(Curve *cu,
                          const Alembic::AbcGeom::ICurvesSchema &schema,

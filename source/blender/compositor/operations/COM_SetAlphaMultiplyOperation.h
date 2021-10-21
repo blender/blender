@@ -29,16 +29,16 @@ namespace blender::compositor {
  */
 class SetAlphaMultiplyOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputColor;
-  SocketReader *m_inputAlpha;
+  SocketReader *input_color_;
+  SocketReader *input_alpha_;
 
  public:
   SetAlphaMultiplyOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

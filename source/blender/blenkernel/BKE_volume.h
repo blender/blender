@@ -18,7 +18,7 @@
 
 /** \file
  * \ingroup bke
- * \brief Volume datablock.
+ * \brief Volume data-block.
  */
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +37,7 @@ struct VolumeGridVector;
 
 void BKE_volumes_init(void);
 
-/* Datablock Management */
+/* Data-block Management */
 
 void BKE_volume_init_grids(struct Volume *volume);
 void *BKE_volume_add(struct Main *bmain, const char *name);
@@ -122,13 +122,13 @@ void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4
 
 /* Volume Editing
  *
- * These are intended for modifiers to use on evaluated datablocks.
+ * These are intended for modifiers to use on evaluated data-blocks.
  *
- * new_for_eval creates a volume datablock with no grids or file path, but
+ * new_for_eval creates a volume data-block with no grids or file path, but
  * preserves other settings such as viewport display options.
  *
- * copy_for_eval creates a volume datablock preserving everything except the
- * file path. Grids are shared with the source datablock, not copied. */
+ * copy_for_eval creates a volume data-block preserving everything except the
+ * file path. Grids are shared with the source data-block, not copied. */
 
 struct Volume *BKE_volume_new_for_eval(const struct Volume *volume_src);
 struct Volume *BKE_volume_copy_for_eval(struct Volume *volume_src, bool reference);

@@ -209,9 +209,9 @@ class TOPBAR_MT_editor_menus(Menu):
 
         # Allow calling this menu directly (this might not be a header area).
         if getattr(context.area, "show_menus", False):
-            layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
+            layout.menu("TOPBAR_MT_blender", text="", icon='BLENDER')
         else:
-            layout.menu("TOPBAR_MT_app", text="Blender")
+            layout.menu("TOPBAR_MT_blender", text="Blender")
 
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
@@ -222,7 +222,7 @@ class TOPBAR_MT_editor_menus(Menu):
         layout.menu("TOPBAR_MT_help")
 
 
-class TOPBAR_MT_app(Menu):
+class TOPBAR_MT_blender(Menu):
     bl_label = "Blender"
 
     def draw(self, _context):
@@ -238,7 +238,7 @@ class TOPBAR_MT_app(Menu):
 
         layout.separator()
 
-        layout.menu("TOPBAR_MT_app_system")
+        layout.menu("TOPBAR_MT_blender_system")
 
 
 class TOPBAR_MT_file_cleanup(Menu):
@@ -430,7 +430,7 @@ class TOPBAR_MT_file_defaults(Menu):
 
 
 # Include technical operators here which would otherwise have no way for users to access.
-class TOPBAR_MT_app_system(Menu):
+class TOPBAR_MT_blender_system(Menu):
     bl_label = "System"
 
     def draw(self, _context):
@@ -634,6 +634,8 @@ class TOPBAR_MT_window(Menu):
 
         layout = self.layout
 
+        operator_context_default = layout.operator_context
+
         layout.operator("wm.window_new")
         layout.operator("wm.window_new_main")
 
@@ -655,6 +657,14 @@ class TOPBAR_MT_window(Menu):
         layout.separator()
 
         layout.operator("screen.screenshot")
+
+        # Showing the status in the area doesn't work well in this case.
+        # - From the top-bar, the text replaces the file-menu (not so bad but strange).
+        # - From menu-search it replaces the area that the user may want to screen-shot.
+        # Setting the context to screen causes the status to show in the global status-bar.
+        layout.operator_context = 'INVOKE_SCREEN'
+        layout.operator("screen.screenshot_area")
+        layout.operator_context = operator_context_default
 
         if sys.platform[:3] == "win":
             layout.separator()
@@ -854,8 +864,8 @@ classes = (
     TOPBAR_MT_file_context_menu,
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
-    TOPBAR_MT_app,
-    TOPBAR_MT_app_system,
+    TOPBAR_MT_blender,
+    TOPBAR_MT_blender_system,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
     TOPBAR_MT_file_recover,

@@ -216,7 +216,7 @@ static void modifier_apply_threaded(ImBuf *ibuf,
 /** \name Color Balance Modifier
  * \{ */
 
-static StripColorBalance calc_cb(StripColorBalance *cb_)
+static StripColorBalance calc_cb_lgg(StripColorBalance *cb_)
 {
   StripColorBalance cb = *cb_;
   int c;
@@ -262,8 +262,52 @@ static StripColorBalance calc_cb(StripColorBalance *cb_)
   return cb;
 }
 
+static StripColorBalance calc_cb_sop(StripColorBalance *cb_)
+{
+  StripColorBalance cb = *cb_;
+  int c;
+
+  for (c = 0; c < 3; c++) {
+    if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_SLOPE) {
+      if (cb.slope[c] != 0.0f) {
+        cb.slope[c] = 1.0f / cb.slope[c];
+      }
+      else {
+        cb.slope[c] = 1000000;
+      }
+    }
+
+    if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_OFFSET) {
+      cb.offset[c] = -1.0f * (cb.offset[c] - 1.0f);
+    }
+    else {
+      cb.offset[c] = cb.offset[c] - 1.0f;
+    }
+
+    if (!(cb.flag & SEQ_COLOR_BALANCE_INVERSE_POWER)) {
+      if (cb.power[c] != 0.0f) {
+        cb.power[c] = 1.0f / cb.power[c];
+      }
+      else {
+        cb.power[c] = 1000000;
+      }
+    }
+  }
+
+  return cb;
+}
+
+static StripColorBalance calc_cb(StripColorBalance *cb_)
+{
+  if (cb_->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+    return calc_cb_lgg(cb_);
+  }
+  /* `cb_->method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER`. */
+  return calc_cb_sop(cb_);
+}
+
 /* NOTE: lift is actually 2-lift. */
-MINLINE float color_balance_fl(
+MINLINE float color_balance_fl_lgg(
     float in, const float lift, const float gain, const float gamma, const float mul)
 {
   float x = (((in - 1.0f) * lift) + 1.0f) * gain;
@@ -278,12 +322,40 @@ MINLINE float color_balance_fl(
   return x;
 }
 
-static void make_cb_table_float(float lift, float gain, float gamma, float *table, float mul)
+MINLINE float color_balance_fl_sop(float in,
+                                   const float slope,
+                                   const float offset,
+                                   const float power,
+                                   const float pivot,
+                                   float mul)
 {
-  int y;
+  float x = in * slope + offset;
 
-  for (y = 0; y < 256; y++) {
-    float v = color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
+  /* prevent NaN */
+  if (x < 0.0f) {
+    x = 0.0f;
+  }
+
+  x = powf(x / pivot, power) * pivot;
+  x *= mul;
+  CLAMP(x, FLT_MIN, FLT_MAX);
+  return x;
+}
+
+static void make_cb_table_float_lgg(float lift, float gain, float gamma, float *table, float mul)
+{
+  for (int y = 0; y < 256; y++) {
+    float v = color_balance_fl_lgg((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
+
+    table[y] = v;
+  }
+}
+
+static void make_cb_table_float_sop(
+    float slope, float offset, float power, float pivot, float *table, float mul)
+{
+  for (int y = 0; y < 256; y++) {
+    float v = color_balance_fl_sop((float)y * (1.0f / 255.0f), slope, offset, power, pivot, mul);
 
     table[y] = v;
   }
@@ -310,7 +382,13 @@ static void color_balance_byte_byte(StripColorBalance *cb_,
     straight_uchar_to_premul_float(p, cp);
 
     for (c = 0; c < 3; c++) {
-      float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+      float t;
+      if (cb.method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+        t = color_balance_fl_lgg(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+      }
+      else {
+        t = color_balance_fl_sop(p[c], cb.slope[c], cb.offset[c], cb.power[c], 1.0, mul);
+      }
 
       if (m) {
         float m_normal = (float)m[c] / 255.0f;
@@ -352,7 +430,12 @@ static void color_balance_byte_float(StripColorBalance *cb_,
   cb = calc_cb(cb_);
 
   for (c = 0; c < 3; c++) {
-    make_cb_table_float(cb.lift[c], cb.gain[c], cb.gamma[c], cb_tab[c], mul);
+    if (cb.method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+      make_cb_table_float_lgg(cb.lift[c], cb.gain[c], cb.gamma[c], cb_tab[c], mul);
+    }
+    else {
+      make_cb_table_float_sop(cb.slope[c], cb.offset[c], cb.power[c], 1.0, cb_tab[c], mul);
+    }
   }
 
   for (i = 0; i < 256; i++) {
@@ -397,7 +480,13 @@ static void color_balance_float_float(StripColorBalance *cb_,
   while (p < e) {
     int c;
     for (c = 0; c < 3; c++) {
-      float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+      float t;
+      if (cb_->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
+        t = color_balance_fl_lgg(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
+      }
+      else {
+        t = color_balance_fl_sop(p[c], cb.slope[c], cb.offset[c], cb.power[c], 1.0, mul);
+      }
 
       if (m) {
         p[c] = p[c] * (1.0f - m[c]) + t * m[c];
@@ -507,11 +596,15 @@ static void colorBalance_init_data(SequenceModifierData *smd)
   int c;
 
   cbmd->color_multiply = 1.0f;
+  cbmd->color_balance.method = 0;
 
   for (c = 0; c < 3; c++) {
     cbmd->color_balance.lift[c] = 1.0f;
     cbmd->color_balance.gamma[c] = 1.0f;
     cbmd->color_balance.gain[c] = 1.0f;
+    cbmd->color_balance.slope[c] = 1.0f;
+    cbmd->color_balance.offset[c] = 1.0f;
+    cbmd->color_balance.power[c] = 1.0f;
   }
 }
 

@@ -24,18 +24,18 @@ namespace blender::compositor {
 
 class WrapOperation : public ReadBufferOperation {
  private:
-  int m_wrappingType;
+  int wrapping_type_;
 
  public:
   WrapOperation(DataType datatype);
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void setWrapping(int wrapping_type);
-  float getWrappedOriginalXPos(float x);
-  float getWrappedOriginalYPos(float y);
+  void set_wrapping(int wrapping_type);
+  float get_wrapped_original_xpos(float x);
+  float get_wrapped_original_ypos(float y);
 
   void setFactorXY(float factorX, float factorY);
 };

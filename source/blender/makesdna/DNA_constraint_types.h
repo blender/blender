@@ -81,8 +81,8 @@ typedef struct bConstraint {
   /** Local influence ipo or driver */
   struct Ipo *ipo DNA_DEPRECATED;
 
-  /* below are readonly fields that are set at runtime
-   * by the solver for use in the GE (only IK atm) */
+  /* Below are read-only fields that are set at runtime
+   * by the solver for use in the GE (only IK at the moment). */
   /** Residual error on constraint expressed in blender unit. */
   float lin_error;
   /** Residual error on constraint expressed in radiant. */
@@ -939,7 +939,7 @@ typedef enum eTrackToAxis_Modes {
 
 /* Shrinkwrap flags */
 typedef enum eShrinkwrap_Flags {
-  /* Also raycast in the opposite direction. */
+  /* Also ray-cast in the opposite direction. */
   CON_SHRINKWRAP_PROJECT_OPPOSITE = (1 << 0),
   /* Invert the cull mode when projecting opposite. */
   CON_SHRINKWRAP_PROJECT_INVERT_CULL = (1 << 1),

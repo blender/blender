@@ -17,58 +17,55 @@
  */
 
 #include "COM_MaskNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MaskOperation.h"
-
-#include "DNA_mask_types.h"
 
 namespace blender::compositor {
 
-MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
+MaskNode::MaskNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MaskNode::convertToOperations(NodeConverter &converter,
-                                   const CompositorContext &context) const
+void MaskNode::convert_to_operations(NodeConverter &converter,
+                                     const CompositorContext &context) const
 {
-  const RenderData *rd = context.getRenderData();
-  const float render_size_factor = context.getRenderPercentageAsFactor();
+  const RenderData *rd = context.get_render_data();
+  const float render_size_factor = context.get_render_percentage_as_factor();
 
-  NodeOutput *outputMask = this->getOutputSocket(0);
+  NodeOutput *output_mask = this->get_output_socket(0);
 
-  bNode *editorNode = this->getbNode();
-  NodeMask *data = (NodeMask *)editorNode->storage;
-  Mask *mask = (Mask *)editorNode->id;
+  bNode *editor_node = this->get_bnode();
+  NodeMask *data = (NodeMask *)editor_node->storage;
+  Mask *mask = (Mask *)editor_node->id;
 
   /* Always connect the output image. */
   MaskOperation *operation = new MaskOperation();
 
-  if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED) {
-    operation->setMaskWidth(data->size_x);
-    operation->setMaskHeight(data->size_y);
+  if (editor_node->custom1 & CMP_NODEFLAG_MASK_FIXED) {
+    operation->set_mask_width(data->size_x);
+    operation->set_mask_height(data->size_y);
   }
-  else if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
-    operation->setMaskWidth(data->size_x * render_size_factor);
-    operation->setMaskHeight(data->size_y * render_size_factor);
+  else if (editor_node->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
+    operation->set_mask_width(data->size_x * render_size_factor);
+    operation->set_mask_height(data->size_y * render_size_factor);
   }
   else {
-    operation->setMaskWidth(rd->xsch * render_size_factor);
-    operation->setMaskHeight(rd->ysch * render_size_factor);
+    operation->set_mask_width(rd->xsch * render_size_factor);
+    operation->set_mask_height(rd->ysch * render_size_factor);
   }
 
-  operation->setMask(mask);
-  operation->setFramenumber(context.getFramenumber());
-  operation->setFeather((bool)(editorNode->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+  operation->set_mask(mask);
+  operation->set_framenumber(context.get_framenumber());
+  operation->set_feather((bool)(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
 
-  if ((editorNode->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) && (editorNode->custom2 > 1) &&
-      (editorNode->custom3 > FLT_EPSILON)) {
-    operation->setMotionBlurSamples(editorNode->custom2);
-    operation->setMotionBlurShutter(editorNode->custom3);
+  if ((editor_node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) && (editor_node->custom2 > 1) &&
+      (editor_node->custom3 > FLT_EPSILON)) {
+    operation->set_motion_blur_samples(editor_node->custom2);
+    operation->set_motion_blur_shutter(editor_node->custom3);
   }
 
-  converter.addOperation(operation);
-  converter.mapOutputSocket(outputMask, operation->getOutputSocket());
+  converter.add_operation(operation);
+  converter.map_output_socket(output_mask, operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

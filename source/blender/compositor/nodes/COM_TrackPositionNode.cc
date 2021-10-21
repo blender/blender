@@ -19,7 +19,6 @@
 #include "COM_TrackPositionNode.h"
 
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_TrackPositionOperation.h"
 
 #include "DNA_movieclip_types.h"
@@ -28,7 +27,7 @@
 
 namespace blender::compositor {
 
-TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)
+TrackPositionNode::TrackPositionNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
@@ -41,58 +40,58 @@ static TrackPositionOperation *create_motion_operation(NodeConverter &converter,
                                                        int delta)
 {
   TrackPositionOperation *operation = new TrackPositionOperation();
-  operation->setMovieClip(clip);
-  operation->setTrackingObject(trackpos_data->tracking_object);
-  operation->setTrackName(trackpos_data->track_name);
-  operation->setFramenumber(frame_number);
-  operation->setAxis(axis);
-  operation->setPosition(CMP_TRACKPOS_ABSOLUTE);
-  operation->setRelativeFrame(frame_number + delta);
-  operation->setSpeedOutput(true);
-  converter.addOperation(operation);
+  operation->set_movie_clip(clip);
+  operation->set_tracking_object(trackpos_data->tracking_object);
+  operation->set_track_name(trackpos_data->track_name);
+  operation->set_framenumber(frame_number);
+  operation->set_axis(axis);
+  operation->set_position(CMP_TRACKPOS_ABSOLUTE);
+  operation->set_relative_frame(frame_number + delta);
+  operation->set_speed_output(true);
+  converter.add_operation(operation);
   return operation;
 }
 
-void TrackPositionNode::convertToOperations(NodeConverter &converter,
-                                            const CompositorContext &context) const
+void TrackPositionNode::convert_to_operations(NodeConverter &converter,
+                                              const CompositorContext &context) const
 {
-  bNode *editorNode = this->getbNode();
-  MovieClip *clip = (MovieClip *)editorNode->id;
-  NodeTrackPosData *trackpos_data = (NodeTrackPosData *)editorNode->storage;
+  bNode *editor_node = this->get_bnode();
+  MovieClip *clip = (MovieClip *)editor_node->id;
+  NodeTrackPosData *trackpos_data = (NodeTrackPosData *)editor_node->storage;
 
-  NodeOutput *outputX = this->getOutputSocket(0);
-  NodeOutput *outputY = this->getOutputSocket(1);
-  NodeOutput *outputSpeed = this->getOutputSocket(2);
+  NodeOutput *outputX = this->get_output_socket(0);
+  NodeOutput *outputY = this->get_output_socket(1);
+  NodeOutput *output_speed = this->get_output_socket(2);
 
   int frame_number;
-  if (editorNode->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
-    frame_number = editorNode->custom2;
+  if (editor_node->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
+    frame_number = editor_node->custom2;
   }
   else {
-    frame_number = context.getFramenumber();
+    frame_number = context.get_framenumber();
   }
 
   TrackPositionOperation *operationX = new TrackPositionOperation();
-  operationX->setMovieClip(clip);
-  operationX->setTrackingObject(trackpos_data->tracking_object);
-  operationX->setTrackName(trackpos_data->track_name);
-  operationX->setFramenumber(frame_number);
-  operationX->setAxis(0);
-  operationX->setPosition(editorNode->custom1);
-  operationX->setRelativeFrame(editorNode->custom2);
-  converter.addOperation(operationX);
-  converter.mapOutputSocket(outputX, operationX->getOutputSocket());
+  operationX->set_movie_clip(clip);
+  operationX->set_tracking_object(trackpos_data->tracking_object);
+  operationX->set_track_name(trackpos_data->track_name);
+  operationX->set_framenumber(frame_number);
+  operationX->set_axis(0);
+  operationX->set_position(editor_node->custom1);
+  operationX->set_relative_frame(editor_node->custom2);
+  converter.add_operation(operationX);
+  converter.map_output_socket(outputX, operationX->get_output_socket());
 
   TrackPositionOperation *operationY = new TrackPositionOperation();
-  operationY->setMovieClip(clip);
-  operationY->setTrackingObject(trackpos_data->tracking_object);
-  operationY->setTrackName(trackpos_data->track_name);
-  operationY->setFramenumber(frame_number);
-  operationY->setAxis(1);
-  operationY->setPosition(editorNode->custom1);
-  operationY->setRelativeFrame(editorNode->custom2);
-  converter.addOperation(operationY);
-  converter.mapOutputSocket(outputY, operationY->getOutputSocket());
+  operationY->set_movie_clip(clip);
+  operationY->set_tracking_object(trackpos_data->tracking_object);
+  operationY->set_track_name(trackpos_data->track_name);
+  operationY->set_framenumber(frame_number);
+  operationY->set_axis(1);
+  operationY->set_position(editor_node->custom1);
+  operationY->set_relative_frame(editor_node->custom2);
+  converter.add_operation(operationY);
+  converter.map_output_socket(outputY, operationY->get_output_socket());
 
   TrackPositionOperation *operationMotionPreX = create_motion_operation(
       converter, clip, trackpos_data, 0, frame_number, -1);
@@ -104,12 +103,16 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter,
       converter, clip, trackpos_data, 1, frame_number, 1);
 
   CombineChannelsOperation *combine_operation = new CombineChannelsOperation();
-  converter.addOperation(combine_operation);
-  converter.addLink(operationMotionPreX->getOutputSocket(), combine_operation->getInputSocket(0));
-  converter.addLink(operationMotionPreY->getOutputSocket(), combine_operation->getInputSocket(1));
-  converter.addLink(operationMotionPostX->getOutputSocket(), combine_operation->getInputSocket(2));
-  converter.addLink(operationMotionPostY->getOutputSocket(), combine_operation->getInputSocket(3));
-  converter.mapOutputSocket(outputSpeed, combine_operation->getOutputSocket());
+  converter.add_operation(combine_operation);
+  converter.add_link(operationMotionPreX->get_output_socket(),
+                     combine_operation->get_input_socket(0));
+  converter.add_link(operationMotionPreY->get_output_socket(),
+                     combine_operation->get_input_socket(1));
+  converter.add_link(operationMotionPostX->get_output_socket(),
+                     combine_operation->get_input_socket(2));
+  converter.add_link(operationMotionPostY->get_output_socket(),
+                     combine_operation->get_input_socket(3));
+  converter.map_output_socket(output_speed, combine_operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

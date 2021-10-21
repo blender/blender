@@ -17,62 +17,59 @@
  */
 
 #include "COM_SplitViewerNode.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_scene.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_SplitOperation.h"
 #include "COM_ViewerOperation.h"
 
 namespace blender::compositor {
 
-SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
+SplitViewerNode::SplitViewerNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void SplitViewerNode::convertToOperations(NodeConverter &converter,
-                                          const CompositorContext &context) const
+void SplitViewerNode::convert_to_operations(NodeConverter &converter,
+                                            const CompositorContext &context) const
 {
-  bNode *editorNode = this->getbNode();
-  bool do_output = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
-                   (editorNode->flag & NODE_DO_OUTPUT);
+  bNode *editor_node = this->get_bnode();
+  bool do_output = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
+                   (editor_node->flag & NODE_DO_OUTPUT);
 
-  NodeInput *image1Socket = this->getInputSocket(0);
-  NodeInput *image2Socket = this->getInputSocket(1);
-  Image *image = (Image *)this->getbNode()->id;
-  ImageUser *imageUser = (ImageUser *)this->getbNode()->storage;
+  NodeInput *image1Socket = this->get_input_socket(0);
+  NodeInput *image2Socket = this->get_input_socket(1);
+  Image *image = (Image *)this->get_bnode()->id;
+  ImageUser *image_user = (ImageUser *)this->get_bnode()->storage;
 
-  SplitOperation *splitViewerOperation = new SplitOperation();
-  splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
-  splitViewerOperation->setXSplit(!this->getbNode()->custom2);
+  SplitOperation *split_viewer_operation = new SplitOperation();
+  split_viewer_operation->set_split_percentage(this->get_bnode()->custom1);
+  split_viewer_operation->set_xsplit(!this->get_bnode()->custom2);
 
-  converter.addOperation(splitViewerOperation);
-  converter.mapInputSocket(image1Socket, splitViewerOperation->getInputSocket(0));
-  converter.mapInputSocket(image2Socket, splitViewerOperation->getInputSocket(1));
+  converter.add_operation(split_viewer_operation);
+  converter.map_input_socket(image1Socket, split_viewer_operation->get_input_socket(0));
+  converter.map_input_socket(image2Socket, split_viewer_operation->get_input_socket(1));
 
-  ViewerOperation *viewerOperation = new ViewerOperation();
-  viewerOperation->setImage(image);
-  viewerOperation->setImageUser(imageUser);
-  viewerOperation->setViewSettings(context.getViewSettings());
-  viewerOperation->setDisplaySettings(context.getDisplaySettings());
-  viewerOperation->setRenderData(context.getRenderData());
-  viewerOperation->setViewName(context.getViewName());
+  ViewerOperation *viewer_operation = new ViewerOperation();
+  viewer_operation->set_image(image);
+  viewer_operation->set_image_user(image_user);
+  viewer_operation->set_view_settings(context.get_view_settings());
+  viewer_operation->set_display_settings(context.get_display_settings());
+  viewer_operation->set_render_data(context.get_render_data());
+  viewer_operation->set_view_name(context.get_view_name());
 
   /* defaults - the viewer node has these options but not exposed for split view
    * we could use the split to define an area of interest on one axis at least */
-  viewerOperation->setChunkOrder(ChunkOrdering::Default);
-  viewerOperation->setCenterX(0.5f);
-  viewerOperation->setCenterY(0.5f);
+  viewer_operation->set_chunk_order(ChunkOrdering::Default);
+  viewer_operation->setCenterX(0.5f);
+  viewer_operation->setCenterY(0.5f);
 
-  converter.addOperation(viewerOperation);
-  converter.addLink(splitViewerOperation->getOutputSocket(), viewerOperation->getInputSocket(0));
+  converter.add_operation(viewer_operation);
+  converter.add_link(split_viewer_operation->get_output_socket(),
+                     viewer_operation->get_input_socket(0));
 
-  converter.addPreview(splitViewerOperation->getOutputSocket());
+  converter.add_preview(split_viewer_operation->get_output_socket());
 
   if (do_output) {
-    converter.registerViewer(viewerOperation);
+    converter.register_viewer(viewer_operation);
   }
 }
 

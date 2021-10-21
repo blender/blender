@@ -40,7 +40,7 @@ class Scene;
 class Shader;
 struct ShaderData;
 struct float3;
-struct KernelGlobals;
+struct KernelGlobalsCPU;
 
 /* OSL Texture Handle
  *
@@ -250,10 +250,18 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data) override;
 #endif
 
-  static bool get_background_attribute(
-      KernelGlobals *kg, ShaderData *sd, ustring name, TypeDesc type, bool derivatives, void *val);
-  static bool get_object_standard_attribute(
-      KernelGlobals *kg, ShaderData *sd, ustring name, TypeDesc type, bool derivatives, void *val);
+  static bool get_background_attribute(const KernelGlobalsCPU *kg,
+                                       ShaderData *sd,
+                                       ustring name,
+                                       TypeDesc type,
+                                       bool derivatives,
+                                       void *val);
+  static bool get_object_standard_attribute(const KernelGlobalsCPU *kg,
+                                            ShaderData *sd,
+                                            ustring name,
+                                            TypeDesc type,
+                                            bool derivatives,
+                                            void *val);
 
   static ustring u_distance;
   static ustring u_index;
@@ -286,8 +294,10 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_is_smooth;
   static ustring u_is_curve;
   static ustring u_curve_thickness;
+  static ustring u_curve_length;
   static ustring u_curve_tangent_normal;
   static ustring u_curve_random;
+  static ustring u_normal_map_normal;
   static ustring u_path_ray_length;
   static ustring u_path_ray_depth;
   static ustring u_path_diffuse_depth;

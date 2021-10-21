@@ -254,6 +254,10 @@ static int seq_snap_threshold_get_frame_distance(const TransInfo *t)
 
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 {
+  if (t->data_type == TC_SEQ_IMAGE_DATA) {
+    return NULL;
+  }
+
   TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
 

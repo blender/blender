@@ -18,12 +18,9 @@
 
 #pragma once
 
-#include "BLI_rect.h"
-#include "BLI_vector.hh"
+#include "BLI_span.hh"
 
-#include "COM_ExecutionSystem.h"
-
-#include <functional>
+#include "DNA_vec_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -31,6 +28,8 @@
 
 namespace blender::compositor {
 
+class CompositorContext;
+class ExecutionSystem;
 class NodeOperation;
 
 /**

@@ -1445,8 +1445,9 @@ int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
   return 0;
 }
 
-/* this is the max length including \0 terminator.
- * '0' used when their is no maximum */
+/**
+ * \return the maximum length including the \0 terminator. '0' is used when there is no maximum.
+ */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
@@ -2206,6 +2207,7 @@ void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
   rna_property_update(C, CTX_data_main(C), CTX_data_scene(C), ptr, prop);
 }
 
+/* NOTE: `scene` pointer may be NULL. */
 void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
   rna_property_update(NULL, bmain, scene, ptr, prop);

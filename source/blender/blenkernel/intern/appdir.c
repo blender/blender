@@ -148,11 +148,12 @@ static char *blender_version_decimal(const int version)
  * \{ */
 
 /**
- * Get the folder that's the "natural" starting point for browsing files on an OS. On Unix that is
- * $HOME, on Windows it is %userprofile%/Documents.
+ * Get the folder that's the "natural" starting point for browsing files on an OS.
+ * - Unix: `$HOME`
+ * - Windows: `%userprofile%/Documents`
  *
  * \note On Windows `Users/{MyUserName}/Documents` is used as it's the default location to save
- *       documents.
+ * documents.
  */
 const char *BKE_appdir_folder_default(void)
 {
@@ -170,7 +171,9 @@ const char *BKE_appdir_folder_default(void)
 }
 
 /**
- * Get the user's home directory, i.e. $HOME on UNIX, %userprofile% on Windows.
+ * Get the user's home directory, i.e.
+ * - Unix: `$HOME`
+ * - Windows: `%userprofile%`
  */
 const char *BKE_appdir_folder_home(void)
 {
@@ -182,8 +185,11 @@ const char *BKE_appdir_folder_home(void)
 }
 
 /**
- * Get the user's document directory, i.e. $HOME/Documents on Linux, %userprofile%/Documents on
- * Windows. If this can't be found using OS queries (via Ghost), try manually finding it.
+ * Get the user's document directory, i.e.
+ * - Linux: `$HOME/Documents`
+ * - Windows: `%userprofile%/Documents`
+ *
+ * If this can't be found using OS queries (via Ghost), try manually finding it.
  *
  * \returns True if the path is valid and points to an existing directory.
  */
@@ -214,6 +220,39 @@ bool BKE_appdir_folder_documents(char *dir)
   }
 
   BLI_strncpy(dir, try_documents_path, FILE_MAXDIR);
+  return true;
+}
+
+/**
+ * Get the user's cache directory, i.e.
+ * - Linux: `$HOME/.cache/blender/`
+ * - Windows: `%USERPROFILE%\AppData\Local\Blender Foundation\Blender\`
+ * - MacOS: `/Library/Caches/Blender`
+ *
+ * \returns True if the path is valid. It doesn't create or checks format
+ * if the `blender` folder exists. It does check if the parent of the path exists.
+ */
+bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
+{
+  r_path[0] = '\0';
+
+  const char *caches_root_path = GHOST_getUserSpecialDir(GHOST_kUserSpecialDirCaches);
+  if (caches_root_path == NULL || !BLI_is_dir(caches_root_path)) {
+    caches_root_path = BKE_tempdir_base();
+  }
+  if (caches_root_path == NULL || !BLI_is_dir(caches_root_path)) {
+    return false;
+  }
+
+#ifdef WIN32
+  BLI_path_join(
+      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR, NULL);
+#elif defined(__APPLE__)
+  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR, NULL);
+#else /* __linux__ */
+  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR, NULL);
+#endif
+
   return true;
 }
 

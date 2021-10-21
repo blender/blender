@@ -14,66 +14,71 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "DNA_modifier_types.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
+
+#include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "node_geometry_util.hh"
-
-extern "C" {
-Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
-}
 
 namespace blender::nodes {
 
 static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Edge Angle").default_value(true);
-  b.add_input<decl::Float>("Angle")
-      .default_value(DEG2RADF(30.0f))
-      .min(0.0f)
-      .max(DEG2RADF(180.0f))
-      .subtype(PROP_ANGLE);
-  b.add_input<decl::Bool>("Sharp Edges");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Mesh");
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_output<decl::Geometry>("Mesh");
+}
+
+static Mesh *mesh_edge_split(const Mesh &mesh, const IndexMask selection)
+{
+  const BMeshCreateParams bmcp = {true};
+  const BMAllocTemplate allocsize = {0, 0, 0, 0};
+  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+
+  BMeshFromMeshParams params{};
+  BM_mesh_bm_from_me(bm, &mesh, &params);
+
+  BM_mesh_elem_table_ensure(bm, BM_EDGE);
+  for (const int i : selection) {
+    BMEdge *edge = BM_edge_at_index(bm, i);
+    BM_elem_flag_enable(edge, BM_ELEM_TAG);
+  }
+
+  BM_mesh_edgesplit(bm, false, true, false);
+
+  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, &mesh);
+  BM_mesh_free(bm);
+
+  BKE_mesh_normals_tag_dirty(result);
+
+  return result;
 }
 
 static void geo_node_edge_split_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  if (!geometry_set.has_mesh()) {
-    params.set_output("Geometry", std::move(geometry_set));
-    return;
-  }
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (!geometry_set.has_mesh()) {
+      return;
+    }
 
-  const bool use_sharp_flag = params.extract_input<bool>("Sharp Edges");
-  const bool use_edge_angle = params.extract_input<bool>("Edge Angle");
+    const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
+    GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_EDGE};
+    const int domain_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+    selection_evaluator.add(selection_field);
+    selection_evaluator.evaluate();
+    const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-  if (!use_edge_angle && !use_sharp_flag) {
-    params.set_output("Geometry", std::move(geometry_set));
-    return;
-  }
+    geometry_set.replace_mesh(mesh_edge_split(*mesh_component.get_for_read(), selection));
+  });
 
-  const float split_angle = params.extract_input<float>("Angle");
-  const Mesh *mesh_in = geometry_set.get_mesh_for_read();
-
-  /* Use modifier struct to pass arguments to the modifier code. */
-  EdgeSplitModifierData emd;
-  memset(&emd, 0, sizeof(EdgeSplitModifierData));
-  emd.split_angle = split_angle;
-  if (use_edge_angle) {
-    emd.flags = MOD_EDGESPLIT_FROMANGLE;
-  }
-  if (use_sharp_flag) {
-    emd.flags |= MOD_EDGESPLIT_FROMFLAG;
-  }
-
-  Mesh *mesh_out = doEdgeSplit(mesh_in, &emd);
-  geometry_set.replace_mesh(mesh_out);
-
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Mesh", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes
@@ -82,7 +87,7 @@ void register_node_type_geo_edge_split()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_EDGE_SPLIT, "Edge Split", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SPLIT_EDGES, "Split Edges", NODE_CLASS_GEOMETRY, 0);
   ntype.geometry_node_execute = blender::nodes::geo_node_edge_split_exec;
   ntype.declare = blender::nodes::geo_node_edge_split_declare;
   nodeRegisterType(&ntype);

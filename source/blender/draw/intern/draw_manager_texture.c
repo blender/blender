@@ -21,6 +21,7 @@
  */
 
 #include "draw_manager.h"
+#include "draw_texture_pool.h"
 
 #ifndef NDEBUG
 /* Maybe gpu_texture.c is a better place for this. */
@@ -147,7 +148,7 @@ GPUTexture *DRW_texture_pool_query_2d(int w,
                                       DrawEngineType *engine_type)
 {
   BLI_assert(drw_texture_format_supports_framebuffer(format));
-  GPUTexture *tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, w, h, format);
+  GPUTexture *tex = DRW_texture_pool_query(DST.vmempool->texture_pool, w, h, format, engine_type);
 
   return tex;
 }

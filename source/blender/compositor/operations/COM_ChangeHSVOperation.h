@@ -28,10 +28,10 @@ namespace blender::compositor {
  */
 class ChangeHSVOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  SocketReader *m_hueOperation;
-  SocketReader *m_saturationOperation;
-  SocketReader *m_valueOperation;
+  SocketReader *input_operation_;
+  SocketReader *hue_operation_;
+  SocketReader *saturation_operation_;
+  SocketReader *value_operation_;
 
  public:
   /**
@@ -39,13 +39,13 @@ class ChangeHSVOperation : public MultiThreadedOperation {
    */
   ChangeHSVOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

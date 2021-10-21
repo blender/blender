@@ -378,7 +378,15 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             if cls in blacklist_rna_class:
                 return cls.__name__
             cls_id = ""
-            bl_rna = cls.bl_rna
+            bl_rna = getattr(cls, "bl_rna", None)
+            # It seems that py-defined 'wrappers' RNA classes (like `MeshEdge` in `bpy_types.py`) need to be accessed
+            # once from `bpy.types` before they have a valid `bl_rna` member.
+            # Weirdly enough, this is only triggered on release builds, debug builds somehow do not have that issue.
+            if bl_rna is None:
+                if getattr(bpy.types, cls.__name__, None) is not None:
+                    bl_rna = getattr(cls, "bl_rna", None)
+                if bl_rna is None:
+                    raise TypeError("Unknown RNA class")
             while bl_rna:
                 cls_id = bl_rna.identifier + "." + cls_id
                 bl_rna = bl_rna.base

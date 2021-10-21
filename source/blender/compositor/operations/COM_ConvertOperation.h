@@ -24,13 +24,13 @@ namespace blender::compositor {
 
 class ConvertBaseOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_inputOperation;
+  SocketReader *input_operation_;
 
  public:
   ConvertBaseOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -45,7 +45,7 @@ class ConvertValueToColorOperation : public ConvertBaseOperation {
  public:
   ConvertValueToColorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -55,7 +55,7 @@ class ConvertColorToValueOperation : public ConvertBaseOperation {
  public:
   ConvertColorToValueOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -65,7 +65,7 @@ class ConvertColorToBWOperation : public ConvertBaseOperation {
  public:
   ConvertColorToBWOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -75,7 +75,7 @@ class ConvertColorToVectorOperation : public ConvertBaseOperation {
  public:
   ConvertColorToVectorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -85,7 +85,7 @@ class ConvertValueToVectorOperation : public ConvertBaseOperation {
  public:
   ConvertValueToVectorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -95,7 +95,7 @@ class ConvertVectorToColorOperation : public ConvertBaseOperation {
  public:
   ConvertVectorToColorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -105,7 +105,7 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
  public:
   ConvertVectorToValueOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -114,15 +114,15 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
  private:
   /** YCbCr mode (Jpeg, ITU601, ITU709) */
-  int m_mode;
+  int mode_;
 
  public:
   ConvertRGBToYCCOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /** Set the YCC mode */
-  void setMode(int mode);
+  void set_mode(int mode);
 
  protected:
   void hash_output_params() override;
@@ -132,15 +132,15 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
 class ConvertYCCToRGBOperation : public ConvertBaseOperation {
  private:
   /** YCbCr mode (Jpeg, ITU601, ITU709) */
-  int m_mode;
+  int mode_;
 
  public:
   ConvertYCCToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /** Set the YCC mode */
-  void setMode(int mode);
+  void set_mode(int mode);
 
  protected:
   void hash_output_params() override;
@@ -151,7 +151,7 @@ class ConvertRGBToYUVOperation : public ConvertBaseOperation {
  public:
   ConvertRGBToYUVOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -161,7 +161,7 @@ class ConvertYUVToRGBOperation : public ConvertBaseOperation {
  public:
   ConvertYUVToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -171,7 +171,7 @@ class ConvertRGBToHSVOperation : public ConvertBaseOperation {
  public:
   ConvertRGBToHSVOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -181,7 +181,7 @@ class ConvertHSVToRGBOperation : public ConvertBaseOperation {
  public:
   ConvertHSVToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -191,7 +191,7 @@ class ConvertPremulToStraightOperation : public ConvertBaseOperation {
  public:
   ConvertPremulToStraightOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -201,7 +201,7 @@ class ConvertStraightToPremulOperation : public ConvertBaseOperation {
  public:
   ConvertStraightToPremulOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -209,19 +209,19 @@ class ConvertStraightToPremulOperation : public ConvertBaseOperation {
 
 class SeparateChannelOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  int m_channel;
+  SocketReader *input_operation_;
+  int channel_;
 
  public:
   SeparateChannelOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setChannel(int channel)
+  void set_channel(int channel)
   {
-    this->m_channel = channel;
+    channel_ = channel;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -231,17 +231,17 @@ class SeparateChannelOperation : public MultiThreadedOperation {
 
 class CombineChannelsOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputChannel1Operation;
-  SocketReader *m_inputChannel2Operation;
-  SocketReader *m_inputChannel3Operation;
-  SocketReader *m_inputChannel4Operation;
+  SocketReader *input_channel1_operation_;
+  SocketReader *input_channel2_operation_;
+  SocketReader *input_channel3_operation_;
+  SocketReader *input_channel4_operation_;
 
  public:
   CombineChannelsOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

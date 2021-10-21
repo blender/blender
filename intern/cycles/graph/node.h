@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "graph/node_type.h"
 
 #include "util/util_array.h"
@@ -34,7 +36,10 @@ struct Transform;
 #define NODE_SOCKET_API_BASE_METHODS(type_, name, string_name) \
   const SocketType *get_##name##_socket() const \
   { \
-    static const SocketType *socket = type->find_input(ustring(string_name)); \
+    /* Explicitly cast to base class to use `Node::type` even if the derived class defines \
+     * `type`. */ \
+    const Node *self_node = this; \
+    static const SocketType *socket = self_node->type->find_input(ustring(string_name)); \
     return socket; \
   } \
   bool name##_is_modified() const \
@@ -111,6 +116,15 @@ struct Node {
   void set(const SocketType &input, const Transform &value);
   void set(const SocketType &input, Node *value);
 
+  /* Implicitly cast enums and enum classes to integer, which matches an internal way of how
+   * enumerator values are stored and accessed in a generic API. */
+  template<class ValueType, typename std::enable_if_t<std::is_enum_v<ValueType>> * = nullptr>
+  void set(const SocketType &input, const ValueType &value)
+  {
+    static_assert(sizeof(ValueType) <= sizeof(int), "Enumerator type should fit int");
+    set(input, static_cast<int>(value));
+  }
+
   /* set array values. the memory from the input array will taken over
    * by the node and the input array will be empty after return */
   void set(const SocketType &input, array<bool> &value);
@@ -164,7 +178,7 @@ struct Node {
 
   bool socket_is_modified(const SocketType &input) const;
 
-  bool is_modified();
+  bool is_modified() const;
 
   void tag_modified();
   void clear_modified();

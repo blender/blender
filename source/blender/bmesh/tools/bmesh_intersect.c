@@ -901,7 +901,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
   const float dir[3] = {1.0f, 0.0f, 0.0f};
 
   /* Need to initialize hit even tho it's not used.
-   * This is to make it so kd-tree believes we didn't intersect anything and
+   * This is to make it so KD-tree believes we didn't intersect anything and
    * keeps calling the intersect callback.
    */
   hit.index = -1;

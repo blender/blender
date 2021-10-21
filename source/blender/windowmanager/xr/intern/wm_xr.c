@@ -24,18 +24,21 @@
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "DEG_depsgraph.h"
-
-#include "MEM_guardedalloc.h"
+#include "ED_screen.h"
 
 #include "GHOST_C-api.h"
 
 #include "GPU_platform.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "WM_api.h"
 
@@ -137,7 +140,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 
     /* Process OpenXR action events. */
     if (WM_xr_session_is_ready(&wm->xr)) {
-      wm_xr_session_actions_update(&wm->xr);
+      wm_xr_session_actions_update(wm);
     }
 
     /* wm_window_process_events() uses the return value to determine if it can put the main thread
@@ -172,6 +175,12 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
      * first call, see comment above. */
     (*runtime)->context = NULL;
 
+    if ((*runtime)->area) {
+      wmWindowManager *wm = G_MAIN->wm.first;
+      wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
+      ED_area_offscreen_free(wm, win, (*runtime)->area);
+      (*runtime)->area = NULL;
+    }
     wm_xr_session_data_free(&(*runtime)->session_state);
     WM_xr_actionmaps_clear(*runtime);
 

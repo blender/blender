@@ -161,7 +161,13 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
 
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
+    /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
+     * in IDType callbacks. Higher-level ID management code usually does not expect such things and
+     * does not deal properly with it. */
+    /* NOTE: assert below ensures that the comment above is valid, and that that exception is
+     * acceptable for the time being. */
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
+    BLI_assert(brush->clone.image->id.lib == NULL && brush->clone.image->id.newid == NULL);
   }
 
   if (!force_local && !force_copy) {

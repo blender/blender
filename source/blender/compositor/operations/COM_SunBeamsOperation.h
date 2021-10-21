@@ -25,19 +25,19 @@ class SunBeamsOperation : public MultiThreadedOperation {
  public:
   SunBeamsOperation();
 
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
-  void initExecution() override;
+  void init_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
-  void setData(const NodeSunBeams &data)
+  void set_data(const NodeSunBeams &data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -49,10 +49,10 @@ class SunBeamsOperation : public MultiThreadedOperation {
   void calc_rays_common_data();
 
  private:
-  NodeSunBeams m_data;
+  NodeSunBeams data_;
 
-  float m_source_px[2];
-  float m_ray_length_px;
+  float source_px_[2];
+  float ray_length_px_;
 };
 
 }  // namespace blender::compositor

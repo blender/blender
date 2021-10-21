@@ -194,7 +194,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   }
 
   BKE_ptcache_free_list(&tclmd->ptcaches);
-  if (flag & LIB_ID_CREATE_NO_MAIN) {
+  if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
     /* Share the cache with the original object's modifier. */
     tclmd->modifier.flag |= eModifierFlag_SharedCaches;
     tclmd->ptcaches = clmd->ptcaches;

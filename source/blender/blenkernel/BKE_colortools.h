@@ -97,6 +97,7 @@ void BKE_curvemapping_evaluate_premulRGBF(const struct CurveMapping *cumap,
                                           float vecout[3],
                                           const float vecin[3]);
 bool BKE_curvemapping_RGBA_does_something(const struct CurveMapping *cumap);
+void BKE_curvemapping_table_F(const struct CurveMapping *cumap, float **array, int *size);
 void BKE_curvemapping_table_RGBA(const struct CurveMapping *cumap, float **array, int *size);
 
 /* non-const, these modify the curve */

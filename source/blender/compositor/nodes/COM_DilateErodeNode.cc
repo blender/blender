@@ -17,135 +17,133 @@
  */
 
 #include "COM_DilateErodeNode.h"
-#include "BLI_math.h"
 #include "COM_AntiAliasOperation.h"
 #include "COM_DilateErodeOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
 namespace blender::compositor {
 
-DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
+DilateErodeNode::DilateErodeNode(bNode *editor_node) : Node(editor_node)
 {
   /* initialize node data */
-  NodeBlurData *data = &m_alpha_blur;
+  NodeBlurData *data = &alpha_blur_;
   memset(data, 0, sizeof(NodeBlurData));
   data->filtertype = R_FILTER_GAUSS;
 
-  if (editorNode->custom2 > 0) {
-    data->sizex = data->sizey = editorNode->custom2;
+  if (editor_node->custom2 > 0) {
+    data->sizex = data->sizey = editor_node->custom2;
   }
   else {
-    data->sizex = data->sizey = -editorNode->custom2;
+    data->sizex = data->sizey = -editor_node->custom2;
   }
 }
 
-void DilateErodeNode::convertToOperations(NodeConverter &converter,
-                                          const CompositorContext &context) const
+void DilateErodeNode::convert_to_operations(NodeConverter &converter,
+                                            const CompositorContext &context) const
 {
 
-  bNode *editorNode = this->getbNode();
-  if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
+  bNode *editor_node = this->get_bnode();
+  if (editor_node->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
     DilateErodeThresholdOperation *operation = new DilateErodeThresholdOperation();
-    operation->setDistance(editorNode->custom2);
-    operation->setInset(editorNode->custom3);
-    converter.addOperation(operation);
+    operation->set_distance(editor_node->custom2);
+    operation->set_inset(editor_node->custom3);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
 
-    if (editorNode->custom3 < 2.0f) {
-      AntiAliasOperation *antiAlias = new AntiAliasOperation();
-      converter.addOperation(antiAlias);
+    if (editor_node->custom3 < 2.0f) {
+      AntiAliasOperation *anti_alias = new AntiAliasOperation();
+      converter.add_operation(anti_alias);
 
-      converter.addLink(operation->getOutputSocket(), antiAlias->getInputSocket(0));
-      converter.mapOutputSocket(getOutputSocket(0), antiAlias->getOutputSocket(0));
+      converter.add_link(operation->get_output_socket(), anti_alias->get_input_socket(0));
+      converter.map_output_socket(get_output_socket(0), anti_alias->get_output_socket(0));
     }
     else {
-      converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+      converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
     }
   }
-  else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
-    if (editorNode->custom2 > 0) {
+  else if (editor_node->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
+    if (editor_node->custom2 > 0) {
       DilateDistanceOperation *operation = new DilateDistanceOperation();
-      operation->setDistance(editorNode->custom2);
-      converter.addOperation(operation);
+      operation->set_distance(editor_node->custom2);
+      converter.add_operation(operation);
 
-      converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-      converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+      converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+      converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
     }
     else {
       ErodeDistanceOperation *operation = new ErodeDistanceOperation();
-      operation->setDistance(-editorNode->custom2);
-      converter.addOperation(operation);
+      operation->set_distance(-editor_node->custom2);
+      converter.add_operation(operation);
 
-      converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-      converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+      converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+      converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
     }
   }
-  else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_FEATHER) {
+  else if (editor_node->custom1 == CMP_NODE_DILATEERODE_DISTANCE_FEATHER) {
     /* this uses a modified gaussian blur function otherwise its far too slow */
-    eCompositorQuality quality = context.getQuality();
+    eCompositorQuality quality = context.get_quality();
 
     GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
-    operationx->setData(&m_alpha_blur);
-    operationx->setQuality(quality);
-    operationx->setFalloff(PROP_SMOOTH);
-    converter.addOperation(operationx);
+    operationx->set_data(&alpha_blur_);
+    operationx->set_quality(quality);
+    operationx->set_falloff(PROP_SMOOTH);
+    converter.add_operation(operationx);
 
-    converter.mapInputSocket(getInputSocket(0), operationx->getInputSocket(0));
-    // converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1)); // no size input
-    // yet
+    converter.map_input_socket(get_input_socket(0), operationx->get_input_socket(0));
+    // converter.map_input_socket(get_input_socket(1), operationx->get_input_socket(1)); // no size
+    // input yet
 
     GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
-    operationy->setData(&m_alpha_blur);
-    operationy->setQuality(quality);
-    operationy->setFalloff(PROP_SMOOTH);
-    converter.addOperation(operationy);
+    operationy->set_data(&alpha_blur_);
+    operationy->set_quality(quality);
+    operationy->set_falloff(PROP_SMOOTH);
+    converter.add_operation(operationy);
 
-    converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
-    // converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1)); // no size input
-    // yet
-    converter.mapOutputSocket(getOutputSocket(0), operationy->getOutputSocket());
+    converter.add_link(operationx->get_output_socket(), operationy->get_input_socket(0));
+    // converter.map_input_socket(get_input_socket(1), operationy->get_input_socket(1)); // no size
+    // input yet
+    converter.map_output_socket(get_output_socket(0), operationy->get_output_socket());
 
-    converter.addPreview(operationy->getOutputSocket());
+    converter.add_preview(operationy->get_output_socket());
 
     /* TODO? */
     /* see gaussian blue node for original usage */
 #if 0
-    if (!connectedSizeSocket) {
-      operationx->setSize(size);
-      operationy->setSize(size);
+    if (!connected_size_socket) {
+      operationx->set_size(size);
+      operationy->set_size(size);
     }
 #else
-    operationx->setSize(1.0f);
-    operationy->setSize(1.0f);
+    operationx->set_size(1.0f);
+    operationy->set_size(1.0f);
 #endif
-    operationx->setSubtract(editorNode->custom2 < 0);
-    operationy->setSubtract(editorNode->custom2 < 0);
+    operationx->set_subtract(editor_node->custom2 < 0);
+    operationy->set_subtract(editor_node->custom2 < 0);
 
-    if (editorNode->storage) {
-      NodeDilateErode *data_storage = (NodeDilateErode *)editorNode->storage;
-      operationx->setFalloff(data_storage->falloff);
-      operationy->setFalloff(data_storage->falloff);
+    if (editor_node->storage) {
+      NodeDilateErode *data_storage = (NodeDilateErode *)editor_node->storage;
+      operationx->set_falloff(data_storage->falloff);
+      operationy->set_falloff(data_storage->falloff);
     }
   }
   else {
-    if (editorNode->custom2 > 0) {
+    if (editor_node->custom2 > 0) {
       DilateStepOperation *operation = new DilateStepOperation();
-      operation->setIterations(editorNode->custom2);
-      converter.addOperation(operation);
+      operation->set_iterations(editor_node->custom2);
+      converter.add_operation(operation);
 
-      converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-      converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+      converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+      converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
     }
     else {
       ErodeStepOperation *operation = new ErodeStepOperation();
-      operation->setIterations(-editorNode->custom2);
-      converter.addOperation(operation);
+      operation->set_iterations(-editor_node->custom2);
+      converter.add_operation(operation);
 
-      converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-      converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+      converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+      converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
     }
   }
 }

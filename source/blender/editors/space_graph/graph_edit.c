@@ -403,8 +403,8 @@ static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, const wmEv
   region = ac.region;
   v2d = &region->v2d;
 
-  mval[0] = (event->x - region->winrct.xmin);
-  mval[1] = (event->y - region->winrct.ymin);
+  mval[0] = (event->xy[0] - region->winrct.xmin);
+  mval[1] = (event->xy[1] - region->winrct.ymin);
 
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
@@ -1098,7 +1098,8 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
                                     RNA_boolean_get(op->ptr, "use_square"),
                                     RNA_float_get(op->ptr, "sthreshold"),
                                     FPS,
-                                    &sbi.length);
+                                    &sbi.length,
+                                    0);
 
   if (sbi.samples == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
@@ -1879,7 +1880,7 @@ static bool euler_filter_single_channel(FCurve *fcu)
     return false;
   }
 
-  /* Prev follows bezt, bezt = "current" point to be fixed. */
+  /* `prev` follows bezt, bezt = "current" point to be fixed. */
   /* Our method depends on determining a "difference" from the previous vert. */
   bool is_modified = false;
   for (i = 1, prev = fcu->bezt, bezt = fcu->bezt + 1; i < fcu->totvert; i++, prev = bezt++) {

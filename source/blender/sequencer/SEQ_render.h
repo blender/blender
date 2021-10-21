@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#define SEQ_RENDER_THUMB_SIZE 256
+
 struct ListBase;
 struct Main;
 struct Scene;
@@ -67,6 +69,25 @@ struct ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context,
 struct ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
                                           float timeline_frame,
                                           struct Sequence *seq);
+void SEQ_render_thumbnails(const struct SeqRenderData *context,
+                           struct Sequence *seq,
+                           struct Sequence *seq_orig,
+                           float start_frame,
+                           float frame_step,
+                           rctf *view_area,
+                           const short *stop);
+struct ImBuf *SEQ_get_thumbnail(const struct SeqRenderData *context,
+                                struct Sequence *seq,
+                                float timeline_frame,
+                                rcti *crop,
+                                bool clipped);
+int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const struct Sequence *seq);
+void SEQ_render_thumbnails_base_set(const struct SeqRenderData *context,
+                                    struct Sequence *seq,
+                                    struct Sequence *seq_orig,
+                                    rctf *view_area,
+                                    const short *stop);
+
 void SEQ_render_init_colorspace(struct Sequence *seq);
 void SEQ_render_new_render_data(struct Main *bmain,
                                 struct Depsgraph *depsgraph,

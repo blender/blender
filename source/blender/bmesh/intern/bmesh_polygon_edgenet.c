@@ -1135,11 +1135,13 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
     BMVert *v_other = BM_edge_other_vert(e_face_init ? e_face_init : v_delimit->e, v_delimit);
 
     BLI_SMALLSTACK_PUSH(search, v_other);
-    BM_elem_flag_disable(v_other, VERT_NOT_IN_STACK);
+    if (BM_elem_flag_test(v_other, VERT_NOT_IN_STACK)) {
+      BM_elem_flag_disable(v_other, VERT_NOT_IN_STACK);
+      BLI_linklist_prepend_alloca(&vert_stack, v_other);
+    }
 
     while ((v_other = BLI_SMALLSTACK_POP(search))) {
       BLI_assert(BM_elem_flag_test(v_other, VERT_NOT_IN_STACK) == false);
-      BLI_linklist_prepend_alloca(&vert_stack, v_other);
       BMEdge *e_iter = v_other->e;
       do {
         BMVert *v_step = BM_edge_other_vert(e_iter, v_other);
@@ -1147,6 +1149,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
           if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK)) {
             BM_elem_flag_disable(v_step, VERT_NOT_IN_STACK);
             BLI_SMALLSTACK_PUSH(search, v_step);
+            BLI_linklist_prepend_alloca(&vert_stack, v_step);
           }
         }
       } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_other)) != v_other->e);

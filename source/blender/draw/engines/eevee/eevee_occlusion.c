@@ -77,14 +77,14 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     common_data->ao_bounce_fac = (scene_eval->eevee.flag & SCE_EEVEE_GTAO_BOUNCE) ? 1.0f : 0.0f;
 
     effects->gtao_horizons_renderpass = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_RGBA8, &draw_engine_eevee_type);
+        UNPACK2(effects->hiz_size), GPU_RGBA8, &draw_engine_eevee_type);
     GPU_framebuffer_ensure_config(
         &fbl->gtao_fb,
         {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->gtao_horizons_renderpass)});
 
     if (G.debug_value == 6) {
       effects->gtao_horizons_debug = DRW_texture_pool_query_2d(
-          fs_size[0], fs_size[1], GPU_RGBA8, &draw_engine_eevee_type);
+          UNPACK2(fs_size), GPU_RGBA8, &draw_engine_eevee_type);
       GPU_framebuffer_ensure_config(
           &fbl->gtao_debug_fb,
           {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->gtao_horizons_debug)});
@@ -188,19 +188,31 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
+  EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
     DRW_stats_group_start("GTAO Horizon Scan");
 
     GPU_framebuffer_bind(fbl->gtao_fb);
 
+    /** NOTE(fclem): Kind of fragile. We need this to make sure everything lines up
+     * nicely during planar reflection. */
+    if (common_data->ray_type != EEVEE_RAY_GLOSSY) {
+      const float *viewport_size = DRW_viewport_size_get();
+      GPU_framebuffer_viewport_set(fbl->gtao_fb, 0, 0, UNPACK2(viewport_size));
+    }
+
     DRW_draw_pass(psl->ao_horizon_search);
+
+    if (common_data->ray_type != EEVEE_RAY_GLOSSY) {
+      GPU_framebuffer_viewport_reset(fbl->gtao_fb);
+    }
 
     if (GPU_mip_render_workaround() ||
         GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY)) {

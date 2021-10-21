@@ -5,6 +5,7 @@
 #include "FN_cpp_type.hh"
 #include "FN_field.hh"
 #include "FN_multi_function_builder.hh"
+#include "FN_multi_function_test_common.hh"
 
 namespace blender::fn::tests {
 
@@ -40,7 +41,7 @@ class IndexFieldInput final : public FieldInput {
     auto index_func = [](int i) { return i; };
     return &scope.construct<
         GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
-        __func__, mask.min_array_size(), mask.min_array_size(), index_func);
+        mask.min_array_size(), mask.min_array_size(), index_func);
   }
 };
 
@@ -273,6 +274,21 @@ TEST(field, SameFieldTwice)
   EXPECT_EQ(varray1->get(1), 10);
   EXPECT_EQ(varray2->get(0), 10);
   EXPECT_EQ(varray2->get(1), 10);
+}
+
+TEST(field, IgnoredOutput)
+{
+  static OptionalOutputsFunction fn;
+  Field<int> field{std::make_shared<FieldOperation>(fn), 0};
+
+  FieldContext field_context;
+  FieldEvaluator field_evaluator{field_context, 10};
+  const VArray<int> *results = nullptr;
+  field_evaluator.add(field, &results);
+  field_evaluator.evaluate();
+
+  EXPECT_EQ(results->get(0), 5);
+  EXPECT_EQ(results->get(3), 5);
 }
 
 }  // namespace blender::fn::tests

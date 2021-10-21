@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -37,6 +38,7 @@
 #include "BKE_hair.h"
 
 #include "GPU_batch.h"
+#include "GPU_material.h"
 #include "GPU_texture.h"
 
 #include "draw_cache_impl.h"   /* own include */
@@ -141,7 +143,9 @@ static void ensure_seg_pt_count(Hair *hair, ParticleHairCache *hair_cache)
   }
 }
 
-static void hair_batch_cache_fill_segments_proc_pos(Hair *hair, GPUVertBufRaw *attr_step)
+static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
+                                                    GPUVertBufRaw *attr_step,
+                                                    GPUVertBufRaw *length_step)
 {
   /* TODO: use hair radius layer if available. */
   HairCurve *curve = hair->curves;
@@ -162,6 +166,8 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair, GPUVertBufRaw *a
       seg_data[3] = total_len;
       co_prev = curve_co[j];
     }
+    /* Assign length value*/
+    *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
       for (int j = 0; j < curve->numpoints; j++, seg_data_first += 4) {
@@ -171,28 +177,48 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair, GPUVertBufRaw *a
   }
 }
 
-static void hair_batch_cache_ensure_procedural_pos(Hair *hair, ParticleHairCache *cache)
+static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
+                                                   ParticleHairCache *cache,
+                                                   GPUMaterial *gpu_material)
 {
-  if (cache->proc_point_buf != NULL) {
-    return;
+  if (cache->proc_point_buf == NULL) {
+    /* initialize vertex format */
+    GPUVertFormat format = {0};
+    uint pos_id = GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+    cache->proc_point_buf = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(cache->proc_point_buf, cache->point_len);
+
+    GPUVertBufRaw point_step;
+    GPU_vertbuf_attr_get_raw_data(cache->proc_point_buf, pos_id, &point_step);
+
+    GPUVertFormat length_format = {0};
+    uint length_id = GPU_vertformat_attr_add(
+        &length_format, "hairLength", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+
+    cache->proc_length_buf = GPU_vertbuf_create_with_format(&length_format);
+    GPU_vertbuf_data_alloc(cache->proc_length_buf, cache->strands_len);
+
+    GPUVertBufRaw length_step;
+    GPU_vertbuf_attr_get_raw_data(cache->proc_length_buf, length_id, &length_step);
+
+    hair_batch_cache_fill_segments_proc_pos(hair, &point_step, &length_step);
+
+    /* Create vbo immediately to bind to texture buffer. */
+    GPU_vertbuf_use(cache->proc_point_buf);
+    cache->point_tex = GPU_texture_create_from_vertbuf("hair_point", cache->proc_point_buf);
   }
 
-  /* initialize vertex format */
-  GPUVertFormat format = {0};
-  uint pos_id = GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
-  cache->proc_point_buf = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(cache->proc_point_buf, cache->point_len);
-
-  GPUVertBufRaw pos_step;
-  GPU_vertbuf_attr_get_raw_data(cache->proc_point_buf, pos_id, &pos_step);
-
-  hair_batch_cache_fill_segments_proc_pos(hair, &pos_step);
-
-  /* Create vbo immediately to bind to texture buffer. */
-  GPU_vertbuf_use(cache->proc_point_buf);
-
-  cache->point_tex = GPU_texture_create_from_vertbuf("hair_point", cache->proc_point_buf);
+  if (gpu_material && cache->proc_length_buf != NULL && cache->length_tex) {
+    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+    LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &gpu_attrs) {
+      if (attr->type == CD_HAIRLENGTH) {
+        GPU_vertbuf_use(cache->proc_length_buf);
+        cache->length_tex = GPU_texture_create_from_vertbuf("hair_length", cache->proc_length_buf);
+        break;
+      }
+    }
+  }
 }
 
 static void hair_batch_cache_fill_strands_data(Hair *hair,
@@ -310,6 +336,7 @@ static void hair_batch_cache_ensure_procedural_indices(Hair *hair,
 /* Ensure all textures and buffers needed for GPU accelerated drawing. */
 bool hair_ensure_procedural_data(Object *object,
                                  ParticleHairCache **r_hair_cache,
+                                 GPUMaterial *gpu_material,
                                  int subdiv,
                                  int thickness_res)
 {
@@ -325,7 +352,7 @@ bool hair_ensure_procedural_data(Object *object,
   /* Refreshed on combing and simulation. */
   if ((*r_hair_cache)->proc_point_buf == NULL) {
     ensure_seg_pt_count(hair, &cache->hair);
-    hair_batch_cache_ensure_procedural_pos(hair, &cache->hair);
+    hair_batch_cache_ensure_procedural_pos(hair, &cache->hair, gpu_material);
     need_ft_update = true;
   }
 

@@ -32,39 +32,38 @@ namespace blender::compositor {
 class PlaneCornerPinMaskOperation : public PlaneDistortMaskOperation {
  private:
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  bool m_corners_ready;
+  bool corners_ready_;
 
  public:
   PlaneCornerPinMaskOperation();
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 };
 
 class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
  private:
-  bool m_corners_ready;
+  bool corners_ready_;
 
  public:
   PlaneCornerPinWarpImageOperation();
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 };

@@ -468,6 +468,9 @@ static void eevee_render_to_image(void *vedata,
   g_data->render_sample_count_per_timestep = EEVEE_temporal_sampling_sample_count_get(scene,
                                                                                       ved->stl);
 
+  /* Reset in case the same engine is used on multiple views. */
+  EEVEE_temporal_sampling_reset(vedata);
+
   /* Compute start time. The motion blur will cover `[time ...time + shuttertime]`. */
   float time = initial_frame + initial_subframe;
   switch (scene->eevee.motion_blur_position) {
@@ -644,6 +647,8 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
     RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     NULL,
     &DRW_render_to_image,
+    NULL,
+    NULL,
     NULL,
     NULL,
     NULL,

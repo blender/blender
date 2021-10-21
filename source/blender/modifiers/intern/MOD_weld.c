@@ -1979,8 +1979,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
     BLI_assert(loop_cur == result_nloops);
 
     /* is this needed? */
-    /* recalculate normals */
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
 
     weld_mesh_context_free(&weld_mesh);
   }

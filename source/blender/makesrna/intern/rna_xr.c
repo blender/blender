@@ -947,6 +947,155 @@ static void rna_XrSessionState_selected_actionmap_set(PointerRNA *ptr, int value
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name XR Event Data
+ * \{ */
+
+static void rna_XrEventData_action_set_get(PointerRNA *ptr, char *r_value)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  strcpy(r_value, data->action_set);
+#  else
+  UNUSED_VARS(ptr);
+  r_value[0] = '\0';
+#  endif
+}
+
+static int rna_XrEventData_action_set_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return strlen(data->action_set);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static void rna_XrEventData_action_get(PointerRNA *ptr, char *r_value)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  strcpy(r_value, data->action);
+#  else
+  UNUSED_VARS(ptr);
+  r_value[0] = '\0';
+#  endif
+}
+
+static int rna_XrEventData_action_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return strlen(data->action);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static int rna_XrEventData_type_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return data->type;
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static void rna_XrEventData_state_get(PointerRNA *ptr, float r_values[2])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_v2_v2(r_values, data->state);
+#  else
+  UNUSED_VARS(ptr);
+  zero_v2(r_values);
+#  endif
+}
+
+static void rna_XrEventData_state_other_get(PointerRNA *ptr, float r_values[2])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_v2_v2(r_values, data->state_other);
+#  else
+  UNUSED_VARS(ptr);
+  zero_v2(r_values);
+#  endif
+}
+
+static float rna_XrEventData_float_threshold_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return data->float_threshold;
+#  else
+  UNUSED_VARS(ptr);
+  return 0.0f;
+#  endif
+}
+
+static void rna_XrEventData_controller_location_get(PointerRNA *ptr, float r_values[3])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_v3_v3(r_values, data->controller_loc);
+#  else
+  UNUSED_VARS(ptr);
+  zero_v3(r_values);
+#  endif
+}
+
+static void rna_XrEventData_controller_rotation_get(PointerRNA *ptr, float r_values[4])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_qt_qt(r_values, data->controller_rot);
+#  else
+  UNUSED_VARS(ptr);
+  unit_qt(r_values);
+#  endif
+}
+
+static void rna_XrEventData_controller_location_other_get(PointerRNA *ptr, float r_values[3])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_v3_v3(r_values, data->controller_loc_other);
+#  else
+  UNUSED_VARS(ptr);
+  zero_v3(r_values);
+#  endif
+}
+
+static void rna_XrEventData_controller_rotation_other_get(PointerRNA *ptr, float r_values[4])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  copy_qt_qt(r_values, data->controller_rot_other);
+#  else
+  UNUSED_VARS(ptr);
+  unit_qt(r_values);
+#  endif
+}
+
+static bool rna_XrEventData_bimanual_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return data->bimanual;
+#  else
+  UNUSED_VARS(ptr);
+  return false;
+#  endif
+}
+
+/** \} */
+
 #else /* RNA_RUNTIME */
 
 /* -------------------------------------------------------------------- */
@@ -1410,6 +1559,22 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem controller_draw_styles[] = {
+      {XR_CONTROLLER_DRAW_DARK, "DARK", 0, "Dark", "Draw dark controller"},
+      {XR_CONTROLLER_DRAW_LIGHT, "LIGHT", 0, "Light", "Draw light controller"},
+      {XR_CONTROLLER_DRAW_DARK_RAY,
+       "DARK_RAY",
+       0,
+       "Dark + Ray",
+       "Draw dark controller with aiming axis ray"},
+      {XR_CONTROLLER_DRAW_LIGHT_RAY,
+       "LIGHT_RAY",
+       0,
+       "Light + Ray",
+       "Draw light controller with aiming axis ray"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "XrSessionSettings", NULL);
   RNA_def_struct_ui_text(srna, "XR Session Settings", "");
 
@@ -1458,6 +1623,29 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_SHOW_ANNOTATION);
   RNA_def_property_ui_text(prop, "Show Annotation", "Show annotations for this view");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "show_selection", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_SHOW_SELECTION);
+  RNA_def_property_ui_text(prop, "Show Selection", "Show selection outlines");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "show_controllers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_XR_SHOW_CONTROLLERS);
+  RNA_def_property_ui_text(
+      prop, "Show Controllers", "Show VR controllers (requires VR actions for controller poses)");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "show_custom_overlays", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS);
+  RNA_def_property_ui_text(prop, "Show Custom Overlays", "Show custom VR overlays");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "controller_draw_style", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, controller_draw_styles);
+  RNA_def_property_ui_text(
+      prop, "Controller Draw Style", "Style to use when drawing VR controllers");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
@@ -1824,6 +2012,94 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name XR Event Data
+ * \{ */
+
+static void rna_def_xr_eventdata(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "XrEventData", NULL);
+  RNA_def_struct_ui_text(srna, "XrEventData", "XR Data for Window Manager Event");
+
+  prop = RNA_def_property(srna, "action_set", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_XrEventData_action_set_get", "rna_XrEventData_action_set_length", NULL);
+  RNA_def_property_ui_text(prop, "Action Set", "XR action set name");
+
+  prop = RNA_def_property(srna, "action", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_XrEventData_action_get", "rna_XrEventData_action_length", NULL);
+  RNA_def_property_ui_text(prop, "Action", "XR action name");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_xr_action_types);
+  RNA_def_property_enum_funcs(prop, "rna_XrEventData_type_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Type", "XR action type");
+
+  prop = RNA_def_property(srna, "state", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_state_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "State", "XR action values corresponding to type");
+
+  prop = RNA_def_property(srna, "state_other", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_state_other_get", NULL, NULL);
+  RNA_def_property_ui_text(
+      prop, "State Other", "State of the other user path for bimanual actions");
+
+  prop = RNA_def_property(srna, "float_threshold", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_float_threshold_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Float Threshold", "Input threshold for float/2D vector actions");
+
+  prop = RNA_def_property(srna, "controller_location", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_controller_location_get", NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Controller Location",
+                           "Location of the action's corresponding controller aim in world space");
+
+  prop = RNA_def_property(srna, "controller_rotation", PROP_FLOAT, PROP_QUATERNION);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_controller_rotation_get", NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Controller Rotation",
+                           "Rotation of the action's corresponding controller aim in world space");
+
+  prop = RNA_def_property(srna, "controller_location_other", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_controller_location_other_get", NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Controller Location Other",
+                           "Controller aim location of the other user path for bimanual actions");
+
+  prop = RNA_def_property(srna, "controller_rotation_other", PROP_FLOAT, PROP_QUATERNION);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_XrEventData_controller_rotation_other_get", NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Controller Rotation Other",
+                           "Controller aim rotation of the other user path for bimanual actions");
+
+  prop = RNA_def_property(srna, "bimanual", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_XrEventData_bimanual_get", NULL);
+  RNA_def_property_ui_text(prop, "Bimanual", "Whether bimanual interaction is occurring");
+}
+
+/** \} */
+
 void RNA_def_xr(BlenderRNA *brna)
 {
   RNA_define_animate_sdna(false);
@@ -1831,6 +2107,7 @@ void RNA_def_xr(BlenderRNA *brna)
   rna_def_xr_actionmap(brna);
   rna_def_xr_session_settings(brna);
   rna_def_xr_session_state(brna);
+  rna_def_xr_eventdata(brna);
 
   RNA_define_animate_sdna(true);
 }

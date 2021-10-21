@@ -18,43 +18,42 @@
 
 #include "COM_ColorCurveNode.h"
 #include "COM_ColorCurveOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 
-ColorCurveNode::ColorCurveNode(bNode *editorNode) : Node(editorNode)
+ColorCurveNode::ColorCurveNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ColorCurveNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext & /*context*/) const
+void ColorCurveNode::convert_to_operations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
-  if (this->getInputSocket(2)->isLinked() || this->getInputSocket(3)->isLinked()) {
+  if (this->get_input_socket(2)->is_linked() || this->get_input_socket(3)->is_linked()) {
     ColorCurveOperation *operation = new ColorCurveOperation();
-    operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-    converter.addOperation(operation);
+    operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-    converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+    converter.map_input_socket(get_input_socket(3), operation->get_input_socket(3));
 
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
   }
   else {
     ConstantLevelColorCurveOperation *operation = new ConstantLevelColorCurveOperation();
     float col[4];
-    this->getInputSocket(2)->getEditorValueColor(col);
-    operation->setBlackLevel(col);
-    this->getInputSocket(3)->getEditorValueColor(col);
-    operation->setWhiteLevel(col);
-    operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-    converter.addOperation(operation);
+    this->get_input_socket(2)->get_editor_value_color(col);
+    operation->set_black_level(col);
+    this->get_input_socket(3)->get_editor_value_color(col);
+    operation->set_white_level(col);
+    operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
   }
 }
 

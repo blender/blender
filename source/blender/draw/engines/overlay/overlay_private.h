@@ -139,9 +139,10 @@ typedef struct OVERLAY_ShadingData {
   /** Grid */
   float grid_axes[3], grid_distance;
   float zplane_axes[3], grid_size[3];
-  float grid_steps[8];
+  float grid_steps[SI_GRID_STEPS_LEN];
   float inv_viewport_size[2];
   float grid_line_size;
+  float zoom_factor; /* Only for UV editor */
   int grid_flag;
   int zpos_flag;
   int zneg_flag;

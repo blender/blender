@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 // clang-format off
 #include "kernel/geom/geom_attribute.h"
 #include "kernel/geom/geom_object.h"
@@ -31,4 +33,5 @@
 #include "kernel/geom/geom_curve_intersect.h"
 #include "kernel/geom/geom_volume.h"
 #include "kernel/geom/geom_primitive.h"
+#include "kernel/geom/geom_shader_data.h"
 // clang-format on

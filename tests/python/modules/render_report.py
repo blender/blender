@@ -410,7 +410,7 @@ class Report:
                 failed = False
             except subprocess.CalledProcessError as e:
                 if self.verbose:
-                    print_message(e.output.decode("utf-8"))
+                    print_message(e.output.decode("utf-8", 'ignore'))
                 failed = e.returncode != 1
         else:
             if not self.update:
@@ -437,7 +437,7 @@ class Report:
             subprocess.check_output(command)
         except subprocess.CalledProcessError as e:
             if self.verbose:
-                print_message(e.output.decode("utf-8"))
+                print_message(e.output.decode("utf-8", 'ignore'))
 
         return not failed
 
@@ -488,7 +488,7 @@ class Report:
             if verbose:
                 print(" ".join(command))
             if (verbose or crash) and output:
-                print(output.decode("utf-8"))
+                print(output.decode("utf-8", 'ignore'))
 
             # Detect missing filepaths and consider those errors
             for filepath, output_filepath in zip(remaining_filepaths[:], output_filepaths):

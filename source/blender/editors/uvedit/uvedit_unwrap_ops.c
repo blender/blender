@@ -37,6 +37,7 @@
 #include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
@@ -64,6 +65,7 @@
 #include "PIL_time.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -138,6 +140,60 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   }
 
   return 1;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UDIM Access
+ * \{ */
+
+bool ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
+                                            bool use_active,
+                                            struct UVMapUDIM_Params *udim_params)
+{
+  memset(udim_params, 0, sizeof(*udim_params));
+
+  udim_params->grid_shape[0] = 1;
+  udim_params->grid_shape[1] = 1;
+  udim_params->target_udim = 0;
+  udim_params->use_target_udim = false;
+
+  if (sima == NULL) {
+    return false;
+  }
+
+  udim_params->image = sima->image;
+  udim_params->grid_shape[0] = sima->tile_grid_shape[0];
+  udim_params->grid_shape[1] = sima->tile_grid_shape[1];
+
+  if (use_active) {
+    int active_udim = 1001;
+    /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
+     * the tiled image is considered. */
+    const Image *image = sima->image;
+    if (image && image->source == IMA_SRC_TILED) {
+      ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
+      if (active_tile) {
+        active_udim = active_tile->tile_number;
+      }
+    }
+    else {
+      /* TODO: Support storing an active UDIM when there are no tiles present.
+       * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
+      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, sima->cursor)) {
+        int tile_number = 1001;
+        tile_number += floorf(sima->cursor[1]) * 10;
+        tile_number += floorf(sima->cursor[0]);
+        active_udim = tile_number;
+      }
+    }
+
+    udim_params->target_udim = active_udim;
+    udim_params->use_target_udim = true;
+  }
+
+  return true;
 }
 
 /** \} */
@@ -1005,10 +1061,17 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   }
 }
 
+/* Packing targets. */
+enum {
+  PACK_UDIM_SRC_CLOSEST = 0,
+  PACK_UDIM_SRC_ACTIVE = 1,
+};
+
 static int pack_islands_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Scene *scene = CTX_data_scene(C);
+  const SpaceImage *sima = CTX_wm_space_image(C);
 
   const UnwrapOptions options = {
       .topology_from_uvs = true,
@@ -1018,17 +1081,19 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
       .correct_aspect = true,
   };
 
-  bool rotate = RNA_boolean_get(op->ptr, "rotate");
-
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, CTX_wm_view3d(C), &objects_len);
 
+  /* Early exit in case no UVs are selected. */
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
     return OPERATOR_CANCELLED;
   }
 
+  /* RNA props */
+  const bool rotate = RNA_boolean_get(op->ptr, "rotate");
+  const int udim_source = RNA_enum_get(op->ptr, "udim_source");
   if (RNA_struct_property_is_set(op->ptr, "margin")) {
     scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
   }
@@ -1036,9 +1101,15 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
   }
 
+  struct UVMapUDIM_Params udim_params;
+  const bool use_active = (udim_source == PACK_UDIM_SRC_ACTIVE);
+  const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
+      sima, use_active, &udim_params);
+
   ED_uvedit_pack_islands_multi(scene,
                                objects,
                                objects_len,
+                               use_udim_params ? &udim_params : NULL,
                                &(struct UVPackIsland_Params){
                                    .rotate = rotate,
                                    .rotate_align_axis = -1,
@@ -1048,16 +1119,25 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
                                });
 
   MEM_freeN(objects);
-
   return OPERATOR_FINISHED;
 }
 
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
+  static const EnumPropertyItem pack_target[] = {
+      {PACK_UDIM_SRC_CLOSEST, "CLOSEST_UDIM", 0, "Closest UDIM", "Pack islands to closest UDIM"},
+      {PACK_UDIM_SRC_ACTIVE,
+       "ACTIVE_UDIM",
+       0,
+       "Active UDIM",
+       "Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located"},
+      {0, NULL, 0, NULL, NULL},
+  };
   /* identifiers */
   ot->name = "Pack Islands";
   ot->idname = "UV_OT_pack_islands";
-  ot->description = "Transform all islands so that they fill up the UV space as much as possible";
+  ot->description =
+      "Transform all islands so that they fill up the UV/UDIM space as much as possible";
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1066,6 +1146,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* properties */
+  RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
   RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
@@ -2206,6 +2287,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     ED_uvedit_pack_islands_multi(scene,
                                  objects_changed,
                                  object_changed_len,
+                                 NULL,
                                  &(struct UVPackIsland_Params){
                                      .rotate = true,
                                      /* We could make this optional. */

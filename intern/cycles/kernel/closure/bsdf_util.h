@@ -30,25 +30,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_UTIL_H__
-#define __BSDF_UTIL_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
 ccl_device float fresnel_dielectric(float eta,
                                     const float3 N,
                                     const float3 I,
-                                    float3 *R,
-                                    float3 *T,
+                                    ccl_private float3 *R,
+                                    ccl_private float3 *T,
 #ifdef __RAY_DIFFERENTIALS__
                                     const float3 dIdx,
                                     const float3 dIdy,
-                                    float3 *dRdx,
-                                    float3 *dRdy,
-                                    float3 *dTdx,
-                                    float3 *dTdy,
+                                    ccl_private float3 *dRdx,
+                                    ccl_private float3 *dRdy,
+                                    ccl_private float3 *dTdx,
+                                    ccl_private float3 *dTdy,
 #endif
-                                    bool *is_inside)
+                                    ccl_private bool *is_inside)
 {
   float cos = dot(N, I), neta;
   float3 Nn;
@@ -150,5 +149,3 @@ interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_UTIL_H__ */

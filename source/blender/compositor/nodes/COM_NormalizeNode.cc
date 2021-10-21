@@ -17,24 +17,23 @@
  */
 
 #include "COM_NormalizeNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_NormalizeOperation.h"
 
 namespace blender::compositor {
 
-NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
+NormalizeNode::NormalizeNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void NormalizeNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext & /*context*/) const
+void NormalizeNode::convert_to_operations(NodeConverter &converter,
+                                          const CompositorContext & /*context*/) const
 {
   NormalizeOperation *operation = new NormalizeOperation();
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

@@ -199,7 +199,6 @@ class Camera : public Node {
  private:
   int width;
   int height;
-  int resolution;
 
  public:
   /* functions */
@@ -225,7 +224,7 @@ class Camera : public Node {
   int motion_step(float time) const;
   bool use_motion() const;
 
-  void set_screen_size_and_resolution(int width_, int height_, int resolution_);
+  void set_screen_size(int width_, int height_);
 
  private:
   /* Private utility functions. */

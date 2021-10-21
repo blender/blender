@@ -44,14 +44,14 @@ constexpr blender::StringRef META_DATA_KEY_CRYPTOMATTE_NAME("cryptomatte/{hash}/
 class MetaData {
  private:
   Map<std::string, std::string> entries_;
-  void addCryptomatteEntry(const blender::StringRef layer_name,
-                           const blender::StringRefNull key,
-                           const blender::StringRef value);
+  void add_cryptomatte_entry(const blender::StringRef layer_name,
+                             const blender::StringRefNull key,
+                             const blender::StringRef value);
 
  public:
   void add(const blender::StringRef key, const blender::StringRef value);
-  void replaceHashNeutralCryptomatteKeys(const blender::StringRef layer_name);
-  void addToRenderResult(RenderResult *render_result) const;
+  void replace_hash_neutral_cryptomatte_keys(const blender::StringRef layer_name);
+  void add_to_render_result(RenderResult *render_result) const;
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MetaData")
 #endif
@@ -63,8 +63,8 @@ struct MetaDataExtractCallbackData {
   std::string conversion_key;
   std::string manifest_key;
 
-  void addMetaData(blender::StringRef key, blender::StringRefNull value);
-  void setCryptomatteKeys(blender::StringRef cryptomatte_layer_name);
+  void add_meta_data(blender::StringRef key, blender::StringRefNull value);
+  void set_cryptomatte_keys(blender::StringRef cryptomatte_layer_name);
   /* C type callback function (StampCallback). */
   static void extract_cryptomatte_meta_data(void *_data,
                                             const char *propname,

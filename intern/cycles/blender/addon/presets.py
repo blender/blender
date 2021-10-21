@@ -60,32 +60,48 @@ class AddPresetSampling(AddPresetBase, Operator):
     ]
 
     preset_values = [
+        "cycles.use_adaptive_sampling",
         "cycles.samples",
-        "cycles.preview_samples",
-        "cycles.aa_samples",
-        "cycles.preview_aa_samples",
-        "cycles.diffuse_samples",
-        "cycles.glossy_samples",
-        "cycles.transmission_samples",
-        "cycles.ao_samples",
-        "cycles.mesh_light_samples",
-        "cycles.subsurface_samples",
-        "cycles.volume_samples",
-        "cycles.use_square_samples",
-        "cycles.progressive",
-        "cycles.seed",
-        "cycles.sample_clamp_direct",
-        "cycles.sample_clamp_indirect",
-        "cycles.sample_all_lights_direct",
-        "cycles.sample_all_lights_indirect",
+        "cycles.adaptive_threshold",
+        "cycles.adaptive_min_samples",
+        "cycles.time_limit",
+        "cycles.use_denoising",
+        "cycles.denoiser",
+        "cycles.denoising_input_passes",
+        "cycles.denoising_prefilter",
     ]
 
     preset_subdir = "cycles/sampling"
 
 
+class AddPresetViewportSampling(AddPresetBase, Operator):
+    '''Add a Viewport Sampling Preset'''
+    bl_idname = "render.cycles_viewport_sampling_preset_add"
+    bl_label = "Add Viewport Sampling Preset"
+    preset_menu = "CYCLES_PT_viewport_sampling_presets"
+
+    preset_defines = [
+        "cycles = bpy.context.scene.cycles"
+    ]
+
+    preset_values = [
+        "cycles.use_preview_adaptive_sampling",
+        "cycles.preview_samples",
+        "cycles.preview_adaptive_threshold",
+        "cycles.preview_adaptive_min_samples",
+        "cycles.use_preview_denoising",
+        "cycles.preview_denoiser",
+        "cycles.preview_denoising_input_passes",
+        "cycles.preview_denoising_prefilter",
+        "cycles.preview_denoising_start_sample",
+    ]
+
+    preset_subdir = "cycles/viewport_sampling"
+
 classes = (
     AddPresetIntegrator,
     AddPresetSampling,
+    AddPresetViewportSampling,
 )
 
 

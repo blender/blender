@@ -106,7 +106,10 @@ set(SRC
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
   intern/draw_shader.c
+  intern/draw_texture_pool.cc
   intern/draw_view.c
+  intern/draw_view_data.cc
+  intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/image/image_engine.c
   engines/image/image_shader.c
@@ -188,7 +191,6 @@ set(SRC
   engines/overlay/overlay_wireframe.c
 
   DRW_engine.h
-  DRW_engine_types.h
   DRW_select_buffer.h
   intern/DRW_render.h
   intern/draw_cache.h
@@ -205,7 +207,9 @@ set(SRC
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_shader.h
+  intern/draw_texture_pool.h
   intern/draw_view.h
+  intern/draw_view_data.h
   intern/mesh_extractors/extract_mesh.h
   intern/smaa_textures.h
   engines/basic/basic_engine.h

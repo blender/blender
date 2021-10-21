@@ -157,7 +157,7 @@ void AssetList::setup()
 
   /* Relevant bits from file_refresh(). */
   /* TODO pass options properly. */
-  filelist_setrecursion(files, 1);
+  filelist_setrecursion(files, FILE_SELECT_MAX_RECURSIONS);
   filelist_setsorting(files, FILE_SORT_ALPHA, false);
   filelist_setlibrary(files, &library_ref_);
   filelist_setfilter_options(
@@ -187,7 +187,7 @@ void AssetList::fetch(const bContext &C)
 
   if (filelist_needs_force_reset(files)) {
     filelist_readjob_stop(files, CTX_wm_manager(&C));
-    filelist_clear(files);
+    filelist_clear_from_reset_tag(files);
   }
 
   if (filelist_needs_reading(files)) {
@@ -295,9 +295,7 @@ int AssetList::size() const
 void AssetList::tagMainDataDirty() const
 {
   if (filelist_needs_reset_on_main_changes(filelist_)) {
-    /* Full refresh of the file list if local asset data was changed. Refreshing this view
-     * is cheap and users expect this to be updated immediately. */
-    filelist_tag_force_reset(filelist_);
+    filelist_tag_force_reset_mainfiles(filelist_);
   }
 }
 
@@ -390,7 +388,7 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
 {
   switch (library_reference.type) {
     case ASSET_LIBRARY_CUSTOM:
-      return FILE_LOADLIB;
+      return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;
   }

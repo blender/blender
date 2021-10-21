@@ -543,7 +543,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   int actcol = ob_gp->actcol;
 
   for (int slot = 1; slot <= ob_gp->totcol; slot++) {
-    while (slot <= ob_gp->totcol && !BKE_object_material_slot_used(ob_gp->data, slot)) {
+    while (slot <= ob_gp->totcol && !BKE_object_material_slot_used(ob_gp, slot)) {
       ob_gp->actcol = slot;
       BKE_object_material_slot_remove(bmain, ob_gp);
 
@@ -1167,7 +1167,7 @@ void BKE_gpencil_editcurve_recalculate_handles(bGPDstroke *gps)
     bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
     bGPDcurve_point *gpc_pt_prev = &gpc->curve_points[i - 1];
     bGPDcurve_point *gpc_pt_next = &gpc->curve_points[i + 1];
-    /* update handle if point or neighbour is selected */
+    /* update handle if point or neighbor is selected */
     if (gpc_pt->flag & GP_CURVE_POINT_SELECT || gpc_pt_prev->flag & GP_CURVE_POINT_SELECT ||
         gpc_pt_next->flag & GP_CURVE_POINT_SELECT) {
       BezTriple *bezt = &gpc_pt->bezt;

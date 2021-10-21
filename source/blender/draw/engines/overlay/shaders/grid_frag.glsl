@@ -15,8 +15,9 @@ uniform float lineKernel = 0.0;
 uniform sampler2D depthBuffer;
 
 uniform int gridFlag;
+uniform float zoomFactor;
 
-#define STEPS_LEN 8
+#define STEPS_LEN 8 /* Match: #SI_GRID_STEPS_LEN */
 uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0);
 
 #define AXIS_X (1 << 0)
@@ -28,6 +29,8 @@ uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0,
 #define PLANE_YZ (1 << 6)
 #define GRID_BACK (1 << 9)    /* grid is behind objects */
 #define GRID_CAMERA (1 << 10) /* In camera view */
+#define PLANE_IMAGE (1 << 11) /* UV/Image Image editor */
+#define CUSTOM_GRID (1 << 12) /* UV Editor only */
 
 #define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
 
@@ -122,8 +125,16 @@ void main()
      * would be more accurate, but not really necessary. */
     float grid_res = dot(dFdxPos, screenVecs[0].xyz);
 
-    /* The gride begins to appear when it comprises 4 pixels */
+    /* The grid begins to appear when it comprises 4 pixels */
     grid_res *= 4;
+
+    /* For UV/Image editor use zoomFactor */
+    if ((gridFlag & PLANE_IMAGE) != 0 &&
+        /* Grid begins to appear when the length of one grid unit is at least
+         * (256/grid_size) pixels Value of grid_size defined in `overlay_grid.c`. */
+        (gridFlag & CUSTOM_GRID) == 0) {
+      grid_res = zoomFactor;
+    }
 
     /* from biggest to smallest */
     vec4 scale;

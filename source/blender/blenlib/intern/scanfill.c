@@ -448,7 +448,7 @@ static void splitlist(ScanFillContext *sf_ctx,
                       ListBase *temped,
                       unsigned short nr)
 {
-  /* everything is in templist, write only poly nr to fillist */
+  /* Everything is in temp-list, write only poly nr to fill-list. */
   ScanFillVert *eve, *eve_next;
   ScanFillEdge *eed, *eed_next;
 
@@ -1040,13 +1040,13 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
   }
 
   /* CURRENT STATUS:
-   * - eve->f        :1 = available in edges
-   * - eve->poly_nr  :polynumber
-   * - eve->edge_tot :amount of edges connected to vertex
-   * - eve->tmp.v    :store! original vertex number
+   * - `eve->f`:        1 = available in edges.
+   * - `eve->poly_nr`:  poly-number.
+   * - `eve->edge_tot`: amount of edges connected to vertex.
+   * - `eve->tmp.v`:    store! original vertex number.
    *
-   * - eed->f        :1 = boundary edge (optionally set by caller)
-   * - eed->poly_nr  :poly number
+   * - `eed->f`:        1 = boundary edge (optionally set by caller).
+   * - `eed->poly_nr`:  poly number.
    */
 
   /* STEP 3: MAKE POLYFILL STRUCT */

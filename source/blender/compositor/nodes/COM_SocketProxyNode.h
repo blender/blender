@@ -28,32 +28,32 @@ namespace blender::compositor {
  */
 class SocketProxyNode : public Node {
  public:
-  SocketProxyNode(bNode *editorNode,
-                  bNodeSocket *editorInput,
-                  bNodeSocket *editorOutput,
+  SocketProxyNode(bNode *editor_node,
+                  bNodeSocket *editor_input,
+                  bNodeSocket *editor_output,
                   bool use_conversion);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 
-  bool getUseConversion() const
+  bool get_use_conversion() const
   {
-    return m_use_conversion;
+    return use_conversion_;
   }
-  void setUseConversion(bool use_conversion)
+  void set_use_conversion(bool use_conversion)
   {
-    m_use_conversion = use_conversion;
+    use_conversion_ = use_conversion;
   }
 
  private:
   /** If true, the proxy will convert input and output data to/from the proxy socket types. */
-  bool m_use_conversion;
+  bool use_conversion_;
 };
 
 class SocketBufferNode : public Node {
  public:
-  SocketBufferNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  SocketBufferNode(bNode *editor_node, bNodeSocket *editor_input, bNodeSocket *editor_output);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

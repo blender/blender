@@ -79,8 +79,8 @@ struct CDStreamConfig {
    * UV map is kept alive by the Alembic mesh sample itself. */
   std::map<std::string, Alembic::AbcGeom::OV2fGeomParam> abc_uv_maps;
 
-  /* OCRO coordinates, aka Generated Coordinates. */
-  Alembic::AbcGeom::OV3fGeomParam abc_ocro;
+  /* ORCO coordinates, aka Generated Coordinates. */
+  Alembic::AbcGeom::OV3fGeomParam abc_orco;
 
   CDStreamConfig()
       : mloop(NULL),
@@ -122,12 +122,6 @@ void read_custom_data(const std::string &iobject_full_name,
                       const CDStreamConfig &config,
                       const Alembic::Abc::ISampleSelector &iss);
 
-void read_velocity(const Alembic::Abc::ICompoundProperty &prop,
-                   const Alembic::Abc::PropertyHeader *prop_header,
-                   const Alembic::Abc::ISampleSelector &selector,
-                   const CDStreamConfig &config,
-                   const char *velocity_name,
-                   const float velocity_scale);
 typedef enum {
   ABC_UV_SCOPE_NONE,
   ABC_UV_SCOPE_LOOP,

@@ -75,7 +75,7 @@ bool transdata_check_local_center(const TransInfo *t, short around)
            /* implicit: (t->flag & T_EDIT) */
            (ELEM(t->obedit_type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
            (t->spacetype == SPACE_GRAPH) ||
-           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE))));
+           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
 
 /* Informs if the mode can be switched during modal. */
@@ -1082,9 +1082,17 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_ROTATION:
       initRotation(t);
       break;
-    case TFM_RESIZE:
-      initResize(t);
+    case TFM_RESIZE: {
+      float mouse_dir_constraint[3];
+      if (op) {
+        RNA_float_get_array(op->ptr, "mouse_dir_constraint", mouse_dir_constraint);
+      }
+      else {
+        zero_v3(mouse_dir_constraint);
+      }
+      initResize(t, mouse_dir_constraint);
       break;
+    }
     case TFM_SKIN_RESIZE:
       initSkinResize(t);
       break;

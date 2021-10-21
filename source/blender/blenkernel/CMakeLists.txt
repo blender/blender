@@ -60,6 +60,9 @@ set(INC
 
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
+
+  # For `vfontdata_freetype.c`.
+  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -84,6 +87,10 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
+  intern/asset_catalog.cc
+  intern/asset_catalog_path.cc
+  intern/asset_library.cc
+  intern/asset_library_service.cc
   intern/attribute.c
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -116,7 +123,8 @@ set(SRC
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
-  intern/curveprofile.c
+  intern/curve_to_mesh_convert.cc
+  intern/curveprofile.cc
   intern/customdata.c
   intern/customdata_file.c
   intern/data_transfer.c
@@ -130,12 +138,12 @@ set(SRC
   intern/editmesh_cache.c
   intern/editmesh_tangent.c
   intern/effect.c
+  intern/extern_implementations.cc
   intern/fcurve.c
   intern/fcurve_cache.c
   intern/fcurve_driver.c
   intern/fluid.c
   intern/fmodifier.c
-  intern/font.c
   intern/freestyle.c
   intern/geometry_component_curve.cc
   intern/geometry_component_instances.cc
@@ -186,7 +194,7 @@ set(SRC
   intern/mball_tessellate.c
   intern/mesh.c
   intern/mesh_boolean_convert.cc
-  intern/mesh_convert.c
+  intern/mesh_convert.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
@@ -281,6 +289,8 @@ set(SRC
   intern/tracking_util.c
   intern/undo_system.c
   intern/unit.c
+  intern/vfont.c
+  intern/vfontdata_freetype.c
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
@@ -302,6 +312,10 @@ set(SRC
   BKE_armature.h
   BKE_armature.hh
   BKE_asset.h
+  BKE_asset_catalog.hh
+  BKE_asset_catalog_path.hh
+  BKE_asset_library.h
+  BKE_asset_library.hh
   BKE_attribute.h
   BKE_attribute_access.hh
   BKE_attribute_math.hh
@@ -332,6 +346,7 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
   BKE_customdata_file.h
@@ -350,7 +365,6 @@ set(SRC
   BKE_fcurve.h
   BKE_fcurve_driver.h
   BKE_fluid.h
-  BKE_font.h
   BKE_freestyle.h
   BKE_geometry_set.h
   BKE_geometry_set.hh
@@ -443,6 +457,8 @@ set(SRC
   BKE_tracking.h
   BKE_undo_system.h
   BKE_unit.h
+  BKE_vfont.h
+  BKE_vfontdata.h
   BKE_volume.h
   BKE_volume_render.h
   BKE_volume_to_mesh.hh
@@ -456,6 +472,7 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
+  intern/asset_library_service.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -492,6 +509,9 @@ set(LIB
   bf_rna
   bf_shader_fx
   bf_simulation
+
+  # For `vfontdata_freetype.c`.
+  ${FREETYPE_LIBRARY}
 )
 
 if(WITH_BINRELOC)
@@ -781,6 +801,11 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
+    intern/asset_catalog_path_test.cc
+    intern/asset_catalog_test.cc
+    intern/asset_library_service_test.cc
+    intern/asset_library_test.cc
+    intern/asset_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc

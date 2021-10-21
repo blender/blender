@@ -22,7 +22,7 @@
 #include "BLI_sys_types.h"
 
 /** \file
- * \ingroup BLI
+ * \ingroup bli
  */
 
 #ifdef __cplusplus

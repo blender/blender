@@ -35,76 +35,15 @@
 extern "C" {
 #endif
 
-#define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT */
 #define GLA_PIXEL_OFS 0.375f
 
 typedef struct GHash GHash;
 typedef struct GPUViewport GPUViewport;
 
 struct GPUFrameBuffer;
-
-/* Contains memory pools information. */
-typedef struct ViewportMemoryPool {
-  struct BLI_memblock *commands;
-  struct BLI_memblock *commands_small;
-  struct BLI_memblock *callbuffers;
-  struct BLI_memblock *obmats;
-  struct BLI_memblock *obinfos;
-  struct BLI_memblock *cullstates;
-  struct BLI_memblock *shgroups;
-  struct BLI_memblock *uniforms;
-  struct BLI_memblock *views;
-  struct BLI_memblock *passes;
-  struct BLI_memblock *images;
-  struct GPUUniformBuf **matrices_ubo;
-  struct GPUUniformBuf **obinfos_ubo;
-  struct GHash *obattrs_ubo_pool;
-  uint ubo_len;
-} ViewportMemoryPool;
-
-/* All FramebufferLists are just the same pointers with different names. */
-typedef struct FramebufferList {
-  struct GPUFrameBuffer *framebuffers[1];
-} FramebufferList;
-
-typedef struct TextureList {
-  struct GPUTexture *textures[1];
-} TextureList;
-
-typedef struct PassList {
-  struct DRWPass *passes[1];
-} PassList;
-
-typedef struct StorageList {
-  void *storage[1]; /* Custom structs from the engine. */
-} StorageList;
-
-typedef struct ViewportEngineData {
-  void *engine_type;
-
-  FramebufferList *fbl;
-  TextureList *txl;
-  PassList *psl;
-  StorageList *stl;
-  char info[GPU_INFO_SIZE];
-
-  TextureList *txl_stereo;
-  StorageList *stl_stereo;
-  /* We may want to put this elsewhere. */
-  struct DRWTextStore *text_draw_cache;
-
-  /* Profiling data. */
-  double init_time;
-  double render_time;
-  double background_time;
-} ViewportEngineData;
-
-typedef struct ViewportEngineData_Info {
-  int fbl_len;
-  int txl_len;
-  int psl_len;
-  int stl_len;
-} ViewportEngineData_Info;
+struct DefaultFramebufferList;
+struct DefaultTextureList;
+struct DRWData;
 
 GPUViewport *GPU_viewport_create(void);
 GPUViewport *GPU_viewport_stereo_create(void);
@@ -129,35 +68,21 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         bool display_colorspace,
                                         bool do_overlay_merge);
 
-ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport);
-struct DRWInstanceDataList *GPU_viewport_instance_data_list_get(GPUViewport *viewport);
+struct DRWData **GPU_viewport_data_get(GPUViewport *viewport);
 
-void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type);
-void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_handle);
-void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format);
-void *GPU_viewport_texture_list_get(GPUViewport *viewport);
-void GPU_viewport_size_get(const GPUViewport *viewport, int size[2]);
-void GPU_viewport_size_set(GPUViewport *viewport, const int size[2]);
-void GPU_viewport_active_view_set(GPUViewport *viewport, int view);
-
-/* Profiling. */
-double *GPU_viewport_cache_time_get(GPUViewport *viewport);
 
 void GPU_viewport_tag_update(GPUViewport *viewport);
 bool GPU_viewport_do_update(GPUViewport *viewport);
 
+int GPU_viewport_active_view_get(GPUViewport *viewport);
+bool GPU_viewport_is_stereo_get(GPUViewport *viewport);
+
 GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view);
+GPUTexture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view);
+GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport);
 
-/* Texture pool. */
-GPUTexture *GPU_viewport_texture_pool_query(
-    GPUViewport *viewport, void *engine, int width, int height, int format);
-
-bool GPU_viewport_engines_data_validate(GPUViewport *viewport, void **engine_handle_array);
-void GPU_viewport_cache_release(GPUViewport *viewport);
-
-struct GPUFrameBuffer *GPU_viewport_framebuffer_default_get(GPUViewport *viewport);
-struct GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport);
+GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport);
 
 #ifdef __cplusplus
 }

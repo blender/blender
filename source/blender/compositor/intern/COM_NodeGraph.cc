@@ -18,17 +18,12 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
 
-#include "COM_CompositorContext.h"
 #include "COM_Converter.h"
 #include "COM_Debug.h"
-#include "COM_Node.h"
 #include "COM_SocketProxyNode.h"
 
 #include "COM_NodeGraph.h" /* own include */
@@ -41,8 +36,8 @@ namespace blender::compositor {
 
 NodeGraph::~NodeGraph()
 {
-  while (m_nodes.size()) {
-    delete m_nodes.pop_last();
+  while (nodes_.size()) {
+    delete nodes_.pop_last();
   }
 }
 
@@ -76,21 +71,21 @@ void NodeGraph::add_node(Node *node,
                          bNodeInstanceKey key,
                          bool is_active_group)
 {
-  node->setbNodeTree(b_ntree);
-  node->setInstanceKey(key);
-  node->setIsInActiveGroup(is_active_group);
+  node->set_bnodetree(b_ntree);
+  node->set_instance_key(key);
+  node->set_is_in_active_group(is_active_group);
 
-  m_nodes.append(node);
+  nodes_.append(node);
 
   DebugInfo::node_added(node);
 }
 
-void NodeGraph::add_link(NodeOutput *fromSocket, NodeInput *toSocket)
+void NodeGraph::add_link(NodeOutput *from_socket, NodeInput *to_socket)
 {
-  m_links.append(Link(fromSocket, toSocket));
+  links_.append(Link(from_socket, to_socket));
 
   /* register with the input */
-  toSocket->setLink(fromSocket);
+  to_socket->set_link(from_socket);
 }
 
 void NodeGraph::add_bNodeTree(const CompositorContext &context,
@@ -98,7 +93,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
                               bNodeTree *tree,
                               bNodeInstanceKey parent_key)
 {
-  const bNodeTree *basetree = context.getbNodeTree();
+  const bNodeTree *basetree = context.get_bnodetree();
 
   /* Update viewers in the active edit-tree as well the base tree (for backdrop). */
   bool is_active_group = (parent_key.value == basetree->active_viewer_key.value);
@@ -109,7 +104,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
     add_bNode(context, tree, node, key, is_active_group);
   }
 
-  NodeRange node_range(m_nodes.begin() + nodes_start, m_nodes.end());
+  NodeRange node_range(nodes_.begin() + nodes_start, nodes_.end());
   /* Add all node-links of the tree to the link list. */
   for (bNodeLink *nodelink = (bNodeLink *)tree->links.first; nodelink; nodelink = nodelink->next) {
     add_bNodeLink(node_range, nodelink);
@@ -129,7 +124,7 @@ void NodeGraph::add_bNode(const CompositorContext &context,
   }
 
   /* replace slow nodes with proxies for fast execution */
-  if (context.isFastCalculation() && !COM_bnode_is_fast_node(*b_node)) {
+  if (context.is_fast_calculation() && !COM_bnode_is_fast_node(*b_node)) {
     add_proxies_skip(b_ntree, b_node, key, is_active_group);
     return;
   }
@@ -154,8 +149,8 @@ NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_s
 {
   for (Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
     Node *node = *it;
-    for (NodeOutput *output : node->getOutputSockets()) {
-      if (output->getbNodeSocket() == b_socket) {
+    for (NodeOutput *output : node->get_output_sockets()) {
+      if (output->get_bnode_socket() == b_socket) {
         return output;
       }
     }
@@ -185,8 +180,8 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
 
   for (Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
     Node *node = *it;
-    for (NodeInput *input : node->getInputSockets()) {
-      if (input->getbNodeSocket() == b_nodelink->tosock && !input->isLinked()) {
+    for (NodeInput *input : node->get_input_sockets()) {
+      if (input->get_bnode_socket() == b_nodelink->tosock && !input->is_linked()) {
         add_link(output, input);
       }
     }
@@ -263,7 +258,7 @@ void NodeGraph::add_proxies_group_outputs(const CompositorContext &context,
        b_sock_io = b_sock_io->next) {
     bNodeSocket *b_sock_group = find_b_node_output(b_node, b_sock_io->identifier);
     if (b_sock_group) {
-      if (context.isGroupnodeBufferEnabled() &&
+      if (context.is_groupnode_buffer_enabled() &&
           context.get_execution_model() == eExecutionModel::Tiled) {
         SocketBufferNode *buffer = new SocketBufferNode(b_node_io, b_sock_io, b_sock_group);
         add_node(buffer, b_group_tree, key, is_active_group);
@@ -284,13 +279,13 @@ void NodeGraph::add_proxies_group(const CompositorContext &context,
 
   /* missing node group datablock can happen with library linking */
   if (!b_group_tree) {
-    /* This error case its handled in convertToOperations()
+    /* This error case its handled in convert_to_operations()
      * so we don't get un-converted sockets. */
     return;
   }
 
   /* use node list size before adding proxies, so they can be connected in add_bNodeTree */
-  int nodes_start = m_nodes.size();
+  int nodes_start = nodes_.size();
 
   /* create proxy nodes for group input/output nodes */
   for (bNode *b_node_io = (bNode *)b_group_tree->nodes.first; b_node_io;

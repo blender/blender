@@ -673,8 +673,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           }
         }
         else {
-          if (BKE_lib_id_make_local(bmain, id, false, 0)) {
-            BKE_main_id_newptr_and_tag_clear(bmain);
+          if (BKE_lib_id_make_local(bmain, id, 0)) {
+            BKE_id_newptr_and_tag_clear(id);
 
             /* Reassign to get proper updates/notifiers. */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
@@ -1031,7 +1031,7 @@ static void template_ID(const bContext *C,
         UI_but_flag_enable(but, UI_BUT_DISABLED);
       }
       else {
-        const bool disabled = (!BKE_lib_id_make_local(CTX_data_main(C), id, true /* test */, 0) ||
+        const bool disabled = (!BKE_idtype_idcode_is_localizable(GS(id->name)) ||
                                (idfrom && idfrom->lib));
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,
@@ -1112,24 +1112,41 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (!ID_IS_LINKED(id) && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
-        (hide_buttons == false)) {
-      uiDefIconButR(block,
-                    UI_BTYPE_ICON_TOGGLE,
-                    0,
-                    ICON_FAKE_USER_OFF,
-                    0,
-                    0,
-                    UI_UNIT_X,
-                    UI_UNIT_Y,
-                    &idptr,
-                    "use_fake_user",
-                    -1,
-                    0,
-                    0,
-                    -1,
-                    -1,
-                    NULL);
+    if (!ID_IS_LINKED(id)) {
+      if (ID_IS_ASSET(id)) {
+        uiDefIconButO(block,
+                      /* Using `_N` version allows us to get the 'active' state by default. */
+                      UI_BTYPE_ICON_TOGGLE_N,
+                      "ASSET_OT_clear",
+                      WM_OP_INVOKE_DEFAULT,
+                      /* 'active' state of a toggle button uses icon + 1, so to get proper asset
+                       * icon we need to pass its value - 1 here. */
+                      ICON_ASSET_MANAGER - 1,
+                      0,
+                      0,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      NULL);
+      }
+      else if (!(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+               (hide_buttons == false)) {
+        uiDefIconButR(block,
+                      UI_BTYPE_ICON_TOGGLE,
+                      0,
+                      ICON_FAKE_USER_OFF,
+                      0,
+                      0,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      &idptr,
+                      "use_fake_user",
+                      -1,
+                      0,
+                      0,
+                      -1,
+                      -1,
+                      NULL);
+      }
     }
   }
 
@@ -2364,7 +2381,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   /* poll() on this operator may still fail,
    * at the moment there is no nice feedback when this happens just fails silently. */
   if (!WM_operator_repeat_check(C, op)) {
-    UI_block_lock_set(block, true, "Operator can't' redo");
+    UI_block_lock_set(block, true, "Operator can't redo");
     return return_info;
   }
 
@@ -5819,6 +5836,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       break;
     }
     if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
+      handle_event = B_STOPSEQ;
+      icon = ICON_SEQUENCE;
+      break;
+    }
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL)) {
       handle_event = B_STOPSEQ;
       icon = ICON_SEQUENCE;
       break;

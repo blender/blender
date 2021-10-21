@@ -58,7 +58,6 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_use_eevee_viewport = True
     bl_use_preview = True
     bl_use_exclude_layers = True
-    bl_use_save_buffers = True
     bl_use_spherical_stereo = True
     bl_use_custom_freestyle = True
     bl_use_alembic_procedural = True
@@ -85,6 +84,12 @@ class CyclesRender(bpy.types.RenderEngine):
     def render(self, depsgraph):
         engine.render(self, depsgraph)
 
+    def render_frame_finish(self):
+        engine.render_frame_finish(self)
+
+    def draw(self, context, depsgraph):
+        engine.draw(self, depsgraph, context.space_data)
+
     def bake(self, depsgraph, obj, pass_type, pass_filter, width, height):
         engine.bake(self, depsgraph, obj, pass_type, pass_filter, width, height)
 
@@ -98,7 +103,7 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.sync(self, depsgraph, context.blend_data)
 
     def view_draw(self, context, depsgraph):
-        engine.draw(self, depsgraph, context.region, context.space_data, context.region_data)
+        engine.view_draw(self, depsgraph, context.region, context.space_data, context.region_data)
 
     def update_script_node(self, node):
         if engine.with_osl():

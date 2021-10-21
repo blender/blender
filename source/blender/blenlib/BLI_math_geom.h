@@ -438,9 +438,9 @@ bool isect_tri_tri_v2(const float p1[2],
                       const float q2[2],
                       const float r2[2]);
 
-/* water-tight raycast (requires pre-calculation) */
+/* water-tight ray-cast (requires pre-calculation). */
 struct IsectRayPrecalc {
-  /* Maximal dimension kz, and orthogonal dimensions. */
+  /* Maximal dimension `kz`, and orthogonal dimensions. */
   int kx, ky, kz;
 
   /* Shear constants. */
@@ -781,7 +781,7 @@ MINLINE void add_sh_shsh(float r[9], const float a[9], const float b[9]);
 MINLINE float dot_shsh(const float a[9], const float b[9]);
 
 MINLINE float eval_shv3(float r[9], const float v[3]);
-MINLINE float diffuse_shv3(float r[9], const float v[3]);
+MINLINE float diffuse_shv3(const float r[9], const float v[3]);
 MINLINE void vec_fac_to_sh(float r[9], const float v[3], const float f);
 MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f);
 

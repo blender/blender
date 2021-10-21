@@ -19,6 +19,8 @@ void node_bsdf_principled(vec4 base_color,
                           float subsurface,
                           vec3 subsurface_radius,
                           vec4 subsurface_color,
+                          float subsurface_ior,
+                          float subsurface_anisotropy,
                           float metallic,
                           float specular,
                           float specular_tint,
@@ -201,6 +203,6 @@ void node_bsdf_principled(vec4 base_color,
 #else
 /* clang-format off */
 /* Stub principled because it is not compatible with volumetrics. */
-#  define node_bsdf_principled(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, cc, dd, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, cc, dd, ee, ff, result) (result = CLOSURE_DEFAULT)
 /* clang-format on */
 #endif

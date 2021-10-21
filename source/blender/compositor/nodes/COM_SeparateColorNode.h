@@ -24,48 +24,48 @@ namespace blender::compositor {
 
 class SeparateColorNode : public Node {
  public:
-  SeparateColorNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  SeparateColorNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 
  protected:
-  virtual NodeOperation *getColorConverter(const CompositorContext &context) const = 0;
+  virtual NodeOperation *get_color_converter(const CompositorContext &context) const = 0;
 };
 
 class SeparateRGBANode : public SeparateColorNode {
  public:
-  SeparateRGBANode(bNode *editorNode) : SeparateColorNode(editorNode)
+  SeparateRGBANode(bNode *editor_node) : SeparateColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateHSVANode : public SeparateColorNode {
  public:
-  SeparateHSVANode(bNode *editorNode) : SeparateColorNode(editorNode)
+  SeparateHSVANode(bNode *editor_node) : SeparateColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateYCCANode : public SeparateColorNode {
  public:
-  SeparateYCCANode(bNode *editorNode) : SeparateColorNode(editorNode)
+  SeparateYCCANode(bNode *editor_node) : SeparateColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateYUVANode : public SeparateColorNode {
  public:
-  SeparateYUVANode(bNode *editorNode) : SeparateColorNode(editorNode)
+  SeparateYUVANode(bNode *editor_node) : SeparateColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

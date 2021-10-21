@@ -23,17 +23,18 @@
 
 #include "node_shader_util.h"
 
-/* **************** SEPARATE XYZ ******************** */
-static bNodeSocketTemplate sh_node_sepxyz_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>("X");
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Float>("Z");
 };
-static bNodeSocketTemplate sh_node_sepxyz_out[] = {
-    {SOCK_FLOAT, N_("X")},
-    {SOCK_FLOAT, N_("Y")},
-    {SOCK_FLOAT, N_("Z")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
@@ -92,24 +93,25 @@ void register_node_type_sh_sepxyz(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_sepxyz_in, sh_node_sepxyz_out);
+  ntype.declare = blender::nodes::sh_node_sepxyz_declare;
   node_type_gpu(&ntype, gpu_shader_sepxyz);
   ntype.build_multi_function = sh_node_sepxyz_build_multi_function;
 
   nodeRegisterType(&ntype);
 }
 
-/* **************** COMBINE XYZ ******************** */
-static bNodeSocketTemplate sh_node_combxyz_in[] = {
-    {SOCK_FLOAT, N_("X"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
-    {SOCK_FLOAT, N_("Y"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
-    {SOCK_FLOAT, N_("Z"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Float>("X").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Y").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Z").min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Vector>("Vector");
 };
-static bNodeSocketTemplate sh_node_combxyz_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,
@@ -132,7 +134,7 @@ void register_node_type_sh_combxyz(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_combxyz_in, sh_node_combxyz_out);
+  ntype.declare = blender::nodes::sh_node_combxyz_declare;
   node_type_gpu(&ntype, gpu_shader_combxyz);
   ntype.build_multi_function = sh_node_combxyz_build_multi_function;
 

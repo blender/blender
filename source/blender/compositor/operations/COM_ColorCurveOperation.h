@@ -19,20 +19,18 @@
 #pragma once
 
 #include "COM_CurveBaseOperation.h"
-#include "COM_NodeOperation.h"
-#include "DNA_color_types.h"
 
 namespace blender::compositor {
 
 class ColorCurveOperation : public CurveBaseOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputFacProgram;
-  SocketReader *m_inputImageProgram;
-  SocketReader *m_inputBlackProgram;
-  SocketReader *m_inputWhiteProgram;
+  SocketReader *input_fac_program_;
+  SocketReader *input_image_program_;
+  SocketReader *input_black_program_;
+  SocketReader *input_white_program_;
 
  public:
   ColorCurveOperation();
@@ -40,17 +38,17 @@ class ColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -60,12 +58,12 @@ class ColorCurveOperation : public CurveBaseOperation {
 class ConstantLevelColorCurveOperation : public CurveBaseOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputFacProgram;
-  SocketReader *m_inputImageProgram;
-  float m_black[3];
-  float m_white[3];
+  SocketReader *input_fac_program_;
+  SocketReader *input_image_program_;
+  float black_[3];
+  float white_[3];
 
  public:
   ConstantLevelColorCurveOperation();
@@ -73,25 +71,25 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setBlackLevel(float black[3])
+  void set_black_level(float black[3])
   {
-    copy_v3_v3(this->m_black, black);
+    copy_v3_v3(black_, black);
   }
-  void setWhiteLevel(float white[3])
+  void set_white_level(float white[3])
   {
-    copy_v3_v3(this->m_white, white);
+    copy_v3_v3(white_, white);
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

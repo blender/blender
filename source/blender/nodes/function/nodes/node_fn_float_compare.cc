@@ -30,6 +30,7 @@ namespace blender::nodes {
 
 static void fn_node_float_compare_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("Epsilon").default_value(0.001f).min(-10000.0f).max(10000.0f);
@@ -109,7 +110,7 @@ void register_node_type_fn_float_compare()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Float Compare", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_COMPARE_FLOATS, "Compare Floats", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_float_compare_declare;
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);

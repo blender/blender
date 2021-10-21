@@ -47,10 +47,10 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 {
 }
 
-void SVMShaderManager::device_update_shader(Scene *scene,
-                                            Shader *shader,
-                                            Progress *progress,
-                                            array<int4> *svm_nodes)
+static void host_compile_shader(Scene *scene,
+                                Shader *shader,
+                                Progress *progress,
+                                array<int4> *svm_nodes)
 {
   if (progress->get_cancel()) {
     return;
@@ -67,6 +67,32 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   VLOG(2) << "Compilation summary:\n"
           << "Shader name: " << shader->name << "\n"
           << summary.full_report();
+}
+
+void SVMShaderManager::host_update_specific(Scene *scene, Progress &progress)
+{
+  if (!need_update()) {
+    return;
+  }
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->svm.times.add_entry({"host_update", time});
+    }
+  });
+
+  const int num_shaders = scene->shaders.size();
+
+  VLOG(1) << "Total " << num_shaders << " shaders.";
+
+  /* Build all shaders. */
+  TaskPool task_pool;
+  shader_svm_nodes_.resize(num_shaders);
+  for (int i = 0; i < num_shaders; i++) {
+    task_pool.push(function_bind(
+        host_compile_shader, scene, scene->shaders[i], &progress, &shader_svm_nodes_[i]));
+  }
+  task_pool.wait_work();
 }
 
 void SVMShaderManager::device_update_specific(Device *device,
@@ -92,19 +118,6 @@ void SVMShaderManager::device_update_specific(Device *device,
   /* test if we need to update */
   device_free(device, dscene, scene);
 
-  /* Build all shaders. */
-  TaskPool task_pool;
-  vector<array<int4>> shader_svm_nodes(num_shaders);
-  for (int i = 0; i < num_shaders; i++) {
-    task_pool.push(function_bind(&SVMShaderManager::device_update_shader,
-                                 this,
-                                 scene,
-                                 scene->shaders[i],
-                                 &progress,
-                                 &shader_svm_nodes[i]));
-  }
-  task_pool.wait_work();
-
   if (progress.get_cancel()) {
     return;
   }
@@ -114,7 +127,7 @@ void SVMShaderManager::device_update_specific(Device *device,
   int svm_nodes_size = num_shaders;
   for (int i = 0; i < num_shaders; i++) {
     /* Since we're not copying the local jump node, the size ends up being one node lower. */
-    svm_nodes_size += shader_svm_nodes[i].size() - 1;
+    svm_nodes_size += shader_svm_nodes_[i].size() - 1;
   }
 
   int4 *svm_nodes = dscene->svm_nodes.alloc(svm_nodes_size);
@@ -132,22 +145,22 @@ void SVMShaderManager::device_update_specific(Device *device,
      * Each compiled shader starts with a jump node that has offsets local
      * to the shader, so copy those and add the offset into the global node list. */
     int4 &global_jump_node = svm_nodes[shader->id];
-    int4 &local_jump_node = shader_svm_nodes[i][0];
+    int4 &local_jump_node = shader_svm_nodes_[i][0];
 
     global_jump_node.x = NODE_SHADER_JUMP;
     global_jump_node.y = local_jump_node.y - 1 + node_offset;
     global_jump_node.z = local_jump_node.z - 1 + node_offset;
     global_jump_node.w = local_jump_node.w - 1 + node_offset;
 
-    node_offset += shader_svm_nodes[i].size() - 1;
+    node_offset += shader_svm_nodes_[i].size() - 1;
   }
 
   /* Copy the nodes of each shader into the correct location. */
   svm_nodes += num_shaders;
   for (int i = 0; i < num_shaders; i++) {
-    int shader_size = shader_svm_nodes[i].size() - 1;
+    int shader_size = shader_svm_nodes_[i].size() - 1;
 
-    memcpy(svm_nodes, &shader_svm_nodes[i][1], sizeof(int4) * shader_size);
+    memcpy(svm_nodes, &shader_svm_nodes_[i][1], sizeof(int4) * shader_size);
     svm_nodes += shader_size;
   }
 
@@ -160,6 +173,8 @@ void SVMShaderManager::device_update_specific(Device *device,
   device_update_common(device, dscene, scene, progress);
 
   update_flags = UPDATE_NONE;
+
+  shader_svm_nodes_.clear();
 
   VLOG(1) << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
           << " seconds.";
@@ -446,6 +461,8 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet &done)
   if (current_type == SHADER_TYPE_SURFACE) {
     if (node->has_spatial_varying())
       current_shader->has_surface_spatial_varying = true;
+    if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE)
+      current_shader->has_surface_raytrace = true;
   }
   else if (current_type == SHADER_TYPE_VOLUME) {
     if (node->has_spatial_varying())
@@ -492,6 +509,13 @@ void SVMCompiler::generate_svm_nodes(const ShaderNodeSet &nodes, CompilerState *
 
 void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
 {
+  /* Skip generating closure that are not supported or needed for a particular
+   * type of shader. For example a BSDF in a volume shader. */
+  const int node_feature = node->get_feature();
+  if ((state->node_feature_mask & node_feature) != node_feature) {
+    return;
+  }
+
   /* execute dependencies for closure */
   foreach (ShaderInput *in, node->inputs) {
     if (in->link != NULL) {
@@ -555,7 +579,7 @@ void SVMCompiler::find_aov_nodes_and_dependencies(ShaderNodeSet &aov_nodes,
   foreach (ShaderNode *node, graph->nodes) {
     if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
       OutputAOVNode *aov_node = static_cast<OutputAOVNode *>(node);
-      if (aov_node->slot >= 0) {
+      if (aov_node->offset >= 0) {
         aov_nodes.insert(aov_node);
         foreach (ShaderInput *in, node->inputs) {
           if (in->link != NULL) {
@@ -785,17 +809,21 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
         case SHADER_TYPE_SURFACE: /* generate surface shader */
           generate = true;
           shader->has_surface = true;
+          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE;
           break;
         case SHADER_TYPE_VOLUME: /* generate volume shader */
           generate = true;
           shader->has_volume = true;
+          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_VOLUME;
           break;
         case SHADER_TYPE_DISPLACEMENT: /* generate displacement shader */
           generate = true;
           shader->has_displacement = true;
+          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_DISPLACEMENT;
           break;
         case SHADER_TYPE_BUMP: /* generate bump shader */
           generate = true;
+          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_BUMP;
           break;
         default:
           break;
@@ -867,6 +895,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
   shader->has_surface = false;
   shader->has_surface_emission = false;
   shader->has_surface_transparent = false;
+  shader->has_surface_raytrace = false;
   shader->has_surface_bssrdf = false;
   shader->has_bump = has_bump;
   shader->has_bssrdf_bump = has_bump;
@@ -964,6 +993,7 @@ SVMCompiler::CompilerState::CompilerState(ShaderGraph *graph)
     max_id = max(node->id, max_id);
   }
   nodes_done_flag.resize(max_id + 1, false);
+  node_feature_mask = 0;
 }
 
 CCL_NAMESPACE_END

@@ -30,7 +30,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_font.h"
+#include "BKE_vfont.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

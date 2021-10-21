@@ -664,11 +664,6 @@ static int startffmpeg(struct anim *anim)
     anim->duration_in_frames = (int)(stream_dur * av_q2d(frame_rate) + 0.5f);
   }
 
-  double ctx_start = 0;
-  if (pFormatCtx->start_time != AV_NOPTS_VALUE) {
-    ctx_start = (double)pFormatCtx->start_time / AV_TIME_BASE;
-  }
-
   frs_num = frame_rate.num;
   frs_den = frame_rate.den;
 
@@ -683,7 +678,7 @@ static int startffmpeg(struct anim *anim)
   anim->frs_sec_base = frs_den;
   /* Save the relative start time for the video. IE the start time in relation to where playback
    * starts. */
-  anim->start_offset = video_start - ctx_start;
+  anim->start_offset = video_start;
 
   anim->params = 0;
 
@@ -1501,16 +1496,16 @@ static void free_anim_ffmpeg(struct anim *anim)
 
 #endif
 
-/* Try next picture to read */
-/* No picture, try to open next animation */
-/* Succeed, remove first image from animation */
-
-static ImBuf *anim_getnew(struct anim *anim)
+/**
+ * Try to initialize the #anim struct.
+ * Returns true on success.
+ */
+static bool anim_getnew(struct anim *anim)
 {
-  struct ImBuf *ibuf = NULL;
-
+  BLI_assert(anim->curtype == ANIM_NONE);
   if (anim == NULL) {
-    return NULL;
+    /* Nothing to initialize. */
+    return false;
   }
 
   free_anim_movie(anim);
@@ -1523,44 +1518,43 @@ static ImBuf *anim_getnew(struct anim *anim)
   free_anim_ffmpeg(anim);
 #endif
 
-  if (anim->curtype != 0) {
-    return NULL;
-  }
   anim->curtype = imb_get_anim_type(anim->name);
 
   switch (anim->curtype) {
-    case ANIM_SEQUENCE:
-      ibuf = IMB_loadiffname(anim->name, anim->ib_flags, anim->colorspace);
+    case ANIM_SEQUENCE: {
+      ImBuf *ibuf = IMB_loadiffname(anim->name, anim->ib_flags, anim->colorspace);
       if (ibuf) {
         BLI_strncpy(anim->first, anim->name, sizeof(anim->first));
         anim->duration_in_frames = 1;
+        IMB_freeImBuf(ibuf);
+      }
+      else {
+        return false;
       }
       break;
+    }
     case ANIM_MOVIE:
       if (startmovie(anim)) {
-        return NULL;
+        return false;
       }
-      ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0); /* fake */
       break;
 #ifdef WITH_AVI
     case ANIM_AVI:
       if (startavi(anim)) {
         printf("couldn't start avi\n");
-        return NULL;
+        return false;
       }
-      ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
       break;
 #endif
 #ifdef WITH_FFMPEG
     case ANIM_FFMPEG:
       if (startffmpeg(anim)) {
-        return 0;
+        return false;
       }
-      ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
       break;
 #endif
   }
-  return ibuf;
+  return true;
 }
 
 struct ImBuf *IMB_anim_previewframe(struct anim *anim)
@@ -1594,14 +1588,10 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
   filter_y = (anim->ib_flags & IB_animdeinterlace);
 
   if (preview_size == IMB_PROXY_NONE) {
-    if (anim->curtype == 0) {
-      ibuf = anim_getnew(anim);
-      if (ibuf == NULL) {
+    if (anim->curtype == ANIM_NONE) {
+      if (!anim_getnew(anim)) {
         return NULL;
       }
-
-      IMB_freeImBuf(ibuf); /* ???? */
-      ibuf = NULL;
     }
 
     if (position < 0) {

@@ -31,12 +31,14 @@ set(INC_SYS
 set(SRC
   blender_camera.cpp
   blender_device.cpp
+  blender_display_driver.cpp
   blender_image.cpp
   blender_geometry.cpp
   blender_light.cpp
   blender_mesh.cpp
   blender_object.cpp
   blender_object_cull.cpp
+  blender_output_driver.cpp
   blender_particles.cpp
   blender_curves.cpp
   blender_logging.cpp
@@ -50,9 +52,11 @@ set(SRC
 
   CCL_api.h
   blender_device.h
+  blender_display_driver.h
   blender_id_map.h
   blender_image.h
   blender_object_cull.h
+  blender_output_driver.h
   blender_sync.h
   blender_session.h
   blender_texture.h
@@ -93,14 +97,9 @@ set(ADDON_FILES
 
 add_definitions(${GL_DEFINITIONS})
 
-if(WITH_CYCLES_DEVICE_OPENCL)
-  add_definitions(-DWITH_OPENCL)
+if(WITH_CYCLES_DEVICE_HIP)
+  add_definitions(-DWITH_HIP)
 endif()
-
-if(WITH_CYCLES_NETWORK)
-  add_definitions(-DWITH_NETWORK)
-endif()
-
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()

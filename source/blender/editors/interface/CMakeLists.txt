@@ -42,6 +42,7 @@ set(SRC
   interface_button_group.c
   interface_context_menu.c
   interface_draw.c
+  interface_dropboxes.cc
   interface_eyedropper.c
   interface_eyedropper_color.c
   interface_eyedropper_colorband.c
@@ -73,8 +74,10 @@ set(SRC
   interface_templates.c
   interface_undo.c
   interface_utils.c
+  interface_view.cc
   interface_widgets.c
   resources.c
+  tree_view.cc
   view2d.c
   view2d_draw.c
   view2d_edge_pan.c

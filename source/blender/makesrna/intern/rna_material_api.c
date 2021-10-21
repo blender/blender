@@ -38,8 +38,8 @@
 
 void RNA_api_material(StructRNA *UNUSED(srna))
 {
-  /* FunctionRNA *func; */
-  /* PropertyRNA *parm; */
+  // FunctionRNA *func;
+  // PropertyRNA *parm;
 }
 
 #endif

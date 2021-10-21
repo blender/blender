@@ -1203,6 +1203,8 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     return;
   }
 
+  float hiz_uv_scale_prev[2] = {UNPACK2(common_data->hiz_uv_scale)};
+
   /* Temporary Remove all planar reflections (avoid lag effect). */
   common_data->prb_num_planar = 0;
   /* Turn off ssr to avoid black specular */
@@ -1212,6 +1214,9 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
   common_data->ray_type = EEVEE_RAY_GLOSSY;
   common_data->ray_depth = 1.0f;
+  /* Planar reflections are rendered at the `hiz` resolution, so no need to scaling. */
+  copy_v2_fl(common_data->hiz_uv_scale, 1.0f);
+
   GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
 
   /* Rendering happens here! */
@@ -1227,6 +1232,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   common_data->ssr_toggle = true;
   common_data->ssrefract_toggle = true;
   common_data->sss_toggle = true;
+  copy_v2_v2(common_data->hiz_uv_scale, hiz_uv_scale_prev);
 
   /* Prefilter for SSR */
   if ((vedata->stl->effects->enabled_effects & EFFECT_SSR) != 0) {
@@ -1234,7 +1240,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   }
 
   if (DRW_state_is_image_render()) {
-    /* Sort transparents because planar reflections could have re-sorted them. */
+    /* Sort the transparent passes because planar reflections could have re-sorted them. */
     DRW_pass_sort_shgroup_z(vedata->psl->transparent_pass);
   }
 

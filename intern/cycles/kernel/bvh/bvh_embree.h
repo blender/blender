@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <embree3/rtcore_ray.h>
 #include <embree3/rtcore_scene.h>
 
-// clang-format off
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/split/kernel_split_data_types.h"
-#include "kernel/kernel_globals.h"
-// clang-format on
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
 
 #include "util/util_vector.h"
 
@@ -36,25 +35,33 @@ struct CCLIntersectContext {
     RAY_VOLUME_ALL = 4,
   } RayType;
 
-  KernelGlobals *kg;
+  KernelGlobals kg;
   RayType type;
 
   /* for shadow rays */
   Intersection *isect_s;
-  int max_hits;
-  int num_hits;
+  uint max_hits;
+  uint num_hits;
+  uint num_recorded_hits;
+  float throughput;
+  float max_t;
+  bool opaque_hit;
 
   /* for SSS Rays: */
   LocalIntersection *local_isect;
   int local_object_id;
   uint *lcg_state;
 
-  CCLIntersectContext(KernelGlobals *kg_, RayType type_)
+  CCLIntersectContext(KernelGlobals kg_, RayType type_)
   {
     kg = kg_;
     type = type_;
     max_hits = 1;
     num_hits = 0;
+    num_recorded_hits = 0;
+    throughput = 1.0f;
+    max_t = FLT_MAX;
+    opaque_hit = false;
     isect_s = NULL;
     local_isect = NULL;
     local_object_id = -1;
@@ -98,16 +105,12 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
   rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
 }
 
-ccl_device_inline void kernel_embree_convert_hit(KernelGlobals *kg,
+ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
                                                  Intersection *isect)
 {
-  bool is_hair = hit->geomID & 1;
-  isect->u = is_hair ? hit->u : 1.0f - hit->v - hit->u;
-  isect->v = is_hair ? hit->v : hit->u;
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
     RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
         rtcGetGeometry(kernel_data.bvh.scene, hit->instID[0]));
@@ -118,27 +121,36 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals *kg,
   else {
     isect->prim = hit->primID + (intptr_t)rtcGetGeometryUserData(
                                     rtcGetGeometry(kernel_data.bvh.scene, hit->geomID));
-    isect->object = OBJECT_NONE;
+    isect->object = hit->geomID / 2;
   }
-  isect->type = kernel_tex_fetch(__prim_type, isect->prim);
+
+  const bool is_hair = hit->geomID & 1;
+  if (is_hair) {
+    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, isect->prim);
+    isect->type = segment.type;
+    isect->prim = segment.prim;
+    isect->u = hit->u;
+    isect->v = hit->v;
+  }
+  else {
+    isect->type = kernel_tex_fetch(__objects, isect->object).primitive_type;
+    isect->u = 1.0f - hit->v - hit->u;
+    isect->v = hit->u;
+  }
 }
 
-ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals *kg,
-                                                     const RTCRay *ray,
-                                                     const RTCHit *hit,
-                                                     Intersection *isect,
-                                                     int local_object_id)
+ccl_device_inline void kernel_embree_convert_sss_hit(
+    KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
 {
   isect->u = 1.0f - hit->v - hit->u;
   isect->v = hit->u;
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-      rtcGetGeometry(kernel_data.bvh.scene, local_object_id * 2));
+      rtcGetGeometry(kernel_data.bvh.scene, object * 2));
   isect->prim = hit->primID +
                 (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-  isect->object = local_object_id;
-  isect->type = kernel_tex_fetch(__prim_type, isect->prim);
+  isect->object = object;
+  isect->type = kernel_tex_fetch(__objects, object).primitive_type;
 }
 
 CCL_NAMESPACE_END

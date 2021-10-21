@@ -29,7 +29,7 @@ namespace blender::compositor {
  */
 class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
  protected:
-  float calculateDistance(const float key[4], const float image[4]) override;
+  float calculate_distance(const float key[4], const float image[4]) override;
 };
 
 }  // namespace blender::compositor

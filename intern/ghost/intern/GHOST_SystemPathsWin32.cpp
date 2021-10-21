@@ -100,6 +100,9 @@ const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     case GHOST_kUserSpecialDirVideos:
       folderid = FOLDERID_Videos;
       break;
+    case GHOST_kUserSpecialDirCaches:
+      folderid = FOLDERID_LocalAppData;
+      break;
     default:
       GHOST_ASSERT(
           false,

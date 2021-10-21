@@ -24,11 +24,11 @@ namespace blender::compositor {
 
 class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
  protected:
-  float *m_gausstab;
-  float *m_distbuf_inv;
-  int m_falloff; /* Falloff for #distbuf_inv. */
-  bool m_do_subtract;
-  int m_filtersize;
+  float *gausstab_;
+  float *distbuf_inv_;
+  int falloff_; /* Falloff for #distbuf_inv. */
+  bool do_subtract_;
+  int filtersize_;
   float rad_;
   eDimension dimension_;
 
@@ -36,8 +36,8 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   GaussianAlphaBlurBaseOperation(eDimension dim);
 
   virtual void init_data() override;
-  virtual void initExecution() override;
-  virtual void deinitExecution() override;
+  virtual void init_execution() override;
+  virtual void deinit_execution() override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,
@@ -49,13 +49,13 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   /**
    * Set subtract for Dilate/Erode functionality
    */
-  void setSubtract(bool subtract)
+  void set_subtract(bool subtract)
   {
-    this->m_do_subtract = subtract;
+    do_subtract_ = subtract;
   }
-  void setFalloff(int falloff)
+  void set_falloff(int falloff)
   {
-    this->m_falloff = falloff;
+    falloff_ = falloff;
   }
 };
 

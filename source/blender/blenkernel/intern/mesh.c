@@ -360,7 +360,7 @@ IDTypeInfo IDType_ID_ME = {
     .name = "Mesh",
     .name_plural = "meshes",
     .translation_context = BLT_I18NCONTEXT_ID_MESH,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = mesh_init_data,
     .copy_data = mesh_copy_data,
@@ -1111,7 +1111,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
   MEM_freeN(mesh_eval);
 }
 
-Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
+Mesh *BKE_mesh_copy_for_eval(const Mesh *source, bool reference)
 {
   int flags = LIB_ID_COPY_LOCALIZE;
 
@@ -1859,7 +1859,7 @@ void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
   for (int i = 0; i < mesh->totvert; i++, mv++) {
     copy_v3_v3(mv->co, vert_coords[i]);
   }
-  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(mesh);
 }
 
 void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
@@ -1872,7 +1872,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
   for (int i = 0; i < mesh->totvert; i++, mv++) {
     mul_v3_m4v3(mv->co, mat, vert_coords[i]);
   }
-  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(mesh);
 }
 
 void BKE_mesh_vert_normals_apply(Mesh *mesh, const short (*vert_normals)[3])

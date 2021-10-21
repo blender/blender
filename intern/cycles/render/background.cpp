@@ -34,11 +34,7 @@ NODE_DEFINE(Background)
 {
   NodeType *type = NodeType::add("background", create);
 
-  SOCKET_FLOAT(ao_factor, "AO Factor", 0.0f);
-  SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
-
   SOCKET_BOOLEAN(use_shader, "Use Shader", true);
-  SOCKET_BOOLEAN(use_ao, "Use AO", false);
   SOCKET_UINT(visibility, "Visibility", PATH_RAY_ALL_VISIBILITY);
 
   SOCKET_BOOLEAN(transparent, "Transparent", false);
@@ -79,10 +75,6 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   /* set shader index and transparent option */
   KernelBackground *kbackground = &dscene->data.background;
-
-  kbackground->ao_factor = (use_ao) ? ao_factor : 0.0f;
-  kbackground->ao_bounces_factor = ao_factor;
-  kbackground->ao_distance = ao_distance;
 
   kbackground->transparent = transparent;
   kbackground->surface_shader = scene->shader_manager->get_shader_id(bg_shader);
@@ -137,10 +129,6 @@ void Background::tag_update(Scene *scene)
      * We only tag the use_shader socket as modified as it is related to the shader
      * and to avoid doing unnecessary updates anywhere else. */
     tag_use_shader_modified();
-  }
-
-  if (ao_factor_is_modified() || use_ao_is_modified()) {
-    scene->integrator->tag_update(scene, Integrator::BACKGROUND_AO_MODIFIED);
   }
 }
 

@@ -18,25 +18,24 @@
 
 #include "COM_BokehImageNode.h"
 #include "COM_BokehImageOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 
-BokehImageNode::BokehImageNode(bNode *editorNode) : Node(editorNode)
+BokehImageNode::BokehImageNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void BokehImageNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext & /*context*/) const
+void BokehImageNode::convert_to_operations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
   BokehImageOperation *operation = new BokehImageOperation();
-  operation->setData((NodeBokehImage *)this->getbNode()->storage);
+  operation->set_data((NodeBokehImage *)this->get_bnode()->storage);
 
-  converter.addOperation(operation);
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.add_operation(operation);
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 
-  converter.addPreview(operation->getOutputSocket(0));
+  converter.add_preview(operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

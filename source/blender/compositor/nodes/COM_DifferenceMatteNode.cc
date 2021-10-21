@@ -17,42 +17,41 @@
  */
 
 #include "COM_DifferenceMatteNode.h"
-#include "BKE_node.h"
 #include "COM_DifferenceMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 
-DifferenceMatteNode::DifferenceMatteNode(bNode *editorNode) : Node(editorNode)
+DifferenceMatteNode::DifferenceMatteNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void DifferenceMatteNode::convertToOperations(NodeConverter &converter,
-                                              const CompositorContext & /*context*/) const
+void DifferenceMatteNode::convert_to_operations(NodeConverter &converter,
+                                                const CompositorContext & /*context*/) const
 {
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeInput *inputSocket2 = this->getInputSocket(1);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
-  NodeOutput *outputSocketMatte = this->getOutputSocket(1);
-  bNode *editorNode = this->getbNode();
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeInput *input_socket2 = this->get_input_socket(1);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
+  NodeOutput *output_socket_matte = this->get_output_socket(1);
+  bNode *editor_node = this->get_bnode();
 
-  DifferenceMatteOperation *operationSet = new DifferenceMatteOperation();
-  operationSet->setSettings((NodeChroma *)editorNode->storage);
-  converter.addOperation(operationSet);
+  DifferenceMatteOperation *operation_set = new DifferenceMatteOperation();
+  operation_set->set_settings((NodeChroma *)editor_node->storage);
+  converter.add_operation(operation_set);
 
-  converter.mapInputSocket(inputSocket, operationSet->getInputSocket(0));
-  converter.mapInputSocket(inputSocket2, operationSet->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
+  converter.map_input_socket(input_socket, operation_set->get_input_socket(0));
+  converter.map_input_socket(input_socket2, operation_set->get_input_socket(1));
+  converter.map_output_socket(output_socket_matte, operation_set->get_output_socket(0));
 
   SetAlphaMultiplyOperation *operation = new SetAlphaMultiplyOperation();
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-  converter.addLink(operationSet->getOutputSocket(), operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
+  converter.map_input_socket(input_socket, operation->get_input_socket(0));
+  converter.add_link(operation_set->get_output_socket(), operation->get_input_socket(1));
+  converter.map_output_socket(output_socket_image, operation->get_output_socket());
 
-  converter.addPreview(operation->getOutputSocket());
+  converter.add_preview(operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

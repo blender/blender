@@ -110,6 +110,10 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
  public:
   FunctionRef() = default;
 
+  FunctionRef(std::nullptr_t)
+  {
+  }
+
   /**
    * A `FunctionRef` itself is a callable as well. However, we don't want that this
    * constructor is called when `Callable` is a `FunctionRef`. If we would allow this, it

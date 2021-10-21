@@ -24,40 +24,40 @@ namespace blender::compositor {
 
 VectorCurveOperation::VectorCurveOperation()
 {
-  this->addInputSocket(DataType::Vector);
-  this->addOutputSocket(DataType::Vector);
+  this->add_input_socket(DataType::Vector);
+  this->add_output_socket(DataType::Vector);
 
-  this->m_inputProgram = nullptr;
+  input_program_ = nullptr;
 }
-void VectorCurveOperation::initExecution()
+void VectorCurveOperation::init_execution()
 {
-  CurveBaseOperation::initExecution();
-  this->m_inputProgram = this->getInputSocketReader(0);
+  CurveBaseOperation::init_execution();
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-void VectorCurveOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void VectorCurveOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
   float input[4];
 
-  this->m_inputProgram->readSampled(input, x, y, sampler);
+  input_program_->read_sampled(input, x, y, sampler);
 
-  BKE_curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, input);
+  BKE_curvemapping_evaluate_premulRGBF(curve_mapping_, output, input);
 }
 
-void VectorCurveOperation::deinitExecution()
+void VectorCurveOperation::deinit_execution()
 {
-  CurveBaseOperation::deinitExecution();
-  this->m_inputProgram = nullptr;
+  CurveBaseOperation::deinit_execution();
+  input_program_ = nullptr;
 }
 
 void VectorCurveOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                         const rcti &area,
                                                         Span<MemoryBuffer *> inputs)
 {
-  CurveMapping *curve_map = this->m_curveMapping;
+  CurveMapping *curve_map = curve_mapping_;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     BKE_curvemapping_evaluate_premulRGBF(curve_map, it.out, it.in(0));
   }

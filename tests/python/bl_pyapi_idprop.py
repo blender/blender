@@ -4,9 +4,13 @@
 import bpy
 import idprop
 import unittest
-import numpy as np
 from array import array
 
+# Run if `numpy` is installed.
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 class TestHelper:
 
@@ -189,38 +193,6 @@ class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
 
 class TestBufferProtocol(TestHelper, unittest.TestCase):
 
-    def test_int(self):
-        self.id["a"] = array("i", [1, 2, 3, 4, 5])
-        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
-        self.assertEqual(len(a), 5)
-        a[2] = 10
-        self.assertEqual(self.id["a"].to_list(), [1, 2, 10, 4, 5])
-
-    def test_float(self):
-        self.id["a"] = array("f", [1.0, 2.0, 3.0, 4.0])
-        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
-        self.assertEqual(len(a), 4)
-        a[-1] = 10
-        self.assertEqual(self.id["a"].to_list(), [1.0, 2.0, 3.0, 10.0])
-
-    def test_double(self):
-        self.id["a"] = array("d", [1.0, 2.0, 3.0, 4.0])
-        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
-        a[1] = 10
-        self.assertEqual(self.id["a"].to_list(), [1.0, 10.0, 3.0, 4.0])
-
-    def test_full_update(self):
-        self.id["a"] = array("i", [1, 2, 3, 4, 5, 6])
-        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
-        a[:] = [10, 20, 30, 40, 50, 60]
-        self.assertEqual(self.id["a"].to_list(), [10, 20, 30, 40, 50, 60])
-
-    def test_partial_update(self):
-        self.id["a"] = array("i", [1, 2, 3, 4, 5, 6, 7, 8])
-        a = np.frombuffer(self.id["a"], self.id["a"].typecode)
-        a[1:5] = [10, 20, 30, 40]
-        self.assertEqual(self.id["a"].to_list(), [1, 10, 20, 30, 40, 6, 7, 8])
-
     def test_copy(self):
         self.id["a"] = array("i", [1, 2, 3, 4, 5])
         self.id["b"] = self.id["a"]
@@ -245,6 +217,42 @@ class TestBufferProtocol(TestHelper, unittest.TestCase):
 
         self.assertEqual(list(view1), list(view2))
         self.assertEqual(view1.tobytes(), view2.tobytes())
+
+
+if np is not None:
+    class TestBufferProtocol_Numpy(TestHelper, unittest.TestCase):
+        def test_int(self):
+            self.id["a"] = array("i", [1, 2, 3, 4, 5])
+            a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+            self.assertEqual(len(a), 5)
+            a[2] = 10
+            self.assertEqual(self.id["a"].to_list(), [1, 2, 10, 4, 5])
+
+        def test_float(self):
+            self.id["a"] = array("f", [1.0, 2.0, 3.0, 4.0])
+            a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+            self.assertEqual(len(a), 4)
+            a[-1] = 10
+            self.assertEqual(self.id["a"].to_list(), [1.0, 2.0, 3.0, 10.0])
+
+        def test_double(self):
+            self.id["a"] = array("d", [1.0, 2.0, 3.0, 4.0])
+            a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+            a[1] = 10
+            self.assertEqual(self.id["a"].to_list(), [1.0, 10.0, 3.0, 4.0])
+
+        def test_full_update(self):
+            self.id["a"] = array("i", [1, 2, 3, 4, 5, 6])
+            a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+            a[:] = [10, 20, 30, 40, 50, 60]
+            self.assertEqual(self.id["a"].to_list(), [10, 20, 30, 40, 50, 60])
+
+        def test_partial_update(self):
+            self.id["a"] = array("i", [1, 2, 3, 4, 5, 6, 7, 8])
+            a = np.frombuffer(self.id["a"], self.id["a"].typecode)
+            a[1:5] = [10, 20, 30, 40]
+            self.assertEqual(self.id["a"].to_list(), [1, 10, 20, 30, 40, 6, 7, 8])
+
 
 class TestRNAData(TestHelper, unittest.TestCase):
 
@@ -307,7 +315,6 @@ class TestRNAData(TestHelper, unittest.TestCase):
         ui_data_test_prop_array.update(default=[1, 2])
         rna_data = ui_data_test_prop_array.as_dict()
         self.assertEqual(rna_data["default"], [1, 2])
-
 
 
 if __name__ == '__main__':

@@ -18,9 +18,9 @@
 
 namespace blender::fn {
 
-/* --------------------------------------------------------------------
- * GVArray_For_ShallowCopy.
- */
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_For_ShallowCopy
+ * \{ */
 
 class GVArray_For_ShallowCopy : public GVArray {
  private:
@@ -48,10 +48,11 @@ class GVArray_For_ShallowCopy : public GVArray {
     varray_.materialize_to_uninitialized(mask, dst);
   }
 };
+/** \} */
 
-/* --------------------------------------------------------------------
- * GVArray.
- */
+/* -------------------------------------------------------------------- */
+/** \name #GVArray
+ * \{ */
 
 void GVArray::materialize(void *dst) const
 {
@@ -142,9 +143,11 @@ GVArrayPtr GVArray::shallow_copy() const
   return std::make_unique<GVArray_For_ShallowCopy>(*this);
 }
 
-/* --------------------------------------------------------------------
- * GVMutableArray.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVMutableArray
+ * \{ */
 
 void GVMutableArray::set_by_copy_impl(const int64_t index, const void *value)
 {
@@ -191,9 +194,11 @@ void GVMutableArray::fill(const void *value)
   }
 }
 
-/* --------------------------------------------------------------------
- * GVArray_For_GSpan.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_For_GSpan
+ * \{ */
 
 void GVArray_For_GSpan::get_impl(const int64_t index, void *r_value) const
 {
@@ -215,9 +220,11 @@ GSpan GVArray_For_GSpan::get_internal_span_impl() const
   return GSpan(*type_, data_, size_);
 }
 
-/* --------------------------------------------------------------------
- * GVMutableArray_For_GMutableSpan.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVMutableArray_For_GMutableSpan
+ * \{ */
 
 void GVMutableArray_For_GMutableSpan::get_impl(const int64_t index, void *r_value) const
 {
@@ -255,9 +262,11 @@ GSpan GVMutableArray_For_GMutableSpan::get_internal_span_impl() const
   return GSpan(*type_, data_, size_);
 }
 
-/* --------------------------------------------------------------------
- * GVArray_For_SingleValueRef.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_For_SingleValueRef
+ * \{ */
 
 void GVArray_For_SingleValueRef::get_impl(const int64_t UNUSED(index), void *r_value) const
 {
@@ -290,9 +299,11 @@ void GVArray_For_SingleValueRef::get_internal_single_impl(void *r_value) const
   type_->copy_assign(value_, r_value);
 }
 
-/* --------------------------------------------------------------------
- * GVArray_For_SingleValue.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_For_SingleValue
+ * \{ */
 
 GVArray_For_SingleValue::GVArray_For_SingleValue(const CPPType &type,
                                                  const int64_t size,
@@ -309,9 +320,11 @@ GVArray_For_SingleValue::~GVArray_For_SingleValue()
   MEM_freeN((void *)value_);
 }
 
-/* --------------------------------------------------------------------
- * GVArray_GSpan.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_GSpan
+ * \{ */
 
 GVArray_GSpan::GVArray_GSpan(const GVArray &varray) : GSpan(varray.type()), varray_(varray)
 {
@@ -334,9 +347,11 @@ GVArray_GSpan::~GVArray_GSpan()
   }
 }
 
-/* --------------------------------------------------------------------
- * GVMutableArray_GSpan.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVMutableArray_GSpan
+ * \{ */
 
 GVMutableArray_GSpan::GVMutableArray_GSpan(GVMutableArray &varray, const bool copy_values_to_span)
     : GMutableSpan(varray.type()), varray_(varray)
@@ -386,5 +401,54 @@ void GVMutableArray_GSpan::disable_not_applied_warning()
 {
   show_not_saved_warning_ = false;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_For_SlicedGVArray
+ * \{ */
+
+void GVArray_For_SlicedGVArray::get_impl(const int64_t index, void *r_value) const
+{
+  varray_.get(index + offset_, r_value);
+}
+
+void GVArray_For_SlicedGVArray::get_to_uninitialized_impl(const int64_t index, void *r_value) const
+{
+  varray_.get_to_uninitialized(index + offset_, r_value);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArray_Slice
+ * \{ */
+
+GVArray_Slice::GVArray_Slice(const GVArray &varray, const IndexRange slice)
+{
+  if (varray.is_span()) {
+    /* Create a new virtual for the sliced span. */
+    const GSpan span = varray.get_internal_span();
+    const GSpan sliced_span = span.slice(slice.start(), slice.size());
+    varray_span_.emplace(sliced_span);
+    varray_ = &*varray_span_;
+  }
+  else if (varray.is_single()) {
+    /* Can just use the existing virtual array, because it's the same value for the indices in the
+     * slice anyway. */
+    varray_ = &varray;
+  }
+  else {
+    /* Generic version when none of the above method works.
+     * We don't necessarily want to materialize the input varray because there might be
+     * large distances between the required indices. Then we would materialize many elements that
+     * are not accessed later on.
+     */
+    varray_any_.emplace(varray, slice);
+    varray_ = &*varray_any_;
+  }
+}
+
+/** \} */
 
 }  // namespace blender::fn

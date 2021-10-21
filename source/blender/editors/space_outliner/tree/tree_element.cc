@@ -91,7 +91,8 @@ static void tree_element_free(AbstractTreeElement **tree_element)
   *tree_element = nullptr;
 }
 
-static void tree_element_expand(AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
+static void tree_element_expand(const AbstractTreeElement &tree_element,
+                                SpaceOutliner &space_outliner)
 {
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common
    * expanding. Could be done nicer, we could request a small "expander" helper object from the
@@ -107,7 +108,7 @@ static void tree_element_expand(AbstractTreeElement &tree_element, SpaceOutliner
  * Needed for types that still expand in C, but need to execute the same post-expand logic. Can be
  * removed once all ID types expand entirely using the new design.
  */
-static void tree_element_post_expand_only(AbstractTreeElement &tree_element,
+static void tree_element_post_expand_only(const AbstractTreeElement &tree_element,
                                           SpaceOutliner &space_outliner)
 {
   tree_element.postExpand(space_outliner);
@@ -116,8 +117,8 @@ static void tree_element_post_expand_only(AbstractTreeElement &tree_element,
  * Needed for types that still expand in C, to poll if they should expand in current context. Can
  * be removed once all ID types expand entirely using the new design.
  */
-static bool tree_element_expand_poll(AbstractTreeElement &tree_element,
-                                     SpaceOutliner &space_outliner)
+static bool tree_element_expand_poll(const AbstractTreeElement &tree_element,
+                                     const SpaceOutliner &space_outliner)
 {
   return tree_element.expandPoll(space_outliner);
 }

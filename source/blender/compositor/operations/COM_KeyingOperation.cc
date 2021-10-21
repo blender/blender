@@ -18,14 +18,9 @@
 
 #include "COM_KeyingOperation.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
-static float get_pixel_saturation(const float pixelColor[4],
+static float get_pixel_saturation(const float pixel_color[4],
                                   float screen_balance,
                                   int primary_channel)
 {
@@ -35,43 +30,46 @@ static float get_pixel_saturation(const float pixelColor[4],
   const int min_channel = MIN2(other_1, other_2);
   const int max_channel = MAX2(other_1, other_2);
 
-  const float val = screen_balance * pixelColor[min_channel] +
-                    (1.0f - screen_balance) * pixelColor[max_channel];
+  const float val = screen_balance * pixel_color[min_channel] +
+                    (1.0f - screen_balance) * pixel_color[max_channel];
 
-  return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
+  return (pixel_color[primary_channel] - val) * fabsf(1.0f - val);
 }
 
 KeyingOperation::KeyingOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Value);
 
-  this->m_screenBalance = 0.5f;
+  screen_balance_ = 0.5f;
 
-  this->m_pixelReader = nullptr;
-  this->m_screenReader = nullptr;
+  pixel_reader_ = nullptr;
+  screen_reader_ = nullptr;
 }
 
-void KeyingOperation::initExecution()
+void KeyingOperation::init_execution()
 {
-  this->m_pixelReader = this->getInputSocketReader(0);
-  this->m_screenReader = this->getInputSocketReader(1);
+  pixel_reader_ = this->get_input_socket_reader(0);
+  screen_reader_ = this->get_input_socket_reader(1);
 }
 
-void KeyingOperation::deinitExecution()
+void KeyingOperation::deinit_execution()
 {
-  this->m_pixelReader = nullptr;
-  this->m_screenReader = nullptr;
+  pixel_reader_ = nullptr;
+  screen_reader_ = nullptr;
 }
 
-void KeyingOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void KeyingOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
 {
   float pixel_color[4];
   float screen_color[4];
 
-  this->m_pixelReader->readSampled(pixel_color, x, y, sampler);
-  this->m_screenReader->readSampled(screen_color, x, y, sampler);
+  pixel_reader_->read_sampled(pixel_color, x, y, sampler);
+  screen_reader_->read_sampled(screen_color, x, y, sampler);
 
   const int primary_channel = max_axis_v3(screen_color);
   const float min_pixel_color = min_fff(pixel_color[0], pixel_color[1], pixel_color[2]);
@@ -85,9 +83,8 @@ void KeyingOperation::executePixelSampled(float output[4], float x, float y, Pix
     output[0] = 1.0f;
   }
   else {
-    float saturation = get_pixel_saturation(pixel_color, this->m_screenBalance, primary_channel);
-    float screen_saturation = get_pixel_saturation(
-        screen_color, this->m_screenBalance, primary_channel);
+    float saturation = get_pixel_saturation(pixel_color, screen_balance_, primary_channel);
+    float screen_saturation = get_pixel_saturation(screen_color, screen_balance_, primary_channel);
 
     if (saturation < 0) {
       /* means main channel of pixel is different from screen,
@@ -130,9 +127,9 @@ void KeyingOperation::update_memory_buffer_partial(MemoryBuffer *output,
       it.out[0] = 1.0f;
     }
     else {
-      const float saturation = get_pixel_saturation(pixel_color, m_screenBalance, primary_channel);
+      const float saturation = get_pixel_saturation(pixel_color, screen_balance_, primary_channel);
       const float screen_saturation = get_pixel_saturation(
-          screen_color, m_screenBalance, primary_channel);
+          screen_color, screen_balance_, primary_channel);
 
       if (saturation < 0) {
         /* Means main channel of pixel is different from screen,

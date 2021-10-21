@@ -31,9 +31,9 @@
  * BVH_MOTION: motion blur rendering
  */
 
-ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
-                                                     const Ray *ray,
-                                                     Intersection *isect,
+ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
+                                                     ccl_private const Ray *ray,
+                                                     ccl_private Intersection *isect,
                                                      const uint visibility)
 {
   /* todo:
@@ -136,7 +136,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
             case PRIMITIVE_TRIANGLE: {
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-                if (triangle_intersect(kg, isect, P, dir, visibility, object, prim_addr)) {
+                if (triangle_intersect(
+                        kg, isect, P, dir, isect->t, visibility, object, prim_addr)) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -149,7 +150,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
                 if (motion_triangle_intersect(
-                        kg, isect, P, dir, ray->time, visibility, object, prim_addr)) {
+                        kg, isect, P, dir, isect->t, ray->time, visibility, object, prim_addr)) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -164,10 +165,20 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
             case PRIMITIVE_CURVE_RIBBON:
             case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
+                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    continue;
+                  }
+                }
+
+                const int curve_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
+                const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const bool hit = curve_intersect(
-                    kg, isect, P, dir, visibility, object, prim_addr, ray->time, curve_type);
+                    kg, isect, P, dir, isect->t, curve_object, curve_prim, ray->time, curve_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
@@ -184,10 +195,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
           object = kernel_tex_fetch(__prim_object, -prim_addr - 1);
 
 #if BVH_FEATURE(BVH_MOTION)
-          isect->t = bvh_instance_motion_push(
-              kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
+          isect->t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
 #else
-          isect->t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect->t);
+          isect->t *= bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
           ++stack_ptr;
@@ -218,9 +228,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
   return (isect->prim != PRIM_NONE);
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
-                                         const Ray *ray,
-                                         Intersection *isect,
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
+                                         ccl_private const Ray *ray,
+                                         ccl_private Intersection *isect,
                                          const uint visibility)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect, visibility);

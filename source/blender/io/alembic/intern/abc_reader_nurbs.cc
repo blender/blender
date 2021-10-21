@@ -71,6 +71,26 @@ bool AbcNurbsReader::valid() const
   return true;
 }
 
+bool AbcNurbsReader::accepts_object_type(
+    const Alembic::AbcCoreAbstract::v12::ObjectHeader &alembic_header,
+    const Object *const ob,
+    const char **err_str) const
+{
+  if (!Alembic::AbcGeom::INuPatch::matches(alembic_header)) {
+    *err_str =
+        "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any "
+        "more.";
+    return false;
+  }
+
+  if (ob->type != OB_CURVE) {
+    *err_str = "Object type mismatch, Alembic object path points to NURBS.";
+    return false;
+  }
+
+  return true;
+}
+
 static bool set_knots(const FloatArraySamplePtr &knots, float *&nu_knots)
 {
   if (!knots || knots->size() < 2) {

@@ -30,6 +30,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -1045,7 +1046,7 @@ int SCULPT_nearest_vertex_get(
 
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 {
-  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)));
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (!ELEM(i, 3, 5))));
 }
 
 /* Checks if a vertex is inside the brush radius from any of its mirrored axis. */
@@ -7694,8 +7695,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 
   /* Restore the mesh before continuing with anchored stroke. */
   if ((brush->flag & BRUSH_ANCHORED) ||
-      ((brush->sculpt_tool == SCULPT_TOOL_GRAB ||
-        brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
+      ((ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM)) &&
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
@@ -8057,7 +8057,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   /* For tablet rotation. */
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
-  if (ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
+  if (ignore_background_click && !over_mesh(C, op, event->xy[0], event->xy[1])) {
     paint_stroke_free(C, op);
     return OPERATOR_PASS_THROUGH;
   }
@@ -8684,10 +8684,12 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
       MLoop *c_loop = &loops[c_poly->loopstart + j];
-      loopcols[loop_index].r = (char)(vertcols[c_loop->v].color[0] * 255);
-      loopcols[loop_index].g = (char)(vertcols[c_loop->v].color[1] * 255);
-      loopcols[loop_index].b = (char)(vertcols[c_loop->v].color[2] * 255);
-      loopcols[loop_index].a = (char)(vertcols[c_loop->v].color[3] * 255);
+      float srgb_color[4];
+      linearrgb_to_srgb_v4(srgb_color, vertcols[c_loop->v].color);
+      loopcols[loop_index].r = (char)(srgb_color[0] * 255);
+      loopcols[loop_index].g = (char)(srgb_color[1] * 255);
+      loopcols[loop_index].b = (char)(srgb_color[2] * 255);
+      loopcols[loop_index].a = (char)(srgb_color[3] * 255);
     }
   }
 
@@ -8751,6 +8753,7 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
       vertcols[c_loop->v].color[1] = (loopcols[loop_index].g / 255.0f);
       vertcols[c_loop->v].color[2] = (loopcols[loop_index].b / 255.0f);
       vertcols[c_loop->v].color[3] = (loopcols[loop_index].a / 255.0f);
+      srgb_to_linearrgb_v4(vertcols[c_loop->v].color, vertcols[c_loop->v].color);
     }
   }
 

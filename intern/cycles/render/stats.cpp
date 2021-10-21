@@ -264,53 +264,34 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
   has_profiling = true;
 
   kernel = NamedNestedSampleStats("Total render time", prof.get_event(PROFILING_UNKNOWN));
-
   kernel.add_entry("Ray setup", prof.get_event(PROFILING_RAY_SETUP));
-  kernel.add_entry("Result writing", prof.get_event(PROFILING_WRITE_RESULT));
+  kernel.add_entry("Intersect Closest", prof.get_event(PROFILING_INTERSECT_CLOSEST));
+  kernel.add_entry("Intersect Shadow", prof.get_event(PROFILING_INTERSECT_SHADOW));
+  kernel.add_entry("Intersect Subsurface", prof.get_event(PROFILING_INTERSECT_SUBSURFACE));
+  kernel.add_entry("Intersect Volume Stack", prof.get_event(PROFILING_INTERSECT_VOLUME_STACK));
 
-  NamedNestedSampleStats &integrator = kernel.add_entry("Path integration",
-                                                        prof.get_event(PROFILING_PATH_INTEGRATE));
-  integrator.add_entry("Scene intersection", prof.get_event(PROFILING_SCENE_INTERSECT));
-  integrator.add_entry("Indirect emission", prof.get_event(PROFILING_INDIRECT_EMISSION));
-  integrator.add_entry("Volumes", prof.get_event(PROFILING_VOLUME));
+  NamedNestedSampleStats &surface = kernel.add_entry("Shade Surface", 0);
+  surface.add_entry("Setup", prof.get_event(PROFILING_SHADE_SURFACE_SETUP));
+  surface.add_entry("Shader Evaluation", prof.get_event(PROFILING_SHADE_SURFACE_EVAL));
+  surface.add_entry("Render Passes", prof.get_event(PROFILING_SHADE_SURFACE_PASSES));
+  surface.add_entry("Direct Light", prof.get_event(PROFILING_SHADE_SURFACE_DIRECT_LIGHT));
+  surface.add_entry("Indirect Light", prof.get_event(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT));
+  surface.add_entry("Ambient Occlusion", prof.get_event(PROFILING_SHADE_SURFACE_AO));
 
-  NamedNestedSampleStats &shading = integrator.add_entry("Shading", 0);
-  shading.add_entry("Shader Setup", prof.get_event(PROFILING_SHADER_SETUP));
-  shading.add_entry("Shader Eval", prof.get_event(PROFILING_SHADER_EVAL));
-  shading.add_entry("Shader Apply", prof.get_event(PROFILING_SHADER_APPLY));
-  shading.add_entry("Ambient Occlusion", prof.get_event(PROFILING_AO));
-  shading.add_entry("Subsurface", prof.get_event(PROFILING_SUBSURFACE));
+  NamedNestedSampleStats &volume = kernel.add_entry("Shade Volume", 0);
+  volume.add_entry("Setup", prof.get_event(PROFILING_SHADE_VOLUME_SETUP));
+  volume.add_entry("Integrate", prof.get_event(PROFILING_SHADE_VOLUME_INTEGRATE));
+  volume.add_entry("Direct Light", prof.get_event(PROFILING_SHADE_VOLUME_DIRECT_LIGHT));
+  volume.add_entry("Indirect Light", prof.get_event(PROFILING_SHADE_VOLUME_INDIRECT_LIGHT));
 
-  integrator.add_entry("Connect Light", prof.get_event(PROFILING_CONNECT_LIGHT));
-  integrator.add_entry("Surface Bounce", prof.get_event(PROFILING_SURFACE_BOUNCE));
+  NamedNestedSampleStats &shadow = kernel.add_entry("Shade Shadow", 0);
+  shadow.add_entry("Setup", prof.get_event(PROFILING_SHADE_SHADOW_SETUP));
+  shadow.add_entry("Surface", prof.get_event(PROFILING_SHADE_SHADOW_SURFACE));
+  shadow.add_entry("Volume", prof.get_event(PROFILING_SHADE_SHADOW_VOLUME));
 
-  NamedNestedSampleStats &intersection = kernel.add_entry("Intersection", 0);
-  intersection.add_entry("Full Intersection", prof.get_event(PROFILING_INTERSECT));
-  intersection.add_entry("Local Intersection", prof.get_event(PROFILING_INTERSECT_LOCAL));
-  intersection.add_entry("Shadow All Intersection",
-                         prof.get_event(PROFILING_INTERSECT_SHADOW_ALL));
-  intersection.add_entry("Volume Intersection", prof.get_event(PROFILING_INTERSECT_VOLUME));
-  intersection.add_entry("Volume All Intersection",
-                         prof.get_event(PROFILING_INTERSECT_VOLUME_ALL));
-
-  NamedNestedSampleStats &closure = kernel.add_entry("Closures", 0);
-  closure.add_entry("Surface Closure Evaluation", prof.get_event(PROFILING_CLOSURE_EVAL));
-  closure.add_entry("Surface Closure Sampling", prof.get_event(PROFILING_CLOSURE_SAMPLE));
-  closure.add_entry("Volume Closure Evaluation", prof.get_event(PROFILING_CLOSURE_VOLUME_EVAL));
-  closure.add_entry("Volume Closure Sampling", prof.get_event(PROFILING_CLOSURE_VOLUME_SAMPLE));
-
-  NamedNestedSampleStats &denoising = kernel.add_entry("Denoising",
-                                                       prof.get_event(PROFILING_DENOISING));
-  denoising.add_entry("Construct Transform",
-                      prof.get_event(PROFILING_DENOISING_CONSTRUCT_TRANSFORM));
-  denoising.add_entry("Reconstruct", prof.get_event(PROFILING_DENOISING_RECONSTRUCT));
-
-  NamedNestedSampleStats &prefilter = denoising.add_entry("Prefiltering", 0);
-  prefilter.add_entry("Divide Shadow", prof.get_event(PROFILING_DENOISING_DIVIDE_SHADOW));
-  prefilter.add_entry("Non-Local means", prof.get_event(PROFILING_DENOISING_NON_LOCAL_MEANS));
-  prefilter.add_entry("Get Feature", prof.get_event(PROFILING_DENOISING_GET_FEATURE));
-  prefilter.add_entry("Detect Outliers", prof.get_event(PROFILING_DENOISING_DETECT_OUTLIERS));
-  prefilter.add_entry("Combine Halves", prof.get_event(PROFILING_DENOISING_COMBINE_HALVES));
+  NamedNestedSampleStats &light = kernel.add_entry("Shade Light", 0);
+  light.add_entry("Setup", prof.get_event(PROFILING_SHADE_LIGHT_SETUP));
+  light.add_entry("Shader Evaluation", prof.get_event(PROFILING_SHADE_LIGHT_EVAL));
 
   shaders.entries.clear();
   foreach (Shader *shader, scene->shaders) {

@@ -312,11 +312,8 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     const float decent = BLF_descender(fs->uifont_id);
     const float margin = height / 4.0f;
 
-    /* backdrop */
-    const float color[4] = {col_bg[0], col_bg[1], col_bg[2], 0.5f};
-
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(
+    UI_draw_roundbox_4fv(
         &(const rctf){
             .xmin = x - margin,
             .xmax = x + width + margin,
@@ -325,7 +322,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
         },
         true,
         margin,
-        color);
+        col_bg);
   }
 
   BLF_position(fs->uifont_id, x, y, 0.0f);

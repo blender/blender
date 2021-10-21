@@ -20,25 +20,25 @@
 
 namespace blender::compositor {
 
-SwitchNode::SwitchNode(bNode *editorNode) : Node(editorNode)
+SwitchNode::SwitchNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void SwitchNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext & /*context*/) const
+void SwitchNode::convert_to_operations(NodeConverter &converter,
+                                       const CompositorContext & /*context*/) const
 {
-  bool condition = this->getbNode()->custom1;
+  bool condition = this->get_bnode()->custom1;
 
   NodeOperationOutput *result;
   if (!condition) {
-    result = converter.addInputProxy(getInputSocket(0), false);
+    result = converter.add_input_proxy(get_input_socket(0), false);
   }
   else {
-    result = converter.addInputProxy(getInputSocket(1), false);
+    result = converter.add_input_proxy(get_input_socket(1), false);
   }
 
-  converter.mapOutputSocket(getOutputSocket(0), result);
+  converter.map_output_socket(get_output_socket(0), result);
 }
 
 }  // namespace blender::compositor

@@ -20,8 +20,8 @@
 /** \file
  * \ingroup gpu
  *
- * Interface for accessing gpu-related methods for selection. The semantics are
- * similar to glRenderMode(GL_SELECT) from older OpenGL versions.
+ * Interface for accessing GPU-related methods for selection. The semantics are
+ * similar to `glRenderMode(GL_SELECT)` from older OpenGL versions.
  */
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +37,10 @@
 #include "BLI_utildefines.h"
 
 #include "gpu_select_private.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
 
 /* Internal algorithm used */
 enum {
@@ -60,6 +64,12 @@ typedef struct GPUSelectState {
 } GPUSelectState;
 
 static GPUSelectState g_select_state = {0};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
 
 /**
  * initialize and provide buffer for results
@@ -149,12 +159,14 @@ uint GPU_select_end(void)
   return hits;
 }
 
-/* ----------------------------------------------------------------------------
- * Caching
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Caching
  *
  * Support multiple begin/end's as long as they are within the initial region.
- * Currently only used by ALGO_GL_PICK.
- */
+ * Currently only used by #ALGO_GL_PICK.
+ * \{ */
 
 void GPU_select_cache_begin(void)
 {
@@ -187,9 +199,11 @@ bool GPU_select_is_cached(void)
   return g_select_state.use_cache && gpu_select_pick_is_cached();
 }
 
-/* ----------------------------------------------------------------------------
- * Utilities
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
 
 /**
  * Helper function, nothing special but avoids doing inline since hits aren't sorted by depth
@@ -269,3 +283,5 @@ void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_
   }
   memset(r_buf, 0, (last_px_id + 1) * sizeof(*r_buf));
 }
+
+/** \} */

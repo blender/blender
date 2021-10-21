@@ -18,28 +18,26 @@
 
 #include "COM_BilateralBlurNode.h"
 #include "COM_BilateralBlurOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
-BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
+BilateralBlurNode::BilateralBlurNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void BilateralBlurNode::convertToOperations(NodeConverter &converter,
-                                            const CompositorContext &context) const
+void BilateralBlurNode::convert_to_operations(NodeConverter &converter,
+                                              const CompositorContext &context) const
 {
-  NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
+  NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->get_bnode()->storage;
   BilateralBlurOperation *operation = new BilateralBlurOperation();
-  operation->setQuality(context.getQuality());
-  operation->setData(data);
+  operation->set_quality(context.get_quality());
+  operation->set_data(data);
 
-  converter.addOperation(operation);
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.add_operation(operation);
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

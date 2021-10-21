@@ -152,7 +152,7 @@ typedef struct FontBufInfoBLF {
   struct ColorManagedDisplay *display;
 
   /* and the color, the alphas is get from the glyph!
-   * color is srgb space */
+   * color is sRGB space */
   float col_init[4];
   /* cached conversion from 'col_init' */
   unsigned char col_char[4];

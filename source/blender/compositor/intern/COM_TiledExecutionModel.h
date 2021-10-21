@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "COM_Enums.h"
 #include "COM_ExecutionModel.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC

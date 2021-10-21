@@ -63,15 +63,17 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
   INIT_GP_TYPE(Time);
   INIT_GP_TYPE(Multiply);
   INIT_GP_TYPE(Texture);
-  INIT_GP_TYPE(Weight);
+  INIT_GP_TYPE(WeightAngle);
+  INIT_GP_TYPE(WeightProximity);
   INIT_GP_TYPE(Lineart);
+  INIT_GP_TYPE(Dash);
 #undef INIT_GP_TYPE
 }
 
 /* verify if valid layer, material and pass index */
 bool is_stroke_affected_by_modifier(Object *ob,
                                     char *mlayername,
-                                    Material *material,
+                                    const Material *material,
                                     const int mpassindex,
                                     const int gpl_passindex,
                                     const int minpoints,

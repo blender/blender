@@ -28,11 +28,11 @@ namespace blender::compositor {
  */
 class SetAlphaNode : public Node {
  public:
-  SetAlphaNode(bNode *editorNode) : Node(editorNode)
+  SetAlphaNode(bNode *editor_node) : Node(editor_node)
   {
   }
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -5409,7 +5409,7 @@ static int ed_editcurve_addvert(Curve *cu,
             add_v3_v3(bezt->vec[1], ofs);
             add_v3_v3(bezt->vec[2], ofs);
 
-            if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (i == 0 || i == nu->pntsu - 1)) {
+            if (((nu->flagu & CU_NURB_CYCLIC) == 0) && ELEM(i, 0, nu->pntsu - 1)) {
               BKE_nurb_handle_calc_simple_auto(nu, bezt);
             }
           }
@@ -5561,12 +5561,14 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (use_proj) {
       const float mval[2] = {UNPACK2(event->mval)};
 
-      struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-          vc.scene, 0, vc.region, vc.v3d);
+      struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene,
+                                                                                       0);
 
       ED_transform_snap_object_project_view3d(
           snap_context,
           vc.depsgraph,
+          vc.region,
+          vc.v3d,
           SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
               .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
@@ -5620,7 +5622,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 void CURVE_OT_vertex_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Vertex";
+  ot->name = "Extrude to Cursor or Add";
   ot->idname = "CURVE_OT_vertex_add";
   ot->description = "Add a new control point (linked to only selected end-curve one, if any)";
 
@@ -5630,7 +5632,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
   ot->poll = ED_operator_editcurve;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   RNA_def_float_vector_xyz(ot->srna,

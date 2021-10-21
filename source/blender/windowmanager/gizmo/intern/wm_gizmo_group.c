@@ -265,6 +265,7 @@ void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup)
 {
   /* prepare for first draw */
   if (UNLIKELY((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
+
     gzgroup->type->setup(C, gzgroup);
 
     /* Not ideal, initialize keymap here, needed for RNA runtime generated gizmos. */

@@ -117,6 +117,9 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     case GHOST_kUserSpecialDirVideos:
       ns_directory = NSMoviesDirectory;
       break;
+    case GHOST_kUserSpecialDirCaches:
+      ns_directory = NSCachesDirectory;
+      break;
     default:
       GHOST_ASSERT(
           false,

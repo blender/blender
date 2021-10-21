@@ -269,11 +269,9 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     return;
   }
   if (ntype->declare != nullptr) {
-    blender::nodes::NodeDeclaration node_decl;
-    blender::nodes::NodeDeclarationBuilder builder{node_decl};
-    ntype->declare(builder);
-    if (!node_decl.matches(*node)) {
-      refresh_node(*ntree, *node, node_decl, do_id_user);
+    nodeDeclarationEnsure(ntree, node);
+    if (!node->declaration->matches(*node)) {
+      refresh_node(*ntree, *node, *node->declaration, do_id_user);
     }
     return;
   }
@@ -810,6 +808,7 @@ static bNodeSocketType *make_socket_type_string()
 MAKE_CPP_TYPE(Object, Object *, CPPTypeFlags::BasicType)
 MAKE_CPP_TYPE(Collection, Collection *, CPPTypeFlags::BasicType)
 MAKE_CPP_TYPE(Texture, Tex *, CPPTypeFlags::BasicType)
+MAKE_CPP_TYPE(Image, Image *, CPPTypeFlags::BasicType)
 MAKE_CPP_TYPE(Material, Material *, CPPTypeFlags::BasicType)
 
 static bNodeSocketType *make_socket_type_object()
@@ -860,6 +859,18 @@ static bNodeSocketType *make_socket_type_texture()
   return socktype;
 }
 
+static bNodeSocketType *make_socket_type_image()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_IMAGE, PROP_NONE);
+  socktype->get_base_cpp_type = []() { return &blender::fn::CPPType::get<Image *>(); };
+  socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    *(Image **)r_value = ((bNodeSocketValueImage *)socket.default_value)->value;
+  };
+  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
+  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  return socktype;
+}
+
 static bNodeSocketType *make_socket_type_material()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_MATERIAL, PROP_NONE);
@@ -874,7 +885,7 @@ static bNodeSocketType *make_socket_type_material()
 
 void register_standard_node_socket_types(void)
 {
-  /* draw callbacks are set in drawnode.c to avoid bad-level calls */
+  /* Draw callbacks are set in `drawnode.c` to avoid bad-level calls. */
 
   nodeRegisterSocketType(make_socket_type_float(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_float(PROP_UNSIGNED));
@@ -908,13 +919,13 @@ void register_standard_node_socket_types(void)
 
   nodeRegisterSocketType(make_socket_type_object());
 
-  nodeRegisterSocketType(make_standard_socket_type(SOCK_IMAGE, PROP_NONE));
-
   nodeRegisterSocketType(make_socket_type_geometry());
 
   nodeRegisterSocketType(make_socket_type_collection());
 
   nodeRegisterSocketType(make_socket_type_texture());
+
+  nodeRegisterSocketType(make_socket_type_image());
 
   nodeRegisterSocketType(make_socket_type_material());
 

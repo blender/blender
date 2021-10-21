@@ -574,6 +574,8 @@ Dbl2 AreaDiag::area(Dbl2 p1, Dbl2 p2, int left)
 	Dbl2 d = p2 - p1;
 	if (d.x == 0.0)
 		return Dbl2(0.0, 1.0);
+	if (d.y == 0.0)
+		return Dbl2(1.0, 0.0);
 
 	double x1 = (double)(1 + left);
 	double x2 = x1 + 1.0;

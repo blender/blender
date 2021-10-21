@@ -38,7 +38,10 @@ struct SpaceSeq;
 struct StripElem;
 struct bContext;
 struct rctf;
+struct View2D;
 struct wmOperator;
+
+#define OVERLAP_ALPHA 180
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
@@ -51,7 +54,10 @@ void sequencer_draw_preview(const struct bContext *C,
                             int offset,
                             bool draw_overlay,
                             bool draw_backdrop);
-void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
+void color3ubv_from_seq(const struct Scene *curscene,
+                        const struct Sequence *seq,
+                        const bool show_strip_color_tag,
+                        uchar r_col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
 float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
@@ -67,6 +73,17 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  int timeline_frame,
                                  int frame_ofs,
                                  const char *viewname);
+
+/* sequencer_thumbnails.c */
+void last_displayed_thumbnails_list_free(void *val);
+void draw_seq_strip_thumbnail(struct View2D *v2d,
+                              const struct bContext *C,
+                              struct Scene *scene,
+                              struct Sequence *seq,
+                              float y1,
+                              float y2,
+                              float pixelx,
+                              float pixely);
 
 /* sequencer_edit.c */
 struct View2D;
@@ -146,6 +163,9 @@ void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot);
+
+void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot);
+void SEQUENCER_OT_cursor_set(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);

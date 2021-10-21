@@ -59,6 +59,7 @@ typedef struct TransformModeItem {
   void (*opfunc)(wmOperatorType *);
 } TransformModeItem;
 
+static const float VecZero[3] = {0, 0, 0};
 static const float VecOne[3] = {1, 1, 1};
 
 static const char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
@@ -783,6 +784,19 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
   RNA_def_float_vector(
       ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Scale", "", -FLT_MAX, FLT_MAX);
 
+  PropertyRNA *prop;
+  prop = RNA_def_float_vector(ot->srna,
+                              "mouse_dir_constraint",
+                              3,
+                              VecZero,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Mouse Directional Constraint",
+                              "",
+                              -FLT_MAX,
+                              FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
   WM_operatortype_props_advanced_begin(ot);
 
   Transform_Properties(ot,
@@ -911,7 +925,8 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
   ot->name = "Bend";
   ot->description = "Bend selected items between the 3D cursor and the mouse";
   ot->idname = OP_BEND;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  /* Depend on cursor location because the cursor location is used to define the region to bend. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;
@@ -1091,7 +1106,7 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
   ot->name = "Edge Slide";
   ot->description = "Slide an edge loop along a mesh";
   ot->idname = OP_EDGE_SLIDE;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;
@@ -1129,7 +1144,7 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
   ot->name = "Vertex Slide";
   ot->description = "Slide a vertex along a mesh";
   ot->idname = OP_VERT_SLIDE;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;

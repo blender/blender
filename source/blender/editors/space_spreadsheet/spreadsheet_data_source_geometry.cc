@@ -54,8 +54,7 @@ void GeometryDataSource::foreach_default_column_ids(
           return true;
         }
         SpreadsheetColumnID column_id;
-        std::string name = attribute_id.name();
-        column_id.name = (char *)name.c_str();
+        column_id.name = (char *)attribute_id.name().data();
         fn(column_id);
         return true;
       });
@@ -70,7 +69,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   if (!attribute) {
     return {};
   }
-  const fn::GVArray *varray = scope_.add(std::move(attribute.varray), __func__);
+  const fn::GVArray *varray = scope_.add(std::move(attribute.varray));
   if (attribute.domain != domain_) {
     return {};
   }

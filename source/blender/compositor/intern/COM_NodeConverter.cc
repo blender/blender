@@ -18,9 +18,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "COM_Debug.h"
-
-#include "COM_NodeOperation.h"
+#include "COM_Node.h"
 #include "COM_NodeOperationBuilder.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
@@ -31,136 +29,137 @@
 
 namespace blender::compositor {
 
-NodeConverter::NodeConverter(NodeOperationBuilder *builder) : m_builder(builder)
+NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder)
 {
 }
 
-void NodeConverter::addOperation(NodeOperation *operation)
+void NodeConverter::add_operation(NodeOperation *operation)
 {
-  m_builder->addOperation(operation);
+  builder_->add_operation(operation);
 }
 
-void NodeConverter::mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket)
+void NodeConverter::map_input_socket(NodeInput *node_socket, NodeOperationInput *operation_socket)
 {
-  m_builder->mapInputSocket(node_socket, operation_socket);
+  builder_->map_input_socket(node_socket, operation_socket);
 }
 
-void NodeConverter::mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket)
+void NodeConverter::map_output_socket(NodeOutput *node_socket,
+                                      NodeOperationOutput *operation_socket)
 {
-  m_builder->mapOutputSocket(node_socket, operation_socket);
+  builder_->map_output_socket(node_socket, operation_socket);
 }
 
-void NodeConverter::addLink(NodeOperationOutput *from, NodeOperationInput *to)
+void NodeConverter::add_link(NodeOperationOutput *from, NodeOperationInput *to)
 {
-  m_builder->addLink(from, to);
+  builder_->add_link(from, to);
 }
 
-void NodeConverter::addPreview(NodeOperationOutput *output)
+void NodeConverter::add_preview(NodeOperationOutput *output)
 {
-  m_builder->addPreview(output);
+  builder_->add_preview(output);
 }
 
-void NodeConverter::addNodeInputPreview(NodeInput *input)
+void NodeConverter::add_node_input_preview(NodeInput *input)
 {
-  m_builder->addNodeInputPreview(input);
+  builder_->add_node_input_preview(input);
 }
 
-NodeOperation *NodeConverter::setInvalidOutput(NodeOutput *output)
+NodeOperation *NodeConverter::set_invalid_output(NodeOutput *output)
 {
   /* this is a really bad situation - bring on the pink! - so artists know this is bad */
   const float warning_color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
 
   SetColorOperation *operation = new SetColorOperation();
-  operation->setChannels(warning_color);
+  operation->set_channels(warning_color);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->add_operation(operation);
+  builder_->map_output_socket(output, operation->get_output_socket());
 
   return operation;
 }
 
-NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input, bool use_conversion)
+NodeOperationOutput *NodeConverter::add_input_proxy(NodeInput *input, bool use_conversion)
 {
-  SocketProxyOperation *proxy = new SocketProxyOperation(input->getDataType(), use_conversion);
-  m_builder->addOperation(proxy);
+  SocketProxyOperation *proxy = new SocketProxyOperation(input->get_data_type(), use_conversion);
+  builder_->add_operation(proxy);
 
-  m_builder->mapInputSocket(input, proxy->getInputSocket(0));
+  builder_->map_input_socket(input, proxy->get_input_socket(0));
 
-  return proxy->getOutputSocket();
+  return proxy->get_output_socket();
 }
 
-NodeOperationInput *NodeConverter::addOutputProxy(NodeOutput *output, bool use_conversion)
+NodeOperationInput *NodeConverter::add_output_proxy(NodeOutput *output, bool use_conversion)
 {
-  SocketProxyOperation *proxy = new SocketProxyOperation(output->getDataType(), use_conversion);
-  m_builder->addOperation(proxy);
+  SocketProxyOperation *proxy = new SocketProxyOperation(output->get_data_type(), use_conversion);
+  builder_->add_operation(proxy);
 
-  m_builder->mapOutputSocket(output, proxy->getOutputSocket());
+  builder_->map_output_socket(output, proxy->get_output_socket());
 
-  return proxy->getInputSocket(0);
+  return proxy->get_input_socket(0);
 }
 
-void NodeConverter::addInputValue(NodeOperationInput *input, float value)
+void NodeConverter::add_input_value(NodeOperationInput *input, float value)
 {
   SetValueOperation *operation = new SetValueOperation();
-  operation->setValue(value);
+  operation->set_value(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->add_operation(operation);
+  builder_->add_link(operation->get_output_socket(), input);
 }
 
-void NodeConverter::addInputColor(NodeOperationInput *input, const float value[4])
+void NodeConverter::add_input_color(NodeOperationInput *input, const float value[4])
 {
   SetColorOperation *operation = new SetColorOperation();
-  operation->setChannels(value);
+  operation->set_channels(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->add_operation(operation);
+  builder_->add_link(operation->get_output_socket(), input);
 }
 
-void NodeConverter::addInputVector(NodeOperationInput *input, const float value[3])
+void NodeConverter::add_input_vector(NodeOperationInput *input, const float value[3])
 {
   SetVectorOperation *operation = new SetVectorOperation();
-  operation->setVector(value);
+  operation->set_vector(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->add_operation(operation);
+  builder_->add_link(operation->get_output_socket(), input);
 }
 
-void NodeConverter::addOutputValue(NodeOutput *output, float value)
+void NodeConverter::add_output_value(NodeOutput *output, float value)
 {
   SetValueOperation *operation = new SetValueOperation();
-  operation->setValue(value);
+  operation->set_value(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->add_operation(operation);
+  builder_->map_output_socket(output, operation->get_output_socket());
 }
 
-void NodeConverter::addOutputColor(NodeOutput *output, const float value[4])
+void NodeConverter::add_output_color(NodeOutput *output, const float value[4])
 {
   SetColorOperation *operation = new SetColorOperation();
-  operation->setChannels(value);
+  operation->set_channels(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->add_operation(operation);
+  builder_->map_output_socket(output, operation->get_output_socket());
 }
 
-void NodeConverter::addOutputVector(NodeOutput *output, const float value[3])
+void NodeConverter::add_output_vector(NodeOutput *output, const float value[3])
 {
   SetVectorOperation *operation = new SetVectorOperation();
-  operation->setVector(value);
+  operation->set_vector(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->add_operation(operation);
+  builder_->map_output_socket(output, operation->get_output_socket());
 }
 
-void NodeConverter::registerViewer(ViewerOperation *viewer)
+void NodeConverter::register_viewer(ViewerOperation *viewer)
 {
-  m_builder->registerViewer(viewer);
+  builder_->register_viewer(viewer);
 }
 
 ViewerOperation *NodeConverter::active_viewer() const
 {
-  return m_builder->active_viewer();
+  return builder_->active_viewer();
 }
 
 }  // namespace blender::compositor

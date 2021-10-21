@@ -60,6 +60,7 @@ class BlenderSync {
               BL::Scene &b_scene,
               Scene *scene,
               bool preview,
+              bool use_developer_ui,
               Progress &progress);
   ~BlenderSync();
 
@@ -75,12 +76,8 @@ class BlenderSync {
                  int height,
                  void **python_thread_state);
   void sync_view_layer(BL::ViewLayer &b_view_layer);
-  vector<Pass> sync_render_passes(BL::Scene &b_scene,
-                                  BL::RenderLayer &b_render_layer,
-                                  BL::ViewLayer &b_view_layer,
-                                  bool adaptive_sampling,
-                                  const DenoiseParams &denoising);
-  void sync_integrator();
+  void sync_render_passes(BL::RenderLayer &b_render_layer, BL::ViewLayer &b_view_layer);
+  void sync_integrator(BL::ViewLayer &b_view_layer, bool background);
   void sync_camera(BL::RenderSettings &b_render,
                    BL::Object &b_override,
                    int width,
@@ -98,22 +95,13 @@ class BlenderSync {
 
   /* get parameters */
   static SceneParams get_scene_params(BL::Scene &b_scene, bool background);
-  static SessionParams get_session_params(
-      BL::RenderEngine &b_engine,
-      BL::Preferences &b_userpref,
-      BL::Scene &b_scene,
-      bool background,
-      BL::ViewLayer b_view_layer = BL::ViewLayer(PointerRNA_NULL));
+  static SessionParams get_session_params(BL::RenderEngine &b_engine,
+                                          BL::Preferences &b_userpref,
+                                          BL::Scene &b_scene,
+                                          bool background);
   static bool get_session_pause(BL::Scene &b_scene, bool background);
-  static BufferParams get_buffer_params(BL::SpaceView3D &b_v3d,
-                                        BL::RegionView3D &b_rv3d,
-                                        Camera *cam,
-                                        int width,
-                                        int height,
-                                        const bool use_denoiser);
-
-  static PassType get_pass_type(BL::RenderPass &b_pass);
-  static int get_denoising_pass(BL::RenderPass &b_pass);
+  static BufferParams get_buffer_params(
+      BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, Camera *cam, int width, int height);
 
  private:
   static DenoiseParams get_denoise_params(BL::Scene &b_scene,
@@ -131,7 +119,7 @@ class BlenderSync {
                    int width,
                    int height,
                    void **python_thread_state);
-  void sync_film(BL::SpaceView3D &b_v3d);
+  void sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d);
   void sync_view();
 
   /* Shader */
@@ -245,6 +233,7 @@ class BlenderSync {
   Scene *scene;
   bool preview;
   bool experimental;
+  bool use_developer_ui;
 
   float dicing_rate;
   int max_subdivisions;
@@ -253,7 +242,6 @@ class BlenderSync {
     RenderLayerInfo()
         : material_override(PointerRNA_NULL),
           use_background_shader(true),
-          use_background_ao(true),
           use_surfaces(true),
           use_hair(true),
           use_volumes(true),
@@ -266,7 +254,6 @@ class BlenderSync {
     string name;
     BL::Material material_override;
     bool use_background_shader;
-    bool use_background_ao;
     bool use_surfaces;
     bool use_hair;
     bool use_volumes;

@@ -469,6 +469,7 @@ char *BLI_string_join_arrayN(const char *strings[], uint strings_len)
   for (uint i = 0; i < strings_len; i++) {
     c += BLI_strcpy_rlen(c, strings[i]);
   }
+  *c = '\0';
   return result;
 }
 

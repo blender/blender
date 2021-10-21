@@ -103,8 +103,8 @@ void WM_event_print(const wmEvent *event)
         event->oskey,
         event->keymodifier,
         event->is_repeat,
-        event->x,
-        event->y,
+        event->xy[0],
+        event->xy[1],
         event->ascii,
         BLI_str_utf8_size(event->utf8_buf),
         event->utf8_buf,
@@ -270,6 +270,12 @@ bool WM_event_is_mouse_drag(const wmEvent *event)
   return ISTWEAK(event->type) || (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));
 }
 
+bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
+{
+  return WM_event_is_mouse_drag(event) ||
+         (ISMOUSE_BUTTON(event->type) && (event->val == KM_PRESS));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -310,8 +316,8 @@ bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2]
 bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
 {
   const int drag_delta[2] = {
-      prev_xy[0] - event->x,
-      prev_xy[1] - event->y,
+      prev_xy[0] - event->xy[0],
+      prev_xy[1] - event->xy[1],
   };
   return WM_event_drag_test_with_delta(event, drag_delta);
 }
@@ -405,6 +411,19 @@ void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Event XR Input Access
+ * \{ */
+
+#ifdef WITH_XR_OPENXR
+bool WM_event_is_xr(const struct wmEvent *event)
+{
+  return (event->type == EVT_XR_ACTION && event->custom == EVT_DATA_XR);
+}
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Event Tablet Input Access
  * \{ */
 
@@ -457,7 +476,7 @@ bool WM_event_is_tablet(const struct wmEvent *event)
 
 int WM_event_absolute_delta_x(const struct wmEvent *event)
 {
-  int dx = event->x - event->prevx;
+  int dx = event->xy[0] - event->prev_xy[0];
 
   if (!event->is_direction_inverted) {
     dx = -dx;
@@ -468,7 +487,7 @@ int WM_event_absolute_delta_x(const struct wmEvent *event)
 
 int WM_event_absolute_delta_y(const struct wmEvent *event)
 {
-  int dy = event->y - event->prevy;
+  int dy = event->xy[1] - event->prev_xy[1];
 
   if (!event->is_direction_inverted) {
     dy = -dy;

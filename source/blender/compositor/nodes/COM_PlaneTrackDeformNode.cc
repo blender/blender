@@ -17,60 +17,55 @@
  */
 
 #include "COM_PlaneTrackDeformNode.h"
-#include "COM_ExecutionSystem.h"
 
 #include "COM_PlaneTrackOperation.h"
 
-#include "BKE_movieclip.h"
-#include "BKE_node.h"
-#include "BKE_tracking.h"
-
 namespace blender::compositor {
 
-PlaneTrackDeformNode::PlaneTrackDeformNode(bNode *editorNode) : Node(editorNode)
+PlaneTrackDeformNode::PlaneTrackDeformNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void PlaneTrackDeformNode::convertToOperations(NodeConverter &converter,
-                                               const CompositorContext &context) const
+void PlaneTrackDeformNode::convert_to_operations(NodeConverter &converter,
+                                                 const CompositorContext &context) const
 {
-  bNode *editorNode = this->getbNode();
-  MovieClip *clip = (MovieClip *)editorNode->id;
-  NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)editorNode->storage;
+  bNode *editor_node = this->get_bnode();
+  MovieClip *clip = (MovieClip *)editor_node->id;
+  NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)editor_node->storage;
 
-  int frame_number = context.getFramenumber();
+  int frame_number = context.get_framenumber();
 
-  NodeInput *input_image = this->getInputSocket(0);
-  NodeOutput *output_warped_image = this->getOutputSocket(0);
-  NodeOutput *output_plane = this->getOutputSocket(1);
+  NodeInput *input_image = this->get_input_socket(0);
+  NodeOutput *output_warped_image = this->get_output_socket(0);
+  NodeOutput *output_plane = this->get_output_socket(1);
 
   PlaneTrackWarpImageOperation *warp_image_operation = new PlaneTrackWarpImageOperation();
-  warp_image_operation->setMovieClip(clip);
-  warp_image_operation->setTrackingObject(data->tracking_object);
-  warp_image_operation->setPlaneTrackName(data->plane_track_name);
-  warp_image_operation->setFramenumber(frame_number);
+  warp_image_operation->set_movie_clip(clip);
+  warp_image_operation->set_tracking_object(data->tracking_object);
+  warp_image_operation->set_plane_track_name(data->plane_track_name);
+  warp_image_operation->set_framenumber(frame_number);
   if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
-    warp_image_operation->setMotionBlurSamples(data->motion_blur_samples);
-    warp_image_operation->setMotionBlurShutter(data->motion_blur_shutter);
+    warp_image_operation->set_motion_blur_samples(data->motion_blur_samples);
+    warp_image_operation->set_motion_blur_shutter(data->motion_blur_shutter);
   }
-  converter.addOperation(warp_image_operation);
+  converter.add_operation(warp_image_operation);
 
-  converter.mapInputSocket(input_image, warp_image_operation->getInputSocket(0));
-  converter.mapOutputSocket(output_warped_image, warp_image_operation->getOutputSocket());
+  converter.map_input_socket(input_image, warp_image_operation->get_input_socket(0));
+  converter.map_output_socket(output_warped_image, warp_image_operation->get_output_socket());
 
   PlaneTrackMaskOperation *plane_mask_operation = new PlaneTrackMaskOperation();
-  plane_mask_operation->setMovieClip(clip);
-  plane_mask_operation->setTrackingObject(data->tracking_object);
-  plane_mask_operation->setPlaneTrackName(data->plane_track_name);
-  plane_mask_operation->setFramenumber(frame_number);
+  plane_mask_operation->set_movie_clip(clip);
+  plane_mask_operation->set_tracking_object(data->tracking_object);
+  plane_mask_operation->set_plane_track_name(data->plane_track_name);
+  plane_mask_operation->set_framenumber(frame_number);
   if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
-    plane_mask_operation->setMotionBlurSamples(data->motion_blur_samples);
-    plane_mask_operation->setMotionBlurShutter(data->motion_blur_shutter);
+    plane_mask_operation->set_motion_blur_samples(data->motion_blur_samples);
+    plane_mask_operation->set_motion_blur_shutter(data->motion_blur_shutter);
   }
-  converter.addOperation(plane_mask_operation);
+  converter.add_operation(plane_mask_operation);
 
-  converter.mapOutputSocket(output_plane, plane_mask_operation->getOutputSocket());
+  converter.map_output_socket(output_plane, plane_mask_operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

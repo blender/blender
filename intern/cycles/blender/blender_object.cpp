@@ -104,23 +104,22 @@ void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob
   array<Transform> motion;
   object->set_motion(motion);
 
-  Scene::MotionType need_motion = scene->need_motion();
-  if (need_motion == Scene::MOTION_NONE || !object->get_geometry()) {
+  Geometry *geom = object->get_geometry();
+  if (!geom) {
     return;
   }
-
-  Geometry *geom = object->get_geometry();
 
   int motion_steps = 0;
   bool use_motion_blur = false;
 
+  Scene::MotionType need_motion = scene->need_motion();
   if (need_motion == Scene::MOTION_BLUR) {
     motion_steps = object_motion_steps(b_parent, b_ob, Object::MAX_MOTION_STEPS);
     if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
       use_motion_blur = true;
     }
   }
-  else {
+  else if (need_motion != Scene::MOTION_NONE) {
     motion_steps = 3;
   }
 
@@ -568,7 +567,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   /* object loop */
   bool cancel = false;
   bool use_portal = false;
-  const bool show_lights = BlenderViewportParameters(b_v3d).use_scene_lights;
+  const bool show_lights = BlenderViewportParameters(b_v3d, use_developer_ui).use_scene_lights;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
   BL::Depsgraph::object_instances_iterator b_instance_iter;

@@ -38,13 +38,13 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
                                              DataType datatype,
                                              ImageFormatData *format,
                                              const char *path,
-                                             const ColorManagedViewSettings *viewSettings,
-                                             const ColorManagedDisplaySettings *displaySettings,
-                                             const char *viewName,
-                                             const bool saveAsRender);
+                                             const ColorManagedViewSettings *view_settings,
+                                             const ColorManagedDisplaySettings *display_settings,
+                                             const char *view_name,
+                                             const bool save_as_render);
 
   void *get_handle(const char *filename);
-  void deinitExecution() override;
+  void deinit_execution() override;
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
@@ -57,16 +57,16 @@ class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayer
                                             const char *path,
                                             char exr_codec,
                                             bool exr_half_float,
-                                            const char *viewName);
+                                            const char *view_name);
 
   void *get_handle(const char *filename);
-  void deinitExecution() override;
+  void deinit_execution() override;
 };
 
 class OutputStereoOperation : public OutputSingleLayerOperation {
  private:
-  char m_name[FILE_MAX];
-  size_t m_channels;
+  char name_[FILE_MAX];
+  size_t channels_;
 
  public:
   OutputStereoOperation(const RenderData *rd,
@@ -75,12 +75,12 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
                         struct ImageFormatData *format,
                         const char *path,
                         const char *name,
-                        const ColorManagedViewSettings *viewSettings,
-                        const ColorManagedDisplaySettings *displaySettings,
-                        const char *viewName,
-                        const bool saveAsRender);
+                        const ColorManagedViewSettings *view_settings,
+                        const ColorManagedDisplaySettings *display_settings,
+                        const char *view_name,
+                        const bool save_as_render);
   void *get_handle(const char *filename);
-  void deinitExecution() override;
+  void deinit_execution() override;
 };
 
 }  // namespace blender::compositor

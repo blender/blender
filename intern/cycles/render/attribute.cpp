@@ -342,6 +342,8 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "particle";
     case ATTR_STD_CURVE_INTERCEPT:
       return "curve_intercept";
+    case ATTR_STD_CURVE_LENGTH:
+      return "curve_length";
     case ATTR_STD_CURVE_RANDOM:
       return "curve_random";
     case ATTR_STD_PTEX_FACE_ID:
@@ -364,6 +366,8 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "pointiness";
     case ATTR_STD_RANDOM_PER_ISLAND:
       return "random_per_island";
+    case ATTR_STD_SHADOW_TRANSPARENCY:
+      return "shadow_transparency";
     case ATTR_STD_NOT_FOUND:
     case ATTR_STD_NONE:
     case ATTR_STD_NUM:
@@ -586,6 +590,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_CURVE_INTERCEPT:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
         break;
+      case ATTR_STD_CURVE_LENGTH:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE);
+        break;
       case ATTR_STD_CURVE_RANDOM:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE);
         break;
@@ -597,6 +604,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
       case ATTR_STD_RANDOM_PER_ISLAND:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        break;
+      case ATTR_STD_SHADOW_TRANSPARENCY:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
         break;
       default:
         assert(0);

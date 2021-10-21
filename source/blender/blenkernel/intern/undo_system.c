@@ -346,7 +346,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
   CLOG_INFO(&LOG, 1, "'%s'", name);
   bContext *C_temp = CTX_create();
   CTX_data_main_set(C_temp, bmain);
-  UndoPushReturn ret = BKE_undosys_step_push_with_type(
+  eUndoPushReturn ret = BKE_undosys_step_push_with_type(
       ustack, C_temp, name, BKE_UNDOSYS_TYPE_MEMFILE);
   CTX_free(C_temp);
   return (ret & UNDO_PUSH_RET_SUCCESS);
@@ -500,17 +500,17 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
 /**
  * \param C: Can be NULL from some callers if their encoding function doesn't need it
  */
-UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                               bContext *C,
-                                               const char *name,
-                                               const UndoType *ut)
+eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
+                                                bContext *C,
+                                                const char *name,
+                                                const UndoType *ut)
 {
   BLI_assert((ut->flags & UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE) == 0 || C != NULL);
 
   UNDO_NESTED_ASSERT(false);
   undosys_stack_validate(ustack, false);
   bool is_not_empty = ustack->step_active != NULL;
-  UndoPushReturn retval = UNDO_PUSH_RET_FAILURE;
+  eUndoPushReturn retval = UNDO_PUSH_RET_FAILURE;
 
   /* Might not be final place for this to be called - probably only want to call it from some
    * undo handlers, not all of them? */
@@ -602,7 +602,7 @@ UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
   return (retval | UNDO_PUSH_RET_SUCCESS);
 }
 
-UndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
+eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
 {
   UNDO_NESTED_ASSERT(false);
   const UndoType *ut = ustack->step_init ? ustack->step_init->type :
@@ -744,16 +744,15 @@ static UndoStep *undosys_step_iter_first(UndoStep *us_reference, const eUndoStep
 /**
  * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
  *
- * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
- *       active step.
+ * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target`
+ * will become the active step.
  *
- * \note In case `use_skip` is true, the final target will always be **beyond** the given one (if
- *       the given one has to be skipped).
+ * \note In case `use_skip` is true, the final target will always be **beyond** the given one
+ * (if the given one has to be skipped).
  *
- * \param us_reference If NULL, will be set to current active step in the undo stack. Otherwise, it
- *                     is assumed to match the current state, and will be used as basis for the
- *                     undo/redo process (i.e. all steps in-between `us_reference` and `us_target`
- *                     will be processed).
+ * \param us_reference: If NULL, will be set to current active step in the undo stack. Otherwise,
+ * it is assumed to match the current state, and will be used as basis for the undo/redo process
+ * (i.e. all steps in-between `us_reference` and `us_target` will be processed).
  */
 bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
                                    bContext *C,

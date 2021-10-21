@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class ExposureNode : public Node {
  public:
-  ExposureNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  ExposureNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

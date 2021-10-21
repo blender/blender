@@ -30,8 +30,8 @@
 
 #include <errno.h>
 
-#include "zlib.h"
-#include "zstd.h"
+#include <zlib.h>
+#include <zstd.h>
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
@@ -89,7 +89,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
     total_written += output.pos;
   }
 
-  /* Finalize the Zstd frame. */
+  /* Finalize the `Zstd` frame. */
   size_t ret = 1;
   while (ret != 0) {
     ZSTD_outBuffer output = {out_buf, out_len, 0};
@@ -570,6 +570,7 @@ bool BLI_dir_create_recursive(const char *dirname)
    * blah1/blah2 (without slash) */
 
   BLI_strncpy(tmp, dirname, sizeof(tmp));
+  BLI_path_slash_native(tmp);
   BLI_path_slash_rstrip(tmp);
 
   /* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
@@ -760,7 +761,7 @@ static int recursive_operation(const char *startfrom,
 #  endif
 
       if (is_dir) {
-        /* recursively dig into a subfolder */
+        /* Recurse into sub-directories. */
         ret = recursive_operation(
             from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
       }

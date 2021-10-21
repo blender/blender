@@ -108,7 +108,7 @@ def register_node_categories(identifier, cat_list):
     # works as draw function for menus
     def draw_node_item(self, context):
         layout = self.layout
-        col = layout.column()
+        col = layout.column(align=True)
         for item in self.category.items(context):
             item.draw(item, col, context)
 

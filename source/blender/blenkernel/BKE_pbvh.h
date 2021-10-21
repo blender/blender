@@ -128,8 +128,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
- * - for each hit calling a callback
- * - gather nodes in an array (easy to multithread) */
+ * - For each hit calling a callback.
+ * - Gather nodes in an array (easy to multi-thread). */
 
 void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_SearchCallback scb,
@@ -140,7 +140,7 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
 
-/* Raycast
+/* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */

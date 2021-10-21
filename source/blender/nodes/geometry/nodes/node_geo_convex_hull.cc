@@ -227,9 +227,13 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   return hull_from_bullet(geometry_set.get_mesh_for_read(), positions);
 }
 
+/* Since only positions are read from the instances, this can be used as an internal optimization
+ * to avoid the cost of realizing instances before the node. But disable this for now, since
+ * re-enabling that optimization will be a separate step. */
+#  if 0
 static void read_positions(const GeometryComponent &component,
-                           Span<float4x4> transforms,
-                           Vector<float3> *r_coords)
+                                           Span<float4x4> transforms,
+                                           Vector<float3> *r_coords)
 {
   GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
@@ -265,6 +269,31 @@ static void read_curve_positions(const CurveEval &curve,
   }
 }
 
+static Mesh *convex_hull_from_instances(const GeometrySet &geometry_set)
+{
+  Vector<GeometryInstanceGroup> set_groups;
+  bke::geometry_set_gather_instances(geometry_set, set_groups);
+
+  Vector<float3> coords;
+
+  for (const GeometryInstanceGroup &set_group : set_groups) {
+    const GeometrySet &set = set_group.geometry_set;
+    Span<float4x4> transforms = set_group.transforms;
+
+    if (set.has_pointcloud()) {
+      read_positions(*set.get_component_for_read<PointCloudComponent>(), transforms, &coords);
+    }
+    if (set.has_mesh()) {
+      read_positions(*set.get_component_for_read<MeshComponent>(), transforms, &coords);
+    }
+    if (set.has_curve()) {
+      read_curve_positions(*set.get_curve_for_read(), transforms, &coords);
+    }
+  }
+  return hull_from_bullet(nullptr, coords);
+}
+#  endif
+
 #endif /* WITH_BULLET */
 
 static void geo_node_convex_hull_exec(GeoNodeExecParams params)
@@ -272,33 +301,14 @@ static void geo_node_convex_hull_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
 #ifdef WITH_BULLET
-  Mesh *mesh = nullptr;
-  if (geometry_set.has_instances()) {
-    Vector<GeometryInstanceGroup> set_groups;
-    bke::geometry_set_gather_instances(geometry_set, set_groups);
 
-    Vector<float3> coords;
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    Mesh *mesh = compute_hull(geometry_set);
+    geometry_set.replace_mesh(mesh);
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+  });
 
-    for (const GeometryInstanceGroup &set_group : set_groups) {
-      const GeometrySet &set = set_group.geometry_set;
-      Span<float4x4> transforms = set_group.transforms;
-
-      if (set.has_pointcloud()) {
-        read_positions(*set.get_component_for_read<PointCloudComponent>(), transforms, &coords);
-      }
-      if (set.has_mesh()) {
-        read_positions(*set.get_component_for_read<MeshComponent>(), transforms, &coords);
-      }
-      if (set.has_curve()) {
-        read_curve_positions(*set.get_curve_for_read(), transforms, &coords);
-      }
-    }
-    mesh = hull_from_bullet(nullptr, coords);
-  }
-  else {
-    mesh = compute_hull(geometry_set);
-  }
-  params.set_output("Convex Hull", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Convex Hull", std::move(geometry_set));
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without Bullet"));

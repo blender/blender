@@ -18,7 +18,6 @@
 
 #include "COM_WorkPackage.h"
 
-#include "COM_Enums.h"
 #include "COM_ExecutionGroup.h"
 
 namespace blender::compositor {

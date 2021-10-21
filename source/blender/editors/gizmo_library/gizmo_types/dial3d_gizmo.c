@@ -307,7 +307,7 @@ static void dial_ghostarc_get_angles(const wmGizmo *gz,
 {
   DialInteraction *inter = gz->interaction_data;
   const RegionView3D *rv3d = region->regiondata;
-  const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+  const float mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
 
   /* We might need to invert the direction of the angles. */
   float view_vec[3], axis_vec[3];

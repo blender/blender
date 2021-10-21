@@ -49,6 +49,7 @@ class LogMessageVoidify {
 #  define LOG(severity) LOG_SUPPRESS()
 #  define VLOG(severity) LOG_SUPPRESS()
 #  define VLOG_IF(severity, condition) LOG_SUPPRESS()
+#  define VLOG_IS_ON(severity) false
 
 #  define CHECK(expression) LOG_SUPPRESS()
 

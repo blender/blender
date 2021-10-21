@@ -28,6 +28,7 @@
 #include "DNA_view3d_types.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
@@ -226,6 +227,46 @@ static bool is_cursor_visible_2d(const DRWContextState *draw_ctx)
   return (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) != 0;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Generic Cursor
+ * \{ */
+
+/**
+ * \note This doesn't require the draw context to be in use.
+ */
+void DRW_draw_cursor_2d_ex(const ARegion *region, const float cursor[2])
+{
+  int co[2];
+  UI_view2d_view_to_region(&region->v2d, cursor[0], cursor[1], &co[0], &co[1]);
+
+  /* Draw nice Anti Aliased cursor. */
+  GPU_line_width(1.0f);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_smooth(true);
+
+  /* Draw lines */
+  float original_proj[4][4];
+  GPU_matrix_projection_get(original_proj);
+  GPU_matrix_push();
+  ED_region_pixelspace(region);
+  GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
+  GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
+
+  GPUBatch *cursor_batch = DRW_cache_cursor_get(true);
+
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
+  GPU_batch_set_shader(cursor_batch, shader);
+
+  GPU_batch_draw(cursor_batch);
+
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_line_smooth(false);
+  GPU_matrix_pop();
+  GPU_matrix_projection_set(original_proj);
+}
+
+/** \} */
+
 void DRW_draw_cursor_2d(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -236,33 +277,8 @@ void DRW_draw_cursor_2d(void)
   GPU_depth_test(GPU_DEPTH_NONE);
 
   if (is_cursor_visible_2d(draw_ctx)) {
-    SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-    int co[2];
-    UI_view2d_view_to_region(&region->v2d, sima->cursor[0], sima->cursor[1], &co[0], &co[1]);
-
-    /* Draw nice Anti Aliased cursor. */
-    GPU_line_width(1.0f);
-    GPU_blend(GPU_BLEND_ALPHA);
-    GPU_line_smooth(true);
-
-    /* Draw lines */
-    float original_proj[4][4];
-    GPU_matrix_projection_get(original_proj);
-    GPU_matrix_push();
-    ED_region_pixelspace(region);
-    GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
-    GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
-
-    GPUBatch *cursor_batch = DRW_cache_cursor_get(true);
-    GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
-    GPU_batch_set_shader(cursor_batch, shader);
-
-    GPU_batch_draw(cursor_batch);
-
-    GPU_blend(GPU_BLEND_NONE);
-    GPU_line_smooth(false);
-    GPU_matrix_pop();
-    GPU_matrix_projection_set(original_proj);
+    const SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+    DRW_draw_cursor_2d_ex(region, sima->cursor);
   }
 }
 /** \} */

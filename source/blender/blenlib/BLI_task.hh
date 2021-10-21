@@ -28,10 +28,10 @@
 #    define NOMINMAX
 #    define TBB_MIN_MAX_CLEANUP
 #  endif
-#  include "tbb/parallel_reduce.h"
 #  include <tbb/blocked_range.h>
 #  include <tbb/parallel_for.h>
 #  include <tbb/parallel_for_each.h>
+#  include <tbb/parallel_reduce.h>
 #  include <tbb/task_arena.h>
 #  ifdef WIN32
 /* We cannot keep this defined, since other parts of the code deal with this on their own, leading

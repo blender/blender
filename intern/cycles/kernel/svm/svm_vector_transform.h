@@ -18,10 +18,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Vector Transform */
 
-ccl_device void svm_node_vector_transform(KernelGlobals *kg,
-                                          ShaderData *sd,
-                                          float *stack,
-                                          uint4 node)
+ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private float *stack,
+                                                   uint4 node)
 {
   uint itype, ifrom, ito;
   uint vector_in, vector_out;

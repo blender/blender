@@ -774,18 +774,6 @@ void RE_bake_pixels_populate(Mesh *me,
 
 /* ******************** NORMALS ************************ */
 
-/**
- * convert a normalized normal to the -1.0 1.0 range
- * the input is expected to be POS_X, POS_Y, POS_Z
- */
-static void normal_uncompress(float out[3], const float in[3])
-{
-  int i;
-  for (i = 0; i < 3; i++) {
-    out[i] = 2.0f * in[i] - 1.0f;
-  }
-}
-
 static void normal_compress(float out[3],
                             const float in[3],
                             const eBakeNormalSwizzle normal_swizzle[3])
@@ -934,7 +922,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     copy_v3_v3(tsm[2], normal);
 
     /* texture values */
-    normal_uncompress(nor, &result[offset]);
+    copy_v3_v3(nor, &result[offset]);
 
     /* converts from world space to local space */
     mul_transposed_mat3_m4_v3(mat, nor);
@@ -976,7 +964,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
     }
 
     offset = i * depth;
-    normal_uncompress(nor, &result[offset]);
+    copy_v3_v3(nor, &result[offset]);
 
     /* rotates only without translation */
     mul_mat3_m4_v3(iobmat, nor);
@@ -1004,7 +992,7 @@ void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
     }
 
     offset = i * depth;
-    normal_uncompress(nor, &result[offset]);
+    copy_v3_v3(nor, &result[offset]);
 
     /* save back the values */
     normal_compress(&result[offset], nor, normal_swizzle);
@@ -1053,6 +1041,7 @@ int RE_pass_depth(const eScenePassType pass_type)
     }
     case SCE_PASS_COMBINED:
     case SCE_PASS_SHADOW:
+    case SCE_PASS_POSITION:
     case SCE_PASS_NORMAL:
     case SCE_PASS_VECTOR:
     case SCE_PASS_INDEXOB: /* XXX double check */

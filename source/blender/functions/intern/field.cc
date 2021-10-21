@@ -21,6 +21,7 @@
 #include "BLI_vector_set.hh"
 
 #include "FN_field.hh"
+#include "FN_multi_function_parallel.hh"
 
 namespace blender::fn {
 
@@ -92,7 +93,7 @@ static Vector<const GVArray *> get_field_context_inputs(
     if (varray == nullptr) {
       const CPPType &type = field_input.cpp_type();
       varray = &scope.construct<GVArray_For_SingleValueRef>(
-          __func__, type, mask.min_array_size(), type.default_value());
+          type, mask.min_array_size(), type.default_value());
     }
     field_context_inputs.append(varray);
   }
@@ -189,17 +190,43 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
         field_with_index.current_input_index++;
       }
       else {
-        /* All inputs variables are ready, now add the function call. */
-        Vector<MFVariable *> input_variables;
-        for (const GField &field : operation_inputs) {
-          input_variables.append(variable_by_field.lookup(field));
-        }
+        /* All inputs variables are ready, now gather all variables that are used by the function
+         * and call it. */
         const MultiFunction &multi_function = operation.multi_function();
-        Vector<MFVariable *> output_variables = builder.add_call(multi_function, input_variables);
-        /* Add newly created variables to the map. */
-        for (const int i : output_variables.index_range()) {
-          variable_by_field.add_new({operation, i}, output_variables[i]);
+        Vector<MFVariable *> variables(multi_function.param_amount());
+
+        int param_input_index = 0;
+        int param_output_index = 0;
+        for (const int param_index : multi_function.param_indices()) {
+          const MFParamType param_type = multi_function.param_type(param_index);
+          const MFParamType::InterfaceType interface_type = param_type.interface_type();
+          if (interface_type == MFParamType::Input) {
+            const GField &input_field = operation_inputs[param_input_index];
+            variables[param_index] = variable_by_field.lookup(input_field);
+            param_input_index++;
+          }
+          else if (interface_type == MFParamType::Output) {
+            const GFieldRef output_field{operation, param_output_index};
+            const bool output_is_ignored =
+                field_tree_info.field_users.lookup(output_field).is_empty() &&
+                !output_fields.contains(output_field);
+            if (output_is_ignored) {
+              /* Ignored outputs don't need a variable. */
+              variables[param_index] = nullptr;
+            }
+            else {
+              /* Create a new variable for used outputs. */
+              MFVariable &new_variable = procedure.new_variable(param_type.data_type());
+              variables[param_index] = &new_variable;
+              variable_by_field.add_new(output_field, &new_variable);
+            }
+            param_output_index++;
+          }
+          else {
+            BLI_assert_unreachable();
+          }
         }
+        builder.add_call_with_all_variables(multi_function, variables);
       }
     }
   }
@@ -211,8 +238,8 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
     if (!already_output_variables.add(variable)) {
       /* One variable can be output at most once. To output the same value twice, we have to make
        * a copy first. */
-      const MultiFunction &copy_fn = scope.construct<CustomMF_GenericCopy>(
-          __func__, "copy", variable->data_type());
+      const MultiFunction &copy_fn = scope.construct<CustomMF_GenericCopy>("copy",
+                                                                           variable->data_type());
       variable = builder.add_call<1>(copy_fn, {variable})[0];
     }
     builder.add_output_parameter(*variable);
@@ -232,20 +259,6 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
   // std::cout << procedure.to_dot() << "\n";
   BLI_assert(procedure.validate());
 }
-
-/**
- * Utility class that destructs elements from a partially initialized array.
- */
-struct PartiallyInitializedArray : NonCopyable, NonMovable {
-  void *buffer;
-  IndexMask mask;
-  const CPPType *type;
-
-  ~PartiallyInitializedArray()
-  {
-    this->type->destruct_indices(this->buffer, this->mask);
-  }
-};
 
 /**
  * Evaluate fields in the given context. If possible, multiple fields should be evaluated together,
@@ -334,7 +347,13 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, varying_fields_to_evaluate);
     MFProcedureExecutor procedure_executor{"Procedure", procedure};
-    MFParamsBuilder mf_params{procedure_executor, array_size};
+    /* Add multi threading capabilities to the field evaluation. */
+    const int grain_size = 10000;
+    fn::ParallelMultiFunction parallel_procedure_executor{procedure_executor, grain_size};
+    /* Utility variable to make easy to switch the executor. */
+    const MultiFunction &executor_fn = parallel_procedure_executor;
+
+    MFParamsBuilder mf_params{executor_fn, &mask};
     MFContextBuilder mf_context;
 
     /* Provide inputs to the procedure executor. */
@@ -354,15 +373,14 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
         /* Allocate a new buffer for the computed result. */
         buffer = scope.linear_allocator().allocate(type.size() * array_size, type.alignment());
 
-        /* Make sure that elements in the buffer will be destructed. */
-        PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>(
-            __func__);
-        destruct_helper.buffer = buffer;
-        destruct_helper.mask = mask;
-        destruct_helper.type = &type;
+        if (!type.is_trivially_destructible()) {
+          /* Destruct values in the end. */
+          scope.add_destruct_call(
+              [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
+        }
 
         r_varrays[out_index] = &scope.construct<GVArray_For_GSpan>(
-            __func__, GSpan{type, buffer, array_size});
+            GSpan{type, buffer, array_size});
       }
       else {
         /* Write the result into the existing span. */
@@ -376,7 +394,7 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       mf_params.add_uninitialized_single_output(span);
     }
 
-    procedure_executor.call(mask, mf_params, mf_context);
+    executor_fn.call(mask, mf_params, mf_context);
   }
 
   /* Evaluate constant fields if necessary. */
@@ -386,7 +404,10 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, constant_fields_to_evaluate);
     MFProcedureExecutor procedure_executor{"Procedure", procedure};
-    MFParamsBuilder mf_params{procedure_executor, 1};
+    /* Run the code below even when the mask is empty, so that outputs are properly prepared.
+     * Higher level code can detect this as well and just skip evaluating the field. */
+    const int mask_size = mask.is_empty() ? 0 : 1;
+    MFParamsBuilder mf_params{procedure_executor, mask_size};
     MFContextBuilder mf_context;
 
     /* Provide inputs to the procedure executor. */
@@ -400,23 +421,22 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Allocate memory where the computed value will be stored in. */
       void *buffer = scope.linear_allocator().allocate(type.size(), type.alignment());
 
-      /* Use this to make sure that the value is destructed in the end. */
-      PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>(
-          __func__);
-      destruct_helper.buffer = buffer;
-      destruct_helper.mask = IndexRange(1);
-      destruct_helper.type = &type;
+      if (!type.is_trivially_destructible() && mask_size > 0) {
+        BLI_assert(mask_size == 1);
+        /* Destruct value in the end. */
+        scope.add_destruct_call([buffer, &type]() { type.destruct(buffer); });
+      }
 
       /* Pass output buffer to the procedure executor. */
-      mf_params.add_uninitialized_single_output({type, buffer, 1});
+      mf_params.add_uninitialized_single_output({type, buffer, mask_size});
 
       /* Create virtual array that can be used after the procedure has been executed below. */
       const int out_index = constant_field_indices[i];
       r_varrays[out_index] = &scope.construct<GVArray_For_SingleValueRef>(
-          __func__, type, array_size, buffer);
+          type, array_size, buffer);
     }
 
-    procedure_executor.call(IndexRange(1), mf_params, mf_context);
+    procedure_executor.call(IndexRange(mask_size), mf_params, mf_context);
   }
 
   /* Copy data to supplied destination arrays if necessary. In some cases the evaluation above has
@@ -437,7 +457,8 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Still have to copy over the data in the destination provided by the caller. */
       if (output_varray->is_span()) {
         /* Materialize into a span. */
-        computed_varray->materialize_to_uninitialized(output_varray->get_internal_span().data());
+        computed_varray->materialize_to_uninitialized(mask,
+                                                      output_varray->get_internal_span().data());
       }
       else {
         /* Slower materialize into a different structure. */
@@ -494,11 +515,42 @@ const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
   return field_input.get_varray_for_context(*this, mask, scope);
 }
 
+IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
+{
+}
+
+GVArray *IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &scope)
+{
+  auto index_func = [](int i) { return i; };
+  return &scope.construct<
+      fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
+      mask.min_array_size(), mask.min_array_size(), index_func);
+}
+
+const GVArray *IndexFieldInput::get_varray_for_context(const fn::FieldContext &UNUSED(context),
+                                                       IndexMask mask,
+                                                       ResourceScope &scope) const
+{
+  /* TODO: Investigate a similar method to IndexRange::as_span() */
+  return get_index_varray(mask, scope);
+}
+
+uint64_t IndexFieldInput::hash() const
+{
+  /* Some random constant hash. */
+  return 128736487678;
+}
+
+bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  return dynamic_cast<const IndexFieldInput *>(&other) != nullptr;
+}
+
 /* --------------------------------------------------------------------
  * FieldOperation.
  */
 
-FieldOperation::FieldOperation(std::unique_ptr<const MultiFunction> function,
+FieldOperation::FieldOperation(std::shared_ptr<const MultiFunction> function,
                                Vector<GField> inputs)
     : FieldOperation(*function, std::move(inputs))
 {
@@ -582,7 +634,7 @@ int FieldEvaluator::add_with_destination(GField field, GVMutableArray &dst)
 
 int FieldEvaluator::add_with_destination(GField field, GMutableSpan dst)
 {
-  GVMutableArray &varray = scope_.construct<GVMutableArray_For_GMutableSpan>(__func__, dst);
+  GVMutableArray &varray = scope_.construct<GVMutableArray_For_GMutableSpan>(dst);
   return this->add_with_destination(std::move(field), varray);
 }
 
@@ -635,7 +687,7 @@ IndexMask FieldEvaluator::get_evaluated_as_mask(const int field_index)
     return IndexRange(0);
   }
 
-  return scope_.add_value(indices_from_selection(*typed_varray), __func__).as_span();
+  return scope_.add_value(indices_from_selection(*typed_varray)).as_span();
 }
 
 }  // namespace blender::fn

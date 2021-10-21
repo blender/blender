@@ -174,7 +174,7 @@ IDTypeInfo IDType_ID_PT = {
     /* name */ "PointCloud",
     /* name_plural */ "pointclouds",
     /* translation_context */ BLT_I18NCONTEXT_ID_POINTCLOUD,
-    /* flags */ 0,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* init_data */ pointcloud_init_data,
     /* copy_data */ pointcloud_copy_data,

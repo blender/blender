@@ -709,7 +709,7 @@ static int txtfmt_pov_find_bool(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  /* Built-in Constants */
+  /* Built-in Constants. */
   if        (STR_LITERAL_STARTSWITH(string, "unofficial",          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "false",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "no",                  len)) { i = len;
@@ -719,7 +719,7 @@ static int txtfmt_pov_find_bool(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "on",                  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "pi",                  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "tau",                 len)) { i = len;
-  /* Encodings */
+  /* Encodings. */
   } else if (STR_LITERAL_STARTSWITH(string, "sint16be",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "sint16le",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "sint32be",            len)) { i = len;
@@ -732,7 +732,7 @@ static int txtfmt_pov_find_bool(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "uint8",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ascii",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "utf8",                len)) { i = len;
-  /* Filetypes */
+  /* File-types. */
   } else if (STR_LITERAL_STARTSWITH(string, "tiff",                len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "df3",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "exr",                 len)) { i = len;

@@ -210,7 +210,7 @@ IDTypeInfo IDType_ID_TE = {
     .name = "Texture",
     .name_plural = "textures",
     .translation_context = BLT_I18NCONTEXT_ID_TEXTURE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = texture_init_data,
     .copy_data = texture_copy_data,

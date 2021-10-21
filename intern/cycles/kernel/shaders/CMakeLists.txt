@@ -41,6 +41,7 @@ set(SRC_OSL
   node_vector_displacement.osl
   node_emission.osl
   node_environment_texture.osl
+  node_float_curve.osl
   node_fresnel.osl
   node_gamma.osl
   node_geometry.osl

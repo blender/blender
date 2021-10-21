@@ -20,28 +20,34 @@
  * intersection at the cost of more memory usage.
  */
 
+#pragma once
+
+#include "kernel/kernel_random.h"
+
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
-                                          Intersection *isect,
+ccl_device_inline bool triangle_intersect(KernelGlobals kg,
+                                          ccl_private Intersection *isect,
                                           float3 P,
                                           float3 dir,
+                                          float tmax,
                                           uint visibility,
                                           int object,
                                           int prim_addr)
 {
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
+  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__prim_tri_verts.data[tri_vindex];
+  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
 #else
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
 #endif
   float t, u, v;
   if (ray_triangle_intersect(P,
                              dir,
-                             isect->t,
+                             tmax,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
                              ssef_verts,
 #else
@@ -59,8 +65,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
     if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
 #endif
     {
-      isect->prim = prim_addr;
-      isect->object = object;
+      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
+                                                object;
+      isect->prim = prim;
       isect->type = PRIMITIVE_TRIANGLE;
       isect->u = u;
       isect->v = v;
@@ -78,15 +85,15 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
  */
 
 #ifdef __BVH_LOCAL__
-ccl_device_inline bool triangle_intersect_local(KernelGlobals *kg,
-                                                LocalIntersection *local_isect,
+ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
+                                                ccl_private LocalIntersection *local_isect,
                                                 float3 P,
                                                 float3 dir,
                                                 int object,
                                                 int local_object,
                                                 int prim_addr,
                                                 float tmax,
-                                                uint *lcg_state,
+                                                ccl_private uint *lcg_state,
                                                 int max_hits)
 {
   /* Only intersect with matching object, for instanced objects we
@@ -97,13 +104,14 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals *kg,
     }
   }
 
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
+  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
 #  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__prim_tri_verts.data[tri_vindex];
+  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
 #  else
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0)),
-               tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1)),
-               tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2));
+  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0)),
+               tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1)),
+               tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
 #  endif
   float t, u, v;
   if (!ray_triangle_intersect(P,
@@ -161,9 +169,9 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals *kg,
   }
 
   /* Record intersection. */
-  Intersection *isect = &local_isect->hits[hit];
-  isect->prim = prim_addr;
-  isect->object = object;
+  ccl_private Intersection *isect = &local_isect->hits[hit];
+  isect->prim = prim;
+  isect->object = local_object;
   isect->type = PRIMITIVE_TRIANGLE;
   isect->u = u;
   isect->v = v;
@@ -171,9 +179,9 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals *kg,
 
   /* Record geometric normal. */
 #  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0)),
-               tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1)),
-               tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2));
+  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0)),
+               tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1)),
+               tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
 #  endif
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
@@ -192,25 +200,20 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals *kg,
  * http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
  */
 
-ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
-                                         ShaderData *sd,
-                                         const Intersection *isect,
-                                         const Ray *ray)
+ccl_device_inline float3 triangle_refine(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
+                                         float3 P,
+                                         float3 D,
+                                         float t,
+                                         const int isect_object,
+                                         const int isect_prim)
 {
-  float3 P = ray->P;
-  float3 D = ray->D;
-  float t = isect->t;
-
 #ifdef __INTERSECTION_REFINE__
-  if (isect->object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     if (UNLIKELY(t == 0.0f)) {
       return P;
     }
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_itfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#  endif
+    const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D * t);
@@ -219,10 +222,10 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 
   P = P + D * t;
 
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect->prim);
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
   float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
   float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
@@ -239,13 +242,8 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
     P = P + D * rt;
   }
 
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_tfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#  endif
-
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 
@@ -255,28 +253,23 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 #endif
 }
 
-/* Same as above, except that isect->t is assumed to be in object space for
+/* Same as above, except that t is assumed to be in object space for
  * instancing.
  */
-ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
-                                               ShaderData *sd,
-                                               const Intersection *isect,
-                                               const Ray *ray)
+ccl_device_inline float3 triangle_refine_local(KernelGlobals kg,
+                                               ccl_private ShaderData *sd,
+                                               float3 P,
+                                               float3 D,
+                                               float t,
+                                               const int isect_object,
+                                               const int isect_prim)
 {
 #ifdef __KERNEL_OPTIX__
-  /* isect->t is always in world space with OptiX. */
-  return triangle_refine(kg, sd, isect, ray);
+  /* t is always in world space with OptiX. */
+  return triangle_refine(kg, sd, P, D, t, isect_object, isect_prim);
 #else
-  float3 P = ray->P;
-  float3 D = ray->D;
-  float t = isect->t;
-
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_itfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#  endif
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D);
@@ -286,10 +279,10 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
   P = P + D * t;
 
 #  ifdef __INTERSECTION_REFINE__
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect->prim);
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
   float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
   float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
@@ -307,13 +300,8 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
   }
 #  endif /* __INTERSECTION_REFINE__ */
 
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_tfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#  endif
-
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 

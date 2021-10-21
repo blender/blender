@@ -24,31 +24,31 @@ namespace blender::compositor {
 
 ConvertColorProfileOperation::ConvertColorProfileOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputOperation = nullptr;
-  this->m_predivided = false;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  input_operation_ = nullptr;
+  predivided_ = false;
 }
 
-void ConvertColorProfileOperation::initExecution()
+void ConvertColorProfileOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void ConvertColorProfileOperation::executePixelSampled(float output[4],
-                                                       float x,
-                                                       float y,
-                                                       PixelSampler sampler)
+void ConvertColorProfileOperation::execute_pixel_sampled(float output[4],
+                                                         float x,
+                                                         float y,
+                                                         PixelSampler sampler)
 {
   float color[4];
-  this->m_inputOperation->readSampled(color, x, y, sampler);
+  input_operation_->read_sampled(color, x, y, sampler);
   IMB_buffer_float_from_float(
-      output, color, 4, this->m_toProfile, this->m_fromProfile, this->m_predivided, 1, 1, 0, 0);
+      output, color, 4, to_profile_, from_profile_, predivided_, 1, 1, 0, 0);
 }
 
-void ConvertColorProfileOperation::deinitExecution()
+void ConvertColorProfileOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
 }  // namespace blender::compositor

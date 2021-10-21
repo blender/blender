@@ -123,6 +123,7 @@ void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy)
 
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);
+bool UI_view2d_area_supports_sync(struct ScrArea *area);
 void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D *v2dcur, int flag);
 
 /* Perform all required updates after `v2d->cur` as been modified.

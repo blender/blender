@@ -31,7 +31,7 @@
  *
  * A main benefit of using Array over Vector is that it expresses the intent of the developer
  * better. It indicates that the size of the data structure is not expected to change. Furthermore,
- * you can be more certain that an array does not overallocate.
+ * you can be more certain that an array does not over-allocate.
  *
  * blender::Array supports small object optimization to improve performance when the size turns out
  * to be small at run-time.
@@ -274,6 +274,21 @@ class Array {
   void fill(const T &value) const
   {
     initialized_fill_n(data_, size_, value);
+  }
+
+  /**
+   * Return a reference to the first element in the array.
+   * This invokes undefined behavior when the array is empty.
+   */
+  const T &first() const
+  {
+    BLI_assert(size_ > 0);
+    return *data_;
+  }
+  T &first()
+  {
+    BLI_assert(size_ > 0);
+    return *data_;
   }
 
   /**

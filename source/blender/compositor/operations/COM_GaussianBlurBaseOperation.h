@@ -24,11 +24,11 @@ namespace blender::compositor {
 
 class GaussianBlurBaseOperation : public BlurBaseOperation {
  protected:
-  float *m_gausstab;
+  float *gausstab_;
 #ifdef BLI_HAVE_SSE2
-  __m128 *m_gausstab_sse;
+  __m128 *gausstab_sse_;
 #endif
-  int m_filtersize;
+  int filtersize_;
   float rad_;
   eDimension dimension_;
 
@@ -36,8 +36,8 @@ class GaussianBlurBaseOperation : public BlurBaseOperation {
   GaussianBlurBaseOperation(eDimension dim);
 
   virtual void init_data() override;
-  virtual void initExecution() override;
-  virtual void deinitExecution() override;
+  virtual void init_execution() override;
+  virtual void deinit_execution() override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,

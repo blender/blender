@@ -4619,11 +4619,11 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       pind.cache = cached ? psys->pointcache : NULL;
       pind.epoint = NULL;
       pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-      /* pind.dm disabled in editmode means we don't get effectors taken into
-       * account when subdividing for instance */
+      /* `pind.dm` disabled in edit-mode means we don't get effectors taken into
+       * account when subdividing for instance. */
       pind.mesh = psys_in_edit_mode(sim->depsgraph, psys) ?
                       NULL :
-                      psys->hair_out_mesh; /* XXX Sybren EEK */
+                      psys->hair_out_mesh; /* XXX(@sybren) EEK. */
       init_particle_interpolation(sim->ob, psys, pa, &pind);
       do_particle_interpolation(psys, p, pa, t, &pind, state);
 

@@ -19,12 +19,11 @@
 #include "COM_CPUDevice.h"
 
 #include "COM_ExecutionGroup.h"
-
-#include "BLI_rect.h"
+#include "COM_NodeOperation.h"
 
 namespace blender::compositor {
 
-CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
+CPUDevice::CPUDevice(int thread_id) : thread_id_(thread_id)
 {
 }
 
@@ -32,11 +31,11 @@ void CPUDevice::execute(WorkPackage *work_package)
 {
   switch (work_package->type) {
     case eWorkPackageType::Tile: {
-      const unsigned int chunkNumber = work_package->chunk_number;
-      ExecutionGroup *executionGroup = work_package->execution_group;
+      const unsigned int chunk_number = work_package->chunk_number;
+      ExecutionGroup *execution_group = work_package->execution_group;
 
-      executionGroup->getOutputOperation()->executeRegion(&work_package->rect, chunkNumber);
-      executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
+      execution_group->get_output_operation()->execute_region(&work_package->rect, chunk_number);
+      execution_group->finalize_chunk_execution(chunk_number, nullptr);
       break;
     }
     case eWorkPackageType::CustomFunction: {

@@ -1864,6 +1864,15 @@ static void outliner_filter_tree(SpaceOutliner *space_outliner, ViewLayer *view_
       space_outliner, view_layer, &space_outliner->tree, search_string, exclude_filter);
 }
 
+static void outliner_clear_newid_from_main(Main *bmain)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    id_iter->newid = NULL;
+  }
+  FOREACH_MAIN_ID_END;
+}
+
 /* ======================================================= */
 /* Main Tree Building API */
 
@@ -1926,5 +1935,7 @@ void outliner_build_tree(Main *mainvar,
   outliner_filter_tree(space_outliner, view_layer);
   outliner_restore_scrolling_position(space_outliner, region, &focus);
 
-  BKE_main_id_newptr_and_tag_clear(mainvar);
+  /* `ID.newid` pointer is abused when building tree, DO NOT call #BKE_main_id_newptr_and_tag_clear
+   * as this expects valid IDs in this pointer, not random unknown data. */
+  outliner_clear_newid_from_main(mainvar);
 }

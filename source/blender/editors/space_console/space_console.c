@@ -149,7 +149,7 @@ static void console_cursor(wmWindow *win, ScrArea *UNUSED(area), ARegion *region
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
   const wmEvent *event = win->eventstate;
-  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->x, event->y)) {
+  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy[0], event->xy[1])) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 

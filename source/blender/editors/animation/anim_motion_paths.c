@@ -84,7 +84,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
 
   /* Make a flat array of IDs for the DEG API. */
   const int num_ids = BLI_listbase_count(targets);
-  ID **ids = MEM_malloc_arrayN(sizeof(ID *), num_ids, "animviz IDS");
+  ID **ids = MEM_malloc_arrayN(num_ids, sizeof(ID *), "animviz IDS");
   int current_id_index = 0;
   for (MPathTarget *mpt = targets->first; mpt != NULL; mpt = mpt->next) {
     ids[current_id_index++] = &mpt->ob->id;

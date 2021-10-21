@@ -230,7 +230,7 @@ bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type)
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner) {
       if (ELEM(job_type, WM_JOB_TYPE_ANY, wm_job->job_type)) {
-        if (wm_job->running || wm_job->suspended) {
+        if ((wm_job->flag & WM_JOB_PROGRESS) && (wm_job->running || wm_job->suspended)) {
           return true;
         }
       }

@@ -23,27 +23,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_boolean_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry 1")},
-    {SOCK_GEOMETRY,
-     N_("Geometry 2"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     PROP_NONE,
-     SOCK_MULTI_INPUT},
-    {SOCK_BOOLEAN, N_("Self Intersection")},
-    {SOCK_BOOLEAN, N_("Hole Tolerant")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_boolean_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry 1");
+  b.add_input<decl::Geometry>("Geometry 2").multi_input();
+  b.add_input<decl::Bool>("Self Intersection");
+  b.add_input<decl::Bool>("Hole Tolerant");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -77,8 +66,6 @@ static void geo_node_boolean_init(bNodeTree *UNUSED(tree), bNode *node)
   node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
 }
 
-namespace blender::nodes {
-
 static void geo_node_boolean_exec(GeoNodeExecParams params)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;
@@ -96,10 +83,14 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
   GeometrySet set_a;
   if (operation == GEO_NODE_BOOLEAN_DIFFERENCE) {
     set_a = params.extract_input<GeometrySet>("Geometry 1");
+    if (set_a.has_instances()) {
+      params.error_message_add(
+          NodeWarningType::Info,
+          TIP_("Instances are not supported for the first geometry input, and will not be used"));
+    }
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */
-    set_a = geometry_set_realize_instances(set_a);
     const Mesh *mesh_in_a = set_a.get_mesh_for_read();
     if (mesh_in_a != nullptr) {
       meshes.append(mesh_in_a);
@@ -137,11 +128,11 @@ void register_node_type_geo_boolean()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_BOOLEAN, "Boolean", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_boolean_in, geo_node_boolean_out);
-  ntype.draw_buttons = geo_node_boolean_layout;
-  ntype.updatefunc = geo_node_boolean_update;
-  node_type_init(&ntype, geo_node_boolean_init);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_BOOLEAN, "Mesh Boolean", NODE_CLASS_GEOMETRY, 0);
+  ntype.declare = blender::nodes::geo_node_boolean_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_boolean_layout;
+  ntype.updatefunc = blender::nodes::geo_node_boolean_update;
+  node_type_init(&ntype, blender::nodes::geo_node_boolean_init);
   ntype.geometry_node_execute = blender::nodes::geo_node_boolean_exec;
   nodeRegisterType(&ntype);
 }

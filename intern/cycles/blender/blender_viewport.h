@@ -39,9 +39,10 @@ class BlenderViewportParameters {
 
   /* Film. */
   PassType display_pass;
+  bool show_active_pixels;
 
   BlenderViewportParameters();
-  explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
+  BlenderViewportParameters(BL::SpaceView3D &b_v3d, bool use_developer_ui);
 
   /* Check whether any of shading related settings are different from the given parameters. */
   bool shader_modified(const BlenderViewportParameters &other) const;
@@ -56,8 +57,6 @@ class BlenderViewportParameters {
    * regular background shader or scene light. */
   bool use_custom_shader() const;
 };
-
-PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes);
 
 CCL_NAMESPACE_END
 

@@ -1100,8 +1100,8 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
       window->getClientBounds(bounds);
     }
 
-    /* Could also clamp to screen bounds wrap with a window outside the view will fail atm.
-     * Use inset in case the window is at screen bounds. */
+    /* Could also clamp to screen bounds wrap with a window outside the view will
+     * fail at the moment. Use inset in case the window is at screen bounds. */
     bounds.wrapPoint(x_new, y_new, 2, window->getCursorGrabAxis());
 
     window->getCursorGrabAccum(x_accum, y_accum);

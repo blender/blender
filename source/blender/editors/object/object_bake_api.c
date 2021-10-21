@@ -412,6 +412,7 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 {
   return ELEM(pass_type,
               SCE_PASS_Z,
+              SCE_PASS_POSITION,
               SCE_PASS_NORMAL,
               SCE_PASS_VECTOR,
               SCE_PASS_INDEXOB,
@@ -554,19 +555,10 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
           return true;
         }
 
-        if ((pass_filter & R_BAKE_PASS_FILTER_AO) != 0) {
-          BKE_report(
-              reports,
-              RPT_ERROR,
-              "Combined bake pass Ambient Occlusion contribution requires an enabled light pass "
-              "(bake the Ambient Occlusion pass type instead)");
-        }
-        else {
-          BKE_report(reports,
-                     RPT_ERROR,
-                     "Combined bake pass requires Emit, or a light pass with "
-                     "Direct or Indirect contributions enabled");
-        }
+        BKE_report(reports,
+                   RPT_ERROR,
+                   "Combined bake pass requires Emit, or a light pass with "
+                   "Direct or Indirect contributions enabled");
 
         return false;
       }
@@ -705,7 +697,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     }
   }
 
-  /* Overallocate in case there is more materials than images. */
+  /* Over-allocate in case there is more materials than images. */
   targets->num_materials = num_materials;
   targets->images = MEM_callocN(sizeof(BakeImage) * targets->num_materials, "BakeTargets.images");
   targets->material_to_image = MEM_callocN(sizeof(int) * targets->num_materials,
@@ -1540,22 +1532,22 @@ static int bake(const BakeAPIRender *bkr,
           if (md) {
             mode = md->mode;
             md->mode &= ~eModifierMode_Render;
-          }
 
-          /* Evaluate modifiers again. */
-          me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false, false);
-          bake_targets_populate_pixels(bkr, &targets, ob_low, me_nores, pixel_array_low);
+            /* Evaluate modifiers again. */
+            me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false, false);
+            bake_targets_populate_pixels(bkr, &targets, ob_low, me_nores, pixel_array_low);
+          }
 
           RE_bake_normal_world_to_tangent(pixel_array_low,
                                           targets.num_pixels,
                                           targets.num_channels,
                                           targets.result,
-                                          me_nores,
+                                          (me_nores) ? me_nores : me_low_eval,
                                           bkr->normal_swizzle,
                                           ob_low_eval->obmat);
-          BKE_id_free(NULL, &me_nores->id);
 
           if (md) {
+            BKE_id_free(NULL, &me_nores->id);
             md->mode = mode;
           }
         }

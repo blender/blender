@@ -17,17 +17,16 @@
  */
 
 #include "COM_MathNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MathBaseOperation.h"
 
 namespace blender::compositor {
 
-void MathNode::convertToOperations(NodeConverter &converter,
-                                   const CompositorContext & /*context*/) const
+void MathNode::convert_to_operations(NodeConverter &converter,
+                                     const CompositorContext & /*context*/) const
 {
   MathBaseOperation *operation = nullptr;
 
-  switch (this->getbNode()->custom1) {
+  switch (this->get_bnode()->custom1) {
     case NODE_MATH_ADD:
       operation = new MathAddOperation();
       break;
@@ -151,14 +150,14 @@ void MathNode::convertToOperations(NodeConverter &converter,
   }
 
   if (operation) {
-    bool useClamp = getbNode()->custom2;
-    operation->setUseClamp(useClamp);
-    converter.addOperation(operation);
+    bool use_clamp = get_bnode()->custom2;
+    operation->set_use_clamp(use_clamp);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
   }
 }
 

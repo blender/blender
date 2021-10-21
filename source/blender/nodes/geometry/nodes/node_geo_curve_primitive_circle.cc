@@ -77,7 +77,7 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 {
   const float3 a = (p2 - p1).normalized();
   const float3 b = (p3 - p1).normalized();
-  return (a == b || a == b * -1.0f);
+  return (ELEM(a, b, b * -1.0f));
 }
 
 static std::unique_ptr<CurveEval> create_point_circle_curve(
@@ -132,7 +132,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
      */
 
     const float theta = theta_step * i;
-    positions[i] = center + r * cos(theta) * v1 + r * sin(theta) * v4;
+    positions[i] = center + r * sin(theta) * v1 + r * cos(theta) * v4;
   }
 
   spline->radii().fill(1.0f);

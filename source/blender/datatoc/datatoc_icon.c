@@ -32,7 +32,7 @@
 #  include <dirent.h>
 #endif
 
-#include "png.h"
+#include <png.h>
 
 /* for Win32 DIR functions */
 #ifdef WIN32
@@ -245,7 +245,7 @@ static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeCo
 
 static void icon_merge_context_register_icon(struct IconMergeContext *context,
                                              const char *file_name,
-                                             struct IconHead *icon_head)
+                                             const struct IconHead *icon_head)
 {
   context->read_icons = realloc(context->read_icons,
                                 sizeof(struct IconInfo) * (context->num_read_icons + 1));

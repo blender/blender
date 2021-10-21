@@ -27,6 +27,7 @@
 
 #include "BLI_virtual_array.hh"
 
+#include "FN_generic_array.hh"
 #include "FN_generic_span.hh"
 
 namespace blender::fn {
@@ -395,6 +396,16 @@ template<typename T> class GVArray_For_VArray : public GVArray {
   const void *try_get_internal_varray_impl() const override
   {
     return varray_;
+  }
+};
+
+class GVArray_For_GArray : public GVArray_For_GSpan {
+ protected:
+  GArray<> array_;
+
+ public:
+  GVArray_For_GArray(GArray<> array) : GVArray_For_GSpan(array.as_span()), array_(std::move(array))
+  {
   }
 };
 
@@ -908,6 +919,52 @@ template<typename T> class GVMutableArray_Typed {
   int64_t size() const
   {
     return varray_->size();
+  }
+};
+
+class GVArray_For_SlicedGVArray : public GVArray {
+ protected:
+  const GVArray &varray_;
+  int64_t offset_;
+
+ public:
+  GVArray_For_SlicedGVArray(const GVArray &varray, const IndexRange slice)
+      : GVArray(varray.type(), slice.size()), varray_(varray), offset_(slice.start())
+  {
+    BLI_assert(slice.one_after_last() <= varray.size());
+  }
+
+  /* TODO: Add #materialize method. */
+  void get_impl(const int64_t index, void *r_value) const override;
+  void get_to_uninitialized_impl(const int64_t index, void *r_value) const override;
+};
+
+/**
+ * Utility class to create the "best" sliced virtual array.
+ */
+class GVArray_Slice {
+ private:
+  const GVArray *varray_;
+  /* Of these optional virtual arrays, at most one is constructed at any time. */
+  std::optional<GVArray_For_GSpan> varray_span_;
+  std::optional<GVArray_For_SlicedGVArray> varray_any_;
+
+ public:
+  GVArray_Slice(const GVArray &varray, const IndexRange slice);
+
+  const GVArray &operator*()
+  {
+    return *varray_;
+  }
+
+  const GVArray *operator->()
+  {
+    return varray_;
+  }
+
+  operator const GVArray &()
+  {
+    return *varray_;
   }
 };
 

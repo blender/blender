@@ -287,9 +287,6 @@ if(CYCLES_STANDALONE_REPOSITORY)
   endif()
 
   set(__boost_packages filesystem regex system thread date_time)
-  if(WITH_CYCLES_NETWORK)
-    list(APPEND __boost_packages serialization)
-  endif()
   if(WITH_CYCLES_OSL)
     list(APPEND __boost_packages wave)
   endif()
@@ -524,7 +521,7 @@ endif()
 if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
   find_package(CUDA) # Try to auto locate CUDA toolkit
   if(CUDA_FOUND)
-    message(STATUS "CUDA nvcc = ${CUDA_NVCC_EXECUTABLE}")
+    message(STATUS "Found CUDA ${CUDA_NVCC_EXECUTABLE} (${CUDA_VERSION})")
   else()
     message(STATUS "CUDA compiler not found, disabling WITH_CYCLES_CUDA_BINARIES")
     set(WITH_CYCLES_CUDA_BINARIES OFF)
@@ -533,6 +530,25 @@ if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
       set(WITH_CUDA_DYNLOAD ON)
     endif()
   endif()
+endif()
+
+
+###########################################################################
+# HIP
+###########################################################################
+
+if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
+  find_package(HIP)
+  if(HIP_FOUND)
+    message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
+  else()
+    message(STATUS "HIP compiler not found, disabling WITH_CYCLES_HIP_BINARIES")
+    set(WITH_CYCLES_HIP_BINARIES OFF)
+  endif()
+endif()
+
+if(NOT WITH_HIP_DYNLOAD)
+  set(WITH_HIP_DYNLOAD ON)
 endif()
 
 unset(_cycles_lib_dir)

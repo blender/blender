@@ -91,7 +91,7 @@ IDTypeInfo IDType_ID_LP = {
     .name = "LightProbe",
     .name_plural = "lightprobes",
     .translation_context = BLT_I18NCONTEXT_ID_LIGHTPROBE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = lightprobe_init_data,
     .copy_data = NULL,

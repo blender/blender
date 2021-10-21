@@ -90,7 +90,7 @@ ComponentNode::ComponentNode()
 void ComponentNode::init(const ID * /*id*/, const char * /*subdata*/)
 {
   /* hook up eval context? */
-  // XXX: maybe this needs a special API?
+  /* XXX: maybe this needs a special API? */
 }
 
 /* Free 'component' node */

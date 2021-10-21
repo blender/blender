@@ -912,141 +912,6 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
   normal_short_to_float_v3(r_no, mvert.no);
 }
 
-static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  int i;
-
-  memset(med, 0, sizeof(*med));
-
-  if (edgeNum < ccgdm->edgeMap[0].startEdge) {
-    /* this edge comes from face data */
-    int lastface = ccgSubSurf_getNumFaces(ss) - 1;
-    CCGFace *f;
-    int x, y, grid /*, numVerts*/;
-    int offset;
-    int gridSize = ccgSubSurf_getGridSize(ss);
-    int edgeSize = ccgSubSurf_getEdgeSize(ss);
-    int gridSideEdges;
-    int gridInternalEdges;
-
-    i = 0;
-    while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge) {
-      i++;
-    }
-
-    f = ccgdm->faceMap[i].face;
-    /* numVerts = ccgSubSurf_getFaceNumVerts(f); */ /*UNUSED*/
-
-    gridSideEdges = gridSize - 1;
-    gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
-
-    offset = edgeNum - ccgdm->faceMap[i].startEdge;
-    grid = offset / (gridSideEdges + gridInternalEdges);
-    offset %= (gridSideEdges + gridInternalEdges);
-
-    if (offset < gridSideEdges) {
-      x = offset;
-      med->v1 = getFaceIndex(ss, f, grid, x, 0, edgeSize, gridSize);
-      med->v2 = getFaceIndex(ss, f, grid, x + 1, 0, edgeSize, gridSize);
-    }
-    else {
-      offset -= gridSideEdges;
-      x = (offset / 2) / gridSideEdges + 1;
-      y = (offset / 2) % gridSideEdges;
-      if (offset % 2 == 0) {
-        med->v1 = getFaceIndex(ss, f, grid, x, y, edgeSize, gridSize);
-        med->v2 = getFaceIndex(ss, f, grid, x, y + 1, edgeSize, gridSize);
-      }
-      else {
-        med->v1 = getFaceIndex(ss, f, grid, y, x, edgeSize, gridSize);
-        med->v2 = getFaceIndex(ss, f, grid, y + 1, x, edgeSize, gridSize);
-      }
-    }
-  }
-  else {
-    /* this vert comes from edge data */
-    CCGEdge *e;
-    int edgeSize = ccgSubSurf_getEdgeSize(ss);
-    int x;
-    short *edgeFlag;
-    unsigned int flags = 0;
-
-    i = (edgeNum - ccgdm->edgeMap[0].startEdge) / (edgeSize - 1);
-
-    e = ccgdm->edgeMap[i].edge;
-
-    if (!ccgSubSurf_getEdgeNumFaces(e)) {
-      flags |= ME_LOOSEEDGE;
-    }
-
-    x = edgeNum - ccgdm->edgeMap[i].startEdge;
-
-    med->v1 = getEdgeIndex(ss, e, x, edgeSize);
-    med->v2 = getEdgeIndex(ss, e, x + 1, edgeSize);
-
-    edgeFlag = (ccgdm->edgeFlags) ? &ccgdm->edgeFlags[i] : NULL;
-    if (edgeFlag) {
-      flags |= (*edgeFlag & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW | ME_EDGERENDER;
-    }
-    else {
-      flags |= ME_EDGEDRAW | ME_EDGERENDER;
-    }
-
-    med->flag = flags;
-  }
-}
-
-static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  int gridSize = ccgSubSurf_getGridSize(ss);
-  int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  int gridSideEdges = gridSize - 1;
-  int gridFaces = gridSideEdges * gridSideEdges;
-  int i;
-  CCGFace *f;
-  // int numVerts;
-  int offset;
-  int grid;
-  int x, y;
-  // int lastface = ccgSubSurf_getNumFaces(ss) - 1; /* UNUSED */
-  DMFlagMat *faceFlags = ccgdm->faceFlags;
-
-  memset(mf, 0, sizeof(*mf));
-  if (faceNum >= ccgdm->dm.numTessFaceData) {
-    return;
-  }
-
-  i = ccgdm->reverseFaceMap[faceNum];
-
-  f = ccgdm->faceMap[i].face;
-  // numVerts = ccgSubSurf_getFaceNumVerts(f); /* UNUSED */
-
-  offset = faceNum - ccgdm->faceMap[i].startFace;
-  grid = offset / gridFaces;
-  offset %= gridFaces;
-  y = offset / gridSideEdges;
-  x = offset % gridSideEdges;
-
-  mf->v1 = getFaceIndex(ss, f, grid, x + 0, y + 0, edgeSize, gridSize);
-  mf->v2 = getFaceIndex(ss, f, grid, x + 0, y + 1, edgeSize, gridSize);
-  mf->v3 = getFaceIndex(ss, f, grid, x + 1, y + 1, edgeSize, gridSize);
-  mf->v4 = getFaceIndex(ss, f, grid, x + 1, y + 0, edgeSize, gridSize);
-
-  if (faceFlags) {
-    mf->flag = faceFlags[i].flag;
-    mf->mat_nr = faceFlags[i].mat_nr;
-  }
-  else {
-    mf->flag = ME_SMOOTH;
-  }
-
-  mf->edcode = 0;
-}
-
 /* Translate GridHidden into the ME_HIDE flag for MVerts. Assumes
  * vertices are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_hidden(DerivedMesh *dm,
@@ -1920,10 +1785,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
   ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
 
-  ccgdm->dm.getVert = ccgDM_getFinalVert;
-  ccgdm->dm.getEdge = ccgDM_getFinalEdge;
-  ccgdm->dm.getTessFace = ccgDM_getFinalFace;
-
   ccgdm->dm.getVertCo = ccgDM_getFinalVertCo;
   ccgdm->dm.getVertNo = ccgDM_getFinalVertNo;
 
@@ -2032,9 +1893,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
 
-  /* mvert = dm->getVertArray(dm); */ /* UNUSED */
   medge = dm->getEdgeArray(dm);
-  /* mface = dm->getTessFaceArray(dm); */ /* UNUSED */
 
   mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
   base_polyOrigIndex = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);

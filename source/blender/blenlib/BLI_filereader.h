@@ -59,9 +59,9 @@ typedef struct FileReader {
 /* Functions for opening the various types of FileReader.
  * They either succeed and return a valid FileReader, or fail and return NULL.
  *
- * If a FileReader is created, it has to be cleaned up and freed by calling
- * its close() function unless another FileReader has taken ownership - for example,
- * Zstd and Gzip take over the base FileReader and will clean it up when their clean() is called.
+ * If a FileReader is created, it has to be cleaned up and freed by calling its close()
+ * function unless another FileReader has taken ownership - for example, `Zstd` & `Gzip`
+ * take over the base FileReader and will clean it up when their clean() is called.
  */
 
 /* Create FileReader from raw file descriptor. */
@@ -71,9 +71,9 @@ FileReader *BLI_filereader_new_mmap(int filedes) ATTR_WARN_UNUSED_RESULT;
 /* Create FileReader from a region of memory. */
 FileReader *BLI_filereader_new_memory(const void *data, size_t len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-/* Create FileReader from applying Zstd decompression on an underlying file. */
+/* Create FileReader from applying `Zstd` decompression on an underlying file. */
 FileReader *BLI_filereader_new_zstd(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-/* Create FileReader from applying Gzip decompression on an underlying file. */
+/* Create FileReader from applying `Gzip` decompression on an underlying file. */
 FileReader *BLI_filereader_new_gzip(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #ifdef __cplusplus

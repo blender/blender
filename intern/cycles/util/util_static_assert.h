@@ -24,9 +24,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if defined(__KERNEL_OPENCL__) || defined(CYCLES_CUBIN_CC)
+#if defined(CYCLES_CUBIN_CC)
 #  define static_assert(statement, message)
-#endif /* __KERNEL_OPENCL__ */
+#endif
 
 #define static_assert_align(st, align) \
   static_assert((sizeof(st) % (align) == 0), "Structure must be strictly aligned")  // NOLINT

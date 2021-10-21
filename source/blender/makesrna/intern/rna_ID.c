@@ -225,7 +225,6 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BLI_math_base.h"
 
 #  include "BKE_anim_data.h"
-#  include "BKE_font.h"
 #  include "BKE_global.h" /* XXX, remove me */
 #  include "BKE_idprop.h"
 #  include "BKE_idtype.h"
@@ -234,6 +233,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_lib_remap.h"
 #  include "BKE_library.h"
 #  include "BKE_material.h"
+#  include "BKE_vfont.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
@@ -669,12 +669,20 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
   return newid;
 }
 
-static void rna_ID_asset_mark(ID *id, bContext *C)
+static void rna_ID_asset_mark(ID *id)
 {
-  if (ED_asset_mark_id(C, id)) {
+  if (ED_asset_mark_id(id)) {
     WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
     WM_main_add_notifier(NC_ASSET | NA_ADDED, NULL);
   }
+}
+
+static void rna_ID_asset_generate_preview(ID *id, bContext *C)
+{
+  ED_asset_generate_preview(C, id);
+
+  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_ASSET | NA_EDITED, NULL);
 }
 
 static void rna_ID_asset_clear(ID *id)
@@ -931,11 +939,10 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 
 static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_proxy)
 {
-  BKE_lib_id_make_local(
-      bmain, self, false, clear_proxy ? 0 : LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+  BKE_lib_id_make_local(bmain, self, clear_proxy ? 0 : LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
 
   ID *ret_id = self->newid ? self->newid : self;
-  BKE_id_clear_newpoin(self);
+  BKE_id_newptr_and_tag_clear(self);
   return ret_id;
 }
 
@@ -1937,6 +1944,15 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
 
+  prop = RNA_def_pointer(srna,
+                         "library_weak_reference",
+                         "LibraryWeakReference",
+                         "Library Weak Reference",
+                         "Weak reference to a data-block in another library .blend file (used to "
+                         "re-use already appended data instead of appending new copies)");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+
   prop = RNA_def_property(srna, "asset_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
@@ -1978,12 +1994,16 @@ static void rna_def_ID(BlenderRNA *brna)
       func,
       "Enable easier reuse of the data-block through the Asset Browser, with the help of "
       "customizable metadata (like previews, descriptions and tags)");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "asset_clear", "rna_ID_asset_clear");
   RNA_def_function_ui_description(
       func,
       "Delete all asset metadata and turn the asset data-block back into a normal data-block");
+
+  func = RNA_def_function(srna, "asset_generate_preview", "rna_ID_asset_generate_preview");
+  RNA_def_function_ui_description(
+      func, "Generate preview image (might be scheduled in a background thread)");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "override_create", "rna_ID_override_create");
   RNA_def_function_ui_description(func,
@@ -2144,6 +2164,31 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Reload this library and all its linked data-blocks");
 }
 
+static void rna_def_library_weak_reference(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LibraryWeakReference", NULL);
+  RNA_def_struct_ui_text(
+      srna,
+      "LibraryWeakReference",
+      "Read-only external reference to a linked data-block and its library file");
+
+  prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "library_filepath");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
+
+  prop = RNA_def_property(srna, "id_name", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "library_id_name");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "ID name",
+      "Full ID name in the library .blend file (including the two leading 'id type' chars)");
+}
+
 /**
  * \attention This is separate from the above. It allows for RNA functions to
  * return an IDProperty *. See MovieClip.metadata for a usage example.
@@ -2176,6 +2221,7 @@ void RNA_def_ID(BlenderRNA *brna)
   rna_def_ID_properties(brna);
   rna_def_ID_materials(brna);
   rna_def_library(brna);
+  rna_def_library_weak_reference(brna);
   rna_def_idproperty_wrap_ptr(brna);
 }
 

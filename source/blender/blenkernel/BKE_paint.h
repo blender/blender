@@ -538,7 +538,7 @@ typedef struct SculptSession {
   float cursor_sampled_normal[3];
   float cursor_view_normal[3];
 
-  /* For Sculpt trimming gesture tools, initial raycast data from the position of the mouse when
+  /* For Sculpt trimming gesture tools, initial ray-cast data from the position of the mouse when
    * the gesture starts (intersection with the surface and if they ray hit the surface or not). */
   float gesture_initial_location[3];
   float gesture_initial_normal[3];

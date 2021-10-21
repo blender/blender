@@ -29,6 +29,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "RNA_enum_types.h" /* own include */
 
@@ -51,6 +52,7 @@ static void rna_WorkSpaceTool_setup(ID *id,
                                     const char *data_block,
                                     const char *op_idname,
                                     int index,
+                                    int options,
                                     const char *idname_fallback,
                                     const char *keymap_fallback)
 {
@@ -62,6 +64,7 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref_rt.data_block, data_block);
   STRNCPY(tref_rt.op, op_idname);
   tref_rt.index = index;
+  tref_rt.flag = options;
 
   /* While it's logical to assign both these values from setup,
    * it's useful to stored this in DNA for re-use, exceptional case: write to the 'tref'. */
@@ -131,6 +134,11 @@ void RNA_api_workspace_tool(StructRNA *srna)
   PropertyRNA *parm;
   FunctionRNA *func;
 
+  static EnumPropertyItem options_items[] = {
+      {TOOLREF_FLAG_FALLBACK_KEYMAP, "KEYMAP_FALLBACK", 0, "Fallback", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   func = RNA_def_function(srna, "setup", "rna_WorkSpaceTool_setup");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Set the tool settings");
@@ -146,6 +154,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
   RNA_def_string(func, "data_block", NULL, MAX_NAME, "Data Block", "");
   RNA_def_string(func, "operator", NULL, MAX_NAME, "Operator", "");
   RNA_def_int(func, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
+  RNA_def_enum_flag(func, "options", options_items, 0, "Tool Options", "");
 
   RNA_def_string(func, "idname_fallback", NULL, MAX_NAME, "Fallback Identifier", "");
   RNA_def_string(func, "keymap_fallback", NULL, KMAP_MAX_NAME, "Fallback Key Map", "");

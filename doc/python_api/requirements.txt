@@ -10,4 +10,4 @@ requests==2.26.0
 
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
-sphinx_rtd_theme==1.0.0rc1
+sphinx_rtd_theme==1.0.0

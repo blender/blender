@@ -63,6 +63,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLO_readfile.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
@@ -237,7 +239,7 @@ static void scene_init_data(ID *id)
   /* Master Collection */
   scene->master_collection = BKE_collection_master_add();
 
-  BKE_view_layer_add(scene, "View Layer", NULL, VIEWLAYER_ADD_NEW);
+  BKE_view_layer_add(scene, "ViewLayer", NULL, VIEWLAYER_ADD_NEW);
 }
 
 static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const int flag)
@@ -993,8 +995,13 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
   BLO_read_list(reader, lb);
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (seq->seqbase.first) {
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, lb) {
+    /* Sanity check. */
+    if (!SEQ_valid_strip_channel(seq)) {
+      BLI_freelinkN(lb, seq);
+      BLO_read_data_reports(reader)->count.vse_strips_skipped++;
+    }
+    else if (seq->seqbase.first) {
       link_recurs_seq(reader, &seq->seqbase);
     }
   }
@@ -1794,6 +1801,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Scene duplication is always root of duplication currently. */
     const bool is_subprocess = false;
     const bool is_root_id = true;
+    const int copy_flags = LIB_ID_COPY_DEFAULT;
 
     if (!is_subprocess) {
       BKE_main_id_newptr_and_tag_clear(bmain);
@@ -1809,20 +1817,39 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Copy Freestyle LineStyle datablocks. */
     LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
       LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-        BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags);
+        BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags, copy_flags);
       }
     }
 
     /* Full copy of world (included animations) */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags);
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags, copy_flags);
 
     /* Full copy of GreasePencil. */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags);
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags, copy_flags);
 
     /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
      * duplicate along the object itself). */
     BKE_collection_duplicate(
         bmain, NULL, sce_copy->master_collection, duplicate_flags, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+
+    /* Rigid body world collections may not be instantiated as scene's collections, ensure they
+     * also get properly duplicated. */
+    if (sce_copy->rigidbody_world != NULL) {
+      if (sce_copy->rigidbody_world->group != NULL) {
+        BKE_collection_duplicate(bmain,
+                                 NULL,
+                                 sce_copy->rigidbody_world->group,
+                                 duplicate_flags,
+                                 LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+      if (sce_copy->rigidbody_world->constraints != NULL) {
+        BKE_collection_duplicate(bmain,
+                                 NULL,
+                                 sce_copy->rigidbody_world->constraints,
+                                 duplicate_flags,
+                                 LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+    }
 
     if (!is_subprocess) {
       /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
@@ -2465,7 +2492,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
     /* Flush editing data if needed. */
     prepare_mesh_for_viewport_render(bmain, view_layer);
-    /* Update all objects: drivers, matrices, displists, etc. flags set
+    /* Update all objects: drivers, matrices, #DispList, etc. flags set
      * by depsgraph or manual, no layer check here, gets correct flushed. */
     DEG_evaluate_on_refresh(depsgraph);
     /* Update sound system. */
@@ -2541,7 +2568,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
     BKE_image_editors_update_frame(bmain, scene->r.cfra);
     BKE_sound_set_cfra(scene->r.cfra);
     DEG_graph_relations_update(depsgraph);
-    /* Update all objects: drivers, matrices, displists, etc. flags set
+    /* Update all objects: drivers, matrices, #DispList, etc. flags set
      * by depgraph or manual, no layer check here, gets correct flushed.
      *
      * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user
@@ -2760,6 +2787,12 @@ bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
   PointerRNA scene_ptr;
   RNA_id_pointer_create(&scene->id, &scene_ptr);
   PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
+
+  if (RNA_pointer_is_null(&cycles_ptr)) {
+    /* The pointer only exists if Cycles is enabled. */
+    return false;
+  }
+
   return RNA_enum_get(&cycles_ptr, "feature_set") == CYCLES_FEATURES_EXPERIMENTAL;
 }
 

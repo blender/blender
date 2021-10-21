@@ -29,13 +29,6 @@
 extern "C" {
 #endif
 
-/** Number of points in high resolution table is dynamic up to a maximum. */
-#define PROF_TABLE_MAX 512
-/** Number of table points per control point. */
-#define PROF_RESOL 16
-/** Dynamic size of widget's high resolution table. Input should be profile->totpoint. */
-#define PROF_TABLE_LEN(n_pts) min_ii(PROF_TABLE_MAX, (((n_pts - 1)) * PROF_RESOL) + 1)
-
 /**
  * Each control point that makes up the profile.
  * \note The flags use the same enum as Bezier curves, but they aren't guaranteed

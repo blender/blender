@@ -14,7 +14,7 @@ sound = aud.Sound('music.ogg')
 # play the audio, this return a handle to control play/pause
 handle = device.play(sound)
 # if the audio is not too big and will be used often you can buffer it
-sound_buffered = aud.Sound.buffer(sound)
+sound_buffered = aud.Sound.cache(sound)
 handle_buffered = device.play(sound_buffered)
 
 # stop the sounds (otherwise they play until their ends)

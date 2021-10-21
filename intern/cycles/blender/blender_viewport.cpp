@@ -17,6 +17,8 @@
 #include "blender_viewport.h"
 
 #include "blender_util.h"
+#include "render/pass.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,11 +28,12 @@ BlenderViewportParameters::BlenderViewportParameters()
       studiolight_rotate_z(0.0f),
       studiolight_intensity(1.0f),
       studiolight_background_alpha(1.0f),
-      display_pass(PASS_COMBINED)
+      display_pass(PASS_COMBINED),
+      show_active_pixels(false)
 {
 }
 
-BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
+BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d, bool use_developer_ui)
     : BlenderViewportParameters()
 {
   if (!b_v3d) {
@@ -55,7 +58,25 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
   }
 
   /* Film. */
-  display_pass = (PassType)get_enum(cshading, "render_pass", -1, -1);
+
+  /* Lookup display pass based on the enum identifier.
+   * This is because integer values of python enum are not aligned with the passes definition in
+   * the kernel. */
+
+  display_pass = PASS_COMBINED;
+
+  const string display_pass_identifier = get_enum_identifier(cshading, "render_pass");
+  if (!display_pass_identifier.empty()) {
+    const ustring pass_type_identifier(string_to_lower(display_pass_identifier));
+    const NodeEnum *pass_type_enum = Pass::get_type_enum();
+    if (pass_type_enum->exists(pass_type_identifier)) {
+      display_pass = static_cast<PassType>((*pass_type_enum)[pass_type_identifier]);
+    }
+  }
+
+  if (use_developer_ui) {
+    show_active_pixels = get_boolean(cshading, "show_active_pixels");
+  }
 }
 
 bool BlenderViewportParameters::shader_modified(const BlenderViewportParameters &other) const
@@ -69,7 +90,7 @@ bool BlenderViewportParameters::shader_modified(const BlenderViewportParameters 
 
 bool BlenderViewportParameters::film_modified(const BlenderViewportParameters &other) const
 {
-  return display_pass != other.display_pass;
+  return display_pass != other.display_pass || show_active_pixels != other.show_active_pixels;
 }
 
 bool BlenderViewportParameters::modified(const BlenderViewportParameters &other) const
@@ -80,20 +101,6 @@ bool BlenderViewportParameters::modified(const BlenderViewportParameters &other)
 bool BlenderViewportParameters::use_custom_shader() const
 {
   return !(use_scene_world && use_scene_lights);
-}
-
-PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes)
-{
-  if (b_v3d) {
-    const BlenderViewportParameters viewport_parameters(b_v3d);
-    const PassType display_pass = viewport_parameters.display_pass;
-
-    passes.clear();
-    Pass::add(display_pass, passes);
-
-    return display_pass;
-  }
-  return PASS_NONE;
 }
 
 CCL_NAMESPACE_END

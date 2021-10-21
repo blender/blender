@@ -336,7 +336,7 @@ void register_row_filter_panels(ARegionType &region_type)
     strcpy(panel_type->label, "");
     strcpy(panel_type->category, "Filters");
     strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-    panel_type->flag = PANEL_TYPE_INSTANCED | PANEL_TYPE_DRAW_BOX | PANEL_TYPE_HEADER_EXPAND;
+    panel_type->flag = PANEL_TYPE_INSTANCED | PANEL_TYPE_HEADER_EXPAND;
     panel_type->draw_header = spreadsheet_filter_panel_draw_header;
     panel_type->draw = spreadsheet_filter_panel_draw;
     panel_type->get_list_data_expand_flag = get_filter_expand_flag;

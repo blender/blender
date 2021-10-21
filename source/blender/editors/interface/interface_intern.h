@@ -116,7 +116,7 @@ extern const char ui_radial_dir_to_numpad[8];
 extern const short ui_radial_dir_to_angle[8];
 
 /* internal panel drawing defines */
-#define PNL_HEADER (UI_UNIT_Y * 1.2) /* 24 default */
+#define PNL_HEADER (UI_UNIT_Y * 1.25) /* 24 default */
 
 /* bit button defines */
 /* Bit operations */
@@ -360,6 +360,14 @@ typedef struct uiButDatasetRow {
   int indentation;
 } uiButDatasetRow;
 
+/** Derived struct for #UI_BTYPE_TREEROW. */
+typedef struct uiButTreeRow {
+  uiBut but;
+
+  uiTreeViewItemHandle *tree_item;
+  int indentation;
+} uiButTreeRow;
+
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
   uiBut but;
@@ -399,6 +407,7 @@ typedef struct uiButExtraOpIcon {
   struct wmOperatorCallParams *optype_params;
 
   bool highlighted;
+  bool disabled;
 } uiButExtraOpIcon;
 
 typedef struct ColorPicker {
@@ -487,6 +496,11 @@ struct uiBlock {
   struct uiLayout *curlayout;
 
   ListBase contexts;
+
+  /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
+   * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
+   * state that is persistent over redraws (e.g. collapsed tree-view items). */
+  ListBase views;
 
   char name[UI_MAX_NAME_STR];
 
@@ -681,6 +695,9 @@ void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
 bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+bool ui_but_context_poll_operator_ex(struct bContext *C,
+                                     const uiBut *but,
+                                     const struct wmOperatorCallParams *optype_params);
 
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
@@ -1094,6 +1111,7 @@ void ui_resources_free(void);
 
 /* interface_layout.c */
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
+void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,
@@ -1158,6 +1176,8 @@ uiBut *ui_list_row_find_mouse_over(const struct ARegion *region,
 uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    const int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int x, const int y);
+uiBut *ui_tree_row_find_active(const struct ARegion *region);
 
 typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
@@ -1273,6 +1293,13 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
+
+/* interface_view.cc */
+void ui_block_free_views(struct uiBlock *block);
+uiTreeViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                           const uiTreeViewHandle *new_view);
+uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
+                                                      const uiTreeViewItemHandle *new_item_handle);
 
 #ifdef __cplusplus
 }

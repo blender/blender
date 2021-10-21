@@ -55,7 +55,7 @@ buildbot:
     cuda11:
         version: '11.4.1'
     optix:
-        version: '7.1.0'
+        version: '7.3.0'
     cmake:
         default:
             version: any

@@ -16,19 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <cstring>
-
 #include "BKE_node.h"
 
 #include "RNA_access.h"
-
-#include "COM_ExecutionSystem.h"
-#include "COM_NodeOperation.h"
-#include "COM_TranslateOperation.h"
-
-#include "COM_SocketProxyNode.h"
-
-#include "COM_defines.h"
 
 #include "COM_Node.h" /* own include */
 
@@ -38,14 +28,14 @@ namespace blender::compositor {
  **** Node ****
  **************/
 
-Node::Node(bNode *editorNode, bool create_sockets)
-    : m_editorNodeTree(nullptr),
-      m_editorNode(editorNode),
-      m_inActiveGroup(false),
-      m_instanceKey(NODE_INSTANCE_KEY_NONE)
+Node::Node(bNode *editor_node, bool create_sockets)
+    : editor_node_tree_(nullptr),
+      editor_node_(editor_node),
+      in_active_group_(false),
+      instance_key_(NODE_INSTANCE_KEY_NONE)
 {
   if (create_sockets) {
-    bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
+    bNodeSocket *input = (bNodeSocket *)editor_node->inputs.first;
     while (input != nullptr) {
       DataType dt = DataType::Value;
       if (input->type == SOCK_RGBA) {
@@ -55,10 +45,10 @@ Node::Node(bNode *editorNode, bool create_sockets)
         dt = DataType::Vector;
       }
 
-      this->addInputSocket(dt, input);
+      this->add_input_socket(dt, input);
       input = input->next;
     }
-    bNodeSocket *output = (bNodeSocket *)editorNode->outputs.first;
+    bNodeSocket *output = (bNodeSocket *)editor_node->outputs.first;
     while (output != nullptr) {
       DataType dt = DataType::Value;
       if (output->type == SOCK_RGBA) {
@@ -68,7 +58,7 @@ Node::Node(bNode *editorNode, bool create_sockets)
         dt = DataType::Vector;
       }
 
-      this->addOutputSocket(dt, output);
+      this->add_output_socket(dt, output);
       output = output->next;
     }
   }
@@ -76,51 +66,51 @@ Node::Node(bNode *editorNode, bool create_sockets)
 
 Node::~Node()
 {
-  while (!this->outputs.is_empty()) {
-    delete (this->outputs.pop_last());
+  while (!outputs_.is_empty()) {
+    delete (outputs_.pop_last());
   }
-  while (!this->inputs.is_empty()) {
-    delete (this->inputs.pop_last());
+  while (!inputs_.is_empty()) {
+    delete (inputs_.pop_last());
   }
 }
 
-void Node::addInputSocket(DataType datatype)
+void Node::add_input_socket(DataType datatype)
 {
-  this->addInputSocket(datatype, nullptr);
+  this->add_input_socket(datatype, nullptr);
 }
 
-void Node::addInputSocket(DataType datatype, bNodeSocket *bSocket)
+void Node::add_input_socket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeInput *socket = new NodeInput(this, bSocket, datatype);
-  this->inputs.append(socket);
+  inputs_.append(socket);
 }
 
-void Node::addOutputSocket(DataType datatype)
+void Node::add_output_socket(DataType datatype)
 {
-  this->addOutputSocket(datatype, nullptr);
+  this->add_output_socket(datatype, nullptr);
 }
-void Node::addOutputSocket(DataType datatype, bNodeSocket *bSocket)
+void Node::add_output_socket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeOutput *socket = new NodeOutput(this, bSocket, datatype);
-  outputs.append(socket);
+  outputs_.append(socket);
 }
 
-NodeOutput *Node::getOutputSocket(unsigned int index) const
+NodeOutput *Node::get_output_socket(unsigned int index) const
 {
-  return outputs[index];
+  return outputs_[index];
 }
 
-NodeInput *Node::getInputSocket(unsigned int index) const
+NodeInput *Node::get_input_socket(unsigned int index) const
 {
-  return inputs[index];
+  return inputs_[index];
 }
 
-bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)
+bNodeSocket *Node::get_editor_input_socket(int editor_node_input_socket_index)
 {
-  bNodeSocket *bSock = (bNodeSocket *)this->getbNode()->inputs.first;
+  bNodeSocket *bSock = (bNodeSocket *)this->get_bnode()->inputs.first;
   int index = 0;
   while (bSock != nullptr) {
-    if (index == editorNodeInputSocketIndex) {
+    if (index == editor_node_input_socket_index) {
       return bSock;
     }
     index++;
@@ -128,12 +118,12 @@ bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)
   }
   return nullptr;
 }
-bNodeSocket *Node::getEditorOutputSocket(int editorNodeOutputSocketIndex)
+bNodeSocket *Node::get_editor_output_socket(int editor_node_output_socket_index)
 {
-  bNodeSocket *bSock = (bNodeSocket *)this->getbNode()->outputs.first;
+  bNodeSocket *bSock = (bNodeSocket *)this->get_bnode()->outputs.first;
   int index = 0;
   while (bSock != nullptr) {
-    if (index == editorNodeOutputSocketIndex) {
+    if (index == editor_node_output_socket_index) {
       return bSock;
     }
     index++;
@@ -147,33 +137,33 @@ bNodeSocket *Node::getEditorOutputSocket(int editorNodeOutputSocketIndex)
  *******************/
 
 NodeInput::NodeInput(Node *node, bNodeSocket *b_socket, DataType datatype)
-    : m_node(node), m_editorSocket(b_socket), m_datatype(datatype), m_link(nullptr)
+    : node_(node), editor_socket_(b_socket), datatype_(datatype), link_(nullptr)
 {
 }
 
-void NodeInput::setLink(NodeOutput *link)
+void NodeInput::set_link(NodeOutput *link)
 {
-  m_link = link;
+  link_ = link;
 }
 
-float NodeInput::getEditorValueFloat() const
+float NodeInput::get_editor_value_float() const
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get(&ptr, "default_value");
 }
 
-void NodeInput::getEditorValueColor(float *value) const
+void NodeInput::get_editor_value_color(float *value) const
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
 
-void NodeInput::getEditorValueVector(float *value) const
+void NodeInput::get_editor_value_vector(float *value) const
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
 
@@ -182,28 +172,28 @@ void NodeInput::getEditorValueVector(float *value) const
  ********************/
 
 NodeOutput::NodeOutput(Node *node, bNodeSocket *b_socket, DataType datatype)
-    : m_node(node), m_editorSocket(b_socket), m_datatype(datatype)
+    : node_(node), editor_socket_(b_socket), datatype_(datatype)
 {
 }
 
-float NodeOutput::getEditorValueFloat()
+float NodeOutput::get_editor_value_float()
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get(&ptr, "default_value");
 }
 
-void NodeOutput::getEditorValueColor(float *value)
+void NodeOutput::get_editor_value_color(float *value)
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
 
-void NodeOutput::getEditorValueVector(float *value)
+void NodeOutput::get_editor_value_vector(float *value)
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
+  RNA_pointer_create((ID *)get_node()->get_bnodetree(), &RNA_NodeSocket, get_bnode_socket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
 

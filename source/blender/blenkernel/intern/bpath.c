@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 /* TODO:
@@ -66,13 +66,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_font.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
+#include "BKE_vfont.h"
 
 #include "BKE_bpath.h" /* own include */
 
@@ -584,6 +584,11 @@ void BKE_bpath_traverse_id(
 
   if ((flag & BKE_BPATH_TRAVERSE_SKIP_LIBRARY) && ID_IS_LINKED(id)) {
     return;
+  }
+
+  if (id->library_weak_reference != NULL) {
+    rewrite_path_fixed(
+        id->library_weak_reference->library_filepath, visit_cb, absbase, bpath_user_data);
   }
 
   switch (GS(id->name)) {

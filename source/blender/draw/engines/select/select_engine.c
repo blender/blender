@@ -388,6 +388,8 @@ RenderEngineType DRW_engine_viewport_select_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
+    NULL,
     &draw_engine_select_type,
     {NULL, NULL, NULL},
 };

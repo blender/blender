@@ -464,7 +464,7 @@ void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
   BLI_assert(src_mesh.totedge == edge_map.size());
   for (const int i_src : IndexRange(src_mesh.totedge)) {
     const int i_dst = edge_map[i_src];
-    if (i_dst == -1 || i_dst == -2) {
+    if (ELEM(i_dst, -1, -2)) {
       continue;
     }
 
@@ -814,8 +814,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   }
 
   BKE_mesh_calc_edges_loose(result);
-  /* Tag to recalculate normals later. */
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

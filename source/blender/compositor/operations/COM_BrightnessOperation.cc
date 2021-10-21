@@ -22,41 +22,41 @@ namespace blender::compositor {
 
 BrightnessOperation::BrightnessOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  this->m_use_premultiply = false;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
+  use_premultiply_ = false;
+  flags_.can_be_constant = true;
 }
 
-void BrightnessOperation::setUsePremultiply(bool use_premultiply)
+void BrightnessOperation::set_use_premultiply(bool use_premultiply)
 {
-  this->m_use_premultiply = use_premultiply;
+  use_premultiply_ = use_premultiply;
 }
 
-void BrightnessOperation::initExecution()
+void BrightnessOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputBrightnessProgram = this->getInputSocketReader(1);
-  this->m_inputContrastProgram = this->getInputSocketReader(2);
+  input_program_ = this->get_input_socket_reader(0);
+  input_brightness_program_ = this->get_input_socket_reader(1);
+  input_contrast_program_ = this->get_input_socket_reader(2);
 }
 
-void BrightnessOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+void BrightnessOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
-  float inputValue[4];
+  float input_value[4];
   float a, b;
-  float inputBrightness[4];
-  float inputContrast[4];
-  this->m_inputProgram->readSampled(inputValue, x, y, sampler);
-  this->m_inputBrightnessProgram->readSampled(inputBrightness, x, y, sampler);
-  this->m_inputContrastProgram->readSampled(inputContrast, x, y, sampler);
-  float brightness = inputBrightness[0];
-  float contrast = inputContrast[0];
+  float input_brightness[4];
+  float input_contrast[4];
+  input_program_->read_sampled(input_value, x, y, sampler);
+  input_brightness_program_->read_sampled(input_brightness, x, y, sampler);
+  input_contrast_program_->read_sampled(input_contrast, x, y, sampler);
+  float brightness = input_brightness[0];
+  float contrast = input_contrast[0];
   brightness /= 100.0f;
   float delta = contrast / 200.0f;
   /*
@@ -74,14 +74,14 @@ void BrightnessOperation::executePixelSampled(float output[4],
     a = max_ff(1.0f - delta * 2.0f, 0.0f);
     b = a * brightness + delta;
   }
-  if (this->m_use_premultiply) {
-    premul_to_straight_v4(inputValue);
+  if (use_premultiply_) {
+    premul_to_straight_v4(input_value);
   }
-  output[0] = a * inputValue[0] + b;
-  output[1] = a * inputValue[1] + b;
-  output[2] = a * inputValue[2] + b;
-  output[3] = inputValue[3];
-  if (this->m_use_premultiply) {
+  output[0] = a * input_value[0] + b;
+  output[1] = a * input_value[1] + b;
+  output[2] = a * input_value[2] + b;
+  output[3] = input_value[3];
+  if (use_premultiply_) {
     straight_to_premul_v4(output);
   }
 }
@@ -113,7 +113,7 @@ void BrightnessOperation::update_memory_buffer_partial(MemoryBuffer *output,
       b = a * brightness + delta;
     }
     const float *color;
-    if (this->m_use_premultiply) {
+    if (use_premultiply_) {
       premul_to_straight_v4_v4(tmp_color, in_color);
       color = tmp_color;
     }
@@ -124,17 +124,17 @@ void BrightnessOperation::update_memory_buffer_partial(MemoryBuffer *output,
     it.out[1] = a * color[1] + b;
     it.out[2] = a * color[2] + b;
     it.out[3] = color[3];
-    if (this->m_use_premultiply) {
+    if (use_premultiply_) {
       straight_to_premul_v4(it.out);
     }
   }
 }
 
-void BrightnessOperation::deinitExecution()
+void BrightnessOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputBrightnessProgram = nullptr;
-  this->m_inputContrastProgram = nullptr;
+  input_program_ = nullptr;
+  input_brightness_program_ = nullptr;
+  input_contrast_program_ = nullptr;
 }
 
 }  // namespace blender::compositor

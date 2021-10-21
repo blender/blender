@@ -140,8 +140,6 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         scene.render.use_overwrite = True
         scene.render.use_stamp = False
         scene.render.threads_mode = 'AUTO'
-        scene.render.tile_x = RENDER_PREVIEW_SIZE // 4
-        scene.render.tile_y = RENDER_PREVIEW_SIZE // 4
 
         image = bpy.data.images.new("TEMP_render_image", RENDER_PREVIEW_SIZE, RENDER_PREVIEW_SIZE, alpha=True)
         image.source = 'FILE'

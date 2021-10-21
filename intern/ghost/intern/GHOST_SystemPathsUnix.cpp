@@ -114,6 +114,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
 const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
 {
   const char *type_str;
+  std::string add_path = "";
 
   switch (type) {
     case GHOST_kUserSpecialDirDesktop:
@@ -134,6 +135,18 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
     case GHOST_kUserSpecialDirVideos:
       type_str = "VIDEOS";
       break;
+    case GHOST_kUserSpecialDirCaches: {
+      const char *cache_dir = getenv("XDG_CACHE_HOME");
+      if (cache_dir) {
+        return cache_dir;
+      }
+      /* Fallback to ~home/.cache/.
+       * When invoking `xdg-user-dir` without parameters the user folder
+       * will be read. `.cache` will be appended. */
+      type_str = "";
+      add_path = ".cache";
+      break;
+    }
     default:
       GHOST_ASSERT(
           false,
@@ -142,7 +155,7 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   }
 
   static string path = "";
-  /* Pipe stderr to /dev/null to avoid error prints. We will fail gracefully still. */
+  /* Pipe `stderr` to `/dev/null` to avoid error prints. We will fail gracefully still. */
   string command = string("xdg-user-dir ") + type_str + " 2> /dev/null";
 
   FILE *fstream = popen(command.c_str(), "r");
@@ -152,7 +165,7 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   std::stringstream path_stream;
   while (!feof(fstream)) {
     char c = fgetc(fstream);
-    /* xdg-user-dir ends the path with '\n'. */
+    /* `xdg-user-dir` ends the path with '\n'. */
     if (c == '\n') {
       break;
     }
@@ -161,6 +174,10 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   if (pclose(fstream) == -1) {
     perror("GHOST_SystemPathsUnix::getUserSpecialDir failed at pclose()");
     return NULL;
+  }
+
+  if (!add_path.empty()) {
+    path_stream << '/' << add_path;
   }
 
   path = path_stream.str();

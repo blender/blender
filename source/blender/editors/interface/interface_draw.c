@@ -1860,13 +1860,13 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   /* Also add the last points on the right and bottom edges to close off the fill polygon. */
   const bool add_left_tri = profile->view_rect.xmin < 0.0f;
   const bool add_bottom_tri = profile->view_rect.ymin < 0.0f;
-  uint tot_points = (uint)PROF_TABLE_LEN(profile->path_len) + 1 + add_left_tri + add_bottom_tri;
+  int tot_points = BKE_curveprofile_table_size(profile) + 1 + add_left_tri + add_bottom_tri;
   const uint tot_triangles = tot_points - 2;
 
   /* Create array of the positions of the table's points. */
   float(*table_coords)[2] = MEM_mallocN(sizeof(*table_coords) * tot_points, "table x coords");
-  for (uint i = 0; i < (uint)PROF_TABLE_LEN(profile->path_len);
-       i++) { /* Only add the points from the table here. */
+  for (uint i = 0; i < (uint)BKE_curveprofile_table_size(profile); i++) {
+    /* Only add the points from the table here. */
     table_coords[i][0] = pts[i].x;
     table_coords[i][1] = pts[i].y;
   }
@@ -1903,44 +1903,50 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   }
 
   /* Calculate the table point indices of the triangles for the profile's fill. */
-  uint(*tri_indices)[3] = MEM_mallocN(sizeof(*tri_indices) * tot_triangles, "return tri indices");
-  BLI_polyfill_calc(table_coords, tot_points, -1, tri_indices);
+  if (tot_triangles > 0) {
+    uint(*tri_indices)[3] = MEM_mallocN(sizeof(*tri_indices) * tot_triangles, __func__);
+    BLI_polyfill_calc(table_coords, tot_points, -1, tri_indices);
 
-  /* Draw the triangles for the profile fill. */
-  immUniformColor3ubvAlpha((const uchar *)wcol->item, 128);
-  GPU_blend(GPU_BLEND_ALPHA);
-  GPU_polygon_smooth(false);
-  immBegin(GPU_PRIM_TRIS, 3 * tot_triangles);
-  for (uint i = 0; i < tot_triangles; i++) {
-    for (uint j = 0; j < 3; j++) {
-      uint *tri = tri_indices[i];
-      fx = rect->xmin + zoomx * (table_coords[tri[j]][0] - offsx);
-      fy = rect->ymin + zoomy * (table_coords[tri[j]][1] - offsy);
-      immVertex2f(pos, fx, fy);
+    /* Draw the triangles for the profile fill. */
+    immUniformColor3ubvAlpha((const uchar *)wcol->item, 128);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_polygon_smooth(false);
+    immBegin(GPU_PRIM_TRIS, 3 * tot_triangles);
+    for (uint i = 0; i < tot_triangles; i++) {
+      for (uint j = 0; j < 3; j++) {
+        uint *tri = tri_indices[i];
+        fx = rect->xmin + zoomx * (table_coords[tri[j]][0] - offsx);
+        fy = rect->ymin + zoomy * (table_coords[tri[j]][1] - offsy);
+        immVertex2f(pos, fx, fy);
+      }
     }
+    immEnd();
+    MEM_freeN(tri_indices);
   }
-  immEnd();
-  MEM_freeN(tri_indices);
 
   /* Draw the profile's path so the edge stands out a bit. */
   tot_points -= (add_left_tri + add_left_tri);
-  GPU_line_width(1.0f);
-  immUniformColor3ubvAlpha((const uchar *)wcol->item, 255);
-  GPU_line_smooth(true);
-  immBegin(GPU_PRIM_LINE_STRIP, tot_points - 1);
-  for (uint i = 0; i < tot_points - 1; i++) {
-    fx = rect->xmin + zoomx * (table_coords[i][0] - offsx);
-    fy = rect->ymin + zoomy * (table_coords[i][1] - offsy);
-    immVertex2f(pos, fx, fy);
+  const int edges_len = tot_points - 1;
+  if (edges_len > 0) {
+    GPU_line_width(1.0f);
+    immUniformColor3ubvAlpha((const uchar *)wcol->item, 255);
+    GPU_line_smooth(true);
+    immBegin(GPU_PRIM_LINE_STRIP, tot_points);
+    for (int i = 0; i < tot_points; i++) {
+      fx = rect->xmin + zoomx * (table_coords[i][0] - offsx);
+      fy = rect->ymin + zoomy * (table_coords[i][1] - offsy);
+      immVertex2f(pos, fx, fy);
+    }
+    immEnd();
   }
-  immEnd();
-  MEM_freeN(table_coords);
+
+  MEM_SAFE_FREE(table_coords);
 
   /* Draw the handles for the selected control points. */
   pts = profile->path;
-  tot_points = (uint)profile->path_len;
+  const int path_len = tot_points = (uint)profile->path_len;
   int selected_free_points = 0;
-  for (uint i = 0; i < tot_points; i++) {
+  for (int i = 0; i < path_len; i++) {
     if (point_draw_handles(&pts[i])) {
       selected_free_points++;
     }
@@ -1952,7 +1958,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     GPU_line_smooth(true);
     immBegin(GPU_PRIM_LINES, selected_free_points * 4);
     float ptx, pty;
-    for (uint i = 0; i < tot_points; i++) {
+    for (int i = 0; i < path_len; i++) {
       if (point_draw_handles(&pts[i])) {
         ptx = rect->xmin + zoomx * (pts[i].x - offsx);
         pty = rect->ymin + zoomy * (pts[i].y - offsy);
@@ -1996,16 +2002,18 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Draw the control points. */
   GPU_line_smooth(false);
-  GPU_blend(GPU_BLEND_NONE);
-  GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
-  immBegin(GPU_PRIM_POINTS, tot_points);
-  for (uint i = 0; i < tot_points; i++) {
-    fx = rect->xmin + zoomx * (pts[i].x - offsx);
-    fy = rect->ymin + zoomy * (pts[i].y - offsy);
-    immAttr4fv(col, (pts[i].flag & PROF_SELECT) ? color_vert_select : color_vert);
-    immVertex2f(pos, fx, fy);
+  if (path_len > 0) {
+    GPU_blend(GPU_BLEND_NONE);
+    GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
+    immBegin(GPU_PRIM_POINTS, path_len);
+    for (int i = 0; i < path_len; i++) {
+      fx = rect->xmin + zoomx * (pts[i].x - offsx);
+      fy = rect->ymin + zoomy * (pts[i].y - offsy);
+      immAttr4fv(col, (pts[i].flag & PROF_SELECT) ? color_vert_select : color_vert);
+      immVertex2f(pos, fx, fy);
+    }
+    immEnd();
   }
-  immEnd();
 
   /* Draw the handle points. */
   if (selected_free_points > 0) {
@@ -2013,7 +2021,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     GPU_blend(GPU_BLEND_NONE);
     GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
     immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
-    for (uint i = 0; i < tot_points; i++) {
+    for (int i = 0; i < path_len; i++) {
       if (point_draw_handles(&pts[i])) {
         fx = rect->xmin + zoomx * (pts[i].h1_loc[0] - offsx);
         fy = rect->ymin + zoomy * (pts[i].h1_loc[1] - offsy);
@@ -2031,11 +2039,11 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Draw the sampled points in addition to the control points if they have been created */
   pts = profile->segments;
-  tot_points = (uint)profile->segments_len;
-  if (tot_points > 0 && pts) {
+  const int segments_len = (uint)profile->segments_len;
+  if (segments_len > 0 && pts) {
     GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 3.0f, 3.0f)));
-    immBegin(GPU_PRIM_POINTS, tot_points);
-    for (uint i = 0; i < tot_points; i++) {
+    immBegin(GPU_PRIM_POINTS, segments_len);
+    for (int i = 0; i < segments_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
       fy = rect->ymin + zoomy * (pts[i].y - offsy);
       immAttr4fv(col, color_sample);

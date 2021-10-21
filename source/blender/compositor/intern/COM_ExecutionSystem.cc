@@ -18,14 +18,13 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "BLI_utildefines.h"
-#include "PIL_time.h"
-
 #include "COM_Debug.h"
+#include "COM_ExecutionGroup.h"
 #include "COM_FullFrameExecutionModel.h"
 #include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"
 #include "COM_TiledExecutionModel.h"
+#include "COM_WorkPackage.h"
 #include "COM_WorkScheduler.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -39,45 +38,45 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bNodeTree *editingtree,
                                  bool rendering,
                                  bool fastcalculation,
-                                 const ColorManagedViewSettings *viewSettings,
-                                 const ColorManagedDisplaySettings *displaySettings,
-                                 const char *viewName)
+                                 const ColorManagedViewSettings *view_settings,
+                                 const ColorManagedDisplaySettings *display_settings,
+                                 const char *view_name)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
-  this->m_context.setViewName(viewName);
-  this->m_context.setScene(scene);
-  this->m_context.setbNodeTree(editingtree);
-  this->m_context.setPreviewHash(editingtree->previews);
-  this->m_context.setFastCalculation(fastcalculation);
+  context_.set_view_name(view_name);
+  context_.set_scene(scene);
+  context_.set_bnodetree(editingtree);
+  context_.set_preview_hash(editingtree->previews);
+  context_.set_fast_calculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    this->m_context.setQuality((eCompositorQuality)editingtree->render_quality);
+    context_.set_quality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    this->m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
+    context_.set_quality((eCompositorQuality)editingtree->edit_quality);
   }
-  this->m_context.setRendering(rendering);
-  this->m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
-                                            (editingtree->flag & NTREE_COM_OPENCL));
+  context_.set_rendering(rendering);
+  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
+                                     (editingtree->flag & NTREE_COM_OPENCL));
 
-  this->m_context.setRenderData(rd);
-  this->m_context.setViewSettings(viewSettings);
-  this->m_context.setDisplaySettings(displaySettings);
+  context_.set_render_data(rd);
+  context_.set_view_settings(view_settings);
+  context_.set_display_settings(display_settings);
 
   BLI_mutex_init(&work_mutex_);
   BLI_condition_init(&work_finished_cond_);
 
   {
-    NodeOperationBuilder builder(&m_context, editingtree, this);
-    builder.convertToOperations(this);
+    NodeOperationBuilder builder(&context_, editingtree, this);
+    builder.convert_to_operations(this);
   }
 
-  switch (m_context.get_execution_model()) {
+  switch (context_.get_execution_model()) {
     case eExecutionModel::Tiled:
-      execution_model_ = new TiledExecutionModel(m_context, m_operations, m_groups);
+      execution_model_ = new TiledExecutionModel(context_, operations_, groups_);
       break;
     case eExecutionModel::FullFrame:
-      execution_model_ = new FullFrameExecutionModel(m_context, active_buffers_, m_operations);
+      execution_model_ = new FullFrameExecutionModel(context_, active_buffers_, operations_);
       break;
     default:
       BLI_assert_msg(0, "Non implemented execution model");
@@ -92,28 +91,28 @@ ExecutionSystem::~ExecutionSystem()
 
   delete execution_model_;
 
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations_) {
     delete operation;
   }
-  this->m_operations.clear();
+  operations_.clear();
 
-  for (ExecutionGroup *group : m_groups) {
+  for (ExecutionGroup *group : groups_) {
     delete group;
   }
-  this->m_groups.clear();
+  groups_.clear();
 }
 
 void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
                                      const Vector<ExecutionGroup *> &groups)
 {
-  m_operations = operations;
-  m_groups = groups;
+  operations_ = operations;
+  groups_ = groups;
 }
 
 void ExecutionSystem::execute()
 {
   DebugInfo::execute_started(this);
-  for (NodeOperation *op : m_operations) {
+  for (NodeOperation *op : operations_) {
     op->init_data();
   }
   execution_model_->execute(*this);
@@ -185,7 +184,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
 
 bool ExecutionSystem::is_breaked() const
 {
-  const bNodeTree *btree = m_context.getbNodeTree();
+  const bNodeTree *btree = context_.get_bnodetree();
   return btree->test_break(btree->tbh);
 }
 

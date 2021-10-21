@@ -133,6 +133,9 @@ enum {
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
   LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 27,
+  /** EXCEPTION! Specific handling of RB objects regarding collections differs depending whether we
+     duplicate scene/collections, or objects. */
+  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 28,
 
   /* *** Helper 'defines' gathering most common flag sets. *** */
   /** Shapekeys are not real ID's, more like local data to geometry IDs... */
@@ -230,7 +233,7 @@ void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
-void BKE_id_clear_newpoin(struct ID *id);
+void BKE_id_newptr_and_tag_clear(struct ID *id);
 
 /** Flags to control make local code behavior. */
 enum {
@@ -248,7 +251,7 @@ enum {
 };
 
 void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const int flags);
-bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const bool test, const int flags);
+bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const int flags);
 bool id_single_user(struct bContext *C,
                     struct ID *id,
                     struct PointerRNA *ptr,
@@ -261,7 +264,8 @@ struct ID *BKE_id_copy_ex(struct Main *bmain,
                           const int flag);
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
-                                     const uint duplicate_flags);
+                                     const uint duplicate_flags,
+                                     const int copy_flags);
 
 void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);

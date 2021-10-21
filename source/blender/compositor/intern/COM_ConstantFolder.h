@@ -18,16 +18,12 @@
 
 #pragma once
 
-#include "BLI_map.hh"
-#include "BLI_set.hh"
-#include "BLI_vector.hh"
-
-#include "COM_NodeOperationBuilder.h"
 #include "COM_defines.h"
 
 namespace blender::compositor {
 
 class NodeOperation;
+class NodeOperationBuilder;
 class ConstantOperation;
 class MemoryBuffer;
 

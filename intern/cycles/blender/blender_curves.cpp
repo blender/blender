@@ -283,10 +283,13 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
     return;
 
   Attribute *attr_intercept = NULL;
+  Attribute *attr_length = NULL;
   Attribute *attr_random = NULL;
 
   if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT))
     attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT);
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH))
+    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH);
   if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM))
     attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM);
 
@@ -334,6 +337,10 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
           attr_intercept->add(time);
 
         num_curve_keys++;
+      }
+
+      if (attr_length != NULL) {
+        attr_length->add(CData->curve_length[curve]);
       }
 
       if (attr_random != NULL) {
@@ -657,10 +664,14 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
 
   /* Add requested attributes. */
   Attribute *attr_intercept = NULL;
+  Attribute *attr_length = NULL;
   Attribute *attr_random = NULL;
 
   if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
     attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT);
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
+    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH);
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
     attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM);
@@ -712,6 +723,10 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
       for (int i = 0; i < num_points; i++) {
         attr_intercept->add((length == 0.0f) ? 0.0f : points_length[i] / length);
       }
+    }
+
+    if (attr_length) {
+      attr_length->add(length);
     }
 
     /* Random number per curve. */
