@@ -1536,8 +1536,6 @@ void SCULPT_smooth(Sculpt *sd,
     }
   }
 
-  nodes = nodes ? MEM_dupallocN(nodes) : NULL;
-
 #ifdef PROXY_ADVANCED
   int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
   BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);

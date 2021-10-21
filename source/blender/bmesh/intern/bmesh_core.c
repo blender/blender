@@ -2512,7 +2512,7 @@ static void trigger_jvke_error(int err, char *obj_text)
   printf("========= ERROR %s============\n\n%s\n\n", get_err_str(err), obj_text);
 }
 
-#if 0
+#if JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
     { \
       int err = 0; \
@@ -2529,9 +2529,11 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
+#ifdef JVKE_DEBUG
   char buf[LOCAL_OBJ_SIZE];
   char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
   bm_local_obj_free(saved_obj, buf);
+#endif
 
   BMFace **fs = NULL;
   BMEdge **deles = NULL;
