@@ -275,6 +275,8 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
   Span<const LinkRef *> links() const;
 
+  const NodeRef *find_node(const bNode &bnode) const;
+
   bool has_link_cycles() const;
   bool has_undefined_nodes_or_sockets() const;
 

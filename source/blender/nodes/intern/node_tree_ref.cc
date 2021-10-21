@@ -576,6 +576,16 @@ Vector<const NodeRef *> NodeTreeRef::toposort(const ToposortDirection direction)
   return toposort;
 }
 
+const NodeRef *NodeTreeRef::find_node(const bNode &bnode) const
+{
+  for (const NodeRef *node : this->nodes_by_type(bnode.typeinfo)) {
+    if (node->bnode_ == &bnode) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
 std::string NodeTreeRef::to_dot() const
 {
   dot::DirectedGraph digraph;
