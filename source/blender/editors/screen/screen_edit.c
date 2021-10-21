@@ -57,6 +57,7 @@
 #include "UI_interface.h"
 
 #include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -1239,7 +1240,10 @@ static void screen_set_3dview_camera(Scene *scene,
   }
 }
 
-void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
+void ED_screen_scene_change(bContext *C,
+                            wmWindow *win,
+                            Scene *scene,
+                            const bool refresh_toolsystem)
 {
 #if 0
   ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
@@ -1276,6 +1280,10 @@ void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
         screen_set_3dview_camera(scene, view_layer, area, v3d);
       }
     }
+  }
+
+  if (refresh_toolsystem) {
+    WM_toolsystem_refresh_screen_window(win);
   }
 }
 
