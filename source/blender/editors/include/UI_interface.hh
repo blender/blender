@@ -24,10 +24,22 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender::nodes::geometry_nodes_eval_log {
+struct GeometryAttributeInfo;
+}
+
 struct uiBlock;
 namespace blender::ui {
 class AbstractTreeView;
-}
+
+void attribute_search_add_items(
+    StringRefNull str,
+    const bool is_output,
+    Span<const nodes::geometry_nodes_eval_log::GeometryAttributeInfo *> infos,
+    uiSearchItems *items,
+    const bool is_first);
+
+}  // namespace blender::ui
 
 blender::ui::AbstractTreeView *UI_block_add_view(
     uiBlock &block,

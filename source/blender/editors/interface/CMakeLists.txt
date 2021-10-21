@@ -25,9 +25,11 @@ set(INC
   ../../depsgraph
   ../../draw
   ../../gpu
+  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna
+  ../../nodes
   ../../python
   ../../render
   ../../windowmanager
@@ -69,6 +71,7 @@ set(SRC
   interface_style.c
   interface_template_asset_view.cc
   interface_template_list.cc
+  interface_template_attribute_search.cc
   interface_template_search_menu.c
   interface_template_search_operator.c
   interface_templates.c
