@@ -174,15 +174,6 @@ class PathTraceDisplay {
   /* State of the texture, which is needed for an integration with render session and interactive
    * updates and navigation. */
   struct {
-    /* Denotes whether possibly existing state of GPU side texture is still usable.
-     * It will not be usable in cases like render border did change (in this case we don't want
-     * previous texture to be rendered at all).
-     *
-     * However, if only navigation or object in scene did change, then the outdated state of the
-     * texture is still usable for draw, preventing display viewport flickering on navigation and
-     * object modifications. */
-    bool is_usable = false;
-
     /* Texture is considered outdated after `reset()` until the next call of
      * `copy_pixels_to_texture()`. */
     bool is_outdated = true;

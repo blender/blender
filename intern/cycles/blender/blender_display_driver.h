@@ -188,6 +188,9 @@ class BlenderDisplayDriver : public DisplayDriver {
     /* Dimensions of the underlying PBO. */
     int buffer_width = 0;
     int buffer_height = 0;
+
+    /* Display parameters the texture has been updated for. */
+    Params params;
   } texture_;
 
   unique_ptr<BlenderDisplayShader> display_shader_;

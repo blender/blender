@@ -30,21 +30,9 @@ void PathTraceDisplay::reset(const BufferParams &buffer_params)
 {
   thread_scoped_lock lock(mutex_);
 
-  const DisplayDriver::Params old_params = params_;
-
   params_.full_offset = make_int2(buffer_params.full_x, buffer_params.full_y);
   params_.full_size = make_int2(buffer_params.full_width, buffer_params.full_height);
   params_.size = make_int2(buffer_params.width, buffer_params.height);
-
-  /* If the parameters did change tag texture as unusable. This avoids drawing old texture content
-   * in an updated configuration of the viewport. For example, avoids drawing old frame when render
-   * border did change.
-   * If the parameters did not change, allow drawing the current state of the texture, which will
-   * not count as an up-to-date redraw. This will avoid flickering when doping camera navigation by
-   * showing a previously rendered frame for until the new one is ready. */
-  if (old_params.modified(params_)) {
-    texture_state_.is_usable = false;
-  }
 
   texture_state_.is_outdated = true;
 }
@@ -52,7 +40,6 @@ void PathTraceDisplay::reset(const BufferParams &buffer_params)
 void PathTraceDisplay::mark_texture_updated()
 {
   texture_state_.is_outdated = false;
-  texture_state_.is_usable = true;
 }
 
 /* --------------------------------------------------------------------
@@ -248,19 +235,15 @@ bool PathTraceDisplay::draw()
    * The drawing itself is non-blocking however, for better performance and to avoid
    * potential deadlocks due to locks held by the subclass. */
   DisplayDriver::Params params;
-  bool is_usable;
   bool is_outdated;
 
   {
     thread_scoped_lock lock(mutex_);
     params = params_;
-    is_usable = texture_state_.is_usable;
     is_outdated = texture_state_.is_outdated;
   }
 
-  if (is_usable) {
-    driver_->draw(params);
-  }
+  driver_->draw(params);
 
   return !is_outdated;
 }

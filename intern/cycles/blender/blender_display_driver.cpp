@@ -357,6 +357,8 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
    * centralized place. */
   texture_.need_update = true;
 
+  texture_.params = params;
+
   return true;
 }
 
@@ -717,8 +719,23 @@ void BlenderDisplayDriver::texture_update_if_needed()
   texture_.need_update = false;
 }
 
-void BlenderDisplayDriver::vertex_buffer_update(const Params &params)
+void BlenderDisplayDriver::vertex_buffer_update(const Params & /*params*/)
 {
+  /* Draw at the parameters for which the texture has been updated for. This allows to always draw
+   * texture during bordered-rendered camera view without flickering. The validness of the display
+   * parameters for a texture is guaranteed by the initial "clear" state which makes drawing to
+   * have an early output.
+   *
+   * Such approach can cause some extra "jelly" effect during panning, but it is not more jelly
+   * than overlay of selected objects. Also, it's possible to redraw texture at an intersection of
+   * the texture draw parameters and the latest updated draw paaremters (altohoyugh, complexity of
+   * doing it might not worth it. */
+  const int x = texture_.params.full_offset.x;
+  const int y = texture_.params.full_offset.y;
+
+  const int width = texture_.params.size.x;
+  const int height = texture_.params.size.y;
+
   /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
    * rendered. */
   glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
@@ -730,23 +747,23 @@ void BlenderDisplayDriver::vertex_buffer_update(const Params &params)
 
   vpointer[0] = 0.0f;
   vpointer[1] = 0.0f;
-  vpointer[2] = params.full_offset.x;
-  vpointer[3] = params.full_offset.y;
+  vpointer[2] = x;
+  vpointer[3] = y;
 
   vpointer[4] = 1.0f;
   vpointer[5] = 0.0f;
-  vpointer[6] = (float)params.size.x + params.full_offset.x;
-  vpointer[7] = params.full_offset.y;
+  vpointer[6] = x + width;
+  vpointer[7] = y;
 
   vpointer[8] = 1.0f;
   vpointer[9] = 1.0f;
-  vpointer[10] = (float)params.size.x + params.full_offset.x;
-  vpointer[11] = (float)params.size.y + params.full_offset.y;
+  vpointer[10] = x + width;
+  vpointer[11] = y + height;
 
   vpointer[12] = 0.0f;
   vpointer[13] = 1.0f;
-  vpointer[14] = params.full_offset.x;
-  vpointer[15] = (float)params.size.y + params.full_offset.y;
+  vpointer[14] = x;
+  vpointer[15] = y + height;
 
   glUnmapBuffer(GL_ARRAY_BUFFER);
 }
