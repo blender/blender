@@ -500,20 +500,17 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   )
   set(hip_fatbins)
 
-  macro(CYCLES_HIP_KERNEL_ADD arch prev_arch name flags sources experimental)
+  macro(CYCLES_HIP_KERNEL_ADD arch name flags sources experimental)
     set(format "fatbin")
     set(hip_file ${name}_${arch}.${format})
     set(kernel_sources ${sources})
-    if(NOT ${prev_arch} STREQUAL "none")
-      set(kernel_sources ${kernel_sources} ${name}_${prev_arch}.fatbin)
-    endif()
 
     set(hip_kernel_src "/device/hip/${name}.cpp")
 
     if(WIN32)
       set(hip_command ${CMAKE_COMMAND})
       set(hip_flags
-        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_PATH}"
+        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_DIR}"
         ${HIP_HIPCC_EXECUTABLE}.bat)
     else()
       set(hip_command ${HIP_HIPCC_EXECUTABLE})
@@ -547,18 +544,17 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       set(hip_flags ${hip_flags} -D __KERNEL_DEBUG__)
     endif()
 
-    add_custom_target(
-      ${hip_file}
+    add_custom_command(
+      OUTPUT ${hip_file}
       COMMAND ${hip_command} ${hip_flags}
       DEPENDS ${kernel_sources})
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hip_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND hip_fatbins ${hip_file})
   endmacro()
 
-  set(prev_arch "none")
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
     # Compile regular kernel
-    CYCLES_HIP_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${hip_sources}" FALSE)
+    CYCLES_HIP_KERNEL_ADD(${arch} kernel "" "${hip_sources}" FALSE)
   endforeach()
 
   add_custom_target(cycles_kernel_hip ALL DEPENDS ${hip_fatbins})
