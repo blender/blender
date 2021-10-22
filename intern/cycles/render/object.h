@@ -75,6 +75,9 @@ class Object : public Node {
 
   NODE_SOCKET_API(float, ao_distance)
 
+  /* Set during device update. */
+  bool intersects_volume;
+
   Object();
   ~Object();
 
@@ -108,13 +111,6 @@ class Object : public Node {
 
   /* Compute step size from attributes, shaders, transforms. */
   float compute_volume_step_size() const;
-
-  /* Check whether this object requires volume sampling (and hence might require space in the
-   * volume stack).
-   *
-   * Note that this is a naive iteration over shaders, which allows to access information prior
-   * to `scene_update()`. */
-  bool check_is_volume() const;
 
  protected:
   /* Specifies the position of the object in scene->objects and

@@ -114,6 +114,7 @@ Object::Object() : Node(get_node_type())
   particle_index = 0;
   attr_map_offset = 0;
   bounds = BoundBox::empty;
+  intersects_volume = false;
 }
 
 Object::~Object()
@@ -365,22 +366,6 @@ float Object::compute_volume_step_size() const
   step_size *= step_rate;
 
   return step_size;
-}
-
-bool Object::check_is_volume() const
-{
-  if (geometry->geometry_type == Geometry::VOLUME) {
-    return true;
-  }
-
-  for (Node *node : get_geometry()->get_used_shaders()) {
-    const Shader *shader = static_cast<const Shader *>(node);
-    if (shader->has_volume) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 int Object::get_device_index() const
@@ -775,12 +760,14 @@ void ObjectManager::device_update_flags(
     }
 
     if (bounds_valid) {
+      object->intersects_volume = false;
       foreach (Object *volume_object, volume_objects) {
         if (object == volume_object) {
           continue;
         }
         if (object->bounds.intersects(volume_object->bounds)) {
           object_flag[object->index] |= SD_OBJECT_INTERSECTS_VOLUME;
+          object->intersects_volume = true;
           break;
         }
       }

@@ -539,19 +539,12 @@ bool Session::update_scene(int width, int height)
   Camera *cam = scene->camera;
   cam->set_screen_size(width, height);
 
-  /* First detect which kernel features are used and allocate working memory.
-   * This helps estimate how may device memory is available for the scene and
-   * how much we need to allocate on the host instead. */
-  scene->update_kernel_features();
+  const bool scene_update_result = scene->update(progress);
 
   path_trace_->load_kernels();
   path_trace_->alloc_work_memory();
 
-  if (scene->update(progress)) {
-    return true;
-  }
-
-  return false;
+  return scene_update_result;
 }
 
 static string status_append(const string &status, const string &suffix)
