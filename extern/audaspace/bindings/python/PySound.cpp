@@ -290,7 +290,7 @@ PyDoc_STRVAR(M_aud_Sound_buffer_doc,
 			 ".. classmethod:: buffer(data, rate)\n\n"
 			 "   Creates a sound from a data buffer.\n\n"
 			 "   :arg data: The data as two dimensional numpy array.\n"
-			 "   :type data: numpy.ndarray\n"
+			 "   :type data: :class:`numpy.ndarray`\n"
 			 "   :arg rate: The sample rate.\n"
 			 "   :type rate: double\n"
 			 "   :return: The created :class:`Sound` object.\n"
