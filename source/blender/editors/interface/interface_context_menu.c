@@ -1257,6 +1257,9 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   if (panel->type->parent != NULL) {
     return;
   }
+  if (!UI_panel_can_be_pinned(panel)) {
+    return;
+  }
 
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_Panel, panel, &ptr);
