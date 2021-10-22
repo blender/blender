@@ -1568,6 +1568,8 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_ALIGN_EULER_TO_VECTOR 1216
 #define FN_NODE_INPUT_COLOR 1217
 #define FN_NODE_REPLACE_STRING 1218
+#define FN_NODE_INPUT_BOOL 1219
+#define FN_NODE_INPUT_INT 1220
 
 /** \} */
 
