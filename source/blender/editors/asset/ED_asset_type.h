@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +29,7 @@ extern "C" {
 struct ID;
 
 bool ED_asset_type_id_is_non_experimental(const struct ID *id);
+#define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS (FILTER_ID_MA | FILTER_ID_AC | FILTER_ID_WO)
 
 /**
  * Check if the asset type for \a id (which doesn't need to be an asset right now) can be an asset,

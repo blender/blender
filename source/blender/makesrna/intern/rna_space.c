@@ -34,11 +34,14 @@
 #include "BKE_node.h"
 #include "BKE_studiolight.h"
 
+#include "ED_asset.h"
 #include "ED_spreadsheet.h"
 #include "ED_text.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_sys_types.h"
 #include "BLI_uuid.h"
 
 #include "DNA_action_types.h"
@@ -2622,6 +2625,11 @@ static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int val
 {
   FileAssetSelectParams *params = ptr->data;
   params->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
+}
+
+static PointerRNA rna_FileAssetSelectParams_filter_id_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_FileAssetSelectIDFilter, ptr->data);
 }
 
 static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr)
@@ -6351,6 +6359,40 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
   }
 }
 
+/* Filter for datablock types in the Asset Browser. */
+static void rna_def_fileselect_asset_idfilter(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "FileAssetSelectIDFilter", NULL);
+  RNA_def_struct_sdna(srna, "FileSelectParams");
+  RNA_def_struct_nested(brna, srna, "FileSelectParams");
+  RNA_def_struct_ui_text(srna,
+                         "File Select Asset Filter",
+                         "Which asset types to show/hide, when browsing an asset library");
+
+  static char experimental_prop_names[INDEX_ID_MAX][MAX_NAME];
+
+  for (uint i = 0; rna_enum_id_type_filter_items[i].identifier; i++) {
+    const struct IDFilterEnumPropertyItem *item = &rna_enum_id_type_filter_items[i];
+    const bool is_experimental = (ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS & item->flag) == 0;
+
+    const char *identifier = rna_enum_id_type_filter_items[i].identifier;
+    if (is_experimental) {
+      /* Create name for experimental property and store in static buffer. */
+      snprintf(experimental_prop_names[i],
+               ARRAY_SIZE(experimental_prop_names[i]),
+               "experimental_%s",
+               identifier);
+      identifier = experimental_prop_names[i];
+    }
+
+    PropertyRNA *prop = RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "filter_id", item->flag);
+    RNA_def_property_ui_text(prop, item->name, item->description);
+    RNA_def_property_ui_icon(prop, item->icon, 0);
+    RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+  }
+}
+
 static void rna_def_fileselect_entry(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -6672,6 +6714,15 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                                 NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
+
+  prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "FileAssetSelectIDFilter");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_FileAssetSelectParams_filter_id_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Filter Asset Types",
+                           "Which asset types to show/hide, when browsing an asset library");
 
   prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, asset_import_type_items);
@@ -7880,6 +7931,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_fileselect_params(brna);
   rna_def_fileselect_asset_params(brna);
   rna_def_fileselect_idfilter(brna);
+  rna_def_fileselect_asset_idfilter(brna);
   rna_def_filemenu_entry(brna);
   rna_def_space_filebrowser(brna);
   rna_def_space_outliner(brna);

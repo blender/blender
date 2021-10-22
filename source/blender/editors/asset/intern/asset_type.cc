@@ -29,12 +29,8 @@
 bool ED_asset_type_id_is_non_experimental(const ID *id)
 {
   /* Remember to update #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING and
-   * #asset_type_ids_non_experimental_as_filter_flags() with this! */
+   * #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS() with this! */
   return ELEM(GS(id->name), ID_MA, ID_AC, ID_WO);
-}
-static int64_t asset_type_ids_non_experimental_as_filter_flags()
-{
-  return FILTER_ID_MA | FILTER_ID_AC | FILTER_ID_WO;
 }
 
 bool ED_asset_type_is_supported(const ID *id)
@@ -58,5 +54,5 @@ int64_t ED_asset_types_supported_as_filter_flags()
     return FILTER_ID_ALL;
   }
 
-  return asset_type_ids_non_experimental_as_filter_flags();
+  return ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS;
 }
