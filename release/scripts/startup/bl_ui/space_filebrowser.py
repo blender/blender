@@ -127,7 +127,7 @@ class FILEBROWSER_PT_display(FileBrowserPanel, Panel):
 class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
     bl_region_type = 'HEADER'
     bl_label = "Filter Settings"  # Shows as tooltip in popover
-    bl_ui_units_x = 8
+    bl_ui_units_x = 10
 
     def draw(self, context):
         layout = self.layout
@@ -195,7 +195,9 @@ class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
                     if identifier.startswith("category_"):
-                        sub.prop(filter_id, identifier, toggle=True)
+                        subrow = sub.row()
+                        subrow.label(icon=filter_id.bl_rna.properties[identifier].icon)
+                        subrow.prop(filter_id, identifier, toggle=False)
 
                 col.separator()
 
@@ -388,7 +390,9 @@ class FILEBROWSER_PT_advanced_filter(Panel):
             filter_id = params.filter_id
             for identifier in dir(filter_id):
                 if identifier.startswith("filter_"):
-                    col.prop(filter_id, identifier, toggle=True)
+                    row = col.row()
+                    row.label(icon=filter_id.bl_rna.properties[identifier].icon)
+                    row.prop(filter_id, identifier, toggle=False)
 
 
 def is_option_region_visible(context, space):
