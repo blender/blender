@@ -695,8 +695,6 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
 
   BKE_mesh_normals_tag_dirty(mesh);
 
-  calculate_cone_uvs(mesh, config);
-
   return mesh;
 }
 
