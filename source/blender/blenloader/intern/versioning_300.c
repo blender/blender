@@ -1197,7 +1197,7 @@ static void correct_bone_roll_value(const float head[3],
       /* Recompute roll using legacy code to interpret the old value. */
       legacy_vec_roll_to_mat3_normalized(vec, *r_roll, bone_mat);
       mat3_to_vec_roll(bone_mat, vec2, r_roll);
-      BLI_assert(compare_v3v3(vec, vec2, FLT_EPSILON));
+      BLI_assert(compare_v3v3(vec, vec2, 0.001f));
     }
   }
 }
