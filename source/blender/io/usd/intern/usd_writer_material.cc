@@ -811,9 +811,12 @@ static const std::map<int, std::string> node_displacement_conversion = {
     {SHD_SPACE_BLENDER_WORLD, "blender_world"},
 };
 static const std::map<int, std::string> node_sss_falloff_conversion = {
+#ifdef DNA_DEPRECATED_ALLOW
     {SHD_SUBSURFACE_CUBIC, "cubic"},
     {SHD_SUBSURFACE_GAUSSIAN, "gaussian"},
+#endif
     {SHD_SUBSURFACE_BURLEY, "burley"},
+    {SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS, "random_walk"},
     {SHD_SUBSURFACE_RANDOM_WALK, "random_walk"},
 };
 static const std::map<int, std::string> node_principled_hair_parametrization_conversion = {
