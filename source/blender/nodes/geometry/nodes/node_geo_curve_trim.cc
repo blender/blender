@@ -132,19 +132,19 @@ static void linear_trim_to_output_data(const TrimLocation &start,
 
 /* Look up the control points to the left and right of factor, and get the factor between them. */
 static TrimLocation lookup_control_point_position(const Spline::LookupResult &lookup,
-                                                  Span<int> control_point_offsets)
+                                                  const BezierSpline &spline)
 {
-  const int *left_offset = std::lower_bound(
-      control_point_offsets.begin(), control_point_offsets.end(), lookup.evaluated_index);
-  const int index = left_offset - control_point_offsets.begin();
-  const int left = control_point_offsets[index] > lookup.evaluated_index ? index - 1 : index;
-  const int right = left + 1;
+  Span<int> offsets = spline.control_point_offsets();
 
-  const float factor = std::clamp(
-      (lookup.evaluated_index + lookup.factor - control_point_offsets[left]) /
-          (control_point_offsets[right] - control_point_offsets[left]),
-      0.0f,
-      1.0f);
+  const int *offset = std::lower_bound(offsets.begin(), offsets.end(), lookup.evaluated_index);
+  const int index = offset - offsets.begin();
+
+  const int left = offsets[index] > lookup.evaluated_index ? index - 1 : index;
+  const int right = left == (spline.size() - 1) ? 0 : left + 1;
+
+  const float offset_in_segment = lookup.evaluated_index + lookup.factor - offsets[left];
+  const int segment_eval_size = offsets[left + 1] - offsets[left];
+  const float factor = std::clamp(offset_in_segment / segment_eval_size, 0.0f, 1.0f);
 
   return {left, right, factor};
 }
@@ -244,10 +244,11 @@ static void trim_bezier_spline(Spline &spline,
                                const Spline::LookupResult &end_lookup)
 {
   BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
-  Span<int> control_offsets = bezier_spline.control_point_offsets();
 
-  const TrimLocation start = lookup_control_point_position(start_lookup, control_offsets);
-  TrimLocation end = lookup_control_point_position(end_lookup, control_offsets);
+  const TrimLocation start = lookup_control_point_position(start_lookup, bezier_spline);
+  TrimLocation end = lookup_control_point_position(end_lookup, bezier_spline);
+
+  const Span<int> control_offsets = bezier_spline.control_point_offsets();
 
   /* The number of control points in the resulting spline. */
   const int size = end.right_index - start.left_index + 1;
@@ -329,6 +330,133 @@ static void trim_bezier_spline(Spline &spline,
   bezier_spline.resize(size);
 }
 
+static void trim_spline(SplinePtr &spline,
+                        const Spline::LookupResult start,
+                        const Spline::LookupResult end)
+{
+  switch (spline->type()) {
+    case Spline::Type::Bezier:
+      trim_bezier_spline(*spline, start, end);
+      break;
+    case Spline::Type::Poly:
+      trim_poly_spline(*spline, start, end);
+      break;
+    case Spline::Type::NURBS:
+      spline = std::make_unique<PolySpline>(trim_nurbs_spline(*spline, start, end));
+      break;
+  }
+  spline->mark_cache_invalid();
+}
+
+template<typename T>
+static void to_single_point_data(const TrimLocation &trim, MutableSpan<T> data)
+{
+  data.first() = mix2<T>(trim.factor, data[trim.left_index], data[trim.right_index]);
+}
+template<typename T>
+static void to_single_point_data(const TrimLocation &trim, Span<T> src, MutableSpan<T> dst)
+{
+  dst.first() = mix2<T>(trim.factor, src[trim.left_index], src[trim.right_index]);
+}
+
+static void to_single_point_bezier(Spline &spline, const Spline::LookupResult &lookup)
+{
+  BezierSpline &bezier = static_cast<BezierSpline &>(spline);
+
+  const TrimLocation trim = lookup_control_point_position(lookup, bezier);
+
+  const BezierSpline::InsertResult new_point = bezier.calculate_segment_insertion(
+      trim.left_index, trim.right_index, trim.factor);
+  bezier.positions().first() = new_point.position;
+  bezier.handle_types_left().first() = BezierSpline::HandleType::Free;
+  bezier.handle_types_right().first() = BezierSpline::HandleType::Free;
+  bezier.handle_positions_left().first() = new_point.left_handle;
+  bezier.handle_positions_right().first() = new_point.right_handle;
+
+  to_single_point_data<float>(trim, bezier.radii());
+  to_single_point_data<float>(trim, bezier.tilts());
+  spline.attributes.foreach_attribute(
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &UNUSED(meta_data)) {
+        std::optional<GMutableSpan> data = spline.attributes.get_for_write(attribute_id);
+        attribute_math::convert_to_static_type(data->type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          to_single_point_data<T>(trim, data->typed<T>());
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+  spline.resize(1);
+}
+
+static void to_single_point_poly(Spline &spline, const Spline::LookupResult &lookup)
+{
+  const TrimLocation trim{lookup.evaluated_index, lookup.next_evaluated_index, lookup.factor};
+
+  to_single_point_data<float3>(trim, spline.positions());
+  to_single_point_data<float>(trim, spline.radii());
+  to_single_point_data<float>(trim, spline.tilts());
+  spline.attributes.foreach_attribute(
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &UNUSED(meta_data)) {
+        std::optional<GMutableSpan> data = spline.attributes.get_for_write(attribute_id);
+        attribute_math::convert_to_static_type(data->type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          to_single_point_data<T>(trim, data->typed<T>());
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+  spline.resize(1);
+}
+
+static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::LookupResult &lookup)
+{
+  /* Since this outputs a poly spline, the evaluated indices are the control point indices. */
+  const TrimLocation trim{lookup.evaluated_index, lookup.next_evaluated_index, lookup.factor};
+
+  /* Create poly spline and copy trimmed data to it. */
+  PolySpline new_spline;
+  new_spline.resize(1);
+
+  spline.attributes.foreach_attribute(
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        new_spline.attributes.create(attribute_id, meta_data.data_type);
+        std::optional<GSpan> src = spline.attributes.get_for_read(attribute_id);
+        std::optional<GMutableSpan> dst = new_spline.attributes.get_for_write(attribute_id);
+        attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          GVArray_Typed<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
+          to_single_point_data<T>(trim, eval_data->get_internal_span(), dst->typed<T>());
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+
+  to_single_point_data<float3>(trim, spline.evaluated_positions(), new_spline.positions());
+
+  GVArray_Typed<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
+  to_single_point_data<float>(trim, evaluated_radii->get_internal_span(), new_spline.radii());
+
+  GVArray_Typed<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
+  to_single_point_data<float>(trim, evaluated_tilts->get_internal_span(), new_spline.tilts());
+
+  return new_spline;
+}
+
+static void to_single_point_spline(SplinePtr &spline, const Spline::LookupResult &lookup)
+{
+  switch (spline->type()) {
+    case Spline::Type::Bezier:
+      to_single_point_bezier(*spline, lookup);
+      break;
+    case Spline::Type::Poly:
+      to_single_point_poly(*spline, lookup);
+      break;
+    case Spline::Type::NURBS:
+      spline = std::make_unique<PolySpline>(to_single_point_nurbs(*spline, lookup));
+      break;
+  }
+}
+
 static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     const GeometryNodeCurveSampleMode mode,
                                     Field<float> &start_field,
@@ -354,46 +482,49 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
-      Spline &spline = *splines[i];
+      SplinePtr &spline = splines[i];
 
-      /* Currently this node doesn't support cyclic splines, it could in the future though. */
-      if (spline.is_cyclic()) {
+      /* Currently trimming cyclic splines is not supported. It could be in the future though. */
+      if (spline->is_cyclic()) {
         continue;
       }
 
-      if (spline.evaluated_edges_size() == 0) {
+      if (spline->evaluated_edges_size() == 0) {
         continue;
       }
 
-      /* Return a spline with one point instead of implicitly
-       * reversing the spline or switching the parameters. */
-      if (ends[i] < starts[i]) {
-        spline.resize(1);
+      const float length = spline->length();
+      if (length == 0.0f) {
         continue;
       }
 
-      const Spline::LookupResult start_lookup =
-          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
-              spline.lookup_evaluated_length(std::clamp(starts[i], 0.0f, spline.length())) :
-              spline.lookup_evaluated_factor(std::clamp(starts[i], 0.0f, 1.0f));
-      const Spline::LookupResult end_lookup =
-          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
-              spline.lookup_evaluated_length(std::clamp(ends[i], 0.0f, spline.length())) :
-              spline.lookup_evaluated_factor(std::clamp(ends[i], 0.0f, 1.0f));
+      const float start = starts[i];
+      const float end = ends[i];
 
-      switch (spline.type()) {
-        case Spline::Type::Bezier:
-          trim_bezier_spline(spline, start_lookup, end_lookup);
-          break;
-        case Spline::Type::Poly:
-          trim_poly_spline(spline, start_lookup, end_lookup);
-          break;
-        case Spline::Type::NURBS:
-          splines[i] = std::make_unique<PolySpline>(
-              trim_nurbs_spline(spline, start_lookup, end_lookup));
-          break;
+      /* When the start and end samples are reversed, instead of implicitly reversing the spline
+       * or switching the parameters, create a single point spline with the end sample point. */
+      if (end <= start) {
+        if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+          to_single_point_spline(spline,
+                                 spline->lookup_evaluated_length(std::clamp(start, 0.0f, length)));
+        }
+        else {
+          to_single_point_spline(spline,
+                                 spline->lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f)));
+        }
+        continue;
       }
-      splines[i]->mark_cache_invalid();
+
+      if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+        trim_spline(spline,
+                    spline->lookup_evaluated_length(std::clamp(start, 0.0f, length)),
+                    spline->lookup_evaluated_length(std::clamp(end, 0.0f, length)));
+      }
+      else {
+        trim_spline(spline,
+                    spline->lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f)),
+                    spline->lookup_evaluated_factor(std::clamp(end, 0.0f, 1.0f)));
+      }
     }
   });
 }
