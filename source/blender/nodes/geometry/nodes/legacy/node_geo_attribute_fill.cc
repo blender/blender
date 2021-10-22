@@ -24,7 +24,7 @@ namespace blender::nodes {
 static void geo_node_attribute_fill_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Attribute").is_attribute_name();
   b.add_input<decl::Vector>("Value", "Value");
   b.add_input<decl::Float>("Value", "Value_001");
   b.add_input<decl::Color>("Value", "Value_002");
