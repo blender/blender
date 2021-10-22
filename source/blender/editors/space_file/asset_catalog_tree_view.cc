@@ -490,7 +490,7 @@ bool file_is_asset_visible_in_catalog_filter_settings(
 
   switch (filter_settings->asset_catalog_visibility) {
     case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
-      return BLI_uuid_is_nil(asset_data->catalog_id);
+      return !filter_settings->catalog_filter->is_known(asset_data->catalog_id);
     case FILE_SHOW_ASSETS_FROM_CATALOG:
       return filter_settings->catalog_filter->contains(asset_data->catalog_id);
     case FILE_SHOW_ASSETS_ALL_CATALOGS:

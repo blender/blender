@@ -119,6 +119,11 @@ class AssetCatalogService {
   AssetCatalog *find_catalog_by_path(const AssetCatalogPath &path) const;
 
   /**
+   * Return true only if this catalog is known.
+   * This treats deleted catalogs as "unknown". */
+  bool is_catalog_known(CatalogID catalog_id) const;
+
+  /**
    * Create a filter object that can be used to determine whether an asset belongs to the given
    * catalog, or any of the catalogs in the sub-tree rooted at the given catalog.
    *
@@ -488,17 +493,22 @@ using MutableAssetCatalogOrderedSet = std::set<AssetCatalog *, AssetCatalogLessT
 /**
  * Filter that can determine whether an asset should be visible or not, based on its catalog ID.
  *
- * \see AssetCatalogService::create_filter()
+ * \see AssetCatalogService::create_catalog_filter()
  */
 class AssetCatalogFilter {
  public:
   bool contains(CatalogID asset_catalog_id) const;
 
+  /* So that all unknown catalogs can be shown under "Unassigned". */
+  bool is_known(CatalogID asset_catalog_id) const;
+
  protected:
   friend AssetCatalogService;
   const Set<CatalogID> matching_catalog_ids;
+  const Set<CatalogID> known_catalog_ids;
 
-  explicit AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids);
+  explicit AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids,
+                              Set<CatalogID> &&known_catalog_ids);
 };
 
 }  // namespace blender::bke
