@@ -28,15 +28,14 @@ static void fn_node_string_length_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>("Length");
 };
 
-}  // namespace blender::nodes
-
-static void fn_node_string_length_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_string_length_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SO<std::string, int> str_len_fn{
+  static fn::CustomMF_SI_SO<std::string, int> str_len_fn{
       "String Length", [](const std::string &a) { return BLI_strlen_utf8(a.c_str()); }};
   builder.set_matching_fn(&str_len_fn);
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_string_length()
 {
@@ -44,6 +43,6 @@ void register_node_type_fn_string_length()
 
   fn_node_type_base(&ntype, FN_NODE_STRING_LENGTH, "String Length", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_string_length_declare;
-  ntype.build_multi_function = fn_node_string_length_build_multi_function;
+  ntype.build_multi_function = blender::nodes::fn_node_string_length_build_multi_function;
   nodeRegisterType(&ntype);
 }

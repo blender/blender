@@ -28,8 +28,6 @@ static void fn_node_replace_string_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>("String");
 };
 
-}  // namespace blender::nodes
-
 static std::string replace_all(std::string str, const std::string &from, const std::string &to)
 {
   if (from.length() <= 0) {
@@ -45,16 +43,16 @@ static std::string replace_all(std::string str, const std::string &from, const s
   return str;
 }
 
-static void fn_node_replace_string_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_replace_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SI_SO<std::string, std::string, std::string, std::string>
-      substring_fn{"Replace",
-                   [](const std::string &str,
-                      const std::string &find,
-                      const std::string &replace) { return replace_all(str, find, replace); }};
+  static fn::CustomMF_SI_SI_SI_SO<std::string, std::string, std::string, std::string> substring_fn{
+      "Replace", [](const std::string &str, const std::string &find, const std::string &replace) {
+        return replace_all(str, find, replace);
+      }};
   builder.set_matching_fn(&substring_fn);
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_replace_string()
 {
@@ -62,6 +60,6 @@ void register_node_type_fn_replace_string()
 
   fn_node_type_base(&ntype, FN_NODE_REPLACE_STRING, "Replace String", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_replace_string_declare;
-  ntype.build_multi_function = fn_node_replace_string_build_multi_function;
+  ntype.build_multi_function = blender::nodes::fn_node_replace_string_build_multi_function;
   nodeRegisterType(&ntype);
 }

@@ -26,12 +26,9 @@ static void fn_node_value_to_string_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>("String");
 };
 
-}  // namespace blender::nodes
-
-static void fn_node_value_to_string_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_value_to_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SO<float, int, std::string> to_str_fn{
+  static fn::CustomMF_SI_SI_SO<float, int, std::string> to_str_fn{
       "Value To String", [](float a, int b) {
         std::stringstream stream;
         stream << std::fixed << std::setprecision(std::max(0, b)) << a;
@@ -40,12 +37,14 @@ static void fn_node_value_to_string_build_multi_function(
   builder.set_matching_fn(&to_str_fn);
 }
 
+}  // namespace blender::nodes
+
 void register_node_type_fn_value_to_string()
 {
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_VALUE_TO_STRING, "Value to String", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_value_to_string_declare;
-  ntype.build_multi_function = fn_node_value_to_string_build_multi_function;
+  ntype.build_multi_function = blender::nodes::fn_node_value_to_string_build_multi_function;
   nodeRegisterType(&ntype);
 }

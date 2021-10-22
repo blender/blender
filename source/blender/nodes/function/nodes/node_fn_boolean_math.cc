@@ -34,8 +34,6 @@ static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Boolean");
 };
 
-}  // namespace blender::nodes
-
 static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
@@ -59,13 +57,13 @@ static void node_boolean_math_label(bNodeTree *UNUSED(ntree), bNode *node, char 
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static const blender::fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(bNode &bnode)
 {
-  static blender::fn::CustomMF_SI_SI_SO<bool, bool, bool> and_fn{
-      "And", [](bool a, bool b) { return a && b; }};
-  static blender::fn::CustomMF_SI_SI_SO<bool, bool, bool> or_fn{
-      "Or", [](bool a, bool b) { return a || b; }};
-  static blender::fn::CustomMF_SI_SO<bool, bool> not_fn{"Not", [](bool a) { return !a; }};
+  static fn::CustomMF_SI_SI_SO<bool, bool, bool> and_fn{"And",
+                                                        [](bool a, bool b) { return a && b; }};
+  static fn::CustomMF_SI_SI_SO<bool, bool, bool> or_fn{"Or",
+                                                       [](bool a, bool b) { return a || b; }};
+  static fn::CustomMF_SI_SO<bool, bool> not_fn{"Not", [](bool a) { return !a; }};
 
   switch (bnode.custom1) {
     case NODE_BOOLEAN_MATH_AND:
@@ -80,12 +78,13 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &bnode)
   return nullptr;
 }
 
-static void fn_node_boolean_math_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_boolean_math_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
+  const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_boolean_math()
 {
@@ -93,9 +92,9 @@ void register_node_type_fn_boolean_math()
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_boolean_math_declare;
-  node_type_label(&ntype, node_boolean_math_label);
-  node_type_update(&ntype, node_boolean_math_update);
-  ntype.build_multi_function = fn_node_boolean_math_build_multi_function;
-  ntype.draw_buttons = fn_node_boolean_math_layout;
+  node_type_label(&ntype, blender::nodes::node_boolean_math_label);
+  node_type_update(&ntype, blender::nodes::node_boolean_math_update);
+  ntype.build_multi_function = blender::nodes::fn_node_boolean_math_build_multi_function;
+  ntype.draw_buttons = blender::nodes::fn_node_boolean_math_layout;
   nodeRegisterType(&ntype);
 }
