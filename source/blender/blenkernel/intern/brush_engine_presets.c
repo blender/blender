@@ -435,8 +435,8 @@ typedef struct BrushSettingsMap {
 
 /* clang-format off */
 
-/* This lookup table is used convert data to/from brush channels
-   and the old settings fields in Brush*/
+/* This lookup table is used convert between brush channels
+   and the old settings members of Brush*/
 static BrushSettingsMap brush_settings_map[] = {
   DEF(size, radius, INT, FLOAT)
   DEF(alpha, strength, FLOAT, FLOAT)
@@ -513,6 +513,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(array_deform_type, array_deform_type, INT, INT)
   DEF(array_count, array_count, INT, INT)
   DEF(smear_deform_type, smear_deform_type, INT, INT)
+  DEF(slide_deform_type, slide_deform_type, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -1377,6 +1378,10 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(plane_offset);
       SHOWCTX(plane_trim);
       SHOWCTX(use_plane_trim);
+      break;
+    case SCULPT_TOOL_SLIDE_RELAX:
+      SHOWWRK(slide_deform_type);
+      SHOWCTX(slide_deform_type);
       break;
     case SCULPT_TOOL_GRAB:
       SHOWCTX(normal_weight);

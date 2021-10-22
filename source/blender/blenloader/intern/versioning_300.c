@@ -2242,6 +2242,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+      LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+        if (brush->channels && brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) {
+          BKE_brush_channelset_ui_init(brush, SCULPT_TOOL_SLIDE_RELAX);
+        }
+      }
+
       if (!DNA_struct_elem_find(
               fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_moire_scale")) {
         for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
