@@ -2760,12 +2760,12 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_LATTICE:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_LATTICE) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_CAMERA:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_CAMERA) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
@@ -2775,7 +2775,7 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_SPEAKER:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_SPEAKER) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
