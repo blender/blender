@@ -37,12 +37,20 @@
 #  include "BKE_report.h"
 static PaletteColor *rna_Palette_color_new(Palette *palette)
 {
+  if (ID_IS_LINKED(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {
+    return NULL;
+  }
+
   PaletteColor *color = BKE_palette_color_add(palette);
   return color;
 }
 
 static void rna_Palette_color_remove(Palette *palette, ReportList *reports, PointerRNA *color_ptr)
 {
+  if (ID_IS_LINKED(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {
+    return;
+  }
+
   PaletteColor *color = color_ptr->data;
 
   if (BLI_findindex(&palette->colors, color) == -1) {
@@ -58,6 +66,10 @@ static void rna_Palette_color_remove(Palette *palette, ReportList *reports, Poin
 
 static void rna_Palette_color_clear(Palette *palette)
 {
+  if (ID_IS_LINKED(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {
+    return;
+  }
+
   BKE_palette_clear(palette);
 }
 
@@ -141,6 +153,7 @@ static void rna_def_palettecolor(BlenderRNA *brna)
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_float_sdna(prop, NULL, "rgb");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Color", "");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
