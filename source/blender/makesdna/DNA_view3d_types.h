@@ -219,6 +219,11 @@ typedef struct View3DOverlay {
   float weight_paint_mode_opacity;
   float sculpt_mode_mask_opacity;
   float sculpt_mode_face_sets_opacity;
+  float sculpt_mode_face_sets_moire_seed;
+  float sculpt_mode_face_sets_moire_scale;
+
+  /** Sculpt mode settings*/
+  int sculpt_flag;
 
   /** Armature edit/pose mode settings. */
   float xray_alpha_bone;
@@ -239,8 +244,6 @@ typedef struct View3DOverlay {
   float gpencil_vertex_paint_opacity;
   /** Handles display type for curves. */
   int handle_display;
-
-  char _pad[4];
 } View3DOverlay;
 
 /* View3DOverlay->handle_display */
@@ -578,6 +581,11 @@ enum {
 /** #View3DOverlay.wpaint_flag */
 enum {
   V3D_OVERLAY_WPAINT_CONTOURS = (1 << 0),
+};
+
+/** #View3DOverlay.sculpt_flag */
+enum {
+  V3D_OVERLAY_SCULPT_FSET_MOIRE = (1 << 0),
 };
 
 /** #View3D.around */

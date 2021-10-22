@@ -2240,6 +2240,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         BKE_brush_mapping_inherit_all(ch);
       }
     }
+
+    if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+      if (!DNA_struct_elem_find(
+              fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_moire_scale")) {
+        for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+            LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+              if (sl->spacetype == SPACE_VIEW3D) {
+                View3D *v3d = (View3D *)sl;
+                v3d->overlay.sculpt_mode_face_sets_moire_scale = 0.45f;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
