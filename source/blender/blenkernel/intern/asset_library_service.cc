@@ -77,7 +77,9 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
   AssetLibraryPtr *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(top_dir_trailing_slash);
   if (lib_uptr_ptr != nullptr) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_dir_trailing_slash.c_str());
-    return lib_uptr_ptr->get();
+    AssetLibrary *lib = lib_uptr_ptr->get();
+    lib->refresh();
+    return lib;
   }
 
   AssetLibraryPtr lib_uptr = std::make_unique<AssetLibrary>();

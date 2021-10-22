@@ -219,7 +219,12 @@ void AssetCatalogTreeViewItem::on_activate()
 
 void AssetCatalogTreeViewItem::build_row(uiLayout &row)
 {
-  ui::BasicTreeViewItem::build_row(row);
+  if (catalog_item_.has_unsaved_changes()) {
+    uiItemL(&row, (label_ + "*").c_str(), icon);
+  }
+  else {
+    uiItemL(&row, label_.c_str(), icon);
+  }
 
   if (!is_hovered()) {
     return;

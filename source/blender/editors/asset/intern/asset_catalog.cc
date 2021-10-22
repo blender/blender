@@ -71,11 +71,11 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   AssetCatalogPath fullpath = AssetCatalogPath(parent_path) / unique_name;
 
   catalog_service->undo_push();
-  catalog_service->tag_has_unsaved_changes();
   bke::AssetCatalog *new_catalog = catalog_service->create_catalog(fullpath);
   if (!new_catalog) {
     return nullptr;
   }
+  catalog_service->tag_has_unsaved_changes(new_catalog);
 
   return new_catalog;
 }
@@ -89,7 +89,7 @@ void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_i
   }
 
   catalog_service->undo_push();
-  catalog_service->tag_has_unsaved_changes();
+  catalog_service->tag_has_unsaved_changes(nullptr);
   catalog_service->prune_catalogs_by_id(catalog_id);
 }
 
@@ -103,13 +103,18 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
     return;
   }
 
-  const AssetCatalog *catalog = catalog_service->find_catalog(catalog_id);
+  AssetCatalog *catalog = catalog_service->find_catalog(catalog_id);
 
   AssetCatalogPath new_path = catalog->path.parent();
   new_path = new_path / StringRef(new_name);
 
+  if (new_path == catalog->path) {
+    /* Nothing changed, so don't bother renaming for nothing. */
+    return;
+  }
+
   catalog_service->undo_push();
-  catalog_service->tag_has_unsaved_changes();
+  catalog_service->tag_has_unsaved_changes(catalog);
   catalog_service->update_catalog_path(catalog_id, new_path);
 }
 

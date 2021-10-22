@@ -64,11 +64,13 @@ class AssetCatalogService {
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
   /**
-   * Set global tag indicating that some catalog modifications are unsaved that could get lost
-   * on exit. This tag is not set by internal catalog code, the catalog service user is responsible
-   * for it. It is cleared by #write_to_disk().
-   */
-  void tag_has_unsaved_changes();
+   * Set tag indicating that some catalog modifications are unsaved, which could
+   * get lost on exit. This tag is not set by internal catalog code, the catalog
+   * service user is responsible for it. It is cleared by #write_to_disk().
+   *
+   * This "dirty" state is tracked per catalog, so that it's possible to gracefully load changes
+   * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes. */
+  void tag_has_unsaved_changes(AssetCatalog *edited_catalog);
   bool has_unsaved_changes() const;
 
   /** Load asset catalog definitions from the files found in the asset library. */
@@ -103,7 +105,7 @@ class AssetCatalogService {
    * - Already-known on-disk catalogs are ignored (so will be overwritten with our in-memory
    *   data). This includes in-memory marked-as-deleted catalogs.
    */
-  void merge_from_disk_before_writing();
+  void reload_catalogs();
 
   /** Return catalog with the given ID. Return nullptr if not found. */
   AssetCatalog *find_catalog(CatalogID catalog_id) const;
@@ -140,12 +142,6 @@ class AssetCatalogService {
   void prune_catalogs_by_id(CatalogID catalog_id);
 
   /**
-   * Delete a catalog, without deleting any of its children and without rebuilding the catalog
-   * tree. This is a lower-level function than #prune_catalogs_by_path.
-   */
-  void delete_catalog_by_id(CatalogID catalog_id);
-
-  /**
    * Update the catalog path, also updating the catalog path of all sub-catalogs.
    */
   void update_catalog_path(CatalogID catalog_id, const AssetCatalogPath &new_catalog_path);
@@ -178,7 +174,6 @@ class AssetCatalogService {
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
-  bool has_unsaved_changes_ = false;
 
   void load_directory_recursive(const CatalogFilePath &directory_path);
   void load_single_file(const CatalogFilePath &catalog_definition_file_path);
@@ -186,6 +181,31 @@ class AssetCatalogService {
   /** Implementation of #write_to_disk() that doesn't clear the "has unsaved changes" tag. */
   bool write_to_disk_ex(const CatalogFilePath &blend_file_path);
   void untag_has_unsaved_changes();
+  bool is_catalog_known_with_unsaved_changes(CatalogID catalog_id) const;
+
+  /**
+   * Delete catalogs, only keeping them when they are either listed in
+   * \a catalogs_to_keep or have unsaved changes.
+   *
+   * \note Deleted catalogs are hard-deleted, i.e. they just vanish instead of
+   * remembering them as "deleted".
+   */
+  void purge_catalogs_not_listed(const Set<CatalogID> &catalogs_to_keep);
+
+  /**
+   * Delete a catalog, without deleting any of its children and without rebuilding the catalog
+   * tree. The deletion in "Soft", in the sense that the catalog pointer is moved from `catalogs_`
+   * to `deleted_catalogs_`; the AssetCatalog instance itself is kept in memory. As a result, it
+   * will be removed from a CDF when saved to disk.
+   *
+   * This is a lower-level function than #prune_catalogs_by_path.
+   */
+  void delete_catalog_by_id_soft(CatalogID catalog_id);
+
+  /**
+   * Hard delete a catalog. This simply removes the catalog from existence. The deletion will not
+   * be remembered, and reloading the CDF will bring it back. */
+  void delete_catalog_by_id_hard(CatalogID catalog_id);
 
   std::unique_ptr<AssetCatalogDefinitionFile> parse_catalog_file(
       const CatalogFilePath &catalog_definition_file_path);
@@ -216,6 +236,7 @@ class AssetCatalogService {
   /* For access by subclasses, as those will not be marked as friend by #AssetCatalogCollection. */
   AssetCatalogDefinitionFile *get_catalog_definition_file();
   OwningAssetCatalogMap &get_catalogs();
+  OwningAssetCatalogMap &get_deleted_catalogs();
 };
 
 /**
@@ -246,6 +267,9 @@ class AssetCatalogCollection {
    * The aim is to support an arbitrary number of such files per asset library in the future. */
   std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
 
+  /** Whether any of the catalogs have unsaved changes. */
+  bool has_unsaved_changes_ = false;
+
   static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);
 };
 
@@ -269,6 +293,7 @@ class AssetCatalogTreeItem {
   CatalogID get_catalog_id() const;
   StringRefNull get_simple_name() const;
   StringRefNull get_name() const;
+  bool has_unsaved_changes() const;
   /** Return the full catalog path, defined as the name of this catalog prefixed by the full
    * catalog path of its parent and a separator. */
   AssetCatalogPath catalog_path() const;
@@ -287,6 +312,8 @@ class AssetCatalogTreeItem {
   CatalogID catalog_id_;
   /** Copy of #AssetCatalog::simple_name. */
   std::string simple_name_;
+  /** Copy of #AssetCatalog::flags.has_unsaved_changes. */
+  bool has_unsaved_changes_ = false;
 
   /** Pointer back to the parent item. Used to reconstruct the hierarchy from an item (e.g. to
    * build a path). */
@@ -353,8 +380,13 @@ class AssetCatalogDefinitionFile {
   bool write_to_disk(const CatalogFilePath &dest_file_path) const;
 
   bool contains(CatalogID catalog_id) const;
-  /* Add a new catalog. Undefined behavior if a catalog with the same ID was already added. */
+  /** Add a catalog, overwriting the one with the same catalog ID. */
+  void add_overwrite(AssetCatalog *catalog);
+  /** Add a new catalog. Undefined behavior if a catalog with the same ID was already added. */
   void add_new(AssetCatalog *catalog);
+
+  /** Remove the catalog from the collection of catalogs stored in this file. */
+  void forget(CatalogID catalog_id);
 
   using AssetCatalogParsedFn = FunctionRef<bool(std::unique_ptr<AssetCatalog>)>;
   void parse_catalog_file(const CatalogFilePath &catalog_definition_file_path,
@@ -405,6 +437,14 @@ class AssetCatalog {
      * load-and-merged with a file that also has these catalogs, the first one in that file is
      * always sorted first, regardless of the sort order of its UUID. */
     bool is_first_loaded = false;
+
+    /* Merging on-disk changes into memory will not overwrite this catalog.
+     * For example, when a catalog was renamed (i.e. changed path) in this Blender session,
+     * reloading the catalog definition file should not overwrite that change.
+     *
+     * Note that this flag is ignored when is_deleted=true; deleted catalogs that are still in
+     * memory are considered "unsaved" by definition. */
+    bool has_unsaved_changes = false;
   } flags;
 
   /**
