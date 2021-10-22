@@ -172,7 +172,9 @@ def geometry_input_node_items(context):
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
     yield NodeItem("GeometryNodeCollectionInfo")
+    yield NodeItem("FunctionNodeInputBool")
     yield NodeItem("FunctionNodeInputColor")
+    yield NodeItem("FunctionNodeInputInt")
     yield NodeItem("GeometryNodeIsViewport")
     yield NodeItem("GeometryNodeInputMaterial")
     yield NodeItem("GeometryNodeObjectInfo")

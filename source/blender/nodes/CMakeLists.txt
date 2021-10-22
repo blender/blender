@@ -140,7 +140,9 @@ set(SRC
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
+  function/nodes/node_fn_input_bool.cc
   function/nodes/node_fn_input_color.cc
+  function/nodes/node_fn_input_int.cc
   function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc

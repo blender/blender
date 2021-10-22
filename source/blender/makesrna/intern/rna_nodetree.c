@@ -5014,6 +5014,34 @@ static void def_fn_input_color(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_fn_input_bool(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeInputBool", "storage");
+
+  prop = RNA_def_property(srna, "boolean", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "boolean", 1);
+  RNA_def_property_ui_text(
+    prop, "Boolean", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+}
+
+static void def_fn_input_int(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeInputInt", "storage");
+
+  prop = RNA_def_property(srna, "integer", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "integer");
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_ui_text(
+    prop, "Integer", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_fn_input_vector(StructRNA *srna)
 {
   PropertyRNA *prop;
