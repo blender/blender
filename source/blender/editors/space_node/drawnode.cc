@@ -4262,7 +4262,9 @@ void node_draw_link_bezier(const View2D *v2d,
     }
 
     if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
+        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
+        ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
+         (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
       if (link->fromsock) {
         copy_v4_v4(colors[1], std_node_socket_colors[link->fromsock->typeinfo->type]);
       }
