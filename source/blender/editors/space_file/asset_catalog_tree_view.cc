@@ -475,7 +475,7 @@ void file_ensure_updated_catalog_filter_data(
   const AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
       asset_library);
 
-  if (filter_settings->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG) {
+  if (filter_settings->asset_catalog_visibility != FILE_SHOW_ASSETS_ALL_CATALOGS) {
     filter_settings->catalog_filter = std::make_unique<AssetCatalogFilter>(
         catalog_service->create_catalog_filter(filter_settings->asset_catalog_id));
   }
