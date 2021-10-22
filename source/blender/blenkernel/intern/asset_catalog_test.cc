@@ -1039,7 +1039,7 @@ TEST_F(AssetCatalogTest, order_by_path_and_first_seen)
   const AssetCatalog first_sorted_cat(first_sorted_uuid, "simple/path/child", "");
   const AssetCatalog last_sorted_cat(last_sorted_uuid, "simple/path/child", "");
 
-  /* Mimick that this catalog was first-seen when loading from disk. */
+  /* Mimic that this catalog was first-seen when loading from disk. */
   first_seen_cat.flags.is_first_loaded = true;
 
   /* Just an assertion of the defaults; this is more to avoid confusing errors later on than an
@@ -1299,7 +1299,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undo should be possible after creating an undo snapshot.";
 
-  // Undo the creation of the catalog.
+  /* Undo the creation of the catalog. */
   service.undo();
   EXPECT_FALSE(service.is_undo_possbile())
       << "Undoing the only stored step should make it impossible to undo further.";
@@ -1311,7 +1311,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
   EXPECT_FALSE(service.get_catalog_definition_file()->contains(other_catalog_id))
       << "The CDF should also not contain the undone catalog.";
 
-  // Redo the creation of the catalog.
+  /* Redo the creation of the catalog. */
   service.redo();
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undoing and then redoing a step should make it possible to undo again.";

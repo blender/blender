@@ -516,7 +516,7 @@ ccl_device_inline void kernel_gpu_film_convert_half_rgba_common_rgba(
   film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel);
 
   ccl_global half4 *out = ((ccl_global half4 *)rgba) + rgba_offset + y * rgba_stride + x;
-  float4_store_half((ccl_global half *)out, make_float4(pixel[0], pixel[1], pixel[2], pixel[3]));
+  *out = float4_to_half4_display(make_float4(pixel[0], pixel[1], pixel[2], pixel[3]));
 }
 
 /* Common implementation for half4 destination and 3-channel input pass. */

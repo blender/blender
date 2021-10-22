@@ -27,10 +27,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Not actually used, just a NULL pointer that gets passed everywhere, which we
  * hope gets optimized out by the compiler. */
-struct KernelGlobals {
-  /* NOTE: Keep the size in sync with SHADOW_STACK_MAX_HITS. */
+struct KernelGlobalsGPU {
   int unused[1];
 };
+typedef ccl_global const KernelGlobalsGPU *ccl_restrict KernelGlobals;
 
 /* Global scene data and textures */
 __constant__ KernelData __data;

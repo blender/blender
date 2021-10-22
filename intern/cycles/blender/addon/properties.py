@@ -1329,7 +1329,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif entry.type == 'CPU':
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if compute_device_type != 'CPU' and compute_device_type != 'HIP':
+        if compute_device_type != 'CPU':
             devices.extend(cpu_devices)
         return devices
 
@@ -1373,8 +1373,18 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if not found_device:
             col = box.column(align=True)
-            col.label(text="No compatible GPUs found for path tracing", icon='INFO')
-            col.label(text="Cycles will render on the CPU", icon='BLANK1')
+            col.label(text="No compatible GPUs found for Cycles", icon='INFO')
+
+            if device_type == 'CUDA':
+                col.label(text="Requires NVIDIA GPU with compute capability 3.0", icon='BLANK1')
+            elif device_type == 'OPTIX':
+                col.label(text="Requires NVIDIA GPU with compute capability 5.0", icon='BLANK1')
+                col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
+            elif device_type == 'HIP':
+                import sys
+                col.label(text="Requires discrete AMD GPU with ??? architecture", icon='BLANK1')
+                if sys.platform[:3] == "win":
+                    col.label(text="and AMD driver version ??? or newer", icon='BLANK1')
             return
 
         for device in devices:

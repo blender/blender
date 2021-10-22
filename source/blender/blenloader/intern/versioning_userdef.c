@@ -916,6 +916,13 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->flag &= ~USER_FLAG_UNUSED_5;
   }
 
+  if (!USER_VERSION_ATLEAST(300, 38)) {
+    /* Patch to set Dupli Lattice/Camera/Speaker. */
+    userdef->dupflag |= USER_DUP_LATTICE;
+    userdef->dupflag |= USER_DUP_CAMERA;
+    userdef->dupflag |= USER_DUP_SPEAKER;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -115,7 +115,7 @@ static void pad_pixels(const BufferParams &buffer_params,
   }
 
   if (destination.pixels_half_rgba) {
-    const half one = float_to_half(1.0f);
+    const half one = float_to_half_display(1.0f);
     half4 *pixel = destination.pixels_half_rgba + destination.offset;
 
     for (size_t i = 0; i < size; i++, pixel++) {

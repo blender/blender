@@ -1145,12 +1145,12 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
   /* Problem with point caches is that several status flags (like OUTDATED or BAKED) are read-only
    * at RNA level, and therefore not overridable per-se.
    *
-   * This code is a workaround this to check all pointcaches from both source and destination
+   * This code is a workaround this to check all point-caches from both source and destination
    * objects in parallel, and transfer those flags when it makes sense.
    *
    * This allows to keep baked caches across liboverrides applies.
    *
-   * NOTE: This is fairly hackish and weak, but so is the pointcache system as its whole. A more
+   * NOTE: This is fairly hackish and weak, but so is the point-cache system as its whole. A more
    * robust solution would be e.g. to have a specific RNA entry point to deal with such cases
    * (maybe a new flag to allow override code to set values of some read-only properties?).
    */
@@ -2427,8 +2427,8 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
     psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
   }
 
-  /* XXX(campbell): from reading existing code this seems correct but intended usage of
-   * pointcache should /w cloth should be added in 'ParticleSystem'. */
+  /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
+   * point-cache should /w cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
   }
@@ -2760,12 +2760,12 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_LATTICE:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_LATTICE) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_CAMERA:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_CAMERA) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
@@ -2775,7 +2775,7 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_SPEAKER:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_SPEAKER) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;

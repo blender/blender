@@ -73,6 +73,7 @@
 
 #include "NOD_composite.h"
 #include "NOD_geometry.h"
+#include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 #include "node_intern.h" /* own include */
@@ -3535,6 +3536,18 @@ static void node_file_output_socket_draw(bContext *C,
   }
 }
 
+static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
+{
+  if (node.declaration == nullptr) {
+    return false;
+  }
+  if (socket.in_out == SOCK_OUT) {
+    return false;
+  }
+  const int socket_index = BLI_findindex(&node.inputs, &socket);
+  return node.declaration->inputs()[socket_index]->is_attribute_name();
+}
+
 static void std_node_socket_draw(
     bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
@@ -3591,8 +3604,8 @@ static void std_node_socket_draw(
       uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
       uiItemL(row, text, 0);
 
-      const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
-      if (node_tree->type == NTREE_GEOMETRY) {
+      if (socket_needs_attribute_search(*node, *sock)) {
+        const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
         node_geometry_add_attribute_search_button(C, node_tree, node, ptr, row);
       }
       else {
@@ -4262,7 +4275,9 @@ void node_draw_link_bezier(const View2D *v2d,
     }
 
     if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
+        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
+        ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
+         (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
       if (link->fromsock) {
         copy_v4_v4(colors[1], std_node_socket_colors[link->fromsock->typeinfo->type]);
       }

@@ -425,6 +425,105 @@ typedef struct HIPdevprop_st {
   int textureAlign;
 } HIPdevprop;
 
+typedef struct {
+    // 32-bit Atomics
+    unsigned hasGlobalInt32Atomics : 1;     ///< 32-bit integer atomics for global memory.
+    unsigned hasGlobalFloatAtomicExch : 1;  ///< 32-bit float atomic exch for global memory.
+    unsigned hasSharedInt32Atomics : 1;     ///< 32-bit integer atomics for shared memory.
+    unsigned hasSharedFloatAtomicExch : 1;  ///< 32-bit float atomic exch for shared memory.
+    unsigned hasFloatAtomicAdd : 1;  ///< 32-bit float atomic add in global and shared memory.
+
+    // 64-bit Atomics
+    unsigned hasGlobalInt64Atomics : 1;  ///< 64-bit integer atomics for global memory.
+    unsigned hasSharedInt64Atomics : 1;  ///< 64-bit integer atomics for shared memory.
+
+    // Doubles
+    unsigned hasDoubles : 1;  ///< Double-precision floating point.
+
+    // Warp cross-lane operations
+    unsigned hasWarpVote : 1;     ///< Warp vote instructions (__any, __all).
+    unsigned hasWarpBallot : 1;   ///< Warp ballot instructions (__ballot).
+    unsigned hasWarpShuffle : 1;  ///< Warp shuffle operations. (__shfl_*).
+    unsigned hasFunnelShift : 1;  ///< Funnel two words into one with shift&mask caps.
+
+    // Sync
+    unsigned hasThreadFenceSystem : 1;  ///< __threadfence_system.
+    unsigned hasSyncThreadsExt : 1;     ///< __syncthreads_count, syncthreads_and, syncthreads_or.
+
+    // Misc
+    unsigned hasSurfaceFuncs : 1;        ///< Surface functions.
+    unsigned has3dGrid : 1;              ///< Grid and group dims are 3D (rather than 2D).
+    unsigned hasDynamicParallelism : 1;  ///< Dynamic parallelism.
+} hipDeviceArch_t;
+
+typedef struct hipDeviceProp_t {
+    char name[256];            ///< Device name.
+    size_t totalGlobalMem;     ///< Size of global memory region (in bytes).
+    size_t sharedMemPerBlock;  ///< Size of shared memory region (in bytes).
+    int regsPerBlock;          ///< Registers per block.
+    int warpSize;              ///< Warp size.
+    int maxThreadsPerBlock;    ///< Max work items per work group or workgroup max size.
+    int maxThreadsDim[3];      ///< Max number of threads in each dimension (XYZ) of a block.
+    int maxGridSize[3];        ///< Max grid dimensions (XYZ).
+    int clockRate;             ///< Max clock frequency of the multiProcessors in khz.
+    int memoryClockRate;       ///< Max global memory clock frequency in khz.
+    int memoryBusWidth;        ///< Global memory bus width in bits.
+    size_t totalConstMem;      ///< Size of shared memory region (in bytes).
+    int major;  ///< Major compute capability.  On HCC, this is an approximation and features may
+                ///< differ from CUDA CC.  See the arch feature flags for portable ways to query
+                ///< feature caps.
+    int minor;  ///< Minor compute capability.  On HCC, this is an approximation and features may
+                ///< differ from CUDA CC.  See the arch feature flags for portable ways to query
+                ///< feature caps.
+    int multiProcessorCount;          ///< Number of multi-processors (compute units).
+    int l2CacheSize;                  ///< L2 cache size.
+    int maxThreadsPerMultiProcessor;  ///< Maximum resident threads per multi-processor.
+    int computeMode;                  ///< Compute mode.
+    int clockInstructionRate;  ///< Frequency in khz of the timer used by the device-side "clock*"
+                               ///< instructions.  New for HIP.
+    hipDeviceArch_t arch;      ///< Architectural feature flags.  New for HIP.
+    int concurrentKernels;     ///< Device can possibly execute multiple kernels concurrently.
+    int pciDomainID;           ///< PCI Domain ID
+    int pciBusID;              ///< PCI Bus ID.
+    int pciDeviceID;           ///< PCI Device ID.
+    size_t maxSharedMemoryPerMultiProcessor;  ///< Maximum Shared Memory Per Multiprocessor.
+    int isMultiGpuBoard;                      ///< 1 if device is on a multi-GPU board, 0 if not.
+    int canMapHostMemory;                     ///< Check whether HIP can map host memory
+    int gcnArch;                              ///< DEPRECATED: use gcnArchName instead
+    char gcnArchName[256];                    ///< AMD GCN Arch Name.
+    int integrated;            ///< APU vs dGPU
+    int cooperativeLaunch;            ///< HIP device supports cooperative launch
+    int cooperativeMultiDeviceLaunch; ///< HIP device supports cooperative launch on multiple devices
+    int maxTexture1DLinear;    ///< Maximum size for 1D textures bound to linear memory
+    int maxTexture1D;          ///< Maximum number of elements in 1D images
+    int maxTexture2D[2];       ///< Maximum dimensions (width, height) of 2D images, in image elements
+    int maxTexture3D[3];       ///< Maximum dimensions (width, height, depth) of 3D images, in image elements
+    unsigned int* hdpMemFlushCntl;      ///< Addres of HDP_MEM_COHERENCY_FLUSH_CNTL register
+    unsigned int* hdpRegFlushCntl;      ///< Addres of HDP_REG_COHERENCY_FLUSH_CNTL register
+    size_t memPitch;                 ///<Maximum pitch in bytes allowed by memory copies
+    size_t textureAlignment;         ///<Alignment requirement for textures
+    size_t texturePitchAlignment;    ///<Pitch alignment requirement for texture references bound to pitched memory
+    int kernelExecTimeoutEnabled;    ///<Run time limit for kernels executed on the device
+    int ECCEnabled;                  ///<Device has ECC support enabled
+    int tccDriver;                   ///< 1:If device is Tesla device using TCC driver, else 0
+    int cooperativeMultiDeviceUnmatchedFunc;        ///< HIP device supports cooperative launch on multiple
+                                                    ///devices with unmatched functions
+    int cooperativeMultiDeviceUnmatchedGridDim;     ///< HIP device supports cooperative launch on multiple
+                                                    ///devices with unmatched grid dimensions
+    int cooperativeMultiDeviceUnmatchedBlockDim;    ///< HIP device supports cooperative launch on multiple
+                                                    ///devices with unmatched block dimensions
+    int cooperativeMultiDeviceUnmatchedSharedMem;   ///< HIP device supports cooperative launch on multiple
+                                                    ///devices with unmatched shared memories
+    int isLargeBar;                  ///< 1: if it is a large PCI bar device, else 0
+    int asicRevision;                ///< Revision of the GPU in this device
+    int managedMemory;               ///< Device supports allocating managed memory on this system
+    int directManagedMemAccessFromHost; ///< Host can directly access managed memory on the device without migration
+    int concurrentManagedAccess;     ///< Device can coherently access managed memory concurrently with the CPU
+    int pageableMemoryAccess;        ///< Device supports coherently accessing pageable memory
+                                     ///< without calling hipHostRegister on it
+    int pageableMemoryAccessUsesHostPageTables; ///< Device accesses pageable memory via the host's page tables
+} hipDeviceProp_t;
+
 typedef enum HIPpointer_attribute_enum {
   HIP_POINTER_ATTRIBUTE_CONTEXT = 1,
   HIP_POINTER_ATTRIBUTE_MEMORY_TYPE = 2,
@@ -951,6 +1050,25 @@ typedef enum HIPGLmap_flags_enum {
   HIP_GL_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 0x02,
 } HIPGLmap_flags;
 
+/**
+* hipRTC related
+*/
+typedef struct _hiprtcProgram* hiprtcProgram;
+
+typedef enum hiprtcResult {
+    HIPRTC_SUCCESS = 0,
+    HIPRTC_ERROR_OUT_OF_MEMORY = 1,
+    HIPRTC_ERROR_PROGRAM_CREATION_FAILURE = 2,
+    HIPRTC_ERROR_INVALID_INPUT = 3,
+    HIPRTC_ERROR_INVALID_PROGRAM = 4,
+    HIPRTC_ERROR_INVALID_OPTION = 5,
+    HIPRTC_ERROR_COMPILATION = 6,
+    HIPRTC_ERROR_BUILTIN_OPERATION_FAILURE = 7,
+    HIPRTC_ERROR_NO_NAME_EXPRESSIONS_AFTER_COMPILATION = 8,
+    HIPRTC_ERROR_NO_LOWERED_NAMES_BEFORE_COMPILATION = 9,
+    HIPRTC_ERROR_NAME_EXPRESSION_NOT_VALID = 10,
+    HIPRTC_ERROR_INTERNAL_ERROR = 11
+} hiprtcResult;
 
 /* Function types. */
 typedef hipError_t HIPAPI thipGetErrorName(hipError_t error, const char** pStr);
@@ -958,6 +1076,7 @@ typedef hipError_t HIPAPI thipInit(unsigned int Flags);
 typedef hipError_t HIPAPI thipDriverGetVersion(int* driverVersion);
 typedef hipError_t HIPAPI thipGetDevice(hipDevice_t* device, int ordinal);
 typedef hipError_t HIPAPI thipGetDeviceCount(int* count);
+typedef hipError_t HIPAPI thipGetDeviceProperties(hipDeviceProp_t* props, int deviceId);
 typedef hipError_t HIPAPI thipDeviceGetName(char* name, int len, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDeviceGetAttribute(int* pi, hipDeviceAttribute_t attrib, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDeviceComputeCapability(int* major, int* minor, hipDevice_t dev);
@@ -1071,6 +1190,16 @@ typedef hipError_t HIPAPI thipGraphicsMapResources(unsigned int count, hipGraphi
 typedef hipError_t HIPAPI thipGraphicsUnmapResources(unsigned int count, hipGraphicsResource* resources, hipStream_t hStream);
 typedef hipError_t HIPAPI thipGraphicsGLRegisterBuffer(hipGraphicsResource* pCudaResource, GLuint buffer, unsigned int Flags);
 typedef hipError_t HIPAPI thipGLGetDevices(unsigned int* pHipDeviceCount, int* pHipDevices, unsigned int hipDeviceCount, hipGLDeviceList deviceList);
+typedef hiprtcResult HIPAPI thiprtcGetErrorString(hiprtcResult result);
+typedef hiprtcResult HIPAPI thiprtcAddNameExpression(hiprtcProgram prog, const char* name_expression);
+typedef hiprtcResult HIPAPI thiprtcCompileProgram(hiprtcProgram prog, int numOptions, const char** options);
+typedef hiprtcResult HIPAPI thiprtcCreateProgram(hiprtcProgram* prog, const char* src, const char* name, int numHeaders, const char** headers, const char** includeNames);
+typedef hiprtcResult HIPAPI thiprtcDestroyProgram(hiprtcProgram* prog);
+typedef hiprtcResult HIPAPI thiprtcGetLoweredName(hiprtcProgram prog, const char* name_expression, const char** lowered_name);
+typedef hiprtcResult HIPAPI thiprtcGetProgramLog(hiprtcProgram prog, char* log);
+typedef hiprtcResult HIPAPI thiprtcGetProgramLogSize(hiprtcProgram prog, size_t* logSizeRet);
+typedef hiprtcResult HIPAPI thiprtcGetCode(hiprtcProgram prog, char* code);
+typedef hiprtcResult HIPAPI thiprtcGetCodeSize(hiprtcProgram prog, size_t* codeSizeRet);
 
 
 /* Function declarations. */
@@ -1079,6 +1208,7 @@ extern thipInit *hipInit;
 extern thipDriverGetVersion *hipDriverGetVersion;
 extern thipGetDevice *hipGetDevice;
 extern thipGetDeviceCount *hipGetDeviceCount;
+extern thipGetDeviceProperties *hipGetDeviceProperties;
 extern thipDeviceGetName *hipDeviceGetName;
 extern thipDeviceGetAttribute *hipDeviceGetAttribute;
 extern thipDeviceComputeCapability *hipDeviceComputeCapability;
@@ -1186,6 +1316,17 @@ extern thipGraphicsUnmapResources *hipGraphicsUnmapResources;
 
 extern thipGraphicsGLRegisterBuffer *hipGraphicsGLRegisterBuffer;
 extern thipGLGetDevices *hipGLGetDevices;
+
+extern thiprtcGetErrorString* hiprtcGetErrorString;
+extern thiprtcAddNameExpression* hiprtcAddNameExpression;
+extern thiprtcCompileProgram* hiprtcCompileProgram;
+extern thiprtcCreateProgram* hiprtcCreateProgram;
+extern thiprtcDestroyProgram* hiprtcDestroyProgram;
+extern thiprtcGetLoweredName* hiprtcGetLoweredName;
+extern thiprtcGetProgramLog* hiprtcGetProgramLog;
+extern thiprtcGetProgramLogSize* hiprtcGetProgramLogSize;
+extern thiprtcGetCode* hiprtcGetCode;
+extern thiprtcGetCodeSize* hiprtcGetCodeSize;
 
 
 enum {

@@ -148,8 +148,8 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_half_rgba(
 
       film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel_rgba);
 
-      float4_store_half(&pixel->x,
-                        make_float4(pixel_rgba[0], pixel_rgba[1], pixel_rgba[2], pixel_rgba[3]));
+      *pixel = float4_to_half4_display(
+          make_float4(pixel_rgba[0], pixel_rgba[1], pixel_rgba[2], pixel_rgba[3]));
     }
   });
 }

@@ -1248,6 +1248,9 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_HAIR = (1 << 14),
   USER_DUP_POINTCLOUD = (1 << 15),
   USER_DUP_VOLUME = (1 << 16),
+  USER_DUP_LATTICE = (1 << 17),
+  USER_DUP_CAMERA = (1 << 18),
+  USER_DUP_SPEAKER = (1 << 19),
 
   USER_DUP_OBDATA = (~0) & ((1 << 24) - 1),
 
