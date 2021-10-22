@@ -121,6 +121,9 @@ void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *
     return;
   }
 
+  /* Since writing to disk also means loading any on-disk changes, it may be a good idea to store
+   * an undo step. */
+  catalog_service->undo_push();
   catalog_service->write_to_disk(bmain->name);
 }
 
