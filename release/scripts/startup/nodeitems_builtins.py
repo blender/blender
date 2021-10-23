@@ -168,7 +168,7 @@ def geometry_input_node_items(context):
         return
 
     if geometry_nodes_legacy_poll(context):
-        yield NodeItem("FunctionNodeLegacyRandomFloat"),
+        yield NodeItem("FunctionNodeLegacyRandomFloat")
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
     yield NodeItem("GeometryNodeCollectionInfo")
