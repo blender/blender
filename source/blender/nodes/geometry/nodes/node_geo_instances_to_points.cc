@@ -80,8 +80,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   OutputAttribute_Typed<int> id_attribute = points.attribute_try_get_for_output<int>(
       "id", ATTR_DOMAIN_POINT, 0);
   MutableSpan<int> ids = id_attribute.as_span();
-  for (const int64_t i : selection) {
-    ids[i] = instances.instance_ids()[i];
+  for (const int i : selection.index_range()) {
+    ids[i] = instances.instance_ids()[selection[i]];
   }
   id_attribute.save();
 }
