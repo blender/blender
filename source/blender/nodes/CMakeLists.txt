@@ -240,6 +240,7 @@ set(SRC
   geometry/nodes/node_geo_input_spline_resolution.cc
   geometry/nodes/node_geo_input_tangent.cc
   geometry/nodes/node_geo_instance_on_points.cc
+  geometry/nodes/node_geo_instances_to_points.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_replace.cc

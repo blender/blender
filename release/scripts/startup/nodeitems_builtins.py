@@ -695,6 +695,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_INSTANCE", "Instances", items=[
         NodeItem("GeometryNodeInstanceOnPoints"),
+        NodeItem("GeometryNodeInstancesToPoints"),
         NodeItem("GeometryNodeRealizeInstances"),
         NodeItem("GeometryNodeRotateInstances"),
         NodeItem("GeometryNodeScaleInstances"),

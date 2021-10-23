@@ -368,6 +368,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_LENGTH, 0, "SPLINE_LENGTH", SplineLe
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_RESOLUTION, 0, "INPUT_SPLINE_RESOLUTION", InputSplineResolution, "Spline Resolution", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_TANGENT, 0, "INPUT_TANGENT", InputTangent, "Curve Tangent", "")
 DefNode(GeometryNode, GEO_NODE_INSTANCE_ON_POINTS, 0, "INSTANCE_ON_POINTS", InstanceOnPoints, "Instance on Points", "")
+DefNode(GeometryNode, GEO_NODE_INSTANCES_TO_POINTS, 0, "INSTANCES_TO_POINTS", InstancesToPoints, "Instances to Points", "")
 DefNode(GeometryNode, GEO_NODE_IS_VIEWPORT, 0, "IS_VIEWPORT", IsViewport, "Is Viewport", "")
 DefNode(GeometryNode, GEO_NODE_JOIN_GEOMETRY, 0, "JOIN_GEOMETRY", JoinGeometry, "Join Geometry", "")
 DefNode(GeometryNode, GEO_NODE_REPLACE_MATERIAL, 0, "REPLACE_MATERIAL", ReplaceMaterial, "Replace Material", "")

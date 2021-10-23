@@ -108,6 +108,7 @@ void register_node_type_geo_input_spline_length(void);
 void register_node_type_geo_input_spline_resolution(void);
 void register_node_type_geo_input_tangent(void);
 void register_node_type_geo_instance_on_points(void);
+void register_node_type_geo_instances_to_points(void);
 void register_node_type_geo_is_viewport(void);
 void register_node_type_geo_join_geometry(void);
 void register_node_type_geo_material_replace(void);
