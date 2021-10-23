@@ -244,7 +244,7 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
   if (settings) {
     filter.set("hdr", settings->hdr);
     filter.set("srgb", false);
-    filter.set("clean_aux", are_guiding_passes_noise_free(settings));
+    filter.set("cleanAux", are_guiding_passes_noise_free(settings));
   }
 
   filter.execute();
