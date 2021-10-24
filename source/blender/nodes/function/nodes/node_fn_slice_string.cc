@@ -20,34 +20,34 @@
 
 namespace blender::nodes {
 
-static void fn_node_string_substring_declare(NodeDeclarationBuilder &b)
+static void fn_node_slice_string_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>("String");
   b.add_input<decl::Int>("Position");
-  b.add_input<decl::Int>("Length").min(0);
+  b.add_input<decl::Int>("Length").min(0).default_value(10);
   b.add_output<decl::String>("String");
 };
 
-static void fn_node_string_substring_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void fn_node_slice_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> substring_fn{
-      "Substring", [](const std::string &str, int a, int b) {
+  static blender::fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> slice_fn{
+      "Slice", [](const std::string &str, int a, int b) {
         const int len = BLI_strlen_utf8(str.c_str());
         const int start = BLI_str_utf8_offset_from_index(str.c_str(), std::clamp(a, 0, len));
         const int end = BLI_str_utf8_offset_from_index(str.c_str(), std::clamp(a + b, 0, len));
         return str.substr(start, std::max<int>(end - start, 0));
       }};
-  builder.set_matching_fn(&substring_fn);
+  builder.set_matching_fn(&slice_fn);
 }
 
 }  // namespace blender::nodes
 
-void register_node_type_fn_string_substring()
+void register_node_type_fn_slice_string()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_STRING_SUBSTRING, "String Substring", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_string_substring_declare;
-  ntype.build_multi_function = blender::nodes::fn_node_string_substring_build_multi_function;
+  fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER, 0);
+  ntype.declare = blender::nodes::fn_node_slice_string_declare;
+  ntype.build_multi_function = blender::nodes::fn_node_slice_string_build_multi_function;
   nodeRegisterType(&ntype);
 }

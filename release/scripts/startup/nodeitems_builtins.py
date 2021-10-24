@@ -719,7 +719,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_POINT", "Point", items=point_node_items),
     GeometryNodeCategory("GEO_TEXT", "Text", items=[
         NodeItem("FunctionNodeStringLength"),
-        NodeItem("FunctionNodeStringSubstring"),
+        NodeItem("FunctionNodeSliceString"),
         NodeItem("FunctionNodeValueToString"),
         NodeItem("GeometryNodeStringJoin"),
         NodeItem("FunctionNodeInputSpecialCharacters"),

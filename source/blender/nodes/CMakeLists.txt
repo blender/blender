@@ -149,8 +149,8 @@ set(SRC
   function/nodes/node_fn_random_value.cc
   function/nodes/node_fn_replace_string.cc
   function/nodes/node_fn_rotate_euler.cc
+  function/nodes/node_fn_slice_string.cc
   function/nodes/node_fn_string_length.cc
-  function/nodes/node_fn_string_substring.cc
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 

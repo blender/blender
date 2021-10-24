@@ -2030,7 +2030,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    *
    * \note Keep this message at the bottom of the function.
    */
+
   {
+    /* Update the `idnames` for renamed geometry and function nodes. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
+    }
     /* Keep this block, even when empty. */
   }
 }
