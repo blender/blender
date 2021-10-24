@@ -175,13 +175,19 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
                                            GEO_COMPONENT_TYPE_MESH,
                                            GEO_COMPONENT_TYPE_POINT_CLOUD,
                                            GEO_COMPONENT_TYPE_VOLUME};
+
+  /* Keep track handled attribute names to make sure that we do not return the same name twice.
+   * Currently #GeometrySet::attribute_foreach does not do that. Note that this will merge
+   * attributes with the same name but different domains or data types on separate components. */
+  Set<StringRef> names;
+
   geometry_set.attribute_foreach(
       all_component_types,
       true,
       [&](const bke::AttributeIDRef &attribute_id,
           const AttributeMetaData &meta_data,
           const GeometryComponent &UNUSED(component)) {
-        if (attribute_id.is_named()) {
+        if (attribute_id.is_named() && names.add(attribute_id.name())) {
           this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
         }
       });
