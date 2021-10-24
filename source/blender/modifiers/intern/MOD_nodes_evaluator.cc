@@ -1455,6 +1455,7 @@ class GeometryNodesEvaluator {
     }
     void *converted_buffer = allocator.allocate(required_type.size(), required_type.alignment());
     this->convert_value(type, required_type, buffer, converted_buffer);
+    type.destruct(buffer);
     return {required_type, converted_buffer};
   }
 
