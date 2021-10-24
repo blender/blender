@@ -85,3 +85,7 @@ endif()
 if(UNIX AND NOT APPLE)
   add_subdirectory(libc_compat)
 endif()
+
+if(WITH_INSTANT_MESHES)
+  add_subdirectory(instant-meshes)
+endif()
