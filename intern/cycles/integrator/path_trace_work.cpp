@@ -24,7 +24,7 @@
 #include "scene/scene.h"
 #include "session/buffers.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 

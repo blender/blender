@@ -19,9 +19,9 @@
 #include "scene/image.h"
 #include "scene/mesh.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_transform.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
 

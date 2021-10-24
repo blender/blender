@@ -17,7 +17,7 @@
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 #include "graph/node.h"
 
@@ -25,10 +25,10 @@
  * the right Node::set overload as it does not know that Shader is a Node */
 #include "scene/shader.h"
 
-#include "util/util_ies.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/ies.h"
+#include "util/thread.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

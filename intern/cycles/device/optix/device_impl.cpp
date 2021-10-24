@@ -20,7 +20,7 @@
 #  include "device/optix/device_impl.h"
 
 #  include "bvh/bvh.h"
-#  include "bvh/bvh_optix.h"
+#  include "bvh/optix.h"
 
 #  include "integrator/pass_accessor_gpu.h"
 
@@ -30,12 +30,12 @@
 #  include "scene/pass.h"
 #  include "scene/scene.h"
 
-#  include "util/util_debug.h"
-#  include "util/util_logging.h"
-#  include "util/util_md5.h"
-#  include "util/util_path.h"
-#  include "util/util_progress.h"
-#  include "util/util_time.h"
+#  include "util/debug.h"
+#  include "util/log.h"
+#  include "util/md5.h"
+#  include "util/path.h"
+#  include "util/progress.h"
+#  include "util/time.h"
 
 #  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__
@@ -1574,7 +1574,7 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
       return; \
     }
   KERNEL_TEX(IntegratorStateGPU, __integrator_state)
-#  include "kernel/kernel_textures.h"
+#  include "kernel/textures.h"
 #  undef KERNEL_TEX
 }
 

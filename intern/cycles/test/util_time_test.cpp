@@ -16,7 +16,7 @@
 
 #include "testing/testing.h"
 
-#include "util/util_time.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

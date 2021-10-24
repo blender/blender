@@ -27,13 +27,13 @@
 #include "scene/sobol.h"
 #include "scene/stats.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "util/util_foreach.h"
-#include "util/util_hash.h"
-#include "util/util_logging.h"
-#include "util/util_task.h"
-#include "util/util_time.h"
+#include "util/foreach.h"
+#include "util/hash.h"
+#include "util/log.h"
+#include "util/task.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

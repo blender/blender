@@ -22,12 +22,12 @@
 #include "integrator/pass_accessor_gpu.h"
 #include "scene/scene.h"
 #include "session/buffers.h"
-#include "util/util_logging.h"
-#include "util/util_string.h"
-#include "util/util_tbb.h"
-#include "util/util_time.h"
+#include "util/log.h"
+#include "util/string.h"
+#include "util/tbb.h"
+#include "util/time.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -53,9 +53,9 @@ static size_t estimate_single_state_size()
  * rely on this. */
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE 4
 
-#include "kernel/integrator/integrator_state_template.h"
+#include "kernel/integrator/state_template.h"
 
-#include "kernel/integrator/integrator_shadow_state_template.h"
+#include "kernel/integrator/shadow_state_template.h"
 
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
@@ -146,9 +146,9 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   }
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE (integrator_state_soa_volume_stack_size_)
 
-#include "kernel/integrator/integrator_state_template.h"
+#include "kernel/integrator/state_template.h"
 
-#include "kernel/integrator/integrator_shadow_state_template.h"
+#include "kernel/integrator/shadow_state_template.h"
 
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER

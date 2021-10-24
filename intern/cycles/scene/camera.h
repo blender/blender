@@ -17,15 +17,15 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 #include "graph/node.h"
 
-#include "util/util_array.h"
-#include "util/util_boundbox.h"
-#include "util/util_projection.h"
-#include "util/util_transform.h"
-#include "util/util_types.h"
+#include "util/array.h"
+#include "util/boundbox.h"
+#include "util/projection.h"
+#include "util/transform.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

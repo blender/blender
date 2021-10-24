@@ -18,13 +18,13 @@
 #include "scene/camera.h"
 #include "scene/mesh.h"
 
-#include "subd/subd_patch.h"
-#include "subd/subd_patch_table.h"
-#include "subd/subd_split.h"
+#include "subd/patch.h"
+#include "subd/patch_table.h"
+#include "subd/split.h"
 
-#include "util/util_algorithm.h"
-#include "util/util_foreach.h"
-#include "util/util_hash.h"
+#include "util/algorithm.h"
+#include "util/foreach.h"
+#include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN
 

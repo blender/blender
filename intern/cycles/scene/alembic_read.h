@@ -21,7 +21,7 @@
 #  include <Alembic/AbcCoreFactory/All.h>
 #  include <Alembic/AbcGeom/All.h>
 
-#  include "util/util_vector.h"
+#  include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

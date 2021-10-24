@@ -20,10 +20,10 @@
 #include "scene/object.h"
 #include "scene/scene.h"
 
-#include "util/util_foreach.h"
-#include "util/util_map.h"
-#include "util/util_progress.h"
-#include "util/util_vector.h"
+#include "util/foreach.h"
+#include "util/map.h"
+#include "util/progress.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

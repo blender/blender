@@ -27,7 +27,7 @@
 
 #include "kernel/closure/bsdf_util.h"
 
-#include "kernel/sample/sample_mapping.h"
+#include "kernel/sample/mapping.h"
 
 CCL_NAMESPACE_BEGIN
 

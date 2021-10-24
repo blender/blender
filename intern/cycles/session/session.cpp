@@ -35,12 +35,12 @@
 #include "session/output_driver.h"
 #include "session/session.h"
 
-#include "util/util_foreach.h"
-#include "util/util_function.h"
-#include "util/util_logging.h"
-#include "util/util_math.h"
-#include "util/util_task.h"
-#include "util/util_time.h"
+#include "util/foreach.h"
+#include "util/function.h"
+#include "util/log.h"
+#include "util/math.h"
+#include "util/task.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

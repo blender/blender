@@ -28,17 +28,17 @@
 
 #ifdef WITH_OSL
 
-#  include "kernel/osl/osl_globals.h"
-#  include "kernel/osl/osl_services.h"
-#  include "kernel/osl/osl_shader.h"
+#  include "kernel/osl/globals.h"
+#  include "kernel/osl/services.h"
+#  include "kernel/osl/shader.h"
 
-#  include "util/util_aligned_malloc.h"
-#  include "util/util_foreach.h"
-#  include "util/util_logging.h"
-#  include "util/util_md5.h"
-#  include "util/util_path.h"
-#  include "util/util_progress.h"
-#  include "util/util_projection.h"
+#  include "util/aligned_malloc.h"
+#  include "util/foreach.h"
+#  include "util/log.h"
+#  include "util/md5.h"
+#  include "util/path.h"
+#  include "util/progress.h"
+#  include "util/projection.h"
 
 #endif
 

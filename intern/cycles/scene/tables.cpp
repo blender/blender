@@ -19,8 +19,8 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/util_logging.h"
-#include "util/util_time.h"
+#include "util/log.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

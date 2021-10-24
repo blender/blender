@@ -19,15 +19,15 @@
 
 #include "graph/node.h"
 
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 
 #include "scene/attribute.h"
 
-#include "util/util_boundbox.h"
-#include "util/util_set.h"
-#include "util/util_transform.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/boundbox.h"
+#include "util/set.h"
+#include "util/transform.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

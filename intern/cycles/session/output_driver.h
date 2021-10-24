@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "util/util_math.h"
-#include "util/util_string.h"
-#include "util/util_types.h"
+#include "util/math.h"
+#include "util/string.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

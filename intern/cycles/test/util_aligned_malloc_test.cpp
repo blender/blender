@@ -16,7 +16,7 @@
 
 #include "testing/testing.h"
 
-#include "util/util_aligned_malloc.h"
+#include "util/aligned_malloc.h"
 
 #define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ((size_t)ptr % align, 0)
 

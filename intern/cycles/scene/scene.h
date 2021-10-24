@@ -17,22 +17,22 @@
 #ifndef __SCENE_H__
 #define __SCENE_H__
 
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 
 #include "scene/film.h"
 #include "scene/image.h"
 #include "scene/shader.h"
 
 #include "device/device.h"
-#include "device/device_memory.h"
+#include "device/memory.h"
 
-#include "util/util_param.h"
-#include "util/util_string.h"
-#include "util/util_system.h"
-#include "util/util_texture.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/param.h"
+#include "util/string.h"
+#include "util/system.h"
+#include "util/texture.h"
+#include "util/thread.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

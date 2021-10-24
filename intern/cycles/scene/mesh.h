@@ -19,19 +19,19 @@
 
 #include "graph/node.h"
 
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 #include "scene/attribute.h"
 #include "scene/geometry.h"
 #include "scene/shader.h"
 
-#include "util/util_array.h"
-#include "util/util_boundbox.h"
-#include "util/util_list.h"
-#include "util/util_map.h"
-#include "util/util_param.h"
-#include "util/util_set.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/array.h"
+#include "util/boundbox.h"
+#include "util/list.h"
+#include "util/map.h"
+#include "util/param.h"
+#include "util/set.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

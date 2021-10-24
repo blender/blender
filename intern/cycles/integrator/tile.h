@@ -18,7 +18,7 @@
 
 #include <ostream>
 
-#include "util/util_types.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

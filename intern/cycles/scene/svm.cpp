@@ -26,10 +26,10 @@
 #include "scene/stats.h"
 #include "scene/svm.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
-#include "util/util_task.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/progress.h"
+#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 

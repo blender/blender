@@ -35,14 +35,14 @@
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 
-#include "subd/subd_patch.h"
-#include "subd/subd_split.h"
+#include "subd/patch.h"
+#include "subd/split.h"
 
-#include "util/util_foreach.h"
-#include "util/util_path.h"
-#include "util/util_projection.h"
-#include "util/util_transform.h"
-#include "util/util_xml.h"
+#include "util/foreach.h"
+#include "util/path.h"
+#include "util/projection.h"
+#include "util/transform.h"
+#include "util/xml.h"
 
 #include "app/cycles_xml.h"
 

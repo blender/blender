@@ -16,14 +16,14 @@
 
 #include "device/cuda/device.h"
 
-#include "util/util_logging.h"
+#include "util/log.h"
 
 #ifdef WITH_CUDA
 #  include "device/cuda/device_impl.h"
 #  include "device/device.h"
 
-#  include "util/util_string.h"
-#  include "util/util_windows.h"
+#  include "util/string.h"
+#  include "util/windows.h"
 #endif /* WITH_CUDA */
 
 CCL_NAMESPACE_BEGIN

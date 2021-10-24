@@ -16,8 +16,8 @@
 
 #include "integrator/tile.h"
 
-#include "util/util_logging.h"
-#include "util/util_math.h"
+#include "util/log.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 

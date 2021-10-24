@@ -17,14 +17,14 @@
 #include "integrator/shader_eval.h"
 
 #include "device/device.h"
-#include "device/device_queue.h"
+#include "device/queue.h"
 
 #include "device/cpu/kernel.h"
 #include "device/cpu/kernel_thread_globals.h"
 
-#include "util/util_logging.h"
-#include "util/util_progress.h"
-#include "util/util_tbb.h"
+#include "util/log.h"
+#include "util/progress.h"
+#include "util/tbb.h"
 
 CCL_NAMESPACE_BEGIN
 

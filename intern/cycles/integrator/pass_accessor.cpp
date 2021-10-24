@@ -17,11 +17,11 @@
 #include "integrator/pass_accessor.h"
 
 #include "session/buffers.h"
-#include "util/util_logging.h"
+#include "util/log.h"
 
 // clang-format off
 #include "kernel/device/cpu/compat.h"
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN

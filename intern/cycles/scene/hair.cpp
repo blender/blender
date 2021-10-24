@@ -23,7 +23,7 @@
 
 #include "integrator/shader_eval.h"
 
-#include "util/util_progress.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

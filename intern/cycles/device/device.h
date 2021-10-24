@@ -19,21 +19,21 @@
 
 #include <stdlib.h>
 
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 
-#include "device/device_denoise.h"
-#include "device/device_memory.h"
+#include "device/denoise.h"
+#include "device/memory.h"
 
-#include "util/util_function.h"
-#include "util/util_list.h"
-#include "util/util_logging.h"
-#include "util/util_stats.h"
-#include "util/util_string.h"
-#include "util/util_texture.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "util/function.h"
+#include "util/list.h"
+#include "util/log.h"
+#include "util/stats.h"
+#include "util/string.h"
+#include "util/texture.h"
+#include "util/thread.h"
+#include "util/types.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

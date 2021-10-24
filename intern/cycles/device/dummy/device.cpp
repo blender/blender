@@ -17,7 +17,7 @@
 #include "device/dummy/device.h"
 
 #include "device/device.h"
-#include "device/device_queue.h"
+#include "device/queue.h"
 
 CCL_NAMESPACE_BEGIN
 

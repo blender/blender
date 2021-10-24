@@ -26,11 +26,11 @@
 #  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
-#include "util/util_half.h"
-#include "util/util_math.h"
-#include "util/util_simd.h"
-#include "util/util_texture.h"
-#include "util/util_types.h"
+#include "util/half.h"
+#include "util/math.h"
+#include "util/simd.h"
+#include "util/texture.h"
+#include "util/types.h"
 
 /* On x86_64, versions of glibc < 2.16 have an issue where expf is
  * much slower than the double version.  This was fixed in glibc 2.16.

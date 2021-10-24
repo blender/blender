@@ -17,8 +17,8 @@
 #ifndef __CURVES_H__
 #define __CURVES_H__
 
-#include "util/util_array.h"
-#include "util/util_types.h"
+#include "util/array.h"
+#include "util/types.h"
 
 #include "scene/hair.h"
 

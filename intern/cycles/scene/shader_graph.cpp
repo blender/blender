@@ -21,11 +21,11 @@
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
 
-#include "util/util_algorithm.h"
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_md5.h"
-#include "util/util_queue.h"
+#include "util/algorithm.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/md5.h"
+#include "util/queue.h"
 
 CCL_NAMESPACE_BEGIN
 

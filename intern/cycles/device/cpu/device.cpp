@@ -20,7 +20,7 @@
 /* Used for `info.denoisers`. */
 /* TODO(sergey): The denoisers are probably to be moved completely out of the device into their
  * own class. But until then keep API consistent with how it used to work before. */
-#include "util/util_openimagedenoise.h"
+#include "util/openimagedenoise.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,8 +17,8 @@
 #pragma once
 
 #include "kernel/geom/geom.h"
-#include "kernel/light/light_background.h"
-#include "kernel/sample/sample_mapping.h"
+#include "kernel/light/background.h"
+#include "kernel/sample/mapping.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "util/util_debug.h"
-#include "util/util_system.h"
+#include "util/debug.h"
+#include "util/system.h"
 
 CCL_NAMESPACE_BEGIN
 

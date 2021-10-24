@@ -19,7 +19,7 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
-#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace_display.h"
@@ -27,9 +27,9 @@
 #include "scene/scene.h"
 #include "session/buffers.h"
 
-#include "util/util_atomic.h"
-#include "util/util_logging.h"
-#include "util/util_tbb.h"
+#include "util/atomic.h"
+#include "util/log.h"
+#include "util/tbb.h"
 
 CCL_NAMESPACE_BEGIN
 

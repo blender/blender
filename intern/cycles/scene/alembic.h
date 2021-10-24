@@ -19,9 +19,9 @@
 #include "graph/node.h"
 #include "scene/attribute.h"
 #include "scene/procedural.h"
-#include "util/util_set.h"
-#include "util/util_transform.h"
-#include "util/util_vector.h"
+#include "util/set.h"
+#include "util/transform.h"
+#include "util/vector.h"
 
 #ifdef WITH_ALEMBIC
 

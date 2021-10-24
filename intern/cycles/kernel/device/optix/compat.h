@@ -129,5 +129,5 @@ __device__ float __half2float(const half h)
 
 /* Types */
 
-#include "util/util_half.h"
-#include "util/util_types.h"
+#include "util/half.h"
+#include "util/types.h"

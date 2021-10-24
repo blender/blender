@@ -22,15 +22,15 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/util_foreach.h"
-#include "util/util_image.h"
-#include "util/util_image_impl.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
-#include "util/util_progress.h"
-#include "util/util_task.h"
-#include "util/util_texture.h"
-#include "util/util_unique_ptr.h"
+#include "util/foreach.h"
+#include "util/image.h"
+#include "util/image_impl.h"
+#include "util/log.h"
+#include "util/path.h"
+#include "util/progress.h"
+#include "util/task.h"
+#include "util/texture.h"
+#include "util/unique_ptr.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslexec.h>

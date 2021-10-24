@@ -17,15 +17,15 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
-#include "device/device_memory.h"
+#include "device/memory.h"
 
 #include "scene/colorspace.h"
 
-#include "util/util_string.h"
-#include "util/util_thread.h"
-#include "util/util_transform.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "util/string.h"
+#include "util/thread.h"
+#include "util/transform.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -45,11 +45,11 @@ endif()
 
 set(SRC
   device.cpp
-  device_denoise.cpp
-  device_graphics_interop.cpp
-  device_kernel.cpp
-  device_memory.cpp
-  device_queue.cpp
+  denoise.cpp
+  graphics_interop.cpp
+  kernel.cpp
+  memory.cpp
+  queue.cpp
 )
 
 set(SRC_CPU
@@ -116,11 +116,11 @@ set(SRC_OPTIX
 
 set(SRC_HEADERS
   device.h
-  device_denoise.h
-  device_graphics_interop.h
-  device_memory.h
-  device_kernel.h
-  device_queue.h
+  denoise.h
+  graphics_interop.h
+  memory.h
+  kernel.h
+  queue.h
 )
 
 set(LIB

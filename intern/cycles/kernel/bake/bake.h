@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "kernel/camera/camera_projection.h"
-#include "kernel/integrator/integrator_shader_eval.h"
+#include "kernel/camera/projection.h"
+#include "kernel/integrator/shader_eval.h"
 
 #include "kernel/geom/geom.h"
 

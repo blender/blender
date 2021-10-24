@@ -26,11 +26,11 @@
 #include "scene/stats.h"
 #include "scene/tables.h"
 
-#include "util/util_algorithm.h"
-#include "util/util_foreach.h"
-#include "util/util_math.h"
-#include "util/util_math_cdf.h"
-#include "util/util_time.h"
+#include "util/algorithm.h"
+#include "util/foreach.h"
+#include "util/math.h"
+#include "util/math_cdf.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

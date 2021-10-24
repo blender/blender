@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "kernel/sample/sample_mapping.h"
+#include "kernel/sample/mapping.h"
 
 CCL_NAMESPACE_BEGIN
 

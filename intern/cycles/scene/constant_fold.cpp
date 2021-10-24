@@ -17,8 +17,8 @@
 #include "scene/constant_fold.h"
 #include "scene/shader_graph.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
+#include "util/foreach.h"
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

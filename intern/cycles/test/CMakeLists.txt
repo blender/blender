@@ -20,13 +20,7 @@ if(WITH_GTESTS)
 endif()
 
 set(INC
-  .
   ..
-  ../device
-  ../graph
-  ../kernel
-  ../scene
-  ../util
 )
 
 set(ALL_CYCLES_LIBRARIES

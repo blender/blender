@@ -22,7 +22,7 @@
 #include "scene/stats.h"
 #include "session/buffers.h"
 
-#include "util/util_foreach.h"
+#include "util/foreach.h"
 
 CCL_NAMESPACE_BEGIN
 

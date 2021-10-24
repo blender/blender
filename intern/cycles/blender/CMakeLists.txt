@@ -29,39 +29,39 @@ set(INC_SYS
 )
 
 set(SRC
-  blender_camera.cpp
-  blender_device.cpp
-  blender_display_driver.cpp
-  blender_image.cpp
-  blender_geometry.cpp
-  blender_light.cpp
-  blender_mesh.cpp
-  blender_object.cpp
-  blender_object_cull.cpp
-  blender_output_driver.cpp
-  blender_particles.cpp
-  blender_curves.cpp
-  blender_logging.cpp
-  blender_python.cpp
-  blender_session.cpp
-  blender_shader.cpp
-  blender_sync.cpp
-  blender_texture.cpp
-  blender_viewport.cpp
-  blender_volume.cpp
+  camera.cpp
+  device.cpp
+  display_driver.cpp
+  image.cpp
+  geometry.cpp
+  light.cpp
+  mesh.cpp
+  object.cpp
+  object_cull.cpp
+  output_driver.cpp
+  particles.cpp
+  curves.cpp
+  logging.cpp
+  python.cpp
+  session.cpp
+  shader.cpp
+  sync.cpp
+  texture.cpp
+  viewport.cpp
+  volume.cpp
 
   CCL_api.h
-  blender_device.h
-  blender_display_driver.h
-  blender_id_map.h
-  blender_image.h
-  blender_object_cull.h
-  blender_output_driver.h
-  blender_sync.h
-  blender_session.h
-  blender_texture.h
-  blender_util.h
-  blender_viewport.h
+  device.h
+  display_driver.h
+  id_map.h
+  image.h
+  object_cull.h
+  output_driver.h
+  sync.h
+  session.h
+  texture.h
+  util.h
+  viewport.h
 )
 
 set(LIB

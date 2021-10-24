@@ -19,7 +19,7 @@
 #include "integrator/adaptive_sampling.h"
 #include "integrator/denoiser.h" /* For DenoiseParams. */
 #include "session/buffers.h"
-#include "util/util_string.h"
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 

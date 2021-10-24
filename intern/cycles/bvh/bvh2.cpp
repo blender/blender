@@ -21,12 +21,12 @@
 #include "scene/mesh.h"
 #include "scene/object.h"
 
-#include "bvh/bvh_build.h"
-#include "bvh/bvh_node.h"
-#include "bvh/bvh_unaligned.h"
+#include "bvh/build.h"
+#include "bvh/node.h"
+#include "bvh/unaligned.h"
 
-#include "util/util_foreach.h"
-#include "util/util_progress.h"
+#include "util/foreach.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-#include "procedural.h"
-
+#include "scene/procedural.h"
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/util_foreach.h"
-#include "util/util_progress.h"
+#include "util/foreach.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

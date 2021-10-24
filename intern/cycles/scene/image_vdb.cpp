@@ -16,8 +16,8 @@
 
 #include "scene/image_vdb.h"
 
-#include "util/util_logging.h"
-#include "util/util_openvdb.h"
+#include "util/log.h"
+#include "util/openvdb.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/Dense.h>

@@ -16,7 +16,7 @@
 
 #ifdef WITH_HIP
 
-#  include "device/device_graphics_interop.h"
+#  include "device/graphics_interop.h"
 
 #  ifdef WITH_HIP_DYNLOAD
 #    include "hipew.h"

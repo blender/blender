@@ -29,15 +29,15 @@
 
 #include "sky_model.h"
 
-#include "util/util_color.h"
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_transform.h"
+#include "util/color.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/transform.h"
 
-#include "kernel/svm/svm_color_util.h"
-#include "kernel/svm/svm_mapping_util.h"
-#include "kernel/svm/svm_math_util.h"
-#include "kernel/svm/svm_ramp_util.h"
+#include "kernel/svm/color_util.h"
+#include "kernel/svm/mapping_util.h"
+#include "kernel/svm/math_util.h"
+#include "kernel/svm/ramp_util.h"
 
 CCL_NAMESPACE_BEGIN
 

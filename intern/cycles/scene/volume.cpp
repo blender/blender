@@ -25,12 +25,12 @@
 #  include <openvdb/tools/Morphology.h>
 #endif
 
-#include "util/util_foreach.h"
-#include "util/util_hash.h"
-#include "util/util_logging.h"
-#include "util/util_openvdb.h"
-#include "util/util_progress.h"
-#include "util/util_types.h"
+#include "util/foreach.h"
+#include "util/hash.h"
+#include "util/log.h"
+#include "util/openvdb.h"
+#include "util/progress.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

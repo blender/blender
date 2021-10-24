@@ -16,7 +16,7 @@
 
 #include "integrator/adaptive_sampling.h"
 
-#include "util/util_math.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 

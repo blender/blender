@@ -18,9 +18,9 @@
 
 #include "session/session.h"
 #include "session/tile.h"
-#include "util/util_logging.h"
-#include "util/util_math.h"
-#include "util/util_time.h"
+#include "util/log.h"
+#include "util/math.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

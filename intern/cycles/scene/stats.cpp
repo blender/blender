@@ -16,9 +16,9 @@
 
 #include "scene/stats.h"
 #include "scene/object.h"
-#include "util/util_algorithm.h"
-#include "util/util_foreach.h"
-#include "util/util_string.h"
+#include "util/algorithm.h"
+#include "util/foreach.h"
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 

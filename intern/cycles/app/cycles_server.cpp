@@ -18,13 +18,13 @@
 
 #include "device/device.h"
 
-#include "util/util_args.h"
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
-#include "util/util_stats.h"
-#include "util/util_string.h"
-#include "util/util_task.h"
+#include "util/args.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/path.h"
+#include "util/stats.h"
+#include "util/string.h"
+#include "util/task.h"
 
 using namespace ccl;
 

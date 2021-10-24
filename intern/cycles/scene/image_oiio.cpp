@@ -16,9 +16,9 @@
 
 #include "scene/image_oiio.h"
 
-#include "util/util_image.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
+#include "util/image.h"
+#include "util/log.h"
+#include "util/path.h"
 
 CCL_NAMESPACE_BEGIN
 

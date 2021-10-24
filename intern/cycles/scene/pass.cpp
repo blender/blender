@@ -16,8 +16,8 @@
 
 #include "scene/pass.h"
 
-#include "util/util_algorithm.h"
-#include "util/util_logging.h"
+#include "util/algorithm.h"
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,9 +17,9 @@
 #ifndef __INTEGRATOR_H__
 #define __INTEGRATOR_H__
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "device/device_denoise.h" /* For the parameters and type enum. */
+#include "device/denoise.h" /* For the parameters and type enum. */
 #include "graph/node.h"
 #include "integrator/adaptive_sampling.h"
 

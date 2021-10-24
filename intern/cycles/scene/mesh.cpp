@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+#include "bvh/build.h"
 #include "bvh/bvh.h"
-#include "bvh/bvh_build.h"
 
 #include "device/device.h"
 
@@ -25,13 +25,13 @@
 #include "scene/scene.h"
 #include "scene/shader_graph.h"
 
-#include "subd/subd_patch_table.h"
-#include "subd/subd_split.h"
+#include "subd/patch_table.h"
+#include "subd/split.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
-#include "util/util_set.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/progress.h"
+#include "util/set.h"
 
 CCL_NAMESPACE_BEGIN
 

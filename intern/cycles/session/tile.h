@@ -17,9 +17,9 @@
 #pragma once
 
 #include "session/buffers.h"
-#include "util/util_image.h"
-#include "util/util_string.h"
-#include "util/util_unique_ptr.h"
+#include "util/image.h"
+#include "util/string.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -45,13 +45,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "util/util_types.h"
+#include "util/types.h"
 
 #include "scene/sobol.h"
 
 CCL_NAMESPACE_BEGIN
 
-#include "sobol.tables"
+#include "scene/sobol.tables"
 
 void sobol_generate_direction_vectors(uint vectors[][SOBOL_BITS], int dimensions)
 {

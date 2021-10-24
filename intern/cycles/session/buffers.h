@@ -17,16 +17,16 @@
 #ifndef __BUFFERS_H__
 #define __BUFFERS_H__
 
-#include "device/device_memory.h"
+#include "device/memory.h"
 #include "graph/node.h"
 #include "scene/pass.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "util/util_half.h"
-#include "util/util_string.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
+#include "util/half.h"
+#include "util/string.h"
+#include "util/thread.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

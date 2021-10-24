@@ -23,13 +23,13 @@
 
 #include "device/device.h"
 
-#include "util/util_foreach.h"
-#include "util/util_function.h"
-#include "util/util_logging.h"
-#include "util/util_math_cdf.h"
-#include "util/util_task.h"
-#include "util/util_time.h"
-#include "util/util_vector.h"
+#include "util/foreach.h"
+#include "util/function.h"
+#include "util/log.h"
+#include "util/math_cdf.h"
+#include "util/task.h"
+#include "util/time.h"
+#include "util/vector.h"
 
 /* needed for calculating differentials */
 #include "kernel/device/cpu/compat.h"

@@ -23,10 +23,10 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 
-#include "util/util_foreach.h"
-#include "util/util_map.h"
-#include "util/util_progress.h"
-#include "util/util_set.h"
+#include "util/foreach.h"
+#include "util/map.h"
+#include "util/progress.h"
+#include "util/set.h"
 
 CCL_NAMESPACE_BEGIN
 

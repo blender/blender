@@ -16,11 +16,11 @@
 
 #include "session/merge.h"
 
-#include "util/util_array.h"
-#include "util/util_map.h"
-#include "util/util_system.h"
-#include "util/util_time.h"
-#include "util/util_unique_ptr.h"
+#include "util/array.h"
+#include "util/map.h"
+#include "util/system.h"
+#include "util/time.h"
+#include "util/unique_ptr.h"
 
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/imageio.h>

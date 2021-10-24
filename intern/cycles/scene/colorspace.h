@@ -17,8 +17,8 @@
 #ifndef __COLORSPACE_H__
 #define __COLORSPACE_H__
 
-#include "util/util_map.h"
-#include "util/util_param.h"
+#include "util/map.h"
+#include "util/param.h"
 
 CCL_NAMESPACE_BEGIN
 

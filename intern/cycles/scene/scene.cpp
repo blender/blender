@@ -38,10 +38,10 @@
 #include "scene/volume.h"
 #include "session/session.h"
 
-#include "util/util_foreach.h"
-#include "util/util_guarded_allocator.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
+#include "util/foreach.h"
+#include "util/guarded_allocator.h"
+#include "util/log.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

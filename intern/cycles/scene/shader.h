@@ -19,20 +19,20 @@
 
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/util_windows.h"
+#  include "util/windows.h"
 #  include <OSL/oslexec.h>
 #endif
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 #include "scene/attribute.h"
 
 #include "graph/node.h"
 
-#include "util/util_map.h"
-#include "util/util_param.h"
-#include "util/util_string.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
+#include "util/map.h"
+#include "util/param.h"
+#include "util/string.h"
+#include "util/thread.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

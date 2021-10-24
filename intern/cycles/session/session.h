@@ -24,11 +24,11 @@
 #include "session/buffers.h"
 #include "session/tile.h"
 
-#include "util/util_progress.h"
-#include "util/util_stats.h"
-#include "util/util_thread.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "util/progress.h"
+#include "util/stats.h"
+#include "util/thread.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

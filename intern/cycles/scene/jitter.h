@@ -17,7 +17,7 @@
 #ifndef __JITTER_H__
 #define __JITTER_H__
 
-#include "util/util_types.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

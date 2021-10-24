@@ -19,7 +19,7 @@
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/util_windows.h"
+#  include "util/windows.h"
 #  include <OSL/oslexec.h>
 #endif
 
@@ -29,15 +29,15 @@
 
 #include "device/cpu/kernel.h"
 #include "device/device.h"
-#include "device/device_memory.h"
+#include "device/memory.h"
 
 // clang-format off
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/kernel.h"
 #include "kernel/device/cpu/globals.h"
 
-#include "kernel/osl/osl_shader.h"
-#include "kernel/osl/osl_globals.h"
+#include "kernel/osl/shader.h"
+#include "kernel/osl/globals.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN

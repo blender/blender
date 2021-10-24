@@ -32,10 +32,10 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 
-#include "util/util_foreach.h"
-#include "util/util_murmurhash.h"
-#include "util/util_task.h"
-#include "util/util_transform.h"
+#include "util/foreach.h"
+#include "util/murmurhash.h"
+#include "util/task.h"
+#include "util/transform.h"
 
 #ifdef WITH_OCIO
 #  include <OpenColorIO/OpenColorIO.h>

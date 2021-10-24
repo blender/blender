@@ -18,10 +18,10 @@
 
 #include "session/display_driver.h"
 
-#include "util/util_half.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
-#include "util/util_unique_ptr.h"
+#include "util/half.h"
+#include "util/thread.h"
+#include "util/types.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 

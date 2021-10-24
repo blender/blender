@@ -23,13 +23,13 @@
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
-#include "util/util_algorithm.h"
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
-#include "util/util_string.h"
-#include "util/util_system.h"
-#include "util/util_types.h"
+#include "util/algorithm.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/path.h"
+#include "util/string.h"
+#include "util/system.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

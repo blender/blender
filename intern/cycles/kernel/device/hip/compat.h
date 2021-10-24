@@ -116,5 +116,5 @@ ccl_device_forceinline T ccl_gpu_tex_object_read_3D(const ccl_gpu_tex_object tex
 
 /* Types */
 
-#include "util/util_half.h"
-#include "util/util_types.h"
+#include "util/half.h"
+#include "util/types.h"

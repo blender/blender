@@ -23,10 +23,10 @@
 #include "scene/shader_nodes.h"
 #include "scene/stats.h"
 
-#include "util/util_foreach.h"
-#include "util/util_math.h"
-#include "util/util_time.h"
-#include "util/util_types.h"
+#include "util/foreach.h"
+#include "util/math.h"
+#include "util/time.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

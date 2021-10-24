@@ -25,11 +25,11 @@
 #include "scene/pass.h"
 #include "scene/scene.h"
 #include "session/tile.h"
-#include "util/util_algorithm.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
-#include "util/util_tbb.h"
-#include "util/util_time.h"
+#include "util/algorithm.h"
+#include "util/log.h"
+#include "util/progress.h"
+#include "util/tbb.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

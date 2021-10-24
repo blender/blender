@@ -21,12 +21,12 @@
 #  include "device/hip/queue.h"
 #  include "device/hip/util.h"
 
-#  include "util/util_map.h"
+#  include "util/map.h"
 
 #  ifdef WITH_HIP_DYNLOAD
 #    include "hipew.h"
 #  else
-#    include "util/util_opengl.h"
+#    include "util/opengl.h"
 #  endif
 
 CCL_NAMESPACE_BEGIN

@@ -19,13 +19,13 @@
 
 #include "scene/image.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "util/util_list.h"
-#include "util/util_param.h"
-#include "util/util_set.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/list.h"
+#include "util/param.h"
+#include "util/set.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

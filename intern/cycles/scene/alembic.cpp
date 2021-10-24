@@ -24,11 +24,11 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
-#include "util/util_transform.h"
-#include "util/util_vector.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/progress.h"
+#include "util/transform.h"
+#include "util/vector.h"
 
 #ifdef WITH_ALEMBIC
 

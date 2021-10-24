@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "scene/alembic.h"
 #include "scene/alembic_read.h"
+#include "scene/alembic.h"
 #include "scene/mesh.h"
 
-#include "util/util_color.h"
-#include "util/util_progress.h"
+#include "util/color.h"
+#include "util/progress.h"
 
 #ifdef WITH_ALEMBIC
 

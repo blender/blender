@@ -19,9 +19,9 @@
 
 #include "scene/scene.h"
 
-#include "util/util_stats.h"
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/stats.h"
+#include "util/string.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -21,8 +21,8 @@
 #include "scene/image.h"
 #include "scene/shader_graph.h"
 
-#include "util/util_array.h"
-#include "util/util_string.h"
+#include "util/array.h"
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -18,10 +18,10 @@
 #define __FILM_H__
 
 #include "scene/pass.h"
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/string.h"
+#include "util/vector.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 #include "graph/node.h"
 

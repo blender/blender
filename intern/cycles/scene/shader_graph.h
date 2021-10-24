@@ -20,14 +20,14 @@
 #include "graph/node.h"
 #include "graph/node_type.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "util/util_list.h"
-#include "util/util_map.h"
-#include "util/util_param.h"
-#include "util/util_set.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/list.h"
+#include "util/map.h"
+#include "util/param.h"
+#include "util/set.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "kernel/camera/camera_projection.h"
-#include "kernel/sample/sample_mapping.h"
-#include "kernel/util/util_differential.h"
-#include "kernel/util/util_lookup_table.h"
+#include "kernel/camera/projection.h"
+#include "kernel/sample/mapping.h"
+#include "kernel/util/differential.h"
+#include "kernel/util/lookup_table.h"
 
 CCL_NAMESPACE_BEGIN
 

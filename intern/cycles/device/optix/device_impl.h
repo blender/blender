@@ -22,7 +22,7 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/optix/queue.h"
 #  include "device/optix/util.h"
-#  include "kernel/kernel_types.h"
+#  include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,7 +17,7 @@
 #pragma once
 
 #include "device/cpu/kernel_function.h"
-#include "util/util_types.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

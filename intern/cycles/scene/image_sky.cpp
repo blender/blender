@@ -18,10 +18,10 @@
 
 #include "sky_model.h"
 
-#include "util/util_image.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
-#include "util/util_task.h"
+#include "util/image.h"
+#include "util/log.h"
+#include "util/path.h"
+#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
  *
  * TODO: there may be ways to optimize this to avoid this many atomic ops? */
 
-#include "util/util_atomic.h"
+#include "util/atomic.h"
 
 #ifdef __HIP__
 #  define GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE 1024

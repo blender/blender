@@ -17,8 +17,8 @@
 #ifndef __MERGE_H__
 #define __MERGE_H__
 
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/string.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -19,12 +19,12 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/util_foreach.h"
-#include "util/util_hash.h"
-#include "util/util_logging.h"
-#include "util/util_map.h"
-#include "util/util_progress.h"
-#include "util/util_vector.h"
+#include "util/foreach.h"
+#include "util/hash.h"
+#include "util/log.h"
+#include "util/map.h"
+#include "util/progress.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

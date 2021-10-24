@@ -27,16 +27,16 @@
 #include "scene/stats.h"
 #include "scene/volume.h"
 
-#include "util/util_foreach.h"
-#include "util/util_logging.h"
-#include "util/util_map.h"
-#include "util/util_murmurhash.h"
-#include "util/util_progress.h"
-#include "util/util_set.h"
-#include "util/util_task.h"
-#include "util/util_vector.h"
+#include "util/foreach.h"
+#include "util/log.h"
+#include "util/map.h"
+#include "util/murmurhash.h"
+#include "util/progress.h"
+#include "util/set.h"
+#include "util/task.h"
+#include "util/vector.h"
 
-#include "subd/subd_patch_table.h"
+#include "subd/patch_table.h"
 
 CCL_NAMESPACE_BEGIN
 

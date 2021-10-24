@@ -18,7 +18,7 @@
 
 #include "session/buffers.h"
 
-#include "util/util_logging.h"
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

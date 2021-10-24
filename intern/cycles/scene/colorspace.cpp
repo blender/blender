@@ -16,13 +16,13 @@
 
 #include "scene/colorspace.h"
 
-#include "util/util_color.h"
-#include "util/util_half.h"
-#include "util/util_image.h"
-#include "util/util_logging.h"
-#include "util/util_math.h"
-#include "util/util_thread.h"
-#include "util/util_vector.h"
+#include "util/color.h"
+#include "util/half.h"
+#include "util/image.h"
+#include "util/log.h"
+#include "util/math.h"
+#include "util/thread.h"
+#include "util/vector.h"
 
 #ifdef WITH_OCIO
 #  include <OpenColorIO/OpenColorIO.h>

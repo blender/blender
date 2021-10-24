@@ -16,8 +16,8 @@
 
 #include "integrator/denoiser_optix.h"
 
+#include "device/denoise.h"
 #include "device/device.h"
-#include "device/device_denoise.h"
 
 CCL_NAMESPACE_BEGIN
 

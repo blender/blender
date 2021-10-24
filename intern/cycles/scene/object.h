@@ -25,13 +25,13 @@
 #include "scene/particles.h"
 #include "scene/scene.h"
 
-#include "util/util_array.h"
-#include "util/util_boundbox.h"
-#include "util/util_param.h"
-#include "util/util_thread.h"
-#include "util/util_transform.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/array.h"
+#include "util/boundbox.h"
+#include "util/param.h"
+#include "util/thread.h"
+#include "util/transform.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

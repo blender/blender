@@ -17,7 +17,7 @@
 #include "testing/testing.h"
 
 #include "integrator/tile.h"
-#include "util/util_math.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 
