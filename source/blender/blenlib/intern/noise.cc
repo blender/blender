@@ -1528,9 +1528,15 @@ void voronoi_f1(
       targetPosition = pointPosition;
     }
   }
-  *r_distance = minDistance;
-  *r_color = hash_float_to_float3(cellPosition + targetOffset);
-  *r_w = targetPosition + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_w != nullptr) {
+    *r_w = targetPosition + cellPosition;
+  }
 }
 
 void voronoi_smooth_f1(const float w,
@@ -1555,14 +1561,26 @@ void voronoi_smooth_f1(const float w,
         0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
     float correctionFactor = smoothness * h * (1.0f - h);
     smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
-    correctionFactor /= 1.0f + 3.0f * smoothness;
-    const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-    smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
-    smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
+    if (r_color != nullptr || r_w != nullptr) {
+      correctionFactor /= 1.0f + 3.0f * smoothness;
+      if (r_color != nullptr) {
+        const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+        smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+      }
+      if (r_w != nullptr) {
+        smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
+      }
+    }
   }
-  *r_distance = smoothDistance;
-  *r_color = smoothColor;
-  *r_w = cellPosition + smoothPosition;
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_w != nullptr) {
+    *r_w = cellPosition + smoothPosition;
+  }
 }
 
 void voronoi_f2(
@@ -1596,9 +1614,15 @@ void voronoi_f2(
       positionF2 = pointPosition;
     }
   }
-  *r_distance = distanceF2;
-  *r_color = hash_float_to_float3(cellPosition + offsetF2);
-  *r_w = positionF2 + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_w != nullptr) {
+    *r_w = positionF2 + cellPosition;
+  }
 }
 
 void voronoi_distance_to_edge(const float w, const float randomness, float *r_distance)
@@ -1706,9 +1730,15 @@ void voronoi_f1(const float2 coord,
       }
     }
   }
-  *r_distance = minDistance;
-  *r_color = hash_float_to_float3(cellPosition + targetOffset);
-  *r_position = targetPosition + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
 }
 
 void voronoi_smooth_f1(const float2 coord,
@@ -1737,15 +1767,28 @@ void voronoi_smooth_f1(const float2 coord,
           0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
       float correctionFactor = smoothness * h * (1.0f - h);
       smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
-      correctionFactor /= 1.0f + 3.0f * smoothness;
-      const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-      smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
-      smoothPosition = float2::interpolate(smoothPosition, pointPosition, h) - correctionFactor;
+      if (r_color != nullptr || r_position != nullptr) {
+        correctionFactor /= 1.0f + 3.0f * smoothness;
+        if (r_color != nullptr) {
+          const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+          smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+        }
+        if (r_position != nullptr) {
+          smoothPosition = float2::interpolate(smoothPosition, pointPosition, h) -
+                           correctionFactor;
+        }
+      }
     }
   }
-  *r_distance = smoothDistance;
-  *r_color = smoothColor;
-  *r_position = cellPosition + smoothPosition;
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
 }
 
 void voronoi_f2(const float2 coord,
@@ -1787,9 +1830,15 @@ void voronoi_f2(const float2 coord,
       }
     }
   }
-  *r_distance = distanceF2;
-  *r_color = hash_float_to_float3(cellPosition + offsetF2);
-  *r_position = positionF2 + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
 }
 
 void voronoi_distance_to_edge(const float2 coord, const float randomness, float *r_distance)
@@ -1928,9 +1977,15 @@ void voronoi_f1(const float3 coord,
       }
     }
   }
-  *r_distance = minDistance;
-  *r_color = hash_float_to_float3(cellPosition + targetOffset);
-  *r_position = targetPosition + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
 }
 
 void voronoi_smooth_f1(const float3 coord,
@@ -1960,16 +2015,29 @@ void voronoi_smooth_f1(const float3 coord,
             0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
         float correctionFactor = smoothness * h * (1.0f - h);
         smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
-        correctionFactor /= 1.0f + 3.0f * smoothness;
-        const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-        smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
-        smoothPosition = float3::interpolate(smoothPosition, pointPosition, h) - correctionFactor;
+        if (r_color != nullptr || r_position != nullptr) {
+          correctionFactor /= 1.0f + 3.0f * smoothness;
+          if (r_color != nullptr) {
+            const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+            smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+          }
+          if (r_position != nullptr) {
+            smoothPosition = float3::interpolate(smoothPosition, pointPosition, h) -
+                             correctionFactor;
+          }
+        }
       }
     }
   }
-  *r_distance = smoothDistance;
-  *r_color = smoothColor;
-  *r_position = cellPosition + smoothPosition;
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
 }
 
 void voronoi_f2(const float3 coord,
@@ -2013,9 +2081,15 @@ void voronoi_f2(const float3 coord,
       }
     }
   }
-  *r_distance = distanceF2;
-  *r_color = hash_float_to_float3(cellPosition + offsetF2);
-  *r_position = positionF2 + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
 }
 
 void voronoi_distance_to_edge(const float3 coord, const float randomness, float *r_distance)
@@ -2166,9 +2240,15 @@ void voronoi_f1(const float4 coord,
       }
     }
   }
-  *r_distance = minDistance;
-  *r_color = hash_float_to_float3(cellPosition + targetOffset);
-  *r_position = targetPosition + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
 }
 
 void voronoi_smooth_f1(const float4 coord,
@@ -2200,18 +2280,30 @@ void voronoi_smooth_f1(const float4 coord,
               0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
           float correctionFactor = smoothness * h * (1.0f - h);
           smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
-          correctionFactor /= 1.0f + 3.0f * smoothness;
-          const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-          smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
-          smoothPosition = float4::interpolate(smoothPosition, pointPosition, h) -
-                           correctionFactor;
+          if (r_color != nullptr || r_position != nullptr) {
+            correctionFactor /= 1.0f + 3.0f * smoothness;
+            if (r_color != nullptr) {
+              const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+              smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+            }
+            if (r_position != nullptr) {
+              smoothPosition = float4::interpolate(smoothPosition, pointPosition, h) -
+                               correctionFactor;
+            }
+          }
         }
       }
     }
   }
-  *r_distance = smoothDistance;
-  *r_color = smoothColor;
-  *r_position = cellPosition + smoothPosition;
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
 }
 
 void voronoi_f2(const float4 coord,
@@ -2258,9 +2350,15 @@ void voronoi_f2(const float4 coord,
       }
     }
   }
-  *r_distance = distanceF2;
-  *r_color = hash_float_to_float3(cellPosition + offsetF2);
-  *r_position = positionF2 + cellPosition;
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
 }
 
 void voronoi_distance_to_edge(const float4 coord, const float randomness, float *r_distance)

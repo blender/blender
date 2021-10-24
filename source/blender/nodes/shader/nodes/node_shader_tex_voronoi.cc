@@ -239,16 +239,16 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
-      return params.uninitialized_single_output<float>(param_index, "Distance");
+      return params.uninitialized_single_output_if_required<float>(param_index, "Distance");
     };
     auto get_r_color = [&](int param_index) -> MutableSpan<ColorGeometry4f> {
-      return params.uninitialized_single_output<ColorGeometry4f>(param_index, "Color");
+      return params.uninitialized_single_output_if_required<ColorGeometry4f>(param_index, "Color");
     };
     auto get_r_position = [&](int param_index) -> MutableSpan<float3> {
-      return params.uninitialized_single_output<float3>(param_index, "Position");
+      return params.uninitialized_single_output_if_required<float3>(param_index, "Position");
     };
     auto get_r_w = [&](int param_index) -> MutableSpan<float> {
-      return params.uninitialized_single_output<float>(param_index, "W");
+      return params.uninitialized_single_output_if_required<float>(param_index, "W");
     };
 
     int param = 0;
@@ -263,6 +263,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -271,12 +274,16 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                 exponent[i],
                                 rand,
                                 SHD_VORONOI_MINKOWSKI,
-                                &r_distance[i],
-                                &col,
-                                &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -288,6 +295,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -296,12 +306,16 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                 exponent[i],
                                 rand,
                                 SHD_VORONOI_MINKOWSKI,
-                                &r_distance[i],
-                                &col,
-                                &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -314,6 +328,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
@@ -324,12 +341,16 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                        exponent[i],
                                        rand,
                                        SHD_VORONOI_MINKOWSKI,
-                                       &r_distance[i],
-                                       &col,
-                                       &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -346,6 +367,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -353,11 +377,15 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                 exponent[i],
                                 rand,
                                 SHD_VORONOI_MINKOWSKI,
-                                &r_distance[i],
-                                &col,
-                                &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &r_position[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              }
             }
             break;
           }
@@ -369,6 +397,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -376,11 +407,15 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                 exponent[i],
                                 rand,
                                 SHD_VORONOI_MINKOWSKI,
-                                &r_distance[i],
-                                &col,
-                                &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &r_position[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              }
             }
             break;
           }
@@ -393,6 +428,9 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
@@ -402,11 +440,15 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                                        exponent[i],
                                        rand,
                                        SHD_VORONOI_MINKOWSKI,
-                                       &r_distance[i],
-                                       &col,
-                                       &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_position ? &r_position[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              }
             }
             break;
           }
@@ -425,16 +467,34 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_f1(p, exponent[i], rand, SHD_VORONOI_F1, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_f1(p,
+                                exponent[i],
+                                rand,
+                                SHD_VORONOI_F1,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
@@ -448,17 +508,34 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_f2(
-                  p, exponent[i], rand, SHD_VORONOI_MINKOWSKI, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_f2(p,
+                                exponent[i],
+                                rand,
+                                SHD_VORONOI_MINKOWSKI,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
@@ -473,18 +550,36 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_smooth_f1(
-                  p, smth, exponent[i], rand, SHD_VORONOI_MINKOWSKI, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_smooth_f1(p,
+                                       smth,
+                                       exponent[i],
+                                       rand,
+                                       SHD_VORONOI_MINKOWSKI,
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
@@ -572,16 +667,16 @@ class VoronoiMetricFunction : public fn::MultiFunction {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
-      return params.uninitialized_single_output<float>(param_index, "Distance");
+      return params.uninitialized_single_output_if_required<float>(param_index, "Distance");
     };
     auto get_r_color = [&](int param_index) -> MutableSpan<ColorGeometry4f> {
-      return params.uninitialized_single_output<ColorGeometry4f>(param_index, "Color");
+      return params.uninitialized_single_output_if_required<ColorGeometry4f>(param_index, "Color");
     };
     auto get_r_position = [&](int param_index) -> MutableSpan<float3> {
-      return params.uninitialized_single_output<float3>(param_index, "Position");
+      return params.uninitialized_single_output_if_required<float3>(param_index, "Position");
     };
     auto get_r_w = [&](int param_index) -> MutableSpan<float> {
-      return params.uninitialized_single_output<float>(param_index, "W");
+      return params.uninitialized_single_output_if_required<float>(param_index, "W");
     };
 
     int param = 0;
@@ -595,13 +690,24 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float p = w[i] * scale[i];
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
-              noise::voronoi_f1(p, rand, &r_distance[i], &col, &r_w[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_w[i] = safe_divide(r_w[i], scale[i]);
+              noise::voronoi_f1(p,
+                                rand,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_w ? &r_w[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_w) {
+                r_w[i] = safe_divide(r_w[i], scale[i]);
+              }
             }
             break;
           }
@@ -612,13 +718,24 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float p = w[i] * scale[i];
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
-              noise::voronoi_f2(p, rand, &r_distance[i], &col, &r_w[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_w[i] = safe_divide(r_w[i], scale[i]);
+              noise::voronoi_f2(p,
+                                rand,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_w ? &r_w[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_w) {
+                r_w[i] = safe_divide(r_w[i], scale[i]);
+              }
             }
             break;
           }
@@ -630,14 +747,26 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float p = w[i] * scale[i];
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
-              noise::voronoi_smooth_f1(p, smth, rand, &r_distance[i], &col, &r_w[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_w[i] = safe_divide(r_w[i], scale[i]);
+              noise::voronoi_smooth_f1(p,
+                                       smth,
+                                       rand,
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_w ? &r_w[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_w) {
+                r_w[i] = safe_divide(r_w[i], scale[i]);
+              }
             }
             break;
           }
@@ -653,6 +782,9 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -661,12 +793,16 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                                 0.0f,
                                 rand,
                                 metric_,
-                                &r_distance[i],
-                                &col,
-                                &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -677,6 +813,9 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -685,12 +824,16 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                                 0.0f,
                                 rand,
                                 metric_,
-                                &r_distance[i],
-                                &col,
-                                &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -702,6 +845,9 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
@@ -712,12 +858,16 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                                        0.0f,
                                        rand,
                                        metric_,
-                                       &r_distance[i],
-                                       &col,
-                                       &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float2::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, 0.0f);
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_position ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                pos = float2::safe_divide(pos, scale[i]);
+                r_position[i] = float3(pos.x, pos.y, 0.0f);
+              }
             }
             break;
           }
@@ -733,13 +883,25 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
-              noise::voronoi_f1(
-                  vector[i] * scale[i], 0.0f, rand, metric_, &r_distance[i], &col, &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              noise::voronoi_f1(vector[i] * scale[i],
+                                0.0f,
+                                rand,
+                                metric_,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &r_position[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              }
             }
             break;
           }
@@ -750,13 +912,25 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
-              noise::voronoi_f2(
-                  vector[i] * scale[i], 0.0f, rand, metric_, &r_distance[i], &col, &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              noise::voronoi_f2(vector[i] * scale[i],
+                                0.0f,
+                                rand,
+                                metric_,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position ? &r_position[i] : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position) {
+                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+              }
             }
             break;
           }
@@ -768,21 +942,31 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<float> r_distance = get_r_distance(param++);
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
-            for (int64_t i : mask) {
-              const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
-              const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
-              float3 col;
-              noise::voronoi_smooth_f1(vector[i] * scale[i],
-                                       smth,
-                                       0.0f,
-                                       rand,
-                                       metric_,
-                                       &r_distance[i],
-                                       &col,
-                                       &r_position[i]);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            {
+              for (int64_t i : mask) {
+                const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
+                const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
+                float3 col;
+                noise::voronoi_smooth_f1(vector[i] * scale[i],
+                                         smth,
+                                         0.0f,
+                                         rand,
+                                         metric_,
+                                         calc_distance ? &r_distance[i] : nullptr,
+                                         calc_color ? &col : nullptr,
+                                         calc_position ? &r_position[i] : nullptr);
+                if (calc_color) {
+                  r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+                }
+                if (calc_position) {
+                  r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                }
+              }
             }
+
             break;
           }
         }
@@ -799,16 +983,34 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_f1(p, 0.0f, rand, metric_, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_f1(p,
+                                0.0f,
+                                rand,
+                                metric_,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
@@ -821,16 +1023,34 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_f2(p, 0.0f, rand, metric_, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_f2(p,
+                                0.0f,
+                                rand,
+                                metric_,
+                                calc_distance ? &r_distance[i] : nullptr,
+                                calc_color ? &col : nullptr,
+                                calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
@@ -844,17 +1064,36 @@ class VoronoiMetricFunction : public fn::MultiFunction {
             MutableSpan<ColorGeometry4f> r_color = get_r_color(param++);
             MutableSpan<float3> r_position = get_r_position(param++);
             MutableSpan<float> r_w = get_r_w(param++);
+            const bool calc_distance = !r_distance.is_empty();
+            const bool calc_color = !r_color.is_empty();
+            const bool calc_position = !r_position.is_empty();
+            const bool calc_w = !r_w.is_empty();
             for (int64_t i : mask) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
               float4 pos;
-              noise::voronoi_smooth_f1(p, smth, 0.0f, rand, metric_, &r_distance[i], &col, &pos);
-              r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
-              pos = float4::safe_divide(pos, scale[i]);
-              r_position[i] = float3(pos.x, pos.y, pos.z);
-              r_w[i] = pos.w;
+              noise::voronoi_smooth_f1(p,
+                                       smth,
+                                       0.0f,
+                                       rand,
+                                       metric_,
+                                       calc_distance ? &r_distance[i] : nullptr,
+                                       calc_color ? &col : nullptr,
+                                       calc_position || calc_w ? &pos : nullptr);
+              if (calc_color) {
+                r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
+              }
+              if (calc_position || calc_w) {
+                pos = float4::safe_divide(pos, scale[i]);
+                if (calc_position) {
+                  r_position[i] = float3(pos.x, pos.y, pos.z);
+                }
+                if (calc_w) {
+                  r_w[i] = pos.w;
+                }
+              }
             }
             break;
           }
