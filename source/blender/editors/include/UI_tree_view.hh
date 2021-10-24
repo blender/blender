@@ -48,6 +48,7 @@ namespace blender::ui {
 
 class AbstractTreeView;
 class AbstractTreeViewItem;
+class AbstractTreeViewItemDropController;
 
 /* ---------------------------------------------------------------------- */
 /** \name Tree-View Item Container
@@ -242,17 +243,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * arguments for checking if the item is currently in an active state.
    */
   virtual void is_active(IsActiveFn is_active_fn);
-  virtual bool on_drop(const wmDrag &drag);
-  virtual bool can_drop(const wmDrag &drag) const;
-  /**
-   * Custom text to display when dragging over a tree item. Should explain what happens when
-   * dropping the data onto this item. Will only be used if #AbstractTreeViewItem::can_drop()
-   * returns true, so the implementing override doesn't have to check that again.
-   * The returned value must be a translated string.
-   */
-  virtual std::string drop_tooltip(const bContext &C,
-                                   const wmDrag &drag,
-                                   const wmEvent &event) const;
+
   /**
    * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
    * another item is already being renamed.
@@ -281,6 +272,15 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * good enough for a sub-class, that can override it.
    */
   virtual bool matches(const AbstractTreeViewItem &other) const;
+
+  /**
+   * If an item wants to support dropping data into it, it has to return a drop controller here.
+   * That is an object implementing #AbstractTreeViewItemDropController.
+   *
+   * \note This drop controller may be requested for each event. The tree-view doesn't keep a drop
+   *       controller around currently. So it can not contain persistent state.
+   */
+  virtual std::unique_ptr<AbstractTreeViewItemDropController> create_drop_controller() const;
 
   void begin_renaming();
   void end_renaming();
@@ -344,6 +344,45 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Drag 'n Drop
+ * \{ */
+
+/**
+ * Class to customize the drop behavior of a tree-item, plus the behavior when dragging over this
+ * item. An item can return a drop controller for itself via a custom implementation of
+ * #AbstractTreeViewItem::create_drop_controller().
+ */
+class AbstractTreeViewItemDropController {
+ protected:
+  AbstractTreeView &tree_view_;
+
+ public:
+  AbstractTreeViewItemDropController(AbstractTreeView &tree_view);
+  virtual ~AbstractTreeViewItemDropController() = default;
+
+  /**
+   * Check if the data dragged with \a drag can be dropped on the item this controller is for.
+   */
+  virtual bool can_drop(const wmDrag &drag) const = 0;
+  /**
+   * Custom text to display when dragging over a tree item. Should explain what happens when
+   * dropping the data onto this item. Will only be used if #AbstractTreeViewItem::can_drop()
+   * returns true, so the implementing override doesn't have to check that again.
+   * The returned value must be a translated string.
+   */
+  virtual std::string drop_tooltip(const wmDrag &drag) const = 0;
+  /**
+   * Execute the logic to apply a drop of the data dragged with \a drag onto/into the item this
+   * controller is for.
+   */
+  virtual bool on_drop(const wmDrag &drag) = 0;
+
+  template<class TreeViewType> inline TreeViewType &tree_view() const;
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Predefined Tree-View Item Types
  *
  *  Common, Basic Tree-View Item Types.
@@ -388,6 +427,11 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
   return dynamic_cast<ItemT &>(
       add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
+}
+
+template<class TreeViewType> TreeViewType &AbstractTreeViewItemDropController::tree_view() const
+{
+  return static_cast<TreeViewType &>(tree_view_);
 }
 
 }  // namespace blender::ui

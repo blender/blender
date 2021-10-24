@@ -354,22 +354,11 @@ void AbstractTreeViewItem::is_active(IsActiveFn is_active_fn)
   is_active_fn_ = is_active_fn;
 }
 
-bool AbstractTreeViewItem::on_drop(const wmDrag & /*drag*/)
+std::unique_ptr<AbstractTreeViewItemDropController> AbstractTreeViewItem::create_drop_controller()
+    const
 {
-  /* Do nothing by default. */
-  return false;
-}
-
-bool AbstractTreeViewItem::can_drop(const wmDrag & /*drag*/) const
-{
-  return false;
-}
-
-std::string AbstractTreeViewItem::drop_tooltip(const bContext & /*C*/,
-                                               const wmDrag & /*drag*/,
-                                               const wmEvent & /*event*/) const
-{
-  return TIP_("Drop into/onto tree item");
+  /* There's no drop controller (and hence no drop support) by default. */
+  return nullptr;
 }
 
 bool AbstractTreeViewItem::can_rename() const
@@ -553,6 +542,12 @@ void AbstractTreeViewItem::change_state_delayed()
     activate();
   }
 }
+/* ---------------------------------------------------------------------- */
+
+AbstractTreeViewItemDropController::AbstractTreeViewItemDropController(AbstractTreeView &tree_view)
+    : tree_view_(tree_view)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -683,16 +678,25 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const wmDrag *drag)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
-  return item.can_drop(*drag);
+  const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+      item.create_drop_controller();
+  if (!drop_controller) {
+    return false;
+  }
+
+  return drop_controller->can_drop(*drag);
 }
 
-char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_,
-                                     const bContext *C,
-                                     const wmDrag *drag,
-                                     const wmEvent *event)
+char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_, const wmDrag *drag)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
-  return BLI_strdup(item.drop_tooltip(*C, *drag, *event).c_str());
+  const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+      item.create_drop_controller();
+  if (!drop_controller) {
+    return NULL;
+  }
+
+  return BLI_strdup(drop_controller->drop_tooltip(*drag).c_str());
 }
 
 /**
@@ -702,10 +706,12 @@ char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_,
 bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const ListBase *drags)
 {
   AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_);
+  std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+      item.create_drop_controller();
 
   LISTBASE_FOREACH (const wmDrag *, drag, drags) {
-    if (item.can_drop(*drag)) {
-      return item.on_drop(*drag);
+    if (drop_controller->can_drop(*drag)) {
+      return drop_controller->on_drop(*drag);
     }
   }
 

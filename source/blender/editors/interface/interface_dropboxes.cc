@@ -50,7 +50,7 @@ static char *ui_tree_view_drop_tooltip(bContext *C,
     return nullptr;
   }
 
-  return UI_tree_view_item_drop_tooltip(hovered_tree_item, C, drag, event);
+  return UI_tree_view_item_drop_tooltip(hovered_tree_item, drag);
 }
 
 void ED_dropboxes_ui()

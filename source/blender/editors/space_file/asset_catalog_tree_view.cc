@@ -60,6 +60,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   SpaceFile &space_file_;
 
   friend class AssetCatalogTreeViewItem;
+  friend class AssetCatalogDropController;
 
  public:
   AssetCatalogTreeView(::AssetLibrary *library,
@@ -86,25 +87,34 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
  public:
   AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item);
 
-  static bool has_droppable_item(const wmDrag &drag);
-  static bool drop_into_catalog(const AssetCatalogTreeView &tree_view,
-                                const wmDrag &drag,
-                                CatalogID catalog_id,
-                                StringRefNull simple_name = "");
-
   void on_activate() override;
 
   void build_row(uiLayout &row) override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
 
-  bool can_drop(const wmDrag &drag) const override;
-  std::string drop_tooltip(const bContext &C,
-                           const wmDrag &drag,
-                           const wmEvent &event) const override;
-  bool on_drop(const wmDrag &drag) override;
-
   bool can_rename() const override;
   bool rename(StringRefNull new_name) override;
+
+  /** Add dropping support for catalog items. */
+  std::unique_ptr<ui::AbstractTreeViewItemDropController> create_drop_controller() const override;
+};
+
+class AssetCatalogDropController : public ui::AbstractTreeViewItemDropController {
+  AssetCatalogTreeItem &catalog_item_;
+
+ public:
+  explicit AssetCatalogDropController(AssetCatalogTreeView &tree_view,
+                                      AssetCatalogTreeItem &catalog_item);
+
+  bool can_drop(const wmDrag &drag) const override;
+  std::string drop_tooltip(const wmDrag &drag) const override;
+  bool on_drop(const wmDrag &drag) override;
+
+  static bool has_droppable_item(const wmDrag &drag);
+  static bool drop_into_catalog(const AssetCatalogTreeView &tree_view,
+                                const wmDrag &drag,
+                                CatalogID catalog_id,
+                                StringRefNull simple_name = "");
 };
 
 /** Only reason this isn't just `BasicTreeViewItem` is to add a '+' icon for adding a root level
@@ -118,11 +128,15 @@ class AssetCatalogTreeViewAllItem : public ui::BasicTreeViewItem {
 class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
   using BasicTreeViewItem::BasicTreeViewItem;
 
-  bool can_drop(const wmDrag &drag) const override;
-  std::string drop_tooltip(const bContext &C,
-                           const wmDrag &drag,
-                           const wmEvent &event) const override;
-  bool on_drop(const wmDrag &drag) override;
+  struct DropController : public ui::AbstractTreeViewItemDropController {
+    DropController(AssetCatalogTreeView &tree_view);
+
+    bool can_drop(const wmDrag &drag) const override;
+    std::string drop_tooltip(const wmDrag &drag) const override;
+    bool on_drop(const wmDrag &drag) override;
+  };
+
+  std::unique_ptr<ui::AbstractTreeViewItemDropController> create_drop_controller() const override;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -275,20 +289,38 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
   UI_menutype_draw(&C, mt, &column);
 }
 
-bool AssetCatalogTreeViewItem::has_droppable_item(const wmDrag &drag)
+bool AssetCatalogTreeViewItem::can_rename() const
 {
-  const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
-
-  /* There needs to be at least one asset from the current file. */
-  LISTBASE_FOREACH (const wmDragAssetListItem *, asset_item, asset_drags) {
-    if (!asset_item->is_external) {
-      return true;
-    }
-  }
-  return false;
+  return true;
 }
 
-bool AssetCatalogTreeViewItem::can_drop(const wmDrag &drag) const
+bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
+{
+  /* Important to keep state. */
+  BasicTreeViewItem::rename(new_name);
+
+  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
+      get_tree_view());
+  ED_asset_catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
+  return true;
+}
+
+std::unique_ptr<ui::AbstractTreeViewItemDropController> AssetCatalogTreeViewItem::
+    create_drop_controller() const
+{
+  return std::make_unique<AssetCatalogDropController>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()), catalog_item_);
+}
+
+/* ---------------------------------------------------------------------- */
+
+AssetCatalogDropController::AssetCatalogDropController(AssetCatalogTreeView &tree_view,
+                                                       AssetCatalogTreeItem &catalog_item)
+    : ui::AbstractTreeViewItemDropController(tree_view), catalog_item_(catalog_item)
+{
+}
+
+bool AssetCatalogDropController::can_drop(const wmDrag &drag) const
 {
   if (drag.type != WM_DRAG_ASSET_LIST) {
     return false;
@@ -296,9 +328,7 @@ bool AssetCatalogTreeViewItem::can_drop(const wmDrag &drag) const
   return has_droppable_item(drag);
 }
 
-std::string AssetCatalogTreeViewItem::drop_tooltip(const bContext & /*C*/,
-                                                   const wmDrag &drag,
-                                                   const wmEvent & /*event*/) const
+std::string AssetCatalogDropController::drop_tooltip(const wmDrag &drag) const
 {
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
   const bool is_multiple_assets = !BLI_listbase_is_single(asset_drags);
@@ -312,10 +342,18 @@ std::string AssetCatalogTreeViewItem::drop_tooltip(const bContext & /*C*/,
          ")";
 }
 
-bool AssetCatalogTreeViewItem::drop_into_catalog(const AssetCatalogTreeView &tree_view,
-                                                 const wmDrag &drag,
-                                                 CatalogID catalog_id,
-                                                 StringRefNull simple_name)
+bool AssetCatalogDropController::on_drop(const wmDrag &drag)
+{
+  return drop_into_catalog(tree_view<AssetCatalogTreeView>(),
+                           drag,
+                           catalog_item_.get_catalog_id(),
+                           catalog_item_.get_simple_name());
+}
+
+bool AssetCatalogDropController::drop_into_catalog(const AssetCatalogTreeView &tree_view,
+                                                   const wmDrag &drag,
+                                                   CatalogID catalog_id,
+                                                   StringRefNull simple_name)
 {
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
   if (!asset_drags) {
@@ -339,28 +377,17 @@ bool AssetCatalogTreeViewItem::drop_into_catalog(const AssetCatalogTreeView &tre
   return true;
 }
 
-bool AssetCatalogTreeViewItem::on_drop(const wmDrag &drag)
+bool AssetCatalogDropController::has_droppable_item(const wmDrag &drag)
 {
-  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
-      get_tree_view());
-  return drop_into_catalog(
-      tree_view, drag, catalog_item_.get_catalog_id(), catalog_item_.get_simple_name());
-}
+  const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
 
-bool AssetCatalogTreeViewItem::can_rename() const
-{
-  return true;
-}
-
-bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
-{
-  /* Important to keep state. */
-  BasicTreeViewItem::rename(new_name);
-
-  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
-      get_tree_view());
-  ED_asset_catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
-  return true;
+  /* There needs to be at least one asset from the current file. */
+  LISTBASE_FOREACH (const wmDragAssetListItem *, asset_item, asset_drags) {
+    if (!asset_item->is_external) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,17 +409,28 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 
 /* ---------------------------------------------------------------------- */
 
-bool AssetCatalogTreeViewUnassignedItem::can_drop(const wmDrag &drag) const
+std::unique_ptr<ui::AbstractTreeViewItemDropController> AssetCatalogTreeViewUnassignedItem::
+    create_drop_controller() const
+{
+  return std::make_unique<AssetCatalogTreeViewUnassignedItem::DropController>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()));
+}
+
+AssetCatalogTreeViewUnassignedItem::DropController::DropController(AssetCatalogTreeView &tree_view)
+    : ui::AbstractTreeViewItemDropController(tree_view)
+{
+}
+
+bool AssetCatalogTreeViewUnassignedItem::DropController::can_drop(const wmDrag &drag) const
 {
   if (drag.type != WM_DRAG_ASSET_LIST) {
     return false;
   }
-  return AssetCatalogTreeViewItem::has_droppable_item(drag);
+  return AssetCatalogDropController::has_droppable_item(drag);
 }
 
-std::string AssetCatalogTreeViewUnassignedItem::drop_tooltip(const bContext & /*C*/,
-                                                             const wmDrag &drag,
-                                                             const wmEvent & /*event*/) const
+std::string AssetCatalogTreeViewUnassignedItem::DropController::drop_tooltip(
+    const wmDrag &drag) const
 {
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
   const bool is_multiple_assets = !BLI_listbase_is_single(asset_drags);
@@ -401,15 +439,16 @@ std::string AssetCatalogTreeViewUnassignedItem::drop_tooltip(const bContext & /*
                               TIP_("Move asset out of any catalog");
 }
 
-bool AssetCatalogTreeViewUnassignedItem::on_drop(const wmDrag &drag)
+bool AssetCatalogTreeViewUnassignedItem::DropController::on_drop(const wmDrag &drag)
 {
-  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
-      get_tree_view());
   /* Assign to nil catalog ID. */
-  return AssetCatalogTreeViewItem::drop_into_catalog(tree_view, drag, CatalogID{});
+  return AssetCatalogDropController::drop_into_catalog(
+      tree_view<AssetCatalogTreeView>(), drag, CatalogID{});
 }
 
 }  // namespace blender::ed::asset_browser
+
+/* ---------------------------------------------------------------------- */
 
 namespace blender::ed::asset_browser {
 

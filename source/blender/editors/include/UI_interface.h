@@ -2781,11 +2781,8 @@ void UI_interface_tag_script_reload(void);
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const struct wmDrag *drag);
+char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item, const struct wmDrag *drag);
 bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const struct ListBase *drags);
-char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item,
-                                     const struct bContext *C,
-                                     const struct wmDrag *drag,
-                                     const struct wmEvent *event);
 bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle);
 void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle);
 
