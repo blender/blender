@@ -18,8 +18,8 @@
 
 #include "kernel/bvh/bvh.h"
 #include "kernel/geom/geom.h"
+#include "kernel/integrator/integrator_shader_eval.h"
 #include "kernel/integrator/integrator_volume_stack.h"
-#include "kernel/kernel_shader.h"
 
 CCL_NAMESPACE_BEGIN
 

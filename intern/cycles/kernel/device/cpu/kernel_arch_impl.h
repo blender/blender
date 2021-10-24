@@ -46,10 +46,11 @@
 #    include "kernel/integrator/integrator_shade_volume.h"
 #    include "kernel/integrator/integrator_megakernel.h"
 
-#    include "kernel/kernel_film.h"
-#    include "kernel/kernel_adaptive_sampling.h"
-#    include "kernel/kernel_bake.h"
-# include "kernel/kernel_id_passes.h"
+#    include "kernel/film/film_adaptive_sampling.h"
+#    include "kernel/film/film_read.h"
+#    include "kernel/film/film_id_passes.h"
+
+#    include "kernel/bake/bake.h"
 
 #else
 #  define STUB_ASSERT(arch, name) \

@@ -16,11 +16,14 @@
 
 #pragma once
 
-#include "kernel/kernel_differential.h"
-#include "kernel/kernel_light.h"
-#include "kernel/kernel_path_state.h"
-#include "kernel/kernel_projection.h"
-#include "kernel/kernel_shadow_catcher.h"
+#include "kernel/camera/camera_projection.h"
+
+#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/integrator_shadow_catcher.h"
+
+#include "kernel/light/light.h"
+
+#include "kernel/util/util_differential.h"
 
 #include "kernel/geom/geom.h"
 

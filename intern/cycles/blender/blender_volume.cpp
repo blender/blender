@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include "render/colorspace.h"
-#include "render/image.h"
-#include "render/image_vdb.h"
-#include "render/object.h"
-#include "render/volume.h"
+#include "scene/colorspace.h"
+#include "scene/image.h"
+#include "scene/image_vdb.h"
+#include "scene/object.h"
+#include "scene/volume.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"

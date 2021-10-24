@@ -25,10 +25,10 @@
 
 #include <string.h>
 
-#include "render/colorspace.h"
-#include "render/mesh.h"
-#include "render/object.h"
-#include "render/scene.h"
+#include "scene/colorspace.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/scene.h"
 
 #include "kernel/osl/osl_closures.h"
 #include "kernel/osl/osl_globals.h"
@@ -44,19 +44,22 @@
 #include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/image.h"
 
-#include "kernel/kernel_differential.h"
+#include "kernel/util/util_differential.h"
 
 #include "kernel/integrator/integrator_state.h"
 #include "kernel/integrator/integrator_state_flow.h"
 
 #include "kernel/geom/geom.h"
+
 #include "kernel/bvh/bvh.h"
 
-#include "kernel/kernel_color.h"
-#include "kernel/kernel_camera.h"
-#include "kernel/kernel_path_state.h"
-#include "kernel/kernel_projection.h"
-#include "kernel/kernel_shader.h"
+#include "kernel/camera/camera.h"
+#include "kernel/camera/camera_projection.h"
+
+#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/integrator_shader_eval.h"
+
+#include "kernel/util/util_color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN

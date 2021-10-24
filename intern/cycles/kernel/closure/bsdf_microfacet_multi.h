@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include "kernel/sample/sample_lcg.h"
+#include "kernel/sample/sample_mapping.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Most of the code is based on the supplemental implementations from

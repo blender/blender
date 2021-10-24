@@ -17,7 +17,7 @@
 #include "blender_viewport.h"
 
 #include "blender_util.h"
-#include "render/pass.h"
+#include "scene/pass.h"
 #include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN

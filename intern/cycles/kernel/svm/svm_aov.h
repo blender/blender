@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel/kernel_write_passes.h"
+#include "kernel/film/film_write_passes.h"
 
 CCL_NAMESPACE_BEGIN
 

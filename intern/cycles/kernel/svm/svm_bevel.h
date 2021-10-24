@@ -15,8 +15,8 @@
  */
 
 #include "kernel/bvh/bvh.h"
-#include "kernel/kernel_montecarlo.h"
-#include "kernel/kernel_random.h"
+#include "kernel/sample/sample_mapping.h"
+#include "kernel/sample/sample_pattern.h"
 
 CCL_NAMESPACE_BEGIN
 

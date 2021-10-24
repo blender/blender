@@ -16,7 +16,7 @@
 
 #include <cstdlib>
 
-#include "render/camera.h"
+#include "scene/camera.h"
 
 #include "blender/blender_object_cull.h"
 #include "blender/blender_util.h"

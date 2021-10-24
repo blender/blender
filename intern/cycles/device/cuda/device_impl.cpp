@@ -24,8 +24,6 @@
 
 #  include "device/cuda/device_impl.h"
 
-#  include "render/buffers.h"
-
 #  include "util/util_debug.h"
 #  include "util/util_foreach.h"
 #  include "util/util_logging.h"

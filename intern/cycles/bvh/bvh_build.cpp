@@ -22,11 +22,11 @@
 #include "bvh/bvh_params.h"
 #include "bvh_split.h"
 
-#include "render/curves.h"
-#include "render/hair.h"
-#include "render/mesh.h"
-#include "render/object.h"
-#include "render/scene.h"
+#include "scene/curves.h"
+#include "scene/hair.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/scene.h"
 
 #include "util/util_algorithm.h"
 #include "util/util_foreach.h"

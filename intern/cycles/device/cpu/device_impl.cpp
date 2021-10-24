@@ -47,7 +47,7 @@
 
 #include "bvh/bvh_embree.h"
 
-#include "render/buffers.h"
+#include "session/buffers.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"

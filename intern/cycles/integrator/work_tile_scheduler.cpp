@@ -18,7 +18,7 @@
 
 #include "device/device_queue.h"
 #include "integrator/tile.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_atomic.h"
 #include "util/util_logging.h"
 

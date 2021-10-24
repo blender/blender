@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "render/mesh.h"
-#include "render/object.h"
-#include "render/particles.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/particles.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"

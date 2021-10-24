@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "kernel/kernel_projection.h"
+#include "kernel/camera/camera_projection.h"
 
 CCL_NAMESPACE_BEGIN
 

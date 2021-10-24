@@ -40,11 +40,11 @@
 #  include "kernel/bvh/bvh_util.h"
 #  include "kernel/device/cpu/compat.h"
 #  include "kernel/device/cpu/globals.h"
-#  include "kernel/kernel_random.h"
+#  include "kernel/sample/sample_lcg.h"
 
-#  include "render/hair.h"
-#  include "render/mesh.h"
-#  include "render/object.h"
+#  include "scene/hair.h"
+#  include "scene/mesh.h"
+#  include "scene/object.h"
 
 #  include "util/util_foreach.h"
 #  include "util/util_logging.h"

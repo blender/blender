@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "render/output_driver.h"
+#include "session/output_driver.h"
 
 #include "util/util_function.h"
 #include "util/util_image.h"

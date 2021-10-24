@@ -39,7 +39,7 @@ set(HEADER_SRC
 )
 
 set(LIB
-  cycles_render
+  cycles_scene
 
   ${OSL_LIBRARIES}
   ${OPENIMAGEIO_LIBRARIES}

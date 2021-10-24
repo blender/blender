@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "render/camera.h"
-#include "render/scene.h"
+#include "scene/camera.h"
+#include "scene/scene.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"

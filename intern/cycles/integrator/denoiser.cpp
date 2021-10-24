@@ -19,7 +19,7 @@
 #include "device/device.h"
 #include "integrator/denoiser_oidn.h"
 #include "integrator/denoiser_optix.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_logging.h"
 #include "util/util_progress.h"
 

@@ -20,7 +20,6 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 
-#include "kernel/kernel_montecarlo.h"
 #include "kernel/kernel_types.h"
 
 #include "kernel/geom/geom_object.h"
@@ -33,9 +32,7 @@
 #include "kernel/osl/osl_shader.h"
 // clang-format on
 
-#include "util/util_foreach.h"
-
-#include "render/attribute.h"
+#include "scene/attribute.h"
 
 CCL_NAMESPACE_BEGIN
 

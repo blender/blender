@@ -16,7 +16,7 @@
 
 #include "integrator/pass_accessor_cpu.h"
 
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_logging.h"
 #include "util/util_tbb.h"
 
@@ -24,7 +24,7 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 #include "kernel/kernel_types.h"
-#include "kernel/kernel_film.h"
+#include "kernel/film/film_read.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN

@@ -20,7 +20,7 @@
 #include "device/device_denoise.h"
 #include "device/device_memory.h"
 #include "device/device_queue.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_logging.h"
 #include "util/util_progress.h"
 

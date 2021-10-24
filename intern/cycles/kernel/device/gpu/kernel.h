@@ -19,6 +19,7 @@
 #include "kernel/device/gpu/parallel_active_index.h"
 #include "kernel/device/gpu/parallel_prefix_sum.h"
 #include "kernel/device/gpu/parallel_sorted_index.h"
+#include "kernel/device/gpu/work_stealing.h"
 
 #include "kernel/integrator/integrator_state.h"
 #include "kernel/integrator/integrator_state_flow.h"
@@ -36,10 +37,10 @@
 #include "kernel/integrator/integrator_shade_surface.h"
 #include "kernel/integrator/integrator_shade_volume.h"
 
-#include "kernel/kernel_adaptive_sampling.h"
-#include "kernel/kernel_bake.h"
-#include "kernel/kernel_film.h"
-#include "kernel/kernel_work_stealing.h"
+#include "kernel/bake/bake.h"
+
+#include "kernel/film/film_adaptive_sampling.h"
+#include "kernel/film/film_read.h"
 
 /* --------------------------------------------------------------------
  * Integrator.

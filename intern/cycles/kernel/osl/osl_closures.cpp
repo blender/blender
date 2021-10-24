@@ -44,8 +44,6 @@
 #include "kernel/device/cpu/globals.h"
 
 #include "kernel/kernel_types.h"
-#include "kernel/kernel_montecarlo.h"
-#include "kernel/kernel_random.h"
 
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_util.h"

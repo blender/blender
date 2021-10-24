@@ -20,8 +20,8 @@
 #include "device/device.h"
 
 #include "integrator/pass_accessor_gpu.h"
-#include "render/buffers.h"
-#include "render/scene.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
 #include "util/util_logging.h"
 #include "util/util_string.h"
 #include "util/util_tbb.h"

@@ -26,8 +26,8 @@
 #include "blender/blender_util.h"
 #include "blender/blender_viewport.h"
 
-#include "render/scene.h"
-#include "render/session.h"
+#include "scene/scene.h"
+#include "session/session.h"
 
 #include "util/util_map.h"
 #include "util/util_set.h"

@@ -17,7 +17,7 @@
 #ifndef __BLENDER_UTIL_H__
 #define __BLENDER_UTIL_H__
 
-#include "render/mesh.h"
+#include "scene/mesh.h"
 
 #include "util/util_algorithm.h"
 #include "util/util_array.h"

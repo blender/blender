@@ -19,13 +19,13 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
-#include "kernel/kernel_path_state.h"
+#include "kernel/integrator/integrator_path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace_display.h"
 
-#include "render/buffers.h"
-#include "render/scene.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
 
 #include "util/util_atomic.h"
 #include "util/util_logging.h"

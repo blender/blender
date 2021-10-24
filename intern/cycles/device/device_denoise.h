@@ -18,7 +18,7 @@
 
 #include "device/device_memory.h"
 #include "graph/node.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 
 CCL_NAMESPACE_BEGIN
 

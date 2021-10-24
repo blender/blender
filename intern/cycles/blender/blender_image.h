@@ -19,7 +19,7 @@
 
 #include "RNA_blender_cpp.h"
 
-#include "render/image.h"
+#include "scene/image.h"
 
 CCL_NAMESPACE_BEGIN
 

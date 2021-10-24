@@ -44,7 +44,8 @@ set(SRC_DEVICE_OPTIX
   device/optix/kernel_shader_raytrace.cu
 )
 
-set(SRC_BVH_HEADERS
+set(SRC_HEADERS
+  bake/bake.h
   bvh/bvh.h
   bvh/bvh_nodes.h
   bvh/bvh_shadow_all.h
@@ -55,36 +56,32 @@ set(SRC_BVH_HEADERS
   bvh/bvh_volume.h
   bvh/bvh_volume_all.h
   bvh/bvh_embree.h
-)
-
-set(SRC_HEADERS
-  kernel_accumulate.h
-  kernel_adaptive_sampling.h
-  kernel_bake.h
-  kernel_camera.h
-  kernel_color.h
-  kernel_differential.h
-  kernel_emission.h
-  kernel_film.h
-  kernel_id_passes.h
-  kernel_jitter.h
-  kernel_light.h
-  kernel_light_background.h
-  kernel_light_common.h
-  kernel_lookup_table.h
-  kernel_math.h
-  kernel_montecarlo.h
-  kernel_passes.h
-  kernel_path_state.h
-  kernel_profiling.h
-  kernel_projection.h
-  kernel_random.h
-  kernel_shader.h
-  kernel_shadow_catcher.h
+  camera/camera.h
+  camera/camera_projection.h
+  film/film_accumulate.h
+  film/film_adaptive_sampling.h
+  film/film_id_passes.h
+  film/film_passes.h
+  film/film_read.h
+  film/film_write_passes.h
+  integrator/integrator_path_state.h
+  integrator/integrator_shader_eval.h
+  integrator/integrator_shadow_catcher.h
   kernel_textures.h
   kernel_types.h
-  kernel_work_stealing.h
-  kernel_write_passes.h
+  light/light.h
+  light/light_background.h
+  light/light_common.h
+  light/light_sample.h
+  sample/sample_jitter.h
+  sample/sample_lcg.h
+  sample/sample_mapping.h
+  sample/sample_mis.h
+  sample/sample_pattern.h
+  util/util_color.h
+  util/util_differential.h
+  util/util_lookup_table.h
+  util/util_profiling.h
 )
 
 set(SRC_DEVICE_CPU_HEADERS
@@ -102,6 +99,7 @@ set(SRC_DEVICE_GPU_HEADERS
   device/gpu/parallel_prefix_sum.h
   device/gpu/parallel_reduce.h
   device/gpu/parallel_sorted_index.h
+  device/gpu/work_stealing.h
 )
 
 set(SRC_DEVICE_CUDA_HEADERS
@@ -666,7 +664,7 @@ if(WITH_CYCLES_OSL)
     cycles_kernel_osl
   )
   add_subdirectory(osl)
-  add_subdirectory(shaders)
+  add_subdirectory(osl/shaders)
 endif()
 
 # CPU module

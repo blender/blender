@@ -16,7 +16,7 @@
 
 #include "integrator/path_trace_display.h"
 
-#include "render/buffers.h"
+#include "session/buffers.h"
 
 #include "util/util_logging.h"
 

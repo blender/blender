@@ -20,7 +20,7 @@
 #  include <fenv.h>
 #endif
 
-#include "kernel/kernel_color.h"
+#include "kernel/util/util_color.h"
 
 CCL_NAMESPACE_BEGIN
 

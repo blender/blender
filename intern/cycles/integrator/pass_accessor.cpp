@@ -16,7 +16,7 @@
 
 #include "integrator/pass_accessor.h"
 
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_logging.h"
 
 // clang-format off

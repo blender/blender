@@ -21,9 +21,9 @@
 
 #include "device/device.h"
 
-#include "render/bake.h"
-#include "render/scene.h"
-#include "render/session.h"
+#include "scene/bake.h"
+#include "scene/scene.h"
+#include "session/session.h"
 
 #include "util/util_vector.h"
 

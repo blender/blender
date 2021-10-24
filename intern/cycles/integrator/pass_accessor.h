@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "render/pass.h"
+#include "scene/pass.h"
 #include "util/util_half.h"
 #include "util/util_string.h"
 #include "util/util_types.h"

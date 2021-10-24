@@ -20,9 +20,9 @@
 #include "bvh/bvh_build.h"
 #include "bvh/bvh_sort.h"
 
-#include "render/hair.h"
-#include "render/mesh.h"
-#include "render/object.h"
+#include "scene/hair.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
 
 #include "util/util_algorithm.h"
 

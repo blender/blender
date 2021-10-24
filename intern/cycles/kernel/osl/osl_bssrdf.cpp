@@ -37,7 +37,6 @@
 
 // clang-format off
 #include "kernel/kernel_types.h"
-#include "kernel/kernel_montecarlo.h"
 
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_util.h"

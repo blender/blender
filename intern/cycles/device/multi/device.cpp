@@ -24,8 +24,7 @@
 #include "device/device.h"
 #include "device/device_queue.h"
 
-#include "render/buffers.h"
-#include "render/geometry.h"
+#include "scene/geometry.h"
 
 #include "util/util_foreach.h"
 #include "util/util_list.h"

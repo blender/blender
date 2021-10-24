@@ -23,7 +23,7 @@
 #include "RNA_blender_cpp.h"
 #include "RNA_types.h"
 
-#include "render/film.h"
+#include "scene/film.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "render/camera.h"
-#include "render/mesh.h"
+#include "scene/camera.h"
+#include "scene/mesh.h"
 
 #include "subd/subd_dice.h"
 #include "subd/subd_patch.h"

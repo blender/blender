@@ -23,8 +23,8 @@
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
-#include "render/denoising.h"
-#include "render/merge.h"
+#include "session/denoising.h"
+#include "session/merge.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
@@ -39,7 +39,7 @@
 #include "util/util_types.h"
 
 #ifdef WITH_OSL
-#  include "render/osl.h"
+#  include "scene/osl.h"
 
 #  include <OSL/oslconfig.h>
 #  include <OSL/oslquery.h>

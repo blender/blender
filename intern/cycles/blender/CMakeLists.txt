@@ -69,7 +69,8 @@ set(LIB
   cycles_device
   cycles_graph
   cycles_kernel
-  cycles_render
+  cycles_scene
+  cycles_session
   cycles_subd
   cycles_util
 

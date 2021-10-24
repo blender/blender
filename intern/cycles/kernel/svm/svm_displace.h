@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel/kernel_montecarlo.h"
+#include "kernel/sample/sample_mapping.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -22,9 +22,15 @@
 #  define __EMBREE__
 #endif
 
-#include "kernel/kernel_math.h"
-#include "kernel/svm/svm_types.h"
+#include "util/util_math.h"
+#include "util/util_math_fast.h"
+#include "util/util_math_intersect.h"
+#include "util/util_projection.h"
+#include "util/util_texture.h"
+#include "util/util_transform.h"
 #include "util/util_static_assert.h"
+
+#include "kernel/svm/svm_types.h"
 
 #ifndef __KERNEL_GPU__
 #  define __KERNEL_CPU__

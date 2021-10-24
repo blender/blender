@@ -20,7 +20,7 @@
 
 #include "RNA_blender_cpp.h"
 
-#include "render/output_driver.h"
+#include "session/output_driver.h"
 
 CCL_NAMESPACE_BEGIN
 

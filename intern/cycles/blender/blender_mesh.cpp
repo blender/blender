@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include "render/camera.h"
-#include "render/colorspace.h"
-#include "render/mesh.h"
-#include "render/object.h"
-#include "render/scene.h"
+#include "scene/camera.h"
+#include "scene/colorspace.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/scene.h"
 
 #include "blender/blender_session.h"
 #include "blender/blender_sync.h"
@@ -28,6 +28,7 @@
 #include "subd/subd_split.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_color.h"
 #include "util/util_disjoint_set.h"
 #include "util/util_foreach.h"
 #include "util/util_hash.h"

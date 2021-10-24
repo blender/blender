@@ -18,8 +18,7 @@
 
 #include "kernel/integrator/integrator_shade_volume.h"
 #include "kernel/integrator/integrator_volume_stack.h"
-
-#include "kernel/kernel_shader.h"
+#include "kernel/integrator/integrator_shader_eval.h"
 
 CCL_NAMESPACE_BEGIN
 

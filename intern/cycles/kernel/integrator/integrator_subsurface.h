@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include "kernel/kernel_path_state.h"
-#include "kernel/kernel_projection.h"
-#include "kernel/kernel_shader.h"
+#include "kernel/camera/camera_projection.h"
 
 #include "kernel/bvh/bvh.h"
 
@@ -29,6 +27,8 @@
 #include "kernel/closure/volume.h"
 
 #include "kernel/integrator/integrator_intersect_volume_stack.h"
+#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/integrator_shader_eval.h"
 #include "kernel/integrator/integrator_subsurface_disk.h"
 #include "kernel/integrator/integrator_subsurface_random_walk.h"
 

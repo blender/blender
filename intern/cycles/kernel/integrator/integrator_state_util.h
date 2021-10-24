@@ -17,7 +17,8 @@
 #pragma once
 
 #include "kernel/integrator/integrator_state.h"
-#include "kernel/kernel_differential.h"
+
+#include "kernel/util/util_differential.h"
 
 CCL_NAMESPACE_BEGIN
 

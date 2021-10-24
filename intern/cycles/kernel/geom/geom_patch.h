@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "util/util_color.h"
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct PatchHandle {

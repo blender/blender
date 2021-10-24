@@ -16,8 +16,8 @@
 
 #include "bvh/bvh_unaligned.h"
 
-#include "render/hair.h"
-#include "render/object.h"
+#include "scene/hair.h"
+#include "scene/object.h"
 
 #include "bvh/bvh_binning.h"
 #include "bvh_params.h"

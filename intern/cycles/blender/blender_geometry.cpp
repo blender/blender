@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-#include "render/curves.h"
-#include "render/hair.h"
-#include "render/mesh.h"
-#include "render/object.h"
-#include "render/volume.h"
+#include "scene/curves.h"
+#include "scene/hair.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/volume.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"

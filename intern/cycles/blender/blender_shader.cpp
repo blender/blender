@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include "render/background.h"
-#include "render/colorspace.h"
-#include "render/graph.h"
-#include "render/integrator.h"
-#include "render/light.h"
-#include "render/nodes.h"
-#include "render/osl.h"
-#include "render/scene.h"
-#include "render/shader.h"
+#include "scene/background.h"
+#include "scene/colorspace.h"
+#include "scene/integrator.h"
+#include "scene/light.h"
+#include "scene/osl.h"
+#include "scene/scene.h"
+#include "scene/shader.h"
+#include "scene/shader_graph.h"
+#include "scene/shader_nodes.h"
 
 #include "blender/blender_image.h"
 #include "blender/blender_sync.h"

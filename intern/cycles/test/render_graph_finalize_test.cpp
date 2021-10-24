@@ -19,9 +19,9 @@
 
 #include "device/device.h"
 
-#include "render/graph.h"
-#include "render/nodes.h"
-#include "render/scene.h"
+#include "scene/scene.h"
+#include "scene/shader_graph.h"
+#include "scene/shader_nodes.h"
 
 #include "util/util_array.h"
 #include "util/util_logging.h"

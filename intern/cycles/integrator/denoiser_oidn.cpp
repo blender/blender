@@ -21,7 +21,7 @@
 #include "device/device.h"
 #include "device/device_queue.h"
 #include "integrator/pass_accessor_cpu.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_array.h"
 #include "util/util_logging.h"
 #include "util/util_openimagedenoise.h"

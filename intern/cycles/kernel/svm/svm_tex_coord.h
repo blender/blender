@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "kernel/camera/camera.h"
 #include "kernel/geom/geom.h"
-#include "kernel/kernel_camera.h"
-#include "kernel/kernel_montecarlo.h"
+#include "kernel/sample/sample_mapping.h"
 
 CCL_NAMESPACE_BEGIN
 

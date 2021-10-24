@@ -22,7 +22,7 @@
 
 #include "RNA_blender_cpp.h"
 
-#include "render/display_driver.h"
+#include "session/display_driver.h"
 
 #include "util/util_thread.h"
 #include "util/util_unique_ptr.h"

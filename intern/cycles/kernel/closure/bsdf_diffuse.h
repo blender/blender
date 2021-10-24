@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include "kernel/sample/sample_mapping.h"
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct DiffuseBsdf {

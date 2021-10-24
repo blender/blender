@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel/kernel_projection.h"
+#include "kernel/camera/camera_projection.h"
 
 #include "kernel/bvh/bvh.h"
 

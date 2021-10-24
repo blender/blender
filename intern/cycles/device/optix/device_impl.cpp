@@ -21,13 +21,14 @@
 
 #  include "bvh/bvh.h"
 #  include "bvh/bvh_optix.h"
+
 #  include "integrator/pass_accessor_gpu.h"
-#  include "render/buffers.h"
-#  include "render/hair.h"
-#  include "render/mesh.h"
-#  include "render/object.h"
-#  include "render/pass.h"
-#  include "render/scene.h"
+
+#  include "scene/hair.h"
+#  include "scene/mesh.h"
+#  include "scene/object.h"
+#  include "scene/pass.h"
+#  include "scene/scene.h"
 
 #  include "util/util_debug.h"
 #  include "util/util_logging.h"

@@ -16,15 +16,18 @@
 
 #pragma once
 
-#include "kernel/kernel_accumulate.h"
-#include "kernel/kernel_emission.h"
-#include "kernel/kernel_light.h"
-#include "kernel/kernel_passes.h"
-#include "kernel/kernel_path_state.h"
-#include "kernel/kernel_shader.h"
+#include "kernel/film/film_accumulate.h"
+#include "kernel/film/film_passes.h"
 
+#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/integrator_shader_eval.h"
 #include "kernel/integrator/integrator_intersect_closest.h"
 #include "kernel/integrator/integrator_volume_stack.h"
+
+#include "kernel/light/light.h"
+#include "kernel/light/light_sample.h"
+
+#include "kernel/sample/sample_mis.h"
 
 CCL_NAMESPACE_BEGIN
 

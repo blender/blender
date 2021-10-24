@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#include "render/attribute.h"
-#include "render/camera.h"
-#include "render/curves.h"
-#include "render/hair.h"
-#include "render/object.h"
-#include "render/scene.h"
+#include "scene/attribute.h"
+#include "scene/camera.h"
+#include "scene/curves.h"
+#include "scene/hair.h"
+#include "scene/object.h"
+#include "scene/scene.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
+#include "util/util_color.h"
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"

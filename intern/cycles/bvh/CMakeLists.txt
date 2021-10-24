@@ -49,7 +49,7 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_render
+  cycles_scene
   cycles_util
 )
 

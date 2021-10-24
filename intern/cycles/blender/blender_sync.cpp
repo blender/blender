@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#include "render/background.h"
-#include "render/camera.h"
-#include "render/curves.h"
-#include "render/film.h"
-#include "render/graph.h"
-#include "render/integrator.h"
-#include "render/light.h"
-#include "render/mesh.h"
-#include "render/nodes.h"
-#include "render/object.h"
-#include "render/procedural.h"
-#include "render/scene.h"
-#include "render/shader.h"
+#include "scene/background.h"
+#include "scene/camera.h"
+#include "scene/curves.h"
+#include "scene/film.h"
+#include "scene/integrator.h"
+#include "scene/light.h"
+#include "scene/mesh.h"
+#include "scene/object.h"
+#include "scene/procedural.h"
+#include "scene/scene.h"
+#include "scene/shader.h"
+#include "scene/shader_graph.h"
+#include "scene/shader_nodes.h"
 
 #include "device/device.h"
 

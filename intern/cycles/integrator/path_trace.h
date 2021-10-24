@@ -20,7 +20,7 @@
 #include "integrator/pass_accessor.h"
 #include "integrator/path_trace_work.h"
 #include "integrator/work_balancer.h"
-#include "render/buffers.h"
+#include "session/buffers.h"
 #include "util/util_function.h"
 #include "util/util_thread.h"
 #include "util/util_unique_ptr.h"

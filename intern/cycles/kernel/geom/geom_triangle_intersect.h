@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "kernel/kernel_random.h"
+#include "kernel/sample/sample_lcg.h"
 
 CCL_NAMESPACE_BEGIN
 

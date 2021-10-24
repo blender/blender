@@ -19,8 +19,8 @@
 
 #include <string.h>
 
-#include "render/geometry.h"
-#include "render/scene.h"
+#include "scene/geometry.h"
+#include "scene/scene.h"
 
 #include "util/util_map.h"
 #include "util/util_set.h"

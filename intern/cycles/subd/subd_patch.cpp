@@ -16,7 +16,7 @@
 
 /* Parts adapted from code in the public domain in NVidia Mesh Tools. */
 
-#include "render/mesh.h"
+#include "scene/mesh.h"
 
 #include "subd/subd_patch.h"
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#include "render/light.h"
+#include "scene/light.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"

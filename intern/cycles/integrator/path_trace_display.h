@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "render/display_driver.h"
+#include "session/display_driver.h"
 
 #include "util/util_half.h"
 #include "util/util_thread.h"

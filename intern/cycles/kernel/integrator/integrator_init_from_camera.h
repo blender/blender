@@ -16,12 +16,15 @@
 
 #pragma once
 
-#include "kernel/kernel_accumulate.h"
-#include "kernel/kernel_adaptive_sampling.h"
-#include "kernel/kernel_camera.h"
-#include "kernel/kernel_path_state.h"
-#include "kernel/kernel_random.h"
-#include "kernel/kernel_shadow_catcher.h"
+#include "kernel/camera/camera.h"
+
+#include "kernel/film/film_accumulate.h"
+#include "kernel/film/film_adaptive_sampling.h"
+
+#include "kernel/integrator/integrator_path_state.h"
+#include "kernel/integrator/integrator_shadow_catcher.h"
+
+#include "kernel/sample/sample_pattern.h"
 
 CCL_NAMESPACE_BEGIN
 
