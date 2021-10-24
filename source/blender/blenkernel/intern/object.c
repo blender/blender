@@ -357,8 +357,8 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
   }
 
   if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, &ob->id);
-    BKE_lib_id_expand_local(bmain, &ob->id);
+    BKE_lib_id_clear_library_data(bmain, &ob->id, flags);
+    BKE_lib_id_expand_local(bmain, &ob->id, flags);
     if (clear_proxy) {
       if (ob->proxy_from != NULL) {
         ob->proxy_from->proxy = NULL;
@@ -1131,18 +1131,63 @@ static void object_blend_read_expand(BlendExpander *expander, ID *id)
   }
 }
 
-static void object_lib_override_apply_post(ID *id_dst, ID *UNUSED(id_src))
+static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
 {
-  Object *object = (Object *)id_dst;
+  /* id_dst is the new local override copy of the linked reference data. id_src is the old override
+   * data stored on disk, used as source data for override operations. */
+  Object *object_dst = (Object *)id_dst;
+  Object *object_src = (Object *)id_src;
 
-  ListBase pidlist;
-  BKE_ptcache_ids_from_object(&pidlist, object, NULL, 0);
-  LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
-    LISTBASE_FOREACH (PointCache *, point_cache, pid->ptcaches) {
-      point_cache->flag |= PTCACHE_FLAG_INFO_DIRTY;
+  ListBase pidlist_dst, pidlist_src;
+  BKE_ptcache_ids_from_object(&pidlist_dst, object_dst, NULL, 0);
+  BKE_ptcache_ids_from_object(&pidlist_src, object_src, NULL, 0);
+
+  /* Problem with point caches is that several status flags (like OUTDATED or BAKED) are read-only
+   * at RNA level, and therefore not overridable per-se.
+   *
+   * This code is a workaround this to check all point-caches from both source and destination
+   * objects in parallel, and transfer those flags when it makes sense.
+   *
+   * This allows to keep baked caches across liboverrides applies.
+   *
+   * NOTE: This is fairly hackish and weak, but so is the point-cache system as its whole. A more
+   * robust solution would be e.g. to have a specific RNA entry point to deal with such cases
+   * (maybe a new flag to allow override code to set values of some read-only properties?).
+   */
+  PTCacheID *pid_src, *pid_dst;
+  for (pid_dst = pidlist_dst.first, pid_src = pidlist_src.first; pid_dst != NULL;
+       pid_dst = pid_dst->next, pid_src = (pid_src != NULL) ? pid_src->next : NULL) {
+    /* If pid's do not match, just tag info of caches in dst as dirty and continue. */
+    if (pid_src == NULL || pid_dst->type != pid_src->type ||
+        pid_dst->file_type != pid_src->file_type ||
+        pid_dst->default_step != pid_src->default_step || pid_dst->max_step != pid_src->max_step ||
+        pid_dst->data_types != pid_src->data_types || pid_dst->info_types != pid_src->info_types) {
+      LISTBASE_FOREACH (PointCache *, point_cache_src, pid_src->ptcaches) {
+        point_cache_src->flag |= PTCACHE_FLAG_INFO_DIRTY;
+      }
+      continue;
+    }
+
+    PointCache *point_cache_dst, *point_cache_src;
+    for (point_cache_dst = pid_dst->ptcaches->first, point_cache_src = pid_src->ptcaches->first;
+         point_cache_dst != NULL;
+         point_cache_dst = point_cache_dst->next,
+        point_cache_src = (point_cache_src != NULL) ? point_cache_src->next : NULL) {
+      /* Always force updating info about caches of applied liboverrides. */
+      point_cache_dst->flag |= PTCACHE_FLAG_INFO_DIRTY;
+      if (point_cache_src == NULL || !STREQ(point_cache_dst->name, point_cache_src->name)) {
+        continue;
+      }
+      if ((point_cache_src->flag & PTCACHE_BAKED) != 0) {
+        point_cache_dst->flag |= PTCACHE_BAKED;
+      }
+      if ((point_cache_src->flag & PTCACHE_OUTDATED) == 0) {
+        point_cache_dst->flag &= ~PTCACHE_OUTDATED;
+      }
     }
   }
-  BLI_freelistN(&pidlist);
+  BLI_freelistN(&pidlist_dst);
+  BLI_freelistN(&pidlist_src);
 }
 
 IDTypeInfo IDType_ID_OB = {
@@ -2382,8 +2427,8 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
     psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
   }
 
-  /* XXX(campbell): from reading existing code this seems correct but intended usage of
-   * pointcache should /w cloth should be added in 'ParticleSystem'. */
+  /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
+   * point-cache should /w cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
   }
@@ -2715,12 +2760,12 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_LATTICE:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_LATTICE) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_CAMERA:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_CAMERA) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
@@ -2730,7 +2775,7 @@ Object *BKE_object_duplicate(Main *bmain,
       }
       break;
     case OB_SPEAKER:
-      if (dupflag != 0) {
+      if (dupflag & USER_DUP_SPEAKER) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;

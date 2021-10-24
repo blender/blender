@@ -39,6 +39,7 @@
 
 #include "ED_asset_list.h"
 #include "ED_asset_mark_clear.h"
+#include "ED_asset_type.h"
 
 bool ED_asset_mark_id(ID *id)
 {
@@ -81,5 +82,9 @@ bool ED_asset_clear_id(ID *id)
 bool ED_asset_can_mark_single_from_context(const bContext *C)
 {
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
-  return CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data != nullptr;
+  const ID *id = static_cast<ID *>(CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data);
+  if (!id) {
+    return false;
+  }
+  return ED_asset_type_is_supported(id);
 }

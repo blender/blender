@@ -2274,11 +2274,8 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
 
-  rc->initial_mouse[0] = event->xy[0];
-  rc->initial_mouse[1] = event->xy[1];
-
-  rc->initial_co[0] = event->xy[0];
-  rc->initial_co[1] = event->xy[1];
+  copy_v2_v2_int(rc->initial_mouse, event->xy);
+  copy_v2_v2_int(rc->initial_co, event->xy);
 
   switch (rc->subtype) {
     case PROP_NONE:
@@ -2954,14 +2951,12 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            const float position[2] = {event->xy[0], event->xy[1]};
-
             /* calculate the initial angle here first */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
             delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
 
             /* precision angle gets calculated from dial and gets added later */
-            angle_precision = -0.1f * BLI_dial_angle(rc->dial, position);
+            angle_precision = -0.1f * BLI_dial_angle(rc->dial, (float[2]){UNPACK2(event->xy)});
           }
           else {
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2984,8 +2979,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          delta[0] = rc->initial_mouse[0] - event->xy[0];
-          delta[1] = rc->initial_mouse[1] - event->xy[1];
+          delta[0] = (float)(rc->initial_mouse[0] - event->xy[0]);
+          delta[1] = (float)(rc->initial_mouse[1] - event->xy[1]);
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];

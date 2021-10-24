@@ -28,12 +28,9 @@ static void fn_node_string_substring_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>("String");
 };
 
-}  // namespace blender::nodes
-
-static void fn_node_string_substring_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_string_substring_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> substring_fn{
+  static fn::CustomMF_SI_SI_SI_SO<std::string, int, int, std::string> substring_fn{
       "Substring", [](const std::string &str, int a, int b) {
         const int len = BLI_strlen_utf8(str.c_str());
         const int start = BLI_str_utf8_offset_from_index(str.c_str(), std::clamp(a, 0, len));
@@ -43,12 +40,14 @@ static void fn_node_string_substring_build_multi_function(
   builder.set_matching_fn(&substring_fn);
 }
 
+}  // namespace blender::nodes
+
 void register_node_type_fn_string_substring()
 {
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_STRING_SUBSTRING, "String Substring", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_string_substring_declare;
-  ntype.build_multi_function = fn_node_string_substring_build_multi_function;
+  ntype.build_multi_function = blender::nodes::fn_node_string_substring_build_multi_function;
   nodeRegisterType(&ntype);
 }

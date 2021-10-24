@@ -49,6 +49,9 @@ struct AssetLibrary {
 
   void load(StringRefNull library_root_directory);
 
+  /** Load catalogs that have changed on disk. */
+  void refresh();
+
   /**
    * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
    *

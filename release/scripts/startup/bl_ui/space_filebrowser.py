@@ -54,6 +54,12 @@ class FILEBROWSER_HT_header(Header):
 
         layout.prop(params, "filter_search", text="", icon='VIEWZOOM')
 
+        layout.popover(
+            panel="ASSETBROWSER_PT_filter",
+            text="",
+            icon='FILTER'
+        )
+
         layout.operator(
             "screen.region_toggle",
             text="",
@@ -127,7 +133,7 @@ class FILEBROWSER_PT_display(FileBrowserPanel, Panel):
 class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
     bl_region_type = 'HEADER'
     bl_label = "Filter Settings"  # Shows as tooltip in popover
-    bl_ui_units_x = 8
+    bl_ui_units_x = 10
 
     def draw(self, context):
         layout = self.layout
@@ -190,13 +196,14 @@ class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
 
                 sub = row.column(align=True)
 
-                if context.preferences.experimental.use_extended_asset_browser:
-                    sub.prop(params, "use_filter_asset_only")
+                sub.prop(params, "use_filter_asset_only")
 
                 filter_id = params.filter_id
                 for identifier in dir(filter_id):
                     if identifier.startswith("category_"):
-                        sub.prop(filter_id, identifier, toggle=True)
+                        subrow = sub.row()
+                        subrow.label(icon=filter_id.bl_rna.properties[identifier].icon)
+                        subrow.prop(filter_id, identifier, toggle=False)
 
                 col.separator()
 
@@ -389,7 +396,9 @@ class FILEBROWSER_PT_advanced_filter(Panel):
             filter_id = params.filter_id
             for identifier in dir(filter_id):
                 if identifier.startswith("filter_"):
-                    col.prop(filter_id, identifier, toggle=True)
+                    row = col.row()
+                    row.label(icon=filter_id.bl_rna.properties[identifier].icon)
+                    row.prop(filter_id, identifier, toggle=False)
 
 
 def is_option_region_visible(context, space):
@@ -587,6 +596,28 @@ class ASSETBROWSER_PT_display(asset_utils.AssetBrowserPanel, Panel):
             col = layout.column(heading="Columns", align=True)
             col.prop(params, "show_details_size", text="Size")
             col.prop(params, "show_details_datetime", text="Date")
+
+
+class ASSETBROWSER_PT_filter(asset_utils.AssetBrowserPanel, Panel):
+    bl_region_type = 'HEADER'
+    bl_category = "Filter"
+    bl_label = "Filter"
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+        params = space.params
+        use_extended_browser = context.preferences.experimental.use_extended_asset_browser
+
+        if params.use_filter_blendid:
+            col = layout.column(align=True)
+
+            filter_id = params.filter_asset_id
+            for identifier in dir(filter_id):
+                if identifier.startswith("filter_") or (identifier.startswith("experimental_filter_") and use_extended_browser):
+                    row = col.row()
+                    row.label(icon=filter_id.bl_rna.properties[identifier].icon)
+                    row.prop(filter_id, identifier, toggle=False)
 
 
 class AssetBrowserMenu:
@@ -791,6 +822,7 @@ classes = (
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
     ASSETBROWSER_PT_display,
+    ASSETBROWSER_PT_filter,
     ASSETBROWSER_MT_editor_menus,
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,

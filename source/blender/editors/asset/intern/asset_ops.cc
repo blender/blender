@@ -18,6 +18,7 @@
  * \ingroup edasset
  */
 
+#include "BKE_asset.h"
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
 #include "BKE_context.h"
@@ -45,30 +46,6 @@ using namespace blender;
 
 using PointerRNAVec = blender::Vector<PointerRNA>;
 
-static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C);
-static PointerRNAVec asset_operation_get_nonexperimental_ids_from_context(const bContext *C);
-static bool asset_type_is_nonexperimental(const ID_Type id_type);
-
-static bool asset_operation_experimental_feature_poll(bContext * /*C*/)
-{
-  /* At this moment only the pose library is non-experimental. Still, directly marking arbitrary
-   * Actions as asset is not part of the stable functionality; instead, the pose library "Create
-   * Pose Asset" operator should be used. Actions can still be marked as asset via
-   * `the_action.asset_mark()` (so a function call instead of this operator), which is what the
-   * pose library uses internally. */
-  return U.experimental.use_extended_asset_browser;
-}
-
-static bool asset_clear_poll(bContext *C)
-{
-  if (asset_operation_experimental_feature_poll(C)) {
-    return true;
-  }
-
-  PointerRNAVec pointers = asset_operation_get_nonexperimental_ids_from_context(C);
-  return !pointers.is_empty();
-}
-
 /**
  * Return the IDs to operate on as PointerRNA vector. Either a single one ("id" context member) or
  * multiple ones ("selected_ids" context member).
@@ -94,26 +71,51 @@ static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
   return ids;
 }
 
-static PointerRNAVec asset_operation_get_nonexperimental_ids_from_context(const bContext *C)
+/**
+ * Information about what's contained in a #PointerRNAVec, returned by
+ * #asset_operation_get_id_vec_stats_from_context().
+ */
+struct IDVecStats {
+  bool has_asset = false;
+  bool has_supported_type = false;
+  bool is_single = false;
+};
+
+/**
+ * Helper to report stats about the IDs in context. Operator polls use this, also to report a
+ * helpful disabled hint to the user.
+ */
+static IDVecStats asset_operation_get_id_vec_stats_from_context(const bContext *C)
 {
-  PointerRNAVec nonexperimental;
   PointerRNAVec pointers = asset_operation_get_ids_from_context(C);
+  IDVecStats stats;
+
+  stats.is_single = pointers.size() == 1;
+
   for (PointerRNA &ptr : pointers) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
 
     ID *id = static_cast<ID *>(ptr.data);
-    if (asset_type_is_nonexperimental(GS(id->name))) {
-      nonexperimental.append(ptr);
+    if (ED_asset_type_is_supported(id)) {
+      stats.has_supported_type = true;
+    }
+    if (ID_IS_ASSET(id)) {
+      stats.has_asset = true;
     }
   }
-  return nonexperimental;
+
+  return stats;
 }
 
-static bool asset_type_is_nonexperimental(const ID_Type id_type)
+static const char *asset_operation_unsupported_type_msg(const bool is_single)
 {
-  /* At this moment only the pose library is non-experimental. For simplicity, allow asset
-   * operations on all Action datablocks (even though pose assets are limited to single frames). */
-  return ELEM(id_type, ID_AC);
+  const char *msg_single =
+      "Data-block does not support asset operations - must be "
+      "a " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
+  const char *msg_multiple =
+      "No data-block selected that supports asset operations - select at least "
+      "one " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
+  return is_single ? msg_single : msg_multiple;
 }
 
 /* -------------------------------------------------------------------- */
@@ -203,6 +205,18 @@ static int asset_mark_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool asset_mark_poll(bContext *C)
+{
+  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_context(C);
+
+  if (!ctx_stats.has_supported_type) {
+    CTX_wm_operator_poll_msg_set(C, asset_operation_unsupported_type_msg(ctx_stats.is_single));
+    return false;
+  }
+
+  return true;
+}
+
 static void ASSET_OT_mark(wmOperatorType *ot)
 {
   ot->name = "Mark as Asset";
@@ -212,7 +226,7 @@ static void ASSET_OT_mark(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark";
 
   ot->exec = asset_mark_exec;
-  ot->poll = asset_operation_experimental_feature_poll;
+  ot->poll = asset_mark_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -313,6 +327,24 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
   WM_main_add_notifier(NC_ASSET | NA_REMOVED, nullptr);
 
   return OPERATOR_FINISHED;
+}
+
+static bool asset_clear_poll(bContext *C)
+{
+  IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_context(C);
+
+  if (!ctx_stats.has_asset) {
+    const char *msg_single = "Data-block is not marked as asset";
+    const char *msg_multiple = "No data-block selected that is marked as asset";
+    CTX_wm_operator_poll_msg_set(C, ctx_stats.is_single ? msg_single : msg_multiple);
+    return false;
+  }
+  if (!ctx_stats.has_supported_type) {
+    CTX_wm_operator_poll_msg_set(C, asset_operation_unsupported_type_msg(ctx_stats.is_single));
+    return false;
+  }
+
+  return true;
 }
 
 static char *asset_clear_get_description(struct bContext *UNUSED(C),

@@ -677,10 +677,6 @@ uint Film::get_kernel_features(const Scene *scene) const
         kernel_features |= KERNEL_FEATURE_SHADOW_PASS;
       }
     }
-
-    if (pass_type == PASS_AO) {
-      kernel_features |= KERNEL_FEATURE_NODE_RAYTRACE;
-    }
   }
 
   return kernel_features;

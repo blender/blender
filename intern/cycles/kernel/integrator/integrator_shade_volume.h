@@ -776,7 +776,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const bool is_light = light_sample_is_light(ls);
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+  INTEGRATOR_SHADOW_PATH_INIT(
+      shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, shadow);
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
@@ -798,9 +799,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
       state, path, render_pixel_index);
-  INTEGRATOR_STATE_WRITE(
-      shadow_state, shadow_path, rng_offset) = INTEGRATOR_STATE(state, path, rng_offset) -
-                                               PRNG_BOUNCE_NUM * transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, rng_offset) = INTEGRATOR_STATE(
+      state, path, rng_offset);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, rng_hash) = INTEGRATOR_STATE(
       state, path, rng_hash);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(

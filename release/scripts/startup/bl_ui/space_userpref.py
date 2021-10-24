@@ -398,21 +398,26 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col = flow.column()
         col.prop(edit, "use_duplicate_action", text="Action")
         col.prop(edit, "use_duplicate_armature", text="Armature")
+        col.prop(edit, "use_duplicate_camera", text="Camera")
         col.prop(edit, "use_duplicate_curve", text="Curve")
         # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
         if hasattr(edit, "use_duplicate_hair"):
             col.prop(edit, "use_duplicate_hair", text="Hair")
-        col.prop(edit, "use_duplicate_light", text="Light")
+
         col = flow.column()
+        col.prop(edit, "use_duplicate_lattice", text="Lattice")
+        col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_lightprobe", text="Light Probe")
         col.prop(edit, "use_duplicate_material", text="Material")
         col.prop(edit, "use_duplicate_mesh", text="Mesh")
         col.prop(edit, "use_duplicate_metaball", text="Metaball")
-        col.prop(edit, "use_duplicate_particle", text="Particle")
+
         col = flow.column()
+        col.prop(edit, "use_duplicate_particle", text="Particle")
         if hasattr(edit, "use_duplicate_pointcloud"):
             col.prop(edit, "use_duplicate_pointcloud", text="Point Cloud")
+        col.prop(edit, "use_duplicate_speaker", text="Speaker")
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
         # col.prop(edit, "use_duplicate_texture", text="Texture")  # Not implemented.
@@ -1405,12 +1410,18 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.label(text="Path")
 
         for i, library in enumerate(paths.asset_libraries):
-            name_col.prop(library, "name", text="")
+            row = name_col.row()
+            row.alert = not library.name
+            row.prop(library, "name", text="")
+
             row = path_col.row()
-            row.prop(library, "path", text="")
+            subrow = row.row()
+            subrow.alert = not library.path
+            subrow.prop(library, "path", text="")
             row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+
         row = box.row()
-        row.alignment = 'LEFT'
+        row.alignment = 'RIGHT'
         row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
 

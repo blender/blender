@@ -487,9 +487,6 @@ endif()
 # HIP module
 
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
-  # 64 bit only
-  set(HIP_BITS 64)
-
   # build for each arch
   set(hip_sources device/hip/kernel.cpp
     ${SRC_HEADERS}
@@ -503,33 +500,39 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   )
   set(hip_fatbins)
 
-  macro(CYCLES_HIP_KERNEL_ADD arch prev_arch name flags sources experimental)
-    if(${arch} MATCHES "compute_.*")
-      set(format "ptx")
-    else()
-      set(format "fatbin")
-    endif()
+  macro(CYCLES_HIP_KERNEL_ADD arch name flags sources experimental)
+    set(format "fatbin")
     set(hip_file ${name}_${arch}.${format})
-
     set(kernel_sources ${sources})
-    if(NOT ${prev_arch} STREQUAL "none")
-      if(${prev_arch} MATCHES "compute_.*")
-        set(kernel_sources ${kernel_sources} ${name}_${prev_arch}.ptx)
-      else()
-        set(kernel_sources ${kernel_sources} ${name}_${prev_arch}.fatbin)
-      endif()
-    endif()
 
     set(hip_kernel_src "/device/hip/${name}.cpp")
 
-    set(hip_flags ${flags}
+    if(WIN32)
+      set(hip_command ${CMAKE_COMMAND})
+      set(hip_flags
+        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_DIR}"
+        ${HIP_HIPCC_EXECUTABLE}.bat)
+    else()
+      set(hip_command ${HIP_HIPCC_EXECUTABLE})
+      set(hip_flags)
+    endif()
+
+    set(hip_flags
+      ${hip_flags}
+      --amdgpu-target=${arch}
+      ${HIP_HIPCC_FLAGS}
+      --genco
+      ${CMAKE_CURRENT_SOURCE_DIR}${hip_kernel_src}
+      ${flags}
       -D CCL_NAMESPACE_BEGIN=
       -D CCL_NAMESPACE_END=
       -D HIPCC
-      -m ${HIP_BITS}
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/hip
-      --use_fast_math
+      -Wno-parentheses-equality
+      -Wno-unused-value
+      --hipcc-func-supp
+      -ffast-math
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
     if(${experimental})
@@ -541,29 +544,17 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       set(hip_flags ${hip_flags} -D __KERNEL_DEBUG__)
     endif()
 
-    if(WITH_NANOVDB)
-      set(hip_flags ${hip_flags}
-        -D WITH_NANOVDB
-        -I "${NANOVDB_INCLUDE_DIR}")
-    endif()
-
     add_custom_command(
       OUTPUT ${hip_file}
-      COMMAND ${HIP_HIPCC_EXECUTABLE}
-          -arch=${arch}
-          ${HIP_HIPCC_FLAGS}
-          --${format}
-          ${CMAKE_CURRENT_SOURCE_DIR}${hip_kernel_src}
-          ${hip_flags}
+      COMMAND ${hip_command} ${hip_flags}
       DEPENDS ${kernel_sources})
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hip_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND hip_fatbins ${hip_file})
   endmacro()
 
-  set(prev_arch "none")
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
     # Compile regular kernel
-    CYCLES_HIP_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${hip_sources}" FALSE)
+    CYCLES_HIP_KERNEL_ADD(${arch} kernel "" "${hip_sources}" FALSE)
   endforeach()
 
   add_custom_target(cycles_kernel_hip ALL DEPENDS ${hip_fatbins})

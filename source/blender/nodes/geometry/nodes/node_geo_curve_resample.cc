@@ -171,8 +171,6 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
   GeometryComponentFieldContext field_context{*component, ATTR_DOMAIN_CURVE};
   const int domain_size = component->attribute_domain_size(ATTR_DOMAIN_CURVE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
-
   Span<SplinePtr> input_splines = input_curve->splines();
 
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
@@ -180,6 +178,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
   MutableSpan<SplinePtr> output_splines = output_curve->splines();
 
   if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.count);
     evaluator.evaluate();
     const VArray<int> &cuts = evaluator.get_evaluated<int>(0);
@@ -192,6 +191,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.length);
     evaluator.evaluate();
     const VArray<float> &lengths = evaluator.get_evaluated<float>(0);

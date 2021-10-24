@@ -77,14 +77,14 @@ static PyObject *py_bl_math_clamp(PyObject *UNUSED(self), PyObject *args)
 }
 
 PyDoc_STRVAR(py_bl_math_lerp_doc,
-             ".. function:: lerp(from, to, factor)\n"
+             ".. function:: lerp(from_value, to_value, factor)\n"
              "\n"
              "   Linearly interpolate between two float values based on factor.\n"
              "\n"
-             "   :arg from: The value to return when factor is 0.\n"
-             "   :type from: float\n"
-             "   :arg to: The value to return when factor is 1.\n"
-             "   :type to: float\n"
+             "   :arg from_value: The value to return when factor is 0.\n"
+             "   :type from_value: float\n"
+             "   :arg to_value: The value to return when factor is 1.\n"
+             "   :type to_value: float\n"
              "   :arg factor: The interpolation value, normally in [0.0, 1.0].\n"
              "   :type factor: float\n"
              "   :return: The interpolated value.\n"
@@ -101,15 +101,15 @@ static PyObject *py_bl_math_lerp(PyObject *UNUSED(self), PyObject *args)
 
 PyDoc_STRVAR(
     py_bl_math_smoothstep_doc,
-    ".. function:: smoothstep(from, to, value)\n"
+    ".. function:: smoothstep(from_value, to_value, value)\n"
     "\n"
-    "   Performs smooth interpolation between 0 and 1 as value changes between from and to.\n"
+    "   Performs smooth interpolation between 0 and 1 as value changes between from and to values.\n"
     "   Outside the range the function returns the same value as the nearest edge.\n"
     "\n"
-    "   :arg from: The edge value where the result is 0.\n"
-    "   :type from: float\n"
-    "   :arg to: The edge value where the result is 1.\n"
-    "   :type to: float\n"
+    "   :arg from_value: The edge value where the result is 0.\n"
+    "   :type from_value: float\n"
+    "   :arg to_value: The edge value where the result is 1.\n"
+    "   :type to_value: float\n"
     "   :arg factor: The interpolation value.\n"
     "   :type factor: float\n"
     "   :return: The interpolated value in [0.0, 1.0].\n"

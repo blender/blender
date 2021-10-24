@@ -57,6 +57,7 @@
 #include "UI_interface.h"
 
 #include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -647,8 +648,12 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
   /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
-    /* header size depends on DPI, let's verify */
-    WM_window_set_dpi(win);
+
+    /* Called even when creating the ghost window fails in #WM_window_open. */
+    if (win->ghostwin) {
+      /* Header size depends on DPI, let's verify. */
+      WM_window_set_dpi(win);
+    }
 
     ED_screen_global_areas_refresh(win);
 
@@ -1235,7 +1240,10 @@ static void screen_set_3dview_camera(Scene *scene,
   }
 }
 
-void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
+void ED_screen_scene_change(bContext *C,
+                            wmWindow *win,
+                            Scene *scene,
+                            const bool refresh_toolsystem)
 {
 #if 0
   ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
@@ -1272,6 +1280,10 @@ void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
         screen_set_3dview_camera(scene, view_layer, area, v3d);
       }
     }
+  }
+
+  if (refresh_toolsystem) {
+    WM_toolsystem_refresh_screen_window(win);
   }
 }
 

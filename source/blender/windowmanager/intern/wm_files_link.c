@@ -312,31 +312,6 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
   return false;
 }
 
-/**
- * Shared operations to perform on the object's base after adding it to the scene.
- */
-static void wm_append_loose_data_instantiate_object_base_instance_init(
-    Object *ob, bool set_selected, bool set_active, ViewLayer *view_layer, const View3D *v3d)
-{
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-  if (v3d != NULL) {
-    base->local_view_bits |= v3d->local_view_uuid;
-  }
-
-  if (set_selected) {
-    if (base->flag & BASE_SELECTABLE) {
-      base->flag |= BASE_SELECTED;
-    }
-  }
-
-  if (set_active) {
-    view_layer->basact = base;
-  }
-
-  BKE_scene_object_base_flag_sync_from_base(base);
-}
-
 static ID *wm_append_loose_data_instantiate_process_check(WMLinkAppendDataItem *item)
 {
   /* We consider that if we either kept it linked, or re-used already local data, instantiation
@@ -402,7 +377,6 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
   Collection *active_collection = NULL;
   const bool do_obdata = (lapp_data->flag & BLO_LIBLINK_OBDATA_INSTANCE) != 0;
 
-  const bool object_set_selected = (lapp_data->flag & FILE_AUTOSELECT) != 0;
   /* Do NOT make base active here! screws up GUI stuff,
    * if you want it do it at the editor level. */
   const bool object_set_active = false;
@@ -484,14 +458,12 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
         ob->type = OB_EMPTY;
         ob->empty_drawsize = U.collection_instance_empty_size;
 
-        BKE_collection_object_add(bmain, active_collection, ob);
-
         const bool set_selected = (lapp_data->flag & FILE_AUTOSELECT) != 0;
         /* TODO: why is it OK to make this active here but not in other situations?
          * See other callers of #object_base_instance_init */
         const bool set_active = set_selected;
-        wm_append_loose_data_instantiate_object_base_instance_init(
-            ob, set_selected, set_active, view_layer, v3d);
+        BLO_object_instantiate_object_base_instance_init(
+            bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, set_active);
 
         /* Assign the collection. */
         ob->instance_collection = collection;
@@ -538,10 +510,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     CLAMP_MIN(ob->id.us, 0);
     ob->mode = OB_MODE_OBJECT;
 
-    BKE_collection_object_add(bmain, active_collection, ob);
-
-    wm_append_loose_data_instantiate_object_base_instance_init(
-        ob, object_set_selected, object_set_active, view_layer, v3d);
+    BLO_object_instantiate_object_base_instance_init(
+        bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, object_set_active);
   }
 
   if (!do_obdata) {
@@ -572,10 +542,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     id_us_plus(id);
     BKE_object_materials_test(bmain, ob, ob->data);
 
-    BKE_collection_object_add(bmain, active_collection, ob);
-
-    wm_append_loose_data_instantiate_object_base_instance_init(
-        ob, object_set_selected, object_set_active, view_layer, v3d);
+    BLO_object_instantiate_object_base_instance_init(
+        bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, object_set_active);
 
     copy_v3_v3(ob->loc, scene->cursor.location);
 
@@ -661,6 +629,12 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
   const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
   const bool do_reuse_local_id = (lapp_data->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
+
+  const int make_local_common_flags = LIB_ID_MAKELOCAL_FULL_LIBRARY |
+                                      ((lapp_data->flag & BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) !=
+                                               0 ?
+                                           LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
+                                           0);
 
   LinkNode *itemlink;
 
@@ -763,16 +737,14 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
 
     switch (item->append_action) {
-      case WM_APPEND_ACT_COPY_LOCAL: {
-        BKE_lib_id_make_local(
-            bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
+      case WM_APPEND_ACT_COPY_LOCAL:
+        BKE_lib_id_make_local(bmain, id, make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_COPY);
         local_appended_new_id = id->newid;
         break;
-      }
       case WM_APPEND_ACT_MAKE_LOCAL:
         BKE_lib_id_make_local(bmain,
                               id,
-                              LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_LOCAL |
+                              make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
         BLI_assert(id->newid == NULL);
         local_appended_new_id = id;

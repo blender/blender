@@ -623,6 +623,11 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     final_points_len += positions.size();
   }
 
+  if (final_points_len == 0) {
+    params.set_output("Geometry", GeometrySet());
+    return;
+  }
+
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(final_points_len);
   for (const int instance_index : positions_all.index_range()) {
     const int offset = instance_start_offsets[instance_index];

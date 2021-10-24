@@ -30,6 +30,8 @@
 
 namespace blender::bke::tests {
 
+const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
+
 class AssetLibraryServiceTest : public testing::Test {
  public:
   CatalogFilePath asset_library_root_;
@@ -162,12 +164,18 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
   const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
   cat_service->prune_catalogs_by_id(UUID_POSES_ELLIE);
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
-      << "Deletion of catalogs via AssetCatalogService should not tag as 'unsaved changes'.";
+      << "Deletion of catalogs via AssetCatalogService should not automatically tag as 'unsaved "
+         "changes'.";
 
-  cat_service->tag_has_unsaved_changes();
+  const bUUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
+  AssetCatalog *cat = cat_service->find_catalog(UUID_POSES_RUZENA);
+  ASSERT_NE(nullptr, cat) << "Catalog " << UUID_POSES_RUZENA << " should be known";
+
+  cat_service->tag_has_unsaved_changes(cat);
   EXPECT_TRUE(service->has_any_unsaved_catalogs())
       << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
          "changes being reported.";
+  EXPECT_TRUE(cat->flags.has_unsaved_changes);
 }
 
 TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
@@ -185,15 +193,19 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
       << "Unchanged AssetLibrary should have no unsaved catalogs";
 
   AssetCatalogService *const cat_service = lib->catalog_service.get();
-  cat_service->tag_has_unsaved_changes();
+  AssetCatalog *cat = cat_service->find_catalog(UUID_POSES_ELLIE);
+
+  cat_service->tag_has_unsaved_changes(cat);
 
   EXPECT_TRUE(service->has_any_unsaved_catalogs())
       << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
          "changes being reported.";
+  EXPECT_TRUE(cat->flags.has_unsaved_changes);
 
   cat_service->write_to_disk(writable_dir + "dummy_path.blend");
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Written AssetCatalogService should have no unsaved catalogs";
+  EXPECT_FALSE(cat->flags.has_unsaved_changes);
 }
 
 }  // namespace blender::bke::tests

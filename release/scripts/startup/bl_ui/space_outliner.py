@@ -313,10 +313,6 @@ class OUTLINER_MT_object(Menu):
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 
-    @classmethod
-    def poll(cls, context):
-        return context.preferences.experimental.use_extended_asset_browser
-
     def draw(self, context):
         layout = self.layout
 

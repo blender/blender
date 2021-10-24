@@ -900,8 +900,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         ARegion *region = az->region;
         View2D *v2d = &region->v2d;
         int scroll_flag = 0;
-        const int isect_value = UI_view2d_mouse_in_scrollers_ex(
-            region, v2d, xy[0], xy[1], &scroll_flag);
+        const int isect_value = UI_view2d_mouse_in_scrollers_ex(region, v2d, xy, &scroll_flag);
 
         /* Check if we even have scroll bars. */
         if (((az->direction == AZ_SCROLL_HOR) && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
@@ -1052,7 +1051,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
   event.val = KM_NOTHING;
   event.is_repeat = false;
   event.customdata = op->customdata;
-  event.customdatafree = true;
+  event.customdata_free = true;
   op->customdata = NULL;
 
   wm_event_add(win, &event);
@@ -1061,7 +1060,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
-  AZone *az = screen_actionzone_find_xy(screen, &event->xy[0]);
+  AZone *az = screen_actionzone_find_xy(screen, event->xy);
 
   /* Quick escape - Scroll azones only hide/unhide the scroll-bars,
    * they have their own handling. */
@@ -3633,7 +3632,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
               0,
               &ptr);
   /* store initial mouse cursor position. */
-  RNA_int_set_array(&ptr, "cursor", &event->xy[0]);
+  RNA_int_set_array(&ptr, "cursor", event->xy);
   RNA_enum_set(&ptr, "direction", SCREEN_AXIS_V);
 
   /* Horizontal Split */
@@ -3646,7 +3645,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
               0,
               &ptr);
   /* store initial mouse cursor position. */
-  RNA_int_set_array(&ptr, "cursor", &event->xy[0]);
+  RNA_int_set_array(&ptr, "cursor", event->xy);
   RNA_enum_set(&ptr, "direction", SCREEN_AXIS_H);
 
   if (sa1 && sa2) {
@@ -3663,7 +3662,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
                 WM_OP_INVOKE_DEFAULT,
                 0,
                 &ptr);
-    RNA_int_set_array(&ptr, "cursor", &event->xy[0]);
+    RNA_int_set_array(&ptr, "cursor", event->xy);
   }
 
   /* Swap just needs two areas. */
@@ -3676,7 +3675,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
                 WM_OP_EXEC_DEFAULT,
                 0,
                 &ptr);
-    RNA_int_set_array(&ptr, "cursor", &event->xy[0]);
+    RNA_int_set_array(&ptr, "cursor", event->xy);
   }
 
   UI_popup_menu_end(C, pup);

@@ -466,7 +466,8 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
                                       asset_drag->path,
                                       idtype,
                                       name,
-                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION);
+                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
+                                          BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR);
     case FILE_ASSET_IMPORT_APPEND_REUSE:
       return WM_file_append_datablock(G_MAIN,
                                       scene,
@@ -476,6 +477,7 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
                                       idtype,
                                       name,
                                       BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
+                                          BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
                                           BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
   }
 

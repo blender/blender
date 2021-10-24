@@ -756,6 +756,19 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_BOUNDING_BOX) {
+            bNodeSocket *geometry_socket = node->inputs.first;
+            add_realize_instances_before_socket(ntree, node, geometry_socket);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1179,13 +1192,14 @@ static void correct_bone_roll_value(const float head[3],
      * 2.92 and 2.91, provided Edit Mode isn't entered on the armature in 2.91. */
     vec_roll_to_mat3(vec, *r_roll, bone_mat);
 
+    UNUSED_VARS_NDEBUG(check_y_axis);
     BLI_assert(dot_v3v3(bone_mat[1], check_y_axis) > 0.999f);
 
     if (dot_v3v3(bone_mat[0], check_x_axis) < 0.999f) {
       /* Recompute roll using legacy code to interpret the old value. */
       legacy_vec_roll_to_mat3_normalized(vec, *r_roll, bone_mat);
       mat3_to_vec_roll(bone_mat, vec2, r_roll);
-      BLI_assert(compare_v3v3(vec, vec2, FLT_EPSILON));
+      BLI_assert(compare_v3v3(vec, vec2, 0.001f));
     }
   }
 }
@@ -2012,6 +2026,39 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Update bone roll after a fix to vec_roll_to_mat3_normalized. */
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       do_version_bones_roll(&arm->bonebase);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    /* Node Editor: toggle overlays on. */
+    if (!DNA_struct_find(fd->filesdna, "SpaceNodeOverlay")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_NODE) {
+              SpaceNode *snode = (SpaceNode *)space;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 38)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_FILE) {
+            SpaceFile *sfile = (SpaceFile *)space;
+            FileAssetSelectParams *asset_params = sfile->asset_params;
+            if (asset_params) {
+              asset_params->base_params.filter_id = FILTER_ID_ALL;
+            }
+          }
+        }
+      }
     }
   }
 

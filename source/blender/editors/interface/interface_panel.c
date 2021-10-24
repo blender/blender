@@ -2041,7 +2041,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 
   switch (event->type) {
     case MOUSEMOVE:
-      ui_panel_drag_collapse(C, dragcol_data, &event->xy[0]);
+      ui_panel_drag_collapse(C, dragcol_data, event->xy);
 
       retval = WM_UI_HANDLER_BREAK;
       break;
@@ -2100,7 +2100,7 @@ static void ui_handle_panel_header(const bContext *C,
   BLI_assert(!(panel->type->flag & PANEL_TYPE_NO_HEADER));
 
   const bool is_subpanel = (panel->type->parent != NULL);
-  const bool use_pin = UI_panel_category_is_visible(region) && !is_subpanel;
+  const bool use_pin = UI_panel_category_is_visible(region) && UI_panel_can_be_pinned(panel);
   const bool show_pin = use_pin && (panel->flag & PNL_PIN);
   const bool show_drag = !is_subpanel;
 
@@ -2363,7 +2363,7 @@ int ui_handler_panel_region(bContext *C,
   }
 
   /* Scroll-bars can overlap panels now, they have handling priority. */
-  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy[0], event->xy[1])) {
+  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
     return WM_UI_HANDLER_CONTINUE;
   }
 
@@ -2495,6 +2495,11 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
   }
 
   return NULL;
+}
+
+bool UI_panel_can_be_pinned(const Panel *panel)
+{
+  return (panel->type->parent == NULL) && !(panel->type->flag & PANEL_TYPE_INSTANCED);
 }
 
 /** \} */

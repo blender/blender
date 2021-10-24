@@ -49,6 +49,7 @@
 #include "BKE_icons.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -853,7 +854,8 @@ wmWindow *WM_window_open(bContext *C,
   /* Set scene and view layer to match original window. */
   STRNCPY(win->view_layer_name, view_layer->name);
   if (WM_window_get_active_scene(win) != scene) {
-    ED_screen_scene_change(C, win, scene);
+    /* No need to refresh the tool-system as the window has not yet finished being setup. */
+    ED_screen_scene_change(C, win, scene, false);
   }
 
   screen->temp = temp;
@@ -914,7 +916,7 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
+int wm_window_new_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
@@ -931,16 +933,23 @@ int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
                             false,
                             WIN_ALIGN_PARENT_CENTER) != NULL);
 
-  return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  if (!ok) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to create window");
+    return OPERATOR_CANCELLED;
+  }
+  return OPERATOR_FINISHED;
 }
 
-int wm_window_new_main_exec(bContext *C, wmOperator *UNUSED(op))
+int wm_window_new_main_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
 
   bool ok = (wm_window_copy_test(C, win_src, true, false) != NULL);
-
-  return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  if (!ok) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to create window");
+    return OPERATOR_CANCELLED;
+  }
+  return OPERATOR_FINISHED;
 }
 
 /* fullscreen operator callback */
@@ -1412,7 +1421,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.val = KM_RELEASE;
         event.custom = EVT_DATA_DRAGDROP;
         event.customdata = &wm->drags;
-        event.customdatafree = 1;
+        event.customdata_free = true;
 
         wm_event_add(win, &event);
 
@@ -2263,13 +2272,13 @@ void WM_window_set_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *
 
   /* Set scene in parent and its child windows. */
   if (win_parent->scene != scene) {
-    ED_screen_scene_change(C, win_parent, scene);
+    ED_screen_scene_change(C, win_parent, scene, true);
     changed = true;
   }
 
   LISTBASE_FOREACH (wmWindow *, win_child, &wm->windows) {
     if (win_child->parent == win_parent && win_child->scene != scene) {
-      ED_screen_scene_change(C, win_child, scene);
+      ED_screen_scene_change(C, win_child, scene, true);
       changed = true;
     }
   }

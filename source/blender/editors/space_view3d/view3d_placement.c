@@ -222,7 +222,8 @@ static int dot_v3_array_find_max_index(const float dirs[][3],
   return index_found;
 }
 
-static wmGizmoGroup *idp_gizmogroup_from_region(ARegion *region)
+static UNUSED_FUNCTION_WITH_RETURN_TYPE(wmGizmoGroup *,
+                                        idp_gizmogroup_from_region)(ARegion *region)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   return gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;
@@ -1359,6 +1360,12 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
+  /* WORKAROUND: properties with `_funcs_runtime` should not be saved in keymaps.
+   *             So reassign the #PROP_IDPROPERTY flag to trick the property as not being set.
+   *             (See #RNA_property_is_set). */
+  PropertyFlag unsalvageable = PROP_SKIP_SAVE | PROP_HIDDEN | PROP_PTR_NO_OWNERSHIP |
+                               PROP_IDPROPERTY;
+
   /* Normally not accessed directly, leave unset and check the active tool. */
   static const EnumPropertyItem primitive_type[] = {
       {PLACE_PRIMITIVE_TYPE_CUBE, "CUBE", 0, "Cube", ""},
@@ -1378,9 +1385,9 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Plane Axis", "The axis used for placing the base region");
   RNA_def_property_enum_default(prop, 2);
   RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_enum_funcs_runtime(
       prop, idp_rna_plane_axis_get_fn, idp_rna_plane_axis_set_fn, NULL);
+  RNA_def_property_flag(prop, unsalvageable);
 
   prop = RNA_def_boolean(ot->srna,
                          "plane_axis_auto",
@@ -1388,9 +1395,9 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
                          "Auto Axis",
                          "Select the closest axis when placing objects "
                          "(surface overrides)");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_boolean_funcs_runtime(
       prop, idp_rna_use_plane_axis_auto_get_fn, idp_rna_use_plane_axis_auto_set_fn);
+  RNA_def_property_flag(prop, unsalvageable);
 
   static const EnumPropertyItem plane_depth_items[] = {
       {V3D_PLACE_DEPTH_SURFACE,
@@ -1415,9 +1422,9 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Position", "The initial depth used when placing the cursor");
   RNA_def_property_enum_default(prop, V3D_PLACE_DEPTH_SURFACE);
   RNA_def_property_enum_items(prop, plane_depth_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_enum_funcs_runtime(
       prop, idp_rna_plane_depth_get_fn, idp_rna_plane_depth_set_fn, NULL);
+  RNA_def_property_flag(prop, unsalvageable);
 
   static const EnumPropertyItem plane_orientation_items[] = {
       {V3D_PLACE_ORIENT_SURFACE,
@@ -1436,9 +1443,9 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Orientation", "The initial depth used when placing the cursor");
   RNA_def_property_enum_default(prop, V3D_PLACE_ORIENT_SURFACE);
   RNA_def_property_enum_items(prop, plane_orientation_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_enum_funcs_runtime(
       prop, idp_rna_plane_orient_get_fn, idp_rna_plane_orient_set_fn, NULL);
+  RNA_def_property_flag(prop, unsalvageable);
 
   static const EnumPropertyItem snap_to_items[] = {
       {PLACE_SNAP_TO_GEOMETRY, "GEOMETRY", 0, "Geometry", "Snap to all geometry"},
@@ -1449,9 +1456,9 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Snap to", "The target to use while snapping");
   RNA_def_property_enum_default(prop, PLACE_SNAP_TO_GEOMETRY);
   RNA_def_property_enum_items(prop, snap_to_items);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_property_enum_funcs_runtime(
       prop, idp_rna_snap_target_get_fn, idp_rna_snap_target_set_fn, NULL);
+  RNA_def_property_flag(prop, unsalvageable);
 
   { /* Plane Origin. */
     static const EnumPropertyItem items[] = {

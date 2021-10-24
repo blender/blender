@@ -96,6 +96,9 @@ typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
 #define UI_SEP_CHAR '|'
 #define UI_SEP_CHAR_S "|"
 
+/* Separator for text in search menus. */
+#define UI_MENU_ARROW_SEP "▶"
+
 /* names */
 #define UI_MAX_DRAW_STR 400
 #define UI_MAX_NAME_STR 128
@@ -1774,6 +1777,7 @@ void UI_panel_label_offset(const struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *panel);
 bool UI_panel_is_dragging(const struct Panel *panel);
 bool UI_panel_matches_search_filter(const struct Panel *panel);
+bool UI_panel_can_be_pinned(const struct Panel *panel);
 
 bool UI_panel_category_is_visible(const struct ARegion *region);
 void UI_panel_category_add(struct ARegion *region, const char *name);
@@ -2788,7 +2792,8 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
                                           const uiTreeViewItemHandle *item,
                                           uiLayout *column);
 
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region, int x, int y);
+uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
+                                                      const int xy[2]) ATTR_NONNULL(1, 2);
 uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus

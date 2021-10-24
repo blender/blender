@@ -960,9 +960,10 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
 
     /* if operator poll check failed, it can give pretty precise info why */
     if (optype) {
+      const int opcontext = extra_icon ? extra_icon->optype_params->opcontext : but->opcontext;
       CTX_wm_operator_poll_msg_clear(C);
-      WM_operator_poll_context(
-          C, optype, extra_icon ? extra_icon->optype_params->opcontext : but->opcontext);
+      ui_but_context_poll_operator_ex(
+          C, but, &(wmOperatorCallParams){.optype = optype, .opcontext = opcontext});
       disabled_msg = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
     }
     /* alternatively, buttons can store some reasoning too */

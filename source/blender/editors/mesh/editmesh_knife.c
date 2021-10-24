@@ -4515,7 +4515,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         knife_recalc_ortho(kcd);
 
         /* Get the value of the event which triggered this one. */
-        if (event->prevval != KM_RELEASE) {
+        if (event->prev_val != KM_RELEASE) {
           if (kcd->mode == MODE_DRAGGING) {
             knife_add_cut(kcd);
           }
@@ -4754,7 +4754,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (wait_for_input == false) {
     /* Avoid copy-paste logic. */
     wmEvent event_modal = {
-        .prevval = KM_NOTHING,
+        .prev_val = KM_NOTHING,
         .type = EVT_MODAL_MAP,
         .val = KNF_MODAL_ADD_CUT,
     };

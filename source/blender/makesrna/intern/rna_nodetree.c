@@ -5014,6 +5014,34 @@ static void def_fn_input_color(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_fn_input_bool(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeInputBool", "storage");
+
+  prop = RNA_def_property(srna, "boolean", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "boolean", 1);
+  RNA_def_property_ui_text(
+    prop, "Boolean", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+}
+
+static void def_fn_input_int(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeInputInt", "storage");
+
+  prop = RNA_def_property(srna, "integer", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "integer");
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_ui_text(
+    prop, "Integer", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_fn_input_vector(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10525,6 +10553,38 @@ static void def_geo_curve_fillet(StructRNA *srna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, mode_items);
   RNA_def_property_ui_text(prop, "Mode", "How to choose number of vertices on fillet");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_legacy_curve_to_points(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_RESAMPLE_EVALUATED,
+       "EVALUATED",
+       0,
+       "Evaluated",
+       "Create points from the curve's evaluated points, based on the resolution attribute for "
+       "NURBS and Bezier splines"},
+      {GEO_NODE_CURVE_RESAMPLE_COUNT,
+       "COUNT",
+       0,
+       "Count",
+       "Sample each spline by evenly distributing the specified number of points"},
+      {GEO_NODE_CURVE_RESAMPLE_LENGTH,
+       "LENGTH",
+       0,
+       "Length",
+       "Sample each spline by splitting it into segments with the specified length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveToPoints", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "How to generate points from the input curve");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 

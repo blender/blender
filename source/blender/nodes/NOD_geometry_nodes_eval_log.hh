@@ -109,7 +109,7 @@ class GeometryValueLog : public ValueLog {
   std::optional<PointCloudInfo> pointcloud_info;
   std::optional<InstancesInfo> instances_info;
 
-  GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry);
+  GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry = false);
 
   Span<GeometryAttributeInfo> attributes() const
   {
@@ -181,19 +181,36 @@ class LocalGeoLogger {
 /** The root logger class. */
 class GeoLogger {
  private:
-  /** The entire geometry of sockets in this set should be cached, because e.g. the spreadsheet
-   * displays the data. We don't log the entire geometry at all places, because that would require
-   * way too much memory. */
-  Set<DSocket> log_full_geometry_sockets_;
+  /**
+   * Log the entire value for these sockets, because they may be inspected afterwards.
+   * We don't log everything, because that would take up too much memory and cause significant
+   * slowdowns.
+   */
+  Set<DSocket> log_full_sockets_;
   threading::EnumerableThreadSpecific<LocalGeoLogger> threadlocals_;
 
+  /* These are only optional since they don't have a default constructor. */
+  std::unique_ptr<GeometryValueLog> input_geometry_log_;
+  std::unique_ptr<GeometryValueLog> output_geometry_log_;
+
   friend LocalGeoLogger;
+  friend ModifierLog;
 
  public:
-  GeoLogger(Set<DSocket> log_full_geometry_sockets)
-      : log_full_geometry_sockets_(std::move(log_full_geometry_sockets)),
+  GeoLogger(Set<DSocket> log_full_sockets)
+      : log_full_sockets_(std::move(log_full_sockets)),
         threadlocals_([this]() { return LocalGeoLogger(*this); })
   {
+  }
+
+  void log_input_geometry(const GeometrySet &geometry)
+  {
+    input_geometry_log_ = std::make_unique<GeometryValueLog>(geometry);
+  }
+
+  void log_output_geometry(const GeometrySet &geometry)
+  {
+    output_geometry_log_ = std::make_unique<GeometryValueLog>(geometry);
   }
 
   LocalGeoLogger &local()
@@ -281,6 +298,9 @@ class ModifierLog {
   destruct_ptr<TreeLog> root_tree_logs_;
   Vector<destruct_ptr<ValueLog>> logged_values_;
 
+  std::unique_ptr<GeometryValueLog> input_geometry_log_;
+  std::unique_ptr<GeometryValueLog> output_geometry_log_;
+
  public:
   ModifierLog(GeoLogger &logger);
 
@@ -300,6 +320,9 @@ class ModifierLog {
   static const NodeLog *find_node_by_spreadsheet_editor_context(
       const SpaceSpreadsheet &sspreadsheet);
   void foreach_node_log(FunctionRef<void(const NodeLog &)> fn) const;
+
+  const GeometryValueLog *input_geometry_log() const;
+  const GeometryValueLog *output_geometry_log() const;
 
  private:
   using LogByTreeContext = Map<const DTreeContext *, TreeLog *>;

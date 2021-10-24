@@ -753,20 +753,14 @@ set(geo_node_tests
 
 if(WITH_GMP)
   list(APPEND geo_node_tests mesh/boolean)
-else()
-  MESSAGE(STATUS "Disabling mesh/boolean tests because WITH_GMP is off.")
 endif()
 
 if(WITH_OPENVDB)
   list(APPEND geo_node_tests volume)
-else()
-  MESSAGE(STATUS "Disabling volume tests because WITH_OPENVDB is off.")
 endif()
 
 if(WITH_OPENSUBDIV)
   list(APPEND geo_node_tests mesh/subdivision_tests)
-else()
-  MESSAGE(STATUS "Disabling mesh/subdivision_tests because WITH_OPENSUBDIV is off.")
 endif()
 
 foreach(geo_node_test ${geo_node_tests})
@@ -835,6 +829,15 @@ if(WITH_ALEMBIC)
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_io_test.py
     --
     --testdir "${TEST_SRC_DIR}/alembic"
+  )
+endif()
+
+if(WITH_USD)
+  add_blender_test(
+    usd_import_test
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_usd_import_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/usd"
   )
 endif()
 

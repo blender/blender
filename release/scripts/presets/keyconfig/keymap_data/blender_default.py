@@ -1809,7 +1809,10 @@ def km_node_editor(params):
          {"properties": [("data_path", 'tool_settings.use_snap')]}),
         ("wm.context_menu_enum", {"type": 'TAB', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("data_path", 'tool_settings.snap_node_element')]}),
-        *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),])
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+            {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+        *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),
+    ])
 
     return keymap
 

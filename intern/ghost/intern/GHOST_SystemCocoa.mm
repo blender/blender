@@ -116,8 +116,6 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
     case kVK_ANSI_Z:    return GHOST_kKeyZ;
 #endif
     /* Numbers keys: mapped to handle some int'l keyboard (e.g. French). */
-    case kVK_ISO_Section:
-      return GHOST_kKeyUnknown;
     case kVK_ANSI_1:
       return GHOST_kKey1;
     case kVK_ANSI_2:
@@ -257,6 +255,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
     case kVK_ANSI_LeftBracket:  return GHOST_kKeyLeftBracket;
     case kVK_ANSI_RightBracket: return GHOST_kKeyRightBracket;
     case kVK_ANSI_Grave:        return GHOST_kKeyAccentGrave;
+    case kVK_ISO_Section:       return GHOST_kKeyUnknown;
 #endif
     case kVK_VolumeUp:
     case kVK_VolumeDown:

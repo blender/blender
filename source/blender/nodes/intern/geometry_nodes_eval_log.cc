@@ -26,6 +26,8 @@ namespace blender::nodes::geometry_nodes_eval_log {
 using fn::CPPType;
 
 ModifierLog::ModifierLog(GeoLogger &logger)
+    : input_geometry_log_(std::move(logger.input_geometry_log_)),
+      output_geometry_log_(std::move(logger.output_geometry_log_))
 {
   root_tree_logs_ = allocator_.construct<TreeLog>();
 
@@ -104,6 +106,15 @@ void ModifierLog::foreach_node_log(FunctionRef<void(const NodeLog &)> fn) const
   if (root_tree_logs_) {
     root_tree_logs_->foreach_node_log(fn);
   }
+}
+
+const GeometryValueLog *ModifierLog::input_geometry_log() const
+{
+  return input_geometry_log_.get();
+}
+const GeometryValueLog *ModifierLog::output_geometry_log() const
+{
+  return output_geometry_log_.get();
 }
 
 const NodeLog *TreeLog::lookup_node_log(StringRef node_name) const
@@ -354,7 +365,7 @@ void LocalGeoLogger::log_value_for_sockets(Span<DSocket> sockets, GPointer value
   if (type.is<GeometrySet>()) {
     bool log_full_geometry = false;
     for (const DSocket &socket : sockets) {
-      if (main_logger_->log_full_geometry_sockets_.contains(socket)) {
+      if (main_logger_->log_full_sockets_.contains(socket)) {
         log_full_geometry = true;
         break;
       }

@@ -331,7 +331,7 @@ static void test_vec_roll_to_mat3_orthogonal(double s, double x1, double x2, dou
     }
   }
 
-  printf("             Max determinant error %.10f at %f.\n", delta, tmax);
+  printf("             Max determinant deviation %.10f at %f.\n", delta, tmax);
 }
 
 #define TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(name, s, x1, x2, y1, y2) \

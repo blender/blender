@@ -107,12 +107,4 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *
                                                         ccl_global float *render_buffer,
                                                         int pixel_index);
 
-/* --------------------------------------------------------------------
- * Bake.
- */
-/* TODO(sergey): Needs to be re-implemented. Or not? Brecht did it already :) */
-
-void KERNEL_FUNCTION_FULL_NAME(bake)(
-    const KernelGlobalsCPU *kg, float *buffer, int sample, int x, int y, int offset, int stride);
-
 #undef KERNEL_ARCH

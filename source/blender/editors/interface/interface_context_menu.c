@@ -927,8 +927,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_region(C);
-    uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(
-        region, event->xy[0], event->xy[1]);
+    uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, event->xy);
     if (treerow_but) {
       BLI_assert(treerow_but->but.type == UI_BTYPE_TREEROW);
       UI_tree_view_item_context_menu_build(
@@ -938,7 +937,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   /* If the button represents an id, it can set the "id" context pointer. */
-  if (U.experimental.use_extended_asset_browser && ED_asset_can_mark_single_from_context(C)) {
+  if (ED_asset_can_mark_single_from_context(C)) {
     ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
 
     /* Gray out items depending on if data-block is an asset. Preferably this could be done via
@@ -1216,8 +1215,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   ARegion *region = CTX_wm_region(C);
   const bool is_inside_listbox = ui_list_find_mouse_over(region, event) != NULL;
   const bool is_inside_listrow = is_inside_listbox ?
-                                     ui_list_row_find_mouse_over(
-                                         region, event->xy[0], event->xy[1]) != NULL :
+                                     ui_list_row_find_mouse_over(region, event->xy) != NULL :
                                      false;
   if (is_inside_listrow) {
     MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);
@@ -1257,6 +1255,9 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
     return;
   }
   if (panel->type->parent != NULL) {
+    return;
+  }
+  if (!UI_panel_can_be_pinned(panel)) {
     return;
   }
 

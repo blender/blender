@@ -69,9 +69,6 @@
 /** \name Menu Search Template Implementation
  * \{ */
 
-/* Unicode arrow. */
-#define MENU_SEP "\xe2\x96\xb6"
-
 /**
  * Use when #menu_items_from_ui_create is called with `include_all_areas`.
  * so we can run the menu item in the area it was extracted from.
@@ -415,7 +412,7 @@ static void menu_items_from_all_operators(bContext *C, struct MenuSearch_Data *d
       char uiname[256];
       WM_operator_py_idname(idname_as_py, ot->idname);
 
-      SNPRINTF(uiname, "%s " MENU_SEP "%s", idname_as_py, ot_ui_name);
+      SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP "%s", idname_as_py, ot_ui_name);
 
       item->drawwstr_full = strdup_memarena(memarena, uiname);
       item->drawstr = ot_ui_name;
@@ -841,7 +838,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
       }
       while (menu_parent) {
         BLI_dynstr_append(dyn_str, menu_parent->drawstr);
-        BLI_dynstr_append(dyn_str, " " MENU_SEP " ");
+        BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
         menu_parent = menu_parent->temp_child;
       }
     }
@@ -859,13 +856,13 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
         BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str);
       }
 
-      BLI_dynstr_append(dyn_str, " " MENU_SEP " ");
+      BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
     }
 
     /* Optional nested menu. */
     if (item->drawstr_submenu != NULL) {
       BLI_dynstr_append(dyn_str, item->drawstr_submenu);
-      BLI_dynstr_append(dyn_str, " " MENU_SEP " ");
+      BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
     }
 
     BLI_dynstr_append(dyn_str, item->drawstr);
@@ -1160,7 +1157,7 @@ void UI_but_func_menu_search(uiBut *but)
 
   UI_but_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
   UI_but_func_search_set_tooltip(but, ui_search_menu_create_tooltip);
-  UI_but_func_search_set_sep_string(but, MENU_SEP);
+  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
 }
 
 void uiTemplateMenuSearch(uiLayout *layout)
@@ -1176,7 +1173,5 @@ void uiTemplateMenuSearch(uiLayout *layout)
       block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, 0, 0, "");
   UI_but_func_menu_search(but);
 }
-
-#undef MENU_SEP
 
 /** \} */

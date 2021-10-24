@@ -227,6 +227,9 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  * This provider is used to provide access to builtin attributes. It supports making internal types
  * available as different types. For example, the vertex position attribute is stored as part of
  * the #MVert struct, but is exposed as float3 attribute.
+ *
+ * It also supports named builtin attributes, and will look up attributes in #CustomData by name
+ * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = GVArrayPtr (*)(const void *data, const int domain_size);
@@ -238,6 +241,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
   const UpdateOnWrite update_on_write_;
+  bool stored_as_named_attribute_;
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
@@ -257,7 +261,8 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
         as_write_attribute_(as_write_attribute),
-        update_on_write_(update_on_write)
+        update_on_write_(update_on_write),
+        stored_as_named_attribute_(data_type_ == stored_type_)
   {
   }
 

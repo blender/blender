@@ -468,14 +468,6 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
   mul_v2_v2(r_origin, mirror);
 }
 
-/**
- * Get strip transform origin offset from image center
- *
- * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate image transform origin
- * \param apply_rotation: Apply sequence rotation transform to the quad
- * \param r_origin: return value
- */
 static void seq_image_transform_quad_get_ex(const Scene *scene,
                                             const Sequence *seq,
                                             bool apply_rotation,
@@ -527,6 +519,14 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
   }
 }
 
+/**
+ * Get 4 corner points of strip image, optionally without rotation component applied
+ *
+ * \param scene: Scene in which strips are located
+ * \param seq: Sequence to calculate image transform origin
+ * \param apply_rotation: Apply sequence rotation transform to the quad
+ * \param r_quad: array of 4 2D vectors
+ */
 void SEQ_image_transform_quad_get(const Scene *scene,
                                   const Sequence *seq,
                                   bool apply_rotation,
@@ -535,6 +535,13 @@ void SEQ_image_transform_quad_get(const Scene *scene,
   seq_image_transform_quad_get_ex(scene, seq, apply_rotation, r_quad);
 }
 
+/**
+ * Get 4 corner points of strip image.
+ *
+ * \param scene: Scene in which strips are located
+ * \param seq: Sequence to calculate image transform origin
+ * \param r_quad: array of 4 2D vectors
+ */
 void SEQ_image_transform_final_quad_get(const Scene *scene,
                                         const Sequence *seq,
                                         float r_quad[4][2])

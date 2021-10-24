@@ -1930,7 +1930,7 @@ static bool ui_tree_view_drop_poll(bContext *C)
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
-      region, win->eventstate->xy[0], win->eventstate->xy[1]);
+      region, win->eventstate->xy);
 
   return hovered_tree_item != NULL;
 }
@@ -1942,8 +1942,7 @@ static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const w
   }
 
   const ARegion *region = CTX_wm_region(C);
-  uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
-      region, event->xy[0], event->xy[1]);
+  uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region, event->xy);
 
   if (!UI_tree_view_item_drop_handle(hovered_tree_item, event->customdata)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;

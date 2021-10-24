@@ -37,8 +37,6 @@ static void fn_node_float_compare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Result");
 };
 
-}  // namespace blender::nodes
-
 static void geo_node_float_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
@@ -65,19 +63,19 @@ static void node_float_compare_label(bNodeTree *UNUSED(ntree),
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static const blender::fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(bNode &node)
 {
-  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> less_than_fn{
+  static fn::CustomMF_SI_SI_SO<float, float, bool> less_than_fn{
       "Less Than", [](float a, float b) { return a < b; }};
-  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> less_equal_fn{
+  static fn::CustomMF_SI_SI_SO<float, float, bool> less_equal_fn{
       "Less Equal", [](float a, float b) { return a <= b; }};
-  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> greater_than_fn{
+  static fn::CustomMF_SI_SI_SO<float, float, bool> greater_than_fn{
       "Greater Than", [](float a, float b) { return a > b; }};
-  static blender::fn::CustomMF_SI_SI_SO<float, float, bool> greater_equal_fn{
+  static fn::CustomMF_SI_SI_SO<float, float, bool> greater_equal_fn{
       "Greater Equal", [](float a, float b) { return a >= b; }};
-  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> equal_fn{
+  static fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> equal_fn{
       "Equal", [](float a, float b, float epsilon) { return std::abs(a - b) <= epsilon; }};
-  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> not_equal_fn{
+  static fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> not_equal_fn{
       "Not Equal", [](float a, float b, float epsilon) { return std::abs(a - b) > epsilon; }};
 
   switch (node.custom1) {
@@ -99,12 +97,13 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
   return nullptr;
 }
 
-static void fn_node_float_compare_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void fn_node_float_compare_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
+  const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_float_compare()
 {
@@ -112,9 +111,9 @@ void register_node_type_fn_float_compare()
 
   fn_node_type_base(&ntype, FN_NODE_COMPARE_FLOATS, "Compare Floats", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_float_compare_declare;
-  node_type_label(&ntype, node_float_compare_label);
-  node_type_update(&ntype, node_float_compare_update);
-  ntype.build_multi_function = fn_node_float_compare_build_multi_function;
-  ntype.draw_buttons = geo_node_float_compare_layout;
+  node_type_label(&ntype, blender::nodes::node_float_compare_label);
+  node_type_update(&ntype, blender::nodes::node_float_compare_update);
+  ntype.build_multi_function = blender::nodes::fn_node_float_compare_build_multi_function;
+  ntype.draw_buttons = blender::nodes::geo_node_float_compare_layout;
   nodeRegisterType(&ntype);
 }

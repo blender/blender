@@ -326,14 +326,6 @@ class ExecutionGroup {
    * \param chunk_number: the chunk to be calculated
    * \return (MemoryBuffer **) the inputbuffers
    */
-  MemoryBuffer **getInputBuffersCPU();
-
-  /**
-   * \brief get all inputbuffers needed to calculate an chunk
-   * \note all inputbuffers must be executed
-   * \param chunk_number: the chunk to be calculated
-   * \return (MemoryBuffer **) the inputbuffers
-   */
   MemoryBuffer **get_input_buffers_opencl(int chunk_number);
 
   /**

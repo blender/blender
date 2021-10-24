@@ -310,6 +310,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.panel_roundness = 0.4f;
   }
 
+  if (!USER_VERSION_ATLEAST(300, 37)) {
+    btheme->space_node.dash_alpha = 0.5f;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -967,6 +971,14 @@ void blo_do_versions_userdef(UserDef *userdef)
       }
     }
   }
+
+  if (!USER_VERSION_ATLEAST(300, 38)) {
+    /* Patch to set Dupli Lattice/Camera/Speaker. */
+    userdef->dupflag |= USER_DUP_LATTICE;
+    userdef->dupflag |= USER_DUP_CAMERA;
+    userdef->dupflag |= USER_DUP_SPEAKER;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -17,15 +17,18 @@ in vec2 P1;
 in vec2 P2;
 in vec2 P3;
 in ivec4 colid_doarrow;
+in vec4 start_color;
+in vec4 end_color;
 in ivec2 domuted;
 in float dim_factor;
 in float thickness;
 in float dash_factor;
+in float dash_alpha;
 
 uniform vec4 colors[6];
 
-#  define colStart colors[colid_doarrow[0]]
-#  define colEnd colors[colid_doarrow[1]]
+#  define colStart (colid_doarrow[0] < 3 ? start_color : colors[colid_doarrow[0]])
+#  define colEnd (colid_doarrow[1] < 3 ? end_color : colors[colid_doarrow[1]])
 #  define colShadow colors[colid_doarrow[2]]
 #  define doArrow (colid_doarrow[3] != 0)
 #  define doMuted (domuted[0] != 0)
@@ -45,6 +48,7 @@ uniform bool doMuted;
 uniform float dim_factor;
 uniform float thickness;
 uniform float dash_factor;
+uniform float dash_alpha;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
@@ -61,13 +65,20 @@ out vec4 finalColor;
 out float lineU;
 flat out float lineLength;
 flat out float dashFactor;
+flat out float dashAlpha;
 flat out int isMainLine;
+
+/* Define where along the noodle the gradient will starts and ends.
+ * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
+const float start_gradient_threshold = 0.25;
+const float end_gradient_threshold = 0.55;
 
 void main(void)
 {
   /* Parameters for the dashed line. */
   isMainLine = expand.y != 1.0 ? 0 : 1;
   dashFactor = dash_factor;
+  dashAlpha = dash_alpha;
   /* Approximate line length, no need for real bezier length calculation. */
   lineLength = distance(P0, P3);
   /* TODO: Incorrect U, this leads to non-uniform dash distribution. */
@@ -109,7 +120,16 @@ void main(void)
   }
   else {
     /* Second pass */
-    finalColor = mix(colStart, colEnd, uv.x);
+    if (uv.x < start_gradient_threshold) {
+      finalColor = colStart;
+    }
+    else if (uv.x > end_gradient_threshold) {
+      finalColor = colEnd;
+    }
+    else {
+      /* Add 0.1 to avoid a visual shift issue. */
+      finalColor = mix(colStart, colEnd, uv.x + 0.1);
+    }
     expand_dist *= 0.5;
     if (doMuted) {
       finalColor[3] = 0.65;

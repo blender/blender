@@ -48,11 +48,6 @@ static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_XYZ)
       .supports_field()
       .description("Scale of the instances");
-  b.add_input<decl::Int>("Stable ID")
-      .supports_field()
-      .description(
-          "ID for every instance that is used to identify it over time even when the number of "
-          "instances changes. Used for example for motion blur");
 
   b.add_output<decl::Geometry>("Instances");
 }
@@ -91,12 +86,11 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   const VArray<float3> *scales = nullptr;
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
-  const VArray<int> *stable_ids = nullptr;
+  GVArray_Typed<int> stable_ids = src_component.attribute_get_for_read("id", ATTR_DOMAIN_POINT, 0);
   field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
   field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
   field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
   field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
-  field_evaluator.add(params.get_input<Field<int>>("Stable ID"), &stable_ids);
   field_evaluator.evaluate();
 
   GVArray_Typed<float3> positions = src_component.attribute_get_for_read<float3>(

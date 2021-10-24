@@ -28,6 +28,7 @@ ccl_device_inline void path_state_init_queues(IntegratorState state)
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
 #ifdef __KERNEL_CPU__
   INTEGRATOR_STATE_WRITE(&state->shadow, shadow_path, queued_kernel) = 0;
+  INTEGRATOR_STATE_WRITE(&state->ao, shadow_path, queued_kernel) = 0;
 #endif
 }
 
@@ -298,11 +299,8 @@ ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
 ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorShadowState state,
                                                   ccl_private RNGState *rng_state)
 {
-  const uint shadow_bounces = INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
-
   rng_state->rng_hash = INTEGRATOR_STATE(state, shadow_path, rng_hash);
-  rng_state->rng_offset = INTEGRATOR_STATE(state, shadow_path, rng_offset) +
-                          PRNG_BOUNCE_NUM * shadow_bounces;
+  rng_state->rng_offset = INTEGRATOR_STATE(state, shadow_path, rng_offset);
   rng_state->sample = INTEGRATOR_STATE(state, shadow_path, sample);
 }
 

@@ -25,6 +25,7 @@
 #include "node_function_util.hh"
 
 namespace blender::nodes {
+
 static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();

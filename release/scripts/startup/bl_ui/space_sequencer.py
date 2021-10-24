@@ -291,6 +291,7 @@ class SEQUENCER_PT_preview_overlay(Panel):
 
         layout.active = st.show_overlays
         layout.prop(overlay_settings, "show_image_outline")
+        layout.prop(overlay_settings, "show_cursor")
         layout.prop(ed, "show_overlay_frame", text="Frame Overlay")
         layout.prop(overlay_settings, "show_safe_areas", text="Safe Areas")
         layout.prop(overlay_settings, "show_metadata", text="Metadata")

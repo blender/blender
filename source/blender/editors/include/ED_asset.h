@@ -43,6 +43,7 @@ void ED_operatortypes_asset(void);
 #include "../asset/ED_asset_list.h"
 #include "../asset/ED_asset_mark_clear.h"
 #include "../asset/ED_asset_temp_id_consumer.h"
+#include "../asset/ED_asset_type.h"
 
 /* C++ only headers. */
 #ifdef __cplusplus

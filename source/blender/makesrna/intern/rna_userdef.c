@@ -2917,6 +2917,12 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
       prop, "Grid Levels", "Amount of grid lines displayed in the background");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "dash_alpha", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 0.5f);
+  RNA_def_property_ui_text(prop, "Dashed Lines Opacity", "Opacity for the dashed lines in wires");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "input_node", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "syntaxn");
   RNA_def_property_array(prop, 3);
@@ -5175,6 +5181,11 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Curve", "Causes curve data to be duplicated with the object");
 
+  prop = RNA_def_property(srna, "use_duplicate_lattice", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LATTICE);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Lattice", "Causes lattice data to be duplicated with the object");
+
   prop = RNA_def_property(srna, "use_duplicate_text", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_FONT);
   RNA_def_property_ui_text(
@@ -5189,6 +5200,16 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ARM);
   RNA_def_property_ui_text(
       prop, "Duplicate Armature", "Causes armature data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_CAMERA);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Camera", "Causes camera data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_speaker", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_SPEAKER);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Speaker", "Causes speaker data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_light", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LAMP);

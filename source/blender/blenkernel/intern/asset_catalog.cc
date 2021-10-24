@@ -24,6 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_userdef_types.h"
@@ -66,29 +67,55 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 {
 }
 
-void AssetCatalogService::tag_has_unsaved_changes()
+void AssetCatalogService::tag_has_unsaved_changes(AssetCatalog *edited_catalog)
 {
-  has_unsaved_changes_ = true;
+  if (edited_catalog) {
+    edited_catalog->flags.has_unsaved_changes = true;
+  }
+  BLI_assert(catalog_collection_);
+  catalog_collection_->has_unsaved_changes_ = true;
 }
 
 void AssetCatalogService::untag_has_unsaved_changes()
 {
-  has_unsaved_changes_ = false;
+  BLI_assert(catalog_collection_);
+  catalog_collection_->has_unsaved_changes_ = false;
+
+  /* TODO(Sybren): refactor; this is more like "post-write cleanup" than "remove a tag" code. */
+
+  /* Forget about any deleted catalogs. */
+  if (catalog_collection_->catalog_definition_file_) {
+    for (CatalogID catalog_id : catalog_collection_->deleted_catalogs_.keys()) {
+      catalog_collection_->catalog_definition_file_->forget(catalog_id);
+    }
+  }
+  catalog_collection_->deleted_catalogs_.clear();
+
+  /* Mark all remaining catalogs as "without unsaved changes". */
+  for (auto &catalog_uptr : catalog_collection_->catalogs_.values()) {
+    catalog_uptr->flags.has_unsaved_changes = false;
+  }
 }
 
 bool AssetCatalogService::has_unsaved_changes() const
 {
-  return has_unsaved_changes_;
+  BLI_assert(catalog_collection_);
+  return catalog_collection_->has_unsaved_changes_;
 }
 
 bool AssetCatalogService::is_empty() const
 {
+  BLI_assert(catalog_collection_);
   return catalog_collection_->catalogs_.is_empty();
 }
 
 OwningAssetCatalogMap &AssetCatalogService::get_catalogs()
 {
   return catalog_collection_->catalogs_;
+}
+OwningAssetCatalogMap &AssetCatalogService::get_deleted_catalogs()
+{
+  return catalog_collection_->deleted_catalogs_;
 }
 
 AssetCatalogDefinitionFile *AssetCatalogService::get_catalog_definition_file()
@@ -108,27 +135,39 @@ AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id) const
 
 AssetCatalog *AssetCatalogService::find_catalog_by_path(const AssetCatalogPath &path) const
 {
+  /* Use an AssetCatalogOrderedSet to find the 'best' catalog for this path. This will be the first
+   * one loaded from disk, or if that does not exist the one with the lowest UUID. This ensures
+   * stable, predictable results. */
+  MutableAssetCatalogOrderedSet ordered_catalogs;
+
   for (const auto &catalog : catalog_collection_->catalogs_.values()) {
     if (catalog->path == path) {
-      return catalog.get();
+      ordered_catalogs.insert(catalog.get());
     }
   }
 
-  return nullptr;
+  if (ordered_catalogs.empty()) {
+    return nullptr;
+  }
+
+  MutableAssetCatalogOrderedSet::iterator best_choice_it = ordered_catalogs.begin();
+  return *best_choice_it;
+}
+
+bool AssetCatalogService::is_catalog_known(CatalogID catalog_id) const
+{
+  BLI_assert(catalog_collection_);
+  return catalog_collection_->catalogs_.contains(catalog_id);
 }
 
 AssetCatalogFilter AssetCatalogService::create_catalog_filter(
     const CatalogID active_catalog_id) const
 {
   Set<CatalogID> matching_catalog_ids;
+  Set<CatalogID> known_catalog_ids;
   matching_catalog_ids.add(active_catalog_id);
 
   const AssetCatalog *active_catalog = find_catalog(active_catalog_id);
-  if (!active_catalog) {
-    /* If the UUID is unknown (i.e. not mapped to an actual Catalog), it is impossible to determine
-     * its children. The filter can still work on the given UUID. */
-    return AssetCatalogFilter(std::move(matching_catalog_ids));
-  }
 
   /* This cannot just iterate over tree items to get all the required data, because tree items only
    * represent single UUIDs. It could be used to get the main UUIDs of the children, though, and
@@ -136,15 +175,16 @@ AssetCatalogFilter AssetCatalogService::create_catalog_filter(
    * call). Without an extra indexed-by-path acceleration structure, this is still going to require
    * a linear search, though. */
   for (const auto &catalog_uptr : catalog_collection_->catalogs_.values()) {
-    if (catalog_uptr->path.is_contained_in(active_catalog->path)) {
+    if (active_catalog && catalog_uptr->path.is_contained_in(active_catalog->path)) {
       matching_catalog_ids.add(catalog_uptr->catalog_id);
     }
+    known_catalog_ids.add(catalog_uptr->catalog_id);
   }
 
-  return AssetCatalogFilter(std::move(matching_catalog_ids));
+  return AssetCatalogFilter(std::move(matching_catalog_ids), std::move(known_catalog_ids));
 }
 
-void AssetCatalogService::delete_catalog_by_id(const CatalogID catalog_id)
+void AssetCatalogService::delete_catalog_by_id_soft(const CatalogID catalog_id)
 {
   std::unique_ptr<AssetCatalog> *catalog_uptr_ptr = catalog_collection_->catalogs_.lookup_ptr(
       catalog_id);
@@ -165,6 +205,15 @@ void AssetCatalogService::delete_catalog_by_id(const CatalogID catalog_id)
   catalog_collection_->catalogs_.remove(catalog_id);
 }
 
+void AssetCatalogService::delete_catalog_by_id_hard(CatalogID catalog_id)
+{
+  catalog_collection_->catalogs_.remove(catalog_id);
+  catalog_collection_->deleted_catalogs_.remove(catalog_id);
+
+  /* TODO(Sybren): adjust this when supporting mulitple CDFs. */
+  catalog_collection_->catalog_definition_file_->forget(catalog_id);
+}
+
 void AssetCatalogService::prune_catalogs_by_path(const AssetCatalogPath &path)
 {
   /* Build a collection of catalog IDs to delete. */
@@ -178,7 +227,7 @@ void AssetCatalogService::prune_catalogs_by_path(const AssetCatalogPath &path)
 
   /* Delete the catalogs. */
   for (const CatalogID cat_id : catalogs_to_delete) {
-    this->delete_catalog_by_id(cat_id);
+    this->delete_catalog_by_id_soft(cat_id);
   }
 
   this->rebuild_tree();
@@ -208,6 +257,10 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
       continue;
     }
     cat->path = new_path;
+    cat->simple_name_refresh();
+
+    /* TODO(Sybren): go over all assets that are assigned to this catalog, defined in the current
+     * blend file, and update the catalog simple name stored there. */
   }
 
   this->rebuild_tree();
@@ -216,6 +269,7 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
 AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalog_path)
 {
   std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path(catalog_path);
+  catalog->flags.has_unsaved_changes = true;
 
   /* So we can std::move(catalog) and still use the non-owning pointer: */
   AssetCatalog *const catalog_ptr = catalog.get();
@@ -309,7 +363,10 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
   auto cdf = std::make_unique<AssetCatalogDefinitionFile>();
   cdf->file_path = catalog_definition_file_path;
 
-  auto catalog_parsed_callback = [this, catalog_definition_file_path](
+  /* TODO(Sybren): this might have to move to a higher level when supporting multiple CDFs. */
+  Set<AssetCatalogPath> seen_paths;
+
+  auto catalog_parsed_callback = [this, catalog_definition_file_path, &seen_paths](
                                      std::unique_ptr<AssetCatalog> catalog) {
     if (catalog_collection_->catalogs_.contains(catalog->catalog_id)) {
       /* TODO(@sybren): apparently another CDF was already loaded. This is not supported yet. */
@@ -318,6 +375,8 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
       /* Don't store 'catalog'; unique_ptr will free its memory. */
       return false;
     }
+
+    catalog->flags.is_first_loaded = seen_paths.add(catalog->path);
 
     /* The AssetCatalog pointer is now owned by the AssetCatalogService. */
     catalog_collection_->catalogs_.add_new(catalog->catalog_id, std::move(catalog));
@@ -329,7 +388,7 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
   return cdf;
 }
 
-void AssetCatalogService::merge_from_disk_before_writing()
+void AssetCatalogService::reload_catalogs()
 {
   /* TODO(Sybren): expand to support multiple CDFs. */
   AssetCatalogDefinitionFile *const cdf = catalog_collection_->catalog_definition_file_.get();
@@ -337,26 +396,66 @@ void AssetCatalogService::merge_from_disk_before_writing()
     return;
   }
 
-  auto catalog_parsed_callback = [this](std::unique_ptr<AssetCatalog> catalog) {
-    const bUUID catalog_id = catalog->catalog_id;
+  /* Keeps track of the catalog IDs that are seen in the CDF, so that we also know what was deleted
+   * from the file on disk. */
+  Set<CatalogID> cats_in_file;
 
-    /* The following two conditions could be or'ed together. Keeping them separated helps when
-     * adding debug prints, breakpoints, etc. */
-    if (catalog_collection_->catalogs_.contains(catalog_id)) {
-      /* This catalog was already seen, so just ignore it. */
+  auto catalog_parsed_callback = [this, &cats_in_file](std::unique_ptr<AssetCatalog> catalog) {
+    const CatalogID catalog_id = catalog->catalog_id;
+    cats_in_file.add(catalog_id);
+
+    const bool should_skip = is_catalog_known_with_unsaved_changes(catalog_id);
+    if (should_skip) {
+      /* Do not overwrite unsaved local changes. */
       return false;
     }
-    if (catalog_collection_->deleted_catalogs_.contains(catalog_id)) {
-      /* This catalog was already seen and subsequently deleted, so just ignore it. */
-      return false;
-    }
 
-    /* This is a new catalog, so let's keep it around. */
-    catalog_collection_->catalogs_.add_new(catalog_id, std::move(catalog));
+    /* This is either a new catalog, or we can just replace the in-memory one with the newly loaded
+     * one. */
+    catalog_collection_->catalogs_.add_overwrite(catalog_id, std::move(catalog));
     return true;
   };
 
   cdf->parse_catalog_file(cdf->file_path, catalog_parsed_callback);
+  this->purge_catalogs_not_listed(cats_in_file);
+  this->rebuild_tree();
+}
+
+void AssetCatalogService::purge_catalogs_not_listed(const Set<CatalogID> &catalogs_to_keep)
+{
+  Set<CatalogID> cats_to_remove;
+  for (CatalogID cat_id : this->catalog_collection_->catalogs_.keys()) {
+    if (catalogs_to_keep.contains(cat_id)) {
+      continue;
+    }
+    if (is_catalog_known_with_unsaved_changes(cat_id)) {
+      continue;
+    }
+    /* This catalog is not on disk, but also not modified, so get rid of it. */
+    cats_to_remove.add(cat_id);
+  }
+
+  for (CatalogID cat_id : cats_to_remove) {
+    delete_catalog_by_id_hard(cat_id);
+  }
+}
+
+bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID catalog_id) const
+{
+  if (catalog_collection_->deleted_catalogs_.contains(catalog_id)) {
+    /* Deleted catalogs are always considered modified, by definition. */
+    return true;
+  }
+
+  const std::unique_ptr<AssetCatalog> *catalog_uptr_ptr =
+      catalog_collection_->catalogs_.lookup_ptr(catalog_id);
+  if (!catalog_uptr_ptr) {
+    /* Catalog is unknown. */
+    return false;
+  }
+
+  const bool has_unsaved_changes = (*catalog_uptr_ptr)->flags.has_unsaved_changes;
+  return has_unsaved_changes;
 }
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
@@ -366,6 +465,7 @@ bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
   }
 
   untag_has_unsaved_changes();
+  rebuild_tree();
   return true;
 }
 
@@ -375,7 +475,7 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
 
   /* - Already loaded a CDF from disk? -> Always write to that file. */
   if (catalog_collection_->catalog_definition_file_) {
-    merge_from_disk_before_writing();
+    reload_catalogs();
     return catalog_collection_->catalog_definition_file_->write_to_disk();
   }
 
@@ -387,7 +487,7 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
 
   const CatalogFilePath cdf_path_to_write = find_suitable_cdf_path_for_writing(blend_file_path);
   catalog_collection_->catalog_definition_file_ = construct_cdf_in_memory(cdf_path_to_write);
-  merge_from_disk_before_writing();
+  reload_catalogs();
   return catalog_collection_->catalog_definition_file_->write_to_disk();
 }
 
@@ -487,7 +587,9 @@ void AssetCatalogService::create_missing_catalogs()
     }
 
     /* The parent doesn't exist, so create it and queue it up for checking its parent. */
-    create_catalog(parent_path);
+    AssetCatalog *parent_catalog = create_catalog(parent_path);
+    parent_catalog->flags.has_unsaved_changes = true;
+
     paths_to_check.insert(parent_path);
   }
 
@@ -535,6 +637,7 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
 {
   auto copy = std::make_unique<AssetCatalogCollection>();
 
+  copy->has_unsaved_changes_ = this->has_unsaved_changes_;
   copy->catalogs_ = copy_catalog_map(this->catalogs_);
   copy->deleted_catalogs_ = copy_catalog_map(this->deleted_catalogs_);
 
@@ -581,6 +684,10 @@ StringRefNull AssetCatalogTreeItem::get_name() const
 StringRefNull AssetCatalogTreeItem::get_simple_name() const
 {
   return simple_name_;
+}
+bool AssetCatalogTreeItem::has_unsaved_changes() const
+{
+  return has_unsaved_changes_;
 }
 
 AssetCatalogPath AssetCatalogTreeItem::catalog_path() const
@@ -648,8 +755,11 @@ void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
 
     /* If full path of this catalog already exists as parent path of a previously read catalog,
      * we can ensure this tree item's UUID is set here. */
-    if (is_last_component && BLI_uuid_is_nil(item.catalog_id_)) {
-      item.catalog_id_ = catalog.catalog_id;
+    if (is_last_component) {
+      if (BLI_uuid_is_nil(item.catalog_id_) || catalog.flags.is_first_loaded) {
+        item.catalog_id_ = catalog.catalog_id;
+      }
+      item.has_unsaved_changes_ = catalog.flags.has_unsaved_changes;
     }
 
     /* Walk further into the path (no matter if a new item was created or not). */
@@ -682,6 +792,16 @@ bool AssetCatalogDefinitionFile::contains(const CatalogID catalog_id) const
 void AssetCatalogDefinitionFile::add_new(AssetCatalog *catalog)
 {
   catalogs_.add_new(catalog->catalog_id, catalog);
+}
+
+void AssetCatalogDefinitionFile::add_overwrite(AssetCatalog *catalog)
+{
+  catalogs_.add_overwrite(catalog->catalog_id, catalog);
+}
+
+void AssetCatalogDefinitionFile::forget(CatalogID catalog_id)
+{
+  catalogs_.remove(catalog_id);
 }
 
 void AssetCatalogDefinitionFile::parse_catalog_file(
@@ -721,16 +841,8 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
       continue;
     }
 
-    if (this->contains(non_owning_ptr->catalog_id)) {
-      std::cerr << catalog_definition_file_path << ": multiple definitions of catalog "
-                << non_owning_ptr->catalog_id << " in the same file, using first occurrence."
-                << std::endl;
-      /* Don't store 'catalog'; unique_ptr will free its memory. */
-      continue;
-    }
-
     /* The AssetDefinitionFile should include this catalog when writing it back to disk. */
-    this->add_new(non_owning_ptr);
+    this->add_overwrite(non_owning_ptr);
   }
 }
 
@@ -936,6 +1048,11 @@ std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const AssetCatalogPath &pa
   return catalog;
 }
 
+void AssetCatalog::simple_name_refresh()
+{
+  this->simple_name = sensible_simple_name_for_path(this->path);
+}
+
 std::string AssetCatalog::sensible_simple_name_for_path(const AssetCatalogPath &path)
 {
   std::string name = path.str();
@@ -949,14 +1066,24 @@ std::string AssetCatalog::sensible_simple_name_for_path(const AssetCatalogPath &
   return "..." + name.substr(name.length() - 60);
 }
 
-AssetCatalogFilter::AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids)
-    : matching_catalog_ids(std::move(matching_catalog_ids))
+AssetCatalogFilter::AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids,
+                                       Set<CatalogID> &&known_catalog_ids)
+    : matching_catalog_ids(std::move(matching_catalog_ids)),
+      known_catalog_ids(std::move(known_catalog_ids))
 {
 }
 
 bool AssetCatalogFilter::contains(const CatalogID asset_catalog_id) const
 {
   return matching_catalog_ids.contains(asset_catalog_id);
+}
+
+bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
+{
+  if (BLI_uuid_is_nil(asset_catalog_id)) {
+    return false;
+  }
+  return known_catalog_ids.contains(asset_catalog_id);
 }
 
 }  // namespace blender::bke

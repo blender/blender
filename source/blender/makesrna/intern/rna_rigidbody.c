@@ -233,10 +233,12 @@ static void rna_RigidBodyOb_shape_update(Main *bmain, Scene *scene, PointerRNA *
 
 static void rna_RigidBodyOb_shape_reset(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-  RigidBodyWorld *rbw = scene->rigidbody_world;
-  RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
+  if (scene != NULL) {
+    RigidBodyWorld *rbw = scene->rigidbody_world;
+    BKE_rigidbody_cache_reset(rbw);
+  }
 
-  BKE_rigidbody_cache_reset(rbw);
+  RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
   if (rbo->shared->physics_shape) {
     rbo->flag |= RBO_FLAG_NEEDS_RESHAPE;
   }

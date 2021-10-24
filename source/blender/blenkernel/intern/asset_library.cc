@@ -128,6 +128,11 @@ void AssetLibrary::load(StringRefNull library_root_directory)
   this->catalog_service = std::move(catalog_service);
 }
 
+void AssetLibrary::refresh()
+{
+  this->catalog_service->reload_catalogs();
+}
+
 namespace {
 void asset_library_on_save_post(struct Main *main,
                                 struct PointerRNA **pointers,

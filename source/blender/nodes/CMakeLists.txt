@@ -141,7 +141,9 @@ set(SRC
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
+  function/nodes/node_fn_input_bool.cc
   function/nodes/node_fn_input_color.cc
+  function/nodes/node_fn_input_int.cc
   function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
@@ -220,6 +222,7 @@ set(SRC
   geometry/nodes/node_geo_curve_spline_type.cc
   geometry/nodes/node_geo_curve_subdivide.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
+  geometry/nodes/node_geo_curve_to_points.cc
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
@@ -238,6 +241,7 @@ set(SRC
   geometry/nodes/node_geo_input_spline_resolution.cc
   geometry/nodes/node_geo_input_tangent.cc
   geometry/nodes/node_geo_instance_on_points.cc
+  geometry/nodes/node_geo_instances_to_points.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_replace.cc

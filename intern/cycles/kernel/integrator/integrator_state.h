@@ -92,6 +92,7 @@ typedef struct IntegratorStateCPU {
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
   IntegratorShadowStateCPU shadow;
+  IntegratorShadowStateCPU ao;
 } IntegratorStateCPU;
 
 /* Path Queue
@@ -138,7 +139,7 @@ typedef struct IntegratorStateGPU {
   ccl_global int *next_shadow_path_index;
 
   /* Index of main path which will be used by a next shadow catcher split.  */
-  ccl_global int *next_shadow_catcher_path_index;
+  ccl_global int *next_main_path_index;
 } IntegratorStateGPU;
 
 /* Abstraction

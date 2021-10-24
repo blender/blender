@@ -202,8 +202,19 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                make_array_read_attribute<float>,
                                                make_array_write_attribute<float>,
                                                nullptr);
+  static BuiltinCustomDataLayerProvider id("id",
+                                           ATTR_DOMAIN_POINT,
+                                           CD_PROP_INT32,
+                                           CD_PROP_INT32,
+                                           BuiltinAttributeProvider::Creatable,
+                                           BuiltinAttributeProvider::Writable,
+                                           BuiltinAttributeProvider::Deletable,
+                                           point_access,
+                                           make_array_read_attribute<int>,
+                                           make_array_write_attribute<int>,
+                                           nullptr);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
-  return ComponentAttributeProviders({&position, &radius}, {&point_custom_data});
+  return ComponentAttributeProviders({&position, &radius, &id}, {&point_custom_data});
 }
 
 }  // namespace blender::bke

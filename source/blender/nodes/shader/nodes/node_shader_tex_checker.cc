@@ -59,17 +59,81 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tex_checker", in, out);
 }
 
-/* node type definition */
+namespace blender::nodes {
+
+class NodeTexChecker : public fn::MultiFunction {
+ public:
+  NodeTexChecker()
+  {
+    static fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static fn::MFSignature create_signature()
+  {
+    fn::MFSignatureBuilder signature{"Checker"};
+    signature.single_input<float3>("Vector");
+    signature.single_input<ColorGeometry4f>("Color1");
+    signature.single_input<ColorGeometry4f>("Color2");
+    signature.single_input<float>("Scale");
+    signature.single_output<ColorGeometry4f>("Color");
+    signature.single_output<float>("Fac");
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            fn::MFParams params,
+            fn::MFContext UNUSED(context)) const override
+  {
+    const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
+        1, "Color1");
+    const VArray<ColorGeometry4f> &color2 = params.readonly_single_input<ColorGeometry4f>(
+        2, "Color2");
+    const VArray<float> &scale = params.readonly_single_input<float>(3, "Scale");
+    MutableSpan<ColorGeometry4f> r_color =
+        params.uninitialized_single_output_if_required<ColorGeometry4f>(4, "Color");
+    MutableSpan<float> r_fac = params.uninitialized_single_output<float>(5, "Fac");
+
+    for (int64_t i : mask) {
+      /* Avoid precision issues on unit coordinates. */
+      const float3 p = (vector[i] * scale[i] + 0.000001f) * 0.999999f;
+
+      const int xi = abs((int)(floorf(p.x)));
+      const int yi = abs((int)(floorf(p.y)));
+      const int zi = abs((int)(floorf(p.z)));
+
+      r_fac[i] = ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
+    }
+
+    if (!r_color.is_empty()) {
+      for (int64_t i : mask) {
+        r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i];
+      }
+    }
+  }
+};
+
+static void sh_node_tex_checker_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  static NodeTexChecker fn;
+  builder.set_matching_fn(fn);
+}
+
+}  // namespace blender::nodes
+
 void register_node_type_sh_tex_checker(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE, 0);
   ntype.declare = blender::nodes::sh_node_tex_checker_declare;
   node_type_init(&ntype, node_shader_init_tex_checker);
   node_type_storage(
       &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_checker);
+  ntype.build_multi_function = blender::nodes::sh_node_tex_checker_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

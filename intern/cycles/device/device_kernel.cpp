@@ -64,6 +64,12 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_compact_paths_array";
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
       return "integrator_compact_states";
+    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
+      return "integrator_terminated_shadow_paths_array";
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
+      return "integrator_compact_shadow_paths_array";
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES:
+      return "integrator_compact_shadow_states";
     case DEVICE_KERNEL_INTEGRATOR_RESET:
       return "integrator_reset";
     case DEVICE_KERNEL_INTEGRATOR_SHADOW_CATCHER_COUNT_POSSIBLE_SPLITS:

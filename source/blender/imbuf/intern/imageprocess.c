@@ -388,13 +388,15 @@ static void imb_transform_calc_add_x(const float transform_matrix[4][4],
                                      const int width,
                                      float r_add_x[2])
 {
+  float r_add_x_temp[3];
   float uv_max_x[3];
   zero_v3(uv_max_x);
   uv_max_x[0] = width;
   uv_max_x[1] = 0.0f;
-  mul_v3_m4v3(r_add_x, transform_matrix, uv_max_x);
-  sub_v2_v2(r_add_x, start_uv);
-  mul_v2_fl(r_add_x, 1.0f / width);
+  mul_v3_m4v3(r_add_x_temp, transform_matrix, uv_max_x);
+  sub_v2_v2(r_add_x_temp, start_uv);
+  mul_v2_fl(r_add_x_temp, 1.0f / width);
+  copy_v2_v2(r_add_x, r_add_x_temp);
 }
 
 static void imb_transform_calc_add_y(const float transform_matrix[4][4],
@@ -402,13 +404,15 @@ static void imb_transform_calc_add_y(const float transform_matrix[4][4],
                                      const int height,
                                      float r_add_y[2])
 {
+  float r_add_y_temp[3];
   float uv_max_y[3];
   zero_v3(uv_max_y);
   uv_max_y[0] = 0.0f;
   uv_max_y[1] = height;
-  mul_v3_m4v3(r_add_y, transform_matrix, uv_max_y);
-  sub_v2_v2(r_add_y, start_uv);
-  mul_v2_fl(r_add_y, 1.0f / height);
+  mul_v3_m4v3(r_add_y_temp, transform_matrix, uv_max_y);
+  sub_v2_v2(r_add_y_temp, start_uv);
+  mul_v2_fl(r_add_y_temp, 1.0f / height);
+  copy_v2_v2(r_add_y, r_add_y_temp);
 }
 
 typedef void (*InterpolationColorFunction)(

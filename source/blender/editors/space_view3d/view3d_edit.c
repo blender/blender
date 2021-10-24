@@ -473,12 +473,11 @@ static void viewops_data_create(bContext *C,
   vod->init.dist = rv3d->dist;
   vod->init.camzoom = rv3d->camzoom;
   copy_qt_qt(vod->init.quat, rv3d->viewquat);
-  vod->init.event_xy[0] = vod->prev.event_xy[0] = event->xy[0];
-  vod->init.event_xy[1] = vod->prev.event_xy[1] = event->xy[1];
+  copy_v2_v2_int(vod->init.event_xy, event->xy);
+  copy_v2_v2_int(vod->prev.event_xy, event->xy);
 
   if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
-    vod->init.event_xy_offset[0] = 0;
-    vod->init.event_xy_offset[1] = 0;
+    zero_v2_int(vod->init.event_xy_offset);
   }
   else {
     /* Simulate the event starting in the middle of the region. */
@@ -548,10 +547,9 @@ static void viewops_data_create(bContext *C,
   ED_view3d_win_to_vector(vod->region, (const float[2]){UNPACK2(event->mval)}, vod->init.mousevec);
 
   {
-    const int event_xy_offset[2] = {
-        event->xy[0] + vod->init.event_xy_offset[0],
-        event->xy[1] + vod->init.event_xy_offset[1],
-    };
+    int event_xy_offset[2];
+    add_v2_v2v2_int(event_xy_offset, event->xy, vod->init.event_xy_offset);
+
     /* For rotation with trackball rotation. */
     calctrackballvec(&vod->region->winrct, event_xy_offset, vod->init.trackvec);
   }
@@ -1010,14 +1008,12 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         event_xy[1] = 2 * event->xy[1] - event->prev_xy[1];
       }
       else {
-        event_xy[0] = event->prev_xy[0];
-        event_xy[1] = event->prev_xy[1];
+        copy_v2_v2_int(event_xy, event->prev_xy);
       }
     }
     else {
       /* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
-      event_xy[0] = event->prev_xy[0];
-      event_xy[1] = event->xy[1];
+      copy_v2_v2_int(event_xy, event->prev_xy);
     }
 
     viewrotate_apply(vod, event_xy);

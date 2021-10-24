@@ -126,6 +126,12 @@ struct InputState {
    * changed by others anymore.
    */
   bool was_ready_for_execution = false;
+
+  /**
+   * True when this input has to be computed for logging/debugging purposes, regardless of whether
+   * it is needed for some output.
+   */
+  bool force_compute = false;
 };
 
 struct OutputState {
@@ -335,8 +341,8 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
   }
   const nodes::SocketDeclaration &socket_declaration = *node_declaration->inputs()[socket.index()];
   if (socket_declaration.input_field_type() == nodes::InputSocketFieldType::Implicit) {
+    const bNode &bnode = *socket.bnode();
     if (socket.typeinfo()->type == SOCK_VECTOR) {
-      const bNode &bnode = *socket.bnode();
       if (bnode.type == GEO_NODE_SET_CURVE_HANDLES) {
         StringRef side = ((NodeGeometrySetCurveHandlePositions *)bnode.storage)->mode ==
                                  GEO_NODE_CURVE_HANDLE_LEFT ?
@@ -349,6 +355,10 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
       return true;
     }
     if (socket.typeinfo()->type == SOCK_INT) {
+      if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
+        new (r_value) Field<int>(std::make_shared<bke::IDAttributeFieldInput>());
+        return true;
+      }
       new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
       return true;
     }
@@ -493,6 +503,14 @@ class GeometryNodesEvaluator {
             this->initialize_node_state(item.node, *item.state, allocator);
           }
         });
+
+    /* Mark input sockets that have to be computed. */
+    for (const DSocket &socket : params_.force_compute_sockets) {
+      NodeState &node_state = *node_states_.lookup_key_as(socket.node()).state;
+      if (socket->is_input()) {
+        node_state.inputs[socket->index()].force_compute = true;
+      }
+    }
   }
 
   void initialize_node_state(const DNode node, NodeState &node_state, LinearAllocator<> &allocator)
@@ -739,7 +757,8 @@ class GeometryNodesEvaluator {
     return do_execute_node;
   }
 
-  /* A node is finished when it has computed all outputs that may be used. */
+  /* A node is finished when it has computed all outputs that may be used have been computed and
+   * when no input is still forced to be computed. */
   bool finish_node_if_possible(LockedNode &locked_node)
   {
     if (locked_node.node_state.node_has_finished) {
@@ -748,35 +767,41 @@ class GeometryNodesEvaluator {
     }
 
     /* Check if there is any output that might be used but has not been computed yet. */
-    bool has_remaining_output = false;
     for (OutputState &output_state : locked_node.node_state.outputs) {
       if (output_state.has_been_computed) {
         continue;
       }
       if (output_state.output_usage != ValueUsage::Unused) {
-        has_remaining_output = true;
-        break;
+        return false;
       }
     }
-    if (!has_remaining_output) {
-      /* If there are no remaining outputs, all the inputs can be destructed and/or can become
-       * unused. This can also trigger a chain reaction where nodes to the left become finished
-       * too. */
-      for (const int i : locked_node.node->inputs().index_range()) {
-        const DInputSocket socket = locked_node.node.input(i);
-        InputState &input_state = locked_node.node_state.inputs[i];
-        if (input_state.usage == ValueUsage::Maybe) {
-          this->set_input_unused(locked_node, socket);
-        }
-        else if (input_state.usage == ValueUsage::Required) {
-          /* The value was required, so it cannot become unused. However, we can destruct the
-           * value. */
-          this->destruct_input_value_if_exists(locked_node, socket);
+
+    /* Check if there is an input that still has to be computed. */
+    for (InputState &input_state : locked_node.node_state.inputs) {
+      if (input_state.force_compute) {
+        if (!input_state.was_ready_for_execution) {
+          return false;
         }
       }
-      locked_node.node_state.node_has_finished = true;
     }
-    return locked_node.node_state.node_has_finished;
+
+    /* If there are no remaining outputs, all the inputs can be destructed and/or can become
+     * unused. This can also trigger a chain reaction where nodes to the left become finished
+     * too. */
+    for (const int i : locked_node.node->inputs().index_range()) {
+      const DInputSocket socket = locked_node.node.input(i);
+      InputState &input_state = locked_node.node_state.inputs[i];
+      if (input_state.usage == ValueUsage::Maybe) {
+        this->set_input_unused(locked_node, socket);
+      }
+      else if (input_state.usage == ValueUsage::Required) {
+        /* The value was required, so it cannot become unused. However, we can destruct the
+         * value. */
+        this->destruct_input_value_if_exists(locked_node, socket);
+      }
+    }
+    locked_node.node_state.node_has_finished = true;
+    return true;
   }
 
   bool prepare_node_outputs_for_execution(LockedNode &locked_node)

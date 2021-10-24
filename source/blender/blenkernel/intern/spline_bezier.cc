@@ -345,8 +345,14 @@ bool BezierSpline::point_is_sharp(const int index) const
          ELEM(handle_types_right_[index], HandleType::Vector, HandleType::Free);
 }
 
+/**
+ * \warning: This functiona assumes that the spline has more than one point.
+ */
 bool BezierSpline::segment_is_vector(const int index) const
 {
+  /* Two control points are necessary to form a segment, that should be checked by the caller. */
+  BLI_assert(this->size() > 1);
+
   if (index == this->size() - 1) {
     if (is_cyclic_) {
       return handle_types_right_.last() == HandleType::Vector &&
@@ -507,13 +513,18 @@ Span<int> BezierSpline::control_point_offsets() const
   offset_cache_.resize(size + 1);
 
   MutableSpan<int> offsets = offset_cache_;
-
-  int offset = 0;
-  for (const int i : IndexRange(size)) {
-    offsets[i] = offset;
-    offset += this->segment_is_vector(i) ? 1 : resolution_;
+  if (size == 1) {
+    offsets.first() = 0;
+    offsets.last() = 1;
   }
-  offsets.last() = offset;
+  else {
+    int offset = 0;
+    for (const int i : IndexRange(size)) {
+      offsets[i] = offset;
+      offset += this->segment_is_vector(i) ? 1 : resolution_;
+    }
+    offsets.last() = offset;
+  }
 
   offset_cache_dirty_ = false;
   return offsets;
@@ -600,13 +611,21 @@ Span<float3> BezierSpline::evaluated_positions() const
     return evaluated_position_cache_;
   }
 
-  this->ensure_auto_handles();
-
   const int size = this->size();
   const int eval_size = this->evaluated_points_size();
   evaluated_position_cache_.resize(eval_size);
 
   MutableSpan<float3> positions = evaluated_position_cache_;
+
+  if (size == 1) {
+    /* Use a special case for single point splines to avoid checking in #evaluate_segment. */
+    BLI_assert(eval_size == 1);
+    positions.first() = positions_.first();
+    position_cache_dirty_ = false;
+    return positions;
+  }
+
+  this->ensure_auto_handles();
 
   Span<int> offsets = this->control_point_offsets();
 

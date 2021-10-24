@@ -152,8 +152,10 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
+ *
+ * \param flags Same set of `LIB_ID_MAKELOCAL_` flags as passed to `BKE_lib_id_make_local`.
  */
-void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
+void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 {
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
@@ -177,6 +179,10 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
     BKE_lib_libblock_session_uuid_renew(id);
   }
 
+  if ((flags & LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR) != 0 && id->asset_data != NULL) {
+    BKE_asset_metadata_free(&id->asset_data);
+  }
+
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
    * ones are two completely different data-blocks that were virtually remapped, even though in
    * reality they remain the same data. For undo this info is critical now. */
@@ -193,7 +199,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
    * IDs here, this is down automatically in `lib_id_expand_local_cb()`. */
   Key *key = BKE_key_from_id(id);
   if (key != NULL) {
-    BKE_lib_id_clear_library_data(bmain, &key->id);
+    BKE_lib_id_clear_library_data(bmain, &key->id, flags);
   }
 
   DEG_relations_tag_update(bmain);
@@ -372,6 +378,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   int const cb_flag = cb_data->cb_flag;
+  const int flags = POINTER_AS_INT(cb_data->user_data);
 
   if (cb_flag & IDWALK_CB_LOOPBACK) {
     /* We should never have anything to do with loop-back pointers here. */
@@ -386,7 +393,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
     if (*id_pointer != NULL && ID_IS_LINKED(*id_pointer)) {
       BLI_assert(*id_pointer != id_self);
 
-      BKE_lib_id_clear_library_data(bmain, *id_pointer);
+      BKE_lib_id_clear_library_data(bmain, *id_pointer, flags);
     }
     return IDWALK_RET_NOP;
   }
@@ -407,18 +414,19 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data.
  * Used by ID copy/make_local functions.
  */
-void BKE_lib_id_expand_local(Main *bmain, ID *id)
+void BKE_lib_id_expand_local(Main *bmain, ID *id, const int flags)
 {
-  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, bmain, IDWALK_READONLY);
+  BKE_library_foreach_ID_link(
+      bmain, id, lib_id_expand_local_cb, POINTER_FROM_INT(flags), IDWALK_READONLY);
 }
 
 /**
  * Ensure new (copied) ID is fully made local.
  */
-static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
+static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
 {
   if (ID_IS_LINKED(old_id)) {
-    BKE_lib_id_expand_local(bmain, new_id);
+    BKE_lib_id_expand_local(bmain, new_id, flags);
     lib_id_library_local_paths(bmain, old_id->lib, new_id);
   }
 }
@@ -459,8 +467,8 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
   }
 
   if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, id);
-    BKE_lib_id_expand_local(bmain, id);
+    BKE_lib_id_clear_library_data(bmain, id, flags);
+    BKE_lib_id_expand_local(bmain, id, flags);
   }
   else if (force_copy) {
     ID *id_new = BKE_id_copy(bmain, id);
@@ -648,7 +656,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
    * XXX TODO: is this behavior OK, or should we need own flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert((flag & LIB_ID_COPY_KEEP_LIB) == 0);
-    lib_id_copy_ensure_local(bmain, id, newid);
+    lib_id_copy_ensure_local(bmain, id, newid, 0);
   }
   else {
     newid->lib = id->lib;
@@ -1132,6 +1140,11 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       bmain->is_memfile_undo_written = false;
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
+
+      /* This is important in 'readfile doversion after liblink' context mainly, but is a good
+       * consistency change in general: ID created for a Main should get that main's current
+       * library pointer. */
+      id->lib = bmain->curlib;
 
       /* TODO: to be removed from here! */
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
@@ -2046,8 +2059,8 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      BKE_lib_id_clear_library_data(bmain, id);
-      BKE_lib_id_expand_local(bmain, id);
+      BKE_lib_id_clear_library_data(bmain, id, 0);
+      BKE_lib_id_expand_local(bmain, id, 0);
       id->tag &= ~LIB_TAG_DOIT;
 
       if (GS(id->name) == ID_OB) {

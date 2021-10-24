@@ -809,7 +809,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 
   /* No need to show the cursor for scopes. */
-  if (draw_overlay && (is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
+  if (draw_overlay && (is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_2D_CURSOR) != 0) {
     GPU_color_mask(true, true, true, true);
     GPU_depth_mask(false);
     GPU_depth_test(GPU_DEPTH_NONE);

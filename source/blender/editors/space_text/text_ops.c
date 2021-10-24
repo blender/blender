@@ -29,6 +29,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_math_base.h"
 
 #include "BLT_translation.h"
@@ -2598,14 +2599,12 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* compute mouse move distance */
   if (tsc->is_first) {
-    tsc->mval_prev[0] = mval[0];
-    tsc->mval_prev[1] = mval[1];
+    copy_v2_v2_int(tsc->mval_prev, mval);
     tsc->is_first = false;
   }
 
   if (event->type != MOUSEPAN) {
-    tsc->mval_delta[0] = mval[0] - tsc->mval_prev[0];
-    tsc->mval_delta[1] = mval[1] - tsc->mval_prev[1];
+    sub_v2_v2v2_int(tsc->mval_delta, mval, tsc->mval_prev);
   }
 
   /* accumulate scroll, in float values for events that give less than one
@@ -2757,8 +2756,7 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (event->type == MOUSEPAN) {
     text_update_character_width(st);
 
-    tsc->mval_prev[0] = event->xy[0];
-    tsc->mval_prev[1] = event->xy[1];
+    copy_v2_v2_int(tsc->mval_prev, event->xy);
     /* Sensitivity of scroll set to 4pix per line/char */
     tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime.cwidth_px / 4;
     tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime.lheight_px / 4;

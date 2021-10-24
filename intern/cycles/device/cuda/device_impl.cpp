@@ -454,7 +454,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   return (result == CUDA_SUCCESS);
 }
 
-void CUDADevice::reserve_local_memory(const uint /* kernel_features */)
+void CUDADevice::reserve_local_memory(const uint kernel_features)
 {
   /* Together with CU_CTX_LMEM_RESIZE_TO_MAX, this reserves local memory
    * needed for kernel launches, so that we can reliably figure out when
@@ -468,7 +468,9 @@ void CUDADevice::reserve_local_memory(const uint /* kernel_features */)
 
   {
     /* Use the biggest kernel for estimation. */
-    const DeviceKernel test_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE;
+    const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
     /* Launch kernel, using just 1 block appears sufficient to reserve memory for all
      * multiprocessors. It would be good to do this in parallel for the multi GPU case

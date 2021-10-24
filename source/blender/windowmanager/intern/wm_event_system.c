@@ -152,17 +152,15 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
 
   /* Logic for setting previous value is documented on the #wmEvent struct,
    * see #wm_event_add_ghostevent for the implementation of logic this follows. */
-
-  win->eventstate->xy[0] = event->xy[0];
-  win->eventstate->xy[1] = event->xy[1];
+  copy_v2_v2_int(win->eventstate->xy, event->xy);
 
   if (event->type == MOUSEMOVE) {
-    win->eventstate->prev_xy[0] = event->prev_xy[0] = win->eventstate->xy[0];
-    win->eventstate->prev_xy[1] = event->prev_xy[1] = win->eventstate->xy[1];
+    copy_v2_v2_int(win->eventstate->prev_xy, win->eventstate->xy);
+    copy_v2_v2_int(event->prev_xy, win->eventstate->xy);
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
-    win->eventstate->prevval = event->prevval = win->eventstate->val;
-    win->eventstate->prevtype = event->prevtype = win->eventstate->type;
+    win->eventstate->prev_val = event->prev_val = win->eventstate->val;
+    win->eventstate->prev_type = event->prev_type = win->eventstate->type;
 
     win->eventstate->val = event->val;
     win->eventstate->type = event->type;
@@ -188,7 +186,7 @@ void wm_event_free(wmEvent *event)
 #endif
 
   if (event->customdata) {
-    if (event->customdatafree) {
+    if (event->customdata_free) {
       /* NOTE: pointer to listbase struct elsewhere. */
       if (event->custom == EVT_DATA_DRAGDROP) {
         ListBase *lb = event->customdata;
@@ -2108,8 +2106,8 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
 }
 
 struct wmEvent_ModalMapStore {
-  short prevtype;
-  short prevval;
+  short prev_type;
+  short prev_val;
 
   bool dbl_click_disabled;
 };
@@ -2157,19 +2155,19 @@ static void wm_event_modalkeymap_begin(const bContext *C,
     }
 
     if (event_match != NULL) {
-      event_backup->prevtype = event->prevtype;
-      event_backup->prevval = event->prevval;
+      event_backup->prev_type = event->prev_type;
+      event_backup->prev_val = event->prev_val;
 
-      event->prevtype = event_match->type;
-      event->prevval = event_match->val;
+      event->prev_type = event_match->type;
+      event->prev_val = event_match->val;
       event->type = EVT_MODAL_MAP;
       event->val = kmi->propvalue;
 
       /* Avoid double-click events even in the case of 'EVT_MODAL_MAP',
        * since it's possible users configure double-click keymap items
        * which would break when modal functions expect press/release. */
-      if (event->prevtype == KM_DBL_CLICK) {
-        event->prevtype = KM_PRESS;
+      if (event->prev_type == KM_DBL_CLICK) {
+        event->prev_type = KM_PRESS;
         event_backup->dbl_click_disabled = true;
       }
     }
@@ -2195,11 +2193,11 @@ static void wm_event_modalkeymap_end(wmEvent *event,
                                      const struct wmEvent_ModalMapStore *event_backup)
 {
   if (event->type == EVT_MODAL_MAP) {
-    event->type = event->prevtype;
-    event->val = event->prevval;
+    event->type = event->prev_type;
+    event->val = event->prev_val;
 
-    event->prevtype = event_backup->prevtype;
-    event->prevval = event_backup->prevval;
+    event->prev_type = event_backup->prev_type;
+    event->prev_val = event_backup->prev_val;
   }
 
   if (event_backup->dbl_click_disabled) {
@@ -2812,7 +2810,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
    * noticeable for the node editor - where dragging on a node should move it, see: T73212.
    * note we still allow for starting the gizmo drag outside, then travel 'inside' the node. */
   if (region->type->clip_gizmo_events_by_ui) {
-    if (UI_region_block_find_mouse_over(region, &event->xy[0], true)) {
+    if (UI_region_block_find_mouse_over(region, event->xy, true)) {
       if (gz != NULL && event->type != EVT_GIZMO_UPDATE) {
         if (restore_highlight_unless_activated == false) {
           WM_tooltip_clear(C, CTX_wm_window(C));
@@ -3176,15 +3174,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (WM_event_drag_test(event, event->prev_click_xy)) {
           win->event_queue_check_drag_handled = true;
 
-          int x = event->xy[0];
-          int y = event->xy[1];
+          int xy[2] = {UNPACK2(event->xy)};
           short val = event->val;
           short type = event->type;
 
-          event->xy[0] = event->prev_click_xy[0];
-          event->xy[1] = event->prev_click_xy[1];
+          copy_v2_v2_int(event->xy, event->prev_click_xy);
           event->val = KM_CLICK_DRAG;
-          event->type = event->prevtype;
+          event->type = event->prev_type;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
@@ -3192,8 +3188,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
           event->val = val;
           event->type = type;
-          event->xy[0] = x;
-          event->xy[1] = y;
+          copy_v2_v2_int(event->xy, xy);
 
           win->event_queue_check_click = false;
           if (!wm_action_not_handled(action)) {
@@ -3208,7 +3203,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
-    /* All events that don't set wmEvent.prevtype must be ignored. */
+    /* All events that don't set wmEvent.prev_type must be ignored. */
 
     /* Test for CLICK events. */
     if (wm_action_not_handled(action)) {
@@ -3226,10 +3221,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         win->event_queue_check_drag = false;
       }
 
-      if (event->prevtype == event->type) {
+      if (event->prev_type == event->type) {
 
         if (event->val == KM_RELEASE) {
-          if (event->prevval == KM_PRESS) {
+          if (event->prev_val == KM_PRESS) {
             if (win->event_queue_check_click == true) {
               if (WM_event_drag_test(event, event->prev_click_xy)) {
                 win->event_queue_check_click = false;
@@ -3238,11 +3233,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
               else {
                 /* Position is where the actual click happens, for more
                  * accurate selecting in case the mouse drifts a little. */
-                int x = event->xy[0];
-                int y = event->xy[1];
+                int xy[2] = {UNPACK2(event->xy)};
 
-                event->xy[0] = event->prev_click_xy[0];
-                event->xy[1] = event->prev_click_xy[1];
+                copy_v2_v2_int(event->xy, event->prev_click_xy);
                 event->val = KM_CLICK;
 
                 CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
@@ -3250,8 +3243,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
                 action |= wm_handlers_do_intern(C, win, event, handlers);
 
                 event->val = KM_RELEASE;
-                event->xy[0] = x;
-                event->xy[1] = y;
+                copy_v2_v2_int(event->xy, xy);
               }
             }
           }
@@ -3280,7 +3272,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       /* pass */
     }
     else {
-      if (ISKEYMODIFIER(event->prevtype)) {
+      if (ISKEYMODIFIER(event->prev_type)) {
         win->event_queue_check_click = false;
       }
     }
@@ -3407,14 +3399,14 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
 
     /* Create customdata, first free existing. */
     if (event->customdata) {
-      if (event->customdatafree) {
+      if (event->customdata_free) {
         MEM_freeN(event->customdata);
       }
     }
 
     event->custom = EVT_DATA_DRAGDROP;
     event->customdata = &wm->drags;
-    event->customdatafree = 1;
+    event->customdata_free = true;
 
     /* Clear drop icon. */
     screen->do_draw_drag = true;
@@ -3788,8 +3780,7 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* Update previous mouse position for following events to use. */
-      win->eventstate->prev_xy[0] = event->xy[0];
-      win->eventstate->prev_xy[1] = event->xy[1];
+      copy_v2_v2_int(win->eventstate->prev_xy, event->xy);
 
       /* Unlink and free here, blender-quit then frees all. */
       BLI_remlink(&win->event_queue, event);
@@ -4181,10 +4172,10 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
 
 static bool event_or_prev_in_rect(const wmEvent *event, const rcti *rect)
 {
-  if (BLI_rcti_isect_pt(rect, event->xy[0], event->xy[1])) {
+  if (BLI_rcti_isect_pt_v(rect, event->xy)) {
     return true;
   }
-  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt(rect, event->prev_xy[0], event->prev_xy[1])) {
+  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(rect, event->prev_xy)) {
     return true;
   }
   return false;
@@ -4653,7 +4644,7 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 
   event->custom = EVT_DATA_NDOF_MOTION;
   event->customdata = data;
-  event->customdatafree = 1;
+  event->customdata_free = true;
 }
 #endif /* WITH_INPUT_NDOF */
 
@@ -4682,8 +4673,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
     wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
     if (win_other) {
-      event->xy[0] = mval[0];
-      event->xy[1] = mval[1];
+      copy_v2_v2_int(event->xy, mval);
       return win_other;
     }
   }
@@ -4692,13 +4682,13 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 static bool wm_event_is_double_click(const wmEvent *event)
 {
-  if ((event->type == event->prevtype) && (event->prevval == KM_RELEASE) &&
+  if ((event->type == event->prev_type) && (event->prev_val == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
     if (ISMOUSE(event->type) && WM_event_drag_test(event, event->prev_click_xy)) {
       /* Pass. */
     }
     else {
-      if ((PIL_check_seconds_timer() - event->prevclicktime) * 1000 < U.dbl_click_time) {
+      if ((PIL_check_seconds_timer() - event->prev_click_time) * 1000 < U.dbl_click_time) {
         return true;
       }
     }
@@ -4712,13 +4702,13 @@ static bool wm_event_is_double_click(const wmEvent *event)
  */
 static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 {
-  event->prevval = event_state->prevval = event_state->val;
-  event->prevtype = event_state->prevtype = event_state->type;
+  event->prev_val = event_state->prev_val = event_state->val;
+  event->prev_type = event_state->prev_type = event_state->type;
 }
 
 static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
-  event->prevclicktime = event_state->prevclicktime = PIL_check_seconds_timer();
+  event->prev_click_time = event_state->prev_click_time = PIL_check_seconds_timer();
   event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
   event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
 }
@@ -4799,8 +4789,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
    * If this was done it could leave `win->eventstate` previous and current value
    * set to the same key press/release state which doesn't make sense.
    */
-  event.prevtype = event.type;
-  event.prevval = event.val;
+  event.prev_type = event.type;
+  event.prev_val = event.val;
 
   /* Ensure the event state is correct, any deviation from this may cause bugs.
    *
@@ -4814,12 +4804,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
               "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
               event_state->type);
   }
-  if ((event_state->prevtype || event_state->prevval) && /* Ignore cleared event state. */
-      !(ISMOUSE_BUTTON(event_state->prevtype) || ISKEYBOARD(event_state->prevtype) ||
+  if ((event_state->prev_type || event_state->prev_val) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(event_state->prev_type) || ISKEYBOARD(event_state->prev_type) ||
         (event_state->type == EVENT_NONE))) {
     CLOG_WARN(WM_LOG_HANDLERS,
-              "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
-              event_state->prevtype);
+              "Non-keyboard/mouse button found in 'win->eventstate->prev_type = %d'",
+              event_state->prev_type);
   }
 #endif
 
@@ -4829,7 +4819,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       GHOST_TEventCursorData *cd = customdata;
 
       copy_v2_v2_int(event.xy, &cd->x);
-      wm_stereo3d_mouse_offset_apply(win, &event.xy[0]);
+      wm_stereo3d_mouse_offset_apply(win, event.xy);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.type = MOUSEMOVE;
@@ -4846,8 +4836,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         wmEvent event_other = *win_other->eventstate;
 
         /* See comment for this operation on `event` for details. */
-        event_other.prevtype = event_other.type;
-        event_other.prevval = event_other.val;
+        event_other.prev_type = event_other.type;
+        event_other.prev_val = event_other.val;
 
         copy_v2_v2_int(event_other.xy, event.xy);
         event_other.type = MOUSEMOVE;
@@ -4945,8 +4935,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         wmEvent event_other = *win_other->eventstate;
 
         /* See comment for this operation on `event` for details. */
-        event_other.prevtype = event_other.type;
-        event_other.prevval = event_other.val;
+        event_other.prev_type = event_other.type;
+        event_other.prev_val = event_other.val;
 
         copy_v2_v2_int(event_other.xy, event.xy);
 
@@ -5207,7 +5197,7 @@ void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
       .is_repeat = false,
       .custom = EVT_DATA_XR,
       .customdata = actiondata,
-      .customdatafree = 1,
+      .customdata_free = true,
   };
 
   wm_event_add(win, &event);

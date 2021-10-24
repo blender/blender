@@ -600,7 +600,7 @@ typedef struct wmTabletData {
  * - Previous x/y are exceptions: #wmEvent.prev
  *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
  *
- * - Modal key-map handling sets `prevval` & `prevtype` to `val` & `type`,
+ * - Modal key-map handling sets `prev_val` & `prev_type` to `val` & `type`,
  *   this allows modal keys-maps to check the original values (needed in some cases).
  */
 typedef struct wmEvent {
@@ -632,17 +632,17 @@ typedef struct wmEvent {
   char is_repeat;
 
   /** The previous value of `type`. */
-  short prevtype;
+  short prev_type;
   /** The previous value of `val`. */
-  short prevval;
+  short prev_val;
   /** The time when the key is pressed, see #PIL_check_seconds_timer. */
-  double prevclicktime;
+  double prev_click_time;
   /** The location when the key is pressed (used to enforce drag thresholds). */
   int prev_click_xy[2];
   /**
    * The previous value of #wmEvent.xy,
    * Unlike other previous state variables, this is set on any mouse motion.
-   * Use `prevclick` for the value at time of pressing.
+   * Use `prev_click` for the value at time of pressing.
    */
   int prev_xy[2];
 
@@ -658,7 +658,7 @@ typedef struct wmEvent {
   /* Custom data. */
   /** Custom data type, stylus, 6dof, see wm_event_types.h */
   short custom;
-  short customdatafree;
+  short customdata_free;
   int pad2;
   /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
   void *customdata;

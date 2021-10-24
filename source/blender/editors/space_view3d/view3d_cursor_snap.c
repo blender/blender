@@ -94,7 +94,27 @@ typedef struct SnapCursorDataIntern {
   bool is_initiated;
 } SnapCursorDataIntern;
 
-static SnapCursorDataIntern g_data_intern = {{0}};
+static void UNUSED_FUNCTION(v3d_cursor_snap_state_init)(V3DSnapCursorState *state)
+{
+  state->prevpoint = NULL;
+  state->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+                            SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT);
+  state->plane_axis = 2;
+  rgba_uchar_args_set(state->color_point, 255, 255, 255, 255);
+  rgba_uchar_args_set(state->color_line, 255, 255, 255, 128);
+  state->draw_point = true;
+  state->draw_plane = false;
+}
+static SnapCursorDataIntern g_data_intern = {
+    .state_default = {.prevpoint = NULL,
+                      .snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
+                                          SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_EDGE_PERPENDICULAR |
+                                          SCE_SNAP_MODE_EDGE_MIDPOINT),
+                      .plane_axis = 2,
+                      .color_point = {255, 255, 255, 255},
+                      .color_line = {255, 255, 255, 128},
+                      .draw_point = true,
+                      .draw_plane = false}};
 
 /**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
@@ -779,8 +799,6 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   /* Setup viewport & matrix. */
   RegionView3D *rv3d = region->regiondata;
   wmViewport(&region->winrct);
-  GPU_matrix_push_projection();
-  GPU_matrix_push();
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
 
@@ -814,8 +832,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   GPU_blend(GPU_BLEND_NONE);
 
   /* Restore matrix. */
-  GPU_matrix_pop();
-  GPU_matrix_pop_projection();
+  wmWindowViewport(CTX_wm_window(C));
 }
 
 /** \} */
@@ -828,22 +845,10 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void)
   return (V3DSnapCursorState *)&g_data_intern.state_intern[g_data_intern.state_active];
 }
 
-static void v3d_cursor_snap_state_init(V3DSnapCursorState *state)
-{
-  state->prevpoint = NULL;
-  state->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                            SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT);
-  state->plane_axis = 2;
-  rgba_uchar_args_set(state->color_point, 255, 255, 255, 255);
-  UI_GetThemeColor3ubv(TH_TRANSFORM, state->color_line);
-  state->color_line[3] = 128;
-  state->draw_point = true;
-  state->draw_plane = false;
-}
-
 static void v3d_cursor_snap_activate(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
+
   if (!data_intern->handle) {
     if (!data_intern->is_initiated) {
       /* Only initiate intern data once.
@@ -855,9 +860,6 @@ static void v3d_cursor_snap_activate(void)
       data_intern->keymap = WM_modalkeymap_find(keyconf, "Generic Gizmo Tweak Modal Map");
       RNA_enum_value_from_id(data_intern->keymap->modal_items, "SNAP_ON", &data_intern->snap_on);
 #endif
-      V3DSnapCursorState *state_default = &data_intern->state_default;
-      v3d_cursor_snap_state_init(state_default);
-
       data_intern->is_initiated = true;
     }
 

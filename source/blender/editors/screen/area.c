@@ -972,29 +972,33 @@ static void fullscreen_azone_init(ScrArea *area, ARegion *region)
 #define AZONEPAD_ICON (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *region)
 {
+  /* If region is overlapped (transparent background), move #AZone to content.
+   * Note this is an arbitrary amount that matches nicely with numbers elsewhere. */
+  int overlap_padding = (region->overlap) ? (int)(0.4f * U.widget_unit) : 0;
+
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymax - AZONEPAD_EDGE;
+      az->y1 = region->winrct.ymax - AZONEPAD_EDGE - overlap_padding;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymax + AZONEPAD_EDGE;
+      az->y2 = region->winrct.ymax + AZONEPAD_EDGE - overlap_padding;
       break;
     case AE_BOTTOM_TO_TOPLEFT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymin + AZONEPAD_EDGE;
+      az->y1 = region->winrct.ymin + AZONEPAD_EDGE + overlap_padding;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymin - AZONEPAD_EDGE;
+      az->y2 = region->winrct.ymin - AZONEPAD_EDGE + overlap_padding;
       break;
     case AE_LEFT_TO_TOPRIGHT:
-      az->x1 = region->winrct.xmin - AZONEPAD_EDGE;
+      az->x1 = region->winrct.xmin - AZONEPAD_EDGE + overlap_padding;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmin + AZONEPAD_EDGE;
+      az->x2 = region->winrct.xmin + AZONEPAD_EDGE + overlap_padding;
       az->y2 = region->winrct.ymax;
       break;
     case AE_RIGHT_TO_TOPLEFT:
-      az->x1 = region->winrct.xmax + AZONEPAD_EDGE;
+      az->x1 = region->winrct.xmax + AZONEPAD_EDGE - overlap_padding;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmax - AZONEPAD_EDGE;
+      az->x2 = region->winrct.xmax - AZONEPAD_EDGE - overlap_padding;
       az->y2 = region->winrct.ymax;
       break;
   }

@@ -206,7 +206,6 @@ typedef struct ThemeUI {
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
-
   float panel_roundness;
   char _pad2[4];
 
@@ -323,6 +322,8 @@ typedef struct ThemeSpace {
   unsigned char vertex_size, outline_width, obcenter_dia, facedot_size;
   unsigned char noodle_curving;
   unsigned char grid_levels;
+  char _pad5[3];
+  float dash_alpha;
 
   /* syntax for textwindow and nodes */
   unsigned char syntaxl[4], syntaxs[4]; /* in nodespace used for backdrop matte */
@@ -345,6 +346,7 @@ typedef struct ThemeSpace {
   unsigned char active_strip[4], selected_strip[4];
 
   /** For dopesheet - scale factor for size of keyframes (i.e. height of channels). */
+  char _pad7[1];
   float keyframe_scale_fac;
 
   unsigned char editmesh_active[4];
@@ -1248,6 +1250,9 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_HAIR = (1 << 14),
   USER_DUP_POINTCLOUD = (1 << 15),
   USER_DUP_VOLUME = (1 << 16),
+  USER_DUP_LATTICE = (1 << 17),
+  USER_DUP_CAMERA = (1 << 18),
+  USER_DUP_SPEAKER = (1 << 19),
 
   USER_DUP_OBDATA = (~0) & ((1 << 24) - 1),
 

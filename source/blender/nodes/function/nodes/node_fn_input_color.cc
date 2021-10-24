@@ -32,7 +32,7 @@ static void fn_node_input_color_layout(uiLayout *layout, bContext *UNUSED(C), Po
   uiItemR(layout, ptr, "color", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void fn_node_color_input_build_multi_function(
+static void fn_node_input_color_build_multi_function(
     blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   bNode &bnode = builder.node();
@@ -59,7 +59,7 @@ void register_node_type_fn_input_color()
   node_type_init(&ntype, blender::nodes::fn_node_input_color_init);
   node_type_storage(
       &ntype, "NodeInputColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::fn_node_color_input_build_multi_function;
+  ntype.build_multi_function = blender::nodes::fn_node_input_color_build_multi_function;
   ntype.draw_buttons = blender::nodes::fn_node_input_color_layout;
   nodeRegisterType(&ntype);
 }
