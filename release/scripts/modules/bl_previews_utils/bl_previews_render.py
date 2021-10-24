@@ -483,19 +483,44 @@ def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 
     parser = argparse.ArgumentParser(
-        description="Use Blender to generate previews for currently open Blender file's items.")
-    parser.add_argument('--clear', default=False, action="store_true",
-                        help="Clear previews instead of generating them.")
-    parser.add_argument('--no_backups', default=False, action="store_true",
-                        help="Do not generate a backup .blend1 file when saving processed ones.")
-    parser.add_argument('--no_scenes', default=True, action="store_false",
-                        help="Do not generate/clear previews for scene IDs.")
-    parser.add_argument('--no_collections', default=True, action="store_false",
-                        help="Do not generate/clear previews for collection IDs.")
-    parser.add_argument('--no_objects', default=True, action="store_false",
-                        help="Do not generate/clear previews for object IDs.")
-    parser.add_argument('--no_data_intern', default=True, action="store_false",
-                        help="Do not generate/clear previews for mat/tex/image/etc. IDs (those handled by core Blender code).")
+        description="Use Blender to generate previews for currently open Blender file's items.",
+    )
+    parser.add_argument(
+        '--clear',
+        default=False,
+        action="store_true",
+        help="Clear previews instead of generating them.",
+    )
+    parser.add_argument(
+        '--no_backups',
+        default=False,
+        action="store_true",
+        help="Do not generate a backup .blend1 file when saving processed ones.",
+    )
+    parser.add_argument(
+        '--no_scenes',
+        default=True,
+        action="store_false",
+        help="Do not generate/clear previews for scene IDs.",
+    )
+    parser.add_argument(
+        '--no_collections',
+        default=True,
+        action="store_false",
+        help="Do not generate/clear previews for collection IDs.",
+    )
+    parser.add_argument(
+        '--no_objects',
+        default=True,
+        action="store_false",
+        help="Do not generate/clear previews for object IDs.",
+    )
+    parser.add_argument(
+        '--no_data_intern',
+        default=True,
+        action="store_false",
+        help="Do not generate/clear previews for mat/tex/image/etc. IDs (those handled by core Blender code).",
+    )
     args = parser.parse_args(argv)
 
     orig_save_version = bpy.context.preferences.filepaths.save_version

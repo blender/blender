@@ -1327,7 +1327,10 @@ class WM_OT_properties_edit(Operator):
 
     use_soft_limits: BoolProperty(
         name="Use Soft Limits",
-        description="Limits the Property Value slider to a range, values outside the range must be inputted numerically",
+        description=(
+            "Limits the Property Value slider to a range, "
+            "values outside the range must be inputted numerically"
+        ),
     )
     array_length: IntProperty(
         name="Array Length",

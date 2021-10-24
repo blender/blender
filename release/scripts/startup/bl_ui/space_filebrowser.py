@@ -614,7 +614,10 @@ class ASSETBROWSER_PT_filter(asset_utils.AssetBrowserPanel, Panel):
 
             filter_id = params.filter_asset_id
             for identifier in dir(filter_id):
-                if identifier.startswith("filter_") or (identifier.startswith("experimental_filter_") and use_extended_browser):
+                if (
+                        identifier.startswith("filter_") or
+                        (identifier.startswith("experimental_filter_") and use_extended_browser)
+                ):
                     row = col.row()
                     row.label(icon=filter_id.bl_rna.properties[identifier].icon)
                     row.prop(filter_id, identifier, toggle=False)
