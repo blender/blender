@@ -334,8 +334,14 @@ static bool ensure_module_loaded(bool warn = true)
 
   if (!g_umm_module) {
     g_umm_module = PyImport_ImportModule(k_umm_module_name);
-    if (warn && !g_umm_module) {
-      std::cout << "WARNING: couldn't load Python module " << k_umm_module_name << std::endl;
+    if (!g_umm_module) {
+      if (warn) {
+        std::cout << "WARNING: couldn't load Python module " << k_umm_module_name << std::endl;
+        if (PyErr_Occurred()) {
+          PyErr_Print();
+        }
+      }
+      PyErr_Clear();
     }
   }
 
