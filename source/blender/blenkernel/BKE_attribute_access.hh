@@ -208,7 +208,7 @@ class OutputAttribute {
 
  private:
   GVMutableArrayPtr varray_;
-  AttributeDomain domain_;
+  AttributeDomain domain_ = ATTR_DOMAIN_AUTO;
   SaveFn save_;
   std::unique_ptr<fn::GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
