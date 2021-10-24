@@ -1426,8 +1426,7 @@ float BLI_noise_mg_multi_fractal(
   }
 
   return value;
-
-} /* multifractal() */
+}
 
 /**
  * Heterogeneous procedural terrain function: stats by altitude method.

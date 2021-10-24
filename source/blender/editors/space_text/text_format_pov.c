@@ -870,7 +870,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         *fmt = FMT_TYPE_STRING;
       }
-      /* Whitespace (all ws. has been converted to spaces) */
+      /* White-space (all ws. has been converted to spaces). */
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }

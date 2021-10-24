@@ -640,7 +640,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
   string sname(input->name().string());
   size_t i;
 
-  /* strip whitespace */
+  /* Strip white-space. */
   while ((i = sname.find(" ")) != string::npos)
     sname.replace(i, 1, "");
 
@@ -660,7 +660,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
   string sname(output->name().string());
   size_t i;
 
-  /* strip whitespace */
+  /* Strip white-space. */
   while ((i = sname.find(" ")) != string::npos)
     sname.replace(i, 1, "");
 

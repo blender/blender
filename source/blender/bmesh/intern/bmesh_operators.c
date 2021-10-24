@@ -1796,11 +1796,11 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
 
   while (*fmt) {
     if (state) {
-      /* jump past leading whitespace */
+      /* Jump past leading white-space. */
       i = strspn(fmt, " ");
       fmt += i;
 
-      /* ignore trailing whitespace */
+      /* Ignore trailing white-space. */
       if (!fmt[i]) {
         break;
       }

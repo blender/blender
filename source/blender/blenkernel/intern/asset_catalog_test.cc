@@ -984,7 +984,7 @@ TEST_F(AssetCatalogTest, refresh_catalogs_with_modification)
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(cdf_dir);
 
-  /* === Perfom changes that should be handled gracefully by the reloading code: */
+  /* === Perform changes that should be handled gracefully by the reloading code: */
 
   /* 1. Delete a subtree of catalogs. */
   service.prune_catalogs_by_id(UUID_POSES_RUZENA);

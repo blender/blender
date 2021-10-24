@@ -391,7 +391,7 @@ constexpr StringRef StringRefBase::trim() const
 }
 
 /**
- * Return a new StringRef that does not contain leading and trailing whitespace.
+ * Return a new StringRef that does not contain leading and trailing white-space.
  */
 constexpr StringRef StringRefBase::trim(const char character_to_remove) const
 {

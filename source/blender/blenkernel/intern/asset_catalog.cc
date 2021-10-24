@@ -210,7 +210,7 @@ void AssetCatalogService::delete_catalog_by_id_hard(CatalogID catalog_id)
   catalog_collection_->catalogs_.remove(catalog_id);
   catalog_collection_->deleted_catalogs_.remove(catalog_id);
 
-  /* TODO(Sybren): adjust this when supporting mulitple CDFs. */
+  /* TODO(@sybren): adjust this when supporting multiple CDFs. */
   catalog_collection_->catalog_definition_file_->forget(catalog_id);
 }
 

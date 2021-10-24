@@ -1000,7 +1000,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 
   tree = BLI_kdtree_3d_new(totpart);
 
-  /* insert particles into kd tree */
+  /* Insert particles into KD-tree. */
   LOOP_PARTICLES
   {
     key = pa->hair;

@@ -1679,7 +1679,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 static bool single_data_needs_duplication(ID *id)
 {
-  /* NOTE: When dealing with linked data, we always make alocal copy of it.
+  /* NOTE: When dealing with linked data, we always make a local copy of it.
    * While in theory we could rather make it local when it only has one user, this is difficult
    * in practice with current code of this function. */
   return (id != NULL && (id->us > 1 || ID_IS_LINKED(id)));

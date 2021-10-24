@@ -653,7 +653,7 @@ static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *
 /* Extract the next token from raw characters. */
 static bool parse_next_token(ExprParseState *state)
 {
-  /* Skip whitespace. */
+  /* Skip white-space. */
   while (isspace(*state->cur)) {
     state->cur++;
   }
