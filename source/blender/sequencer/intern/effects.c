@@ -2451,7 +2451,6 @@ static void do_transform_effect(const SeqRenderData *context,
                                 int total_lines,
                                 ImBuf *out)
 {
-  Scene *scene = context->scene;
   TransformVars *transform = (TransformVars *)seq->effectdata;
   float scale_x, scale_y, translate_x, translate_y, rotate_radians;
 
@@ -2469,10 +2468,14 @@ static void do_transform_effect(const SeqRenderData *context,
 
   /* Translate */
   if (!transform->percent) {
-    float rd_s = (scene->r.size / 100.0f);
+    /* Compensate text size for preview render size. */
+    double proxy_size_comp = context->scene->r.size / 100.0;
+    if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
+      proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
+    }
 
-    translate_x = transform->xIni * rd_s + (x / 2.0f);
-    translate_y = transform->yIni * rd_s + (y / 2.0f);
+    translate_x = transform->xIni * proxy_size_comp + (x / 2.0f);
+    translate_y = transform->yIni * proxy_size_comp + (y / 2.0f);
   }
   else {
     translate_x = x * (transform->xIni / 100.0f) + (x / 2.0f);
