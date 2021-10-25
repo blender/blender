@@ -32,6 +32,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -801,8 +802,8 @@ static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       plane_no[axis] = -1.0f;
       mesh_bisect_temp = mesh_bisect;
 
-      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(ob, 
-          &mmd, mesh_bisect, axis, plane_co, plane_no);
+      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
+          ob, &mmd, mesh_bisect, axis, plane_co, plane_no);
 
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(nullptr, mesh_bisect_temp);
@@ -1229,6 +1230,86 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
               "come up with different quad layouts on the mesh",
               0,
               255);
+}
+
+static void instant_mesh_update_cb(void *data, float progress, int *cancel)
+{
+}
+static int instant_meshes_remesh_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
+   * freeing the original ID */
+  Mesh *bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
+
+  /* Bisect the input mesh using the paint symmetry settings */
+  bisect_mesh = remesh_symmetry_bisect(
+      ob, bisect_mesh, (eSymmetryAxes)0);  //(eSymmetryAxes)mesh->symmetry);
+
+  int target_faces = RNA_int_get(op->ptr, "target_faces");
+
+  Mesh *new_mesh = BKE_mesh_remesh_instant_meshes(
+      bisect_mesh, target_faces, instant_mesh_update_cb, nullptr);
+
+  if (!new_mesh) {
+    BKE_report(op->reports, RPT_ERROR, "Remesher failed to create mesh");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
+      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS ||
+      mesh->flag & ME_REMESH_REPROJECT_MATERIALS) {
+    BKE_mesh_runtime_clear_geometry(mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
+    BKE_shrinkwrap_remesh_target_project(new_mesh, mesh, ob);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
+    BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
+    BKE_remesh_reproject_sculpt_face_sets(new_mesh, mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_MATERIALS) {
+    BKE_remesh_reproject_materials(new_mesh, mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_VERTEX_COLORS) {
+    BKE_mesh_runtime_clear_geometry(mesh);
+    BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
+  }
+
+  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
+  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_instant_meshes_remesh(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Instant Meshes Remesh";
+  ot->description =
+      "Create a new quad based mesh using the surface data of the current mesh. All data "
+      "layers will be lost";
+  ot->idname = "OBJECT_OT_instant_meshes_remesh";
+
+  /* api callbacks */
+  ot->poll = object_remesh_poll;
+  ot->exec = instant_meshes_remesh_exec;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+  prop = RNA_def_int(ot->srna, "target_faces", 5000, 8, 1 << 23, "Face Count", "", 8, 100000);
 }
 
 /** \} */

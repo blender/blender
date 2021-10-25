@@ -2496,6 +2496,11 @@ void BKE_brush_color_set(struct Scene *scene,
 
     ch = BRUSHSET_LOOKUP(brush->channels, color);
 
+    if (!ch) {
+      BKE_brush_channelset_add_builtin(brush->channels, "color");
+      ch = BRUSHSET_LOOKUP(brush->channels, color);
+    }
+
     if ((ch->flag & BRUSH_CHANNEL_INHERIT) && scene->toolsettings->sculpt &&
         scene->toolsettings->sculpt->channels) {
       BrushChannel *pch = BRUSHSET_LOOKUP(scene->toolsettings->sculpt->channels, color);

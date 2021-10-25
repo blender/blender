@@ -22,6 +22,7 @@ set(INC
   .
   ../atomic
   ../eigen
+  ../guardedalloc
   ../../extern/Eigen3
   ext/half
   ext/dset
@@ -53,6 +54,10 @@ set(SRC
   src/extract.h
   src/field.cpp
   src/field.h
+  src/meshstats.cpp
+  src/meshstats.h
+  src/normal.cpp
+  src/normal.h
   src/hierarchy.cpp
   src/hierarchy.h
   src/reorder.cpp
@@ -61,6 +66,8 @@ set(SRC
   src/subdivide.h
   src/smoothcurve.cpp
   src/smoothcurve.h
+  src/c_api.cpp
+  instant_meshes_c_api.h
 )
 
 set(LIB

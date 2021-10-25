@@ -369,16 +369,20 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
   return NULL;
 }
 
-const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef index)
+const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef vertex)
 {
+  if (vertex.i == SCULPT_REF_NONE) {
+    return NULL;
+  }
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       if (ss->vcol) {
-        return ss->vcol[index.i].color;
+        return ss->vcol[vertex.i].color;
       }
       break;
     case PBVH_BMESH: {
-      BMVert *v = (BMVert *)index.i;
+      BMVert *v = (BMVert *)vertex.i;
 
       if (ss->cd_vcol_offset >= 0) {
         MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
@@ -962,7 +966,7 @@ SculptVertRef SCULPT_active_vertex_get(SculptSession *ss)
   if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH, PBVH_GRIDS)) {
     return ss->active_vertex_index;
   }
-  return BKE_pbvh_make_vref(0);
+  return BKE_pbvh_make_vref(SCULPT_REF_NONE);
 }
 
 const float *SCULPT_active_vertex_co_get(SculptSession *ss)
@@ -8735,8 +8739,11 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   if (ob->sculpt != NULL) {
     BKE_sculptsession_free(ob);
   }
+
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
+  ob->sculpt->active_face_index.i = SCULPT_REF_NONE;
+  ob->sculpt->active_vertex_index.i = SCULPT_REF_NONE;
 
   BKE_sculpt_ensure_orig_mesh_data(scene, ob);
 

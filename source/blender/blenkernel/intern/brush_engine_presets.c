@@ -1825,6 +1825,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(dyntopo_disabled)->ivalue = 1;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+
       GETCH(dyntopo_mode)->ivalue = DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_SUBDIVIDE;
       GETCH(dyntopo_mode)->flag = BRUSH_CHANNEL_INHERIT_IF_UNSET;
       GETCH(strength)->fvalue = 1.0f;

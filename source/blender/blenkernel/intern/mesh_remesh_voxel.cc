@@ -27,6 +27,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <functional>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,6 +38,7 @@
 #include "BLI_float3.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
+#include "BLI_threads.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -60,6 +65,8 @@
 #ifdef WITH_QUADRIFLOW
 #  include "quadriflow_capi.hpp"
 #endif
+
+#include "instant_meshes_c_api.h"
 
 using blender::Array;
 using blender::float3;
@@ -229,6 +236,259 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   return mesh;
 }
 #endif
+
+struct HashEdge {
+  std::size_t operator()(std::tuple<int, int> const &edge) const noexcept
+  {
+    int v1 = std::get<0>(edge);
+    int v2 = std::get<1>(edge);
+
+    if (v1 > v2) {
+      std::swap(v1, v2);
+    }
+
+    return std::size_t(v1);
+  }
+};
+
+// TODO: move from sculpt_smooth.c to blenlib or somewhere
+extern "C" int closest_vec_to_perp(
+    float dir[3], float r_dir2[3], float no[3], float *buckets, float w);
+
+ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
+                                                 int target_faces,
+                                                 void (*update_cb)(void *,
+                                                                   float progress,
+                                                                   int *cancel),
+                                                 void *update_cb_data)
+{
+  /* Ensure that the triangulated mesh data is up to data */
+  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
+  MeshElemMap *epmap = nullptr;
+  int *epmem = nullptr;
+
+  instant_meshes_set_number_of_threads(BLI_system_thread_count());
+
+  BKE_mesh_edge_poly_map_create(&epmap,
+                                &epmem,
+                                input_mesh->medge,
+                                input_mesh->totedge,
+                                input_mesh->mpoly,
+                                input_mesh->totpoly,
+                                input_mesh->mloop,
+                                input_mesh->totloop);
+
+  /* Gather the required data for export to the internal quadriflow mesh format. */
+  MVertTri *verttri = (MVertTri *)MEM_callocN(
+      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
+  BKE_mesh_runtime_verttri_from_looptri(
+      verttri, input_mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(input_mesh));
+
+  MPropCol *dirs = NULL;
+
+  int idx = CustomData_get_named_layer_index(&input_mesh->vdata, CD_PROP_COLOR, "_rake_temp");
+  if (idx >= 0) {
+    dirs = (MPropCol *)input_mesh->vdata.layers[idx].data;
+  }
+
+  const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
+  const int totverts = input_mesh->totvert;
+
+  std::unordered_map<std::tuple<int, int>, int, HashEdge> eflags;
+  auto make_edge_pair = [](int v1, int v2) {
+    return std::tuple<int, int>(std::min(v1, v2), std::max(v1, v2));
+  };
+
+  Array<RemeshVertex> verts(totverts);
+  Array<RemeshTri> faces(totfaces);
+  std::vector<RemeshEdge> edges;
+
+  for (int i : IndexRange(totverts)) {
+    copy_v3_v3(verts[i].co, input_mesh->mvert[i].co);
+    normal_short_to_float_v3(verts[i].no, input_mesh->mvert[i].no);
+  }
+
+  int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
+
+  for (const int i : IndexRange(input_mesh->totedge)) {
+    MEdge *me = input_mesh->medge + i;
+    MeshElemMap *mep = epmap + i;
+
+    bool ok = mep->count == 1;
+    ok = ok || (me->flag & (ME_SEAM | ME_SHARP));
+
+    if (fsets && !ok) {
+      int last_fset;
+
+      // try face sets
+      for (int j = 0; j < mep->count; j++) {
+        int fset = abs(fsets[mep->indices[j]]);
+
+        if (j > 0 && last_fset != fset) {
+          ok = true;
+          break;
+        }
+
+        last_fset = fset;
+      }
+    }
+
+    if (ok || dirs) {
+      RemeshEdge e;
+
+      e.flag = ok ? REMESH_EDGE_BOUNDARY : 0;
+      e.v1 = me->v1;
+      e.v2 = me->v2;
+
+      if (dirs && !ok) {
+        e.flag |= REMESH_EDGE_USE_DIR;
+        float d1[3], d2[3], vec[3], no1[3], no2[3];
+
+        // get rake directions from verts
+        copy_v3_v3(d1, dirs[me->v1].color);
+        copy_v3_v3(d2, dirs[me->v2].color);
+
+        // edge vec
+        sub_v3_v3v3(vec, input_mesh->mvert[me->v2].co, input_mesh->mvert[me->v1].co);
+        normalize_v3(vec);
+
+        // build edge normal
+        normal_short_to_float_v3(no1, input_mesh->mvert[me->v1].no);
+        normal_short_to_float_v3(no2, input_mesh->mvert[me->v2].no);
+
+        add_v3_v3(no1, no2);
+        normalize_v3(no1);
+
+        float buckets[8];
+
+        // find closest of four 90 degree rotations to vec for d1, d2
+        closest_vec_to_perp(vec, d1, no1, buckets, 1.0f);
+        closest_vec_to_perp(vec, d2, no1, buckets, 1.0f);
+
+        // build final direction
+        add_v3_v3(d1, d2);
+        normalize_v3(d1);
+
+        copy_v3_v3(e.dir, d1);
+      }
+
+      eflags[make_edge_pair(me->v1, me->v2)] = i;
+      edges.push_back(e);
+    }
+  }
+
+  for (int i : IndexRange(totfaces)) {
+    MVertTri *mtri = verttri + i;
+
+    faces[i].v1 = mtri->tri[0];
+    faces[i].v2 = mtri->tri[1];
+    faces[i].v3 = mtri->tri[2];
+
+    for (int j = 0; j < 3; j++) {
+      int v1 = mtri->tri[j];
+      int v2 = mtri->tri[(j + 1) % 3];
+
+      auto item = eflags.find(make_edge_pair(v1, v2));
+      if (item != eflags.end()) {
+        int flag = item->second;
+        faces[i].eflags[j] = flag;
+      }
+    }
+  }
+
+  RemeshMesh remesh;
+  remesh.tris = faces.data();
+  remesh.tottri = (int)faces.size();
+
+  remesh.verts = verts.data();
+  remesh.edges = edges.data();
+  remesh.totedge = (int)edges.size();
+  remesh.totvert = (int)verts.size();
+
+  instant_meshes_run(&remesh);
+
+  int totloop = 0;
+  for (int i : IndexRange(remesh.totoutface)) {
+    totloop += remesh.outfaces[i].totvert;
+  }
+
+  Mesh *mesh = BKE_mesh_new_nomain(remesh.totoutvert, 0, 0, totloop, remesh.totoutface);
+
+  for (int i : IndexRange(remesh.totoutvert)) {
+    MVert *mv = mesh->mvert + i;
+    RemeshVertex *v = remesh.outverts + i;
+
+    copy_v3_v3(mv->co, v->co);
+    normal_float_to_short_v3(mv->no, v->no);
+  }
+
+  int li = 0;
+  MLoop *ml = mesh->mloop;
+
+  for (int i : IndexRange(remesh.totoutface)) {
+    RemeshOutFace *f = remesh.outfaces + i;
+    MPoly *mp = mesh->mpoly + i;
+
+    mp->loopstart = li;
+    mp->totloop = f->totvert;
+
+    for (int j = 0; j < f->totvert; j++, ml++, li++) {
+      ml->v = f->verts[j];
+    }
+  }
+
+  instant_meshes_finish(&remesh);
+
+  BKE_mesh_calc_edges(mesh, false, false);
+  BKE_mesh_calc_normals(mesh);
+
+  // C++ doesn't seem to like the MEM_SAFE_FREE macro
+  if (epmap) {
+    MEM_freeN((void *)epmap);
+  }
+
+  if (epmem) {
+    MEM_freeN((void *)epmem);
+  }
+
+  return mesh;
+#if 0
+ 
+  /* Construct the new output mesh */
+  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
+
+  for (const int i : IndexRange(qrd.out_totverts)) {
+    copy_v3_v3(mesh->mvert[i].co, &qrd.out_verts[i * 3]);
+  }
+
+  for (const int i : IndexRange(qrd.out_totfaces)) {
+    MPoly &poly = mesh->mpoly[i];
+    const int loopstart = i * 4;
+    poly.loopstart = loopstart;
+    poly.totloop = 4;
+    mesh->mloop[loopstart].v = qrd.out_faces[loopstart];
+    mesh->mloop[loopstart + 1].v = qrd.out_faces[loopstart + 1];
+    mesh->mloop[loopstart + 2].v = qrd.out_faces[loopstart + 2];
+    mesh->mloop[loopstart + 3].v = qrd.out_faces[loopstart + 3];
+  }
+
+  BKE_mesh_calc_edges(mesh, false, false);
+  BKE_mesh_calc_normals(mesh);
+
+  MEM_freeN(qrd.out_faces);
+  MEM_freeN(qrd.out_verts);
+
+  if (epmap) {
+    MEM_freeN((void *)epmap);
+  }
+
+  if (epmem) {
+    MEM_freeN((void *)epmem);
+  }
+  return mesh;
+#endif
+  return nullptr;
+}
 
 Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
                                  int target_faces,

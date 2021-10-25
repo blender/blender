@@ -760,6 +760,16 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
+if(WITH_INSTANT_MESHES)
+  list(APPEND INC
+    ../../../intern/instant-meshes
+  )
+  list(APPEND LIB
+    bf_intern_instant_meshes
+  )
+  add_definitions(-DWITH_QUADRIFLOW)
+endif()
+
 if(WITH_QUADRIFLOW)
   list(APPEND INC
     ../../../intern/quadriflow
