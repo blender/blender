@@ -3074,12 +3074,34 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
                                                                 PointerRNA *ptr)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
-  if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
-    sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
-  }
-  if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_CURVE &&
-      !ELEM(sspreadsheet->attribute_domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-    sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+  switch (sspreadsheet->geometry_component_type) {
+    case GEO_COMPONENT_TYPE_MESH: {
+      if (!ELEM(sspreadsheet->attribute_domain,
+                ATTR_DOMAIN_POINT,
+                ATTR_DOMAIN_EDGE,
+                ATTR_DOMAIN_FACE,
+                ATTR_DOMAIN_CORNER)) {
+        sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      }
+      break;
+    }
+    case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+      sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      break;
+    }
+    case GEO_COMPONENT_TYPE_INSTANCES: {
+      sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      break;
+    }
+    case GEO_COMPONENT_TYPE_VOLUME: {
+      break;
+    }
+    case GEO_COMPONENT_TYPE_CURVE: {
+      if (!ELEM(sspreadsheet->attribute_domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+        sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      }
+      break;
+    }
   }
 }
 
