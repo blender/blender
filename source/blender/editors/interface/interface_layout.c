@@ -351,12 +351,16 @@ static int ui_text_icon_width_ex(uiLayout *layout,
     if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
       layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
-    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+
     float margin = pad_factor->text;
     if (icon) {
       margin += pad_factor->icon;
     }
-    return UI_fontstyle_string_width(fstyle, name) + (unit_x * margin);
+
+    const float aspect = layout->root->block->aspect;
+    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+    return UI_fontstyle_string_width_with_block_aspect(fstyle, name, aspect) +
+           (int)ceilf(unit_x * margin);
   }
   return unit_x * 10;
 }

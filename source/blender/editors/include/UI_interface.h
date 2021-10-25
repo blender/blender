@@ -2687,7 +2687,12 @@ void UI_fontstyle_draw_simple_backdrop(const struct uiFontStyle *fs,
                                        const float col_fg[4],
                                        const float col_bg[4]);
 
-int UI_fontstyle_string_width(const struct uiFontStyle *fs, const char *str);
+int UI_fontstyle_string_width(const struct uiFontStyle *fs,
+                              const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+int UI_fontstyle_string_width_with_block_aspect(const struct uiFontStyle *fs,
+                                                const char *str,
+                                                const float aspect) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
 int UI_fontstyle_height_max(const struct uiFontStyle *fs);
 
 void UI_draw_icon_tri(float x, float y, char dir, const float[4]);

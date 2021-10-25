@@ -376,6 +376,35 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
   return (int)BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
+/**
+ * Return the width of `str` with the spacing & kerning of `fs` with `aspect`
+ * (representing #uiBlock.aspect) applied.
+ *
+ * When calculating text width, the UI layout logic calculate widths without scale,
+ * only applying scale when drawing. This causes problems for fonts since kerning at
+ * smaller sizes often makes them wider than a scaled down version of the larger text.
+ * Resolve this by calculating the text at the on-screen size,
+ * returning the result scaled back to 1:1. See T92361.
+ */
+int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
+                                                const char *str,
+                                                const float aspect)
+{
+  uiFontStyle fs_buf;
+  if (aspect != 1.0f) {
+    fs_buf = *fs;
+    ui_fontscale(&fs_buf.points, aspect);
+    fs = &fs_buf;
+  }
+
+  int width = UI_fontstyle_string_width(fs, str);
+
+  if (aspect != 1.0f) {
+    width = (int)ceilf(width * aspect);
+  }
+  return width;
+}
+
 int UI_fontstyle_height_max(const uiFontStyle *fs)
 {
   UI_fontstyle_set(fs);
