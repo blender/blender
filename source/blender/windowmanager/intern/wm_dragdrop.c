@@ -670,6 +670,17 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
   UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
 }
 
+void WM_drag_draw_item_name_fn(bContext *UNUSED(C),
+                               wmWindow *UNUSED(win),
+                               wmDrag *drag,
+                               const int xy[2])
+{
+  int x = xy[0] + 10 * UI_DPI_FAC;
+  int y = xy[1] + 1 * UI_DPI_FAC;
+
+  wm_drag_draw_item_name(drag, x, y);
+}
+
 static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2])
 {
   if (!CTX_wm_region(C)) {
