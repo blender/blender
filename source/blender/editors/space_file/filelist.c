@@ -817,88 +817,85 @@ static bool is_filtered_hidden(const char *filename,
   return false;
 }
 
+/**
+ * Apply the filter string as file path matching pattern.
+ * \return true when the file should be in the result set, false if it should be filtered out. */
+static bool is_filtered_file_relpath(const FileListInternEntry *file, const FileListFilter *filter)
+{
+  if (filter->filter_search[0] == '\0') {
+    return true;
+  }
+
+  /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
+  return fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) == 0;
+}
+
+/** \return true when the file should be in the result set, false if it should be filtered out. */
+static bool is_filtered_file_type(const FileListInternEntry *file, const FileListFilter *filter)
+{
+  if (is_filtered_hidden(file->relpath, filter, file)) {
+    return false;
+  }
+
+  if (FILENAME_IS_CURRPAR(file->relpath)) {
+    return false;
+  }
+
+  /* We only check for types if some type are enabled in filtering. */
+  if (filter->filter && (filter->flags & FLF_DO_FILTER)) {
+    if (file->typeflag & FILE_TYPE_DIR) {
+      if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
+        if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
+          return false;
+        }
+      }
+      else {
+        if (!(filter->filter & FILE_TYPE_FOLDER)) {
+          return false;
+        }
+      }
+    }
+    else {
+      if (!(file->typeflag & filter->filter)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/** \return true when the file should be in the result set, false if it should be filtered out. */
 static bool is_filtered_file(FileListInternEntry *file,
                              const char *UNUSED(root),
                              FileListFilter *filter)
 {
-  bool is_filtered = !is_filtered_hidden(file->relpath, filter, file);
-
-  if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
-    /* We only check for types if some type are enabled in filtering. */
-    if (filter->filter && (filter->flags & FLF_DO_FILTER)) {
-      if (file->typeflag & FILE_TYPE_DIR) {
-        if (file->typeflag &
-            (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-          if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-            is_filtered = false;
-          }
-        }
-        else {
-          if (!(filter->filter & FILE_TYPE_FOLDER)) {
-            is_filtered = false;
-          }
-        }
-      }
-      else {
-        if (!(file->typeflag & filter->filter)) {
-          is_filtered = false;
-        }
-      }
-    }
-    /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
-    if (is_filtered && (filter->filter_search[0] != '\0')) {
-      if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
-        is_filtered = false;
-      }
-    }
-  }
-
-  return is_filtered;
+  return is_filtered_file_type(file, filter) && is_filtered_file_relpath(file, filter);
 }
 
-static bool is_filtered_id_file(const FileListInternEntry *file,
-                                const char *id_group,
-                                const char *name,
-                                const FileListFilter *filter)
+static bool is_filtered_id_file_type(const FileListInternEntry *file,
+                                     const char *id_group,
+                                     const char *name,
+                                     const FileListFilter *filter)
 {
-  bool is_filtered = !is_filtered_hidden(file->relpath, filter, file);
-  if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
-    /* We only check for types if some type are enabled in filtering. */
-    if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
-      if (file->typeflag & FILE_TYPE_DIR) {
-        if (file->typeflag &
-            (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-          if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-            is_filtered = false;
-          }
-        }
-        else {
-          if (!(filter->filter & FILE_TYPE_FOLDER)) {
-            is_filtered = false;
-          }
-        }
+  if (!is_filtered_file_type(file, filter)) {
+    return false;
+  }
+
+  /* We only check for types if some type are enabled in filtering. */
+  if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
+    if (id_group) {
+      if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
+        return false;
       }
-      if (is_filtered && id_group) {
-        if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
-          is_filtered = false;
-        }
-        else {
-          uint64_t filter_id = groupname_to_filter_id(id_group);
-          if (!(filter_id & filter->filter_id)) {
-            is_filtered = false;
-          }
-        }
-      }
-    }
-    /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
-    if (is_filtered && (filter->filter_search[0] != '\0')) {
-      if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
-        is_filtered = false;
+
+      uint64_t filter_id = groupname_to_filter_id(id_group);
+      if (!(filter_id & filter->filter_id)) {
+        return false;
       }
     }
   }
 
-  return is_filtered;
+  return true;
 }
 
 /**
@@ -933,21 +930,23 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
                                                           asset_data);
 }
 
-static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter)
+static bool is_filtered_lib_type(FileListInternEntry *file,
+                                 const char *root,
+                                 FileListFilter *filter)
 {
-  bool is_filtered;
   char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
 
   BLI_join_dirfile(path, sizeof(path), root, file->relpath);
 
   if (BLO_library_path_explode(path, dir, &group, &name)) {
-    is_filtered = is_filtered_id_file(file, group, name, filter);
+    return is_filtered_id_file_type(file, group, name, filter);
   }
-  else {
-    is_filtered = is_filtered_file(file, root, filter);
-  }
+  return is_filtered_file_type(file, filter);
+}
 
-  return is_filtered;
+static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter)
+{
+  return is_filtered_lib_type(file, root, filter) && is_filtered_file_relpath(file, filter);
 }
 
 static bool is_filtered_asset_library(FileListInternEntry *file,
@@ -969,8 +968,8 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
                                     FileListFilter *filter)
 {
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
-  return is_filtered_id_file(file, file->relpath, file->name, filter) &&
-         is_filtered_asset(file, filter);
+  return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
+         is_filtered_file_relpath(file, filter) && is_filtered_asset(file, filter);
 }
 
 void filelist_tag_needs_filtering(FileList *filelist)
