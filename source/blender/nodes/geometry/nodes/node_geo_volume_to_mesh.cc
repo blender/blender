@@ -163,7 +163,7 @@ void register_node_type_geo_volume_to_mesh()
   ntype.declare = blender::nodes::geo_node_volume_to_mesh_declare;
   node_type_storage(
       &ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
-  node_type_size(&ntype, 200, 120, 700);
+  node_type_size(&ntype, 170, 120, 700);
   node_type_init(&ntype, blender::nodes::geo_node_volume_to_mesh_init);
   node_type_update(&ntype, blender::nodes::geo_node_volume_to_mesh_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_volume_to_mesh_exec;
