@@ -1644,6 +1644,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
     if (area) {
       v3d = area->spacedata.first;
+      region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     }
   }
 
