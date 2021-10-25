@@ -918,6 +918,43 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
   file_ensure_updated_catalog_filter_data(filter->asset_catalog_filter, filelist->asset_library);
 }
 
+/**
+ * Copy a string from source to dest, but prefix and suffix it with a single space.
+ * Assumes `dest` has at least space enough for the two spaces.
+ */
+static void tag_copy_with_spaces(char *dest, const char *source, const size_t dest_size)
+{
+  BLI_assert(dest_size > 2);
+  const size_t source_length = BLI_strncpy_rlen(dest + 1, source, dest_size - 2);
+  dest[0] = ' ';
+  dest[source_length + 1] = ' ';
+  dest[source_length + 2] = '\0';
+}
+
+/**
+ * Return whether at least one tag matches the search filter.
+ * Tags are searched as "entire words", so instead of searching for "tag" in the
+ * filter string, this function searches for " tag ". Assumes the search filter
+ * starts and ends with a space.
+ *
+ * Here the tags on the asset are written in set notation:
+ *
+ * asset_tag_matches_filter(" some tags ", {"some", "blue"}) -> true
+ * asset_tag_matches_filter(" some tags ", {"som", "tag"}) -> false
+ * asset_tag_matches_filter(" some tags ", {}) -> false
+ */
+static bool asset_tag_matches_filter(const char *filter_search, const AssetMetaData *asset_data)
+{
+  LISTBASE_FOREACH (const AssetTag *, asset_tag, &asset_data->tags) {
+    char tag_name[MAX_NAME + 2]; /* sizeof(AssetTag::name) + 2 */
+    tag_copy_with_spaces(tag_name, asset_tag->name, sizeof(tag_name));
+    if (BLI_strcasestr(filter_search, tag_name) != NULL) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 {
   const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
@@ -933,19 +970,22 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
     return true;
   }
 
-  /* filter->filter_search contains "*the search text*"; this code strips the asterisks.
-   * For a simple name search it would work to call fnmatch() here, but that
-   * would be inefficient when expanding to searching for tags as well.*/
-  char filter_search[64]; /* sizeof(filter->filter_search) - 1 */
-  const size_t string_length = STRNCPY_RLEN(filter_search, filter->filter_search + 1);
-  filter_search[string_length - 1] = '\0';
+  /* filter->filter_search contains "*the search text*". */
+  char filter_search[66]; /* sizeof(FileListFilter::filter_search) */
+  const size_t string_length = STRNCPY_RLEN(filter_search, filter->filter_search);
 
-  if (BLI_strcasestr(file->name, filter_search) != NULL) {
+  /* When doing a name comparison, get rid of the leading/trailing asterisks. */
+  filter_search[string_length - 1] = '\0';
+  if (BLI_strcasestr(file->name, filter_search + 1) != NULL) {
     return true;
   }
 
-  /* TODO: search for matching tag. */
-  return false;
+  /* Replace the asterisks with spaces, so that we can do matching on " sometag "; that way
+   * an artist searching for "redder" doesn't result in a match for the tag "red". */
+  filter_search[string_length - 1] = ' ';
+  filter_search[0] = ' ';
+
+  return asset_tag_matches_filter(filter_search, asset_data);
 }
 
 static bool is_filtered_lib_type(FileListInternEntry *file,
