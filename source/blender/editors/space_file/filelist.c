@@ -920,14 +920,32 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
 
 static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 {
+  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
+
   /* Not used yet for the asset view template. */
-  if (!filter->asset_catalog_filter) {
+  if (filter->asset_catalog_filter && !file_is_asset_visible_in_catalog_filter_settings(
+                                          filter->asset_catalog_filter, asset_data)) {
+    return false;
+  }
+
+  if (filter->filter_search[0] == '\0') {
+    /* If there is no filter text, everything matches. */
     return true;
   }
 
-  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
-  return file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter,
-                                                          asset_data);
+  /* filter->filter_search contains "*the search text*"; this code strips the asterisks.
+   * For a simple name search it would work to call fnmatch() here, but that
+   * would be inefficient when expanding to searching for tags as well.*/
+  char filter_search[64]; /* sizeof(filter->filter_search) - 1 */
+  const size_t string_length = STRNCPY_RLEN(filter_search, filter->filter_search + 1);
+  filter_search[string_length - 1] = '\0';
+
+  if (BLI_strcasestr(file->name, filter_search) != NULL) {
+    return true;
+  }
+
+  /* TODO: search for matching tag. */
+  return false;
 }
 
 static bool is_filtered_lib_type(FileListInternEntry *file,
@@ -953,7 +971,7 @@ static bool is_filtered_asset_library(FileListInternEntry *file,
                                       const char *root,
                                       FileListFilter *filter)
 {
-  return is_filtered_lib(file, root, filter) && is_filtered_asset(file, filter);
+  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
 }
 
 static bool is_filtered_main(FileListInternEntry *file,
@@ -969,7 +987,7 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
 {
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
   return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
-         is_filtered_file_relpath(file, filter) && is_filtered_asset(file, filter);
+         is_filtered_asset(file, filter);
 }
 
 void filelist_tag_needs_filtering(FileList *filelist)
