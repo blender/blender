@@ -522,9 +522,12 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
   if (state) {
     return;
   }
+
   state = drop->draw_data = ED_view3d_cursor_snap_active();
-  state->draw_point = true;
-  state->draw_plane = true;
+  if (!state) {
+    /* The maximum snap status stack value has been reached. */
+    return;
+  }
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
@@ -549,10 +552,8 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
 static void view3d_ob_drop_draw_deactivate(struct wmDropBox *drop, wmDrag *UNUSED(drag))
 {
   V3DSnapCursorState *state = drop->draw_data;
-  if (state) {
-    ED_view3d_cursor_snap_deactive(state);
-    drop->draw_data = NULL;
-  }
+  ED_view3d_cursor_snap_deactive(state);
+  drop->draw_data = NULL;
 }
 
 static bool view3d_ob_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -680,30 +681,28 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   const bool is_imported_id = drag->type == WM_DRAG_ASSET;
   RNA_boolean_set(drop->ptr, "duplicate", !is_imported_id);
 
-  V3DSnapCursorState *snap_state = drop->draw_data;
-  if (snap_state) {
-    Object *ob = (Object *)id;
-    float obmat_final[4][4];
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  Object *ob = (Object *)id;
+  float obmat_final[4][4];
 
-    V3DSnapCursorData *snap_data;
-    snap_data = ED_view3d_cursor_snap_data_get(snap_state, NULL, 0, 0);
-    copy_m4_m3(obmat_final, snap_data->plane_omat);
-    copy_v3_v3(obmat_final[3], snap_data->loc);
+  V3DSnapCursorData *snap_data;
+  snap_data = ED_view3d_cursor_snap_data_get(snap_state, NULL, 0, 0);
+  copy_m4_m3(obmat_final, snap_data->plane_omat);
+  copy_v3_v3(obmat_final[3], snap_data->loc);
 
-    float scale[3];
-    mat4_to_size(scale, ob->obmat);
-    rescale_m4(obmat_final, scale);
+  float scale[3];
+  mat4_to_size(scale, ob->obmat);
+  rescale_m4(obmat_final, scale);
 
-    BoundBox *bb = BKE_object_boundbox_get(ob);
-    if (bb) {
-      float offset[3];
-      BKE_boundbox_calc_center_aabb(bb, offset);
-      offset[2] = bb->vec[0][2];
-      mul_mat3_m4_v3(obmat_final, offset);
-      sub_v3_v3(obmat_final[3], offset);
-    }
-    RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
+  BoundBox *bb = BKE_object_boundbox_get(ob);
+  if (bb) {
+    float offset[3];
+    BKE_boundbox_calc_center_aabb(bb, offset);
+    offset[2] = bb->vec[0][2];
+    mul_mat3_m4_v3(obmat_final, offset);
+    sub_v3_v3(obmat_final[3], offset);
   }
+  RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)

@@ -742,16 +742,19 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  ipd->snap_state = ED_view3d_cursor_snap_active();
-  ipd->snap_state->draw_point = true;
-  ipd->snap_state->draw_plane = true;
+  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_active();
+  if (snap_state_new) {
+    ipd->snap_state = snap_state = snap_state_new;
+  }
 
+  snap_state->draw_point = true;
+  snap_state->draw_plane = true;
   ipd->is_snap_found =
       view3d_interactive_add_calc_snap(
           C, event, ipd->co_src, ipd->matrix_orient, &ipd->use_snap, &ipd->is_snap_invert) != 0;
 
-  ipd->snap_state->draw_plane = false;
-  ED_view3d_cursor_snap_prevpoint_set(ipd->snap_state, ipd->co_src);
+  snap_state->draw_plane = false;
+  ED_view3d_cursor_snap_prevpoint_set(snap_state, ipd->co_src);
 
   ipd->orient_axis = plane_axis;
   for (int i = 0; i < 2; i++) {
@@ -1515,10 +1518,12 @@ static void preview_plane_free_fn(void *customdata)
 static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
-  snap_state->draw_plane = true;
+  if (snap_state) {
+    snap_state->draw_plane = true;
 
-  gzgroup->customdata = snap_state;
-  gzgroup->customdata_free = preview_plane_free_fn;
+    gzgroup->customdata = snap_state;
+    gzgroup->customdata_free = preview_plane_free_fn;
+  }
 }
 
 void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)

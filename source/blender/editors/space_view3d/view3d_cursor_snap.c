@@ -54,7 +54,7 @@
 
 #include "WM_api.h"
 
-#define STATE_LEN 3
+#define STATE_LEN 8
 
 typedef struct SnapStateIntern {
   V3DSnapCursorState snap_state;
@@ -925,7 +925,6 @@ V3DSnapCursorState *ED_view3d_cursor_snap_active(void)
     }
   }
 
-  BLI_assert(false);
   data_intern->state_active_len--;
   return NULL;
 }
@@ -935,6 +934,10 @@ void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (!data_intern->state_active_len) {
     BLI_assert(false);
+    return;
+  }
+
+  if (!state) {
     return;
   }
 
@@ -956,6 +959,9 @@ void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
 void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3])
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
+  if (!state) {
+    state = ED_view3d_cursor_snap_state_get();
+  }
   if (prev_point) {
     copy_v3_v3(data_intern->prevpoint_stack, prev_point);
     state->prevpoint = data_intern->prevpoint_stack;
