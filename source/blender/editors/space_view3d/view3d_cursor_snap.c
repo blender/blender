@@ -58,7 +58,6 @@
 
 typedef struct SnapStateIntern {
   V3DSnapCursorState snap_state;
-  float prevpoint_stack[3];
   int state_active_prev;
   bool is_active;
 } SnapStateIntern;
@@ -74,6 +73,8 @@ typedef struct SnapCursorDataIntern {
   struct SnapObjectContext *snap_context_v3d;
   const Scene *scene;
   short snap_elem_hidden;
+
+  float prevpoint_stack[3];
 
   /* Copy of the parameters of the last event state in order to detect updates. */
   struct {
@@ -94,17 +95,6 @@ typedef struct SnapCursorDataIntern {
   bool is_initiated;
 } SnapCursorDataIntern;
 
-static void UNUSED_FUNCTION(v3d_cursor_snap_state_init)(V3DSnapCursorState *state)
-{
-  state->prevpoint = NULL;
-  state->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                            SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT);
-  state->plane_axis = 2;
-  rgba_uchar_args_set(state->color_point, 255, 255, 255, 255);
-  rgba_uchar_args_set(state->color_line, 255, 255, 255, 128);
-  state->draw_point = true;
-  state->draw_plane = false;
-}
 static SnapCursorDataIntern g_data_intern = {
     .state_default = {.prevpoint = NULL,
                       .snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
@@ -113,8 +103,9 @@ static SnapCursorDataIntern g_data_intern = {
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},
                       .color_line = {255, 255, 255, 128},
-                      .draw_point = true,
-                      .draw_plane = false}};
+                      .color_box = {255, 255, 255, 128},
+                      .box_dimensions = {1.0f, 1.0f, 1.0f},
+                      .draw_point = true}};
 
 /**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
@@ -373,6 +364,24 @@ static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
   }
 }
 
+static void cursor_box_draw(const float dimensions[3], uchar color[4])
+{
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_smooth(true);
+  GPU_line_width(1.0f);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4ubv(color);
+  imm_draw_cube_corners_3d(pos_id, (float[3]){0.0f, 0.0f, dimensions[2]}, dimensions, 0.15f);
+  immUnbindProgram();
+
+  GPU_line_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
+}
+
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const float loc_prev[3],
                                      const float loc_curr[3],
@@ -601,7 +610,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   ushort snap_elements = v3d_cursor_snap_elements(state, scene);
   data_intern->snap_elem_hidden = 0;
-  const bool draw_plane = state->draw_plane;
+  const bool draw_plane = state->draw_plane || state->draw_box;
   if (draw_plane && !(snap_elements & SCE_SNAP_MODE_FACE)) {
     data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
     snap_elements |= SCE_SNAP_MODE_FACE;
@@ -674,6 +683,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   }
 
   if (draw_plane) {
+    RegionView3D *rv3d = region->regiondata;
     bool orient_surface = snap_elem && (state->plane_orient == V3D_PLACE_ORIENT_SURFACE);
     if (orient_surface) {
       copy_m3_m4(omat, obmat);
@@ -686,7 +696,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       ED_transform_calc_orientation_from_type_ex(
           scene, view_layer, v3d, region->regiondata, ob, ob, orient_index, pivot_point, omat);
 
-      RegionView3D *rv3d = region->regiondata;
       if (state->use_plane_axis_auto) {
         mat3_align_axis_to_v3(omat, state->plane_axis, rv3d->viewinv[2]);
       }
@@ -699,6 +708,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     orthogonalize_m3(omat, state->plane_axis);
 
     if (orient_surface) {
+      if (dot_v3v3(rv3d->viewinv[2], face_nor) < 0.0f) {
+        negate_v3(face_nor);
+      }
       v3d_cursor_poject_surface_normal(face_nor, obmat, omat);
     }
   }
@@ -791,7 +803,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_snap_update(state, C, wm, depsgraph, scene, region, v3d, x, y);
   }
 
-  const bool draw_plane = state->draw_plane;
+  const bool draw_plane = state->draw_plane || state->draw_box;
   if (!snap_data->snap_elem && !draw_plane) {
     return;
   }
@@ -802,8 +814,6 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
 
-  GPU_blend(GPU_BLEND_ALPHA);
-
   float matrix[4][4];
   if (draw_plane) {
     copy_m4_m3(matrix, snap_data->plane_omat);
@@ -812,7 +822,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_plane_draw(rv3d, state->plane_axis, matrix);
   }
 
-  if (snap_data->snap_elem && state->draw_point) {
+  if (snap_data->snap_elem && (state->draw_point || state->draw_box)) {
     const float *prev_point = (snap_data->snap_elem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) ?
                                   state->prevpoint :
                                   NULL;
@@ -829,7 +839,10 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
                                     snap_data->snap_elem);
   }
 
-  GPU_blend(GPU_BLEND_NONE);
+  if (state->draw_box) {
+    GPU_matrix_mul(matrix);
+    cursor_box_draw(state->box_dimensions, state->color_box);
+  }
 
   /* Restore matrix. */
   wmWindowViewport(CTX_wm_window(C));
@@ -942,10 +955,10 @@ void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
 
 void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3])
 {
-  SnapStateIntern *state_intern = (SnapStateIntern *)state;
+  SnapCursorDataIntern *data_intern = &g_data_intern;
   if (prev_point) {
-    copy_v3_v3(state_intern->prevpoint_stack, prev_point);
-    state->prevpoint = state_intern->prevpoint_stack;
+    copy_v3_v3(data_intern->prevpoint_stack, prev_point);
+    state->prevpoint = data_intern->prevpoint_stack;
   }
   else {
     state->prevpoint = NULL;

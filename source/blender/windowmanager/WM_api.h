@@ -757,9 +757,11 @@ struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short id
 bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
 wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
+                                       struct AssetMetaData *metadata,
                                        const char *path,
                                        int import_type);
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
+struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int idcode);
 struct ID *WM_drag_get_local_ID_or_import_from_asset(const struct wmDrag *drag, int idcode);
 
 void WM_drag_free_imported_drag_ID(struct Main *bmain,

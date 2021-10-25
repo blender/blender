@@ -2211,6 +2211,9 @@ static void direct_link_id_common(
   if (id->asset_data) {
     BLO_read_data_address(reader, &id->asset_data);
     BKE_asset_metadata_read(reader, id->asset_data);
+    /* Restore runtime asset type info. */
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    id->asset_data->local_type_info = id_type->asset_type_info;
   }
 
   /* Link direct data of ID properties. */

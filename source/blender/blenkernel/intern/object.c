@@ -82,6 +82,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_asset.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
@@ -1190,6 +1191,40 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
   BLI_freelistN(&pidlist_src);
 }
 
+static IDProperty *object_asset_dimensions_property(Object *ob)
+{
+  float dimensions[3];
+  BKE_object_dimensions_get(ob, dimensions);
+  if (is_zero_v3(dimensions)) {
+    return NULL;
+  }
+
+  IDPropertyTemplate idprop = {0};
+  idprop.array.len = ARRAY_SIZE(dimensions);
+  idprop.array.type = IDP_FLOAT;
+
+  IDProperty *property = IDP_New(IDP_ARRAY, &idprop, "dimensions");
+  memcpy(IDP_Array(property), dimensions, sizeof(dimensions));
+
+  return property;
+}
+
+static void object_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_data)
+{
+  Object *ob = asset_ptr;
+  BLI_assert(GS(ob->id.name) == ID_OB);
+
+  /* Update dimensions hint for the asset. */
+  IDProperty *dimensions_prop = object_asset_dimensions_property(ob);
+  if (dimensions_prop) {
+    BKE_asset_metadata_idprop_ensure(asset_data, dimensions_prop);
+  }
+}
+
+AssetTypeInfo AssetType_OB = {
+    .pre_save_fn = object_asset_pre_save,
+};
+
 IDTypeInfo IDType_ID_OB = {
     .id_code = ID_OB,
     .id_filter = FILTER_ID_OB,
@@ -1216,6 +1251,8 @@ IDTypeInfo IDType_ID_OB = {
     .blend_read_undo_preserve = NULL,
 
     .lib_override_apply_post = object_lib_override_apply_post,
+
+    .asset_type_info = &AssetType_OB,
 };
 
 void BKE_object_workob_clear(Object *workob)

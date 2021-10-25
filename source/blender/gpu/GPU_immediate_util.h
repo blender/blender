@@ -80,6 +80,10 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2);
 
 void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3]);
 void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3]);
+void imm_draw_cube_corners_3d(uint pos,
+                              const float co[3],
+                              const float aspect[3],
+                              const float factor);
 
 void imm_draw_cylinder_fill_normal_3d(
     uint pos, uint nor, float base, float top, float height, int slices, int stacks);

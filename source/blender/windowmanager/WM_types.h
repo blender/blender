@@ -989,6 +989,7 @@ typedef struct wmDragAsset {
   /* Always freed. */
   const char *path;
   int id_type;
+  struct AssetMetaData *metadata;
   int import_type; /* eFileAssetImportType */
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the

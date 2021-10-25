@@ -141,6 +141,25 @@ void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
   trimmed_id.copy(asset_data->catalog_simple_name, max_simple_name_length);
 }
 
+void BKE_asset_metadata_idprop_ensure(AssetMetaData *asset_data, IDProperty *prop)
+{
+  if (!asset_data->properties) {
+    IDPropertyTemplate val = {0};
+    asset_data->properties = IDP_New(IDP_GROUP, &val, "AssetMetaData.properties");
+  }
+  /* Important: The property may already exist. For now just allow always allow a newly allocated
+   * property, and replace the existing one as a way of updating. */
+  IDP_ReplaceInGroup(asset_data->properties, prop);
+}
+
+IDProperty *BKE_asset_metadata_idprop_find(const AssetMetaData *asset_data, const char *name)
+{
+  if (!asset_data->properties) {
+    return nullptr;
+  }
+  return IDP_GetPropertyFromGroup(asset_data->properties, name);
+}
+
 /* Queries -------------------------------------------- */
 
 PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData *UNUSED(asset_data),
@@ -173,6 +192,7 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
 void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 {
   /* asset_data itself has been read already. */
+  asset_data->local_type_info = nullptr;
 
   if (asset_data->properties) {
     BLO_read_data_address(reader, &asset_data->properties);

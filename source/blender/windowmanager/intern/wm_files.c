@@ -1788,6 +1788,7 @@ static bool wm_file_write(bContext *C,
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
@@ -2105,6 +2106,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* check current window and close it if temp */
   if (win && WM_window_is_temp_screen(win)) {

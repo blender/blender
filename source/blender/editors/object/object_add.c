@@ -3533,12 +3533,6 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
   basen->object->visibility_flag &= ~OB_HIDE_VIEWPORT;
 
-  int mval[2];
-  if (object_add_drop_xy_get(C, op, &mval)) {
-    ED_object_location_from_view(C, basen->object->loc);
-    ED_view3d_cursor3d_position(C, mval, false, basen->object->loc);
-  }
-
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
   ED_object_base_deselect_all(view_layer, NULL, SEL_DESELECT);
@@ -3556,13 +3550,29 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
   ED_outliner_select_sync_from_object_tag(C);
 
+  PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
+  if (RNA_property_is_set(op->ptr, prop_matrix)) {
+    Object *ob_add = basen->object;
+    RNA_property_float_get_array(op->ptr, prop_matrix, &ob_add->obmat[0][0]);
+    BKE_object_apply_mat4(ob_add, ob_add->obmat, true, true);
+
+    DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
+  }
+  else {
+    int mval[2];
+    if (object_add_drop_xy_get(C, op, &mval)) {
+      ED_object_location_from_view(C, basen->object->loc);
+      ED_view3d_cursor3d_position(C, mval, false, basen->object->loc);
+    }
+  }
+
   return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_add_named(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Named Object";
+  ot->name = "Add Object";
   ot->description = "Add named object";
   ot->idname = "OBJECT_OT_add_named";
 
@@ -3593,6 +3603,10 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
                   "'duplicate' is false)");
 
   RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Object name to add");
+
+  prop = RNA_def_float_matrix(
+      ot->srna, "matrix", 4, 4, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   object_add_drop_xy_props(ot);
 }

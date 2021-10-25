@@ -6231,12 +6231,13 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
 void UI_but_drag_set_asset(uiBut *but,
                            const AssetHandle *asset,
                            const char *path,
+                           struct AssetMetaData *metadata,
                            int import_type,
                            int icon,
                            struct ImBuf *imb,
                            float scale)
 {
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, path, import_type);
+  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, metadata, path, import_type);
 
   /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
    * #wmDropBox.

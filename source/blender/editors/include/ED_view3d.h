@@ -276,12 +276,15 @@ typedef struct V3DSnapCursorState {
   eV3DPlaceOrient plane_orient;
   uchar color_line[4];
   uchar color_point[4];
+  uchar color_box[4];
   float *prevpoint;
+  float box_dimensions[3];
   short snap_elem_force; /* If zero, use scene settings. */
   short plane_axis;
   bool use_plane_axis_auto;
   bool draw_point;
   bool draw_plane;
+  bool draw_box;
 } V3DSnapCursorState;
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
@@ -293,7 +296,6 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
                                                   const struct bContext *C,
                                                   const int x,
                                                   const int y);
-
 struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
 void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float loc_prev[3],
