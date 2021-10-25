@@ -92,9 +92,6 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
   snode->id = id;
   snode->from = from;
 
-  snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
-
   ED_node_set_active_viewer_key(snode);
 
   WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
@@ -259,6 +256,8 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
+  snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
+  snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
 
   /* backdrop */
   snode->zoom = 1.0f;
