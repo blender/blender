@@ -1439,7 +1439,7 @@ static void outliner_do_data_operation(
   }
 }
 
-static Base *outline_batch_delete_hierarchy(
+static Base *outliner_batch_delete_hierarchy(
     ReportList *reports, Main *bmain, ViewLayer *view_layer, Scene *scene, Base *base)
 {
   Base *child_base, *base_next;
@@ -1457,7 +1457,7 @@ static Base *outline_batch_delete_hierarchy(
       /* pass */
     }
     if (parent) {
-      base_next = outline_batch_delete_hierarchy(reports, bmain, view_layer, scene, child_base);
+      base_next = outliner_batch_delete_hierarchy(reports, bmain, view_layer, scene, child_base);
     }
   }
 
@@ -1510,7 +1510,7 @@ static void object_batch_delete_hierarchy_fn(bContext *C,
       ED_object_editmode_exit(C, EM_FREEDATA);
     }
 
-    outline_batch_delete_hierarchy(reports, CTX_data_main(C), view_layer, scene, base);
+    outliner_batch_delete_hierarchy(reports, CTX_data_main(C), view_layer, scene, base);
   }
 }
 
