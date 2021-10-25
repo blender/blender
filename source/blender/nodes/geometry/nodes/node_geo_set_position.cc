@@ -25,14 +25,14 @@ static void geo_node_set_position_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>("Position").implicit_field();
-  b.add_input<decl::Bool>("Offset").default_value(false).supports_field();
+  b.add_input<decl::Vector>("Offset").supports_field().subtype(PROP_TRANSLATION);
   b.add_output<decl::Geometry>("Geometry");
 }
 
 static void set_position_in_component(GeometryComponent &component,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
-                                      const Field<bool> &offset_field)
+                                      const Field<float3> &offset_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
   const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
@@ -58,11 +58,10 @@ static void set_position_in_component(GeometryComponent &component,
    * value or not */
 
   const VArray<float3> &positions_input = position_evaluator.get_evaluated<float3>(0);
-  const VArray<bool> &offsets_input = position_evaluator.get_evaluated<bool>(1);
+  const VArray<float3> &offsets_input = position_evaluator.get_evaluated<float3>(1);
 
   for (int i : selection) {
-    position_mutable[i] = offsets_input[i] ? position_mutable[i] + positions_input[i] :
-                                             positions_input[i];
+    position_mutable[i] = positions_input[i] + offsets_input[i];
   }
   positions.save();
 }
@@ -71,7 +70,7 @@ static void geo_node_set_position_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  Field<bool> offset_field = params.extract_input<Field<bool>>("Offset");
+  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
 
   for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,

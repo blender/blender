@@ -1218,6 +1218,52 @@ static void do_version_bones_roll(ListBase *lb)
   }
 }
 
+static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
+{
+  /* Add the new Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    if (old_offset_socket->type == SOCK_VECTOR) {
+      /* Versioning happened already. */
+      return;
+    }
+    /* Change identifier of old socket, so that the there is no name collision. */
+    STRNCPY(old_offset_socket->identifier, "Offset_old");
+    nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_VECTOR, PROP_TRANSLATION, "Offset", "Offset");
+  }
+
+  /* Relink links that were connected to Position while Offset was enabled. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tonode->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    if (!STREQ(link->tosock->identifier, "Position")) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&link->tonode->inputs, 3);
+    /* This assumes that the offset is not linked to something else. That seems to be a reasonable
+     * assumption, because the node is probably only ever used in one or the other mode. */
+    const bool offset_enabled =
+        ((bNodeSocketValueBoolean *)old_offset_socket->default_value)->value;
+    if (offset_enabled) {
+      /* Relink to new offset socket. */
+      link->tosock = old_offset_socket->next;
+    }
+  }
+
+  /* Remove old Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    nodeRemoveSocket(ntree, node, old_offset_socket);
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -2038,6 +2084,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
+      version_geometry_nodes_set_position_node_offset(ntree);
     }
     /* Keep this block, even when empty. */
   }
