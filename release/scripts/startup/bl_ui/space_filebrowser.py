@@ -734,6 +734,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
         layout.prop(asset_file_handle.asset_data, "description")
+        layout.prop(asset_file_handle.asset_data, "author")
 
 
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):

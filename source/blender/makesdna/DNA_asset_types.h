@@ -72,8 +72,12 @@ typedef struct AssetMetaData {
    * #catalog_id is updated. */
   char catalog_simple_name[64]; /* MAX_NAME */
 
+  /** Optional name of the author for display in the UI. Dynamic length. */
+  char *author;
+
   /** Optional description of this asset for display in the UI. Dynamic length. */
   char *description;
+
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)
    * is up to the asset-engine. */
