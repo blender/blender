@@ -1,0 +1,9 @@
+[
+    ["FloatList", "float"],
+    ["DoubleList", "double"],
+    ["CharList", "char"],          ["UCharList", "unsigned char"],
+    ["LongList", "long"],          ["ULongList", "unsigned long"],
+    ["IntegerList", "int"],        ["UIntegerList", "unsigned int"],
+    ["ShortList", "short"],        ["UShortList", "unsigned short"],
+    ["LongLongList", "long long"], ["ULongLongList", "unsigned long long"]
+]

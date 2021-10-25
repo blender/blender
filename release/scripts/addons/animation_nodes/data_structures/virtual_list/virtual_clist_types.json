@@ -1,0 +1,37 @@
+{
+    "Vector3DList" : {
+        "Type" : "Vector3",
+        "Import" : "from ... math.vector cimport Vector3",
+        "Return" : "Pointer"
+    },
+    "Matrix4x4List" : {
+        "Type" : "Matrix4",
+        "Import" : "from ... math.matrix cimport Matrix4",
+        "Return" : "Pointer"
+    },
+    "EulerList" : {
+        "Type" : "Euler3",
+        "Import" : "from ... math.euler cimport Euler3",
+        "Return" : "Pointer"
+    },
+    "FloatList" : {
+        "Type" : "float",
+        "Import" : "",
+        "Return" : "Value"
+    },
+    "DoubleList" : {
+        "Type" : "double",
+        "Import" : "",
+        "Return" : "Value"
+    },
+    "LongList" : {
+        "Type" : "long",
+        "Import" : "",
+        "Return" : "Value"
+    },
+    "BooleanList" :{
+        "Type" : "char",
+        "Import" : "",
+        "Return" : "Value"
+    }
+}

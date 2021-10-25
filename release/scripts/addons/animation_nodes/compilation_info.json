@@ -1,0 +1,15 @@
+{
+  "Cython.__version__": "0.26",
+  "date": 1523211260,
+  "os.name": "nt",
+  "sys.api_version": 1013,
+  "sys.platform": "win32",
+  "sys.version": "3.5.3 |Anaconda custom (64-bit)| (default, May 15 2017, 10:43:23) [MSC v.1900 64 bit (AMD64)]",
+  "sys.version_info": [
+    3,
+    5,
+    3,
+    "final",
+    0
+  ]
+}

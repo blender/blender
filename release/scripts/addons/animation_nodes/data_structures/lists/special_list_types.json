@@ -1,0 +1,83 @@
+{
+    "BooleanList" : {
+        "Type" : "char",
+        "Buffer Type" : "char",
+        "Equals" : "\\2 == 0 if \\1 == 0 else \\2 != 0",
+        "Try Conversion" : "target[0] = value",
+        "To PyObject" : "bool(value[0])",
+        "Additional Methods" : "__boolean_list_functions.src",
+        "Declarations" : []
+    },
+    "Vector3DList" : {
+        "Type" : "Vector3",
+        "Buffer Type" : "float",
+        "Equals" : "not memcmp(&(\\1), &(\\2), sizeof(Vector3))",
+        "Try Conversion" : "setVector3(target, value)",
+        "To PyObject" : "toPyVector3(value)",
+        "Additional Methods" : "__vector_list_functions.src",
+        "Declarations" : [
+            "from libc.math cimport sqrt",
+            "from ... math.vector cimport Vector3",
+            "from ... math.conversion cimport setVector3, toPyVector3, toVector3"
+        ]
+    },
+    "EulerList" : {
+        "Type" : "Euler3",
+        "Buffer Type" : "NotExistentType",
+        "Equals" : "\\1.x == \\2.x and \\1.y == \\2.y and \\1.z == \\2.z and \\1.order == \\2.order",
+        "Try Conversion" : "setEuler3(target, value)",
+        "To PyObject" : "toPyEuler3(value)",
+        "Additional Methods" : "__euler_list_functions.src",
+        "Declarations" : [
+            "from ... math.euler cimport Euler3",
+            "from ... math.conversion cimport setEuler3, toPyEuler3"
+        ]
+    },
+    "Matrix4x4List" : {
+        "Type" : "Matrix4",
+        "Buffer Type" : "float",
+        "Equals" : "not memcmp(&(\\1), &(\\2), sizeof(Matrix4))",
+        "Try Conversion" : "setMatrix4(target, value)",
+        "To PyObject" : "toPyMatrix4(value)",
+        "Additional Methods" : "__matrix_list_functions.src",
+        "Declarations" : [
+            "from ... math.matrix cimport Matrix4, transposeMatrix_Inplace, multMatrix4",
+            "from ... math.conversion cimport setMatrix4, toPyMatrix4"
+        ]
+    },
+    "QuaternionList" : {
+        "Type" : "Quaternion",
+        "Buffer Type" : "float",
+        "Equals" : "not memcmp(&(\\1), &(\\2), sizeof(Quaternion))",
+        "Try Conversion" : "setQuaternion(target, value)",
+        "To PyObject" : "toPyQuaternion(value)",
+        "Additional Methods" : "",
+        "Declarations" : [
+            "from ... math.quaternion cimport Quaternion",
+            "from ... math.conversion cimport setQuaternion, toPyQuaternion"
+        ]
+    },
+    "EdgeIndicesList" : {
+        "Type" : "EdgeIndices",
+        "Buffer Type" : "unsigned int",
+        "Equals" : "not memcmp(&(\\1), &(\\2), sizeof(EdgeIndices))",
+        "Try Conversion" : "if len(value) == 2: target.v1, target.v2 = value[0], value[1]\nelse: raise TypeError(\"length has to be 2\")",
+        "To PyObject" : "(value.v1, value.v2)",
+        "Additional Methods" : "__indices_list_functions.src",
+        "Declarations" : [
+            "cdef struct EdgeIndices:\n    unsigned int v1, v2"
+        ]
+    },
+    "Vector2DList" : {
+        "Type" : "Vector2",
+        "Buffer Type" : "float",
+        "Equals" : "not memcmp(&(\\1), &(\\2), sizeof(Vector2))",
+        "Try Conversion" : "setVector2(target, value)",
+        "To PyObject" : "toPyVector2(value)",
+        "Additional Methods" : "",
+        "Declarations" : [
+            "from ... math.vector cimport Vector2",
+            "from ... math.conversion cimport setVector2, toPyVector2"
+        ]
+    }
+}

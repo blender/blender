@@ -1,0 +1,114 @@
+[
+    [
+        "Wood",
+        [
+            "Floor Wood",
+            "Polished Walnut",
+            "Rough Walnut"
+        ]
+    ],
+    [
+        "Earth",
+        [
+            "Ant Snowy",
+            "Ground Brown",
+            "Molten",
+            "Planet Plane",
+            "Stone Red"
+        ]
+    ],
+    [
+        "Plastic",
+        [
+            "Coated Glossy",
+            "Polystyrene Foam"
+        ]
+    ],
+    [
+        "Ceramic",
+        [
+            "1970_tiles",
+            "Ceramic Polished",
+            "Glass Glaze",
+            "Mosaic"
+        ]
+    ],
+    [
+        "Lights",
+        [
+            "Blaster Bolt (Red)",
+            "Fake Shading",
+            "Fresnel",
+            "Invisible Light",
+            "Volumetric Light"
+        ]
+    ],
+    [
+        "Metal",
+        [
+            "Anodized",
+            "Galvanized Steel",
+            "Jewelry",
+            "rusty_g",
+            "Silver Planet"
+        ]
+    ],
+    [
+        "Utils",
+        [
+            "Gradient Pass",
+            "Wire Musgrave"
+        ]
+    ],
+    [
+        "Groups",
+        [
+            "Node Groups"
+        ]
+    ],
+    [
+        "Textile",
+        [
+            "Building",
+            "Carbon Fiber (Glossy)",
+            "Crushed Velvet",
+            "Denim",
+            "Tyre Rubber"
+        ]
+    ],
+    [
+        "Glass",
+        [
+            "Apple Juice",
+            "Cranberry Juice",
+            "Diamond",
+            "Facade",
+            "Fake Glass",
+            "Iridescent",
+            "Marble",
+            "Basic Glass",
+            "Pluie sur vitre",
+            "Pool Water",
+            "Soap Bubble"
+        ]
+    ],
+    [
+        "Organic",
+        [
+            "Chocolate Swirl",
+            "Gob Stopper",
+            "Lemon",
+            "Peau Humaine",
+            "Raspberry",
+            "Sponge"
+        ]
+    ],
+    [
+        "Car paint",
+        [
+            "Car Paint",
+            "Flakes 17",
+            "Flaky Tangelo"
+        ]
+    ]
+]
