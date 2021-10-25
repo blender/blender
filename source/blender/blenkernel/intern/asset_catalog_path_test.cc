@@ -193,19 +193,21 @@ TEST(AssetCatalogPathTest, is_contained_in)
 
 TEST(AssetCatalogPathTest, cleanup)
 {
-  AssetCatalogPath ugly_path("/  some /   родитель  / ");
-  AssetCatalogPath clean_path = ugly_path.cleanup();
-
-  EXPECT_EQ(AssetCatalogPath("/  some /   родитель  / "), ugly_path)
-      << "cleanup should not modify the path instance itself";
-
-  EXPECT_EQ(AssetCatalogPath("some/родитель"), clean_path);
-
-  AssetCatalogPath double_slashed("some//родитель");
-  EXPECT_EQ(AssetCatalogPath("some/родитель"), double_slashed.cleanup());
-
-  AssetCatalogPath with_colons("some/key:subkey=value/path");
-  EXPECT_EQ(AssetCatalogPath("some/key-subkey=value/path"), with_colons.cleanup());
+  {
+    AssetCatalogPath ugly_path("/  some /   родитель  / ");
+    AssetCatalogPath clean_path = ugly_path.cleanup();
+    EXPECT_EQ(AssetCatalogPath("/  some /   родитель  / "), ugly_path)
+        << "cleanup should not modify the path instance itself";
+    EXPECT_EQ(AssetCatalogPath("some/родитель"), clean_path);
+  }
+  {
+    AssetCatalogPath double_slashed("some//родитель");
+    EXPECT_EQ(AssetCatalogPath("some/родитель"), double_slashed.cleanup());
+  }
+  {
+    AssetCatalogPath with_colons("some/key:subkey=value/path");
+    EXPECT_EQ(AssetCatalogPath("some/key-subkey=value/path"), with_colons.cleanup());
+  }
 }
 
 TEST(AssetCatalogPathTest, iterate_components)
