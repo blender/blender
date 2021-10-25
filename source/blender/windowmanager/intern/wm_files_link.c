@@ -583,8 +583,13 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
     /* While we do not want to add non-linkable ID (shape keys...) to the list of linked items,
      * unfortunately they can use fully linkable valid IDs too, like actions. Those need to be
      * processed, so we need to recursively deal with them here. */
-    BKE_library_foreach_ID_link(
-        cb_data->bmain, id, foreach_libblock_append_callback, data, IDWALK_NOP);
+    /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
+     * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
+     * shapekey referencing the shapekey itself). */
+    if (id != cb_data->id_self) {
+      BKE_library_foreach_ID_link(
+          cb_data->bmain, id, foreach_libblock_append_callback, data, IDWALK_NOP);
+    }
     return IDWALK_RET_NOP;
   }
 
