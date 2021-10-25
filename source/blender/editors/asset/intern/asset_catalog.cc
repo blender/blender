@@ -107,17 +107,17 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
 
   AssetCatalog *catalog = catalog_service->find_catalog(catalog_id);
 
-  AssetCatalogPath new_path = catalog->path.parent();
-  new_path = new_path / StringRef(new_name);
+  const AssetCatalogPath new_path = catalog->path.parent() / StringRef(new_name);
+  const AssetCatalogPath clean_new_path = new_path.cleanup();
 
-  if (new_path == catalog->path) {
+  if (new_path == catalog->path || clean_new_path == catalog->path) {
     /* Nothing changed, so don't bother renaming for nothing. */
     return;
   }
 
   catalog_service->undo_push();
   catalog_service->tag_has_unsaved_changes(catalog);
-  catalog_service->update_catalog_path(catalog_id, new_path);
+  catalog_service->update_catalog_path(catalog_id, clean_new_path);
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
