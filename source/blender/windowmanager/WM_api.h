@@ -740,6 +740,10 @@ struct wmDropBox *WM_dropbox_add(
     void (*copy)(struct wmDrag *, struct wmDropBox *),
     void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *),
     WMDropboxTooltipFunc tooltip);
+void WM_drag_draw_default_fn(struct bContext *C,
+                             struct wmWindow *win,
+                             struct wmDrag *drag,
+                             const int xy[2]);
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 /* ID drag and drop */

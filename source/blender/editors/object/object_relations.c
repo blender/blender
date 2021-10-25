@@ -2589,10 +2589,10 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
-                                               const wmEvent *event)
+                                               const int mval[2])
 {
   int mat_slot = 0;
-  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);
   if (ob == NULL) {
     return BLI_strdup("");
   }

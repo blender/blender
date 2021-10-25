@@ -202,7 +202,7 @@ void ED_object_parent(struct Object *ob,
                       const char *substr);
 char *ED_object_ot_drop_named_material_tooltip(struct bContext *C,
                                                struct PointerRNA *properties,
-                                               const struct wmEvent *event);
+                                               const int mval[2]);
 
 /* bitflags for enter/exit editmode */
 enum {

@@ -40,12 +40,11 @@ static bool ui_tree_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *eve
 
 static char *ui_tree_view_drop_tooltip(bContext *C,
                                        wmDrag *drag,
-                                       const wmEvent *event,
+                                       const int xy[2],
                                        wmDropBox *UNUSED(drop))
 {
   const ARegion *region = CTX_wm_region(C);
-  const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region,
-                                                                                  event->xy);
+  const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region, xy);
   if (!hovered_tree_item) {
     return nullptr;
   }

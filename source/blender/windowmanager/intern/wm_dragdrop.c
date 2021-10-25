@@ -43,6 +43,9 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_screen.h"
+
+#include "GHOST_C-api.h"
 
 #include "BLO_readfile.h"
 
@@ -63,6 +66,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_event_system.h"
+#include "wm_window.h"
 
 /* ****************************************************** */
 
@@ -229,6 +233,9 @@ void WM_drag_data_free(int dragtype, void *poin)
 
 void WM_drag_free(wmDrag *drag)
 {
+  if (drag->active_dropbox && drag->active_dropbox->draw_deactivate) {
+    drag->active_dropbox->draw_deactivate(drag->active_dropbox, drag);
+  }
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
   }
@@ -250,11 +257,11 @@ void WM_drag_free_list(struct ListBase *lb)
   }
 }
 
-static char *dropbox_tooltip(bContext *C, wmDrag *drag, const wmEvent *event, wmDropBox *drop)
+static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
 {
   char *tooltip = NULL;
   if (drop->tooltip) {
-    tooltip = drop->tooltip(C, drag, event, drop);
+    tooltip = drop->tooltip(C, drag, xy, drop);
   }
   if (!tooltip) {
     tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));
@@ -286,7 +293,7 @@ static wmDropBox *dropbox_active(bContext *C,
 }
 
 /* return active operator tooltip/name when mouse is in box */
-static char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
+static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   wmDropBox *drop = dropbox_active(C, &win->handlers, drag, event);
@@ -298,10 +305,7 @@ static char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
     ARegion *region = CTX_wm_region(C);
     drop = dropbox_active(C, &region->handlers, drag, event);
   }
-  if (drop) {
-    return dropbox_tooltip(C, drag, event, drop);
-  }
-  return NULL;
+  return drop;
 }
 
 static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -316,23 +320,17 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
     return;
   }
 
-  drag->tooltip[0] = 0;
-
-  /* check buttons (XXX todo rna and value) */
-  if (UI_but_active_drop_name(C)) {
-    BLI_strncpy(drag->tooltip, IFACE_("Paste name"), sizeof(drag->tooltip));
-  }
-  else {
-    char *tooltip = wm_dropbox_active(C, drag, event);
-
-    if (tooltip) {
-      BLI_strncpy(drag->tooltip, tooltip, sizeof(drag->tooltip));
-      MEM_freeN(tooltip);
-      // WM_cursor_modal_set(win, WM_CURSOR_COPY);
+  wmDropBox *drop_prev = drag->active_dropbox;
+  wmDropBox *drop = wm_dropbox_active(C, drag, event);
+  if (drop != drop_prev) {
+    if (drop_prev && drop_prev->draw_deactivate) {
+      drop_prev->draw_deactivate(drop_prev, drag);
+      BLI_assert(drop_prev->draw_data == NULL);
     }
-    // else
-    //  WM_cursor_modal_restore(win);
-    /* unsure about cursor type, feels to be too much */
+    if (drop && drop->draw_activate) {
+      drop->draw_activate(drop, drag);
+    }
+    drag->active_dropbox = drop;
   }
 }
 
@@ -629,132 +627,162 @@ const char *WM_drag_get_item_name(wmDrag *drag)
   return "";
 }
 
-static void drag_rect_minmax(rcti *rect, int x1, int y1, int x2, int y2)
+static void wm_drag_draw_icon(bContext *UNUSED(C),
+                              wmWindow *UNUSED(win),
+                              wmDrag *drag,
+                              const int xy[2])
 {
-  if (rect->xmin > x1) {
-    rect->xmin = x1;
+  int x, y;
+  if (drag->imb) {
+    x = xy[0] - drag->sx / 2;
+    y = xy[1] - drag->sy / 2;
+
+    float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
+    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+    immDrawPixelsTexScaled(&state,
+                           x,
+                           y,
+                           drag->imb->x,
+                           drag->imb->y,
+                           GPU_RGBA8,
+                           false,
+                           drag->imb->rect,
+                           drag->scale,
+                           drag->scale,
+                           1.0f,
+                           1.0f,
+                           col);
   }
-  if (rect->xmax < x2) {
-    rect->xmax = x2;
-  }
-  if (rect->ymin > y1) {
-    rect->ymin = y1;
-  }
-  if (rect->ymax < y2) {
-    rect->ymax = y2;
+  else {
+    int padding = 4 * UI_DPI_FAC;
+    x = xy[0] - 2 * padding;
+    y = xy[1] - 2 * UI_DPI_FAC;
+
+    const uchar text_col[] = {255, 255, 255, 255};
+    UI_icon_draw_ex(x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false);
   }
 }
 
-/* called in wm_draw.c */
-/* if rect set, do not draw */
-void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
+static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  wmWindowManager *wm = CTX_wm_manager(C);
-  const int winsize_y = WM_window_pixels_y(win);
+  const uchar text_col[] = {255, 255, 255, 255};
+  UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
+}
 
-  int cursorx = win->eventstate->xy[0];
-  int cursory = win->eventstate->xy[1];
-  if (rect) {
-    rect->xmin = rect->xmax = cursorx;
-    rect->ymin = rect->ymax = cursory;
+static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2])
+{
+  if (!CTX_wm_region(C)) {
+    /* Some callbacks require the region. */
+    return;
   }
+  int iconsize = UI_DPI_ICON_SIZE;
+  int padding = 4 * UI_DPI_FAC;
+
+  char *tooltip = NULL;
+  bool free_tooltip = false;
+  if (UI_but_active_drop_name(C)) {
+    tooltip = IFACE_("Paste name");
+  }
+  else if (drag->active_dropbox) {
+    tooltip = dropbox_tooltip(C, drag, xy, drag->active_dropbox);
+    free_tooltip = true;
+  }
+
+  if (tooltip) {
+    const int winsize_y = WM_window_pixels_y(win);
+    int x, y;
+    if (drag->imb) {
+      x = xy[0] - drag->sx / 2;
+
+      if (xy[1] + drag->sy / 2 + padding + iconsize < winsize_y) {
+        y = xy[1] + drag->sy / 2 + padding;
+      }
+      else {
+        y = xy[1] - drag->sy / 2 - padding - iconsize - padding - iconsize;
+      }
+    }
+    else {
+      x = xy[0] - 2 * padding;
+
+      if (xy[1] + iconsize + iconsize < winsize_y) {
+        y = (xy[1] + iconsize) + padding;
+      }
+      else {
+        y = (xy[1] - iconsize) - padding;
+      }
+    }
+
+    wm_drop_operator_draw(tooltip, x, y);
+    if (free_tooltip) {
+      MEM_freeN(tooltip);
+    }
+  }
+}
+
+static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2])
+{
+  int xy_tmp[2] = {UNPACK2(xy)};
+
+  /* Image or icon. */
+  wm_drag_draw_icon(C, win, drag, xy_tmp);
+
+  /* Item name. */
+  if (drag->imb) {
+    int iconsize = UI_DPI_ICON_SIZE;
+    xy_tmp[0] = xy[0] - (drag->sx / 2);
+    xy_tmp[1] = xy[1] - (drag->sy / 2) - iconsize;
+  }
+  else {
+    xy_tmp[0] = xy[0] + 10 * UI_DPI_FAC;
+    xy_tmp[1] = xy[1] + 1 * UI_DPI_FAC;
+  }
+  wm_drag_draw_item_name(drag, UNPACK2(xy_tmp));
+
+  /* Operator name with roundbox. */
+  wm_drag_draw_tooltip(C, win, drag, xy);
+}
+
+void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2])
+{
+  wm_drag_draw_default(C, win, drag, xy);
+}
+
+/* Called in #wm_draw_window_onscreen. */
+void wm_drags_draw(bContext *C, wmWindow *win)
+{
+  int xy[2];
+  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+    wm_cursor_position_get(win, &xy[0], &xy[1]);
+  }
+  else {
+    xy[0] = win->eventstate->xy[0];
+    xy[1] = win->eventstate->xy[1];
+  }
+
+  /* Set a region. It is used in the `UI_but_active_drop_name`. */
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, UNPACK2(xy));
+  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, UNPACK2(xy));
+  if (region) {
+    BLI_assert(!CTX_wm_area(C) && !CTX_wm_region(C));
+    CTX_wm_area_set(C, area);
+    CTX_wm_region_set(C, region);
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Should we support multi-line drag draws? Maybe not, more types mixed won't work well. */
   GPU_blend(GPU_BLEND_ALPHA);
   LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
-    const uchar text_col[] = {255, 255, 255, 255};
-    int iconsize = UI_DPI_ICON_SIZE;
-    int padding = 4 * UI_DPI_FAC;
-
-    /* image or icon */
-    int x, y;
-    if (drag->imb) {
-      x = cursorx - drag->sx / 2;
-      y = cursory - drag->sy / 2;
-
-      if (rect) {
-        drag_rect_minmax(rect, x, y, x + drag->sx, y + drag->sy);
-      }
-      else {
-        float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
-        IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-        immDrawPixelsTexScaled(&state,
-                               x,
-                               y,
-                               drag->imb->x,
-                               drag->imb->y,
-                               GPU_RGBA8,
-                               false,
-                               drag->imb->rect,
-                               drag->scale,
-                               drag->scale,
-                               1.0f,
-                               1.0f,
-                               col);
-      }
-    }
-    else {
-      x = cursorx - 2 * padding;
-      y = cursory - 2 * UI_DPI_FAC;
-
-      if (rect) {
-        drag_rect_minmax(rect, x, y, x + iconsize, y + iconsize);
-      }
-      else {
-        UI_icon_draw_ex(x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false);
-      }
+    if (drag->active_dropbox && drag->active_dropbox->draw) {
+      drag->active_dropbox->draw(C, win, drag, xy);
+      continue;
     }
 
-    /* item name */
-    if (drag->imb) {
-      x = cursorx - drag->sx / 2;
-      y = cursory - drag->sy / 2 - iconsize;
-    }
-    else {
-      x = cursorx + 10 * UI_DPI_FAC;
-      y = cursory + 1 * UI_DPI_FAC;
-    }
-
-    if (rect) {
-      int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
-      drag_rect_minmax(rect, x, y, x + w, y + iconsize);
-    }
-    else {
-      UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
-    }
-
-    /* operator name with roundbox */
-    if (drag->tooltip[0]) {
-      if (drag->imb) {
-        x = cursorx - drag->sx / 2;
-
-        if (cursory + drag->sy / 2 + padding + iconsize < winsize_y) {
-          y = cursory + drag->sy / 2 + padding;
-        }
-        else {
-          y = cursory - drag->sy / 2 - padding - iconsize - padding - iconsize;
-        }
-      }
-      else {
-        x = cursorx - 2 * padding;
-
-        if (cursory + iconsize + iconsize < winsize_y) {
-          y = (cursory + iconsize) + padding;
-        }
-        else {
-          y = (cursory - iconsize) - padding;
-        }
-      }
-
-      if (rect) {
-        int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
-        drag_rect_minmax(rect, x, y, x + w, y + iconsize);
-      }
-      else {
-        wm_drop_operator_draw(drag->tooltip, x, y);
-      }
-    }
+    wm_drag_draw_default(C, win, drag, xy);
   }
   GPU_blend(GPU_BLEND_NONE);
+  CTX_wm_area_set(C, NULL);
+  CTX_wm_region_set(C, NULL);
 }

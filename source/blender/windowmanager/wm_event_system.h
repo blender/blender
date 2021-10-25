@@ -173,7 +173,7 @@ void wm_tablet_data_from_ghost(const struct GHOST_TabletData *tablet_data, wmTab
 /* wm_dropbox.c */
 void wm_dropbox_free(void);
 void wm_drags_check_ops(bContext *C, const wmEvent *event);
-void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
+void wm_drags_draw(bContext *C, wmWindow *win);
 
 #ifdef __cplusplus
 }

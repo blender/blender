@@ -856,9 +856,9 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
     wm_gesture_draw(win);
   }
 
-  /* needs pixel coords in screen */
+  /* Needs pixel coords in screen. */
   if (wm->drags.first) {
-    wm_drags_draw(C, win, NULL);
+    wm_drags_draw(C, win);
   }
 
   GPU_debug_group_end();

@@ -532,12 +532,17 @@ static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 
 static char *view3d_mat_drop_tooltip(bContext *C,
                                      wmDrag *drag,
-                                     const wmEvent *event,
+                                     const int xy[2],
                                      struct wmDropBox *drop)
 {
   const char *name = WM_drag_get_item_name(drag);
+  ARegion *region = CTX_wm_region(C);
   RNA_string_set(drop->ptr, "name", name);
-  return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, event);
+  int mval[2] = {
+      xy[0] - region->winrct.xmin,
+      xy[1] - region->winrct.ymin,
+  };
+  return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, mval);
 }
 
 static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -556,7 +561,7 @@ static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEven
 
 static char *view3d_object_data_drop_tooltip(bContext *UNUSED(C),
                                              wmDrag *UNUSED(drag),
-                                             const wmEvent *UNUSED(event),
+                                             const int UNUSED(xy[2]),
                                              wmDropBox *UNUSED(drop))
 {
   return BLI_strdup(TIP_("Create object instance from object-data"));
