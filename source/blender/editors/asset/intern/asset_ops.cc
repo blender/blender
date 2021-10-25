@@ -554,7 +554,7 @@ static bool asset_catalog_redo_poll(bContext *C)
 static void ASSET_OT_catalog_redo(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "redo Catalog Edits";
+  ot->name = "Redo Catalog Edits";
   ot->description = "Redo the last undone edit to the asset catalogs";
   ot->idname = "ASSET_OT_catalog_redo";
 
