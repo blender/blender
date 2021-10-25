@@ -227,6 +227,10 @@ static void seq_snap_target_points_build(const TransInfo *t,
           content_end = seq->enddisp;
         }
       }
+
+      CLAMP(content_start, seq->startdisp, seq->enddisp);
+      CLAMP(content_end, seq->startdisp, seq->enddisp);
+
       snap_data->target_snap_points[i] = content_start;
       snap_data->target_snap_points[i + 1] = content_end;
       i += 2;
