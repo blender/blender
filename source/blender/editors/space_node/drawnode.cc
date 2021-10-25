@@ -3619,7 +3619,39 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_IMAGE: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
+      if (node_tree->type == NTREE_GEOMETRY) {
+        if (text[0] == '\0') {
+          uiTemplateID(layout,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+        else {
+          /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
+          uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+          uiItemL(row, text, 0);
+          uiTemplateID(row,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+      }
+      else {
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      }
       break;
     }
     case SOCK_COLLECTION: {

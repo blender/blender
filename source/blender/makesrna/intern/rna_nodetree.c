@@ -5022,10 +5022,8 @@ static void def_fn_input_bool(StructRNA *srna)
 
   prop = RNA_def_property(srna, "boolean", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "boolean", 1);
-  RNA_def_property_ui_text(
-    prop, "Boolean", "Input value used for unconnected socket");
+  RNA_def_property_ui_text(prop, "Boolean", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
 }
 
 static void def_fn_input_int(StructRNA *srna)
@@ -5037,8 +5035,7 @@ static void def_fn_input_int(StructRNA *srna)
   prop = RNA_def_property(srna, "integer", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "integer");
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_ui_text(
-    prop, "Integer", "Input value used for unconnected socket");
+  RNA_def_property_ui_text(prop, "Integer", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -5413,6 +5410,50 @@ static void def_sh_tex_image(StructRNA *srna)
       prop,
       "Image User",
       "Parameters defining which layer, pass and frame of the image is displayed");
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+}
+
+static void def_geo_image_texture(StructRNA *srna)
+{
+  static const EnumPropertyItem fn_tex_prop_interpolation_items[] = {
+      {SHD_INTERP_LINEAR, "Linear", 0, "Linear", "Linear interpolation"},
+      {SHD_INTERP_CLOSEST, "Closest", 0, "Closest", "No interpolation (sample closest texel)"},
+      {SHD_INTERP_CUBIC, "Cubic", 0, "Cubic", "Cubic interpolation"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem prop_image_extension[] = {
+      {SHD_IMAGE_EXTENSION_REPEAT,
+       "REPEAT",
+       0,
+       "Repeat",
+       "Cause the image to repeat horizontally and vertically"},
+      {SHD_IMAGE_EXTENSION_EXTEND,
+       "EXTEND",
+       0,
+       "Extend",
+       "Extend by repeating edge pixels of the image"},
+      {SHD_IMAGE_EXTENSION_CLIP,
+       "CLIP",
+       0,
+       "Clip",
+       "Clip to image size and set exterior pixels as transparent"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryImageTexture", "storage");
+
+  prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, fn_tex_prop_interpolation_items);
+  RNA_def_property_ui_text(prop, "Interpolation", "Method for smoothing values between pixels");
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_image_extension);
+  RNA_def_property_ui_text(
+      prop, "Extension", "How the image is extrapolated past its original bounds");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 

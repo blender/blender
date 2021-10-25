@@ -1547,6 +1547,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_RAYCAST 1128
 #define GEO_NODE_CURVE_TO_POINTS 1130
 #define GEO_NODE_INSTANCES_TO_POINTS 1131
+#define GEO_NODE_IMAGE_TEXTURE 1132
 
 /** \} */
 

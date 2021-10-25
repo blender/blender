@@ -355,6 +355,7 @@ DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, def_geo_delete_geometry, "DELETE
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "")
 DefNode(GeometryNode, GEO_NODE_SPLIT_EDGES, 0, "SPLIT_EDGES", SplitEdges, "Split Edges", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_HANDLES, 0, "INPUT_CURVE_HANDLES", InputCurveHandlePositions, "Curve Handle Positions", "")
+DefNode(GeometryNode, GEO_NODE_IMAGE_TEXTURE, def_geo_image_texture, "IMAGE_TEXTURE", ImageTexture, "Image Texture", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_TILT, 0, "INPUT_CURVE_TILT", InputCurveTilt, "Curve Tilt", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_INDEX, 0, "INDEX", InputIndex, "Index", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MATERIAL, def_geo_input_material, "INPUT_MATERIAL", InputMaterial, "Material", "")

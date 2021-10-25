@@ -94,6 +94,7 @@ void register_node_type_geo_curve_trim(void);
 void register_node_type_geo_delete_geometry(void);
 void register_node_type_geo_distribute_points_on_faces(void);
 void register_node_type_geo_edge_split(void);
+void register_node_type_geo_image_texture(void);
 void register_node_type_geo_input_curve_handles(void);
 void register_node_type_geo_input_curve_tilt(void);
 void register_node_type_geo_input_index(void);
