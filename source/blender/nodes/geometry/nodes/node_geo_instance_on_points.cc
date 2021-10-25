@@ -196,6 +196,7 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
     }
     /* Unused references may have been added above. Remove those now so that other nodes don't
      * process them needlessly. */
+    /** \note: This currently expects that all originally existing instances were used. */
     instances.remove_unused_references();
   });
 

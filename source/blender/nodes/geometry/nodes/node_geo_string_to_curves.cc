@@ -271,8 +271,9 @@ static void geo_node_string_to_curves_exec(GeoNodeExecParams params)
   /* Convert UTF-8 encoded string to UTF-32. */
   size_t len_bytes;
   size_t len_chars = BLI_strlen_utf8_ex(layout.text.c_str(), &len_bytes);
-  Array<char32_t> char_codes(len_chars + 1);
-  BLI_str_utf8_as_utf32(char_codes.data(), layout.text.c_str(), len_chars + 1);
+  Array<char32_t> char_codes_with_null(len_chars + 1);
+  BLI_str_utf8_as_utf32(char_codes_with_null.data(), layout.text.c_str(), len_chars + 1);
+  const Span<char32_t> char_codes = char_codes_with_null.as_span().drop_back(1);
 
   /* Create and add instances. */
   GeometrySet geometry_set_out;
