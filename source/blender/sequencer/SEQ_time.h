@@ -32,6 +32,8 @@ struct Scene;
 struct Sequence;
 struct rctf;
 
+void SEQ_timeline_init_boundbox(const struct Scene *scene, struct rctf *rect);
+void SEQ_timeline_expand_boundbox(const struct ListBase *seqbase, struct rctf *rect);
 void SEQ_timeline_boundbox(const struct Scene *scene,
                            const struct ListBase *seqbase,
                            struct rctf *rect);

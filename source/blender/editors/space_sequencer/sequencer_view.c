@@ -92,7 +92,14 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const Editing *ed = SEQ_editing_get(scene);
 
-  SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
+  SEQ_timeline_init_boundbox(scene, &box);
+  MetaStack *ms = SEQ_meta_stack_active_get(ed);
+  /* Use meta strip range instead of scene. */
+  if (ms != NULL) {
+    box.xmin = ms->disp_range[0] - 1;
+    box.xmax = ms->disp_range[1] + 1;
+  }
+  SEQ_timeline_expand_boundbox(SEQ_active_seqbase_get(ed), &box);
   UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
   return OPERATOR_FINISHED;
 }

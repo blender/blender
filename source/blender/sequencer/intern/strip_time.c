@@ -376,19 +376,27 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
 }
 
 /**
- * Define boundary rectangle of sequencer timeline and fill in rect data
+ * Initialize given rectangle with the Scene's timeline boundaries.
  *
- * \param scene: Scene in which strips are located
- * \param seqbase: ListBase in which strips are located
- * \param rect: data structure describing rectangle, that will be filled in by this function
+ * \param scene: the Scene instance whose timeline boundaries are extracted from
+ * \param rect: output parameter to be filled with timeline boundaries
  */
-void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
+void SEQ_timeline_init_boundbox(const Scene *scene, rctf *rect)
 {
   rect->xmin = scene->r.sfra;
   rect->xmax = scene->r.efra + 1;
   rect->ymin = 0.0f;
   rect->ymax = 8.0f;
+}
 
+/**
+ * Stretch the given rectangle to include the given strips boundaries
+ *
+ * \param seqbase: ListBase in which strips are located
+ * \param rect: output parameter to be filled with strips' boundaries
+ */
+void SEQ_timeline_expand_boundbox(const ListBase *seqbase, rctf *rect)
+{
   if (seqbase == NULL) {
     return;
   }
@@ -404,6 +412,19 @@ void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *re
       rect->ymax = seq->machine + 2;
     }
   }
+}
+
+/**
+ * Define boundary rectangle of sequencer timeline and fill in rect data
+ *
+ * \param scene: Scene in which strips are located
+ * \param seqbase: ListBase in which strips are located
+ * \param rect: data structure describing rectangle, that will be filled in by this function
+ */
+void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
+{
+  SEQ_timeline_init_boundbox(scene, rect);
+  SEQ_timeline_expand_boundbox(seqbase, rect);
 }
 
 static bool strip_exists_at_frame(SeqCollection *all_strips, const int timeline_frame)
