@@ -524,10 +524,6 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
   }
 
   state = drop->draw_data = ED_view3d_cursor_snap_active();
-  if (!state) {
-    /* The maximum snap status stack value has been reached. */
-    return;
-  }
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
