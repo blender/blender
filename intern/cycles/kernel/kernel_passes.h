@@ -231,12 +231,12 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals kg,
           const float id = shader_pass_id(kg, sd);
           kernel_write_pass_float(buffer + kernel_data.film.pass_material_id, id);
         }
+        if (flag & PASSMASK(POSITION)) {
+          const float3 position = sd->P;
+          kernel_write_pass_float3(buffer + kernel_data.film.pass_position, position);
+        }
       }
 
-      if (flag & PASSMASK(POSITION)) {
-        const float3 position = sd->P;
-        kernel_write_pass_float3(buffer + kernel_data.film.pass_position, position);
-      }
       if (flag & PASSMASK(NORMAL)) {
         const float3 normal = shader_bsdf_average_normal(kg, sd);
         kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, normal);
