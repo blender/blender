@@ -441,16 +441,19 @@ void imm_draw_cube_corners_3d(uint pos,
 
   immBegin(GPU_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 4);
   for (int i = 0; i < ARRAY_SIZE(cube_line_index); i++) {
-    float vec[3], co[3];
+    float vec[3], _co[3];
     sub_v3_v3v3(vec, coords[cube_line_index[i][1]], coords[cube_line_index[i][0]]);
     mul_v3_fl(vec, factor);
 
-    immVertex3fv(pos, coords[cube_line_index[i][0]]);
-    add_v3_v3v3(co, coords[cube_line_index[i][0]], vec);
-    immVertex3fv(pos, co);
-    sub_v3_v3v3(co, coords[cube_line_index[i][1]], vec);
-    immVertex3fv(pos, co);
-    immVertex3fv(pos, coords[cube_line_index[i][1]]);
+    copy_v3_v3(_co, coords[cube_line_index[i][0]]);
+    immVertex3fv(pos, _co);
+    add_v3_v3(_co, vec);
+    immVertex3fv(pos, _co);
+
+    copy_v3_v3(_co, coords[cube_line_index[i][1]]);
+    immVertex3fv(pos, _co);
+    sub_v3_v3(_co, vec);
+    immVertex3fv(pos, _co);
   }
   immEnd();
 }

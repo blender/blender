@@ -711,7 +711,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int iconsize = UI_DPI_ICON_SIZE;
   int padding = 4 * UI_DPI_FAC;
 
-  char *tooltip = NULL;
+  const char *tooltip = NULL;
   bool free_tooltip = false;
   if (UI_but_active_drop_name(C)) {
     tooltip = IFACE_("Paste name");
@@ -747,7 +747,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
 
     wm_drop_operator_draw(tooltip, x, y);
     if (free_tooltip) {
-      MEM_freeN(tooltip);
+      MEM_freeN((void *)tooltip);
     }
   }
 }
