@@ -1031,7 +1031,6 @@ enum {
 struct GPUBatch *ui_batch_roundbox_widget_get(void);
 struct GPUBatch *ui_batch_roundbox_shadow_get(void);
 
-void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4]);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_popover_back(struct ARegion *region,
                           struct uiStyle *style,

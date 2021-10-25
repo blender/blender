@@ -424,10 +424,6 @@ typedef enum eButGradientType {
  * Functions to draw various shapes, taking theme settings into account.
  * Used for code that draws its own UI style elements. */
 
-void UI_draw_anti_tria(
-    float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]);
-void UI_draw_anti_fan(float tri_array[][2], unsigned int length, const float color[4]);
-
 void UI_draw_roundbox_corner_set(int type);
 void UI_draw_roundbox_aa(const struct rctf *rect, bool filled, float rad, const float color[4]);
 void UI_draw_roundbox_4fv(const struct rctf *rect, bool filled, float rad, const float col[4]);
@@ -438,12 +434,6 @@ void UI_draw_roundbox_3ub_alpha(const struct rctf *rect,
                                 unsigned char alpha);
 void UI_draw_roundbox_3fv_alpha(
     const struct rctf *rect, bool filled, float rad, const float col[3], float alpha);
-void UI_draw_roundbox_shade_x(const struct rctf *rect,
-                              bool filled,
-                              float rad,
-                              float shadetop,
-                              float shadedown,
-                              const float col[4]);
 void UI_draw_roundbox_4fv_ex(const struct rctf *rect,
                              const float inner1[4],
                              const float inner2[4],
