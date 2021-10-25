@@ -28,7 +28,7 @@ ARRAY_TYPES = (list, tuple, IDPropertyArray, Vector, bpy_prop_array)
 
 # Maximum length of an array property for which a multi-line
 # edit field will be displayed in the Custom Properties panel.
-MAX_DISPLAY_ROWS = 4
+MAX_DISPLAY_ROWS = 8
 
 
 def rna_idprop_quote_path(prop):
@@ -134,18 +134,7 @@ def rna_idprop_ui_create(
 
 
 def draw(layout, context, context_member, property_type, *, use_edit=True):
-
-    def assign_props(prop, value, key):
-        prop.data_path = context_member
-        prop.property_name = key
-
-        try:
-            prop.value = str(value)
-        except:
-            pass
-
     rna_item, context_member = rna_idprop_context_value(context, context_member, property_type)
-
     # poll should really get this...
     if not rna_item:
         return
@@ -164,17 +153,15 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
     # TODO: Allow/support adding new custom props to overrides.
     if use_edit and not is_lib_override:
         row = layout.row()
-        props = row.operator("wm.properties_add", text="Add")
+        props = row.operator("wm.properties_add", text="New", icon='ADD')
         props.data_path = context_member
         del row
+        layout.separator()
 
     show_developer_ui = context.preferences.view.show_developer_ui
     rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
 
-    layout.use_property_split = True
-    layout.use_property_decorate = False  # No animation.
-
-    flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+    layout.use_property_decorate = False
 
     for key, value in items:
         is_rna = (key in rna_properties)
@@ -188,57 +175,50 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
         if to_dict:
             value = to_dict()
-            val_draw = str(value)
         elif to_list:
             value = to_list()
-            val_draw = str(value)
-        else:
-            val_draw = value
 
-        row = layout.row(align=True)
-        box = row.box()
+        split = layout.split(factor=0.4, align=True)
+        label_row = split.row()
+        label_row.alignment = 'RIGHT'
+        label_row.label(text=key, translate=False)
+
+        value_row = split.row(align=True)
+        value_column = value_row.column(align=True)
+
+        is_long_array = to_list and len(value) >= MAX_DISPLAY_ROWS
+
+        if is_rna:
+            value_column.prop(rna_item, key, text="")
+        elif to_dict or is_long_array:
+            props = value_column.operator("wm.properties_edit_value", text="Edit Value")
+            props.data_path = context_member
+            props.property_name = key
+        else:
+            value_column.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
+
+        operator_row = value_row.row()
+
+        # Do not allow editing of overridden properties (we cannot use a poll function
+        # of the operators here since they's have no access to the specific property).
+        operator_row.enabled = not(is_lib_override and key in rna_item.id_data.override_library.reference)
 
         if use_edit:
-            split = box.split(factor=0.75)
-            row = split.row()
-        else:
-            split = box.split(factor=1.00)
-            row = split.row()
-
-        row.alignment = 'RIGHT'
-
-        row.label(text=key, translate=False)
-
-        # Explicit exception for arrays.
-        show_array_ui = to_list and not is_rna and 0 < len(value) <= MAX_DISPLAY_ROWS
-
-        if show_array_ui and isinstance(value[0], (int, float)):
-            row.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
-        elif to_dict or to_list:
-            row.label(text=val_draw, translate=False)
-        else:
             if is_rna:
-                row.prop(rna_item, key, text="")
-            else:
-                row.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
-
-        if use_edit:
-            row = split.row(align=True)
-            # Do not allow editing of overridden properties (we cannot use a poll function
-            # of the operators here since they's have no access to the specific property).
-            row.enabled = not(is_lib_override and key in rna_item.id_data.override_library.reference)
-            if is_rna:
-                row.label(text="API Defined")
+                operator_row.label(text="API Defined")
             elif is_lib_override:
-                row.label(text="Library Override")
+                operator_row.active = False
+                operator_row.label(text="", icon='DECORATE_LIBRARY_OVERRIDE')
             else:
-                props = row.operator("wm.properties_edit", text="Edit")
-                assign_props(props, val_draw, key)
-                props = row.operator("wm.properties_remove", text="", icon='REMOVE')
-                assign_props(props, val_draw, key)
-
-    del flow
-
+                props = operator_row.operator("wm.properties_edit", text="", icon='PREFERENCES', emboss=False)
+                props.data_path = context_member
+                props.property_name = key
+                props = operator_row.operator("wm.properties_remove", text="", icon='X', emboss=False)
+                props.data_path = context_member
+                props.property_name = key
+        else:
+            # Add some spacing, so the right side of the buttons line up with layouts with decorators.
+            operator_row.label(text="", icon='BLANK1')
 
 class PropertyPanel:
     """
