@@ -541,6 +541,7 @@ static PassType get_blender_pass_type(BL::RenderPass &b_pass)
 
   MAP_PASS("Denoising Normal", PASS_DENOISING_NORMAL);
   MAP_PASS("Denoising Albedo", PASS_DENOISING_ALBEDO);
+  MAP_PASS("Denoising Depth", PASS_DENOISING_DEPTH);
 
   MAP_PASS("Shadow Catcher", PASS_SHADOW_CATCHER);
   MAP_PASS("Noisy Shadow Catcher", PASS_SHADOW_CATCHER);
@@ -670,6 +671,9 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
 
     b_engine.add_pass("Denoising Albedo", 3, "RGB", b_view_layer.name().c_str());
     pass_add(scene, PASS_DENOISING_ALBEDO, "Denoising Albedo", PassMode::NOISY);
+
+    b_engine.add_pass("Denoising Depth", 1, "Z", b_view_layer.name().c_str());
+    pass_add(scene, PASS_DENOISING_DEPTH, "Denoising Depth", PassMode::NOISY);
   }
 
   /* Custom AOV passes. */

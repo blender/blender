@@ -384,6 +384,7 @@ typedef enum PassType {
   PASS_MIST,
   PASS_DENOISING_NORMAL,
   PASS_DENOISING_ALBEDO,
+  PASS_DENOISING_DEPTH,
 
   /* PASS_SHADOW_CATCHER accumulates contribution of shadow catcher object which is not affected by
    * any other object. The pass accessor will divide the combined pass by the shadow catcher. The
@@ -1031,6 +1032,7 @@ typedef struct KernelFilm {
 
   int pass_denoising_normal;
   int pass_denoising_albedo;
+  int pass_denoising_depth;
 
   int pass_aov_color;
   int pass_aov_value;
@@ -1047,7 +1049,7 @@ typedef struct KernelFilm {
 
   int use_approximate_shadow_catcher;
 
-  int pad1, pad2, pad3;
+  int pad1, pad2;
 } KernelFilm;
 static_assert_align(KernelFilm, 16);
 

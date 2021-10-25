@@ -339,6 +339,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
       case PASS_DENOISING_ALBEDO:
         kfilm->pass_denoising_albedo = kfilm->pass_stride;
         break;
+      case PASS_DENOISING_DEPTH:
+        kfilm->pass_denoising_depth = kfilm->pass_stride;
+        break;
 
       case PASS_SHADOW_CATCHER:
         kfilm->pass_shadow_catcher = kfilm->pass_stride;
@@ -665,7 +668,7 @@ uint Film::get_kernel_features(const Scene *scene) const
     const PassMode pass_mode = pass->get_mode();
 
     if (pass_mode == PassMode::DENOISED || pass_type == PASS_DENOISING_NORMAL ||
-        pass_type == PASS_DENOISING_ALBEDO) {
+        pass_type == PASS_DENOISING_ALBEDO || pass_type == PASS_DENOISING_DEPTH) {
       kernel_features |= KERNEL_FEATURE_DENOISING;
     }
 

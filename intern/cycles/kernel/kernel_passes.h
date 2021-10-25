@@ -52,6 +52,14 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
 
   ccl_global float *buffer = kernel_pass_pixel_render_buffer(kg, state, render_buffer);
 
+  if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
+    const float3 denoising_feature_throughput = INTEGRATOR_STATE(
+        state, path, denoising_feature_throughput);
+    const float denoising_depth = ensure_finite(average(denoising_feature_throughput) *
+                                                sd->ray_length);
+    kernel_write_pass_float(buffer + kernel_data.film.pass_denoising_depth, denoising_depth);
+  }
+
   float3 normal = zero_float3();
   float3 diffuse_albedo = zero_float3();
   float3 specular_albedo = zero_float3();
