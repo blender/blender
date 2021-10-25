@@ -20,6 +20,7 @@
 #include "BKE_appdir.h"
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
+#include "BKE_callbacks.h"
 
 #include "asset_library_service.hh"
 
@@ -34,10 +35,12 @@ class AssetLibraryTest : public testing::Test {
   static void SetUpTestSuite()
   {
     CLG_init();
+    BKE_callback_global_init();
   }
   static void TearDownTestSuite()
   {
     CLG_exit();
+    BKE_callback_global_finalize();
   }
 
   void TearDown() override
