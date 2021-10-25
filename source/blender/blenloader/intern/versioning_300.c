@@ -1225,6 +1225,10 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     if (node->type != GEO_NODE_SET_POSITION) {
       continue;
     }
+    if (BLI_listbase_count(&node->inputs) < 4) {
+      /* The offset socket didn't exist in the file yet. */
+      return;
+    }
     bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
     if (old_offset_socket->type == SOCK_VECTOR) {
       /* Versioning happened already. */
