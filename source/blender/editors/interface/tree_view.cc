@@ -693,7 +693,7 @@ char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_, const wm
   const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
       item.create_drop_controller();
   if (!drop_controller) {
-    return NULL;
+    return nullptr;
   }
 
   return BLI_strdup(drop_controller->drop_tooltip(*drag).c_str());

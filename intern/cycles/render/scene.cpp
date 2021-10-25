@@ -667,7 +667,7 @@ int Scene::get_volume_stack_size() const
     if (object->intersects_volume) {
       /* Object intersects another volume, assume it's possible to go deeper in the stack. */
       /* TODO(sergey): This might count nesting twice (A intersects B and B intersects A), but
-       * can't think of a computantially cheap algorithm. Dividing my 2 doesn't work because of
+       * can't think of a computationally cheap algorithm. Dividing my 2 doesn't work because of
        * Venn diagram example with 3 circles. */
       ++volume_stack_size;
     }

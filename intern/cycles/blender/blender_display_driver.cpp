@@ -728,7 +728,7 @@ void BlenderDisplayDriver::vertex_buffer_update(const Params & /*params*/)
    *
    * Such approach can cause some extra "jelly" effect during panning, but it is not more jelly
    * than overlay of selected objects. Also, it's possible to redraw texture at an intersection of
-   * the texture draw parameters and the latest updated draw paaremters (altohoyugh, complexity of
+   * the texture draw parameters and the latest updated draw parameters (although, complexity of
    * doing it might not worth it. */
   const int x = texture_.params.full_offset.x;
   const int y = texture_.params.full_offset.y;
