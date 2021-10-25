@@ -129,7 +129,7 @@ void BVHBuild::add_reference_triangles(BoundBox& root, BoundBox& center, Mesh *m
 		if(attr_mP == NULL) {
 			BoundBox bounds = BoundBox::empty;
 			t.bounds_grow(verts, bounds);
-			if(bounds.valid()) {
+			if(bounds.valid() && t.valid(verts)) {
 				references.push_back(BVHReference(bounds,
 				                                  j,
 				                                  i,

@@ -164,7 +164,7 @@ void KX_RadarSensor::SynchronizeTransform()
 	{
 		PHY_IMotionState* motionState = m_physCtrl->GetMotionState();
 		const MT_Point3& pos = trans.getOrigin();
-		double ori[12];
+		float ori[12];
 		trans.getBasis().getValue(ori);
 		motionState->SetWorldPosition(pos[0], pos[1], pos[2]);
 		motionState->SetWorldOrientation(ori);

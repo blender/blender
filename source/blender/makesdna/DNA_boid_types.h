@@ -111,8 +111,6 @@ typedef struct BoidData {
 	short state_id, mode;
 } BoidData;
 
-
-
 // planned for near future
 //typedef enum BoidConditionMode {
 //	eBoidConditionType_Then = 0,

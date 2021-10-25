@@ -1810,7 +1810,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-		version_suffix = "Release Candidate 2";
+		version_suffix = STRINGIFY(BLENDER_VERSION_CHAR) " Release Candidate";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
 		version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
@@ -1818,7 +1818,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	if (version_suffix != NULL && version_suffix[0]) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
-		int x = 260 * U.pixelsize - (2 * UI_DPI_FAC);
+		int x = 252 * U.pixelsize - (2 * UI_DPI_FAC);
 		int y = 242 * U.pixelsize + (4 * UI_DPI_FAC);
 		int w = 240 * U.pixelsize;
 
@@ -1881,13 +1881,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	              "https://docs.blender.org/manual/en/dev/");
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d"
-		                               STRINGIFY(BLENDER_VERSION_CHAR) "_release",
+		BLI_snprintf(url, sizeof(url), "https://docs.blender.org/api/%d.%d"STRINGIFY(BLENDER_VERSION_CHAR),
 		             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
 	}
 	else {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d",
-		             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
+		BLI_snprintf(url, sizeof(url), "https://docs.blender.org/api/master");
 	}
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);

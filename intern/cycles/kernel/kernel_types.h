@@ -935,6 +935,8 @@ typedef ccl_addr_space struct ShaderData {
 	float v;
 	/* object id if there is one, ~0 otherwise */
 	int object;
+	/* lamp id if there is one, ~0 otherwise */
+	int lamp;
 
 	/* motion blur sample time */
 	float time;

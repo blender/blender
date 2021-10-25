@@ -1,8 +1,6 @@
 KX_NavMeshObject(KX_GameObject)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`KX_GameObject`
 
 .. class:: KX_NavMeshObject(KX_GameObject)
@@ -44,4 +42,3 @@ base class --- :class:`KX_GameObject`
       Rebuild the navigation mesh.
 
       :return: None
-

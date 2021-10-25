@@ -41,7 +41,7 @@ KX_MotionState::~KX_MotionState()
 {
 }
 
-void	KX_MotionState::GetWorldPosition(double& posX, double& posY, double& posZ)
+void	KX_MotionState::GetWorldPosition(float& posX,float& posY,float& posZ)
 {
 	const MT_Point3& pos = m_node->GetWorldPosition();
 	posX = pos[0];
@@ -49,7 +49,7 @@ void	KX_MotionState::GetWorldPosition(double& posX, double& posY, double& posZ)
 	posZ = pos[2];
 }
 
-void	KX_MotionState::GetWorldScaling(double& scaleX, double& scaleY, double& scaleZ)
+void	KX_MotionState::GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 {
 	const MT_Vector3& scale = m_node->GetWorldScaling();
 	scaleX = scale[0];
@@ -57,7 +57,7 @@ void	KX_MotionState::GetWorldScaling(double& scaleX, double& scaleY, double& sca
 	scaleZ = scale[2];
 }
 
-void	KX_MotionState::GetWorldOrientation(double& quatIma0, double& quatIma1, double& quatIma2, double& quatReal)
+void	KX_MotionState::GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
 	MT_Quaternion orn = m_node->GetWorldOrientation().getRotation();
 	quatIma0 = orn[0];
@@ -66,24 +66,24 @@ void	KX_MotionState::GetWorldOrientation(double& quatIma0, double& quatIma1, dou
 	quatReal = orn[3];
 }
 	
-void	KX_MotionState::GetWorldOrientation(double* ori)
+void	KX_MotionState::GetWorldOrientation(float* ori)
 {
 	const MT_Matrix3x3& mat = m_node->GetWorldOrientation();
 	mat.getValue(ori);
 }
 	
-void	KX_MotionState::SetWorldOrientation(const double* ori)
+void	KX_MotionState::SetWorldOrientation(const float* ori)
 {
 	m_node->SetLocalOrientation(ori);
 }
 	
-void	KX_MotionState::SetWorldPosition(double posX, double posY, double posZ)
+void	KX_MotionState::SetWorldPosition(float posX,float posY,float posZ)
 {
 	m_node->SetLocalPosition(MT_Point3(posX,posY,posZ));
 	//m_node->SetWorldPosition(MT_Point3(posX,posY,posZ));
 }
 
-void	KX_MotionState::SetWorldOrientation(double quatIma0, double quatIma1, double quatIma2, double quatReal)
+void	KX_MotionState::SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
 {
 	MT_Quaternion orn;
 	orn[0] = quatIma0;

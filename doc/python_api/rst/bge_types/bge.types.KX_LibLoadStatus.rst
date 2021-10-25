@@ -1,8 +1,6 @@
 KX_LibLoadStatus(PyObjectPlus)
 ==============================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: KX_LibLoadStatus(PyObjectPlus)
@@ -48,4 +46,3 @@ base class --- :class:`PyObjectPlus`
       The amount of time, in seconds, the lib load took (0 until the operation is complete).
 
       :type: float
-

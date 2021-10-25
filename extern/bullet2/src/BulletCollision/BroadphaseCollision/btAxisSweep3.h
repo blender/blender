@@ -168,7 +168,6 @@ public:
 		return m_pairCache;
 	}
 
-
 	void	setOverlappingPairUserCallback(btOverlappingPairCallback* pairCallback)
 	{
 		m_userPairCallback = pairCallback;

@@ -121,7 +121,6 @@ typedef enum ShaderNodeType {
 	NODE_MIN_MAX,
 	NODE_LIGHT_FALLOFF,
 	NODE_OBJECT_INFO,
-	NODE_RIGIDBODY_INFO,
 	NODE_PARTICLE_INFO,
 	NODE_TEX_BRICK,
 	NODE_CLOSURE_SET_NORMAL,
@@ -156,15 +155,6 @@ typedef enum NodeObjectInfo {
 	NODE_INFO_MAT_INDEX,
 	NODE_INFO_OB_RANDOM
 } NodeObjectInfo;
-
-//typedef enum NodeRigidbodyInfo {
-//	NODE_INFO_RB_VELOCITY,
-//	NODE_INFO_RB_ANGULAR_VELOCITY,
-//	NODE_INFO_RB_FORCE,
-//	NODE_INFO_RB_TORQUE,
-//	NODE_INFO_RB_LOCATION,
-//	NODE_INFO_RB_CONTACT
-//} NodeRigidbodyInfo;
 
 typedef enum NodeParticleInfo {
 	NODE_INFO_PAR_INDEX,

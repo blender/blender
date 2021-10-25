@@ -82,7 +82,7 @@ void KX_NearSensor::SynchronizeTransform()
 		PHY_IMotionState* motionState = m_physCtrl->GetMotionState();
 		KX_GameObject* parent = ((KX_GameObject*)GetParent());
 		const MT_Point3& pos = parent->NodeGetWorldPosition();
-		double ori[12];
+		float ori[12];
 		parent->NodeGetWorldOrientation().getValue(ori);
 		motionState->SetWorldPosition(pos[0], pos[1], pos[2]);
 		motionState->SetWorldOrientation(ori);

@@ -71,7 +71,7 @@ typedef float fCOLOR[3];
 /* read routines */
 static const unsigned char *oldreadcolrs(RGBE *scan, const unsigned char *mem, int xmax, const unsigned char *mem_eof)
 {
-	int i, rshift = 0, len = xmax;
+	size_t i, rshift = 0, len = xmax;
 	while (len > 0) {
 		if (UNLIKELY(mem_eof - mem < 4)) {
 			return NULL;
@@ -99,8 +99,6 @@ static const unsigned char *oldreadcolrs(RGBE *scan, const unsigned char *mem, i
 
 static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int xmax, const unsigned char *mem_eof)
 {
-	int i, j, code, val;
-
 	if (UNLIKELY(mem_eof - mem < 4)) {
 		return NULL;
 	}
@@ -109,32 +107,32 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 		return oldreadcolrs(scan, mem, xmax, mem_eof);
 	}
 
-	i = *mem++;
-	if (i != 2) {
+	int val = *mem++;
+	if (val != 2) {
 		return oldreadcolrs(scan, mem - 1, xmax, mem_eof);
 	}
 
 	scan[0][GRN] = *mem++;
 	scan[0][BLU] = *mem++;
 
-	i = *mem++;
+	val = *mem++;
 
 	if (scan[0][GRN] != 2 || scan[0][BLU] & 128) {
 		scan[0][RED] = 2;
-		scan[0][EXP] = i;
+		scan[0][EXP] = val;
 		return oldreadcolrs(scan + 1, mem, xmax - 1, mem_eof);
 	}
 
-	if (UNLIKELY(((scan[0][BLU] << 8) | i) != xmax)) {
+	if (UNLIKELY(((scan[0][BLU] << 8) | val) != xmax)) {
 		return NULL;
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (size_t i = 0; i < 4; i++) {
 		if (UNLIKELY(mem_eof - mem < 2)) {
 			return NULL;
 		}
-		for (j = 0; j < xmax; ) {
-			code = *mem++;
+		for (size_t j = 0; j < xmax; ) {
+			int code = *mem++;
 			if (code > 128) {
 				code &= 127;
 				if (UNLIKELY(code + j > xmax)) {
@@ -215,7 +213,6 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 	float *rect_float;
 	int found = 0;
 	int width = 0, height = 0;
-	int x, y;
 	const unsigned char *ptr, *mem_eof = mem + size;
 	char oriY[80], oriX[80];
 
@@ -223,6 +220,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 		colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
 		/* find empty line, next line is resolution info */
+		size_t x;
 		for (x = 1; x < size; x++) {
 			if ((mem[x - 1] == '\n') && (mem[x] == '\n')) {
 				found = 1;
@@ -259,7 +257,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 			sline = (RGBE *)MEM_mallocN(sizeof(*sline) * width, __func__);
 			rect_float = ibuf->rect_float;
 			
-			for (y = 0; y < height; y++) {
+			for (size_t y = 0; y < height; y++) {
 				ptr = freadcolrs(sline, ptr, width, mem_eof);
 				if (ptr == NULL) {
 					printf("WARNING! HDR decode error, image may be just truncated, or completely wrong...\n");
@@ -293,7 +291,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 /* ImBuf write */
 static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufscan, float *fpscan)
 {
-	int x, i, j, beg, c2, cnt = 0;
+	int beg, c2, cnt = 0;
 	fCOLOR fcol;
 	RGBE rgbe, *rgbe_scan;
 
@@ -304,8 +302,7 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 	rgbe_scan = (RGBE *)MEM_mallocN(sizeof(RGBE) * width, "radhdr_write_tmpscan");
 
 	/* convert scanline */
-	j = 0;
-	for (i = 0; i < width; i++) {
+	for (size_t i = 0, j = 0; i < width; i++) {
 		if (fpscan) {
 			fcol[RED] = fpscan[j];
 			fcol[GRN] = (channels >= 2) ? fpscan[j + 1] : fpscan[j];
@@ -322,7 +319,7 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 	}
 
 	if ((width < MINELEN) | (width > MAXELEN)) {    /* OOBs, write out flat */
-		x = fwrite((char *)rgbe_scan, sizeof(RGBE), width, file) - width;
+		int x = fwrite((char *)rgbe_scan, sizeof(RGBE), width, file) - width;
 		MEM_freeN(rgbe_scan);
 		return x;
 	}
@@ -332,8 +329,8 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 	putc((unsigned char)(width >> 8), file);
 	putc((unsigned char)(width & 255), file);
 	/* put components separately */
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < width; j += cnt) {  /* find next run */
+	for (size_t i = 0; i < 4; i++) {
+		for (size_t j = 0; j < width; j += cnt) {  /* find next run */
 			for (beg = j; beg < width; beg += cnt) {
 				for (cnt = 1; (cnt < 127) && ((beg + cnt) < width) && (rgbe_scan[beg + cnt][i] == rgbe_scan[beg][i]); cnt++) ;
 				if (cnt >= MINRUN) break;  /* long enough */
@@ -386,7 +383,7 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 {
 	FILE *file = BLI_fopen(name, "wb");
 	float *fp = NULL;
-	int y, width = ibuf->x, height = ibuf->y;
+	size_t width = ibuf->x, height = ibuf->y;
 	unsigned char *cp = NULL;
 	
 	(void)flags; /* unused */
@@ -402,7 +399,7 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 	if (ibuf->rect_float)
 		fp = ibuf->rect_float + ibuf->channels * (height - 1) * width;
 	
-	for (y = height - 1; y >= 0; y--) {
+	for (size_t y = 0; y < height; y++) {
 		if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
 			fclose(file);
 			printf("HDR write error\n");

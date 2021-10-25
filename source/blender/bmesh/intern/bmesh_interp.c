@@ -957,7 +957,7 @@ static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
 {
 	const int i = BM_elem_index_get(l);
 	const float w = lwc->loop_weights[i];
-	BM_elem_flag_enable(l, BM_ELEM_INTERNAL_TAG);
+	BM_elem_flag_disable(l, BM_ELEM_INTERNAL_TAG);
 	lwc->data_array[lwc->data_len] = BM_ELEM_CD_GET_VOID_P(l, lwc->cd_layer_offset);
 	lwc->data_index_array[lwc->data_len] = i;
 	lwc->weight_array[lwc->data_len] = w;
@@ -976,7 +976,7 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 	int i;
 
 	BLI_assert(CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
-	BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG) == false);
+	BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG));
 
 	bm_loop_walk_add(lwc, l_walk);
 
@@ -988,7 +988,7 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 				l_other = l_other->next;
 			}
 			BLI_assert(l_other->v == l_walk->v);
-			if (!BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) {
+			if (BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) {
 				if (CustomData_data_equals(lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset))) {
 					bm_loop_walk_data(lwc, l_other);
 				}
@@ -1012,9 +1012,10 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
 	lwc.loop_weights = loop_weights;
 	lwc.arena = arena;
 
+	/* Enable 'BM_ELEM_INTERNAL_TAG', leaving the flag clean on completion. */
 	loop_num = 0;
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		BM_elem_flag_disable(l, BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_enable(l, BM_ELEM_INTERNAL_TAG);
 		BM_elem_index_set(l, loop_num);  /* set_dirty! */
 		loop_num++;
 	}
@@ -1026,7 +1027,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
 	lwc.weight_array = BLI_memarena_alloc(lwc.arena, sizeof(float) * loop_num);
 
 	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		if (!BM_elem_flag_test(l, BM_ELEM_INTERNAL_TAG)) {
+		if (BM_elem_flag_test(l, BM_ELEM_INTERNAL_TAG)) {
 			struct LoopGroupCD *lf = BLI_memarena_alloc(lwc.arena, sizeof(*lf));
 			int len_prev = lwc.data_len;
 

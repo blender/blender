@@ -209,7 +209,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
 		memcpy(points_sort[i], points_ref[i].pt, sizeof(float[2]));
 	}
 
-	tot = BLI_convexhull_2d_sorted((const float (*)[2])points_sort, n, r_points);
+	tot = BLI_convexhull_2d_sorted(points_sort, n, r_points);
 
 	/* map back to the original index values */
 	points_map = (int *)points_sort;  /* abuse float array for temp storage */
@@ -305,7 +305,7 @@ float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n
 
 	index_map = MEM_mallocN(sizeof(*index_map) * n * 2, __func__);
 
-	tot = BLI_convexhull_2d((const float (*)[2])points, (int)n, index_map);
+	tot = BLI_convexhull_2d(points, (int)n, index_map);
 
 	if (tot) {
 		float (*points_hull)[2];
@@ -316,7 +316,7 @@ float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n
 			copy_v2_v2(points_hull[j], points[index_map[j]]);
 		}
 
-		angle = BLI_convexhull_aabb_fit_hull_2d((const float (*)[2])points_hull, (unsigned int)tot);
+		angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, (unsigned int)tot);
 		MEM_freeN(points_hull);
 	}
 	else {

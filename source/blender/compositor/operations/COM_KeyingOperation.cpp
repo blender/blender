@@ -74,8 +74,9 @@ void KeyingOperation::executePixelSampled(float output[4], float x, float y, Pix
 	this->m_screenReader->readSampled(screenColor, x, y, sampler);
 
 	const int primary_channel = max_axis_v3(screenColor);
+	const float min_pixel_color = min_fff(pixelColor[0], pixelColor[1], pixelColor[2]);
 
-	if (pixelColor[primary_channel] > 1.0f) {
+	if (min_pixel_color > 1.0f) {
 		/* overexposure doesn't happen on screen itself and usually happens
 		 * on light sources in the shot, this need to be checked separately
 		 * because saturation and falloff calculation is based on the fact

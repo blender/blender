@@ -1325,14 +1325,7 @@ function(delayed_do_install
 		foreach(i RANGE ${n})
 			list(GET files ${i} f)
 			list(GET destinations ${i} d)
-			if(NOT IS_ABSOLUTE ${d})
-				install(FILES ${f} DESTINATION ${targetdir}/${d})
-			else()
-				install(FILES ${f} DESTINATION ${d})
-			endif()
-
-
-
+			install(FILES ${f} DESTINATION ${targetdir}/${d})
 		endforeach()
 	endif()
 endfunction()

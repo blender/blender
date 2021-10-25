@@ -337,7 +337,9 @@ static void ntree_shader_link_builtin_group_normal(
 		 * some internal re-linking in order to avoid cycles.
 		 */
 		bNode *group_output_node = ntreeFindType(group_ntree, NODE_GROUP_OUTPUT);
-		BLI_assert(group_output_node != NULL);
+		if (group_output_node == NULL) {
+			return;
+		}
 		bNodeSocket *group_output_node_displacement_socket =
 		        nodeFindSocket(group_output_node,
 		                       SOCK_IN,

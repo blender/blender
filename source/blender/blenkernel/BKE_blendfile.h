@@ -58,8 +58,8 @@ struct UserDef *BKE_blendfile_userdef_read_from_memory(
         const void *filebuf, int filelength,
         struct ReportList *reports);
 
-int BKE_blendfile_userdef_write(const char *filepath, struct ReportList *reports);
-
+bool BKE_blendfile_userdef_write(const char *filepath, struct ReportList *reports);
+bool BKE_blendfile_userdef_write_app_template(const char *filepath, struct ReportList *reports);
 
 /* partial blend file writing */
 void BKE_blendfile_write_partial_tag_ID(struct ID *id, bool set);

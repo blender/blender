@@ -44,6 +44,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "atomic_ops.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -87,9 +89,6 @@
 
 /* assumes MLoop's are layed out 4 for each poly, in order */
 #define USE_LOOP_LAYOUT_FAST
-
-static ThreadRWMutex loops_cache_rwlock = BLI_RWLOCK_INITIALIZER;
-static ThreadRWMutex origindex_cache_rwlock = BLI_RWLOCK_INITIALIZER;
 
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          int drawInteriorEdges,
@@ -1490,21 +1489,24 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	/* DMFlagMat *faceFlags = ccgdm->faceFlags; */ /* UNUSED */
 
 	if (!ccgdm->ehash) {
-		BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_WRITE);
+		BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_WRITE);
 		if (!ccgdm->ehash) {
 			MEdge *medge;
+			EdgeHash *ehash;
 
-			ccgdm->ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
+			ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
 			medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
 			for (i = 0; i < ccgdm->dm.numEdgeData; i++) {
-				BLI_edgehash_insert(ccgdm->ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
+				BLI_edgehash_insert(ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
 			}
+
+			atomic_cas_ptr((void**)&ccgdm->ehash, ccgdm->ehash, ehash);
 		}
-		BLI_rw_mutex_unlock(&loops_cache_rwlock);
+		BLI_rw_mutex_unlock(&ccgdm->loops_cache_rwlock);
 	}
 
-	BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_READ);
+	BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_READ);
 	totface = ccgSubSurf_getNumFaces(ss);
 	mv = mloop;
 	for (index = 0; index < totface; index++) {
@@ -1547,7 +1549,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 			}
 		}
 	}
-	BLI_rw_mutex_unlock(&loops_cache_rwlock);
+	BLI_rw_mutex_unlock(&ccgdm->loops_cache_rwlock);
 }
 
 static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
@@ -4041,6 +4043,10 @@ static void ccgDM_release(DerivedMesh *dm)
 			MEM_freeN(ccgdm->edgeMap);
 			MEM_freeN(ccgdm->faceMap);
 		}
+
+		BLI_rw_mutex_end(&ccgdm->loops_cache_rwlock);
+		BLI_rw_mutex_end(&ccgdm->origindex_cache_rwlock);
+
 		MEM_freeN(ccgdm);
 	}
 }
@@ -4055,14 +4061,14 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 		int a, index, totnone, totorig;
 
 		/* Avoid re-creation if the layer exists already */
-		BLI_rw_mutex_lock(&origindex_cache_rwlock, THREAD_LOCK_READ);
+		BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_READ);
 		origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
-		BLI_rw_mutex_unlock(&origindex_cache_rwlock);
+		BLI_rw_mutex_unlock(&ccgdm->origindex_cache_rwlock);
 		if (origindex) {
 			return origindex;
 		}
 
-		BLI_rw_mutex_lock(&origindex_cache_rwlock, THREAD_LOCK_WRITE);
+		BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_WRITE);
 		DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
 
@@ -4077,7 +4083,7 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 			CCGVert *v = ccgdm->vertMap[index].vert;
 			origindex[a] = ccgDM_getVertMapIndex(ccgdm->ss, v);
 		}
-		BLI_rw_mutex_unlock(&origindex_cache_rwlock);
+		BLI_rw_mutex_unlock(&ccgdm->origindex_cache_rwlock);
 
 		return origindex;
 	}
@@ -4482,8 +4488,9 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 	int i, poly_index;
 
 	DM_ensure_looptri_data(dm);
-	mlooptri = dm->looptris.array;
+	mlooptri = dm->looptris.array_wip;
 
+	BLI_assert(mlooptri != NULL);
 	BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	BLI_assert(tottri == dm->looptris.num);
 
@@ -4502,6 +4509,9 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 		lt->tri[2] = (poly_index * 4) + 2;
 		lt->poly = poly_index;
 	}
+
+	BLI_assert(dm->looptris.array == NULL);
+	SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
 }
 
 static void ccgDM_calcNormals(DerivedMesh *dm)
@@ -5014,6 +5024,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.numPolyData = ccgSubSurf_getNumFinalFaces(ss);
 	ccgdm->dm.numLoopData = ccgdm->dm.numPolyData * 4;
 	ccgdm->dm.numTessFaceData = 0;
+
+	BLI_rw_mutex_init(&ccgdm->loops_cache_rwlock);
+	BLI_rw_mutex_init(&ccgdm->origindex_cache_rwlock);
 
 	return ccgdm;
 }

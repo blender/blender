@@ -107,6 +107,14 @@ add_definitions(
 	-DNEWDIRVELMOTEST=0
 )
 
+if(WIN32)
+	# We need BLI_gzopen on win32 for unicode paths
+	add_definitions(
+		-DLBM_GZIP_OVERRIDE_H="${CMAKE_SOURCE_DIR}/source/blender/blenlib/BLI_fileops.h"
+		-D LBM_GZIP_OPEN_FN="\(gzFile\)BLI_gzopen"
+	)
+endif()
+
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 else()

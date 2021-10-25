@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

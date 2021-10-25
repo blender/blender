@@ -1,8 +1,6 @@
 CValue(PyObjectPlus)
 ====================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: CValue(PyObjectPlus)

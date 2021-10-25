@@ -107,6 +107,13 @@ void Mesh::Triangle::verts_for_step(const float3 *verts,
 	}
 }
 
+bool Mesh::Triangle::valid(const float3 *verts) const
+{
+	return isfinite3_safe(verts[v[0]]) &&
+	       isfinite3_safe(verts[v[1]]) &&
+	       isfinite3_safe(verts[v[2]]);
+}
+
 /* Curve */
 
 void Mesh::Curve::bounds_grow(const int k, const float3 *curve_keys, const float *curve_radius, BoundBox& bounds) const

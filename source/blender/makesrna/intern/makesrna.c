@@ -46,6 +46,14 @@
 #  endif
 #endif
 
+/**
+ * Variable to control debug output of makesrna.
+ * debugSRNA:
+ *  - 0 = no output, except errors
+ *  - 1 = detail actions
+ */
+static int debugSRNA = 0;
+
 /* stub for BLI_abort() */
 #ifndef NDEBUG
 void BLI_system_backtrace(FILE *fp)
@@ -62,7 +70,9 @@ void BLI_system_backtrace(FILE *fp)
 static int file_older(const char *file1, const char *file2)
 {
 	struct stat st1, st2;
-	/* printf("compare: %s %s\n", file1, file2); */
+	if (debugSRNA > 0) {
+		printf("compare: %s %s\n", file1, file2);
+	}
 
 	if (stat(file1, &st1)) return 0;
 	if (stat(file2, &st2)) return 0;
@@ -2540,15 +2550,6 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		case PROP_PASSWORD: return "PROP_PASSWORD";
-		case PROP_POWER: return "PROP_POWER";
-		case PROP_TEMPERATURE: return "PROP_TEMPERATURE";
-		case PROP_FORCE: return "PROP_FORCE";
-		case PROP_STRESS: return "PROP_STRESS";
-		case PROP_TORQUE: return "PROP_TORQUE";
-		case PROP_ANVELOCITY: return "PROP_ANVELOCITY";
-		case PROP_IMPULSE: return "PROP_IMPULSE";
-		case PROP_IMPULSE_MOMENT: return "PROP_IMPULSE_MOMENT";
-
 		default:
 		{
 			/* in case we don't have a type preset that includes the subtype */
@@ -2575,14 +2576,6 @@ static const char *rna_property_subtype_unit(PropertySubType type)
 		case PROP_UNIT_VELOCITY:     return "PROP_UNIT_VELOCITY";
 		case PROP_UNIT_ACCELERATION: return "PROP_UNIT_ACCELERATION";
 		case PROP_UNIT_CAMERA:       return "PROP_UNIT_CAMERA";
-		case PROP_UNIT_POWER:        return "PROP_UNIT_POWER";
-		case PROP_UNIT_TEMPERATURE:  return "PROP_UNIT_TEMPERATURE";
-		case PROP_UNIT_FORCE:        return "PROP_UNIT_FORCE";
-		case PROP_UNIT_STRESS:       return "PROP_UNIT_STRESS";
-		case PROP_UNIT_TORQUE:       return "PROP_UNIT_TORQUE";
-		case PROP_UNIT_ANVELOCITY:       return "PROP_UNIT_ANVELOCITY";
-		case PROP_UNIT_IMPULSE:       return "PROP_UNIT_IMPULSE";
-		case PROP_UNIT_IMPULSE_MOMENT:       return "PROP_UNIT_IMPULSE_MOMENT";
 		default:                     return "PROP_UNIT_UNKNOWN";
 	}
 }
@@ -4145,7 +4138,9 @@ int main(int argc, char **argv)
 		return_status = 1;
 	}
 	else {
-		fprintf(stderr, "Running makesrna\n");
+		if (debugSRNA > 0) {
+			fprintf(stderr, "Running makesrna\n");
+		}
 		makesrna_path = argv[0];
 		return_status = rna_preprocess(argv[1]);
 	}

@@ -48,35 +48,23 @@
 #define IMAGIC 0732
 
 typedef struct {
-	unsigned short  imagic;      /* stuff saved on disk . . */
-	unsigned short  type;
-	unsigned short  dim;
-	unsigned short  xsize;
-	unsigned short  ysize;
-	unsigned short  zsize;
-	unsigned int    min;
-	unsigned int    max;
-	unsigned int    wastebytes;
-	char name[80];
-	unsigned int    colormap;
-
-	int file;               /* stuff used in core only */
-	unsigned short  flags;
-	short           dorev;
-	short           x;
-	short           y;
-	short           z;
-	short           cnt;
-	unsigned short *ptr;
-	unsigned short *base;
-	unsigned short *tmpbuf;
-	unsigned int    offset;
-	unsigned int    rleend;        /* for rle images */
-	unsigned int   *rowstart;  /* for rle images */
-	const int            *rowsize;   /* for rle images */
+	ushort  imagic;      /* stuff saved on disk . . */
+	ushort  type;
+	ushort  dim;
+	ushort  xsize;
+	ushort  ysize;
+	ushort  zsize;
+	uint    min;
+	uint    max;
+	uchar   _pad1[4];
+	char    name[80];
+	uint    colormap;
+	uchar   _pad2[404];
 } IMAGE;
 
 #define HEADER_SIZE 512
+
+BLI_STATIC_ASSERT(sizeof(IMAGE) == HEADER_SIZE, "Invalid header size");
 
 #define RINTLUM (79)
 #define GINTLUM (156)
@@ -106,68 +94,72 @@ typedef struct {
 /* local struct for mem access */
 typedef struct MFileOffset {
 	const uchar *_file_data;
-	unsigned int _file_offset;
+	uint _file_offset;
 } MFileOffset;
 
-#define MFILE_DATA(inf) ((void)0, (inf)->_file_data + (inf)->_file_offset)
+#define MFILE_DATA(inf) ((void)0, ((inf)->_file_data + (inf)->_file_offset))
 #define MFILE_STEP(inf, step) { (inf)->_file_offset += step; } ((void)0)
 #define MFILE_SEEK(inf, pos)  { (inf)->_file_offset  = pos;  } ((void)0)
+
+/* error flags */
+#define DIRTY_FLAG_EOF (1 << 0)
+#define DIRTY_FLAG_ENCODING (1 << 1)
 
 /* funcs */
 static void readheader(MFileOffset *inf, IMAGE *image);
 static int writeheader(FILE *outf, IMAGE *image);
 
-static unsigned short getshort(MFileOffset *inf);
-static unsigned int getlong(MFileOffset *inf);
-static void putshort(FILE *outf, unsigned short val);
-static int putlong(FILE *outf, unsigned int val);
-static int writetab(FILE *outf, unsigned int *tab, int len);
-static void readtab(MFileOffset *inf, unsigned int *tab, int len);
+static ushort getshort(MFileOffset *inf);
+static uint getlong(MFileOffset *inf);
+static void putshort(FILE *outf, ushort val);
+static int putlong(FILE *outf, uint val);
+static int writetab(FILE *outf, uint *tab, int len);
+static void readtab(MFileOffset *inf, uint *tab, int len);
 
-static void expandrow(unsigned char *optr, const unsigned char *iptr, int z);
-static void expandrow2(float *optr, const unsigned char *iptr, int z);
-static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n);
-static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n);
-static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt);
-static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
+static int expandrow(uchar *optr, const uchar *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
+static int expandrow2(float *optr, const float *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
+static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
+static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
+static void lumrow(uchar *rgbptr, uchar *lumptr, int n);
 
 /*
  *	byte order independent read/write of shorts and ints.
  *
  */
 
-static unsigned short getshort(MFileOffset *inf)
+static ushort getshort(MFileOffset *inf)
 {
-	const unsigned char *buf;
+	const uchar *buf;
 
 	buf = MFILE_DATA(inf);
 	MFILE_STEP(inf, 2);
-	
-	return (buf[0] << 8) + (buf[1] << 0);
+
+	return ((ushort)buf[0] << 8) + ((ushort)buf[1] << 0);
 }
 
-static unsigned int getlong(MFileOffset *mofs)
+static uint getlong(MFileOffset *mofs)
 {
-	const unsigned char *buf;
+	const uchar *buf;
 	
 	buf = MFILE_DATA(mofs);
 	MFILE_STEP(mofs, 4);
-	
-	return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
+
+	return ((uint)buf[0] << 24) + ((uint)buf[1] << 16) + ((uint)buf[2] << 8) + ((uint)buf[3] << 0);
 }
 
-static void putshort(FILE *outf, unsigned short val)
+static void putshort(FILE *outf, ushort val)
 {
-	unsigned char buf[2];
+	uchar buf[2];
 
 	buf[0] = (val >> 8);
 	buf[1] = (val >> 0);
 	fwrite(buf, 2, 1, outf);
 }
 
-static int putlong(FILE *outf, unsigned int val)
+static int putlong(FILE *outf, uint val)
 {
-	unsigned char buf[4];
+	uchar buf[4];
 
 	buf[0] = (val >> 24);
 	buf[1] = (val >> 16);
@@ -205,7 +197,7 @@ static int writeheader(FILE *outf, IMAGE *image)
 	return fwrite("no name", 8, 1, outf);
 }
 
-static int writetab(FILE *outf, unsigned int *tab, int len)
+static int writetab(FILE *outf, uint *tab, int len)
 {
 	int r = 0;
 
@@ -216,7 +208,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 	return r;
 }
 
-static void readtab(MFileOffset *inf, unsigned int *tab, int len)
+static void readtab(MFileOffset *inf, uint *tab, int len)
 {
 	while (len) {
 		*tab++ = getlong(inf);
@@ -242,12 +234,12 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 }
 
 /* from misc_util: flip the bytes from x  */
-#define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1])
+#define GS(x) (((uchar *)(x))[0] << 8 | ((uchar *)(x))[1])
 
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-int imb_is_a_iris(const unsigned char *mem)
+int imb_is_a_iris(const uchar *mem)
 {
 	return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
@@ -259,46 +251,51 @@ int imb_is_a_iris(const unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-	unsigned int *base, *lptr = NULL;
+	uint *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
-	unsigned int *zbase, *zptr;
-	const unsigned char *rledat;
-	unsigned int *starttab, *lengthtab;
+	uint *zbase, *zptr;
+	const uchar *rledat;
+	const uchar *mem_end = mem + size;
 	MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
 	IMAGE image;
-	int x, y, z, tablen;
-	int xsize, ysize, zsize;
 	int bpp, rle, cur, badorder;
-	ImBuf *ibuf;
+	ImBuf *ibuf = NULL;
+	uchar dirty_flag = 0;
 
-	(void)size; /* unused */
-	
-	if (!imb_is_a_iris(mem)) return NULL;
+	if (size < HEADER_SIZE) {
+		return NULL;
+	}
+
+	if (!imb_is_a_iris(mem)) {
+		return NULL;
+	}
 
 	/* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-	/*printf("new iris\n");*/
-	
 	readheader(inf, &image);
 	if (image.imagic != IMAGIC) {
 		fprintf(stderr, "longimagedata: bad magic number in image file\n");
 		return(NULL);
 	}
-	
+
 	rle = ISRLE(image.type);
 	bpp = BPP(image.type);
 	if (bpp != 1 && bpp != 2) {
 		fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
 		return(NULL);
 	}
-	
-	xsize = image.xsize;
-	ysize = image.ysize;
-	zsize = image.zsize;
-	
+	if ((uint)image.zsize > 8) {
+		fprintf(stderr, "longimagedata: channels over 8 not supported\n");
+		return(NULL);
+	}
+
+	const int xsize = image.xsize;
+	const int ysize = image.ysize;
+	const int zsize = image.zsize;
+
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
 		if (ibuf) ibuf->ftype = IMB_FTYPE_IMAGIC;
@@ -306,20 +303,25 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 	}
 	
 	if (rle) {
-		
-		tablen = ysize * zsize * sizeof(int);
-		starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
-		lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris endtab");
+		size_t tablen = (size_t)ysize * (size_t)zsize * sizeof(int);
 		MFILE_SEEK(inf, HEADER_SIZE);
-		
+
+		uint *starttab = MEM_mallocN(tablen, "iris starttab");
+		uint *lengthtab = MEM_mallocN(tablen, "iris endtab");
+
+#define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
+		if (UNLIKELY((p) > mem_end)) { dirty_flag |= DIRTY_FLAG_EOF; goto fail_rle; } ((void)0)
+
+		MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(MFILE_DATA(inf) + ((4 * 2) * tablen));
+
 		readtab(inf, starttab, tablen);
 		readtab(inf, lengthtab, tablen);
 	
 		/* check data order */
 		cur = 0;
 		badorder = 0;
-		for (y = 0; y < ysize; y++) {
-			for (z = 0; z < zsize; z++) {
+		for (size_t y = 0; y < ysize; y++) {
+			for (size_t z = 0; z < zsize; z++) {
 				if (starttab[y + z * ysize] < cur) {
 					badorder = 1;
 					break;
@@ -333,38 +335,51 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		if (bpp == 1) {
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
+			if (!ibuf) {
+				goto fail_rle;
+			}
 			if (ibuf->planes > 32) ibuf->planes = 32;
 			base = ibuf->rect;
-			zbase = (unsigned int *)ibuf->zbuf;
+			zbase = (uint *)ibuf->zbuf;
 			
 			if (badorder) {
-				for (z = 0; z < zsize; z++) {
+				for (size_t z = 0; z < zsize; z++) {
 					lptr = base;
-					for (y = 0; y < ysize; y++) {
+					for (size_t y = 0; y < ysize; y++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow((uchar *)lptr, rledat, 3 - z);
-						lptr += xsize;
+						const uchar *rledat_next = MFILE_DATA(inf);
+						uint *lptr_next = lptr + xsize;
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						dirty_flag |= expandrow((uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+						lptr = lptr_next;
 					}
 				}
 			}
 			else {
 				lptr = base;
 				zptr = zbase;
-				for (y = 0; y < ysize; y++) {
-				
-					for (z = 0; z < zsize; z++) {
+				for (size_t y = 0; y < ysize; y++) {
+
+					uint *lptr_next = lptr + xsize;
+					uint *zptr_next = zptr + xsize;
+
+					for (size_t z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						if (z < 4) expandrow((uchar *)lptr, rledat, 3 - z);
-						else if (z < 8) expandrow((uchar *)zptr, rledat, 7 - z);
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						if (z < 4) {
+							dirty_flag |= expandrow((uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+						}
+						else if (z < 8) {
+							dirty_flag |= expandrow((uchar *)zptr, (uchar *)zptr_next, rledat, rledat_next, 7 - z);
+						}
 					}
-					lptr += xsize;
-					zptr += xsize;
+					lptr = lptr_next;
+					zptr = zptr_next;
 				}
 			}
 			
@@ -373,66 +388,84 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else {  /* bpp == 2 */
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
-			
+			if (!ibuf) {
+				goto fail_rle;
+			}
+
 			fbase = ibuf->rect_float;
 			
 			if (badorder) {
-				for (z = 0; z < zsize; z++) {
+				for (size_t z = 0; z < zsize; z++) {
 					fptr = fbase;
-					for (y = 0; y < ysize; y++) {
+					for (size_t y = 0; y < ysize; y++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow2(fptr, rledat, 3 - z);
-						fptr += xsize * 4;
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						float *fptr_next = fptr + (xsize * 4);
+						dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
+						fptr = fptr_next;
 					}
 				}
 			}
 			else {
 				fptr = fbase;
+				float *fptr_next = fptr + (xsize * 4);
 
-				for (y = 0; y < ysize; y++) {
+				for (size_t y = 0; y < ysize; y++) {
 				
-					for (z = 0; z < zsize; z++) {
+					for (size_t z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow2(fptr, rledat, 3 - z);
-						
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
 					}
-					fptr += xsize * 4;
+					fptr = fptr_next;
 				}
 			}
 		}
-		
+#undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
+fail_rle:
 		MEM_freeN(starttab);
 		MEM_freeN(lengthtab);
 
+		if (!ibuf) {
+			return NULL;
+		}
 	}
 	else {
+
+#define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
+		if (UNLIKELY((p) > mem_end)) { dirty_flag |= DIRTY_FLAG_EOF; goto fail_uncompressed; } ((void)0)
+
 		if (bpp == 1) {
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
+			if (!ibuf) {
+				goto fail_uncompressed;
+			}
 			if (ibuf->planes > 32) ibuf->planes = 32;
 
 			base = ibuf->rect;
-			zbase = (unsigned int *)ibuf->zbuf;
+			zbase = (uint *)ibuf->zbuf;
 			
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
 			
-			for (z = 0; z < zsize; z++) {
+			for (size_t z = 0; z < zsize; z++) {
 				
 				if (z < 4) lptr = base;
 				else if (z < 8) lptr = zbase;
-				
-				for (y = 0; y < ysize; y++) {
 
-					interleaverow((uchar *)lptr, rledat, 3 - z, xsize);
-					rledat += xsize;
-					
+				for (size_t y = 0; y < ysize; y++) {
+					const uchar *rledat_next = rledat + xsize;
+					const int z_ofs = 3 - z;
+					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
+					interleaverow((uchar *)lptr, rledat, z_ofs, xsize);
+					rledat = rledat_next;
 					lptr += xsize;
 				}
 			}
@@ -441,35 +474,43 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else {  /* bpp == 2 */
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
+			if (!ibuf) {
+				goto fail_uncompressed;
+			}
 
 			fbase = ibuf->rect_float;
 
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
 			
-			for (z = 0; z < zsize; z++) {
+			for (size_t z = 0; z < zsize; z++) {
 				
 				fptr = fbase;
-				
-				for (y = 0; y < ysize; y++) {
 
-					interleaverow2(fptr, rledat, 3 - z, xsize);
-					rledat += xsize * 2;
-					
+				for (size_t y = 0; y < ysize; y++) {
+					const uchar *rledat_next = rledat + xsize * 2;
+					const int z_ofs = 3 - z;
+					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
+					interleaverow2(fptr, rledat, z_ofs, xsize);
+					rledat = rledat_next;
 					fptr += xsize * 4;
 				}
 			}
 			
 		}
+#undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
+fail_uncompressed:
+		if (!ibuf) {
+			return NULL;
+		}
 	}
-	
-	
+
 	if (bpp == 1) {
 		uchar *rect;
 		
 		if (image.zsize == 1) {
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = 255;
 				rect[1] = rect[2] = rect[3];
 				rect += 4;
@@ -478,7 +519,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else if (image.zsize == 2) {
 			/* grayscale with alpha */
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = rect[2];
 				rect[1] = rect[2] = rect[3];
 				rect += 4;
@@ -487,7 +528,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else if (image.zsize == 3) {
 			/* add alpha */
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = 255;
 				rect += 4;
 			}
@@ -498,7 +539,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		
 		if (image.zsize == 1) {
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = 1;
 				fbase[1] = fbase[2] = fbase[3];
 				fbase += 4;
@@ -507,7 +548,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else if (image.zsize == 2) {
 			/* grayscale with alpha */
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = fbase[2];
 				fbase[1] = fbase[2] = fbase[3];
 				fbase += 4;
@@ -516,7 +557,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		else if (image.zsize == 3) {
 			/* add alpha */
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = 1;
 				fbase += 4;
 			}
@@ -528,6 +569,9 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		
 	}
 
+	if (dirty_flag) {
+		fprintf(stderr, "longimagedata: corrupt file content (%d)\n", dirty_flag);
+	}
 	ibuf->ftype = IMB_FTYPE_IMAGIC;
 
 	test_endian_zbuf(ibuf);
@@ -541,7 +585,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 
 /* static utility functions for longimagedata */
 
-static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n)
+static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -550,7 +594,7 @@ static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z,
 	}
 }
 
-static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n)
+static void interleaverow2(float *lptr, const uchar *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -560,19 +604,34 @@ static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n)
 	}
 }
 
-static void expandrow2(float *optr, const unsigned char *iptr, int z)
+static int expandrow2(
+        float *optr, const float *optr_end,
+        const uchar *iptr, const uchar *iptr_end, int z)
 {
-	unsigned short pixel, count;
+	ushort pixel, count;
 	float pixel_f;
 
+#define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+
+#define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
+
 	optr += z;
+	optr_end += z;
 	while (1) {
+		const uchar *iptr_next = iptr + 2;
+		EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 		pixel = (iptr[0] << 8) | (iptr[1] << 0);
-		iptr += 2;
-		
+		iptr = iptr_next;
+
 		if (!(count = (pixel & 0x7f)) )
-			return;
+			return false;
+		const float *optr_next = optr + count;
+		EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next);
 		if (pixel & 0x80) {
+			iptr_next = iptr + (count * 2);
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			while (count >= 8) {
 				optr[0 * 4] = ((iptr[0] << 8) | (iptr[1] << 0)) / (float)0xFFFF;
 				optr[1 * 4] = ((iptr[2] << 8) | (iptr[3] << 0)) / (float)0xFFFF;
@@ -591,10 +650,13 @@ static void expandrow2(float *optr, const unsigned char *iptr, int z)
 				iptr += 2;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
 		else {
+			iptr_next = iptr + 2;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			pixel_f = ((iptr[0] << 8) | (iptr[1] << 0)) / (float)0xFFFF;
-			iptr += 2;
+			iptr = iptr_next;
 
 			while (count >= 8) {
 				optr[0 * 4] = pixel_f;
@@ -612,20 +674,45 @@ static void expandrow2(float *optr, const unsigned char *iptr, int z)
 				*optr = pixel_f;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
+		BLI_assert(optr == optr_next);
 	}
+	return false;
+
+#undef EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL
+#undef EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL
+fail:
+	return DIRTY_FLAG_ENCODING;
 }
 
-static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
+static int expandrow(
+        uchar *optr, const uchar *optr_end,
+        const uchar *iptr, const uchar *iptr_end, int z)
 {
-	unsigned char pixel, count;
+	uchar pixel, count;
+
+#define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+
+#define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
 
 	optr += z;
+	optr_end += z;
 	while (1) {
-		pixel = *iptr++;
+		const uchar *iptr_next = iptr + 1;
+		EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
+		pixel = *iptr;
+		iptr = iptr_next;
 		if (!(count = (pixel & 0x7f)) )
-			return;
+			return false;
+		const uchar *optr_next = optr + ((int)count * 4);
+		EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next);
+
 		if (pixel & 0x80) {
+			iptr_next = iptr + count;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			while (count >= 8) {
 				optr[0 * 4] = iptr[0];
 				optr[1 * 4] = iptr[1];
@@ -643,8 +730,11 @@ static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
 				*optr = *iptr++;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
 		else {
+			iptr_next = iptr + 1;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			pixel = *iptr++;
 			while (count >= 8) {
 				optr[0 * 4] = pixel;
@@ -662,8 +752,17 @@ static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
 				*optr = pixel;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
+		BLI_assert(optr == optr_next);
 	}
+
+	return false;
+
+#undef EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL
+#undef EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL
+fail:
+	return DIRTY_FLAG_ENCODING;
 }
 
 /*
@@ -679,14 +778,14 @@ static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
  *  Added: zbuf write
  */
 
-static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
+static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
 {
 	FILE *outf;
 	IMAGE *image;
 	int tablen, y, z, pos, len = 0;
-	unsigned int *starttab, *lengthtab;
-	unsigned char *rlebuf;
-	unsigned int *lumbuf;
+	uint *starttab, *lengthtab;
+	uchar *rlebuf;
+	uint *lumbuf;
 	int rlebuflen, goodwrite;
 
 	goodwrite = 1;
@@ -696,14 +795,14 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	tablen = ysize * zsize * sizeof(int);
 
 	image = (IMAGE *)MEM_mallocN(sizeof(IMAGE), "iris image");
-	starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
-	lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris lengthtab");
+	starttab = (uint *)MEM_mallocN(tablen, "iris starttab");
+	lengthtab = (uint *)MEM_mallocN(tablen, "iris lengthtab");
 	rlebuflen = 1.05 * xsize + 10;
-	rlebuf = (unsigned char *)MEM_mallocN(rlebuflen, "iris rlebuf");
-	lumbuf = (unsigned int *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
+	rlebuf = (uchar *)MEM_mallocN(rlebuflen, "iris rlebuf");
+	lumbuf = (uint *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
 
 	memset(image, 0, sizeof(IMAGE));
-	image->imagic = IMB_FTYPE_IMAGIC;
+	image->imagic = IMAGIC;
 	image->type = RLE(1);
 	if (zsize > 1)
 		image->dim = 3;
@@ -765,7 +864,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 
 /* static utility functions for output_iris */
 
-static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
+static void lumrow(uchar *rgbptr, uchar *lumptr, int n)
 {
 	lumptr += CHANOFFSET(0);
 	while (n--) {
@@ -775,9 +874,9 @@ static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
 	}
 }
 
-static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt)
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
 {
-	unsigned char *iptr, *ibufend, *sptr, *optr;
+	uchar *iptr, *ibufend, *sptr, *optr;
 	short todo, cc;
 	int count;
 
@@ -830,7 +929,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 		}
 	}
 	*optr++ = 0;
-	return optr - (unsigned char *)rlebuf;
+	return optr - (uchar *)rlebuf;
 }
 
 int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)

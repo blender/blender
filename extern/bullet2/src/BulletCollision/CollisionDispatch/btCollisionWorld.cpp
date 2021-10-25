@@ -147,11 +147,6 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 void	btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 {
 	btVector3 minAabb,maxAabb;
-	
-
-	
-
-
 	colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
 	//need to increase the aabb for contact thresholds
 	btVector3 contactThreshold(gContactBreakingThreshold,gContactBreakingThreshold,gContactBreakingThreshold);
@@ -167,7 +162,6 @@ void	btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 		minAabb.setMin(minAabb2);
 		maxAabb.setMax(maxAabb2);
 	}
-
 
 	btBroadphaseInterface* bp = (btBroadphaseInterface*)m_broadphasePairCache;
 
@@ -222,7 +216,6 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	BT_PROFILE("performDiscreteCollisionDetection");
 
 	btDispatcherInfo& dispatchInfo = getDispatchInfo();
-	
 
 	updateAabbs();
 

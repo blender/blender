@@ -590,7 +590,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 		}
 	}
 
-	if (e_best && (is_manifold_region == false)) {
+	if (e_best && e_best->l && (is_manifold_region == false)) {
 		/* Try to split off a non-manifold fan (when we have multiple disconnected fans) */
 		BMLoop *l_sep = e_best->l->v == v ? e_best->l : e_best->l->next;
 		BMVert *v_new;

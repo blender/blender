@@ -488,8 +488,9 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		const float fac = (float)BKE_scene_unit_scale(&sce->unit, n->unit_type[idx], 1.0);
 
 		/* Make radian default unit when needed. */
-		if (n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION)
+		if (n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
 			default_unit = "r";
+		}
 
 		BLI_strncpy(str_unit_convert, n->str, sizeof(str_unit_convert));
 
@@ -513,7 +514,16 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			n->val[idx] = -n->val[idx];
 		}
 		if (n->val_flag[idx] & NUM_INVERSE) {
-			n->val[idx] = 1.0f / n->val[idx];
+			val = n->val[idx];
+			/* If we invert on radians when user is in degrees, you get unexpected results... See T53463. */
+			if (!n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
+				val = RAD2DEG(val);
+			}
+			val = 1.0 / val;
+			if (!n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
+				val = DEG2RAD(val);
+			}
+			n->val[idx] = (float)val;
 		}
 
 		if (UNLIKELY(!isfinite(n->val[idx]))) {

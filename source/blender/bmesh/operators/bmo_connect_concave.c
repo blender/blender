@@ -41,7 +41,6 @@
 #include "BLI_heap.h"
 #include "BLI_polyfill2d.h"
 #include "BLI_polyfill2d_beautify.h"
-#include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 
 #include "bmesh.h"
@@ -77,7 +76,7 @@ static bool bm_face_split_by_concave(
         BMesh *bm, BMFace *f_base, const float eps,
 
         MemArena *pf_arena,
-        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
+        struct Heap *pf_heap)
 {
 	const int f_base_len = f_base->len;
 	int faces_array_tot = f_base_len - 3;
@@ -99,7 +98,7 @@ static bool bm_face_split_by_concave(
 	        &faces_double,
 	        quad_method, ngon_method, false,
 	        pf_arena,
-	        pf_heap, pf_ehash);
+	        pf_heap);
 
 	BLI_assert(edges_array_tot <= f_base_len - 3);
 
@@ -161,7 +160,6 @@ static bool bm_face_split_by_concave(
 	}
 
 	BLI_heap_clear(pf_heap, NULL);
-	BLI_edgehash_clear_ex(pf_ehash, NULL, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
 	while (faces_double) {
 		LinkNode *next = faces_double->next;
@@ -201,17 +199,15 @@ void bmo_connect_verts_concave_exec(BMesh *bm, BMOperator *op)
 
 	MemArena *pf_arena;
 	Heap *pf_heap;
-	EdgeHash *pf_ehash;
 
 	pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
 	pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-	pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		if (f->len > 3 && bm_face_convex_tag_verts(f)) {
 			if (bm_face_split_by_concave(
 			        bm, f, FLT_EPSILON,
-			        pf_arena, pf_heap, pf_ehash))
+			        pf_arena, pf_heap))
 			{
 				changed = true;
 			}
@@ -225,5 +221,4 @@ void bmo_connect_verts_concave_exec(BMesh *bm, BMOperator *op)
 
 	BLI_memarena_free(pf_arena);
 	BLI_heap_free(pf_heap, NULL);
-	BLI_edgehash_free(pf_ehash, NULL);
 }

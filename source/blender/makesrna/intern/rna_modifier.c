@@ -1974,8 +1974,25 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "double_threshold");
 	RNA_def_property_range(prop, 0, 1.0f);
-	RNA_def_property_ui_range(prop, 0, 1, 0.0001, 7);
+	RNA_def_property_ui_range(prop, 0, 1, 0.0001, 6);
 	RNA_def_property_ui_text(prop, "Overlap Threshold",  "Threshold for checking overlapping geometry");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* BMesh debugging options, only used when G_DEBUG is set */
+
+	/* BMesh intersection options */
+	static EnumPropertyItem debug_items[] = {
+		{eBooleanModifierBMeshFlag_BMesh_Separate, "SEPARATE", 0, "Separate", ""},
+		{eBooleanModifierBMeshFlag_BMesh_NoDissolve, "NO_DISSOLVE", 0, "NoDissolve", ""},
+		{eBooleanModifierBMeshFlag_BMesh_NoConnectRegions, "NO_CONNECT_REGIONS", 0, "NoConnectRegions", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	prop = RNA_def_property(srna, "debug_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, debug_items);
+	RNA_def_property_enum_sdna(prop, NULL, "bm_flag");
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Debug", "Debugging options, only when started with '-d'");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

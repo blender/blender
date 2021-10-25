@@ -1,8 +1,6 @@
 KX_SCA_ReplaceMeshActuator(SCA_IActuator)
 =========================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SCA_ReplaceMeshActuator(SCA_IActuator)
@@ -86,4 +84,3 @@ base class --- :class:`SCA_IActuator`
    .. method:: instantReplaceMesh()
 
       Immediately replace mesh without delay.
-

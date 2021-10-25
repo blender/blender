@@ -620,9 +620,6 @@ public:
 #endif
 	}
 
-
-
-
   /**@brief Set each element to the min of the current values and the values of another btVector3
    * @param other The other btVector3 to compare with 
    */

@@ -235,9 +235,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
-	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, new_w");
-	dw = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGEdit Modifier, dw");
+	org_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, org_w");
+	new_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, new_w");
+	dw = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGEdit Modifier, dw");
 	for (i = 0; i < numVerts; i++) {
 		dw[i] = defvert_find_index(&dvert[i], defgrp_index);
 		if (dw[i]) {

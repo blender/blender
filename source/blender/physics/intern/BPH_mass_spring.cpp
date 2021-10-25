@@ -488,7 +488,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), ListB
 			
 			BPH_mass_spring_get_motion_state(data, i, x, v);
 			pd_point_from_loc(clmd->scene, x, v, i, &epoint);
-			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL, NULL);
+			pdDoEffectors(effectors, NULL, clmd->sim_parms->effector_weights, &epoint, winvec[i], NULL);
 		}
 		
 		for (i = 0; i < cloth->tri_num; i++) {

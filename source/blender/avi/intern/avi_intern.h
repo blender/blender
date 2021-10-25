@@ -59,7 +59,7 @@ unsigned int GET_TCC(FILE *fp);
 	putc(ch2[1], fp); \
 } (void)0
 
-void *avi_format_convert(AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size);
+void *avi_format_convert(AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, size_t *size);
 
 int avi_get_data_id(AviFormat format, int stream);
 int avi_get_format_type(AviFormat format);

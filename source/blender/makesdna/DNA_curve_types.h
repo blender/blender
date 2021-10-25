@@ -87,9 +87,7 @@ typedef struct BevList {
 	int charidx;
 	int *segbevcount;
 	float *seglen;
-
-	/* over-alloc */
-	BevPoint bevpoints[0];
+	BevPoint *bevpoints;
 } BevList;
 
 /**

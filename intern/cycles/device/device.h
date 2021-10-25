@@ -351,6 +351,7 @@ public:
 private:
 	/* Indicted whether device types and devices lists were initialized. */
 	static bool need_types_update, need_devices_update;
+	static thread_mutex device_mutex;
 	static vector<DeviceType> types;
 	static vector<DeviceInfo> devices;
 };

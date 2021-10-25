@@ -101,7 +101,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_ver
 	mp = mpoly;
 
 	{
-		EdgeFaceRef *edge_ref_array = MEM_callocN(sizeof(EdgeFaceRef) * (size_t)numEdges, "Edge Connectivity");
+		EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN((size_t)numEdges, sizeof(EdgeFaceRef), "Edge Connectivity");
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
 
@@ -235,7 +235,7 @@ static DerivedMesh *applyModifier(
 	unsigned int *new_edge_arr = NULL;
 	STACK_DECLARE(new_edge_arr);
 
-	unsigned int *old_vert_arr = MEM_callocN(sizeof(*old_vert_arr) * (size_t)numVerts, "old_vert_arr in solidify");
+	unsigned int *old_vert_arr = MEM_calloc_arrayN(numVerts, sizeof(*old_vert_arr), "old_vert_arr in solidify");
 
 	unsigned int *edge_users = NULL;
 	char *edge_order = NULL;
@@ -270,7 +270,7 @@ static DerivedMesh *applyModifier(
 
 	if (need_face_normals) {
 		/* calculate only face normals */
-		face_nors = MEM_mallocN(sizeof(*face_nors) * (size_t)numFaces, __func__);
+		face_nors = MEM_malloc_arrayN(numFaces, sizeof(*face_nors), __func__);
 		BKE_mesh_calc_normals_poly(
 		            orig_mvert, NULL, (int)numVerts,
 		            orig_mloop, orig_mpoly,
@@ -289,11 +289,11 @@ static DerivedMesh *applyModifier(
 #define INVALID_UNUSED ((unsigned int)-1)
 #define INVALID_PAIR ((unsigned int)-2)
 
-		new_vert_arr = MEM_mallocN(sizeof(*new_vert_arr) * (size_t)(numVerts * 2), __func__);
-		new_edge_arr = MEM_mallocN(sizeof(*new_edge_arr) * (size_t)((numEdges * 2) + numVerts), __func__);
+		new_vert_arr = MEM_malloc_arrayN(numVerts, 2 * sizeof(*new_vert_arr), __func__);
+		new_edge_arr = MEM_malloc_arrayN(((numEdges * 2) + numVerts), sizeof(*new_edge_arr), __func__);
 
-		edge_users = MEM_mallocN(sizeof(*edge_users) * (size_t)numEdges, "solid_mod edges");
-		edge_order = MEM_mallocN(sizeof(*edge_order) * (size_t)numEdges, "solid_mod eorder");
+		edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
+		edge_order = MEM_malloc_arrayN(numEdges, sizeof(*edge_order), "solid_mod eorder");
 
 
 		/* save doing 2 loops here... */
@@ -366,7 +366,7 @@ static DerivedMesh *applyModifier(
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
-		vert_nors = MEM_callocN(sizeof(float) * (size_t)numVerts * 3, "mod_solid_vno_hq");
+		vert_nors = MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno_hq");
 		dm_calc_normal(dm, face_nors, vert_nors);
 	}
 
@@ -517,7 +517,7 @@ static DerivedMesh *applyModifier(
 		if (do_clamp) {
 			unsigned int i;
 
-			vert_lens = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
+			vert_lens = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_lens");
 			copy_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
 			for (i = 0; i < numEdges; i++) {
 				const float ed_len_sq = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
@@ -596,13 +596,13 @@ static DerivedMesh *applyModifier(
 		const bool check_non_manifold = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) != 0;
 #endif
 		/* same as EM_solidify() in editmesh_lib.c */
-		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
+		float *vert_angles = MEM_calloc_arrayN(numVerts, 2 * sizeof(float), "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum = vert_angles + numVerts;
 		unsigned int vidx;
 		unsigned int i;
 
 		if (vert_nors == NULL) {
-			vert_nors = MEM_mallocN(sizeof(float) * numVerts * 3, "mod_solid_vno");
+			vert_nors = MEM_malloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno");
 			for (i = 0, mv = mvert; i < numVerts; i++, mv++) {
 				normal_short_to_float_v3(vert_nors[i], mv->no);
 			}
@@ -682,7 +682,7 @@ static DerivedMesh *applyModifier(
 		}
 
 		if (do_clamp) {
-			float *vert_lens_sq = MEM_mallocN(sizeof(float) * numVerts, "vert_lens");
+			float *vert_lens_sq = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_lens");
 			const float offset    = fabsf(smd->offset) * smd->offset_clamp;
 			const float offset_sq = offset * offset;
 			copy_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
@@ -765,7 +765,7 @@ static DerivedMesh *applyModifier(
 #ifdef SOLIDIFY_SIDE_NORMALS
 		const bool do_side_normals = !(result->dirty & DM_DIRTY_NORMALS);
 		/* annoying to allocate these since we only need the edge verts, */
-		float (*edge_vert_nos)[3] = do_side_normals ? MEM_callocN(sizeof(float) * numVerts * 3, __func__) : NULL;
+		float (*edge_vert_nos)[3] = do_side_normals ? MEM_calloc_arrayN(numVerts, 3 * sizeof(float), __func__) : NULL;
 		float nor[3];
 #endif
 		const unsigned char crease_rim = smd->crease_rim * 255.0f;

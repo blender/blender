@@ -1865,6 +1865,10 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
 		}
 	}
 
+	if (del && count == 0) {
+		ok = 0;
+	}
+
 	if (del) {
 		MEM_freeN(track->markers);
 

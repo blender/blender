@@ -355,7 +355,7 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 {
 	btCollisionObjectArray& collisionObjects = collisionWorld->getCollisionObjectArray();
 
-buildIslands(dispatcher,collisionWorld);
+	buildIslands(dispatcher,collisionWorld);
 
 	int endIslandIndex=1;
 	int startIslandIndex;

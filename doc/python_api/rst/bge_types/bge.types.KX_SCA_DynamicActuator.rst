@@ -1,8 +1,6 @@
 KX_SCA_DynamicActuator(SCA_IActuator)
 =====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SCA_DynamicActuator(SCA_IActuator)
@@ -26,4 +24,3 @@ base class --- :class:`SCA_IActuator`
       the mass value for the KX_DYN_SET_MASS operation.
 
       :type: float
-

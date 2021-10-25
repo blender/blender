@@ -275,6 +275,20 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 	return node;
 }
 
+/**
+ * Convenience function since this is a common pattern.
+ */
+void BLI_heap_insert_or_update(Heap *heap, HeapNode **node_p, float value, void *ptr)
+{
+	if (*node_p == NULL) {
+		*node_p = BLI_heap_insert(heap, value, ptr);
+	}
+	else {
+		BLI_heap_node_value_update_ptr(heap, *node_p, value, ptr);
+	}
+}
+
+
 bool BLI_heap_is_empty(Heap *heap)
 {
 	return (heap->size == 0);
@@ -320,6 +334,28 @@ void BLI_heap_remove(Heap *heap, HeapNode *node)
 	}
 
 	BLI_heap_popmin(heap);
+}
+
+/**
+ * Can be used to avoid #BLI_heap_remove, #BLI_heap_insert calls,
+ * balancing the tree still has a performance cost,
+ * but is often much less than remove/insert, difference is most noticable with large heaps.
+ */
+void BLI_heap_node_value_update(Heap *heap, HeapNode *node, float value)
+{
+	if (value == node->value) {
+		return;
+	}
+	node->value = value;
+	/* Can be called in either order, makes no difference. */
+	heap_up(heap, node->index);
+	heap_down(heap, node->index);
+}
+
+void BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, void *ptr)
+{
+	node->ptr = ptr;
+	BLI_heap_node_value_update(heap, node, value);
 }
 
 float BLI_heap_node_value(HeapNode *node)

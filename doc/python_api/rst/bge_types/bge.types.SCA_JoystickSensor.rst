@@ -1,8 +1,6 @@
 SCA_JoystickSensor(SCA_ISensor)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_JoystickSensor(SCA_ISensor)
@@ -130,4 +128,3 @@ base class --- :class:`SCA_ISensor`
       :type buttonIndex: integer
       :return: The current pressed state of the specified button.
       :rtype: boolean
-

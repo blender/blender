@@ -3515,7 +3515,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 				shapeInfo->m_childScale.setValue(relativeScale[0],relativeScale[1],relativeScale[2]);
 				bm->setLocalScaling(shapeInfo->m_childScale);
 				shapeInfo->m_childTrans.getOrigin().setValue(relativePos[0],relativePos[1],relativePos[2]);
-				double rot[12];
+				float rot[12];
 				relativeRot.getValue(rot);
 				shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
 

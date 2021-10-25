@@ -106,6 +106,7 @@ void register_node_type_tex_image(void)
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, NULL, NULL, exec);
-	
+	node_type_label(&ntype, node_image_label);
+
 	nodeRegisterType(&ntype);
 }

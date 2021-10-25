@@ -1,8 +1,6 @@
 SCA_MouseSensor(SCA_ISensor)
 ============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_MouseSensor(SCA_ISensor)
@@ -36,4 +34,3 @@ base class --- :class:`SCA_ISensor`
       :type button: int
       :return: The state of the given key, can be one of :ref:`these constants<input-status>`
       :rtype: int
-

@@ -24,7 +24,7 @@ subject to the following restrictions:
 
 
 
-///The btLemkeSolver is based on "Fast Implementation of Lemke’s Algorithm for Rigid Body Contact Simulation (John E. Lloyd) "
+///The btLemkeSolver is based on "Fast Implementation of Lemkeï¿½s Algorithm for Rigid Body Contact Simulation (John E. Lloyd) "
 ///It is a slower but more accurate solver. Increase the m_maxLoops for better convergence, at the cost of more CPU time.
 ///The original implementation of the btLemkeAlgorithm was done by Kilian Grundl from the MBSim team
 class btLemkeSolver : public btMLCPSolverInterface

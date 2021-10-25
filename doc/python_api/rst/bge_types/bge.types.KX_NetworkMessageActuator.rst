@@ -1,8 +1,6 @@
 KX_NetworkMessageActuator(SCA_IActuator)
 ========================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_NetworkMessageActuator(SCA_IActuator)
@@ -32,4 +30,3 @@ base class --- :class:`SCA_IActuator`
       Send a property instead of a regular body message.
 
       :type: boolean
-

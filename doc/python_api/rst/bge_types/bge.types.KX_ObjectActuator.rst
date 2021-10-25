@@ -1,8 +1,6 @@
 KX_ObjectActuator(SCA_IActuator)
 ================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_ObjectActuator(SCA_IActuator)
@@ -126,4 +124,3 @@ base class --- :class:`SCA_IActuator`
       The object that is used as reference to compute the velocity for the servo controller.
 
       :type: :class:`KX_GameObject` or None
-

@@ -57,7 +57,7 @@ class BP_Proxy;
 //'temporarily' global variables
 //float	gDeactivationTime = 2.f;
 //bool	gDisableDeactivation = false;
-extern double gDeactivationTime;
+extern float gDeactivationTime;
 extern bool gDisableDeactivation;
 
 
@@ -193,7 +193,7 @@ btTransform&	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState*
 	motionState->GetWorldPosition(tmp.m_floats[0], tmp.m_floats[1], tmp.m_floats[2]);
 	trans.setOrigin(tmp);
 
-	double ori[12];
+	float ori[12];
 	motionState->GetWorldOrientation(ori);
 	trans.getBasis().setFromOpenGLSubMatrix(ori);
 	//btQuaternion orn;
@@ -218,7 +218,7 @@ public:
 	void	getWorldTransform(btTransform& worldTrans ) const
 	{
 		btVector3 pos;
-		double ori[12];
+		float ori[12];
 
 		m_blenderMotionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
 		m_blenderMotionState->GetWorldOrientation(ori);
@@ -765,13 +765,13 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		const btTransform& xform = body->getCenterOfMassTransform();
 		const btMatrix3x3& worldOri = xform.getBasis();
 		const btVector3& worldPos = xform.getOrigin();
-		double ori[12];
+		float ori[12];
 		worldOri.getOpenGLSubMatrix(ori);
 		m_MotionState->SetWorldOrientation(ori);
 		m_MotionState->SetWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		m_MotionState->CalculateWorldTransformations();
 
-		double scale[3];
+		float scale[3];
 		m_MotionState->GetWorldScaling(scale[0],scale[1],scale[2]);
 		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
@@ -790,7 +790,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		
 		m_MotionState->calculateWorldTransformations();
 */
-		double scale[3];
+		float scale[3];
 		m_MotionState->GetWorldScaling(scale[0],scale[1],scale[2]);
 		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
@@ -977,7 +977,7 @@ void		CcdPhysicsController::RelativeRotate(const MT_Matrix3x3& rotval,bool local
 
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
-	double ori[12];
+	float ori[12];
 	m_MotionState->GetWorldOrientation(ori);
 	mat.setFromOpenGLSubMatrix(ori);
 }
@@ -1158,7 +1158,7 @@ void CcdPhysicsController::SetTransform()
 {
 	btVector3 pos;
 	btVector3 scale;
-	double ori[12];
+	float ori[12];
 	m_MotionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
 	m_MotionState->GetWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
 	m_MotionState->GetWorldOrientation(ori);
@@ -1779,21 +1779,21 @@ DefaultMotionState::~DefaultMotionState()
 
 }
 
-void	DefaultMotionState::GetWorldPosition(double& posX, double& posY, double& posZ)
+void	DefaultMotionState::GetWorldPosition(float& posX,float& posY,float& posZ)
 {
 	posX = m_worldTransform.getOrigin().x();
 	posY = m_worldTransform.getOrigin().y();
 	posZ = m_worldTransform.getOrigin().z();
 }
 
-void	DefaultMotionState::GetWorldScaling(double& scaleX, double& scaleY, double& scaleZ)
+void	DefaultMotionState::GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 {
 	scaleX = m_localScaling.getX();
 	scaleY = m_localScaling.getY();
 	scaleZ = m_localScaling.getZ();
 }
 
-void	DefaultMotionState::GetWorldOrientation(double& quatIma0, double& quatIma1, double& quatIma2, double& quatReal)
+void	DefaultMotionState::GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
 	btQuaternion quat = m_worldTransform.getRotation();
 	quatIma0 = quat.x();
@@ -1802,22 +1802,22 @@ void	DefaultMotionState::GetWorldOrientation(double& quatIma0, double& quatIma1,
 	quatReal = quat[3];
 }
 		
-void	DefaultMotionState::GetWorldOrientation(double* ori)
+void	DefaultMotionState::GetWorldOrientation(float* ori)
 {
 	m_worldTransform.getBasis().getOpenGLSubMatrix(ori);
-} 
+}
 
-void	DefaultMotionState::SetWorldOrientation(const double* ori)
+void	DefaultMotionState::SetWorldOrientation(const float* ori)
 {
 	m_worldTransform.getBasis().setFromOpenGLSubMatrix(ori);
 }
-void	DefaultMotionState::SetWorldPosition(double posX, double posY, double posZ)
+void	DefaultMotionState::SetWorldPosition(float posX,float posY,float posZ)
 {
 	btVector3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
-void	DefaultMotionState::SetWorldOrientation(double quatIma0, double quatIma1, double quatIma2, double quatReal)
+void	DefaultMotionState::SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
 {
 	btQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
 	m_worldTransform.setRotation( orn );

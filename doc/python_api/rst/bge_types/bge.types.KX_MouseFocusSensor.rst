@@ -1,8 +1,6 @@
 KX_MouseFocusSensor(SCA_MouseSensor)
 ====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_MouseSensor`
 
 .. class:: KX_MouseFocusSensor(SCA_MouseSensor)

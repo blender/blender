@@ -79,6 +79,9 @@ void DepsgraphNodeBuilder::build_ik_pose(Scene *scene, Object *ob, bPoseChannel 
 
 	/* Find the chain's root. */
 	bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+	if (rootchan == NULL) {
+		return;
+	}
 
 	if (has_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                       DEG_OPCODE_POSE_IK_SOLVER))
@@ -179,6 +182,11 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 	                             function_bind(BKE_pose_eval_init, _1, scene, ob, ob->pose),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
+
+	op_node = add_operation_node(&ob->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             function_bind(BKE_pose_eval_init_ik, _1, scene, ob, ob->pose),
+	                             DEG_OPCODE_POSE_INIT_IK);
 
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,

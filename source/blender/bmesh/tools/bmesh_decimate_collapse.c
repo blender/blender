@@ -256,10 +256,6 @@ static void bm_decim_build_edge_cost_single(
 {
 	float cost;
 
-	if (eheap_table[BM_elem_index_get(e)]) {
-		BLI_heap_remove(eheap, eheap_table[BM_elem_index_get(e)]);
-	}
-
 	if (UNLIKELY(vweights &&
 	             ((vweights[BM_elem_index_get(e->v1)] == 0.0f) ||
 	              (vweights[BM_elem_index_get(e->v2)] == 0.0f))))
@@ -341,10 +337,13 @@ static void bm_decim_build_edge_cost_single(
 		}
 	}
 
-	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
+	BLI_heap_insert_or_update(eheap, &eheap_table[BM_elem_index_get(e)], cost, e);
 	return;
 
 clear:
+	if (eheap_table[BM_elem_index_get(e)]) {
+		BLI_heap_remove(eheap, eheap_table[BM_elem_index_get(e)]);
+	}
 	eheap_table[BM_elem_index_get(e)] = NULL;
 }
 
@@ -497,7 +496,7 @@ static bool bm_face_triangulate(
 
         MemArena *pf_arena,
         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
+        struct Heap *pf_heap)
 {
 	const int f_base_len = f_base->len;
 	int faces_array_tot = f_base_len - 3;
@@ -516,8 +515,7 @@ static bool bm_face_triangulate(
 	        edges_array, &edges_array_tot,
 	        r_faces_double,
 	        quad_method, ngon_method, false,
-	        pf_arena,
-	        pf_heap, pf_ehash);
+	        pf_arena, pf_heap);
 
 	for (int i = 0; i < edges_array_tot; i++) {
 		BMLoop *l_iter, *l_first;
@@ -567,19 +565,16 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 	{
 		MemArena *pf_arena;
 		Heap *pf_heap;
-		EdgeHash *pf_ehash;
 
 		LinkNode *faces_double = NULL;
 
 		if (has_ngon) {
 			pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
 			pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-			pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 		}
 		else {
 			pf_arena = NULL;
 			pf_heap = NULL;
-			pf_ehash = NULL;
 		}
 
 		/* adding new faces as we loop over faces
@@ -591,8 +586,7 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 				        bm, f, &faces_double,
 				        r_edges_tri_tot,
 
-				        pf_arena,
-				        pf_heap, pf_ehash);
+				        pf_arena, pf_heap);
 			}
 		}
 
@@ -606,7 +600,6 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 		if (has_ngon) {
 			BLI_memarena_free(pf_arena);
 			BLI_heap_free(pf_heap, NULL);
-			BLI_edgehash_free(pf_ehash, NULL);
 		}
 
 		BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);

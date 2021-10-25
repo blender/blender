@@ -37,9 +37,11 @@
 #include <errno.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
@@ -2059,6 +2061,28 @@ static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
 							DAG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
 						}
 					}
+					else if (md->type == eModifierType_ParticleSystem) {
+						ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+						ParticleSystem *psys = psmd->psys;
+						ParticleSettings *part = psys->part;
+						switch (part->ren_as) {
+							case PART_DRAW_OB:
+								if (part->dup_ob != NULL) {
+									DAG_id_tag_update(&part->dup_ob->id, OB_RECALC_DATA);
+								}
+								break;
+							case PART_DRAW_GR:
+								if (part->dup_group != NULL) {
+									for (GroupObject *go = part->dup_group->gobject.first;
+									     go != NULL;
+									     go = go->next)
+									{
+										DAG_id_tag_update(&go->ob->id, OB_RECALC_DATA);
+									}
+								}
+								break;
+						}
+					}
 				}
 			}
 		}
@@ -3330,9 +3354,6 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 					BKE_image_path_ensure_ext_from_imformat(name, &imf);
 					ibuf->planes = 24;
 
-					IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
-					                                    &scene->display_settings, &imf);
-
 					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
 				}
 
@@ -3345,7 +3366,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		BLI_assert(scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D);
 
 		if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
-			printf("Stereo 3D not support for MultiLayer image: %s\n", name);
+			printf("Stereo 3D not supported for MultiLayer image: %s\n", name);
 		}
 		else {
 			ImBuf *ibuf_arr[3] = {NULL};
@@ -3376,9 +3397,6 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 				BKE_image_path_ensure_ext_from_imformat(name, &imf);
 				ibuf_arr[2]->planes = 24;
-
-				IMB_colormanagement_imbuf_for_write(ibuf_arr[2], true, false, &scene->view_settings,
-				                                    &scene->display_settings, &imf);
 
 				ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
 			}

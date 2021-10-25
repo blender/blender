@@ -348,8 +348,9 @@ ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
 {
 	Bssrdf *bssrdf = (Bssrdf*)closure_alloc(sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
 
-	if(!bssrdf)
+	if(bssrdf == NULL) {
 		return NULL;
+	}
 
 	float sample_weight = fabsf(average(weight));
 	bssrdf->sample_weight = sample_weight;

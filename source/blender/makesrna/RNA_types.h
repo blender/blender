@@ -98,15 +98,6 @@ typedef enum PropertyUnit {
 	PROP_UNIT_VELOCITY     = (7 << 16),   /* m/s */
 	PROP_UNIT_ACCELERATION = (8 << 16),   /* m/(s^2) */
 	PROP_UNIT_CAMERA       = (9 << 16),   /* mm */
-	PROP_UNIT_POWER        = (10 << 16),  
-	PROP_UNIT_TEMPERATURE  = (11 << 16),  
-	PROP_UNIT_FORCE        = (12 << 16), 
-	PROP_UNIT_STRESS       = (13 << 16),   
-	PROP_UNIT_TORQUE       = (14<< 16), 
-	PROP_UNIT_ANVELOCITY   = (15 << 16),
-	PROP_UNIT_IMPULSE	   = (16 << 16),
-	PROP_UNIT_IMPULSE_MOMENT =(17<<16),
-
 } PropertyUnit;
 
 #define RNA_SUBTYPE_UNIT(subtype)       ((subtype) &  0x00FF0000)
@@ -161,15 +152,6 @@ typedef enum PropertySubType {
 	/* booleans */
 	PROP_LAYER             = 40,
 	PROP_LAYER_MEMBER      = 41,
-	PROP_POWER             = 42 | PROP_UNIT_POWER,
-	PROP_TEMPERATURE       = 43 | PROP_UNIT_TEMPERATURE,
-	PROP_FORCE             = 44 | PROP_UNIT_FORCE,
-	PROP_STRESS            = 45 | PROP_UNIT_STRESS,
-	PROP_TORQUE            = 46 | PROP_UNIT_TORQUE,
-	PROP_ANVELOCITY = 47 | PROP_UNIT_ANVELOCITY,
-	PROP_IMPULSE = 48 | PROP_UNIT_IMPULSE,
-	PROP_IMPULSE_MOMENT = 49 | PROP_UNIT_IMPULSE_MOMENT
-
 } PropertySubType;
 
 /* Make sure enums are updated with these */

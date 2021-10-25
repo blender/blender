@@ -39,7 +39,7 @@
 #ifdef __GNUC__
 #  pragma GCC diagnostic push
 /* XXX suppress verbose warnings in eigen */
-#  pragma GCC diagnostic ignored "-Wlogical-op"
+//#  pragma GCC diagnostic ignored "-Wlogical-op"
 #endif
 
 #ifndef IMPLICIT_ENABLE_EIGEN_DEBUG

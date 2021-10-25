@@ -39,7 +39,7 @@
 #include "avi_mjpeg.h"
 #include "avi_rgb32.h"
 
-void *avi_format_convert(AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size)
+void *avi_format_convert(AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, size_t *size)
 {
 	if (from == to)
 		return buffer;

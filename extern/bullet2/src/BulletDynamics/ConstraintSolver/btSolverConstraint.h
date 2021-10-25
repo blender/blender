@@ -43,7 +43,6 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverConstraint
 	mutable btSimdScalar	m_appliedPushImpulse;
 	mutable btSimdScalar	m_appliedImpulse;
 
-	
 	btScalar	m_friction;
 	btScalar	m_jacDiagABInv;
 	btScalar		m_rhs;

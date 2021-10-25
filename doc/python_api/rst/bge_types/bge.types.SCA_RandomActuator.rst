@@ -1,8 +1,6 @@
 SCA_RandomActuator(SCA_IActuator)
 =================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: SCA_RandomActuator(SCA_IActuator)
@@ -124,4 +122,3 @@ base class --- :class:`SCA_IActuator`
       The half-life 'time' is characterized by half_life.
       
       :type half_life: float
-

@@ -285,13 +285,15 @@ bool AVI_is_avi(const char *name)
 
 	fseek(movie.fp, movie.header->size - 14 * 4, SEEK_CUR);
 
-	if (movie.header->Streams < 1) {
-		DEBUG_PRINT("streams less than 1\n");
+	/* Limit number of streams to some reasonable amount to prevent
+	 * buffer oveflow vulnerabilities. */
+	if (movie.header->Streams < 1 || movie.header->Streams > 65536) {
+		DEBUG_PRINT("Number of streams should be in range 1-65536\n");
 		fclose(movie.fp);
 		return 0;
 	}
 	
-	movie.streams = (AviStreamRec *) MEM_callocN(sizeof(AviStreamRec) * movie.header->Streams, "moviestreams");
+	movie.streams = (AviStreamRec *) MEM_calloc_arrayN(movie.header->Streams, sizeof(AviStreamRec), "moviestreams");
 
 	for (temp = 0; temp < movie.header->Streams; temp++) {
 
@@ -486,12 +488,14 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 
 	fseek(movie->fp, movie->header->size - 14 * 4, SEEK_CUR);
 
-	if (movie->header->Streams < 1) {
-		DEBUG_PRINT("streams less than 1\n");
+	/* Limit number of streams to some reasonable amount to prevent
+	 * buffer oveflow vulnerabilities. */
+	if (movie->header->Streams < 1 || movie->header->Streams > 65536) {
+		DEBUG_PRINT("Number of streams should be in range 1-65536\n");
 		return AVI_ERROR_FORMAT;
 	}
 	
-	movie->streams = (AviStreamRec *) MEM_callocN(sizeof(AviStreamRec) * movie->header->Streams, "moviestreams");
+	movie->streams = (AviStreamRec *) MEM_calloc_arrayN(movie->header->Streams, sizeof(AviStreamRec), "moviestreams");
 
 	for (temp = 0; temp < movie->header->Streams; temp++) {
 
@@ -689,7 +693,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 
 void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
 {
-	int cur_frame = -1, temp, i = 0, rewind = 1;
+	int cur_frame = -1, i = 0, rewind = 1;
 	void *buffer;
 
 	/* Retrieve the record number of the desired frame in the index 
@@ -720,16 +724,16 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
 
 	fseek(movie->fp, movie->read_offset + movie->entries[i - 1].Offset, SEEK_SET);
 
-	temp = GET_FCC(movie->fp);
-	buffer = MEM_mallocN(temp, "readbuffer");
+	size_t size = GET_FCC(movie->fp);
+	buffer = MEM_mallocN(size, "readbuffer");
 
-	if (fread(buffer, 1, temp, movie->fp) != temp) {
+	if (fread(buffer, 1, size, movie->fp) != size) {
 		MEM_freeN(buffer);
 
 		return NULL;
 	}
 	
-	buffer = avi_format_convert(movie, stream, buffer, movie->streams[stream].format, format, &temp);
+	buffer = avi_format_convert(movie, stream, buffer, movie->streams[stream].format, format, &size);
 
 	return buffer;
 }
@@ -800,6 +804,13 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 	movie->header->Reserved[1] = 0;
 	movie->header->Reserved[2] = 0;
 	movie->header->Reserved[3] = 0;
+
+	/* Limit number of streams to some reasonable amount to prevent
+	 * buffer oveflow vulnerabilities. */
+	if (movie->header->Streams < 0 || movie->header->Streams > 65536) {
+		DEBUG_PRINT("Number of streams should be in range 0-65536\n");
+		return AVI_ERROR_FORMAT;
+	}
 
 	movie->streams = (AviStreamRec *) MEM_mallocN(sizeof(AviStreamRec) * movie->header->Streams, "moviestreams");
 
@@ -968,7 +979,6 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 	int64_t rec_off;
 	AviFormat format;
 	void *buffer;
-	int size;
 
 	if (frame_num < 0)
 		return AVI_ERROR_OPTION;
@@ -1002,7 +1012,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 		
 		format = va_arg(ap, AviFormat);
 		buffer = va_arg(ap, void *);
-		size = va_arg(ap, int);
+		size_t size = va_arg(ap, int);
 
 		/* Convert the buffer into the output format */
 		buffer = avi_format_convert(movie, stream, buffer, format, movie->streams[stream].format, &size);

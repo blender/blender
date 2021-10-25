@@ -1,8 +1,6 @@
 SCA_IController(SCA_ILogicBrick)
 ================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ILogicBrick`
 
 .. class:: SCA_IController(SCA_ILogicBrick)
@@ -52,4 +50,3 @@ base class --- :class:`SCA_ILogicBrick`
       .. note::
          
          Order of execution between high priority controllers is not guaranteed.
-

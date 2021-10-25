@@ -1,8 +1,6 @@
 KX_StateActuator(SCA_IActuator)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_StateActuator(SCA_IActuator)
@@ -26,4 +24,3 @@ base class --- :class:`SCA_IActuator`
       The bits that are 0 are will be left unmodified expect for the Copy operation which copies the mask to the object state.
 
       :type: integer
-

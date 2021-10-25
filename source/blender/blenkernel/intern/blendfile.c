@@ -114,6 +114,7 @@ static void setup_app_data(
         const char *filepath, ReportList *reports)
 {
 	Scene *curscene = NULL;
+	const bool is_startup = (bfd->filename[0] == '\0');
 	const bool recover = (G.fileflags & G_FILE_RECOVER) != 0;
 	enum {
 		LOAD_UI = 1,
@@ -129,7 +130,7 @@ static void setup_app_data(
 	else if (BLI_listbase_is_empty(&bfd->main->screen)) {
 		mode = LOAD_UNDO;
 	}
-	else if (G.fileflags & G_FILE_NO_UI) {
+	else if ((G.fileflags & G_FILE_NO_UI) && (is_startup == false)) {
 		mode = LOAD_UI_OFF;
 	}
 	else {
@@ -225,11 +226,9 @@ static void setup_app_data(
 	CTX_data_main_set(C, G.main);
 
 	if (bfd->user) {
-
 		/* only here free userdef themes... */
-		BKE_blender_userdef_free_data(&U);
-
-		U = *bfd->user;
+		BKE_blender_userdef_data_set_and_free(bfd->user);
+		bfd->user = NULL;
 
 		/* Security issue: any blend file could include a USER block.
 		 *
@@ -240,8 +239,6 @@ static void setup_app_data(
 		 * enable scripts auto-execution by loading a '.blend' file.
 		 */
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
-
-		MEM_freeN(bfd->user);
 	}
 
 	/* case G_FILE_NO_UI or no screens in file */
@@ -250,7 +247,9 @@ static void setup_app_data(
 		CTX_data_scene_set(C, curscene);
 	}
 	else {
-		G.fileflags = bfd->fileflags;
+		/* Keep state from preferences. */
+		const int fileflags_skip = G_FILE_FLAGS_RUNTIME;
+		G.fileflags = (G.fileflags & fileflags_skip) | (bfd->fileflags & ~fileflags_skip);
 		CTX_wm_manager_set(C, G.main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscene);
@@ -494,20 +493,47 @@ UserDef *BKE_blendfile_userdef_read_from_memory(
 }
 
 
-/* only write the userdef in a .blend */
-int BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
+/**
+ * Only write the userdef in a .blend
+ * \return success
+ */
+bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 {
 	Main *mainb = MEM_callocN(sizeof(Main), "empty main");
-	int retval = 0;
+	bool ok = false;
 
 	if (BLO_write_file(mainb, filepath, G_FILE_USERPREFS, reports, NULL)) {
-		retval = 1;
+		ok = true;
 	}
 
 	MEM_freeN(mainb);
 
-	return retval;
+	return ok;
 }
+
+/**
+ * Only write the userdef in a .blend, merging with the existing blend file.
+ * \return success
+ *
+ * \note In the future we should re-evaluate user preferences,
+ * possibly splitting out system/hardware specific prefs.
+ */
+bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports)
+{
+	/* if it fails, overwrite is OK. */
+	UserDef *userdef_default = BKE_blendfile_userdef_read(filepath, NULL);
+	if (userdef_default == NULL) {
+		return BKE_blendfile_userdef_write(filepath, reports);
+	}
+
+	BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
+	bool ok = BKE_blendfile_userdef_write(filepath, reports);
+	BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
+	BKE_blender_userdef_data_free(userdef_default, false);
+	MEM_freeN(userdef_default);
+	return ok;
+}
+
 
 /** \} */
 

@@ -87,7 +87,7 @@ struct rbRigidBody {
 };
 
 struct rbVert {
-	double x, y, z;
+	float x, y, z;
 };
 struct rbTri {
 	int v0, v1, v2;
@@ -124,9 +124,9 @@ struct rbFilterCallback : public btOverlapFilterCallback
 
 static inline void copy_v3_btvec3(float vec[3], const btVector3 &btvec)
 {
-	vec[0] = (double)btvec[0];
-	vec[1] = (double)btvec[1];
-	vec[2] = (double)btvec[2];
+	vec[0] = (float)btvec[0];
+	vec[1] = (float)btvec[1];
+	vec[2] = (float)btvec[2];
 }
 static inline void copy_quat_btquat(float quat[4], const btQuaternion &btquat)
 {
@@ -141,23 +141,18 @@ static inline void copy_quat_btquat(float quat[4], const btQuaternion &btquat)
 
 /* Setup ---------------------------- */
 
-rbDynamicsWorld *RB_dworld_new(const float gravity[3],float mi_periodic[3],float mx_periodic[3])
+rbDynamicsWorld *RB_dworld_new(const float gravity[3])
 {
 	rbDynamicsWorld *world = new rbDynamicsWorld;
-	btVector3 size_box_periodic = btVector3(mx_periodic[0], mx_periodic[1], mx_periodic[2]) - btVector3(mi_periodic[0], mi_periodic[1], mi_periodic[2]);
-
+	
 	/* collision detection/handling */
 	world->collisionConfiguration = new btDefaultCollisionConfiguration();
 	
 	world->dispatcher = new btCollisionDispatcher(world->collisionConfiguration);
 	btGImpactCollisionAlgorithm::registerAlgorithm((btCollisionDispatcher *)world->dispatcher);
 	
+	world->pairCache = new btDbvtBroadphase();
 	
-	
-	btDbvtBroadphase* btDB = new btDbvtBroadphase();
-
-	btDB->setPeriodic(size_box_periodic);
-	world->pairCache = btDB;
 	world->filterCallback = new rbFilterCallback();
 	world->pairCache->getOverlappingPairCache()->setOverlapFilterCallback(world->filterCallback);
 
@@ -200,23 +195,6 @@ void RB_dworld_set_gravity(rbDynamicsWorld *world, const float g_in[3])
 	world->dynamicsWorld->setGravity(btVector3(g_in[0], g_in[1], g_in[2]));
 }
 
-
-
-void RB_world_set_periodic_boundary(rbDynamicsWorld *world, const float  mi_periodic[3], const float mx_periodic[3])
-{
-
-
-	world->dynamicsWorld->setPeriodicBoundary(btVector3(mi_periodic[0], mi_periodic[1], mi_periodic[2]), btVector3(mx_periodic[0], mx_periodic[1], mx_periodic[2]));
-	
-	
-}
-void  RB_world_set_enable_periodic_boundary(rbDynamicsWorld *world, bool enable[3])
-{
-	
-	world->dynamicsWorld->enablePeriodicBoundary(enable);
-	
-}
-
 /* Constraint Solver */
 void RB_dworld_set_solver_iterations(rbDynamicsWorld *world, int num_solver_iterations)
 {
@@ -224,15 +202,6 @@ void RB_dworld_set_solver_iterations(rbDynamicsWorld *world, int num_solver_iter
 	
 	info.m_numIterations = num_solver_iterations;
 }
-void RB_dworld_set_solver_parameters(rbDynamicsWorld *world, float erp, float cfm, float  lsr)
-{
-	btContactSolverInfo& info = world->dynamicsWorld->getSolverInfo();
-
-	info.m_erp = erp;
-	info.m_globalCfm = cfm;
-	info.m_leastSquaresResidualThreshold = lsr;
-}
-
 
 /* Split Impulse */
 void RB_dworld_set_split_impulse(rbDynamicsWorld *world, int split_impulse)
@@ -244,14 +213,9 @@ void RB_dworld_set_split_impulse(rbDynamicsWorld *world, int split_impulse)
 
 /* Simulation ----------------------- */
 
-void RB_dworld_step_simulation(rbDynamicsWorld *world, float timeStep, int maxSubSteps, int SubStep)
+void RB_dworld_step_simulation(rbDynamicsWorld *world, float timeStep, int maxSubSteps, float timeSubStep)
 {
-	world->dynamicsWorld->stepSimulation(timeStep, maxSubSteps, SubStep);
-}
-
-void RB_dworld_clearforce(rbDynamicsWorld *world)
-{
-	world->dynamicsWorld->clearForces();
+	world->dynamicsWorld->stepSimulation(timeStep, maxSubSteps, timeSubStep);
 }
 
 /* Export -------------------------- */
@@ -300,9 +264,6 @@ void RB_dworld_remove_body(rbDynamicsWorld *world, rbRigidBody *object)
 	
 	world->dynamicsWorld->removeRigidBody(body);
 }
-
-
-
 
 /* Collision detection */
 
@@ -576,75 +537,6 @@ void RB_body_set_angular_factor(rbRigidBody *object, float x, float y, float z)
 	body->setAngularFactor(btVector3(x, y, z));
 }
 
-void RB_body_get_totalforce(rbRigidBody *object, float v_out[3])
-{
-	btRigidBody *body = object->body;
-
-	copy_v3_btvec3(v_out, body->getTotalForceRecord());
-}
-
-void RB_body_get_totaltorque(rbRigidBody *object, float v_out[3])
-{
-	btRigidBody *body = object->body;
-
-	copy_v3_btvec3(v_out, body->getTotalTorqueRecord());
-
-}
-
-void RB_body_get_chris_stress(rbRigidBody *object, float v1[3], float v2[3], float v3[3])
-{
-	btRigidBody *body = object->body;
-
-	copy_v3_btvec3(v1, body->getChrisStressX());
-	copy_v3_btvec3(v2, body->getChrisStressY());
-	copy_v3_btvec3(v3, body->getChrisStressZ());
-
-}
-
-void RB_body_get_ForcechainNormal(rbRigidBody *object, float v1[3], float v2[3], float v3[3])
-{
-	btRigidBody *body = object->body;
-
-	copy_v3_btvec3(v1, body->getForcechainNormal1());
-	copy_v3_btvec3(v2, body->getForcechainNormal2());
-	copy_v3_btvec3(v3, body->getForcechainNormal3());
-
-}
-
-void RB_body_get_ForcechainForce(rbRigidBody *object,float v[3])
-{
-	btRigidBody* body = object->body;
-	copy_v3_btvec3(v, body->getForcechainForce());
-	
-}
-
-
-float RB_body_get_num_contacts(rbRigidBody *object)
-{
-	btRigidBody* body = object->body;
-
-	return (float)body->getNumContacts();
-}
-float RB_body_get_rigidbodyId(rbRigidBody *object)
-{
-	btRigidBody* body = object->body;
-
-	return (float)body->getrigidbodyId();
-}
-void  RB_body_get_ForcechainId(rbRigidBody *object, float v[3])
-{
-	btRigidBody* body = object->body;
-	copy_v3_btvec3(v, body->getforcechainId());
-	
-}
-
-
-
-
-
-
-
-
 /* ............ */
 
 void RB_body_set_kinematic_state(rbRigidBody *object, int kinematic)
@@ -860,7 +752,7 @@ void RB_trimesh_add_triangle_indices(rbMeshData *mesh, int num, int index0, int 
 void RB_trimesh_finish(rbMeshData *mesh)
 {
 	mesh->index_array = new btTriangleIndexVertexArray(mesh->num_triangles, (int*)mesh->triangles, sizeof(rbTri),
-	                                                   mesh->num_vertices, (double*)mesh->vertices, sizeof(rbVert));
+	                                                   mesh->num_vertices, (float*)mesh->vertices, sizeof(rbVert));
 }
  
 rbCollisionShape *RB_shape_new_trimesh(rbMeshData *mesh)

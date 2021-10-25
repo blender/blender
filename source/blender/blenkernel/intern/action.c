@@ -1115,9 +1115,13 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 			if (fcu->totvert) {
 				float nmin, nmax;
 				
-				/* get extents for this curve */
-				/* TODO: allow enabling/disabling this? */
-				calc_fcurve_range(fcu, &nmin, &nmax, false, true);
+				/* get extents for this curve
+				 * - no "selected only", since this is often used in the backend
+				 * - no "minimum length" (we will apply this later), otherwise
+				 *   single-keyframe curves will increase the overall length by
+				 *   a phantom frame (T50354)
+				 */
+				calc_fcurve_range(fcu, &nmin, &nmax, false, false);
 				
 				/* compare to the running tally */
 				min = min_ff(min, nmin);
@@ -1170,7 +1174,9 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 	}
 	
 	if (foundvert || foundmod) {
+		/* ensure that action is at least 1 frame long (for NLA strips to have a valid length) */
 		if (min == max) max += 1.0f;
+		
 		*start = min;
 		*end = max;
 	}

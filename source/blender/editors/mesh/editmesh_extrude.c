@@ -512,6 +512,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 	em_setup_viewcontext(C, &vc);
 
+	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
+
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
 	use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
@@ -635,7 +637,6 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		copy_v3_v3(min, curs);
 		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, min, event->mval, min);
 
-		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
 		EDBM_op_init(vc.em, &bmop, op, "create_vert co=%v", min);

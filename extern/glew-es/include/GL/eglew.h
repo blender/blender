@@ -119,7 +119,7 @@
  * by filing a bug against product "EGL" component "Registry".
  */
 
-/* Copyright © 2011 Linaro Limited
+/* Copyright ï¿½ 2011 Linaro Limited
  */
 
 #ifndef __eglew_h__

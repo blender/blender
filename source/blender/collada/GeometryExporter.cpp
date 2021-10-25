@@ -548,7 +548,7 @@ void GeometryExporter::createPolylist(std::string imageid,
 		MTexPoly *tp = &mtpolys[i];
 		MPoly *p = &mpolys[i];
 
-		std::string tpageid = (tp->tpage) ? id_name(tp->tpage):"";
+		std::string tpageid = (mtpolys && tp->tpage) ? id_name(tp->tpage) : "";
 		if (tpageid == imageid) {
 			faces_in_polylist++;
 			vcount_list.push_back(p->totloop);
@@ -637,7 +637,7 @@ void GeometryExporter::createPolylist(std::string imageid,
 		MTexPoly *tp = &mtpolys[i];
 		MPoly *p = &mpolys[i];
 		int loop_count = p->totloop;
-		std::string tpageid = (tp->tpage) ? id_name(tp->tpage) : "";
+		std::string tpageid = (mtpolys && tp->tpage) ? id_name(tp->tpage) : "";
 		if (tpageid == imageid) {
 			MLoop *l = &mloops[p->loopstart];
 			BCPolygonNormalsIndices normal_indices = norind[i];

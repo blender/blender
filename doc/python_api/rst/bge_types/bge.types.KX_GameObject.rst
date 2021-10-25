@@ -1,8 +1,6 @@
 KX_GameObject(SCA_IObject)
 ==========================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IObject`
 
 .. class:: KX_GameObject(SCA_IObject)

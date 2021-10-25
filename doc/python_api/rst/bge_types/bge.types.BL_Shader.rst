@@ -1,8 +1,6 @@
 BL_Shader(PyObjectPlus)
 =======================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: BL_Shader(PyObjectPlus)
@@ -227,4 +225,3 @@ base class --- :class:`PyObjectPlus`
    .. method:: validate()
 
       Validate the shader object.
-

@@ -16,6 +16,42 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __VOLUME__
+typedef struct VolumeState {
+#  ifdef __SPLIT_KERNEL__
+#  else
+	PathState ps;
+#  endif
+} VolumeState;
+
+/* Get PathState ready for use for volume stack evaluation. */
+#  ifdef __SPLIT_KERNEL__
+ccl_addr_space
+#  endif
+ccl_device_inline PathState *shadow_blocked_volume_path_state(
+        KernelGlobals *kg,
+        VolumeState *volume_state,
+        ccl_addr_space PathState *state,
+        ShaderData *sd,
+        Ray *ray)
+{
+#  ifdef __SPLIT_KERNEL__
+	ccl_addr_space PathState *ps =
+	        &kernel_split_state.state_shadow[ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0)];
+#  else
+	PathState *ps = &volume_state->ps;
+#  endif
+	*ps = *state;
+	/* We are checking for shadow on the "other" side of the surface, so need
+	 * to discard volume we are currently at.
+	 */
+	if(dot(sd->Ng, ray->D) < 0.0f) {
+		kernel_volume_stack_enter_exit(kg, sd, ps->volume_stack);
+	}
+	return ps;
+}
+#endif  /* __VOLUME__ */
+
 /* Attenuate throughput accordingly to the given intersection event.
  * Returns true if the throughput is zero and traversal can be aborted.
  */

@@ -1,8 +1,6 @@
 SCA_ILogicBrick(CValue)
 =======================
 
-.. module:: bge.types
-
 base class --- :class:`CValue`
 
 .. class:: SCA_ILogicBrick(CValue)
@@ -26,4 +24,3 @@ base class --- :class:`CValue`
       The name of this logic brick (read-only).
       
       :type: string
-

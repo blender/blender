@@ -1,8 +1,6 @@
 BL_ShapeActionActuator(SCA_IActuator)
 =====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: BL_ShapeActionActuator(SCA_IActuator)

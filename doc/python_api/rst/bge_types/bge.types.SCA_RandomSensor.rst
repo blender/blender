@@ -1,8 +1,6 @@
 SCA_RandomSensor(SCA_ISensor)
 =============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_RandomSensor(SCA_ISensor)
@@ -20,4 +18,3 @@ base class --- :class:`SCA_ISensor`
       The seed of the random number generator.
 
       :type: integer
-

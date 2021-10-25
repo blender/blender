@@ -38,6 +38,7 @@ set(SRC
 	./intern/mallocn_lockfree_impl.c
 
 	MEM_guardedalloc.h
+	./intern/mallocn_inline.h
 	./intern/mallocn_intern.h
 
 	# only so the header is known by cmake

@@ -35,7 +35,6 @@
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
-#include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 
 /* only for defines */
@@ -57,7 +56,7 @@ static void bm_face_triangulate_mapping(
 
         MemArena *pf_arena,
         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
+        struct Heap *pf_heap)
 {
 	int faces_array_tot = face->len - 3;
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
@@ -71,7 +70,7 @@ static void bm_face_triangulate_mapping(
 	        &faces_double,
 	        quad_method, ngon_method, use_tag,
 	        pf_arena,
-	        pf_heap, pf_ehash);
+	        pf_heap);
 
 	if (faces_array_tot) {
 		int i;
@@ -98,17 +97,14 @@ void BM_mesh_triangulate(
 	BMFace *face;
 	MemArena *pf_arena;
 	Heap *pf_heap;
-	EdgeHash *pf_ehash;
 
 	pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
 
 	if (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY) {
 		pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-		pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 	}
 	else {
 		pf_heap = NULL;
-		pf_ehash = NULL;
 	}
 
 	if (slot_facemap_out) {
@@ -120,8 +116,7 @@ void BM_mesh_triangulate(
 					        bm, face,
 					        quad_method, ngon_method, tag_only,
 					        op, slot_facemap_out, slot_facemap_double_out,
-					        pf_arena,
-					        pf_heap, pf_ehash);
+					        pf_arena, pf_heap);
 				}
 			}
 		}
@@ -138,8 +133,7 @@ void BM_mesh_triangulate(
 					        NULL, NULL,
 					        &faces_double,
 					        quad_method, ngon_method, tag_only,
-					        pf_arena,
-					        pf_heap, pf_ehash);
+					        pf_arena, pf_heap);
 				}
 			}
 		}
@@ -156,6 +150,5 @@ void BM_mesh_triangulate(
 
 	if (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY) {
 		BLI_heap_free(pf_heap, NULL);
-		BLI_edgehash_free(pf_ehash, NULL);
 	}
 }

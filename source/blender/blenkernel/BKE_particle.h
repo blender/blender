@@ -243,7 +243,8 @@ typedef struct ParticleDrawData {
 	float *cdata, *cd;      /* color data */
 	float *vedata, *ved;    /* velocity data */
 	float *ma_col;
-	int tot_vec_size, flag;
+	int totpart, partsize;
+	int flag;
 	int totpoint, totve;
 } ParticleDrawData;
 

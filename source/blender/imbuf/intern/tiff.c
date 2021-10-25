@@ -376,7 +376,7 @@ static void imb_read_tiff_resolution(ImBuf *ibuf, TIFF *image)
  */
 static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 {
-	ImBuf *tmpibuf;
+	ImBuf *tmpibuf = NULL;
 	int success = 0;
 	short bitspersample, spp, config;
 	size_t scanline;
@@ -412,16 +412,25 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 	if (bitspersample == 32) {
 		ib_flag = IB_rectfloat;
 		fbuf = (float *)_TIFFmalloc(scanline);
+		if (!fbuf) {
+			goto cleanup;
+		}
 	}
 	else if (bitspersample == 16) {
 		ib_flag = IB_rectfloat;
 		sbuf = (unsigned short *)_TIFFmalloc(scanline);
+		if (!sbuf) {
+			goto cleanup;
+		}
 	}
 	else {
 		ib_flag = IB_rect;
 	}
 	
 	tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ib_flag);
+	if (!tmpibuf) {
+		goto cleanup;
+	}
 	
 	/* simple RGBA image */
 	if (!(bitspersample == 32 || bitspersample == 16)) {
@@ -430,7 +439,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 	/* contiguous channels: RGBRGBRGB */
 	else if (config == PLANARCONFIG_CONTIG) {
 		for (row = 0; row < ibuf->y; row++) {
-			int ib_offset = ibuf->x * ibuf->y * 4 - ibuf->x * 4 * (row + 1);
+			size_t ib_offset = (size_t)ibuf->x * 4 * ((size_t)ibuf->y - ((size_t)row + 1));
 		
 			if (bitspersample == 32) {
 				success |= TIFFReadScanline(image, fbuf, row, 0);
@@ -450,7 +459,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 		 * but only fill in from the TIFF scanline where necessary. */
 		for (chan = 0; chan < 4; chan++) {
 			for (row = 0; row < ibuf->y; row++) {
-				int ib_offset = ibuf->x * ibuf->y * 4 - ibuf->x * 4 * (row + 1);
+				size_t ib_offset = (size_t)ibuf->x * 4 * ((size_t)ibuf->y - ((size_t)row + 1));
 				
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
@@ -475,11 +484,6 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 			}
 		}
 	}
-	
-	if (bitspersample == 32)
-		_TIFFfree(fbuf);
-	else if (bitspersample == 16)
-		_TIFFfree(sbuf);
 
 	if (success) {
 		/* Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton) */
@@ -497,6 +501,12 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 		
 		tmpibuf->mall &= ~ib_flag;
 	}
+
+cleanup:
+	if (bitspersample == 32)
+		_TIFFfree(fbuf);
+	else if (bitspersample == 16)
+		_TIFFfree(sbuf);
 
 	IMB_freeImBuf(tmpibuf);
 	
@@ -813,25 +823,50 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	}
 
 	/* copy pixel data.  While copying, we flip the image vertically. */
+	const int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 	for (x = 0; x < ibuf->x; x++) {
 		for (y = 0; y < ibuf->y; y++) {
-			from_i = 4 * (y * ibuf->x + x);
+			from_i = ((size_t)channels_in_float) * (y * ibuf->x + x);
 			to_i   = samplesperpixel * ((ibuf->y - y - 1) * ibuf->x + x);
 
 			if (pixels16) {
 				/* convert from float source */
 				float rgb[4];
-				
-				if (ibuf->float_colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)) {
-					/* float buffer was managed already, no need in color space conversion */
-					copy_v3_v3(rgb, &fromf[from_i]);
+
+				if (channels_in_float == 3 || channels_in_float == 4) {
+					if (ibuf->float_colorspace ||
+					    (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA))
+					{
+						/* Float buffer was managed already, no need in color
+						 * space conversion.
+						 */
+						copy_v3_v3(rgb, &fromf[from_i]);
+					}
+					else {
+						/* Standard linear-to-srgb conversion if float buffer
+						 * wasn't managed.
+						 */
+						linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+					}
+					if (channels_in_float == 4) {
+						rgb[3] = fromf[from_i + 3];
+					}
+					else {
+						rgb[3] = 1.0f;
+					}
 				}
 				else {
-					/* standard linear-to-srgb conversion if float buffer wasn't managed */
-					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+					if (ibuf->float_colorspace ||
+					    (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA))
+					{
+						rgb[0] = fromf[from_i];
+					}
+					else {
+						rgb[0] = linearrgb_to_srgb(fromf[from_i]);
+					}
+					rgb[1] = rgb[2] = rgb[0];
+					rgb[3] = 1.0f;
 				}
-
-				rgb[3] = fromf[from_i + 3];
 
 				for (i = 0; i < samplesperpixel; i++, to_i++)
 					to16[to_i] = FTOUSHORT(rgb[i]);

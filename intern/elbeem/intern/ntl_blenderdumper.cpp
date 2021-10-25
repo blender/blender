@@ -22,7 +22,11 @@
 
 #include <zlib.h>
 
-
+#ifdef LBM_GZIP_OVERRIDE_H
+#  include LBM_GZIP_OVERRIDE_H
+#else
+#  define LBM_GZIP_OPEN_FN(a, b) gzopen(a, b)
+#endif
 
 /******************************************************************************
  * Constructor
@@ -141,7 +145,8 @@ int ntlBlenderDumper::renderScene( void )
 					std::ostringstream bvelfilename;
 					bvelfilename << boutfilename.str();
 					bvelfilename << ".bvel.gz";
-					gzf = gzopen(bvelfilename.str().c_str(), "wb9");
+					/* wraps gzopen */
+					gzf = LBM_GZIP_OPEN_FN(bvelfilename.str().c_str(), "wb9");
 					if(gzf) {
 						int numVerts;
 						if(sizeof(numVerts)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }
@@ -162,7 +167,8 @@ int ntlBlenderDumper::renderScene( void )
 
 				// compress all bobj's 
 				boutfilename << ".bobj.gz";
-				gzf = gzopen(boutfilename.str().c_str(), "wb1"); // wb9 is slow for large meshes!
+				/* wraps gzopen */
+				gzf = LBM_GZIP_OPEN_FN(boutfilename.str().c_str(), "wb1"); // wb9 is slow for large meshes!
 				if (!gzf) {
 					errMsg("ntlBlenderDumper::renderScene","Unable to open output '" + boutfilename.str() + "' ");
 					return 1; }

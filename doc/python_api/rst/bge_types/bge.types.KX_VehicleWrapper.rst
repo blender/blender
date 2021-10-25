@@ -1,8 +1,6 @@
 KX_VehicleWrapper(PyObjectPlus)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: KX_VehicleWrapper(PyObjectPlus)
@@ -163,4 +161,3 @@ base class --- :class:`PyObjectPlus`
 
       :arg wheelIndex: the wheel index
       :type wheelIndex: integer
-

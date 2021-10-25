@@ -488,6 +488,9 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
 	else if (prec == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
+	else {
+		CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
+	}
 
 	return UI_calc_float_precision(prec, value);
 }
@@ -2479,7 +2482,9 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
 			return false;
 		}
 
-		if (!ui_but_is_float(but)) value = (int)floor(value + 0.5);
+		if (!ui_but_is_float(but)) {
+			value = floor(value + 0.5);
+		}
 
 		/* not that we use hard limits here */
 		if (value < (double)but->hardmin) value = but->hardmin;

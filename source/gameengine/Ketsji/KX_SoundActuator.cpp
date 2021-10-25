@@ -488,7 +488,7 @@ int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRI
 		if (actuator->m_handle)
 			AUD_Handle_setAttenuation(actuator->m_handle, prop_value);
 
-	} else if (!!strcmp(prop, "cone_angle_inner")) {
+	} else if (!strcmp(prop, "cone_angle_inner")) {
 		actuator->m_3d.cone_inner_angle = prop_value;
 		if (actuator->m_handle)
 			AUD_Handle_setConeAngleInner(actuator->m_handle, prop_value);

@@ -158,7 +158,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				{
 					const MLoop *mloop = dm->getLoopArray(dm);
 					const MLoopTri *looptri = dm->getLoopTriArray(dm);
-					MVertTri *tri = MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__);
+					MVertTri *tri = MEM_malloc_arrayN(collmd->tri_num, sizeof(*tri), __func__);
 					DM_verttri_from_looptri(tri, mloop, looptri, collmd->tri_num);
 					collmd->tri = tri;
 				}

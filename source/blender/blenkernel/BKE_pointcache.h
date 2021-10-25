@@ -107,8 +107,6 @@ typedef struct PTCacheData {
 	float size;
 	float times[3];
 	struct BoidData boids;
-	float tottorque[3];
-	float contacts_info[7];
 } PTCacheData;
 
 typedef struct PTCacheFile {

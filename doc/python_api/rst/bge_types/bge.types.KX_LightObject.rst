@@ -1,8 +1,6 @@
 KX_LightObject(KX_GameObject)
 =============================
 
-.. module:: bge.types
-
 base class --- :class:`KX_GameObject`
 
 .. class:: KX_LightObject(KX_GameObject)
@@ -161,4 +159,3 @@ base class --- :class:`KX_GameObject`
       .. note::
          
          Higher values result in a more focused light source.
-

@@ -73,7 +73,7 @@ void CcdGraphicController::GetAabb(btVector3& aabbMin, btVector3& aabbMax)
 {
 	btVector3 pos;
 	btVector3 scale;
-	double ori[12];
+	float ori[12];
 	m_motionState->GetWorldPosition(pos.m_floats[0],pos.m_floats[1],pos.m_floats[2]);
 	m_motionState->GetWorldScaling(scale.m_floats[0],scale.m_floats[1],scale.m_floats[2]);
 	m_motionState->GetWorldOrientation(ori);

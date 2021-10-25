@@ -350,9 +350,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 			case NODE_OBJECT_INFO:
 				svm_node_object_info(kg, sd, stack, node.y, node.z);
 				break;
-			/*case NODE_RIGIDBODY_INFO:
-				svm_node_rigidbody_info(kg, sd, stack, node.y, node.z);
-				break;*/
 			case NODE_PARTICLE_INFO:
 				svm_node_particle_info(kg, sd, stack, node.y, node.z);
 				break;

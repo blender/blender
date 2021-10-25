@@ -104,9 +104,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MVert *mvert_src = dm->getVertArray(dm);
 
 
-	vertMap = MEM_mallocN(sizeof(*vertMap) * numVert_src, "build modifier vertMap");
-	edgeMap = MEM_mallocN(sizeof(*edgeMap) * numEdge_src, "build modifier edgeMap");
-	faceMap = MEM_mallocN(sizeof(*faceMap) * numPoly_src, "build modifier faceMap");
+	vertMap = MEM_malloc_arrayN(numVert_src, sizeof(*vertMap), "build modifier vertMap");
+	edgeMap = MEM_malloc_arrayN(numEdge_src, sizeof(*edgeMap), "build modifier edgeMap");
+	faceMap = MEM_malloc_arrayN(numPoly_src, sizeof(*faceMap), "build modifier faceMap");
 
 	range_vn_i(vertMap, numVert_src, 0);
 	range_vn_i(edgeMap, numEdge_src, 0);

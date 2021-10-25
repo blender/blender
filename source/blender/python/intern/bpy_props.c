@@ -73,9 +73,6 @@ static EnumPropertyItem property_flag_items[] = {
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', 'PROPORTIONAL'," \
                                 "'TEXTEDIT_UPDATE'].\n" \
 "   :type options: set\n" \
-"   :arg poll: function to be called to determine whether an item is valid for this property.\n" \
-"              The function must take 2 values (self,object) and return Bool.\n" \
-"   :type poll: function\n" \
 
 static EnumPropertyItem property_flag_enum_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
@@ -136,16 +133,6 @@ static EnumPropertyItem property_subtype_array_items[] = {
 	{PROP_XYZ, "XYZ", 0, "XYZ", ""},
 	{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color Gamma", ""},
 	{PROP_LAYER, "LAYER", 0, "Layer", ""},
-	{ PROP_POWER, "POWER", 0, "Power", "" },
-	{ PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", "" },
-	{ PROP_FORCE, "FORCE", 0, "Force", "" },
-	{ PROP_STRESS, "STRESS", 0, "Stress", "" },
-	{ PROP_TORQUE, "TORQUE", 0, "Torque", "" },
-	{ PROP_ANVELOCITY, "ANVELOCITY", 0, "Anvelocity", "" },
-	{ PROP_IMPULSE, "IMPULSE", 0, "Impulse", "" },
-	{ PROP_IMPULSE_MOMENT, "IMPULSE_MOMENT", 0, "Impulse_Mo", "" },
-
-
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -1963,6 +1950,11 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop, PyObject *ge
 "      *Warning* there are no safety checks to avoid infinite recursion.\n" \
 "   :type update: function\n" \
 
+#define BPY_PROPDEF_POLL_DOC \
+"   :arg poll: function to be called to determine whether an item is valid for this property.\n" \
+"              The function must take 2 values (self, object) and return Bool.\n" \
+"   :type poll: function\n" \
+
 #define BPY_PROPDEF_GET_DOC \
 "   :arg get: Function to be called when this value is 'read',\n" \
 "      This function must take 1 value (self) and return the value of the property.\n" \
@@ -2882,6 +2874,7 @@ BPY_PROPDEF_TYPE_DOC
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 BPY_PROPDEF_OPTIONS_DOC
+BPY_PROPDEF_POLL_DOC
 BPY_PROPDEF_UPDATE_DOC
 );
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)

@@ -1673,6 +1673,11 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 		else if (seq->type == SEQ_TYPE_IMAGE) {
 			fname[0] = 0;
 		}
+		else {
+			/* We could make a name here, except non-movie's don't generate proxies,
+			 * cancel until other types of sequence strips are supported. */
+			return false;
+		}
 		BLI_path_append(dir, sizeof(dir), fname);
 		BLI_path_abs(name, G.main->name);
 	}
@@ -4477,8 +4482,10 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame)
 			continue;
-		/* only use elements you can see - not */
-		if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR)) {
+		/* Only use strips that generate an image, not ones that combine
+		 * other strips or apply some effect. */
+		if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE,
+		         SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR, SEQ_TYPE_TEXT)) {
 			if (seq->machine > best_machine) {
 				best_seq = seq;
 				best_machine = seq->machine;

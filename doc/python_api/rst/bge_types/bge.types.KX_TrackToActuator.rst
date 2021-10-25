@@ -1,8 +1,6 @@
 KX_TrackToActuator(SCA_IActuator)
 =================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_TrackToActuator(SCA_IActuator)

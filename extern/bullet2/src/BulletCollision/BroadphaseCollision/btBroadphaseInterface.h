@@ -66,7 +66,6 @@ public:
 	virtual void	calculateOverlappingPairs(btDispatcher* dispatcher)=0;
 
 	virtual	btOverlappingPairCache*	getOverlappingPairCache()=0;
-	
 	virtual	const btOverlappingPairCache*	getOverlappingPairCache() const =0;
 
 	///getAabb returns the axis aligned bounding box in the 'global' coordinate frame

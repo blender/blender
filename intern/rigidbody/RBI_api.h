@@ -33,12 +33,6 @@
 #ifndef __RB_API_H__
 #define __RB_API_H__
 
-
-
-
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,7 +73,7 @@ typedef struct rbConstraint rbConstraint;
 
 /* Create a new dynamics world instance */
 // TODO: add args to set the type of constraint solvers, etc.
-rbDynamicsWorld *RB_dworld_new(const float gravity[3],  float mi_periodic[3], float mx_periodic[3]);
+rbDynamicsWorld *RB_dworld_new(const float gravity[3]);
 
 /* Delete the given dynamics world, and free any extra data it may require */
 void RB_dworld_delete(rbDynamicsWorld *world);
@@ -90,22 +84,16 @@ void RB_dworld_delete(rbDynamicsWorld *world);
 void RB_dworld_get_gravity(rbDynamicsWorld *world, float g_out[3]);
 void RB_dworld_set_gravity(rbDynamicsWorld *world, const float g_in[3]);
 
-/* Periodic */
-void RB_world_set_enable_periodic_boundary(rbDynamicsWorld *world, bool enable[3]);
-void RB_world_set_periodic_boundary(rbDynamicsWorld *world, const float  mi_periodic[3], const float mx_periodic[3]);
-
 /* Constraint Solver */
 void RB_dworld_set_solver_iterations(rbDynamicsWorld *world, int num_solver_iterations);
-void RB_dworld_set_solver_parameters(rbDynamicsWorld *world, float erp, float cfm, float lsr);
-
 /* Split Impulse */
 void RB_dworld_set_split_impulse(rbDynamicsWorld *world, int split_impulse);
 
 /* Simulation ----------------------- */
 
 /* Step the simulation by the desired amount (in seconds) with extra controls on substep sizes and maximum substeps */
-void RB_dworld_step_simulation(rbDynamicsWorld *world, float timeStep, int maxSubSteps, int SubSteps);
-void RB_dworld_clearforce(rbDynamicsWorld *world);
+void RB_dworld_step_simulation(rbDynamicsWorld *world, float timeStep, int maxSubSteps, float timeSubStep);
+
 /* Export -------------------------- */
 
 /* Exports the dynamics world to physics simulator's serialisation format */
@@ -187,19 +175,6 @@ void RB_body_set_linear_velocity(rbRigidBody *body, const float v_in[3]);
 void RB_body_get_angular_velocity(rbRigidBody *body, float v_out[3]);
 void RB_body_set_angular_velocity(rbRigidBody *body, const float v_in[3]);
 
-/* Force torque */
-void RB_body_get_totalforce(rbRigidBody *body, float v_out[3]);
-void RB_body_get_totaltorque(rbRigidBody *body, float v_out[3]);
-
-void RB_body_get_chris_stress(rbRigidBody *body, float v1[3], float v2[3], float v3[3]);
-
-void RB_body_get_ForcechainNormal(rbRigidBody *body, float v1[3], float v2[3], float v3[3]);
-float RB_body_get_num_contacts(rbRigidBody* body);
-float RB_body_get_rigidbodyId(rbRigidBody* body);
-void RB_body_get_ForcechainId(rbRigidBody* body, float v[3]);
-void RB_body_get_ForcechainForce(rbRigidBody* body,float v[3]);
-
-
 /* Linear/Angular Factor, used to lock translation/roation axes */
 void RB_body_set_linear_factor(rbRigidBody *object, float x, float y, float z);
 void RB_body_set_angular_factor(rbRigidBody *object, float x, float y, float z);
@@ -213,17 +188,6 @@ void RB_body_set_activation_state(rbRigidBody *body, int use_deactivation);
 void RB_body_activate(rbRigidBody *body);
 void RB_body_deactivate(rbRigidBody *body);
 
-
-
-/* periodic boundary*/
-#define RB_PERIODIC_X 0
-#define RB_PERIODIC_Y 1
-#define RB_PERIODIC_Z 2
-
-/* move rigidbody from limit to target position*/
-
-void RB_body_set_periodic_boundary(rbRigidBody *body, int axis, float target, float limit);
-void RB_body_set_enable_periodic_boundary(rbRigidBody *body, bool enable[3]);
 
 /* Simulation ----------------------- */
 
@@ -317,8 +281,6 @@ void RB_constraint_delete(rbConstraint *con);
 /* Enable or disable constraint */
 void RB_constraint_set_enabled(rbConstraint *con, int enabled);
 
-
-
 /* Limits */
 #define RB_LIMIT_LIN_X 0
 #define RB_LIMIT_LIN_Y 1
@@ -335,7 +297,6 @@ void RB_constraint_set_limits_hinge(rbConstraint *con, float lower, float upper)
 void RB_constraint_set_limits_slider(rbConstraint *con, float lower, float upper);
 void RB_constraint_set_limits_piston(rbConstraint *con, float lin_lower, float lin_upper, float ang_lower, float ang_upper);
 void RB_constraint_set_limits_6dof(rbConstraint *con, int axis, float lower, float upper);
-
 
 /* 6dof spring specific */
 void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis, float stiffness);

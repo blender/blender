@@ -265,15 +265,11 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 
 bool addzbufImBuf(ImBuf *ibuf)
 {
-	size_t size;
-	
 	if (ibuf == NULL) return false;
 	
 	IMB_freezbufImBuf(ibuf);
 	
-	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(unsigned int);
-
-	if ((ibuf->zbuf = MEM_mapallocN(size, __func__))) {
+	if ((ibuf->zbuf = imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(unsigned int), __func__))) {
 		ibuf->mall |= IB_zbuf;
 		ibuf->flags |= IB_zbuf;
 		return true;
@@ -284,15 +280,11 @@ bool addzbufImBuf(ImBuf *ibuf)
 
 bool addzbuffloatImBuf(ImBuf *ibuf)
 {
-	size_t size;
-	
 	if (ibuf == NULL) return false;
 	
 	IMB_freezbuffloatImBuf(ibuf);
 	
-	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(float);
-
-	if ((ibuf->zbuf_float = MEM_mapallocN(size, __func__))) {
+	if ((ibuf->zbuf_float = imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(float), __func__))) {
 		ibuf->mall |= IB_zbuffloat;
 		ibuf->flags |= IB_zbuffloat;
 		return true;
@@ -361,19 +353,31 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 	return true;
 }
 
+void *imb_alloc_pixels(unsigned int x,
+                       unsigned int y,
+                       unsigned int channels,
+                       size_t typesize,
+                       const char *name)
+{
+	/* Protect against buffer overflow vulnerabilities from files specifying
+	 * a width and height that overflow and alloc too little memory. */
+	if (!((uint64_t)x * (uint64_t)y < (SIZE_MAX / (channels * typesize)))) {
+		return NULL;
+	}
+
+	size_t size = (size_t)x * (size_t)y * (size_t)channels * typesize;
+	return MEM_mapallocN(size, name);
+}
+
 bool imb_addrectfloatImBuf(ImBuf *ibuf)
 {
-	size_t size;
-	
 	if (ibuf == NULL) return false;
 	
 	if (ibuf->rect_float)
 		imb_freerectfloatImBuf(ibuf);  /* frees mipmap too, hrm */
 	
-	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(float[4]);
-
 	ibuf->channels = 4;
-	if ((ibuf->rect_float = MEM_mapallocN(size, __func__))) {
+	if ((ibuf->rect_float = imb_alloc_pixels(ibuf->x, ibuf->y, 4, sizeof(float), __func__))) {
 		ibuf->mall |= IB_rectfloat;
 		ibuf->flags |= IB_rectfloat;
 		return true;
@@ -385,8 +389,6 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf)
 /* question; why also add zbuf? */
 bool imb_addrectImBuf(ImBuf *ibuf)
 {
-	size_t size;
-
 	if (ibuf == NULL) return false;
 	
 	/* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
@@ -394,9 +396,7 @@ bool imb_addrectImBuf(ImBuf *ibuf)
 		MEM_freeN(ibuf->rect);
 	ibuf->rect = NULL;
 	
-	size = (size_t)ibuf->x * (size_t)ibuf->y * sizeof(unsigned int);
-
-	if ((ibuf->rect = MEM_mapallocN(size, __func__))) {
+	if ((ibuf->rect = imb_alloc_pixels(ibuf->x, ibuf->y, 4, sizeof(unsigned char), __func__))) {
 		ibuf->mall |= IB_rect;
 		ibuf->flags |= IB_rect;
 		if (ibuf->planes > 32) {

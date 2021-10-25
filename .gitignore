@@ -1,0 +1,35 @@
+# generic files to ignore
+.*
+
+# python temp paths
+__pycache__/
+*.py[cod]
+
+# editors
+*~
+*.swp
+*.swo
+*#
+
+# QtCreator
+CMakeLists.txt.user
+
+# ms-windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# commonly used paths in blender
+/blender.bin
+/BUILD_NOTES.txt
+
+# local patches
+/*.patch
+/*.diff
+
+# in-source doc-gen
+/doc/doxygen/html/
+/doc/python_api/sphinx-in-tmp/
+/doc/python_api/sphinx-in/
+/doc/python_api/sphinx-out/
+/doc/python_api/rst/bmesh.ops.rst

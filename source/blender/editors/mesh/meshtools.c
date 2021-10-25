@@ -78,7 +78,7 @@
 
 static void join_mesh_single(
         Main *bmain, Scene *scene,
-        Object *ob_dst, Base *base_src, float imat[4][4],
+        Object *ob_dst, Object *ob_src, float imat[4][4],
         MVert **mvert_pp, MEdge **medge_pp, MLoop **mloop_pp, MPoly **mpoly_pp,
         CustomData *vdata, CustomData *edata, CustomData *ldata, CustomData *pdata,
         int totvert, int totedge, int totloop, int totpoly,
@@ -88,7 +88,7 @@ static void join_mesh_single(
 {
 	int a, b;
 
-	Mesh *me = base_src->object->data;
+	Mesh *me = ob_src->data;
 	MVert *mvert = *mvert_pp;
 	MEdge *medge = *medge_pp;
 	MLoop *mloop = *mloop_pp;
@@ -112,10 +112,10 @@ static void join_mesh_single(
 
 			/* Build src to merged mapping of vgroup indices. */
 			bDeformGroup *dg_src;
-			int *vgroup_index_map = alloca(sizeof(*vgroup_index_map) * BLI_listbase_count(&base_src->object->defbase));
+			int *vgroup_index_map = alloca(sizeof(*vgroup_index_map) * BLI_listbase_count(&ob_src->defbase));
 			bool is_vgroup_remap_needed = false;
 
-			for (dg_src = base_src->object->defbase.first, b = 0; dg_src; dg_src = dg_src->next, b++) {
+			for (dg_src = ob_src->defbase.first, b = 0; dg_src; dg_src = dg_src->next, b++) {
 				vgroup_index_map[b] = defgroup_name_index(ob_dst, dg_src->name);
 				is_vgroup_remap_needed = is_vgroup_remap_needed || (vgroup_index_map[b] != b);
 			}
@@ -130,11 +130,11 @@ static void join_mesh_single(
 		}
 
 		/* if this is the object we're merging into, no need to do anything */
-		if (base_src->object != ob_dst) {
+		if (ob_src != ob_dst) {
 			float cmat[4][4];
 
 			/* watch this: switch matmul order really goes wrong */
-			mul_m4_m4m4(cmat, imat, base_src->object->obmat);
+			mul_m4_m4m4(cmat, imat, ob_src->obmat);
 
 			/* transform vertex coordinates into new space */
 			for (a = 0, mvert = *mvert_pp; a < me->totvert; a++, mvert++) {
@@ -211,13 +211,13 @@ static void join_mesh_single(
 	}
 
 	if (me->totloop) {
-		if (base_src->object != ob_dst) {
+		if (ob_src != ob_dst) {
 			MultiresModifierData *mmd;
 
-			multiresModifier_prepare_join(scene, base_src->object, ob_dst);
+			multiresModifier_prepare_join(scene, ob_src, ob_dst);
 
-			if ((mmd = get_multires_modifier(scene, base_src->object, true))) {
-				ED_object_iter_other(bmain, base_src->object, true,
+			if ((mmd = get_multires_modifier(scene, ob_src, true))) {
+				ED_object_iter_other(bmain, ob_src, true,
 				                     ED_object_multires_update_totlevels_cb,
 				                     &mmd->totlvl);
 			}
@@ -235,8 +235,8 @@ static void join_mesh_single(
 	if (me->totpoly) {
 		if (matmap) {
 			/* make mapping for materials */
-			for (a = 1; a <= base_src->object->totcol; a++) {
-				Material *ma = give_current_material(base_src->object, a);
+			for (a = 1; a <= ob_src->totcol; a++) {
+				Material *ma = give_current_material(ob_src, a);
 
 				for (b = 0; b < totcol; b++) {
 					if (ma == matar[b]) {
@@ -271,8 +271,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Base *ob_base = CTX_data_active_base(C);
-	Object *ob = ob_base->object;
+	Object *ob = CTX_data_active_object(C);
 	Material **matar = NULL, *ma;
 	Mesh *me;
 	MVert *mvert = NULL;
@@ -504,7 +503,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 */
 	join_mesh_single(
 	            bmain, scene,
-	            ob, ob_base, imat,
+	            ob, ob, imat,
 	            &mvert, &medge, &mloop, &mpoly,
 	            &vdata, &edata, &ldata, &pdata,
 	            totvert, totedge, totloop, totpoly,
@@ -521,7 +520,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		if (base->object->type == OB_MESH) {
 			join_mesh_single(
 			            bmain, scene,
-			            ob, base, imat,
+			            ob, base->object, imat,
 			            &mvert, &medge, &mloop, &mpoly,
 			            &vdata, &edata, &ldata, &pdata,
 			            totvert, totedge, totloop, totpoly,

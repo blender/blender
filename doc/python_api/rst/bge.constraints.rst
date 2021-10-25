@@ -2,11 +2,32 @@
 Physics Constraints (bge.constraints)
 =====================================
 
+Bullet Physics provides collision detection
+and rigid body dynamics for the Blender Game Engine.
+
+Features:
+
+- Vehicle simulation.
+- Rigid body constraints: hinge and point to point (ball socket).
+- Access to internal physics settings,
+  like deactivation time, and debugging features
+
 .. module:: bge.constraints
+
+.. note:: Note about parameter settings
+
+   Since this API is not well documented, it can be unclear what kind of values to use for setting parameters.
+   In general, damping settings should be in the range of 0 to 1 and
+   stiffness settings should not be much higher than about 10.
 
 
 Examples
 --------
+
+.. seealso::
+
+   For more examples of Bullet physics and how to use them
+   see the `pybullet forum <https://pybullet.org/Bullet/phpBB3/viewforum.php?f=17>`__.
 
 .. include:: __/examples/bge.constraints.py
    :start-line: 1
@@ -333,4 +354,3 @@ Constraint type to be used with :func:`createConstraint`.
 .. data:: GENERIC_6DOF_CONSTRAINT
 
    .. to do
-

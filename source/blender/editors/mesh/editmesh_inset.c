@@ -120,6 +120,11 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		return false;
 	}
 
+	if (is_modal) {
+		RNA_float_set(op->ptr, "thickness", 0.01f);
+		RNA_float_set(op->ptr, "depth", 0.0f);
+	}
+
 	op->customdata = opdata = MEM_mallocN(sizeof(InsetData), "inset_operator_data");
 
 	opdata->old_thickness = 0.01;
@@ -370,10 +375,12 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE:
 			case PADENTER:
 			case RETKEY:
-				edbm_inset_calc(op);
-				edbm_inset_exit(C, op);
-				return OPERATOR_FINISHED;
-
+				if (event->val == KM_PRESS) {
+					edbm_inset_calc(op);
+					edbm_inset_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
+				break;
 			case LEFTSHIFTKEY:
 			case RIGHTSHIFTKEY:
 				if (event->val == KM_PRESS) {
@@ -514,6 +521,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	prop = RNA_def_float_distance(ot->srna, "thickness", 0.01f, 0.0f, 1e12f, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+
 	prop = RNA_def_float_distance(ot->srna, "depth", 0.0f, -1e12f, 1e12f, "Depth", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.01, 4);
 

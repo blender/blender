@@ -511,6 +511,14 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
 }
 
 
+/* -------------------------------------------------------------------- */
+/** \name Quaternion Angle
+ *
+ * Unlike the angle between vectors, this does NOT return the shortest angle.
+ * See signed functions below for this.
+ *
+ * \{ */
+
 float angle_normalized_qt(const float q[4])
 {
 	BLI_ASSERT_UNIT_QUAT(q);
@@ -547,6 +555,64 @@ float angle_qtqt(const float q1[4], const float q2[4])
 
 	return angle_normalized_qtqt(quat1, quat2);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Quaternion Angle (Signed)
+ *
+ * Angles with quaternion calculation can exceed 180d,
+ * Having signed versions of these functions allows 'fabsf(angle_signed_qtqt(...))'
+ * to give us the shortest angle between quaternions.
+ * With higher precision than subtracting pi afterwards.
+ *
+ * \{ */
+
+float angle_signed_normalized_qt(const float q[4])
+{
+	BLI_ASSERT_UNIT_QUAT(q);
+	if (q[0] >= 0.0f) {
+		return 2.0f * saacos(q[0]);
+	}
+	else {
+		return -2.0f * saacos(-q[0]);
+	}
+}
+
+float angle_signed_normalized_qtqt(const float q1[4], const float q2[4])
+{
+	if (dot_qtqt(q1, q2) >= 0.0f) {
+		return angle_normalized_qtqt(q1, q2);
+	}
+	else {
+		float q2_copy[4];
+		negate_v4_v4(q2_copy, q2);
+		return -angle_normalized_qtqt(q1, q2_copy);
+	}
+}
+
+float angle_signed_qt(const float q[4])
+{
+	float tquat[4];
+
+	normalize_qt_qt(tquat, q);
+
+	return angle_signed_normalized_qt(tquat);
+}
+
+float angle_signed_qtqt(const float q1[4], const float q2[4])
+{
+	if (dot_qtqt(q1, q2) >= 0.0f) {
+		return angle_qtqt(q1, q2);
+	}
+	else {
+		float q2_copy[4];
+		negate_v4_v4(q2_copy, q2);
+		return -angle_qtqt(q1, q2_copy);
+	}
+}
+
+/** \} */
 
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {

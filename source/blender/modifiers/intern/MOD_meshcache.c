@@ -94,7 +94,7 @@ static void meshcache_do(
 {
 	const bool use_factor = mcmd->factor < 1.0f;
 	float (*vertexCos_Store)[3] = (use_factor || (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
-	                              MEM_mallocN(sizeof(*vertexCos_Store) * numVerts, __func__) : NULL;
+	                              MEM_malloc_arrayN(numVerts, sizeof(*vertexCos_Store), __func__) : NULL;
 	float (*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
 	Scene *scene = mcmd->modifier.scene;
@@ -197,8 +197,8 @@ static void meshcache_do(
 			/* the moons align! */
 			int i;
 
-			float (*vertexCos_Source)[3] = MEM_mallocN(sizeof(*vertexCos_Source) * numVerts, __func__);
-			float (*vertexCos_New)[3]    = MEM_mallocN(sizeof(*vertexCos_New) * numVerts, __func__);
+			float (*vertexCos_Source)[3] = MEM_malloc_arrayN(numVerts, sizeof(*vertexCos_Source), __func__);
+			float (*vertexCos_New)[3]    = MEM_malloc_arrayN(numVerts, sizeof(*vertexCos_New), __func__);
 			MVert *mv = me->mvert;
 
 			for (i = 0; i < numVerts; i++, mv++) {

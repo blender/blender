@@ -335,7 +335,7 @@ static void displaceModifier_do(
 	modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (dmd->texture) {
-		tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
+		tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co),
 		                     "displaceModifier_do tex_co");
 		get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
 
@@ -356,7 +356,7 @@ static void displaceModifier_do(
 			}
 
 			clnors = CustomData_get_layer(ldata, CD_NORMAL);
-			vert_clnors = MEM_mallocN(sizeof(*vert_clnors) * (size_t)numVerts, __func__);
+			vert_clnors = MEM_malloc_arrayN(numVerts, sizeof(*vert_clnors), __func__);
 			BKE_mesh_normals_loop_to_vertex(numVerts, dm->getLoopArray(dm), dm->getNumLoops(dm),
 			                                (const float (*)[3])clnors, vert_clnors);
 		}

@@ -1,8 +1,6 @@
 KX_NetworkMessageSensor(SCA_ISensor)
 ====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: KX_NetworkMessageSensor(SCA_ISensor)
@@ -34,5 +32,3 @@ base class --- :class:`SCA_ISensor`
       The list of message bodies received. (read-only).
 
       :type: list of strings
-
-

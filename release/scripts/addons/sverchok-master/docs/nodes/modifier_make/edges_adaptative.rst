@@ -1,2 +1,0 @@
-Adaptative Edges
-================

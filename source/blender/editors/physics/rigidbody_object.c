@@ -512,7 +512,6 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects)
 	{
 		if (ob->rigidbody_object) {
-			
 			PointerRNA ptr;
 
 			float volume; /* m^3 */
@@ -547,8 +546,6 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 	}
 }
 
-
-
 void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -562,7 +559,6 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 	ot->invoke = WM_menu_invoke; // XXX
 	ot->exec = rigidbody_objects_calc_mass_exec;
 	ot->poll = ED_operator_scene_editable;
-	
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -577,8 +573,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "density", 1.0, FLT_MIN, FLT_MAX,
 	              "Density",
-
-				  "Density value(kg / m ^ 3), allows custom value if the 'Custom' preset is used",
+	              "Custom density value (kg/m^3) to use instead of material preset",
 	              1.0f, 2500.0f);
 }
 

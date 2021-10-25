@@ -269,7 +269,7 @@ void ED_view3d_smooth_view_ex(
 			 * this means small rotations wont lag */
 			if (sview->quat && !sview->ofs && !sview->dist) {
 				/* scale the time allowed by the rotation */
-				sms.time_allowed *= (double)angle_normalized_qtqt(sms.dst.quat, sms.src.quat) / M_PI; /* 180deg == 1.0 */
+				sms.time_allowed *= (double)fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat)) / M_PI; /* 180deg == 1.0 */
 			}
 
 			/* ensure it shows correct */
@@ -985,7 +985,7 @@ char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon)
 	char view;
 
 	for (view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
-		if (angle_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT]) < epsilon) {
+		if (fabsf(angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT])) < epsilon) {
 			return view;
 		}
 	}
@@ -1024,8 +1024,18 @@ bool ED_view3d_lock(RegionView3D *rv3d)
 	return ED_view3d_quat_from_axis_view(rv3d->view, rv3d->viewquat);
 }
 
-/* don't set windows active in here, is used by renderwin too */
-void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d)
+/**
+ * Sets #RegionView3D.viewmat
+ *
+ * \param scene: Scene for camera and cursor location.
+ * \param v3d: View 3D space data.
+ * \param rv3d: 3D region which stores the final matrices.
+ * \param rect_scale: Optional 2D scale argument,
+ * Use when displaying a sub-region, eg: when #view3d_winmatrix_set takes a 'rect' argument.
+ *
+ * \note don't set windows active in here, is used by renderwin too.
+ * */
+void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d, const float rect_scale[2])
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
@@ -1084,6 +1094,12 @@ void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d)
 
 			mul_v2_v2fl(vec, rv3d->ofs_lock, rv3d->is_persp ? rv3d->dist : 1.0f);
 			vec[2] = 0.0f;
+
+			if (rect_scale) {
+				vec[0] /= rect_scale[0];
+				vec[1] /= rect_scale[1];
+			}
+
 			mul_mat3_m4_v3(persinv, vec);
 			translate_m4(rv3d->viewmat, vec[0], vec[1], vec[2]);
 		}
@@ -1422,8 +1438,6 @@ static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmai
 	camera_old = v3d->camera;
 	camera_new = v3d->localvd->camera;
 
-	v3d->near = v3d->localvd->near;
-	v3d->far = v3d->localvd->far;
 	v3d->lay = v3d->localvd->lay;
 	v3d->layact = v3d->localvd->layact;
 	v3d->drawtype = v3d->localvd->drawtype;

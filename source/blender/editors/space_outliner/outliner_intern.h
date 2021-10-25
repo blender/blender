@@ -150,7 +150,13 @@ eOLDrawState tree_element_type_active(
         TreeElement *te, TreeStoreElem *tselem, const eOLSetState set, bool recursive);
 eOLDrawState tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops,
                                  TreeElement *te, const eOLSetState set, const bool handle_all_types);
-int outliner_item_do_activate(struct bContext *C, int x, int y, bool extend, bool recursive);
+
+void outliner_item_do_activate_from_tree_element(
+        struct bContext *C, TreeElement *te, TreeStoreElem *tselem,
+        bool extend, bool recursive);
+int outliner_item_do_activate_from_cursor(
+        struct bContext *C, const int mval[2],
+        bool extend, bool recursive);
 
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_cb)(

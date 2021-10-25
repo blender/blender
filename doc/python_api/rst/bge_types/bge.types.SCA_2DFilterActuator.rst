@@ -1,8 +1,6 @@
 SCA_2DFilterActuator(SCA_IActuator)
 ===================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: SCA_2DFilterActuator(SCA_IActuator)
@@ -46,4 +44,3 @@ base class --- :class:`SCA_IActuator`
       argument for motion blur filter.
 
       :type: float (0.0-100.0)
-

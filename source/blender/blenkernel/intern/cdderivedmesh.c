@@ -300,7 +300,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh = BKE_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
-		looptri = MEM_mallocN(sizeof(*looptri) * looptris_num, __func__);
+		looptri = MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__);
 
 		BKE_mesh_recalc_looptri(
 		        me->mloop, me->mpoly,
@@ -324,7 +324,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 			int totvert;
 
 			totvert = deformdm->getNumVerts(deformdm);
-			vertCos = MEM_mallocN(totvert * sizeof(float[3]), "cdDM_getPBVH vertCos");
+			vertCos = MEM_malloc_arrayN(totvert, sizeof(float[3]), "cdDM_getPBVH vertCos");
 			deformdm->getVertCos(deformdm, vertCos);
 			BKE_pbvh_apply_vertCos(cddm->pbvh, vertCos);
 			MEM_freeN(vertCos);
@@ -1004,9 +1004,9 @@ static void cdDM_drawMappedFacesGLSL(
 
 		tot_active_mat = dm->drawObject->totmaterial;
 
-		matconv = MEM_callocN(sizeof(*matconv) * tot_active_mat,
+		matconv = MEM_calloc_arrayN(tot_active_mat, sizeof(*matconv),
 		                      "cdDM_drawMappedFacesGLSL.matconv");
-		mat_orig_to_new = MEM_mallocN(sizeof(*mat_orig_to_new) * dm->totmat,
+		mat_orig_to_new = MEM_malloc_arrayN(dm->totmat, sizeof(*mat_orig_to_new),
 		                              "cdDM_drawMappedFacesGLSL.mat_orig_to_new");
 
 		/* part one, check what attributes are needed per material */
@@ -1295,7 +1295,7 @@ static void cdDM_buffer_copy_triangles(
 	const MLoopTri *lt = dm->getLoopTriArray(dm);
 	const int totpoly = dm->getNumPolys(dm);
 
-	FaceCount *fc = MEM_mallocN(sizeof(*fc) * gpu_totmat, "gpumaterial.facecount");
+	FaceCount *fc = MEM_malloc_arrayN(gpu_totmat, sizeof(*fc), "gpumaterial.facecount");
 
 	for (i = 0; i < gpu_totmat; i++) {
 		fc[i].i_visible = 0;
@@ -1476,7 +1476,7 @@ static void cdDM_buffer_copy_uv_texpaint(
 
 	/* should have been checked for before, reassert */
 	BLI_assert(DM_get_loop_data_layer(dm, CD_MLOOPUV));
-	uv_base = MEM_mallocN(totmaterial * sizeof(*uv_base), "texslots");
+	uv_base = MEM_malloc_arrayN(totmaterial, sizeof(*uv_base), "texslots");
 
 	for (i = 0; i < totmaterial; i++) {
 		uv_base[i] = DM_paint_uvlayer_active_get(dm, i);
@@ -1690,10 +1690,10 @@ static void cdDM_drawobject_init_vert_points(
 	int tot_loops = 0;
 
 	/* allocate the array and space for links */
-	gdo->vert_points = MEM_mallocN(sizeof(GPUVertPointLink) * gdo->totvert,
+	gdo->vert_points = MEM_malloc_arrayN(gdo->totvert, sizeof(GPUVertPointLink),
 	                               "GPUDrawObject.vert_points");
 #ifdef USE_GPU_POINT_LINK
-	gdo->vert_points_mem = MEM_callocN(sizeof(GPUVertPointLink) * gdo->totvert,
+	gdo->vert_points_mem = MEM_calloc_arrayN(gdo->totvert, sizeof(GPUVertPointLink),
 	                                   "GPUDrawObject.vert_points_mem");
 	gdo->vert_points_usage = 0;
 #endif
@@ -1748,7 +1748,7 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 
 	/* get the number of points used by each material, treating
 	 * each quad as two triangles */
-	mat_info = MEM_callocN(sizeof(*mat_info) * dm_totmat, "GPU_drawobject_new.mat_orig_to_new");
+	mat_info = MEM_calloc_arrayN(dm_totmat, sizeof(*mat_info), "GPU_drawobject_new.mat_orig_to_new");
 
 	for (i = 0; i < totpolys; i++) {
 		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, dm_totmat);
@@ -1919,12 +1919,16 @@ void CDDM_recalc_looptri(DerivedMesh *dm)
 	const unsigned int totloop = dm->numLoopData;
 
 	DM_ensure_looptri_data(dm);
+	BLI_assert(cddm->dm.looptris.array_wip != NULL);
 
 	BKE_mesh_recalc_looptri(
 	        cddm->mloop, cddm->mpoly,
 	        cddm->mvert,
 	        totloop, totpoly,
-	        cddm->dm.looptris.array);
+	        cddm->dm.looptris.array_wip);
+
+	BLI_assert(cddm->dm.looptris.array == NULL);
+	SWAP(MLoopTri *, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -2590,7 +2594,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 	}
 #endif
 
-	face_nors = MEM_mallocN(sizeof(*face_nors) * dm->numPolyData, "face_nors");
+	face_nors = MEM_malloc_arrayN(dm->numPolyData, sizeof(*face_nors), "face_nors");
 
 	/* calculate face normals */
 	BKE_mesh_calc_normals_poly(
@@ -2971,31 +2975,31 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 
 	const int totvert_final = totvert - tot_vtargetmap;
 
-	MVert *mv, *mvert = MEM_mallocN(sizeof(*mvert) * totvert_final, __func__);
-	int *oldv         = MEM_mallocN(sizeof(*oldv)  * totvert_final, __func__);
-	int *newv         = MEM_mallocN(sizeof(*newv)  * totvert, __func__);
+	MVert *mv, *mvert = MEM_malloc_arrayN(totvert_final, sizeof(*mvert), __func__);
+	int *oldv         = MEM_malloc_arrayN(totvert_final, sizeof(*oldv), __func__);
+	int *newv         = MEM_malloc_arrayN(totvert, sizeof(*newv), __func__);
 	STACK_DECLARE(mvert);
 	STACK_DECLARE(oldv);
 
 	/* Note: create (totedge + totloop) elements because partially invalid polys due to merge may require
 	 * generating new edges, and while in 99% cases we'll still end with less final edges than totedge,
 	 * cases can be forged that would end requiring more... */
-	MEdge *med, *medge = MEM_mallocN(sizeof(*medge) * (totedge + totloop), __func__);
-	int *olde          = MEM_mallocN(sizeof(*olde)  * (totedge + totloop), __func__);
-	int *newe          = MEM_mallocN(sizeof(*newe)  * (totedge + totloop), __func__);
+	MEdge *med, *medge = MEM_malloc_arrayN((totedge + totloop), sizeof(*medge), __func__);
+	int *olde          = MEM_malloc_arrayN((totedge + totloop), sizeof(*olde), __func__);
+	int *newe          = MEM_malloc_arrayN((totedge + totloop), sizeof(*newe), __func__);
 	STACK_DECLARE(medge);
 	STACK_DECLARE(olde);
 
-	MLoop *ml, *mloop = MEM_mallocN(sizeof(*mloop) * totloop, __func__);
-	int *oldl         = MEM_mallocN(sizeof(*oldl)  * totloop, __func__);
+	MLoop *ml, *mloop = MEM_malloc_arrayN(totloop, sizeof(*mloop), __func__);
+	int *oldl         = MEM_malloc_arrayN(totloop, sizeof(*oldl), __func__);
 #ifdef USE_LOOPS
-	int newl          = MEM_mallocN(sizeof(*newl)  * totloop, __func__);
+	int newl          = MEM_malloc_arrayN(totloop, sizeof(*newl), __func__);
 #endif
 	STACK_DECLARE(mloop);
 	STACK_DECLARE(oldl);
 
-	MPoly *mp, *mpoly = MEM_mallocN(sizeof(*medge) * totpoly, __func__);
-	int *oldp         = MEM_mallocN(sizeof(*oldp)  * totpoly, __func__);
+	MPoly *mp, *mpoly = MEM_malloc_arrayN(totpoly, sizeof(*medge), __func__);
+	int *oldp         = MEM_malloc_arrayN(totpoly, sizeof(*oldp), __func__);
 	STACK_DECLARE(mpoly);
 	STACK_DECLARE(oldp);
 
@@ -3073,7 +3077,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 		/* if the targets already make up a poly, in which case the new poly is dropped */
 		/* This poly equality check is rather complex.   We use a BLI_ghash to speed it up with a first level check */
 		PolyKey *mpgh;
-		poly_keys = MEM_mallocN(sizeof(PolyKey) * totpoly, __func__);
+		poly_keys = MEM_malloc_arrayN(totpoly, sizeof(PolyKey), __func__);
 		poly_gset = BLI_gset_new_ex(poly_gset_hash_fn, poly_gset_compare_fn, __func__, totpoly);
 		/* Duplicates allowed because our compare function is not pure equality */
 		BLI_gset_flag_set(poly_gset, GHASH_FLAG_ALLOW_DUPES);

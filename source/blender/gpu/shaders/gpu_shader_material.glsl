@@ -2524,7 +2524,11 @@ float schlick_fresnel(float u)
 
 float GTR1(float NdotH, float a)
 {
-	if (a >= 1.0) return M_1_PI;
+	if (a >= 1.0) {
+		return M_1_PI;
+	}
+
+	a = max(a, 0.001);
 	float a2 = a*a;
 	float t = 1.0 + (a2 - 1.0) * NdotH*NdotH;
 	return (a2 - 1.0) / (M_PI * log(a2) * t);
@@ -2967,7 +2971,10 @@ float calc_gradient(vec3 p, int gradient_type)
 		return atan(y, x) / (M_PI * 2) + 0.5;
 	}
 	else {
-		float r = max(1.0 - sqrt(x * x + y * y + z * z), 0.0);
+		/* Bias a little bit for the case where p is a unit length vector,
+		 * to get exactly zero instead of a small random value depending
+		 * on float precision. */
+		float r = max(0.999999 - sqrt(x * x + y * y + z * z), 0.0);
 		if (gradient_type == 5) {  /* quadratic sphere */
 			return r * r;
 		}

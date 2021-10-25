@@ -9248,11 +9248,16 @@ static int ui_handle_menu_event(
 									doit = true;
 								}
 							}
-							else if (count == act) {
+							else if (ELEM(but->type,
+							              UI_BTYPE_BUT,
+							              UI_BTYPE_BUT_MENU,
+							              UI_BTYPE_MENU, UI_BTYPE_BLOCK,
+							              UI_BTYPE_PULLDOWN) &&
+							         count == act) {
 								doit = true;
 							}
 
-							if (doit) {
+							if (!(but->flag & UI_BUT_DISABLED) && doit) {
 								/* activate buttons but open menu's */
 								uiButtonActivateType activate;
 								if (but->type == UI_BTYPE_PULLDOWN) {
@@ -9306,8 +9311,7 @@ static int ui_handle_menu_event(
 							break;
 
 						for (but = block->buttons.first; but; but = but->next) {
-
-							if (but->menu_key == event->type) {
+							if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
 								if (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_BUT_MENU)) {
 									/* mainly for operator buttons */
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_APPLY);

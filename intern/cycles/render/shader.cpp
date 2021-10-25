@@ -33,7 +33,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+thread_mutex ShaderManager::lookup_table_mutex;
 vector<float> ShaderManager::beckmann_table;
+bool ShaderManager::beckmann_table_ready = false;
 
 /* Beckmann sampling precomputed table, see bsdf_microfacet.h */
 
@@ -489,10 +491,11 @@ void ShaderManager::device_update_common(Device *device,
 
 	/* beckmann lookup table */
 	if(beckmann_table_offset == TABLE_OFFSET_INVALID) {
-		if(beckmann_table.size() == 0) {
+		if(!beckmann_table_ready) {
 			thread_scoped_lock lock(lookup_table_mutex);
-			if(beckmann_table.size() == 0) {
+			if(!beckmann_table_ready) {
 				beckmann_table_build(beckmann_table);
+				beckmann_table_ready = true;
 			}
 		}
 		beckmann_table_offset = scene->lookup_tables->add_table(dscene, beckmann_table);

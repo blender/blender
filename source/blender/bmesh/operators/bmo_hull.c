@@ -470,7 +470,8 @@ static BMVert **hull_verts_from_bullet(
         const int num_input_verts)
 {
 	const int num_verts = plConvexHullNumVertices(hull);
-	BMVert **hull_verts = MEM_mallocN(sizeof(*hull_verts) *num_verts, AT);
+	BMVert **hull_verts = MEM_mallocN(sizeof(*hull_verts) *
+	                                  num_verts, AT);
 	int i;
 
 	for (i = 0; i < num_verts; i++) {
@@ -512,7 +513,6 @@ static void hull_from_bullet(
 	hull_verts = hull_verts_from_bullet(hull, input_verts, num_input_verts);
 	
 	count = plConvexHullNumFaces(hull);
-
 	for (i = 0; i < count; i++) {
 		const int len = plConvexHullGetFaceSize(hull, i);
 

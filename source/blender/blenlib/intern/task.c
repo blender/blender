@@ -1101,7 +1101,7 @@ static void task_parallel_range_ex(
 	}
 
 	task_scheduler = BLI_task_scheduler_get();
-	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* The idea here is to prevent creating task for each of the loop iterations
@@ -1124,6 +1124,9 @@ static void task_parallel_range_ex(
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+
+	/* NOTE: This way we are adding a memory barrier and ensure all worker
+	 * threads can read and modify the value, without any locks. */
 	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
 
 	if (use_userdata_chunk) {
@@ -1325,7 +1328,7 @@ void BLI_task_parallel_listbase(
 	}
 
 	task_scheduler = BLI_task_scheduler_get();
-	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* The idea here is to prevent creating task for each of the loop iterations

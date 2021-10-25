@@ -679,8 +679,10 @@ static void write_iddata(void *wd, const ID *id)
 
 static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
 {
-	/* Never write previews when doing memsave (i.e. undo/redo)! */
-	if (prv_orig && !wd->current) {
+	/* Note we write previews also for undo steps. It takes up some memory,
+	 * but not doing so would causes all previews to be re-rendered after
+	 * undo which is too expensive. */
+	if (prv_orig) {
 		PreviewImage prv = *prv_orig;
 
 		/* don't write out large previews if not requested */
@@ -1245,9 +1247,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
 	"", // BPHYS_DATA_TIMES:
-	"BoidData",// case BPHYS_DATA_BOIDS:
-	"", //case BPHYS_DATA_TORQUE
-	""// BPHYS_DATA_CONTACT
+	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 static const char *ptcache_extra_struct[] = {
 	"",

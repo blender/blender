@@ -177,6 +177,31 @@ static bool python_driver_depends_on_time(ChannelDriver *driver)
 	return false;
 }
 
+static bool particle_system_depends_on_time(ParticleSystem *psys)
+{
+	ParticleSettings *part = psys->part;
+	/* Non-hair particles we always consider dependent on time. */
+	if (part->type != PART_HAIR) {
+		return true;
+	}
+	/* Dynamics always depends on time. */
+	if (psys->flag & PSYS_HAIR_DYNAMICS) {
+		return true;
+	}
+	/* TODO(sergey): Check what else makes hair dependent on time. */
+	return false;
+}
+
+static bool object_particles_depends_on_time(Object *object)
+{
+	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+		if (particle_system_depends_on_time(psys)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* **** General purpose functions ****  */
 
 RNAPathKey::RNAPathKey(ID *id, const char *path) :
@@ -394,15 +419,17 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 {
 	ID *group_id = &group->id;
 	bool group_done = (group_id->tag & LIB_TAG_DOIT) != 0;
-	OperationKey object_local_transform_key(&object->id,
+	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
 			build_object(bmain, scene, go->ob);
 		}
-		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
-		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
+		if (object != NULL) {
+			ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
+		}
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 }
@@ -543,7 +570,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	/* Particle systems. */
 	if (ob->particlesystem.first != NULL) {
-		build_particles(scene, ob);
+		build_particles(bmain, scene, ob);
 	}
 
 	/* Grease pencil. */
@@ -687,9 +714,12 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 					depends_on_camera = true;
 
 				if (data->depth_ob) {
-					// DAG_RL_DATA_OB | DAG_RL_OB_OB
-					ComponentKey depth_key(&data->depth_ob->id, DEG_NODE_TYPE_TRANSFORM);
-					add_relation(depth_key, constraint_op_key, cti->name);
+					ComponentKey depth_transform_key(&data->depth_ob->id,
+					                                 DEG_NODE_TYPE_TRANSFORM);
+					ComponentKey depth_geometry_key(&data->depth_ob->id,
+					                                DEG_NODE_TYPE_GEOMETRY);
+					add_relation(depth_transform_key, constraint_op_key, cti->name);
+					add_relation(depth_geometry_key, constraint_op_key, cti->name);
 				}
 			}
 			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
@@ -1244,7 +1274,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_particles(Main *bmain, Scene *scene, Object *ob)
 {
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&ob->id,
@@ -1253,10 +1283,6 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	OperationKey eval_init_key(&ob->id,
 	                           DEG_NODE_TYPE_EVAL_PARTICLES,
 	                           DEG_OPCODE_PSYS_EVAL_INIT);
-	/* TODO(sergey): Are all particle systems depends on time?
-	 * Hair without dynamics i.e.
-	 */
-	add_relation(time_src_key, eval_init_key, "TimeSrc -> PSys");
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
@@ -1267,10 +1293,6 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* this particle system */
 		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
-
-		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
-		if (!psys_check_enabled(ob, psys, G.is_rendering))
-			continue;
 
 		add_relation(eval_init_key, psys_key, "Init -> PSys");
 
@@ -1309,9 +1331,27 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 			}
 		}
 
-		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
-			ComponentKey dup_ob_key(&part->dup_ob->id, DEG_NODE_TYPE_TRANSFORM);
-			add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
+		switch (part->ren_as) {
+			case PART_DRAW_OB:
+				if (part->dup_ob != NULL) {
+					/* Make sure object's relations are all built.  */
+					build_object(bmain, scene, part->dup_ob);
+					/* Build relation for the particle visualization. */
+					build_particles_visualization_object(ob,
+					                                     psys,
+					                                     part->dup_ob);
+				}
+				break;
+			case PART_DRAW_GR:
+				if (part->dup_group != NULL) {
+					build_group(bmain, scene, NULL, part->dup_group);
+					LINKLIST_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
+						build_particles_visualization_object(ob,
+						                                     psys,
+						                                     go->ob);
+					}
+				}
+				break;
 		}
 	}
 
@@ -1326,6 +1366,28 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 	/* pointcache */
 	// TODO...
+}
+
+void DepsgraphRelationBuilder::build_particles_visualization_object(
+        Object *object,
+        ParticleSystem *psys,
+        Object *draw_object)
+{
+	OperationKey psys_key(&object->id,
+	                      DEG_NODE_TYPE_EVAL_PARTICLES,
+	                      DEG_OPCODE_PSYS_EVAL,
+	                      psys->name);
+	OperationKey obdata_ubereval_key(&object->id,
+	                                 DEG_NODE_TYPE_GEOMETRY,
+	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+	ComponentKey dup_ob_key(&draw_object->id, DEG_NODE_TYPE_TRANSFORM);
+	add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
+	if (draw_object->type == OB_MBALL) {
+		ComponentKey dup_geometry_key(&draw_object->id, DEG_NODE_TYPE_GEOMETRY);
+		add_relation(obdata_ubereval_key,
+		             dup_geometry_key,
+		             "Particle MBall Visualization");
+	}
 }
 
 void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
@@ -1484,13 +1546,15 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			 *
 			 * for viewport being properly rendered in final render mode.
 			 * This relation is similar to what dag_object_time_update_flags()
-			 * was doing for mesh objects with particle system/
+			 * was doing for mesh objects with particle system.
 			 *
 			 * Ideally we need to get rid of this relation.
 			 */
-			if (ob->particlesystem.first != NULL) {
+			if (object_particles_depends_on_time(ob)) {
 				TimeSourceKey time_key;
-				OperationKey obdata_ubereval_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+				OperationKey obdata_ubereval_key(&ob->id,
+				                                 DEG_NODE_TYPE_GEOMETRY,
+				                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 				add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
 			}
 			break;
@@ -1498,14 +1562,19 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 		case OB_MBALL:
 		{
 			Object *mom = BKE_mball_basis_find(scene, ob);
-
+			ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
 			/* motherball - mom depends on children! */
-			if (mom != ob) {
-				/* non-motherball -> cannot be directly evaluated! */
-				ComponentKey mom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
+			if (mom == ob) {
+				ComponentKey mom_transform_key(&mom->id,
+				                               DEG_NODE_TYPE_TRANSFORM);
+				add_relation(mom_transform_key,
+				             mom_geom_key,
+				             "Metaball Motherball Transform -> Geometry");
+			}
+			else if (mom != ob) {
 				ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
-				add_relation(geom_key, mom_key, "Metaball Motherball");
-				add_relation(transform_key, mom_key, "Metaball Motherball");
+				add_relation(geom_key, mom_geom_key, "Metaball Motherball");
+				add_relation(transform_key, mom_geom_key, "Metaball Motherball");
 			}
 			break;
 		}
@@ -1752,8 +1821,18 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
 {
-	/* Animation. */
-	build_animdata(&mask->id);
+	ID *mask_id = &mask->id;
+	/* F-Curve animation. */
+	build_animdata(mask_id);
+	/* Own mask animation. */
+	OperationKey mask_animation_key(mask_id,
+	                                DEG_NODE_TYPE_ANIMATION,
+	                                DEG_OPCODE_MASK_ANIMATION);
+	TimeSourceKey time_src_key;
+	add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
+	/* Final mask evaluation. */
+	ComponentKey parameters_key(mask_id, DEG_NODE_TYPE_PARAMETERS);
+	add_relation(mask_animation_key, parameters_key, "Mask Animation -> Mask Eval");
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)

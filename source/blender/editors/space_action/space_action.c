@@ -624,13 +624,17 @@ static void action_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, I
 {
 	SpaceAction *sact = (SpaceAction *)slink;
 
-	if (!ELEM(GS(old_id->name), ID_GR)) {
-		return;
+	if ((ID *)sact->action == old_id) {
+		sact->action = (bAction *)new_id;
 	}
 
 	if ((ID *)sact->ads.filter_grp == old_id) {
 		sact->ads.filter_grp = (Group *)new_id;
 	}
+	if ((ID *)sact->ads.source == old_id) {
+		sact->ads.source = new_id;
+	}
+
 }
 
 /* only called once, from space/spacetypes.c */

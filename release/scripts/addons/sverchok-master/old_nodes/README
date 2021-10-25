@@ -1,6 +1,0 @@
-Instructions:
-Mov the node file here add the corresponding bl_idname in __init__.py in the table.
-
-This where old nodes go to die. 
-They are loaded un demand for now.
-Don't use these nodes basiclly.

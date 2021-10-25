@@ -506,6 +506,26 @@ static bNodeSocket *make_socket(bNodeTree *ntree, bNode *UNUSED(node), int in_ou
 	return sock;
 }
 
+void nodeModifySocketType(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock,
+                          int type, int subtype)
+{
+	const char *idname = nodeStaticSocketType(type, subtype);
+
+	if (!idname) {
+		printf("Error: static node socket type %d undefined\n", type);
+		return;
+	}
+
+	if (sock->default_value) {
+		MEM_freeN(sock->default_value);
+		sock->default_value = NULL;
+	}
+
+	sock->type = type;
+	BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
+	node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(idname));
+}
+
 bNodeSocket *nodeAddSocket(bNodeTree *ntree, bNode *node, int in_out, const char *idname,
                            const char *identifier, const char *name)
 {
@@ -3175,13 +3195,17 @@ void nodeSynchronizeID(bNode *node, bool copy_to_id)
 
 void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
 {
+	label[0] = '\0';
+
 	if (node->label[0] != '\0') {
 		BLI_strncpy(label, node->label, maxlen);
 	}
 	else if (node->typeinfo->labelfunc) {
 		node->typeinfo->labelfunc(ntree, node, label, maxlen);
 	}
-	else {
+
+	/* The previous methods (labelfunc) could not provide an adequate label for the node. */
+	if (label[0] == '\0') {
 		/* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
 		const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
 		if (tmp == node->typeinfo->ui_name) {

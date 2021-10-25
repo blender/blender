@@ -33,6 +33,7 @@
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #ifdef __SSE2__
 #  include <emmintrin.h>
@@ -181,16 +182,60 @@ MINLINE unsigned power_of_2_min_u(unsigned x)
 	return x - (x >> 1);
 }
 
+/* rounding and clamping */
+
 MINLINE int iroundf(float a)
 {
 	return (int)floorf(a + 0.5f);
 }
+
+#define _round_clamp_fl_impl(arg, ty, min, max) { \
+	float r = floorf(arg + 0.5f); \
+	if      (UNLIKELY(r <= (float)min)) return (ty)min; \
+	else if (UNLIKELY(r >= (float)max)) return (ty)max; \
+	else return (ty)r; \
+}
+
+#define _round_clamp_db_impl(arg, ty, min, max) { \
+	double r = floor(arg + 0.5); \
+	if      (UNLIKELY(r <= (double)min)) return (ty)min; \
+	else if (UNLIKELY(r >= (double)max)) return (ty)max; \
+	else return (ty)r; \
+}
+
+MINLINE signed char    round_fl_to_char_clamp(float a) { _round_clamp_fl_impl(a, signed char, SCHAR_MIN, SCHAR_MAX) }
+MINLINE unsigned char  round_fl_to_uchar_clamp(float a) { _round_clamp_fl_impl(a, unsigned char, 0, UCHAR_MAX) }
+MINLINE short          round_fl_to_short_clamp(float a) { _round_clamp_fl_impl(a, short, SHRT_MIN, SHRT_MAX) }
+MINLINE unsigned short round_fl_to_ushort_clamp(float a) { _round_clamp_fl_impl(a, unsigned short, 0, USHRT_MAX) }
+MINLINE int            round_fl_to_int_clamp(float a) { _round_clamp_fl_impl(a, int, INT_MIN, INT_MAX) }
+MINLINE unsigned int   round_fl_to_uint_clamp(float a) { _round_clamp_fl_impl(a, unsigned int, 0, UINT_MAX) }
+
+MINLINE signed char    round_db_to_char_clamp(double a) { _round_clamp_db_impl(a, signed char, SCHAR_MIN, SCHAR_MAX) }
+MINLINE unsigned char  round_db_to_uchar_clamp(double a) { _round_clamp_db_impl(a, unsigned char, 0, UCHAR_MAX) }
+MINLINE short          round_db_to_short_clamp(double a) { _round_clamp_db_impl(a, short, SHRT_MIN, SHRT_MAX) }
+MINLINE unsigned short round_db_to_ushort_clamp(double a) { _round_clamp_db_impl(a, unsigned short, 0, USHRT_MAX) }
+MINLINE int            round_db_to_int_clamp(double a) { _round_clamp_db_impl(a, int, INT_MIN, INT_MAX) }
+MINLINE unsigned int   round_db_to_uint_clamp(double a) { _round_clamp_db_impl(a, unsigned int, 0, UINT_MAX) }
+
+#undef _round_clamp_fl_impl
+#undef _round_clamp_db_impl
 
 /* integer division that rounds 0.5 up, particularly useful for color blending
  * with integers, to avoid gradual darkening when rounding down */
 MINLINE int divide_round_i(int a, int b)
 {
 	return (2 * a + b) / (2 * b);
+}
+
+/**
+ * Integer division that floors negative result.
+ * \note This works like Python's int division.
+ */
+MINLINE int divide_floor_i(int a, int b)
+{
+	int d = a / b;
+	int r = a % b;  /* Optimizes into a single division. */
+	return r ? d - ((a < 0) ^ (b < 0)) : d;
 }
 
 /**

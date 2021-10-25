@@ -130,8 +130,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 				surmd->v = NULL;
 			}
 
-			surmd->x = MEM_callocN(numverts * sizeof(MVert), "MVert");
-			surmd->v = MEM_callocN(numverts * sizeof(MVert), "MVert");
+			surmd->x = MEM_calloc_arrayN(numverts, sizeof(MVert), "MVert");
+			surmd->v = MEM_calloc_arrayN(numverts, sizeof(MVert), "MVert");
 
 			surmd->numverts = numverts;
 

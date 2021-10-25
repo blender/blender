@@ -377,7 +377,7 @@ static void meshdeformModifier_do(
 		return;
 	}
 
-	cagecos = MEM_mallocN(sizeof(*cagecos) * totcagevert, "meshdeformModifier vertCos");
+	cagecos = MEM_malloc_arrayN(totcagevert, sizeof(*cagecos), "meshdeformModifier vertCos");
 
 	/* setup deformation data */
 	cagedm->getVertCos(cagedm, cagecos);
@@ -386,7 +386,7 @@ static void meshdeformModifier_do(
 	/* We allocate 1 element extra to make it possible to
 	 * load the values to SSE registers, which are float4.
 	 */
-	dco = MEM_callocN(sizeof(*dco) * (totcagevert + 1), "MDefDco");
+	dco = MEM_calloc_arrayN((totcagevert + 1), sizeof(*dco), "MDefDco");
 	zero_v3(dco[totcagevert]);
 	for (a = 0; a < totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
@@ -477,8 +477,8 @@ void modifier_mdef_compact_influences(ModifierData *md)
 	}
 
 	/* allocate bind influences */
-	mmd->bindinfluences = MEM_callocN(sizeof(MDefInfluence) * mmd->totinfluence, "MDefBindInfluence");
-	mmd->bindoffsets = MEM_callocN(sizeof(int) * (totvert + 1), "MDefBindOffset");
+	mmd->bindinfluences = MEM_calloc_arrayN(mmd->totinfluence, sizeof(MDefInfluence), "MDefBindInfluence");
+	mmd->bindoffsets = MEM_calloc_arrayN((totvert + 1), sizeof(int), "MDefBindOffset");
 
 	/* write influences */
 	totinfluence = 0;

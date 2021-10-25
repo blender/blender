@@ -310,9 +310,9 @@ void btGeneric6DofSpring2Constraint::calculateAngleInfo()
 	case RO_XYZ :
 		{
 			//Is this the "line of nodes" calculation choosing planes YZ (B coordinate system) and xy (A coordinate system)? (http://en.wikipedia.org/wiki/Euler_angles)
-			//The two planes are non-homologous, so this is a Tait–Bryan angle formalism and not a proper Euler
+			//The two planes are non-homologous, so this is a Taitï¿½Bryan angle formalism and not a proper Euler
 			//Extrinsic rotations are equal to the reversed order intrinsic rotations so the above xyz extrinsic rotations (axes are fixed) are the same as the zy'x" intrinsic rotations (axes are refreshed after each rotation)
-			//that is why xy and YZ planes are chosen (this will describe a zy'x" intrinsic rotation) (see the figure on the left at http://en.wikipedia.org/wiki/Euler_angles under Tait–Bryan angles)
+			//that is why xy and YZ planes are chosen (this will describe a zy'x" intrinsic rotation) (see the figure on the left at http://en.wikipedia.org/wiki/Euler_angles under Taitï¿½Bryan angles)
 			// x' = Nperp = N.cross(axis2)
 			// y' = N = axis2.cross(axis0)	
 			// z' = z

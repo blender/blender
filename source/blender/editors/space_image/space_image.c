@@ -89,6 +89,18 @@ static void image_scopes_tag_refresh(ScrArea *sa)
 	sima->scopes.ok = 0;
 }
 
+static void image_user_refresh_scene(const bContext *C, SpaceImage *sima)
+{
+	if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
+		/* for render result, try to use the currently rendering scene */
+		Scene *render_scene = ED_render_job_get_current_scene(C);
+		if (render_scene) {
+			sima->iuser.scene = render_scene;
+			return;
+		}
+	}
+	sima->iuser.scene = CTX_data_scene(C);
+}
 
 /* ******************** manage regions ********************* */
 
@@ -699,17 +711,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	/* put scene context variable in iuser */
-	if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
-		/* for render result, try to use the currently rendering scene */
-		Scene *render_scene = ED_render_job_get_current_scene(C);
-		if (render_scene)
-			sima->iuser.scene = render_scene;
-		else
-			sima->iuser.scene = scene;
-	}
-	else
-		sima->iuser.scene = scene;
+	image_user_refresh_scene(C, sima);
 
 	/* we set view2d from own zoom and offset each time */
 	image_main_region_set_view2d(sima, ar);
@@ -961,6 +963,11 @@ static void image_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 
 static void image_header_region_draw(const bContext *C, ARegion *ar)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceImage *sima = sa->spacedata.first;
+
+	image_user_refresh_scene(C, sima);
+
 	ED_region_header(C, ar);
 }
 

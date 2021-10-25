@@ -104,7 +104,6 @@ protected:
 	///m_forceUpdateAllAabbs can be set to false as an optimization to only update active object AABBs
 	///it is true by default, because it is error-prone (setting the position of static objects wouldn't update their AABB)
 	bool m_forceUpdateAllAabbs;
-	
 
 	void	serializeCollisionObjects(btSerializer* serializer);
 
@@ -517,7 +516,7 @@ public:
 	{
 		m_forceUpdateAllAabbs = forceUpdateAllAabbs;
 	}
-	
+
 	///Preliminary serialization test for Bullet 2.76. Loading those files requires a separate parser (Bullet/Demos/SerializeDemo)
 	virtual	void	serialize(btSerializer* serializer);
 

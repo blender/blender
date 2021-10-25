@@ -53,7 +53,7 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
-/* Copyright © 2011 Linaro Limited
+/* Copyright ï¿½ 2011 Linaro Limited
  */
 
 #ifndef __glesew_h__

@@ -1,8 +1,6 @@
 KX_MeshProxy(SCA_IObject)
 =========================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IObject`
 
 .. class:: KX_MeshProxy(SCA_IObject)
@@ -131,4 +129,3 @@ base class --- :class:`SCA_IObject`
       :type uv_index: integer
       :arg uv_index_from: optional uv index to copy from, -1 to transform the current uv.
       :type uv_index_from: integer
-

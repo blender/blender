@@ -1,8 +1,6 @@
 KX_VertexProxy(SCA_IObject)
 ===========================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IObject`
 
 .. class:: KX_VertexProxy(SCA_IObject)
@@ -206,4 +204,3 @@ base class --- :class:`SCA_IObject`
       :type:  sequence of floats [r, g, b]
 
       :arg normal: the new normal of this vertex.
-

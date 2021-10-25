@@ -391,7 +391,7 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
 PyDoc_STRVAR(py_bvhtree_find_nearest_doc,
 ".. method:: find_nearest(origin, distance=" PYBVH_MAX_DIST_STR ")\n"
 "\n"
-"   Find the nearest element to a point.\n"
+"   Find the nearest element (typically face index) to a point.\n"
 "\n"
 "   :arg co: Find nearest element to this point.\n"
 "   :type co: :class:`Vector`\n"
@@ -476,7 +476,7 @@ static void py_bvhtree_nearest_point_range_cb(void *userdata, int index, const f
 PyDoc_STRVAR(py_bvhtree_find_nearest_range_doc,
 ".. method:: find_nearest_range(origin, distance=" PYBVH_MAX_DIST_STR ")\n"
 "\n"
-"   Find the nearest elements to a point in the distance range.\n"
+"   Find the nearest elements (typically face index) to a point in the distance range.\n"
 "\n"
 "   :arg co: Find nearest elements to this point.\n"
 "   :type co: :class:`Vector`\n"
@@ -872,7 +872,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 					mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
 				}
 
-				BLI_polyfill_calc_arena((const float (*)[2])proj_coords, plink->len, 1, tris_offset, pf_arena);
+				BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
 
 				j = plink->len - 2;
 				while (j--) {

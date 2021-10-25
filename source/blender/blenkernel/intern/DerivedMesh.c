@@ -94,7 +94,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #endif
 
 
-static ThreadMutex loops_cache_lock = BLI_MUTEX_INITIALIZER;
+static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 
 static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
@@ -184,7 +184,7 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
 
 static MVert *dm_dupVertArray(DerivedMesh *dm)
 {
-	MVert *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumVerts(dm),
+	MVert *tmp = MEM_malloc_arrayN(dm->getNumVerts(dm), sizeof(*tmp),
 	                         "dm_dupVertArray tmp");
 
 	if (tmp) dm->copyVertArray(dm, tmp);
@@ -194,7 +194,7 @@ static MVert *dm_dupVertArray(DerivedMesh *dm)
 
 static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 {
-	MEdge *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumEdges(dm),
+	MEdge *tmp = MEM_malloc_arrayN(dm->getNumEdges(dm), sizeof(*tmp),
 	                         "dm_dupEdgeArray tmp");
 
 	if (tmp) dm->copyEdgeArray(dm, tmp);
@@ -204,7 +204,7 @@ static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 
 static MFace *dm_dupFaceArray(DerivedMesh *dm)
 {
-	MFace *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumTessFaces(dm),
+	MFace *tmp = MEM_malloc_arrayN(dm->getNumTessFaces(dm), sizeof(*tmp),
 	                         "dm_dupFaceArray tmp");
 
 	if (tmp) dm->copyTessFaceArray(dm, tmp);
@@ -214,7 +214,7 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 
 static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 {
-	MLoop *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumLoops(dm),
+	MLoop *tmp = MEM_malloc_arrayN(dm->getNumLoops(dm), sizeof(*tmp),
 	                         "dm_dupLoopArray tmp");
 
 	if (tmp) dm->copyLoopArray(dm, tmp);
@@ -224,7 +224,7 @@ static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 
 static MPoly *dm_dupPolyArray(DerivedMesh *dm)
 {
-	MPoly *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumPolys(dm),
+	MPoly *tmp = MEM_malloc_arrayN(dm->getNumPolys(dm), sizeof(*tmp),
 	                         "dm_dupPolyArray tmp");
 
 	if (tmp) dm->copyPolyArray(dm, tmp);
@@ -241,19 +241,26 @@ static int dm_getNumLoopTri(DerivedMesh *dm)
 
 static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
 {
-	if (dm->looptris.array) {
+	MLoopTri *looptri;
+
+	BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
+	looptri = dm->looptris.array;
+	BLI_rw_mutex_unlock(&loops_cache_lock);
+
+	if (looptri != NULL) {
 		BLI_assert(dm->getNumLoopTri(dm) == dm->looptris.num);
 	}
 	else {
-		BLI_mutex_lock(&loops_cache_lock);
+		BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
 		/* We need to ensure array is still NULL inside mutex-protected code, some other thread might have already
 		 * recomputed those looptris. */
 		if (dm->looptris.array == NULL) {
 			dm->recalcLoopTri(dm);
 		}
-		BLI_mutex_unlock(&loops_cache_lock);
+		looptri = dm->looptris.array;
+		BLI_rw_mutex_unlock(&loops_cache_lock);
 	}
-	return dm->looptris.array;
+	return looptri;
 }
 
 static CustomData *dm_getVertCData(DerivedMesh *dm)
@@ -494,6 +501,8 @@ void DM_ensure_tessface(DerivedMesh *dm)
 
 /**
  * Ensure the array is large enough
+ *
+ * /note This function must always be thread-protected by caller. It should only be used by internal code.
  */
 void DM_ensure_looptri_data(DerivedMesh *dm)
 {
@@ -501,18 +510,22 @@ void DM_ensure_looptri_data(DerivedMesh *dm)
 	const unsigned int totloop = dm->numLoopData;
 	const int looptris_num = poly_to_tri_count(totpoly, totloop);
 
+	BLI_assert(dm->looptris.array_wip == NULL);
+
+	SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
+
 	if ((looptris_num > dm->looptris.num_alloc) ||
 	    (looptris_num < dm->looptris.num_alloc * 2) ||
 	    (totpoly == 0))
 	{
-		MEM_SAFE_FREE(dm->looptris.array);
+		MEM_SAFE_FREE(dm->looptris.array_wip);
 		dm->looptris.num_alloc = 0;
 		dm->looptris.num = 0;
 	}
 
 	if (totpoly) {
-		if (dm->looptris.array == NULL) {
-			dm->looptris.array = MEM_mallocN(sizeof(*dm->looptris.array) * looptris_num, __func__);
+		if (dm->looptris.array_wip == NULL) {
+			dm->looptris.array_wip = MEM_malloc_arrayN(looptris_num, sizeof(*dm->looptris.array_wip), __func__);
 			dm->looptris.num_alloc = looptris_num;
 		}
 
@@ -561,7 +574,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	    CustomData_has_layer(fdata, CD_TESSLOOPNORMAL) ||
 	    CustomData_has_layer(fdata, CD_TANGENT))
 	{
-		loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
+		loopindex = MEM_malloc_arrayN(totface, sizeof(*loopindex), __func__);
 
 		for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
 			const int mf_len = mf->v4 ? 4 : 3;
@@ -622,7 +635,7 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 				CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
 
 				if (!loopindex) {
-					loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
+					loopindex = MEM_malloc_arrayN(totface, sizeof(*loopindex), __func__);
 					for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
 						const int mf_len = mf->v4 ? 4 : 3;
 						unsigned int *ml_idx = loopindex[mf_idx];
@@ -667,7 +680,7 @@ void DM_update_materials(DerivedMesh *dm, Object *ob)
 		if (dm->mat)
 			MEM_freeN(dm->mat);
 
-		dm->mat = MEM_mallocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+		dm->mat = MEM_malloc_arrayN(totmat, sizeof(*dm->mat), "DerivedMesh.mat");
 	}
 
 	/* we leave last material as empty - rationale here is being able to index
@@ -857,7 +870,7 @@ void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)
 	}
 	
 	if (kb->data) MEM_freeN(kb->data);
-	kb->data = MEM_mallocN(me->key->elemsize * me->totvert, "kb->data");
+	kb->data = MEM_malloc_arrayN(me->key->elemsize, me->totvert, "kb->data");
 	kb->totelem = totvert;
 	
 	fp = kb->data;
@@ -1193,7 +1206,7 @@ static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
 	/* these may not really be the orco's, but it's only for preview.
 	 * could be solver better once, but isn't simple */
 	
-	orco = MEM_mallocN(sizeof(float) * 3 * em->bm->totvert, "BMEditMesh Orco");
+	orco = MEM_malloc_arrayN(em->bm->totvert, sizeof(float) * 3, "BMEditMesh Orco");
 
 	BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 		copy_v3_v3(orco[i], eve->co);
@@ -1267,7 +1280,7 @@ static void add_orco_dm(
 	totvert = dm->getNumVerts(dm);
 
 	if (orcodm) {
-		orco = MEM_callocN(sizeof(float[3]) * totvert, "dm orco");
+		orco = MEM_calloc_arrayN(totvert, sizeof(float[3]), "dm orco");
 		free = 1;
 
 		if (orcodm->getNumVerts(orcodm) == totvert)
@@ -1549,7 +1562,7 @@ void DM_update_weight_mcol(
 		wtcol_v = em->derivedVertColor;
 	}
 	else {
-		wtcol_v = MEM_mallocN(sizeof(*wtcol_v) * numVerts, __func__);
+		wtcol_v = MEM_malloc_arrayN(numVerts, sizeof(*wtcol_v), __func__);
 	}
 
 	/* Weights are given by caller. */
@@ -1558,7 +1571,7 @@ void DM_update_weight_mcol(
 		/* If indices is not NULL, it means we do not have weights for all vertices,
 		 * so we must create them (and set them to zero)... */
 		if (indices) {
-			w = MEM_callocN(sizeof(float) * numVerts, "Temp weight array DM_update_weight_mcol");
+			w = MEM_calloc_arrayN(numVerts, sizeof(float), "Temp weight array DM_update_weight_mcol");
 			i = num;
 			while (i--)
 				w[indices[i]] = weights[i];
@@ -1590,7 +1603,7 @@ void DM_update_weight_mcol(
 		/* now add to loops, so the data can be passed through the modifier stack
 		 * If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
-			wtcol_l = MEM_mallocN(sizeof(*wtcol_l) * dm_totloop, __func__);
+			wtcol_l = MEM_malloc_arrayN(dm_totloop, sizeof(*wtcol_l), __func__);
 			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, dm_totloop);
 		}
 
@@ -1645,7 +1658,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 		cos = CustomData_get_layer_n(&dm->vertData, CD_SHAPEKEY, i);
 		kb->totelem = dm->numVertData;
 
-		kb->data = kbcos = MEM_mallocN(sizeof(float) * 3 * kb->totelem, "kbcos DerivedMesh.c");
+		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), "kbcos DerivedMesh.c");
 		if (kb->uid == actshape_uid) {
 			MVert *mvert = dm->getVertArray(dm);
 			
@@ -1666,7 +1679,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 				MEM_freeN(kb->data);
 			
 			kb->totelem = dm->numVertData;
-			kb->data = MEM_callocN(sizeof(float) * 3 * kb->totelem, "kb->data derivedmesh.c");
+			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), "kb->data derivedmesh.c");
 			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
 		}
 	}
@@ -1677,7 +1690,6 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 	KeyBlock *kb;
 	Key *key = me->key;
 	int i;
-	const size_t shape_alloc_len = sizeof(float) * 3 * me->totvert;
 
 	if (!me->key)
 		return;
@@ -1698,11 +1710,11 @@ static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
 			fprintf(stderr,
 			        "%s: vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)\n",
 			        __func__, me->id.name + 2, me->totvert, kb->name, kb->totelem);
-			array = MEM_callocN(shape_alloc_len, __func__);
+			array = MEM_calloc_arrayN((size_t)me->totvert, 3 * sizeof(float), __func__);
 		}
 		else {
-			array = MEM_mallocN(shape_alloc_len, __func__);
-			memcpy(array, kb->data, shape_alloc_len);
+			array = MEM_malloc_arrayN((size_t)me->totvert, 3 * sizeof(float), __func__);
+			memcpy(array, kb->data, (size_t)me->totvert * 3 * sizeof(float));
 		}
 
 		CustomData_add_layer_named(&dm->vertData, CD_SHAPEKEY, CD_ASSIGN, array, dm->numVertData, kb->name);
@@ -1975,7 +1987,7 @@ static void mesh_calc_modifiers(
 					 */
 					numVerts = dm->getNumVerts(dm);
 					deformedVerts =
-					    MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
+					    MEM_malloc_arrayN(numVerts, sizeof(*deformedVerts), "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				}
 				else {
@@ -2268,7 +2280,7 @@ float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *r_numVerts))[3]
 
 	*r_numVerts = em->bm->totvert;
 
-	cos = MEM_mallocN(sizeof(float) * 3 * em->bm->totvert, "vertexcos");
+	cos = MEM_malloc_arrayN(em->bm->totvert, 3 * sizeof(float), "vertexcos");
 
 	BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 		copy_v3_v3(cos[i], eve->co);
@@ -2374,7 +2386,7 @@ static void editbmesh_calc_modifiers(
 					 */
 					numVerts = dm->getNumVerts(dm);
 					deformedVerts =
-					    MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
+					    MEM_malloc_arrayN(numVerts, sizeof(*deformedVerts), "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				}
 				else {
@@ -2987,11 +2999,11 @@ DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 	
 	if (dm->foreachMappedVert) {
-		vertexcosnos = MEM_callocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
+		vertexcosnos = MEM_calloc_arrayN(me->totvert, sizeof(DMCoNo), "vertexcosnos map");
 		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
 	}
 	else {
-		DMCoNo *v_co_no = vertexcosnos = MEM_mallocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
+		DMCoNo *v_co_no = vertexcosnos = MEM_malloc_arrayN(me->totvert, sizeof(DMCoNo), "vertexcosnos map");
 		int a;
 		for (a = 0; a < me->totvert; a++, v_co_no++) {
 			dm->getVertCo(dm, a, v_co_no->co);
@@ -3430,7 +3442,7 @@ void DM_calc_loop_tangents(
 			/* over alloc, since we dont know how many ngon or quads we have */
 
 			/* map fake face index to looptri */
-			face_as_quad_map = MEM_mallocN(sizeof(int) * totface, __func__);
+			face_as_quad_map = MEM_malloc_arrayN(totface, sizeof(int), __func__);
 			int k, j;
 			for (k = 0, j = 0; j < totface; k++, j++) {
 				face_as_quad_map[k] = j;
@@ -4324,7 +4336,7 @@ MVert *DM_get_vert_array(DerivedMesh *dm, bool *allocated)
 	*allocated = false;
 
 	if (mvert == NULL) {
-		mvert = MEM_mallocN(sizeof(MVert) * dm->getNumVerts(dm), "dmvh vert data array");
+		mvert = MEM_malloc_arrayN(dm->getNumVerts(dm), sizeof(MVert), "dmvh vert data array");
 		dm->copyVertArray(dm, mvert);
 		*allocated = true;
 	}
@@ -4339,7 +4351,7 @@ MEdge *DM_get_edge_array(DerivedMesh *dm, bool *allocated)
 	*allocated = false;
 
 	if (medge == NULL) {
-		medge = MEM_mallocN(sizeof(MEdge) * dm->getNumEdges(dm), "dm medge data array");
+		medge = MEM_malloc_arrayN(dm->getNumEdges(dm), sizeof(MEdge), "dm medge data array");
 		dm->copyEdgeArray(dm, medge);
 		*allocated = true;
 	}
@@ -4354,7 +4366,7 @@ MLoop *DM_get_loop_array(DerivedMesh *dm, bool *r_allocated)
 	*r_allocated = false;
 
 	if (mloop == NULL) {
-		mloop = MEM_mallocN(sizeof(MLoop) * dm->getNumLoops(dm), "dm loop data array");
+		mloop = MEM_malloc_arrayN(dm->getNumLoops(dm), sizeof(MLoop), "dm loop data array");
 		dm->copyLoopArray(dm, mloop);
 		*r_allocated = true;
 	}
@@ -4369,7 +4381,7 @@ MPoly *DM_get_poly_array(DerivedMesh *dm, bool *r_allocated)
 	*r_allocated = false;
 
 	if (mpoly == NULL) {
-		mpoly = MEM_mallocN(sizeof(MPoly) * dm->getNumPolys(dm), "dm poly data array");
+		mpoly = MEM_malloc_arrayN(dm->getNumPolys(dm), sizeof(MPoly), "dm poly data array");
 		dm->copyPolyArray(dm, mpoly);
 		*r_allocated = true;
 	}
@@ -4387,7 +4399,7 @@ MFace *DM_get_tessface_array(DerivedMesh *dm, bool *r_allocated)
 		int numTessFaces = dm->getNumTessFaces(dm);
 
 		if (numTessFaces > 0) {
-			mface = MEM_mallocN(sizeof(MFace) * numTessFaces, "bvh mface data array");
+			mface = MEM_malloc_arrayN(numTessFaces, sizeof(MFace), "bvh mface data array");
 			dm->copyTessFaceArray(dm, mface);
 			*r_allocated = true;
 		}

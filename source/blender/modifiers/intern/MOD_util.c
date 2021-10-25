@@ -87,7 +87,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 			MPoly *mpoly = dm->getPolyArray(dm);
 			MPoly *mp;
 			MLoop *mloop = dm->getLoopArray(dm);
-			char *done = MEM_callocN(sizeof(*done) * numVerts,
+			char *done = MEM_calloc_arrayN(numVerts, sizeof(*done),
 			                         "get_texture_coords done");
 			int numPolys = dm->getNumPolys(dm);
 			char uvname[MAX_CUSTOMDATA_LAYER_NAME];

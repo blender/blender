@@ -1262,7 +1262,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 	/* account for effectors */
 	pd_point_from_particle(bbd->sim, pa, &pa->state, &epoint);
-	pdDoEffectors(bbd->sim->psys->effectors, bbd->sim->colliders, bbd->part->effector_weights, &epoint, force, NULL,NULL);
+	pdDoEffectors(bbd->sim->psys->effectors, bbd->sim->colliders, bbd->part->effector_weights, &epoint, force, NULL);
 
 	if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
 		float length = normalize_v3(force);

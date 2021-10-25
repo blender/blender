@@ -140,6 +140,10 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		return false;
 	}
 
+	if (is_modal) {
+		RNA_float_set(op->ptr, "offset", 0.0f);
+	}
+
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
 
 	opdata->em = em;
@@ -150,6 +154,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
 	for (i = 0; i < NUM_VALUE_KINDS; i++) {
 		opdata->shift_value[i] = -1.0f;
+		opdata->initial_length[i] = -1.0f;
 		/* note: scale for OFFSET_VALUE will get overwritten in edbm_bevel_invoke */
 		opdata->scale[i] = value_scale_per_inch[i] / pixels_per_inch; 
 
@@ -300,7 +305,7 @@ static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event,
 	mlen[1] = opdata->mcenter[1] - event->mval[1];
 	len = len_v2(mlen);
 	vmode = opdata->value_mode;
-	if (mode_changed) {
+	if (mode_changed || opdata->initial_length[vmode] == -1.0f) {
 		/* If current value is not default start value, adjust len so that 
 		 * the scaling and offset in edbm_bevel_mouse_set_value will
 		 * start at current value */
@@ -334,10 +339,11 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		 * ideally this will never happen and should be checked for above */
 		opdata->mcenter[0] = opdata->mcenter[1] = 0;
 	}
-	edbm_bevel_calc_initial_length(op, event, false);
 
 	/* for OFFSET_VALUE only, the scale is the size of a pixel under the mouse in 3d space */
 	opdata->scale[OFFSET_VALUE] = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
+
+	edbm_bevel_calc_initial_length(op, event, false);
 
 	edbm_bevel_update_header(C, op);
 
@@ -506,6 +512,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					else if (opdata->value_mode == OFFSET_VALUE_PERCENT && type != BEVEL_AMT_PERCENT)
 						opdata->value_mode = OFFSET_VALUE;
 					RNA_property_enum_set(op->ptr, prop, type);
+					if (opdata->initial_length[opdata->value_mode] == -1.0f)
+						edbm_bevel_calc_initial_length(op, event, true);
 				}
 				/* Update offset accordingly to new offset_type. */
 				if (!has_numinput &&

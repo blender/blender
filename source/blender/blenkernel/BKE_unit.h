@@ -72,15 +72,7 @@ enum {
 	B_UNIT_VELOCITY         = 7,
 	B_UNIT_ACCELERATION     = 8,
 	B_UNIT_CAMERA           = 9,
-	B_UNIT_POWER            = 10,
-	B_UNIT_TEMPERATURE      = 11,
-	B_UNIT_FORCE            = 12,
-	B_UNIT_STRESS           = 13,
-	B_UNIT_TORQUE           = 14,
-	B_UNIT_ANVELOCITY		=15,
-	B_UNIT_IMPULSE          =16,
-	B_UNIT_IMPULSE_MOMENT   =17,
-	B_UNIT_TYPE_TOT         = 18,
+	B_UNIT_TYPE_TOT         = 10,
 };
 
 #ifdef __cplusplus

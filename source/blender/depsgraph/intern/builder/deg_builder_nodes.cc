@@ -81,6 +81,7 @@ extern "C" {
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mball.h"
@@ -695,6 +696,19 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		                   NULL,
 		                   DEG_OPCODE_PSYS_EVAL,
 		                   psys->name);
+		/* Visualization of particle system. */
+		switch (part->ren_as) {
+			case PART_DRAW_OB:
+				if (part->dup_ob != NULL) {
+					build_object(scene, NULL, part->dup_ob);
+				}
+				break;
+			case PART_DRAW_GR:
+				if (part->dup_group != NULL) {
+					build_group(scene, NULL, part->dup_group);
+				}
+				break;
+		}
 	}
 
 	/* pointcache */
@@ -819,16 +833,22 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		case OB_MBALL:
 		{
 			Object *mom = BKE_mball_basis_find(scene, ob);
-
-			/* Motherball - mom depends on children! */
+			/* NOTE: Only the motherball gets evaluated, it's children are
+			 * having empty placeholders for the correct relations being built.
+			 */
 			if (mom == ob) {
 				/* metaball evaluation operations */
-				/* NOTE: only the motherball gets evaluated! */
 				op_node = add_operation_node(obdata,
 				                             DEG_NODE_TYPE_GEOMETRY,
 				                             function_bind(BKE_mball_eval_geometry,
 				                                           _1,
 				                                           (MetaBall *)obdata),
+				                             DEG_OPCODE_PLACEHOLDER,
+				                             "Geometry Eval");
+			} else {
+				op_node = add_operation_node(obdata,
+				                             DEG_NODE_TYPE_GEOMETRY,
+				                             NULL,
 				                             DEG_OPCODE_PLACEHOLDER,
 				                             "Geometry Eval");
 				op_node->set_as_entry();
@@ -1108,7 +1128,18 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 {
 	ID *mask_id = &mask->id;
 	add_id_node(mask_id);
+	/* F-Curve based animation/ */
 	build_animdata(mask_id);
+	/* Animation based on mask's shapes. */
+	add_operation_node(mask_id,
+	                   DEG_NODE_TYPE_ANIMATION,
+	                   function_bind(BKE_mask_eval_animation, _1, mask),
+	                   DEG_OPCODE_MASK_ANIMATION);
+	/* Final mask evaluation. */
+	add_operation_node(mask_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   function_bind(BKE_mask_eval_update, _1, mask),
+	                   DEG_OPCODE_MASK_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip) {

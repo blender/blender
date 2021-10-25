@@ -164,9 +164,6 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
 
         sub.label(text="Frame Rate:")
 
-        #sub.prop(rd, "fps")
-        #sub.prop(rd, "fps_base", text="/")
-
         self.draw_framerate(sub, rd)
 
         subrow = sub.row(align=True)

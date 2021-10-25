@@ -559,11 +559,10 @@ void BKE_splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_roo
 /* *************** Depsgraph evaluation callbacks ************ */
 
 void BKE_pose_eval_init(EvaluationContext *UNUSED(eval_ctx),
-                        Scene *scene,
+                        Scene *UNUSED(scene),
                         Object *ob,
                         bPose *pose)
 {
-	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bPoseChannel *pchan;
 
 	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
@@ -581,6 +580,16 @@ void BKE_pose_eval_init(EvaluationContext *UNUSED(eval_ctx),
 	for (pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
 		pchan->flag &= ~(POSE_DONE | POSE_CHAIN | POSE_IKTREE | POSE_IKSPLINE);
 	}
+}
+
+void BKE_pose_eval_init_ik(EvaluationContext *UNUSED(eval_ctx),
+                           Scene *scene,
+                           Object *ob,
+                           bPose *UNUSED(pose))
+{
+	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+
+	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
 
 	/* 2a. construct the IK tree (standard IK) */
 	BIK_initialize_tree(scene, ob, ctime);

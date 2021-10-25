@@ -96,42 +96,6 @@ ccl_device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *s
 
 	stack_store_float(stack, out_offset, data);
 }
-/* Rigidbody Info */
-
-//ccl_device void svm_node_rigidbody_info(KernelGlobals* kg, ShaderData* sd, float* stack, uint type, uint out_offset)
-//{
-//	float data;
-//
-//	switch (type) {
-//	case NODE_INFO_RB_VELOCITY: {
-//		stack_store_float3(stack, out_offset, object_location(kg, sd));
-//		return;
-//	}
-//	case NODE_INFO_RB_ANGULAR_VELOCITY: {
-//		stack_store_float3(stack, out_offset, object_location(kg, sd));
-//		return;
-//	}
-//	case NODE_INFO_RB_FORCE: {
-//		stack_store_float3(stack, out_offset, object_location(kg, sd));
-//		return;
-//	}
-//	case NODE_INFO_RB_LOCATION: {
-//		stack_store_float3(stack, out_offset, object_location(kg, sd));
-//		return;
-//	}
-//	case NODE_INFO_RB_TORQUE: {
-//		stack_store_float3(stack, out_offset, object_location(kg, sd));
-//		return;
-//	}
-//	case NODE_INFO_RB_CONTACT: data = object_random_number(kg, sd->object); break;
-//	default: data = 0.0f; break;
-//	}
-//
-//	stack_store_float(stack, out_offset, data);
-//}
-
-
-
 
 /* Particle Info */
 

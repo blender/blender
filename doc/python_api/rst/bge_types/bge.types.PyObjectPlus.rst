@@ -1,8 +1,6 @@
 PyObjectPlus
 ============
 
-.. module:: bge.types
-
 .. class:: PyObjectPlus
 
    PyObjectPlus base class of most other types in the Game Engine.
@@ -18,4 +16,3 @@ PyObjectPlus
       The invalid attribute allows testing for this case without exception handling.
 
       :type: boolean
-

@@ -677,7 +677,7 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 
 		tsmd->flow->texture_size = smd->flow->texture_size;
 		tsmd->flow->texture_offset = smd->flow->texture_offset;
-		BLI_strncpy(tsmd->flow->uvlayer_name, tsmd->flow->uvlayer_name, sizeof(tsmd->flow->uvlayer_name));
+		BLI_strncpy(tsmd->flow->uvlayer_name, smd->flow->uvlayer_name, sizeof(tsmd->flow->uvlayer_name));
 		tsmd->flow->vgroup_density = smd->flow->vgroup_density;
 
 		tsmd->flow->type = smd->flow->type;
@@ -2471,7 +2471,7 @@ static void update_effectors_task_cb(void *userdata, const int x)
 			mul_m4_v3(sds->obmat, voxelCenter);
 
 			pd_point_from_loc(data->scene, voxelCenter, vel, index, &epoint);
-			pdDoEffectors(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL, NULL);
+			pdDoEffectors(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
 
 			/* convert retvel to local space */
 			mag = len_v3(retvel);

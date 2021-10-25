@@ -41,6 +41,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "ED_render.h"
 
 /* Deprecated, only provided for API compatibility. */
 EnumPropertyItem rna_enum_render_pass_type_items[] = {
@@ -271,7 +272,7 @@ static void engine_update_render_passes(RenderEngine *engine, struct Scene *scen
 
 /* RenderEngine registration */
 
-static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
+static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
 {
 	RenderEngineType *et = RNA_struct_blender_type_get(type);
 
@@ -281,6 +282,9 @@ static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free_extension(type, &et->ext);
 	BLI_freelinkN(&R_engines, et);
 	RNA_struct_free(&BLENDER_RNA, type);
+
+	/* Stop all renders in case we were using this one. */
+	ED_render_engine_changed(bmain);
 }
 
 static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier,

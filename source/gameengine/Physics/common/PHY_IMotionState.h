@@ -46,15 +46,15 @@ class	PHY_IMotionState
 	public:
 		virtual ~PHY_IMotionState() {};
 
-		virtual void	GetWorldPosition(double& posX,double& posY,double& posZ)=0;
-		virtual void	GetWorldScaling(double& scaleX,double& scaleY,double& scaleZ)=0;
-		virtual void	GetWorldOrientation(double& quatIma0,double& quatIma1,double& quatIma2,double& quatReal)=0;
-		// ori = array 12 doubles, [0..3] = first column + 0, [4..7] = second column, [8..11] = third column
-		virtual void	GetWorldOrientation(double* ori)=0;
-		virtual	void	SetWorldOrientation(const double* ori)=0;
+		virtual void	GetWorldPosition(float& posX,float& posY,float& posZ)=0;
+		virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ)=0;
+		virtual void	GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)=0;
+		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second column, [8..11] = third column
+		virtual void	GetWorldOrientation(float* ori)=0;
+		virtual	void	SetWorldOrientation(const float* ori)=0;
 		
-		virtual void	SetWorldPosition(double posX,double posY,double posZ)=0;
-		virtual	void	SetWorldOrientation(double quatIma0,double quatIma1,double quatIma2,double quatReal)=0;
+		virtual void	SetWorldPosition(float posX,float posY,float posZ)=0;
+		virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
 
 
 		virtual	void	CalculateWorldTransformations()=0;

@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define BT_CONTACT_SOLVER_INFO
 
 #include "LinearMath/btScalar.h"
-#include "LinearMath/btVector3.h"
+
 enum	btSolverMode
 {
 	SOLVER_RANDMIZE_ORDER = 1,
@@ -47,8 +47,6 @@ struct btContactSolverInfoData
 	btScalar	m_erp;//used as Baumgarte factor
 	btScalar	m_erp2;//used in Split Impulse
 	btScalar	m_globalCfm;//constraint force mixing
-
-
 	int			m_splitImpulse;
 	btScalar	m_splitImpulsePenetrationThreshold;
 	btScalar	m_splitImpulseTurnErp;
@@ -60,8 +58,8 @@ struct btContactSolverInfoData
 	int			m_minimumSolverBatchSize;
 	btScalar	m_maxGyroscopicForce;
 	btScalar	m_singleAxisRollingFrictionThreshold;
-	btVector3   m_box_periodic;
-	btScalar m_leastSquaresResidualThreshold;
+
+
 };
 
 struct btContactSolverInfo : public btContactSolverInfoData
@@ -93,8 +91,6 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_minimumSolverBatchSize = 128; //try to combine islands until the amount of constraints reaches this limit
 		m_maxGyroscopicForce = 100.f; ///it is only used for 'explicit' version of gyroscopic force
 		m_singleAxisRollingFrictionThreshold = 1e30f;///if the velocity is above this threshold, it will use a single constraint row (axis), otherwise 3 rows.
-		m_box_periodic = btVector3(btScalar(0.0), btScalar(0.0), btScalar(0.0));
-		m_leastSquaresResidualThreshold =0.0f ;
 	}
 };
 

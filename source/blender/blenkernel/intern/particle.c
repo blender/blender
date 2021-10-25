@@ -548,7 +548,8 @@ void psys_free_pdd(ParticleSystem *psys)
 		psys->pdd->vedata = NULL;
 
 		psys->pdd->totpoint = 0;
-		psys->pdd->tot_vec_size = 0;
+		psys->pdd->totpart = 0;
+		psys->pdd->partsize = 0;
 	}
 }
 /* free everything */
@@ -663,8 +664,9 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], floa
 	psys->renderdata = data;
 
 	/* Hair can and has to be recalculated if everything isn't displayed. */
-	if (psys->part->disp != 100 && psys->part->type == PART_HAIR)
+	if (psys->part->disp != 100 && ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
 		psys->recalc |= PSYS_RECALC_RESET;
+	}
 }
 
 void psys_render_restore(Object *ob, ParticleSystem *psys)
@@ -737,7 +739,7 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 
 	if (disp != render_disp) {
 		/* Hair can and has to be recalculated if everything isn't displayed. */
-		if (psys->part->type == PART_HAIR) {
+		if (ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
 			psys->recalc |= PSYS_RECALC_RESET;
 		}
 		else {
@@ -1972,7 +1974,7 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 	copy_qt_qt(eff_key.rot, (ca - 1)->rot);
 
 	pd_point_from_particle(sim, sim->psys->particles + i, &eff_key, &epoint);
-	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL,NULL);
+	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL);
 
 	mul_v3_fl(force, effector * powf((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
 
@@ -2792,7 +2794,9 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	/* frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f; */ /* UNUSED */
 
-	if (pset->brushtype == PE_BRUSH_WEIGHT) {
+	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT) && (psys != NULL) && (psys->particles != NULL);
+
+	if (use_weight) {
 		; /* use weight painting colors now... */
 	}
 	else {
@@ -2822,10 +2826,11 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 
 		/* should init_particle_interpolation set this ? */
-		if (pset->brushtype == PE_BRUSH_WEIGHT) {
+		if (use_weight) {
 			pind.hkey[0] = NULL;
 			/* pa != NULL since the weight brush is only available for hair */
-			pind.hkey[1] = pa->hair;
+			pind.hkey[0] = pa->hair;
+			pind.hkey[1] = pa->hair + 1;
 		}
 
 
@@ -2882,13 +2887,27 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			}
 
 			/* selection coloring in edit mode */
-			if (pset->brushtype == PE_BRUSH_WEIGHT) {
-				float t2;
-
+			if (use_weight) {
 				if (k == 0) {
 					weight_to_rgb(ca->col, pind.hkey[1]->weight);
 				}
 				else {
+					/* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+					float real_t;
+					if (result.time < 0.0f) {
+						real_t = -result.time;
+					}
+					else {
+						real_t = pind.hkey[0]->time + t * (pind.hkey[0][pa->totkey - 1].time - pind.hkey[0]->time);
+					}
+
+					while (pind.hkey[1]->time < real_t) {
+						pind.hkey[1]++;
+					}
+					pind.hkey[0] = pind.hkey[1] - 1;
+					/* end copy */
+
+
 					float w1[3], w2[3];
 					keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
 
@@ -2897,13 +2916,6 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 					interp_v3_v3v3(ca->col, w1, w2, keytime);
 				}
-
-				/* at the moment this is only used for weight painting.
-				 * will need to move out of this check if its used elsewhere. */
-				t2 = birthtime + ((float)k / (float)segments) * (dietime - birthtime);
-
-				while (pind.hkey[1]->time < t2) pind.hkey[1]++;
-				pind.hkey[0] = pind.hkey[1] - 1;
 			}
 			else {
 				if ((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT) {

@@ -52,6 +52,9 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
 			converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
 			converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+
+			operation->setVariableSize(inputXSocket->isLinked() ||
+			                           inputYSocket->isLinked());
 			break;
 		}
 		case CMP_SCALE_SCENEPERCENT:
@@ -67,6 +70,10 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			converter.addLink(scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
 			converter.addLink(scaleFactorOperation->getOutputSocket(), operation->getInputSocket(2));
 			converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+
+			operation->setVariableSize(inputXSocket->isLinked() ||
+			                           inputYSocket->isLinked());
+
 			break;
 		}
 		case CMP_SCALE_RENDERPERCENT:
@@ -81,9 +88,13 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			operation->setNewHeight(rd->ysch * rd->size / 100.0f);
 			operation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
 			converter.addOperation(operation);
-			
+
 			converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 			converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+
+			operation->setVariableSize(inputXSocket->isLinked() ||
+			                           inputYSocket->isLinked());
+
 			break;
 		}
 		case CMP_SCALE_ABSOLUTE:
@@ -91,11 +102,15 @@ void ScaleNode::convertToOperations(NodeConverter &converter, const CompositorCo
 			/* TODO: what is the use of this one.... perhaps some issues when the ui was updated... */
 			ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation();
 			converter.addOperation(operation);
-			
+
 			converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
 			converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
 			converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
 			converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+
+			operation->setVariableSize(inputXSocket->isLinked() ||
+			                           inputYSocket->isLinked());
+
 			break;
 		}
 	}

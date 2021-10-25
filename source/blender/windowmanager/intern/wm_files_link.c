@@ -282,7 +282,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop;
 	WMLinkAppendData *lapp_data;
-	char path[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX], relname[FILE_MAX];
+	char path[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA], relname[FILE_MAX];
 	char *group, *name;
 	int totfiles = 0;
 	short flag;
@@ -446,7 +446,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_relations_rebuild(bmain, scene);
+	if (scene) {
+		DAG_scene_relations_rebuild(bmain, scene);
+	}
 	
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();

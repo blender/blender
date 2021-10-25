@@ -35,7 +35,7 @@ subject to the following restrictions:
 #include "PHY_IMotionState.h"
 #include "PHY_ICharacter.h"
 
-extern double gDeactivationTime;
+extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
 extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
@@ -808,14 +808,14 @@ class	DefaultMotionState : public PHY_IMotionState
 
 		virtual ~DefaultMotionState();
 
-		virtual void	GetWorldPosition(double& posX, double& posY, double& posZ);
-		virtual void	GetWorldScaling(double& scaleX, double& scaleY, double& scaleZ);
-		virtual void	GetWorldOrientation(double& quatIma0, double& quatIma1, double& quatIma2, double& quatReal);
+		virtual void	GetWorldPosition(float& posX,float& posY,float& posZ);
+		virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
+		virtual void	GetWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
 		
-		virtual void	SetWorldPosition(double posX, double posY, double posZ);
-		virtual	void	SetWorldOrientation(double quatIma0, double quatIma1, double quatIma2, double quatReal);
-		virtual void	GetWorldOrientation(double* ori);
-		virtual void	SetWorldOrientation(const double* ori);
+		virtual void	SetWorldPosition(float posX,float posY,float posZ);
+		virtual	void	SetWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	GetWorldOrientation(float* ori);
+		virtual void	SetWorldOrientation(const float* ori);
 		
 		virtual	void	CalculateWorldTransformations();
 		

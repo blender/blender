@@ -1,8 +1,6 @@
 KX_ParentActuator(SCA_IActuator)
 ================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_ParentActuator(SCA_IActuator)
@@ -35,4 +33,3 @@ base class --- :class:`SCA_IActuator`
       Effective only if the shape is not added to the parent compound shape.
 
       :type: boolean
-

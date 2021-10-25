@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 #ifndef _WIN32
 #include <dirent.h>
 #else
@@ -510,6 +511,11 @@ static int startffmpeg(struct anim *anim)
 	pCodecCtx->workaround_bugs = 1;
 
 	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
+		avformat_close_input(&pFormatCtx);
+		return -1;
+	}
+	if (pCodecCtx->pix_fmt == AV_PIX_FMT_NONE) {
+		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&pFormatCtx);
 		return -1;
 	}
@@ -1393,16 +1399,32 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
 bool IMB_anim_get_fps(struct anim *anim,
                      short *frs_sec, float *frs_sec_base, bool no_av_base)
 {
+	double frs_sec_base_double;
 	if (anim->frs_sec) {
-		*frs_sec = anim->frs_sec;
-		*frs_sec_base = anim->frs_sec_base;
+		if (anim->frs_sec > SHRT_MAX) {
+			/* We cannot store original rational in our short/float format,
+			 * we need to approximate it as best as we can... */
+			*frs_sec = SHRT_MAX;
+			frs_sec_base_double = anim->frs_sec_base * (double)SHRT_MAX / (double)anim->frs_sec;
+		}
+		else {
+			*frs_sec = anim->frs_sec;
+			frs_sec_base_double = anim->frs_sec_base;
+		}
 #ifdef WITH_FFMPEG
 		if (no_av_base) {
-			*frs_sec_base /= AV_TIME_BASE;
+			*frs_sec_base = (float)(frs_sec_base_double / AV_TIME_BASE);
+		}
+		else {
+			*frs_sec_base = (float)frs_sec_base_double;
 		}
 #else
 		UNUSED_VARS(no_av_base);
+		*frs_sec_base = (float)frs_sec_base_double;
 #endif
+		BLI_assert(*frs_sec > 0);
+		BLI_assert(*frs_sec_base > 0.0f);
+
 		return true;
 	}
 	return false;

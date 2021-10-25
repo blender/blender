@@ -32,7 +32,7 @@
  *  \ingroup bph
  */
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 /* XXX suppress verbose warnings in eigen */
 #  pragma GCC diagnostic ignored "-Wlogical-op"

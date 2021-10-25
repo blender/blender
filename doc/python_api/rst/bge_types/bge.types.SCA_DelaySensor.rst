@@ -1,8 +1,6 @@
 SCA_DelaySensor(SCA_ISensor)
 ============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_DelaySensor(SCA_ISensor)
@@ -36,4 +34,3 @@ base class --- :class:`SCA_ISensor`
       1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once.
 
       :type: integer
-

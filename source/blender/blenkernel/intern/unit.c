@@ -81,9 +81,6 @@
 #define UN_SC_LB	0.45359237f
 #define UN_SC_OZ	0.028349523125f
 
-#define UN_SC_CEL	1.0f
-#define UN_SC_FAH	0.5555f
-
 /* define a single unit */
 typedef struct bUnitDef {
 	const char *name;
@@ -209,7 +206,6 @@ static struct bUnitDef buMetricMassDef[] = {
 	{"dekagram", "dekagrams",   "dag", NULL, "10 Grams", UN_SC_DAG, 0.0,         B_UNIT_DEF_SUPPRESS},
 	{"gram", "grams",           "g",   NULL, "Grams", UN_SC_G, 0.0,              B_UNIT_DEF_NONE},
 	{"milligram", "milligrams", "mg",  NULL, "Milligrams", UN_SC_MG, 0.0,        B_UNIT_DEF_NONE},
-	{ "microgram", "micrograms", "ug", NULL, "Micrograms", UN_SC_MG*UN_SC_G, 0.0, B_UNIT_DEF_NONE },
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buMetricMassCollection = {buMetricMassDef, 2, 0, sizeof(buMetricMassDef) / sizeof(bUnitDef)};
@@ -231,8 +227,6 @@ static struct bUnitCollection buImperialMassCollection = {buImperialMassDef, 3, 
 static struct bUnitDef buMetricVelDef[] = {
 	{"meter per second", "meters per second",       "m/s",  NULL,   "Meters per second", UN_SC_M, 0.0,            B_UNIT_DEF_NONE}, /* base unit */
 	{"kilometer per hour", "kilometers per hour",   "km/h", NULL,   "Kilometers per hour", UN_SC_KM / 3600.0f, 0.0, B_UNIT_DEF_SUPPRESS},
-	{"millmeter per second", "millmeters per second",       "mm/s",  NULL,   "MillMeters per second", UN_SC_MM, 0.0,            B_UNIT_DEF_NONE},
-	{ "micrometer per second", "micrometers per second", "µm/s", NULL, "MicroMeters per second", UN_SC_MM*UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buMetricVelCollection = {buMetricVelDef, 0, 0, sizeof(buMetricVelDef) / sizeof(bUnitDef)};
@@ -247,7 +241,6 @@ static struct bUnitCollection buImperialVelCollection = {buImperialVelDef, 0, 0,
 /* Acceleration */
 static struct bUnitDef buMetricAclDef[] = {
 	{"meter per second squared", "meters per second squared", "m/s²", "m/s2", "Meters per second squared", UN_SC_M, 0.0, B_UNIT_DEF_NONE}, /* base unit */
-	{ "millmeter per second squared", "millmeters per second squared", "mm/s²", "mm/s2", "Millmeters per second squared", UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buMetricAclCollection = {buMetricAclDef, 0, 0, sizeof(buMetricAclDef) / sizeof(bUnitDef)};
@@ -267,8 +260,6 @@ static struct bUnitDef buNaturalTimeDef[] = {
 	{"second", "seconds",           "sec", "s", "Seconds",      1.0, 0.0,       B_UNIT_DEF_NONE}, /* base unit */
 	{"millisecond", "milliseconds", "ms", NULL, "Milliseconds", 0.001, 0.0,     B_UNIT_DEF_NONE},
 	{"microsecond", "microseconds", "µs",  "us", "Microseconds", 0.000001, 0.0, B_UNIT_DEF_NONE},
-
-
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buNaturalTimeCollection = {buNaturalTimeDef, 3, 0, sizeof(buNaturalTimeDef) / sizeof(bUnitDef)};
@@ -296,138 +287,13 @@ static struct bUnitDef buCameraLenDef[] = {
 };
 static struct bUnitCollection buCameraLenCollection = {buCameraLenDef, 3, 0, sizeof(buCameraLenDef) / sizeof(bUnitDef)};
 
-/* Power */
-static struct bUnitDef buPowerDef[] = {
-	{ "kilowatt", "kilowatt",             "kw",   NULL, "kilowatt",     UN_SC_KM, 0.0,      B_UNIT_DEF_NONE },    
-	{ "watt", "watt",     "w",  NULL, "watt", UN_SC_M, 0.0, B_UNIT_DEF_NONE }, /* base unit */
-	
-	{ NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buPowerCollection = { buPowerDef, 1, 0, sizeof(buPowerDef) / sizeof(bUnitDef) };
-
-/* Temperature*/
-static struct bUnitDef buMetricTempDef[] = {
-	{ "kelvin", "kelvin", "K", NULL, "Kelvin", UN_SC_CEL, 0.0, B_UNIT_DEF_NONE },
-	{ "celsius", "celsisu",             "C",   NULL, "Celsius",     UN_SC_CEL,273.15,      B_UNIT_DEF_NONE },
-	
-
-	{ NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buMetricTempCollection = { buMetricTempDef, 0, 0, sizeof(buMetricTempDef) / sizeof(bUnitDef) };
-
-static struct bUnitDef buImperialTempDef[] = {
-	{ "kelvin", "kelvin", "K", NULL, "Kelvin", UN_SC_CEL, 0.0, B_UNIT_DEF_NONE },
-	{ "fahrenheit", "fahrenheit", "F", NULL, "Fahrenheit", UN_SC_FAH, 459.67, B_UNIT_DEF_NONE },
-
-
-	{ NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buImperialTempCollection = { buImperialTempDef, 1, 0, sizeof(buImperialTempDef) / sizeof(bUnitDef) };
-
-
-/* Force */
-static struct bUnitDef buForceDef[] = {
-	{ "kiloNewton", "kilonewton",           "kN", NULL,  "1000 newton", UN_SC_KM, 0.0,  B_UNIT_DEF_NONE },
-	{ "newton", "newton",     "N",  NULL, "Newton", UN_SC_M, 0.0,     B_UNIT_DEF_NONE }, /* base unit */
-	{ "millinewton", "millinewton",   "mN",  NULL, "millinewton", UN_SC_MM, 0.0,         B_UNIT_DEF_NONE },
-	{ "micronewton", "micronewton", "uN",  NULL, "micronewton", UN_SC_UM, 0.0,        B_UNIT_DEF_NONE },
-	{ "nanonewton", "micronewton", "nN", NULL, "nanonewton", UN_SC_UM*UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
-	{ "piconewton", "piconewton", "pN", NULL, "piconewton", UN_SC_UM*UN_SC_MM*UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
-	{ NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buForceCollection = { buForceDef, 1, 0, sizeof(buForceDef) / sizeof(bUnitDef) };
-
-
-/* Stress */
-static struct bUnitDef buStressDef[] = {
-	{ "GigaPascal", "gigapascal",           "GPa", NULL,  "1000 MPa", UN_SC_KM*UN_SC_KM*UN_SC_KM, 0.0,  B_UNIT_DEF_NONE },
-	{ "MegaPascal", "megapascal",     "MPa",  NULL, "1000 KPa", UN_SC_KM*UN_SC_KM, 0.0,     B_UNIT_DEF_NONE },
-	{ "KiloPascal", "kilopascal",   "KPa",  NULL, "1000 Pa", UN_SC_KM, 0.0,         B_UNIT_DEF_NONE },
-	{ "Pascal", "pascal", "Pa",  NULL, "pascal", UN_SC_M, 0.0,        B_UNIT_DEF_NONE }, /* base unit */
-	{ NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buStressCollection = { buStressDef, 3, 0, sizeof(buStressDef) / sizeof(bUnitDef) };
-
-/* Torque */
-static struct bUnitDef buTorqueDef[] = {
-	{ "Newton meter", "newton meter",           "N*m", NULL,  "newton meter", UN_SC_M, 0.0,  B_UNIT_DEF_NONE },
-	{ "Newton millmeter", "newton millmeter",           "N*mm", NULL,  "newton millmeter", UN_SC_MM, 0.0,  B_UNIT_DEF_NONE },
-	{ "MillNewton millmeter", "newton millmeter",           "mN*mm", NULL,  "millnewton millmeter", UN_SC_UM, 0.0,  B_UNIT_DEF_NONE },
-	{ NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buTorqueCollection = { buTorqueDef,0, 0, sizeof(buTorqueDef) / sizeof(bUnitDef) };
-
-/* angular velocity */
-static struct bUnitDef buAnvelocityDef[] = {
-	{ "Angular frequency MHz", "Angular frequency MHz", "MHz", NULL, "MHz", M_PI * 2.0 * UN_SC_KM*UN_SC_KM, 0.0, B_UNIT_DEF_NONE }, 
-	{ "Angular frequency kHz", "Angular frequency kHz", "kHz", NULL, "kHz", M_PI* 2.0 *UN_SC_KM, 0.0, B_UNIT_DEF_NONE },
-	{ "radian per second", "radian per second", "rad/s", NULL, "Radian per second", UN_SC_M, 0.0, B_UNIT_DEF_NONE },/* base unit */
-	
-	{ NULL, NULL, NULL, NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buAnvelocityCollection = { buAnvelocityDef, 2, 0, sizeof(buAnvelocityDef) / sizeof(bUnitDef) };
-
-/* imulse */
-static struct bUnitDef buImpulseDef[] = {
-	{ "Newton second", "newton second", "N*s", NULL, "newton second", UN_SC_M, 0.0, B_UNIT_DEF_NONE },
-	{ "MillNewton second", "Millnewton second", "mN*s", NULL, "Millnewton second", UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
-	{ "MicroNewton second", "Micronewton second", "uN*s", NULL, "micronewton second", UN_SC_UM, 0.0, B_UNIT_DEF_NONE },
-	{ "NanoNewton second", "Nanonewton second", "nN*s", NULL, "nanonewton second", UN_SC_UM*UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
-	{ NULL, NULL, NULL, NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buImpulseCollection = { buImpulseDef, 0, 0, sizeof(buImpulseDef) / sizeof(bUnitDef) };
-
-/* impulse moment */
-static struct bUnitDef buImpulseMoDef[] = {
-	{ "Newton meter second", "newton meter", "N*m*s", NULL, "newton meter", UN_SC_M, 0.0, B_UNIT_DEF_NONE },
-	{ "Newton millmeter second", "newton millmeter second", "N*mm*s", NULL, "newton millmeter second", UN_SC_MM, 0.0, B_UNIT_DEF_NONE },
-	{ "MillNewton millmeter second", "newton millmeter second", "mN*mm*s", NULL, "millnewton millmeter second", UN_SC_UM, 0.0, B_UNIT_DEF_NONE },
-	{ NULL, NULL, NULL, NULL, NULL, 0.0, 0.0 }
-};
-static struct bUnitCollection buImpulseMoCollection = { buImpulseMoDef, 0, 0, sizeof(buImpulseMoDef) / sizeof(bUnitDef) };
-
-
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
 static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
-	{ NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollection, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-	{NULL, 
-	&buMetricLenCollection, 
-	&buMetricAreaCollection,
-	&buMetricVolCollection, 
-	&buMetricMassCollection, 
-	&buNaturalRotCollection, 
-	&buNaturalTimeCollection,
-	&buMetricVelCollection,
-	&buMetricAclCollection, 
-	&buCameraLenCollection,
-	&buPowerCollection, 
-	&buMetricTempCollection, 
-	&buForceCollection, 
-	&buStressCollection,
-	&buTorqueCollection,
-	&buAnvelocityCollection,
-	&buImpulseCollection,
-	&buImpulseMoCollection}, /* metric */
-	{NULL,
-	&buImperialLenCollection, 
-	&buImperialAreaCollection, 
-	&buImperialVolCollection, 
-	&buImperialMassCollection,
-	&buNaturalRotCollection,
-	&buNaturalTimeCollection,
-	&buImperialVelCollection,
-	&buImperialAclCollection, 
-	&buCameraLenCollection,
-	&buPowerCollection,
-	&buImperialTempCollection,
-	&buForceCollection,
-	&buStressCollection,
-	&buTorqueCollection,
-	&buAnvelocityCollection,
-	&buImpulseCollection,
-	&buImpulseMoCollection}, /* imperial */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,NULL,NULL,NULL}
+	{NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollection, NULL, NULL, NULL},
+	{NULL, &buMetricLenCollection, &buMetricAreaCollection, &buMetricVolCollection, &buMetricMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buMetricVelCollection, &buMetricAclCollection, &buCameraLenCollection}, /* metric */
+	{NULL, &buImperialLenCollection, &buImperialAreaCollection, &buImperialVolCollection, &buImperialMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buImperialVelCollection, &buImperialAclCollection, &buCameraLenCollection}, /* imperial */
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 
@@ -504,7 +370,7 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, con
 		unit = unit_best_fit(value, usys, NULL, 1);
 	}
 
-	value_conv =( value / unit->scalar)-unit->bias;
+	value_conv = value / unit->scalar;
 
 	/* Adjust precision to expected number of significant digits.
 	 * Note that here, we shall not have to worry about very big/small numbers, units are expected to replace
@@ -559,9 +425,6 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, con
 	str[i] = '\0';
 	return i;
 }
-
-
-
 
 /* Used for drawing number buttons, try keep fast.
  * Return the length of the generated string.

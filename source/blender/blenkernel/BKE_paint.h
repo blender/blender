@@ -151,7 +151,7 @@ float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,
                             unsigned x, unsigned y);
 
 /* stroke related */
-void paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups, struct Brush *brush, const float mouse_pos[2]);
+bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups, struct Brush *brush, const float mouse_pos[2]);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups, struct Brush *brush, float rotation);
 
 void BKE_paint_stroke_get_average(struct Scene *scene, struct Object *ob, float stroke[3]);
@@ -199,7 +199,6 @@ typedef struct SculptSession {
 	/* Layer brush persistence between strokes */
 	float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
 
-	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
 } SculptSession;
 

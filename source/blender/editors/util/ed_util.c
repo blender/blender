@@ -169,18 +169,22 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 	 * objects can exist at the same time */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_SCULPT) {
-			/* flush multires changes (for sculpt) */
-			multires_force_update(ob);
-			has_edited = true;
+			/* Don't allow flushing while in the middle of a stroke (frees data in use).
+			 * Auto-save prevents this from happening but scripts may cause a flush on saving: T53986. */
+			if ((ob->sculpt && ob->sculpt->cache) == 0) {
+				/* flush multires changes (for sculpt) */
+				multires_force_update(ob);
+				has_edited = true;
 
-			if (for_render) {
-				/* flush changes from dynamic topology sculpt */
-				BKE_sculptsession_bm_to_me_for_render(ob);
-			}
-			else {
-				/* Set reorder=false so that saving the file doesn't reorder
-				 * the BMesh's elements */
-				BKE_sculptsession_bm_to_me(ob, false);
+				if (for_render) {
+					/* flush changes from dynamic topology sculpt */
+					BKE_sculptsession_bm_to_me_for_render(ob);
+				}
+				else {
+					/* Set reorder=false so that saving the file doesn't reorder
+					 * the BMesh's elements */
+					BKE_sculptsession_bm_to_me(ob, false);
+				}
 			}
 		}
 		else if (ob->mode & OB_MODE_EDIT) {

@@ -36,6 +36,7 @@ BaseScaleOperation::BaseScaleOperation()
 #else
 	m_sampler = -1;
 #endif
+	m_variable_size = false;
 }
 
 ScaleOperation::ScaleOperation() : BaseScaleOperation()
@@ -87,20 +88,27 @@ void ScaleOperation::executePixelSampled(float output[4], float x, float y, Pixe
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	float scaleX[4];
-	float scaleY[4];
+	if (!m_variable_size) {
+		float scaleX[4];
+		float scaleY[4];
 
-	this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
-	this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
+		this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
+		this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
 
-	const float scx = scaleX[0];
-	const float scy = scaleY[0];
+		const float scx = scaleX[0];
+		const float scy = scaleY[0];
 
-	newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / scx;
-	newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / scx;
-	newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / scy;
-	newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / scy;
-
+		newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / scx;
+		newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / scx;
+		newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / scy;
+		newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / scy;
+	}
+	else {
+		newInput.xmax = this->getWidth();
+		newInput.xmin = 0;
+		newInput.ymax = this->getHeight();
+		newInput.ymin = 0;
+	}
 	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
@@ -162,24 +170,32 @@ void ScaleAbsoluteOperation::executePixelSampled(float output[4], float x, float
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	float scaleX[4];
-	float scaleY[4];
+	if (!m_variable_size) {
+		float scaleX[4];
+		float scaleY[4];
 
-	this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
-	this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
+		this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
+		this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
 
-	const float scx = scaleX[0];
-	const float scy = scaleY[0];
-	const float width = this->getWidth();
-	const float height = this->getHeight();
-	//div
-	float relateveXScale = scx / width;
-	float relateveYScale = scy / height;
+		const float scx = scaleX[0];
+		const float scy = scaleY[0];
+		const float width = this->getWidth();
+		const float height = this->getHeight();
+		//div
+		float relateveXScale = scx / width;
+		float relateveYScale = scy / height;
 
-	newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / relateveXScale;
-	newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / relateveXScale;
-	newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / relateveYScale;
-	newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / relateveYScale;
+		newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / relateveXScale;
+		newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / relateveXScale;
+		newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / relateveYScale;
+		newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / relateveYScale;
+	}
+	else {
+		newInput.xmax = this->getWidth();
+		newInput.xmin = 0;
+		newInput.ymax = this->getHeight();
+		newInput.ymin = 0;
+	}
 
 	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

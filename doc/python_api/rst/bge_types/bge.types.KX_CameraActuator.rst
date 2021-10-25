@@ -1,8 +1,6 @@
 KX_CameraActuator(SCA_IActuator)
 ================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_CameraActuator(SCA_IActuator)
@@ -44,4 +42,3 @@ base class --- :class:`SCA_IActuator`
       the object this actuator tracks.
 
       :type: :class:`KX_GameObject` or None
-

@@ -181,7 +181,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 * - each cell is a boolean saying whether bone corresponding to the ith group is selected
 		 * - groups that don't match a bone are treated as not existing (along with the corresponding ungrouped verts)
 		 */
-		bone_select_array = MEM_mallocN((size_t)defbase_tot * sizeof(char), "mask array");
+		bone_select_array = MEM_malloc_arrayN((size_t)defbase_tot, sizeof(char), "mask array");
 		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
 			pchan = BKE_pose_channel_find_name(oba->pose, def->name);
@@ -265,7 +265,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	mloop_src = dm->getLoopArray(dm);
 
 	/* overalloc, assume all polys are seen */
-	loop_mapping = MEM_mallocN(sizeof(int) * (size_t)maxPolys, "mask loopmap");
+	loop_mapping = MEM_malloc_arrayN((size_t)maxPolys, sizeof(int), "mask loopmap");
 
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 

@@ -565,6 +565,10 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_edgenet_doc,
 "   :type edgenet: :class:`bmesh.types.BMEdge`\n"
 "   :return: The newly created faces.\n"
 "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      Regions defined by edges need to connect to the face, otherwise they're ignored as loose edges.\n"
 );
 static PyObject *bpy_bm_utils_face_split_edgenet(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
@@ -646,7 +650,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 	bool do_remove = true;
 
 	if (!PyArg_ParseTuple(
-	        args, "O|i:face_join",
+	        args, "O|O&:face_join",
 	        &py_face_array,
 	        PyC_ParseBool, &do_remove))
 	{

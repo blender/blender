@@ -181,8 +181,11 @@ typedef enum eDepsOperation_Code {
 
 	/* Pose -------------------------------------------- */
 
-	/* Init IK Trees, etc. */
+	/* Init pose, clear flags, etc. */
 	DEG_OPCODE_POSE_INIT,
+
+	/* Initialize IK solver related pose stuff. */
+	DEG_OPCODE_POSE_INIT_IK,
 
 	/* Free IK Trees + Compute Deform Matrices */
 	DEG_OPCODE_POSE_DONE,
@@ -221,6 +224,10 @@ typedef enum eDepsOperation_Code {
 	/* XXX: placeholder - Particle System eval */
 	DEG_OPCODE_PSYS_EVAL_INIT,
 	DEG_OPCODE_PSYS_EVAL,
+
+	/* Masks ------------------------------------------- */
+	DEG_OPCODE_MASK_ANIMATION,
+	DEG_OPCODE_MASK_EVAL,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

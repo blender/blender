@@ -1,8 +1,6 @@
 KX_NearSensor(KX_TouchSensor)
 =============================
 
-.. module:: bge.types
-
 base class --- :class:`KX_TouchSensor`
 
 .. class:: KX_NearSensor(KX_TouchSensor)
@@ -20,4 +18,3 @@ base class --- :class:`KX_TouchSensor`
       The near sensor deactivates when the object exceeds this distance.
 
       :type: float
-

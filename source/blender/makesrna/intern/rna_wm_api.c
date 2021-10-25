@@ -459,8 +459,11 @@ void RNA_api_wm(StructRNA *srna)
 
 	/* invoke enum */
 	func = RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
-	RNA_def_function_ui_description(func, "Operator search popup invoke (search in values of "
-	                                "operator's type 'prop' EnumProperty, and execute it on confirmation)");
+	RNA_def_function_ui_description(
+	        func,
+	        "Operator search popup invoke which "
+	        "searches values of the operator's :class:`bpy.types.Operator.bl_property` "
+	        "(which must be an EnumProperty), executing it on confirmation");
 	rna_generic_op_invoke(func, 0);
 
 	/* invoke functions, for use with python */

@@ -23,9 +23,6 @@ subject to the following restrictions:
 #endif
 
 
-
-
-
 #include <math.h>
 #include <stdlib.h>//size_t for MSVC 6.0
 #include <float.h>

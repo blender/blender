@@ -4810,7 +4810,7 @@ static void dynamic_paint_prepare_effect_cb(void *userdata, const int index)
 		EffectedPoint epoint;
 		pd_point_from_loc(scene, realCoord[bData->s_pos[index]].v, vel, index, &epoint);
 		epoint.vel_to_sec = 1.0f;
-		pdDoEffectors(effectors, NULL, surface->effector_weights, &epoint, forc, NULL, NULL);
+		pdDoEffectors(effectors, NULL, surface->effector_weights, &epoint, forc, NULL);
 	}
 
 	/* if global gravity is enabled, add it too */

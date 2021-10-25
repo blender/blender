@@ -1,1 +1,0 @@
-{"groups": {}, "update_lists": [], "framed_nodes": {}, "nodes": {"Box": {"height": 100.0, "use_custom_color": true, "color": [0.0, 0.5, 0.5], "location": [0.0, 0.0], "hide": false, "params": {"Divz": 4, "Divx": 1, "Divy": 3, "Size": 1.0299999713897705}, "bl_idname": "SvBoxNode", "label": "", "width": 140.0}}, "export_version": "0.072"}

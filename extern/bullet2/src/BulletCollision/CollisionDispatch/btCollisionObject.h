@@ -372,8 +372,12 @@ public:
 		m_updateRevision++;
 		m_interpolationWorldTransform = trans;
 	}
-	
-	
+
+	void	setInterpolationLinearVelocity(const btVector3& linvel)
+	{
+		m_updateRevision++;
+		m_interpolationLinearVelocity = linvel;
+	}
 
 	void	setInterpolationAngularVelocity(const btVector3& angvel)
 	{

@@ -708,15 +708,15 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vorticity", "Additional vorticity for the flames");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
-	prop = RNA_def_property(srna, "flame_ignition", PROP_FLOAT, PROP_TEMPERATURE);
-	RNA_def_property_range(prop, 0.5, 3000.0);
-	RNA_def_property_ui_range(prop, 0.5, 3000.0, 1.0, 5);
+	prop = RNA_def_property(srna, "flame_ignition", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 5.0);
+	RNA_def_property_ui_range(prop, 0.5, 2.5, 1.0, 5);
 	RNA_def_property_ui_text(prop, "Ignition", "Minimum temperature of flames");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
-	prop = RNA_def_property(srna, "flame_max_temp", PROP_FLOAT, PROP_TEMPERATURE);
-	RNA_def_property_range(prop, 1.0, 3000.0);
-	RNA_def_property_ui_range(prop, 1.0,3000.0, 1.0, 5);
+	prop = RNA_def_property(srna, "flame_max_temp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1.0, 10.0);
+	RNA_def_property_ui_range(prop, 1.0, 5.0, 1.0, 5);
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum temperature of flames");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 

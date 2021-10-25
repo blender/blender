@@ -1,8 +1,6 @@
 KX_SCA_AddObjectActuator(SCA_IActuator)
 =======================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SCA_AddObjectActuator(SCA_IActuator)
@@ -52,4 +50,3 @@ base class --- :class:`SCA_IActuator`
       adds the object without needing to calling SCA_PythonController.activate()
 
       .. note:: Use objectLastCreated to get the newly created object.
-

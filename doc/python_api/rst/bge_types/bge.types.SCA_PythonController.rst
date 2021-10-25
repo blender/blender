@@ -1,8 +1,6 @@
 SCA_PythonController(SCA_IController)
 =====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IController`
 
 .. class:: SCA_PythonController(SCA_IController)
@@ -51,4 +49,3 @@ base class --- :class:`SCA_IController`
 
       :arg actuator: The actuator to operate on.
       :type actuator: actuator or the actuator name as a string
-

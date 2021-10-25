@@ -997,7 +997,10 @@ static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
 }
-
+static char *rna_BakeSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("render.bake");
+}
 static char *rna_ImageFormatSettings_path(PointerRNA *ptr)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -4326,6 +4329,7 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BakeData");
 	RNA_def_struct_nested(brna, srna, "RenderSettings");
 	RNA_def_struct_ui_text(srna, "Bake Data", "Bake data for a Scene data-block");
+	RNA_def_struct_path_func(srna, "rna_BakeSettings_path");
 
 	prop = RNA_def_property(srna, "cage_object", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "cage");
@@ -6053,7 +6057,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 0, SHRT_MAX);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "FPS", "Framerate, expressed in frames per second");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 	

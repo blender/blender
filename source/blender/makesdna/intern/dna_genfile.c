@@ -173,7 +173,9 @@ void DNA_sdna_free(SDNA *sdna)
 	MEM_freeN(sdna->structs);
 
 #ifdef WITH_DNA_GHASH
-	BLI_ghash_free(sdna->structs_map, NULL, NULL);
+	if (sdna->structs_map) {
+		BLI_ghash_free(sdna->structs_map, NULL, NULL);
+	}
 #endif
 
 	MEM_freeN(sdna);

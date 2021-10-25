@@ -108,12 +108,12 @@ static LaplacianSystem *initLaplacianSystem(
 	sys->total_anchors = totalAnchors;
 	sys->repeat = iterations;
 	BLI_strncpy(sys->anchor_grp_name, defgrpName, sizeof(sys->anchor_grp_name));
-	sys->co = MEM_mallocN(sizeof(float[3]) * totalVerts, "DeformCoordinates");
-	sys->no = MEM_callocN(sizeof(float[3]) * totalVerts, "DeformNormals");
-	sys->delta = MEM_callocN(sizeof(float[3]) * totalVerts, "DeformDeltas");
-	sys->tris = MEM_mallocN(sizeof(int[3]) * totalTris, "DeformFaces");
-	sys->index_anchors = MEM_mallocN(sizeof(int) * (totalAnchors), "DeformAnchors");
-	sys->unit_verts = MEM_callocN(sizeof(int) * totalVerts, "DeformUnitVerts");
+	sys->co = MEM_malloc_arrayN(totalVerts, sizeof(float[3]), "DeformCoordinates");
+	sys->no = MEM_calloc_arrayN(totalVerts, sizeof(float[3]), "DeformNormals");
+	sys->delta = MEM_calloc_arrayN(totalVerts, sizeof(float[3]), "DeformDeltas");
+	sys->tris = MEM_malloc_arrayN(totalTris, sizeof(int[3]), "DeformFaces");
+	sys->index_anchors = MEM_malloc_arrayN((totalAnchors), sizeof(int), "DeformAnchors");
+	sys->unit_verts = MEM_calloc_arrayN(totalVerts, sizeof(int), "DeformUnitVerts");
 	return sys;
 }
 
@@ -142,7 +142,7 @@ static void createFaceRingMap(
 {
 	int i, j, totalr = 0;
 	int *indices, *index_iter;
-	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * mvert_tot, "DeformRingMap");
+	MeshElemMap *map = MEM_calloc_arrayN(mvert_tot, sizeof(MeshElemMap), "DeformRingMap");
 	const MLoopTri *mlt;
 
 	for (i = 0, mlt = mlooptri; i < mtri_tot; i++, mlt++) {
@@ -153,7 +153,7 @@ static void createFaceRingMap(
 			totalr++;
 		}
 	}
-	indices = MEM_callocN(sizeof(int) * totalr, "DeformRingIndex");
+	indices = MEM_calloc_arrayN(totalr, sizeof(int), "DeformRingIndex");
 	index_iter = indices;
 	for (i = 0; i < mvert_tot; i++) {
 		map[i].indices = index_iter;
@@ -175,7 +175,7 @@ static void createVertRingMap(
         const int mvert_tot, const MEdge *medge, const int medge_tot,
         MeshElemMap **r_map, int **r_indices)
 {
-	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * mvert_tot, "DeformNeighborsMap");
+	MeshElemMap *map = MEM_calloc_arrayN(mvert_tot, sizeof(MeshElemMap), "DeformNeighborsMap");
 	int i, vid[2], totalr = 0;
 	int *indices, *index_iter;
 	const MEdge *me;
@@ -187,7 +187,7 @@ static void createVertRingMap(
 		map[vid[1]].count++;
 		totalr += 2;
 	}
-	indices = MEM_callocN(sizeof(int) * totalr, "DeformNeighborsIndex");
+	indices = MEM_calloc_arrayN(totalr, sizeof(int), "DeformNeighborsIndex");
 	index_iter = indices;
 	for (i = 0; i < mvert_tot; i++) {
 		map[i].indices = index_iter;
@@ -521,7 +521,7 @@ static void initSystem(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh
 	LaplacianSystem *sys;
 
 	if (isValidVertexGroup(lmd, ob, dm)) {
-		int *index_anchors = MEM_mallocN(sizeof(int) * numVerts, __func__);  /* over-alloc */
+		int *index_anchors = MEM_malloc_arrayN(numVerts, sizeof(int), __func__);  /* over-alloc */
 		const MLoopTri *mlooptri;
 		const MLoop *mloop;
 
@@ -547,7 +547,7 @@ static void initSystem(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh
 		memcpy(sys->index_anchors, index_anchors, sizeof(int) * total_anchors);
 		memcpy(sys->co, vertexCos, sizeof(float[3]) * numVerts);
 		MEM_freeN(index_anchors);
-		lmd->vertexco = MEM_mallocN(sizeof(float[3]) * numVerts, "ModDeformCoordinates");
+		lmd->vertexco = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "ModDeformCoordinates");
 		memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * numVerts);
 		lmd->total_verts = numVerts;
 
@@ -631,7 +631,7 @@ static void LaplacianDeformModifier_do(
 		sys = lmd->cache_system;
 		if (sysdif) {
 			if (sysdif == LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS || sysdif == LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP) {
-				filevertexCos = MEM_mallocN(sizeof(float[3]) * numVerts, "TempModDeformCoordinates");
+				filevertexCos = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "TempModDeformCoordinates");
 				memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
 				MEM_SAFE_FREE(lmd->vertexco);
 				lmd->total_verts = 0;
@@ -667,7 +667,7 @@ static void LaplacianDeformModifier_do(
 			lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
 		}
 		else if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
-			filevertexCos = MEM_mallocN(sizeof(float[3]) * numVerts, "TempDeformCoordinates");
+			filevertexCos = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "TempDeformCoordinates");
 			memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
 			MEM_SAFE_FREE(lmd->vertexco);
 			lmd->total_verts = 0;

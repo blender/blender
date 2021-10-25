@@ -35,6 +35,9 @@ MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 
 void MovieClipAttributeOperation::initExecution()
 {
+	if (this->m_clip == NULL) {
+		return;
+	}
 	float loc[2], scale, angle;
 	loc[0] = 0.0f;
 	loc[1] = 0.0f;

@@ -1253,10 +1253,7 @@ void IMB_exrmultiview_write_channels(void *handle, const char *viewname)
 void IMB_exr_read_channels(void *handle)
 {
 	ExrHandle *data = (ExrHandle *)handle;
-	ExrChannel *echan;
 	int numparts = data->ifile->parts();
-	std::vector<FrameBuffer> frameBuffers(numparts);
-	std::vector<InputPart> inputParts;
 
 	/* check if exr was saved with previous versions of blender which flipped images */
 	const StringAttribute *ta = data->ifile->header(0).findTypedAttribute <StringAttribute> ("BlenderMultiChannel");
@@ -1264,37 +1261,56 @@ void IMB_exr_read_channels(void *handle)
 
 	exr_printf("\nIMB_exr_read_channels\n%s %-6s %-22s \"%s\"\n---------------------------------------------------------------------\n", "p", "view", "name", "internal_name");
 
-	for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
-		exr_printf("%d %-6s %-22s \"%s\"\n", echan->m->part_number, echan->m->view.c_str(), echan->m->name.c_str(), echan->m->internal_name.c_str());
-
-		if (echan->rect) {
-			if (flip)
-				frameBuffers[echan->m->part_number].insert(echan->m->internal_name, Slice(Imf::FLOAT,  (char *)echan->rect,
-				                                      echan->xstride * sizeof(float), echan->ystride * sizeof(float)));
-			else
-				frameBuffers[echan->m->part_number].insert(echan->m->internal_name, Slice(Imf::FLOAT,  (char *)(echan->rect + echan->xstride * (data->height - 1) * data->width),
-				                                      echan->xstride * sizeof(float), -echan->ystride * sizeof(float)));
-		}
-		else
-			printf("warning, channel with no rect set %s\n", echan->m->internal_name.c_str());
-	}
-
 	for (int i = 0; i < numparts; i++) {
-		InputPart in (*data->ifile, i);
-		in.setFrameBuffer(frameBuffers[i]);
-		inputParts.push_back(in);
-	}
+		/* Read part header. */
+		InputPart in(*data->ifile, i);
+		Header header = in.header();
+		Box2i dw = header.dataWindow();
 
-	try {
-		for (int i = 0; i < numparts; i++) {
-			Header header = inputParts[i].header();
-			exr_printf("readPixels:readPixels[%d]: min.y: %d, max.y: %d\n", i, header.dataWindow().min.y, header.dataWindow().max.y);
-			inputParts[i].readPixels(header.dataWindow().min.y, header.dataWindow().max.y);
-			inputParts[i].readPixels(0, data->height - 1);
+		/* Insert all matching channel into framebuffer. */
+		FrameBuffer frameBuffer;
+		ExrChannel *echan;
+
+		for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+			if(echan->m->part_number != i) {
+				continue;
+			}
+
+			exr_printf("%d %-6s %-22s \"%s\"\n", echan->m->part_number, echan->m->view.c_str(), echan->m->name.c_str(), echan->m->internal_name.c_str());
+
+			if (echan->rect) {
+				float *rect = echan->rect;
+				size_t xstride = echan->xstride * sizeof(float);
+				size_t ystride = echan->ystride * sizeof(float);
+
+				if (!flip) {
+					/* inverse correct first pixel for datawindow coordinates */
+					rect -= echan->xstride * (dw.min.x - dw.min.y * data->width);
+					/* move to last scanline to flip to Blender convention */
+					rect += echan->xstride * (data->height - 1) * data->width;
+					ystride = -ystride;
+				}
+				else {
+					/* inverse correct first pixel for datawindow coordinates */
+					rect -= echan->xstride * (dw.min.x + dw.min.y * data->width);
+				}
+
+				frameBuffer.insert(echan->m->internal_name, Slice(Imf::FLOAT, (char *)rect, xstride, ystride));
+			}
+			else
+				printf("warning, channel with no rect set %s\n", echan->m->internal_name.c_str());
 		}
-	}
-	catch (const std::exception& exc) {
-		std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+
+		/* Read pixels. */
+		try {
+			in.setFrameBuffer(frameBuffer);
+			exr_printf("readPixels:readPixels[%d]: min.y: %d, max.y: %d\n", i, dw.min.y, dw.max.y);
+			in.readPixels(dw.min.y, dw.max.y);
+		}
+		catch (const std::exception& exc) {
+			std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+			break;
+		}
 	}
 }
 

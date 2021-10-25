@@ -61,6 +61,12 @@
 #include <X11/XF86keysym.h>
 #endif
 
+#ifdef WITH_X11_XFIXES
+#  include <X11/extensions/Xfixes.h>
+/* Workaround for XWayland grab glitch: T53004. */
+#define WITH_XWAYLAND_HACK
+#endif
+
 /* for XIWarpPointer */
 #ifdef WITH_X11_XINPUT
 #  include <X11/extensions/XInput2.h>
@@ -94,6 +100,10 @@ static GHOST_TKey convertXKey(KeySym key);
 /* these are for copy and select copy */
 static char *txt_cut_buffer = NULL;
 static char *txt_select_buffer = NULL;
+
+#ifdef WITH_XWAYLAND_HACK
+static bool use_xwayland_hack = false;
+#endif
 
 using namespace std;
 
@@ -176,7 +186,11 @@ GHOST_SystemX11(
 	if (use_xkb) {
 		XkbSetDetectableAutoRepeat(m_display, true, NULL);
 	}
-	
+
+#ifdef WITH_XWAYLAND_HACK
+	use_xwayland_hack = getenv("WAYLAND_DISPLAY") != NULL;
+#endif
+
 #ifdef WITH_X11_XINPUT
 	/* detect if we have xinput (for reuse) */
 	{
@@ -1472,23 +1486,21 @@ getButtons(
 	return GHOST_kSuccess;
 }
 
-
-GHOST_TSuccess
-GHOST_SystemX11::
-getCursorPosition(
-		GHOST_TInt32& x,
-		GHOST_TInt32& y) const
+static GHOST_TSuccess getCursorPosition_impl(
+        Display *display,
+        GHOST_TInt32& x,
+        GHOST_TInt32& y,
+        Window *child_return)
 {
-
-	Window root_return, child_return;
 	int rx, ry, wx, wy;
 	unsigned int mask_return;
+	Window root_return;
 
 	if (XQueryPointer(
-	        m_display,
-	        RootWindow(m_display, DefaultScreen(m_display)),
+	        display,
+	        RootWindow(display, DefaultScreen(display)),
 	        &root_return,
-	        &child_return,
+	        child_return,
 	        &rx, &ry,
 	        &wx, &wy,
 	        &mask_return
@@ -1498,8 +1510,18 @@ getCursorPosition(
 	else {
 		x = rx;
 		y = ry;
-	}	
+	}
 	return GHOST_kSuccess;
+}
+
+GHOST_TSuccess
+GHOST_SystemX11::
+getCursorPosition(
+		GHOST_TInt32& x,
+		GHOST_TInt32& y) const
+{
+	Window child_return;
+	return getCursorPosition_impl(m_display, x, y, &child_return);
 }
 
 
@@ -1515,12 +1537,28 @@ setCursorPosition(
 	 * current pointer position. */
 
 	int cx, cy;
+
+#ifdef WITH_XWAYLAND_HACK
+	Window child_return = None;
+	if (getCursorPosition_impl(m_display, cx, cy, &child_return) == GHOST_kFailure) {
+		return GHOST_kFailure;
+	}
+#else
 	if (getCursorPosition(cx, cy) == GHOST_kFailure) {
 		return GHOST_kFailure;
 	}
+#endif
 
 	int relx = x - cx;
 	int rely = y - cy;
+
+#ifdef WITH_XWAYLAND_HACK
+	if (use_xwayland_hack) {
+		if (child_return != None) {
+			XFixesHideCursor(m_display, child_return);
+		}
+	}
+#endif
 
 #ifdef WITH_X11_XINPUT
 	if ((m_xinput_version.present) &&
@@ -1537,6 +1575,14 @@ setCursorPosition(
 	{
 		XWarpPointer(m_display, None, None, 0, 0, 0, 0, relx, rely);
 	}
+
+#ifdef WITH_XWAYLAND_HACK
+	if (use_xwayland_hack) {
+		if (child_return != None) {
+			XFixesShowCursor(m_display, child_return);
+		}
+	}
+#endif
 
 	XSync(m_display, 0); /* Sync to process all requests */
 	

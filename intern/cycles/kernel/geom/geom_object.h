@@ -169,6 +169,10 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals *kg, const 
 		Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 		*N = normalize(transform_direction_transposed(&tfm, *N));
 	}
+	else if(sd->type == PRIMITIVE_LAMP) {
+		Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
+		*N = normalize(transform_direction_transposed(&tfm, *N));
+	}
 #endif
 }
 
@@ -207,80 +211,6 @@ ccl_device_inline void object_inverse_dir_transform(KernelGlobals *kg, const Sha
 	*D = transform_direction(&tfm, *D);
 #endif
 }
-
-/* Rigidbody Info callbace */
-//
-//ccl_device_inline float3 rigidbody_velocity(KernelGlobals* kg, const ShaderData* sd)
-//{
-//	if (sd->object == OBJECT_NONE)
-//		return make_float3(0.0f, 0.0f, 0.0f);
-//
-//#ifdef __OBJECT_MOTION__
-//	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
-//#else
-//	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-//	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-//#endif
-//}
-//ccl_device_inline float3 rigidbody_angular_velocity(KernelGlobals* kg, const ShaderData* sd)
-//{
-//	if (sd->object == OBJECT_NONE)
-//		return make_float3(0.0f, 0.0f, 0.0f);
-//
-//#ifdef __OBJECT_MOTION__
-//	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
-//#else
-//	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-//	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-//#endif
-//}
-//ccl_device_inline float3 rigidbody_force(KernelGlobals* kg, const ShaderData* sd)
-//{
-//	if (sd->object == OBJECT_NONE)
-//		return make_float3(0.0f, 0.0f, 0.0f);
-//
-//#ifdef __OBJECT_MOTION__
-//	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
-//#else
-//	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-//	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-//#endif
-//}
-//ccl_device_inline float3 rigidbody_location(KernelGlobals* kg, const ShaderData* sd)
-//{
-//	if (sd->object == OBJECT_NONE)
-//		return make_float3(0.0f, 0.0f, 0.0f);
-//
-//#ifdef __OBJECT_MOTION__
-//	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
-//#else
-//	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-//	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-//#endif
-//}
-//ccl_device_inline float3 rigidbody_torque(KernelGlobals* kg, const ShaderData* sd)
-//{
-//	if (sd->object == OBJECT_NONE)
-//		return make_float3(0.0f, 0.0f, 0.0f);
-//
-//#ifdef __OBJECT_MOTION__
-//	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
-//#else
-//	Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-//	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-//#endif
-//}
-//ccl_device_inline float rigidbody_num_contact(KernelGlobals* kg, int object)
-//{
-//	if (object == OBJECT_NONE)
-//		return 0.0f;
-//
-//	int offset = object * OBJECT_SIZE + OBJECT_PROPERTIES;
-//	float4 f = kernel_tex_fetch(__objects, offset);
-//	return f.y;
-//}
-
-
 
 /* Object center position */
 

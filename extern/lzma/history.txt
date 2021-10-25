@@ -41,7 +41,7 @@ HISTORY of the LZMA SDK
 
 4.57           2007-12-12
 -------------------------
-- Speed optimizations in Ñ++ LZMA Decoder. 
+- Speed optimizations in ï¿½++ LZMA Decoder. 
 - Small changes for more compatibility with some C/C++ compilers.
 
 

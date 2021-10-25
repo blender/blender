@@ -505,7 +505,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.mode = R_GAMMA | R_OSA | R_SHADOW | R_SSS | R_ENVMAP | R_RAYTRACE;
 	sce->r.cfra = 1;
 	sce->r.sfra = 1;
-	sce->r.efra = 500;
+	sce->r.efra = 250;
 	sce->r.frame_step = 1;
 	sce->r.xsch = 1920;
 	sce->r.ysch = 1080;
@@ -528,7 +528,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.images = 100;
 	sce->r.framelen = 1.0;
 	sce->r.blurfac = 0.5;
-	sce->r.frs_sec = 50;
+	sce->r.frs_sec = 24;
 	sce->r.frs_sec_base = 1;
 	sce->r.edgeint = 10;
 	sce->r.ocres = 128;
@@ -691,7 +691,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.ffcodecdata.audio_bitrate = 192;
 	sce->r.ffcodecdata.audio_channels = 2;
 
-	BLI_strncpy(sce->r.engine, RE_engine_id_CYCLES, sizeof(sce->r.engine));
+	BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_RENDER, sizeof(sce->r.engine));
 
 	sce->audio.distance_model = 2.0f;
 	sce->audio.doppler_factor = 1.0f;
@@ -1456,6 +1456,8 @@ typedef struct ThreadedObjectUpdateState {
 	bool has_mballs;
 #endif
 
+	int num_threads;
+
 	/* Execution statistics */
 	bool has_updated_objects;
 	ListBase *statistics;
@@ -1555,7 +1557,6 @@ static void scene_update_object_add_task(void *node, void *user_data)
 
 static void print_threads_statistics(ThreadedObjectUpdateState *state)
 {
-	int i, tot_thread;
 	double finish_time;
 
 	if ((G.debug & G_DEBUG_DEPSGRAPH) == 0) {
@@ -1583,10 +1584,9 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 	}
 #else
 	finish_time = PIL_check_seconds_timer();
-	tot_thread = BLI_system_thread_count();
 	int total_objects = 0;
 
-	for (i = 0; i < tot_thread; i++) {
+	for (int i = 0; i < state->num_threads; i++) {
 		int thread_total_objects = 0;
 		double thread_total_time = 0.0;
 		StatisicsEntry *entry;
@@ -1683,6 +1683,7 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 		                               "scene update objects stats");
 		state.has_updated_objects = false;
 		state.base_time = PIL_check_seconds_timer();
+		state.num_threads = tot_thread;
 	}
 
 #ifdef MBALL_SINGLETHREAD_HACK
@@ -1847,8 +1848,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 #endif
 	{
 		DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
-		/* TODO(sergey): This is to beocme a node in new depsgraph. */
-		BKE_mask_update_scene(bmain, scene);
 	}
 
 	/* update sound system animation (TODO, move to depsgraph) */
@@ -1965,10 +1964,9 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 		/* Following 2 functions are recursive
 		 * so don't call within 'scene_update_tagged_recursive' */
 		DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
+		BKE_mask_evaluate_all_masks(bmain, ctime, true);
 	}
 #endif
-
-	BKE_mask_evaluate_all_masks(bmain, ctime, true);
 
 	/* Update animated cache files for modifiers. */
 	BKE_cachefile_update_frame(bmain, sce, ctime, (((double)sce->r.frs_sec) / (double)sce->r.frs_sec_base));
@@ -2331,31 +2329,12 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
 	switch (unit_type) {
 		case B_UNIT_LENGTH:
 			return value * (double)unit->scale_length;
-		case B_UNIT_TIME:
-			return value * (double)unit->scale_length;
 		case B_UNIT_AREA:
 			return value * pow(unit->scale_length, 2);
 		case B_UNIT_VOLUME:
 			return value * pow(unit->scale_length, 3);
 		case B_UNIT_MASS:
 			return value * pow(unit->scale_length, 3);
-		case B_UNIT_FORCE:
-			return value * pow(unit->scale_length, 2);
-	/*	case B_UNIT_STRESS:
-			return value * pow(unit->scale_length, 0);*/
-		case B_UNIT_ACCELERATION:
-			return value * pow(unit->scale_length, -1);
-		case B_UNIT_ANVELOCITY:
-			return value * pow(unit->scale_length, -1);
-		case B_UNIT_IMPULSE:
-			return value * pow(unit->scale_length, 3);
-		case B_UNIT_TORQUE:
-			return value * pow(unit->scale_length, 3);
-		case B_UNIT_IMPULSE_MOMENT:
-			return value*pow(unit->scale_length, 4);
-		/*case B_UNIT_VELOCITY:
-			return value * pow(unit->scale_length, 0);*/
-
 		case B_UNIT_CAMERA:  /* *Do not* use scene's unit scale for camera focal lens! See T42026. */
 		default:
 			return value;
