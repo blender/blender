@@ -301,22 +301,89 @@ static void sculpt_faceset_bm_end(SculptSession *ss, BMesh *bm)
 
 /* Draw Face Sets Brush. */
 
-static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
-                                               const int n,
-                                               const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static int new_fset_apply_curve(SculptSession *ss,
+                                            SculptFaceSetDrawData *data,
+                                            int new_fset,
+                                            float poly_center[3],
+                                            float no[3],
+                                            SculptBrushTest *test,
+                                            BrushChannel *curve_ch,
+                                            int count)
 {
-  SculptThreadedTaskData *data = userdata;
+  float fade2;
+  float tmp[3];
+  float n[3];
+
+  sub_v3_v3v3(tmp, poly_center, test->location);
+
+  cross_v3_v3v3(n, no, data->stroke_direction);
+  normalize_v3(n);
+
+  // find t along brush line
+  float t = dot_v3v3(data->stroke_direction, tmp) / ss->cache->radius;
+  CLAMP(t, -1.0f, 1.0f);
+  t = t * 0.5 + 0.5;
+
+  // find start and end points;
+  float start[3], end[3];
+  copy_v3_v3(start, ss->cache->last_location);
+  copy_v3_v3(end, ss->cache->location);
+
+  madd_v3_v3fl(start, data->prev_stroke_direction, 0.5f * ss->cache->radius);
+  madd_v3_v3fl(end, data->next_stroke_direction, 0.5f * ss->cache->radius);
+
+  float co[3];
+
+  // interpolate direction and pos across stroke line
+  float dir[3];
+  if (t < 0.5) {
+    interp_v3_v3v3(co, start, test->location, t * 2.0f);
+    interp_v3_v3v3(dir, data->prev_stroke_direction, data->stroke_direction, t * 2.0f);
+  }
+  else {
+    interp_v3_v3v3(co, test->location, end, (t - 0.5f) * 2.0f);
+    interp_v3_v3v3(dir, data->stroke_direction, data->next_stroke_direction, (t - 0.5f) * 2.0f);
+  }
+
+  sub_v3_v3v3(tmp, poly_center, co);
+  normalize_v3(dir);
+
+  // get final distance from stroke curve
+  cross_v3_v3v3(n, no, dir);
+  normalize_v3(n);
+
+  fade2 = fabsf(dot_v3v3(n, tmp)) / ss->cache->radius;
+  CLAMP(fade2, 0.0f, 1.0f);
+
+  fade2 = BKE_brush_channel_curve_evaluate(curve_ch, fade2, 1.0f);
+
+  new_fset += (int)((1.0f - fade2) * (float)count);
+
+  return new_fset;
+}
+
+void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                        const int n,
+                                        const TaskParallelTLS *__restrict tls)
+{
+  SculptFaceSetDrawData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
-  const float bstrength = ss->cache->bstrength;
+  const float bstrength = data->bstrength;
+
+  const bool use_fset_strength = data->use_fset_strength;
+  const bool use_fset_curve = data->use_fset_curve;
+  const int count = data->count;
+  const int active_fset = data->faceset;
+  BrushChannel *curve_ch = data->curve_ch;
 
   PBVHVertexIter vd;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+
   const int thread_id = BLI_task_parallel_thread_id(tls);
-  const int active_fset = abs(ss->cache->paint_face_set);
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
   const float test_limit = 0.05f;
@@ -365,6 +432,16 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.mask ? *vd.mask : 0.0f,
                                                                     vd.vertex,
                                                                     thread_id);
+
+        int new_fset = active_fset;
+
+        if (use_fset_curve) {
+          float no[3];
+          SCULPT_vertex_normal_get(ss, vd.vertex, no);
+
+          new_fset = new_fset_apply_curve(
+              ss, data, new_fset, poly_center, no, &test, curve_ch, count);
+        }
 
         if (fade > test_limit && ss->face_sets[vert_map->indices[j]] > 0) {
           bool ok = true;
@@ -422,7 +499,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
           }
 
           if (ok) {
-            ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
+            ss->face_sets[vert_map->indices[j]] = new_fset;
           }
         }
       }
@@ -447,9 +524,19 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.vertex,
                                                                       thread_id);
 
+          int new_fset = active_fset;
+
+          if (use_fset_curve) {
+            float no[3];
+            SCULPT_vertex_normal_get(ss, vd.vertex, no);
+
+            new_fset = new_fset_apply_curve(
+                ss, data, new_fset, poly_center, no, &test, curve_ch, count);
+          }
+
           int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
 
-          if (fade > test_limit && fset > 0) {
+          if ((!use_fset_strength || fade > test_limit) && fset > 0) {
             BMLoop *l = f->l_first;
 
             bool ok = true;
@@ -501,7 +588,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             } while ((l = l->next) != f->l_first);
 
             if (ok) {
-              BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, active_fset);
+              BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, new_fset);
             }
           }
         }
@@ -521,9 +608,18 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.mask ? *vd.mask : 0.0f,
                                                                     vd.vertex,
                                                                     thread_id);
+        int new_fset = active_fset;
 
-        if (fade > 0.05f) {
-          SCULPT_vertex_face_set_set(ss, vd.vertex, ss->cache->paint_face_set);
+        if (use_fset_curve) {
+          float no[3];
+          SCULPT_vertex_normal_get(ss, vd.vertex, no);
+
+          new_fset = new_fset_apply_curve(
+              ss, data, new_fset, ss->cache->location, no, &test, curve_ch, count);
+        }
+
+        if (!use_fset_strength || fade > test_limit) {
+          SCULPT_vertex_face_set_set(ss, vd.vertex, new_fset);
         }
       }
     }
@@ -540,7 +636,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptFaceSetDrawData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   float bstrength = ss->cache->bstrength;
@@ -606,12 +702,15 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptFaceSetDrawData data = {.sd = sd,
+                                .ob = ob,
+                                .brush = brush,
+                                .nodes = nodes,
+                                .faceset = abs(ss->cache->paint_face_set),
+                                .use_fset_curve = false,
+                                .use_fset_strength = true,
+                                .bstrength = ss->cache->bstrength,
+                                .count = 1};
 
   bool threaded = true;
 

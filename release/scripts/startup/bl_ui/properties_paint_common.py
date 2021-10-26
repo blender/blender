@@ -1183,12 +1183,15 @@ def brush_settings(layout, context, brush, popover=False):
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
-            box = layout.column()  # .column() is a bit more compact
+            box = layout.box().column()  # .column() is a bit more compact
+
+            box.label(text="Auto-Smooth")
 
             UnifiedPaintPanel.prop_unified(box,
                 context,
                 brush,
                 "auto_smooth_factor",
+                text="Factor",
                 pressure_name="use_inverse_smooth_pressure",
                 slider=True,)
 
@@ -1220,6 +1223,7 @@ def brush_settings(layout, context, brush, popover=False):
                 context,
                 brush,
                 "auto_smooth_projection",
+                text="Projection",
                 slider=True)
 
             if advanced:
@@ -1239,11 +1243,59 @@ def brush_settings(layout, context, brush, popover=False):
                 "projection",
                 slider=True)
 
+        UnifiedPaintPanel.prop_unified(layout,
+            context,
+            brush,
+            "use_smoothed_rake")
+
+        box = layout.box().column()  # .column() is a bit more compact
+        box.label(text="Auto Face Set")
+
+        UnifiedPaintPanel.prop_unified(box,
+            context,
+            brush,
+            "use_autofset")
+
+        if UnifiedPaintPanel.get_channel_value(context, brush, "use_autofset"):
+            UnifiedPaintPanel.channel_unified(box,
+                context,
+                brush,
+                "autofset_radius_scale",
+                slider=True)
+            UnifiedPaintPanel.channel_unified(box,
+                context,
+                brush,
+                "autofset_use_spacing")
+            if UnifiedPaintPanel.get_channel_value(context, brush, "autofset_use_spacing"):
+                UnifiedPaintPanel.channel_unified(box,
+                    context,
+                    brush,
+                    "autofset_spacing")
+            UnifiedPaintPanel.channel_unified(box,
+                context,
+                brush,
+                "autofset_start")
+            UnifiedPaintPanel.channel_unified(box,
+                context,
+                brush,
+                "autofset_count")
+            UnifiedPaintPanel.channel_unified(box,
+                context,
+                brush,
+                "autofset_curve")
+
+        
         if capabilities.has_vcol_boundary_smooth:
-            layout.prop(brush, "vcol_boundary_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(layout,
+                context,
+                brush,
+                "vcol_boundary_factor",
+                slider=True)
 
         if (capabilities.has_topology_rake and context.sculpt_object.use_dynamic_topology_sculpting):
-            box = layout.column()  # .column() is a bit more compact
+            box = layout.box().column()  # .column() is a bit more compact
+
+            box.label(text="Topology Rake")
 
             #box.prop(brush, "topology_rake_factor", slider=True)
             UnifiedPaintPanel.prop_unified(box,
@@ -1251,7 +1303,7 @@ def brush_settings(layout, context, brush, popover=False):
                 brush,
                 "topology_rake_factor",
                 slider=True,
-                text="Topology Rake")
+                text="Factor")
 
             if advanced:
                 box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")

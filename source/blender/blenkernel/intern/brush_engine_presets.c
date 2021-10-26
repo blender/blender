@@ -257,8 +257,12 @@ static bool check_builtin_init()
 
   SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
   SUBTYPE_SET(spacing, BRUSH_CHANNEL_PERCENT);
+
+  SUBTYPE_SET(autofset_spacing, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(autosmooth_spacing, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(topology_rake_spacing, BRUSH_CHANNEL_PERCENT);
+
+  SUBTYPE_SET(autofset_radius_scale, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(autosmooth_radius_scale, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(topology_rake_radius_scale, BRUSH_CHANNEL_PERCENT);
 
@@ -1136,6 +1140,14 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(smooth_stroke_factor);
   ADDCH(smooth_stroke_radius);
   ADDCH(smooth_deform_type);
+
+  ADDCH(use_autofset);
+  ADDCH(autofset_radius_scale);
+  ADDCH(autofset_curve);
+  ADDCH(autofset_count);
+  ADDCH(autofset_start);
+  ADDCH(autofset_spacing);
+  ADDCH(autofset_use_spacing);
 
   switch (tool) {
     case SCULPT_TOOL_CLAY:

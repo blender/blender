@@ -215,6 +215,34 @@ int SCULPT_get_vector_intern(
   }
 }
 
+BrushChannel *SCULPT_get_final_channel_intern(const SculptSession *ss,
+                                              const char *idname,
+                                              const Sculpt *sd,
+                                              const Brush *br)
+{
+  BrushChannel *ch = NULL;
+
+  if (ss->cache && ss->cache->channels_final) {
+    ch = BKE_brush_channelset_lookup(ss->cache->channels_final, idname);
+  }
+  else if (br && br->channels && sd && sd->channels) {
+    ch = BKE_brush_channelset_lookup(br->channels, idname);
+    BrushChannel *ch2 = BKE_brush_channelset_lookup(sd->channels, idname);
+
+    if (ch2 && (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT))) {
+      ch = ch2;
+    }
+  }
+  else if (br && br->channels) {
+    ch = BKE_brush_channelset_lookup(br->channels, idname);
+  }
+  else if (sd && sd->channels) {
+    ch = BKE_brush_channelset_lookup(sd->channels, idname);
+  }
+
+  return ch;
+}
+
 /* Sculpt PBVH abstraction API
  *
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
@@ -5100,7 +5128,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
 
   /* Face Sets modifications do a single undo push */
-  if (data->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+  if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_DRAW_FACE_SETS, SCULPT_TOOL_AUTO_FSET)) {
     BKE_pbvh_node_mark_redraw(data->nodes[n]);
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss->cache->alt_smooth) {
@@ -5708,7 +5736,7 @@ static void get_nodes_undo(Sculpt *sd,
         BKE_pbvh_node_mark_update_color(nodes[i]);
       }
     }
-    else if (tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+    else if (ELEM(tool, SCULPT_TOOL_DRAW_FACE_SETS, SCULPT_TOOL_AUTO_FSET)) {
       for (int i = 0; i < totnode; i++) {
         if (ss->cache->alt_smooth) {
           SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_COORDS);
@@ -6009,6 +6037,9 @@ static void SCULPT_run_command(
     case SCULPT_TOOL_DYNTOPO:
       sculpt_topology_update(sd, ob, brush, ups, NULL);
       // do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+      break;
+    case SCULPT_TOOL_AUTO_FSET:
+      SCULPT_do_auto_face_set(sd, ob, nodes, totnode);
       break;
   }
 
@@ -6474,6 +6505,9 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
   flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
   flip_v3_v3(cache->view_origin, cache->true_view_origin, symm);
 
+  flip_v3_v3(cache->prev_grab_delta_symmetry, cache->prev_grab_delta, symm);
+  flip_v3_v3(cache->next_grab_delta_symmetry, cache->next_grab_delta, symm);
+
   flip_v3_v3(cache->initial_location, cache->true_initial_location, symm);
   flip_v3_v3(cache->initial_normal, cache->true_initial_normal, symm);
 
@@ -6798,6 +6832,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Topology Rake";
     case SCULPT_TOOL_DYNTOPO:
       return "DynTopo";
+    case SCULPT_TOOL_AUTO_FSET:
+      return "Auto Face Set";
   }
 
   return "Sculpting";
@@ -7201,25 +7237,30 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
   };
   int tool = brush->sculpt_tool;
 
-  if (!ELEM(tool,
-            SCULPT_TOOL_PAINT,
-            SCULPT_TOOL_GRAB,
-            SCULPT_TOOL_ELASTIC_DEFORM,
-            SCULPT_TOOL_CLOTH,
-            SCULPT_TOOL_NUDGE,
-            SCULPT_TOOL_CLAY_STRIPS,
-            SCULPT_TOOL_TWIST,
-            SCULPT_TOOL_PINCH,
-            SCULPT_TOOL_MULTIPLANE_SCRAPE,
-            SCULPT_TOOL_CLAY_THUMB,
-            SCULPT_TOOL_SNAKE_HOOK,
-            SCULPT_TOOL_POSE,
-            SCULPT_TOOL_BOUNDARY,
-            SCULPT_TOOL_ARRAY,
-            SCULPT_TOOL_THUMB) &&
-      !sculpt_brush_use_topology_rake(ss, brush)) {
+  bool bad = !ELEM(tool,
+                   SCULPT_TOOL_PAINT,
+                   SCULPT_TOOL_GRAB,
+                   SCULPT_TOOL_ELASTIC_DEFORM,
+                   SCULPT_TOOL_CLOTH,
+                   SCULPT_TOOL_NUDGE,
+                   SCULPT_TOOL_CLAY_STRIPS,
+                   SCULPT_TOOL_TWIST,
+                   SCULPT_TOOL_PINCH,
+                   SCULPT_TOOL_MULTIPLANE_SCRAPE,
+                   SCULPT_TOOL_CLAY_THUMB,
+                   SCULPT_TOOL_SNAKE_HOOK,
+                   SCULPT_TOOL_POSE,
+                   SCULPT_TOOL_BOUNDARY,
+                   SCULPT_TOOL_ARRAY,
+                   SCULPT_TOOL_THUMB);
+
+  bad = bad && !sculpt_brush_use_topology_rake(ss, brush);
+  bad = bad && !SCULPT_get_bool(ss, use_autofset, NULL, brush);
+
+  if (bad) {
     return;
   }
+
   float grab_location[3], imat[4][4], delta[3], loc[3];
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
@@ -7236,6 +7277,8 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
             brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_SNAKE_HOOK)) {
     add_v3_v3(cache->true_location, cache->grab_delta);
   }
+
+  copy_v3_v3(cache->prev_grab_delta, cache->grab_delta);
 
   /* Compute 3d coordinate at same z from original location + mouse. */
   mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
@@ -7331,6 +7374,41 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     copy_v3_v3(cache->rake_data.follow_co, grab_location);
   }
 
+  if (SCULPT_stroke_is_first_brush_step(cache)) {
+    copy_v3_v3(cache->prev_grab_delta, cache->grab_delta);
+
+    for (int i = 0; i < GRAB_DELTA_MA_SIZE; i++) {
+      copy_v3_v3(cache->grab_delta_avg[i], cache->grab_delta);
+    }
+  }
+
+  // XXX implement me
+
+  if (SCULPT_get_int(ss, use_smoothed_rake, NULL, brush)) {
+    // delay by one so we can have a useful value for next_grab_delta
+    float grab_delta[3] = {0.0f, 0.0f, 0.0f};
+
+    for (int i = 0; i < GRAB_DELTA_MA_SIZE; i++) {
+      add_v3_v3(grab_delta, cache->grab_delta_avg[i]);
+    }
+
+    mul_v3_fl(grab_delta, 1.0f / (float)GRAB_DELTA_MA_SIZE);
+
+    copy_v3_v3(cache->grab_delta_avg[cache->grab_delta_avg_cur], cache->grab_delta);
+    cache->grab_delta_avg_cur = (cache->grab_delta_avg_cur + 1) % GRAB_DELTA_MA_SIZE;
+    copy_v3_v3(cache->grab_delta, grab_delta);
+
+    zero_v3(cache->next_grab_delta);
+
+    for (int i = 0; i < GRAB_DELTA_MA_SIZE; i++) {
+      add_v3_v3(cache->next_grab_delta, cache->grab_delta_avg[i]);
+    }
+    mul_v3_fl(cache->next_grab_delta, 1.0f / (float)GRAB_DELTA_MA_SIZE);
+  }
+  else {
+    copy_v3_v3(cache->next_grab_delta, cache->grab_delta);
+  }
+
   if (!sculpt_brush_needs_rake_rotation(brush)) {
     return;
   }
@@ -7368,6 +7446,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
       cache->is_rake_rotation_valid = true;
     }
   }
+
   sculpt_rake_data_update(&cache->rake_data, grab_location);
 }
 

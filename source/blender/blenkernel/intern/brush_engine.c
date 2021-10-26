@@ -1533,6 +1533,42 @@ void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
   }
 }
 
+static void commandlist_add_auto_fset(BrushChannelSet *chset,
+                                      BrushCommandList *cl,
+                                      Brush *brush,
+                                      int tool,
+                                      BrushMappingData *mapdata)
+{
+  if (!BRUSHSET_GET_INT(chset, use_autofset, NULL)) {
+    return;
+  }
+
+  BrushCommand *cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true),
+                                             SCULPT_TOOL_AUTO_FSET);
+
+  float radius = BRUSHSET_GET_FLOAT(chset, radius, NULL) *
+                 BRUSHSET_GET_FLOAT(chset, autofset_radius_scale, NULL);
+  float spacing = BRUSHSET_GET_FLOAT(chset, spacing, NULL);
+
+  if (BRUSHSET_GET_INT(chset, autofset_use_spacing, NULL)) {
+    spacing = BRUSHSET_GET_FLOAT(chset, autofset_spacing, NULL);
+    float_set_uninherit(cmd->params, spacing, spacing);
+  }
+
+  float_set_uninherit(cmd->params, radius, radius);
+
+  BrushChannel *ch = BRUSHSET_ENSURE_BUILTIN(cmd->params, falloff_curve);
+  BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, autofset_curve);
+
+  if (ch2) {
+    BKE_brush_channel_curve_assign(ch, &ch2->curve);
+    ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+  }
+  else {
+    ch->flag |= BRUSH_CHANNEL_INHERIT;
+  }
+}
+
 static void commandlist_add_dyntopo(BrushChannelSet *chset,
                                     BrushCommandList *cl,
                                     Brush *brush,
@@ -1588,6 +1624,9 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
   bool hard_edge_mode = BRUSHSET_GET_INT(chset, hard_edge_mode, NULL);
   commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
 
+  /*build auto fset command*/
+  commandlist_add_auto_fset(chset, cl, brush, tool, mapdata);
+
   float autosmooth = BRUSHSET_GET_FLOAT(chset, autosmooth, NULL);
   if (autosmooth > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
@@ -1627,8 +1666,6 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
   }
 
 #undef GETF
-
-  // float
 }
 
 void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
@@ -1718,6 +1755,9 @@ void BKE_builtin_commandlist_create(Brush *brush,
   else {
     autosmooth_spacing = BKE_brush_channelset_get_float(chset, "spacing", NULL);
   }
+
+  /*build auto fset command*/
+  commandlist_add_auto_fset(chset, cl, brush, tool, mapdata);
 
   float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", NULL);
   if (!no_autosmooth && autosmooth > 0.0f) {

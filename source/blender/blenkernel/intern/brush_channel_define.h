@@ -207,8 +207,8 @@ places in rna_engine_codebase are relevent:
                            "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false, BRUSH_CHANNEL_INHERIT)
   MAKE_BOOL(dyntopo_disable_smooth, "Disable Dyntopo Smooth", "Disable the small amount of smoothing dyntopo applies to improve numerical stability", false)
   MAKE_FLOAT_EX(projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
-  MAKE_FLOAT_EX(autosmooth_projection, "Auto-Smooth Projection", "Amount of volume preserving projection for autosmooth", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
-  MAKE_FLOAT_EX(topology_rake_projection, "Rake Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(autosmooth_projection, "Projection", "Amount of volume preserving projection for autosmooth", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(topology_rake_projection, "Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT(fset_slide, "Face Set Projection", "Stick face set boundaries to surface of mesh", 1.0f, 0.0f, 1.0f)
   MAKE_FLOAT(boundary_smooth, "Boundary Smooth", "Smooth hard boundaries", 0.0f, 0.0f, 1.0f)
   MAKE_BOOL(topology_rake_use_spacing, "Use Rake Spacing", "Use custom spacing for topology rake", false)
@@ -598,6 +598,14 @@ MAKE_ENUM_EX(sharp_mode, "Sharp Mode", "", 0, 0, {
     {1, "PLANE", "NONE", "Plane", ""},
     {-1}
 })
+
+MAKE_BOOL_EX(use_autofset, "Auto Face Set", "Automatically make a face set", false, 0)
+MAKE_FLOAT_EX_FLAG(autofset_radius_scale, "Radius Scale", "Scale brush radius for auto face set", 1.0f, 0.001f, 10.0f, 0.01f, 3.0f, false, false)
+MAKE_CURVE(autofset_curve, "Curve", "", CURVE_PRESET_LINE)
+MAKE_INT_EX(autofset_count, "Face Set Count", "", 2, 1, 10, 1, 5)
+MAKE_INT_EX(autofset_start, "Face Set Start", "", 2, 1, 1024, 1, 1024)
+MAKE_FLOAT_EX_FLAG(autofset_spacing, "Spacing", "Spacing for auto face set", 4, 1, 1000, 1, 300, false, 0)
+MAKE_BOOL_EX(autofset_use_spacing, "Use Spacing", "Use spacing for auto face set", false, 0)
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

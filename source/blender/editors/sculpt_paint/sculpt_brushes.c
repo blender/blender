@@ -4105,4 +4105,83 @@ void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
   BLI_task_parallel_range(0, totnode, &data, do_displacement_eraser_brush_task_cb_ex, &settings);
 }
 
+void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+#if 0
+  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
+    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
+
+    cxx_do_draw_brush(sd, ob, nodes, totnode);
+    return;
+  }
+#endif
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+
+  float directions[3][3];
+
+  for (int i = 0; i < 3; i++) {
+    float direction[3];
+
+    switch (i) {
+      case 0:
+        copy_v3_v3(direction, ss->cache->prev_grab_delta_symmetry);
+        break;
+      case 1:
+        copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
+        break;
+      case 2:
+        copy_v3_v3(direction, ss->cache->next_grab_delta_symmetry);
+        break;
+    }
+
+    float tmp[3];
+    mul_v3_v3fl(
+        tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
+    sub_v3_v3(direction, tmp);
+    normalize_v3(direction);
+
+    copy_v3_v3(directions[i], direction);
+  }
+
+  BrushChannel *curve_ch = SCULPT_get_final_channel(ss, autofset_curve, sd, brush);
+  CurveMapping *cuma = BKE_brush_channel_curvemapping_get(&curve_ch->curve, false);
+
+  if (cuma) {  // ensure cuma is ready for evaluation
+    BKE_curvemapping_init(cuma);
+  }
+
+  /* Cancel if there's no grab data. */
+  if (is_zero_v3(directions[1])) {
+    return;
+  }
+
+  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+   * initialize before threads so they can do curve mapping. */
+  BKE_curvemapping_init(brush->curve);
+
+  /* Threaded loop over nodes. */
+  SculptFaceSetDrawData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .totnode = totnode,
+      .use_fset_curve = true,
+      .use_fset_strength = false,
+      .bstrength = 1.0f,
+      .faceset = SCULPT_get_int(ss, autofset_start, sd, brush),
+      .count = SCULPT_get_int(ss, autofset_count, sd, brush),
+      .prev_stroke_direction = directions[0],
+      .stroke_direction = directions[1],
+      .next_stroke_direction = directions[2],
+      .curve_ch = curve_ch,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
+}
+
 /** \} */

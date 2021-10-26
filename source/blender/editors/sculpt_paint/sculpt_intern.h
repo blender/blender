@@ -306,6 +306,13 @@ int SCULPT_get_vector_intern(
 #define SCULPT_get_vector(ss, idname, out, sd, br) \
   SCULPT_get_vector_intern(ss, BRUSH_BUILTIN_##idname, out, sd, br)
 
+BrushChannel *SCULPT_get_final_channel_intern(const SculptSession *ss,
+                                              const char *idname,
+                                              const Sculpt *sd,
+                                              const Brush *br);
+#define SCULPT_get_final_channel(ss, idname, sd, br) \
+  SCULPT_get_final_channel_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
                                          SculptCornerType cornertype);
@@ -1188,6 +1195,7 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
 
 #define SCULPT_CLAY_STABILIZER_LEN 10
 #define SCULPT_SPEED_MA_SIZE 4
+#define GRAB_DELTA_MA_SIZE 3
 
 typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
@@ -1268,6 +1276,12 @@ typedef struct StrokeCache {
   float special_rotation;
   float grab_delta[3], grab_delta_symmetry[3];
   float old_grab_location[3], orig_grab_location[3];
+
+  // next_grab_delta is same as grab_delta except in smooth rake mode
+  float prev_grab_delta[3], next_grab_delta[3];
+  float prev_grab_delta_symmetry[3], next_grab_delta_symmetry[3];
+  float grab_delta_avg[GRAB_DELTA_MA_SIZE][3];
+  int grab_delta_avg_cur;
 
   /* screen-space rotation defined by mouse motion */
   float rake_rotation[4], rake_rotation_symmetry[4];
@@ -2163,7 +2177,31 @@ void SCULPT_bmesh_topology_rake(struct Sculpt *sd,
 
 void SCULPT_stroke_cache_snap_context_init(struct bContext *C, struct Object *ob);
 void SCULPT_fairing_brush_exec_fairing_for_cache(struct Sculpt *sd, struct Object *ob);
+void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* end sculpt_brushes.c stuff */
 
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
+
+typedef struct SculptFaceSetDrawData {
+  struct Sculpt *sd;
+  struct Object *ob;
+  PBVHNode **nodes;
+  int totnode;
+  struct Brush *brush;
+  float bstrength;
+
+  int faceset;
+  int count;
+  bool use_fset_curve;
+  bool use_fset_strength;
+
+  float *prev_stroke_direction;
+  float *stroke_direction;
+  float *next_stroke_direction;
+  struct BrushChannel *curve_ch;
+} SculptFaceSetDrawData;
+
+void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                        const int n,
+                                        const struct TaskParallelTLS *__restrict tls);
