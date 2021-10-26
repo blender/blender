@@ -81,6 +81,7 @@ NODE_DEFINE(Integrator)
   sampling_pattern_enum.insert("sobol", SAMPLING_PATTERN_SOBOL);
   sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
   SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_SOBOL);
+  SOCKET_FLOAT(scrambling_distance, "Scrambling Distance", 1.0f);
 
   static NodeEnum denoiser_type_enum;
   denoiser_type_enum.insert("optix", DENOISER_OPTIX);
@@ -192,6 +193,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            sample_clamp_indirect * 3.0f;
 
   kintegrator->sampling_pattern = new_sampling_pattern;
+  kintegrator->scrambling_distance = scrambling_distance;
 
   if (light_sampling_threshold > 0.0f) {
     kintegrator->light_inv_rr_threshold = 1.0f / light_sampling_threshold;

@@ -352,6 +352,21 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     integrator->set_adaptive_min_samples(get_int(cscene, "adaptive_min_samples"));
   }
 
+  int samples = get_int(cscene, "samples");
+  float scrambling_distance = get_float(cscene, "scrambling_distance");
+  bool adaptive_scrambling_distance = get_boolean(cscene, "adaptive_scrambling_distance");
+  if (adaptive_scrambling_distance) {
+    scrambling_distance *= 4.0f / sqrtf(samples);
+  }
+
+  /* only use scrambling distance in the viewport if user wants to and disable with AS */
+  bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
+  if ((preview && !preview_scrambling_distance) || sampling_pattern != SAMPLING_PATTERN_SOBOL)
+    scrambling_distance = 1.0f;
+
+  VLOG(1) << "Used Scrambling Distance: " << scrambling_distance;
+  integrator->set_scrambling_distance(scrambling_distance);
+
   if (get_boolean(cscene, "use_fast_gi")) {
     if (preview) {
       integrator->set_ao_bounces(get_int(cscene, "ao_bounces"));

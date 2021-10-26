@@ -51,6 +51,7 @@ std::ostream &operator<<(std::ostream &os, const TileSize &tile_size);
  * possible, and have as many threads active for every tile as possible. */
 TileSize tile_calculate_best_size(const int2 &image_size,
                                   const int num_samples,
-                                  const int max_num_path_states);
+                                  const int max_num_path_states,
+                                  const float scrambling_distance);
 
 CCL_NAMESPACE_END

@@ -76,6 +76,7 @@ class Integrator : public Node {
   NODE_SOCKET_API(float, adaptive_threshold)
 
   NODE_SOCKET_API(SamplingPattern, sampling_pattern)
+  NODE_SOCKET_API(float, scrambling_distance)
 
   NODE_SOCKET_API(bool, use_denoise);
   NODE_SOCKET_API(DenoiserType, denoiser_type);

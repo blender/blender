@@ -38,7 +38,10 @@ class WorkTileScheduler {
   void set_max_num_path_states(int max_num_path_states);
 
   /* Scheduling will happen for pixels within a big tile denotes by its parameters. */
-  void reset(const BufferParams &buffer_params, int sample_start, int samples_num);
+  void reset(const BufferParams &buffer_params,
+             int sample_start,
+             int samples_num,
+             float scrambling_distance);
 
   /* Get work for a device.
    * Returns true if there is still work to be done and initialize the work tile to all
@@ -67,6 +70,9 @@ class WorkTileScheduler {
   /* Offset and stride of the buffer within which scheduling is happening.
    * Will be passed over to the KernelWorkTile. */
   int offset_, stride_;
+
+  /* Scrambling Distance requires adapted tile size */
+  float scrambling_distance_;
 
   /* Start sample of index and number of samples which are to be rendered.
    * The scheduler will cover samples range of [start, start + num] over the entire image

@@ -258,7 +258,10 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
    * schedules work in halves of available number of paths. */
   work_tile_scheduler_.set_max_num_path_states(max_num_paths_ / 8);
 
-  work_tile_scheduler_.reset(effective_buffer_params_, start_sample, samples_num);
+  work_tile_scheduler_.reset(effective_buffer_params_,
+                             start_sample,
+                             samples_num,
+                             device_scene_->data.integrator.scrambling_distance);
 
   enqueue_reset();
 

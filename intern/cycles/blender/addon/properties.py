@@ -342,6 +342,24 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='PROGRESSIVE_MUTI_JITTER',
     )
 
+    scrambling_distance: FloatProperty(
+        name="Scrambling Distance",
+        default=1.0,
+        min=0.0, max=1.0,
+        description="Lower values give faster rendering with GPU rendering and less noise with all devices at the cost of possible artifacts if set too low",
+    )
+    preview_scrambling_distance: BoolProperty(
+        name="Scrambling Distance viewport",
+        default=False,
+        description="Uses the Scrambling Distance value for the viewport. Faster but may flicker",
+    )
+
+    adaptive_scrambling_distance: BoolProperty(
+        name="Adaptive Scrambling Distance",
+        default=False,
+        description="Uses a formula to adapt the scrambling distance strength based on the sample count",
+    )
+
     use_layer_samples: EnumProperty(
         name="Layer Samples",
         description="How to use per view layer sample settings",
