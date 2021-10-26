@@ -71,8 +71,10 @@
 
 #include "ED_gpencil.h"
 #include "ED_node.h"
+#include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "UI_interface.hh"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -2158,15 +2160,34 @@ void node_draw_nodetree(const bContext *C,
   }
 }
 
-/* Draw tree path info in lower left corner. */
-static void draw_tree_path(SpaceNode *snode)
+/* Draw the breadcrumb on the bottom of the editor. */
+static void draw_tree_path(const bContext &C, ARegion &region)
 {
-  char info[256];
+  using namespace blender;
 
-  ED_node_tree_path_get_fixedbuf(snode, info, sizeof(info));
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(&region);
 
-  UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
-  BLF_draw_default(1.5f * UI_UNIT_X, 1.5f * UI_UNIT_Y, 0.0f, info, sizeof(info));
+  const rcti *rect = ED_region_visible_rect(&region);
+
+  const uiStyle *style = UI_style_get_dpi();
+  const float padding_x = 16 * UI_DPI_FAC;
+  const int x = rect->xmin + padding_x;
+  const int y = region.winy - UI_UNIT_Y * 0.6f;
+  const int width = BLI_rcti_size_x(rect) - 2 * padding_x;
+
+  uiBlock *block = UI_block_begin(&C, &region, __func__, UI_EMBOSS_NONE);
+  uiLayout *layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, width, 1, 0, style);
+
+  Vector<ui::ContextPathItem> context_path = ed::space_node::context_path_for_space_node(C);
+  ui::template_breadcrumbs(*layout, context_path);
+
+  UI_block_layout_resolve(block, nullptr, nullptr);
+  UI_block_end(&C, block);
+  UI_block_draw(&C, block);
+
+  GPU_matrix_pop_projection();
 }
 
 static void snode_setup_v2d(SpaceNode *snode, ARegion *region, const float center[2])
@@ -2336,8 +2357,10 @@ void node_draw_space(const bContext *C, ARegion *region)
     }
   }
 
-  /* Tree path info. */
-  draw_tree_path(snode);
+  /* Draw context path. */
+  if (snode->edittree) {
+    draw_tree_path(*C, *region);
+  }
 
   /* Scrollers. */
   UI_view2d_scrollers_draw(v2d, nullptr);

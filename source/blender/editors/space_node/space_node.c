@@ -201,27 +201,6 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
   }
 }
 
-void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_length)
-{
-  int size;
-
-  value[0] = '\0';
-  int i = 0;
-  LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
-    if (i == 0) {
-      size = BLI_strncpy_rlen(value, path->display_name, max_length);
-    }
-    else {
-      size = BLI_snprintf_rlen(value, max_length, "/%s", path->display_name);
-    }
-    max_length -= size;
-    if (max_length <= 0) {
-      break;
-    }
-    value += size;
-  }
-}
-
 void ED_node_set_active_viewer_key(SpaceNode *snode)
 {
   bNodeTreePath *path = snode->treepath.last;

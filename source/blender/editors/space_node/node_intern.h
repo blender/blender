@@ -341,3 +341,11 @@ extern const char *node_context_dir[];
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+#  include "BLI_vector.hh"
+#  include "UI_interface.hh"
+namespace blender::ed::space_node {
+Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
+}
+#endif

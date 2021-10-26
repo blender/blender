@@ -3211,8 +3211,8 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "Stroke Depth Offset",
                            "Move strokes slightly towards the camera to avoid clipping while "
                            "preserve depth for the viewport");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.001f, 4);
+  RNA_def_property_ui_range(prop, 0.0, 0.5, 0.001, 4);
+  RNA_def_property_range(prop, -0.1, FLT_MAX);
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "offset_towards_custom_camera", PROP_BOOLEAN, PROP_NONE);
