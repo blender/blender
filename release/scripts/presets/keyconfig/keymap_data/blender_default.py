@@ -1637,7 +1637,7 @@ def km_graph_editor_generic(_params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("graph.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
-        ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'area.type'), ("value", 'DOPESHEET_EDITOR')]}),
@@ -2359,7 +2359,7 @@ def km_dopesheet(params):
         ("action.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("action.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("anim.channels_editable_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
-        ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("transform.transform", {"type": 'G', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
         ("transform.transform", {"type": params.select_tweak, "value": 'ANY'},
@@ -2400,7 +2400,7 @@ def km_nla_generic(_params):
          {"properties": [("isolate_action", True)]}),
         ("nla.tweakmode_exit", {"type": 'TAB', "value": 'PRESS', "shift": True},
          {"properties": [("isolate_action", True)]}),
-        ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
@@ -3328,7 +3328,7 @@ def km_animation_channels(params):
         ("anim.channel_select_keys", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True)]}),
         # Find (setting the name filter).
-        ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         # Selection.
         *_template_items_select_actions(params, "anim.channels_select_all"),
         ("anim.channels_select_box", {"type": 'B', "value": 'PRESS'}, None),
