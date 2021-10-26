@@ -4329,6 +4329,25 @@ void node_draw_link_bezier(const View2D *v2d,
       UI_GetThemeColor4fv(th_col2, colors[2]);
     }
 
+    /* Highlight links connected to selected nodes. */
+    const bool is_fromnode_selected = link->fromnode && link->fromnode->flag & SELECT;
+    const bool is_tonode_selected = link->tonode && link->tonode->flag & SELECT;
+    if (is_fromnode_selected || is_tonode_selected) {
+      float color_selected[4];
+      UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
+      const float alpha = color_selected[3];
+
+      /* Interpolate color if highlight color is not fully transparent. */
+      if (alpha != 0.0) {
+        if (is_fromnode_selected) {
+          interp_v3_v3v3(colors[1], colors[1], color_selected, alpha);
+        }
+        if (is_tonode_selected) {
+          interp_v3_v3v3(colors[2], colors[2], color_selected, alpha);
+        }
+      }
+    }
+
     if (g_batch_link.enabled && !highlighted) {
       /* Add link to batch. */
       nodelink_batch_add_link(snode,
@@ -4401,15 +4420,6 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       }
       else if (link->flag & NODE_LINK_MUTED) {
         th_col1 = th_col2 = TH_REDALERT;
-      }
-      else {
-        /* Regular link, highlight if connected to selected node. */
-        if (link->fromnode && link->fromnode->flag & SELECT) {
-          th_col1 = TH_EDGE_SELECT;
-        }
-        if (link->tonode && link->tonode->flag & SELECT) {
-          th_col2 = TH_EDGE_SELECT;
-        }
       }
     }
     else {
