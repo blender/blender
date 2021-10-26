@@ -199,9 +199,10 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
                                       info.profile_edge_len * last_ring_index;
 
     for (const int i : IndexRange(info.profile_edge_len)) {
+      const int i_inv = info.profile_edge_len - i - 1;
       MLoop &loop_start = r_loops[cap_loop_offset + i];
-      loop_start.v = info.vert_offset + i;
-      loop_start.e = profile_edges_start + i;
+      loop_start.v = info.vert_offset + i_inv;
+      loop_start.e = profile_edges_start + i_inv;
       MLoop &loop_end = r_loops[cap_loop_offset + info.profile_edge_len + i];
       loop_end.v = last_ring_vert_offset + i;
       loop_end.e = last_ring_edge_offset + i;
