@@ -30,7 +30,7 @@ namespace blender::nodes {
 
 static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
   b.add_input<decl::Vector>("Position").implicit_field();
   b.add_input<decl::Float>("Radius")

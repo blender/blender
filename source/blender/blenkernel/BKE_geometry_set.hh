@@ -318,6 +318,8 @@ struct GeometrySet {
       bool include_instances,
       blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const;
 
+  blender::Vector<GeometryComponentType> gather_component_types(bool include_instances, bool ignore_empty) const;
+
   using ForeachSubGeometryCallback = blender::FunctionRef<void(GeometrySet &geometry_set)>;
 
   void modify_geometry_sets(ForeachSubGeometryCallback callback);

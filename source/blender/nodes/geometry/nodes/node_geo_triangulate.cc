@@ -31,7 +31,7 @@ namespace blender::nodes {
 
 static void geo_node_triangulate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Int>("Minimum Vertices").default_value(4).min(4).max(10000);
   b.add_output<decl::Geometry>("Geometry");
 }

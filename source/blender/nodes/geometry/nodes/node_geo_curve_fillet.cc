@@ -29,7 +29,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>("Count").default_value(1).min(1).max(1000).supports_field();
   b.add_input<decl::Float>("Radius")
       .min(0.0f)

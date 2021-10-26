@@ -171,9 +171,15 @@ class GeoNodeExecParams {
       this->check_input_access(identifier, &CPPType::get<T>());
 #endif
       GMutablePointer gvalue = this->extract_input(identifier);
-      return gvalue.relocate_out<T>();
+      T value = gvalue.relocate_out<T>();
+      if constexpr (std::is_same_v<T, GeometrySet>) {
+        this->check_input_geometry_set(identifier, value);
+      }
+      return value;
     }
   }
+
+  void check_input_geometry_set(StringRef identifier, const GeometrySet &geometry_set) const;
 
   /**
    * Get input as vector for multi input socket with the given identifier.
@@ -211,7 +217,11 @@ class GeoNodeExecParams {
 #endif
       GPointer gvalue = provider_->get_input(identifier);
       BLI_assert(gvalue.is_type<T>());
-      return *(const T *)gvalue.get();
+      const T &value = *(const T *)gvalue.get();
+      if constexpr (std::is_same_v<T, GeometrySet>) {
+        this->check_input_geometry_set(identifier, value);
+      }
+      return value;
     }
   }
 

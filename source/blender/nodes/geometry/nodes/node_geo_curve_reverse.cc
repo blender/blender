@@ -24,7 +24,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_output<decl::Geometry>("Curve");
 }

@@ -31,7 +31,8 @@ namespace blender::nodes {
 
 static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target");
+  b.add_input<decl::Geometry>("Target").only_realized_data().supported_type(
+      {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
   b.add_input<decl::Vector>("Source Position").implicit_field();
   b.add_output<decl::Vector>("Position").dependent_field();
   b.add_output<decl::Float>("Distance").dependent_field();
@@ -213,12 +214,6 @@ static void geo_node_proximity_exec(GeoNodeExecParams params)
     params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
     params.set_output("Distance", fn::make_constant_field<float>(0.0f));
   };
-
-  if (geometry_set_target.has_instances()) {
-    params.error_message_add(
-        NodeWarningType::Info,
-        TIP_("The node only supports realized mesh or point cloud data, instances are ignored"));
-  }
 
   if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
     return return_default();

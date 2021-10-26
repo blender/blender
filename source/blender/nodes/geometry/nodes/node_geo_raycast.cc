@@ -31,7 +31,9 @@ namespace blender::nodes {
 
 static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target Geometry");
+  b.add_input<decl::Geometry>("Target Geometry")
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_MESH);
 
   b.add_input<decl::Vector>("Attribute").hide_value().supports_field();
   b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().supports_field();
@@ -389,26 +391,11 @@ static void geo_node_raycast_exec(GeoNodeExecParams params)
     });
   };
 
-  if (target.has_instances()) {
-    if (target.has_realized_data()) {
-      params.error_message_add(
-          NodeWarningType::Info,
-          TIP_("The node only supports realized mesh data, instances are ignored"));
-    }
-    else {
-      params.error_message_add(NodeWarningType::Error,
-                               TIP_("The target geometry must contain realized data"));
-      return return_default();
-    }
-  }
-
   if (target.is_empty()) {
     return return_default();
   }
 
   if (!target.has_mesh()) {
-    params.error_message_add(NodeWarningType::Error,
-                             TIP_("The target geometry must contain a mesh"));
     return return_default();
   }
 

@@ -448,6 +448,7 @@ set(SRC
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
+  NOD_socket_declarations_geometry.hh
   NOD_static_types.h
   NOD_texture.h
   NOD_type_conversions.hh

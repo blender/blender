@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void geo_node_set_curve_handles_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>("Position").implicit_field();
   b.add_output<decl::Geometry>("Geometry");

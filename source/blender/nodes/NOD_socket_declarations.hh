@@ -212,14 +212,6 @@ class Image : public IDSocketDeclaration {
   Image();
 };
 
-class Geometry : public SocketDeclaration {
- public:
-  using Builder = SocketDeclarationBuilder<Geometry>;
-
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
-  bool matches(const bNodeSocket &socket) const override;
-};
-
 /* -------------------------------------------------------------------- */
 /** \name #FloatBuilder Inline Methods
  * \{ */
@@ -396,9 +388,7 @@ MAKE_EXTERN_SOCKET_DECLARATION(decl::Vector)
 MAKE_EXTERN_SOCKET_DECLARATION(decl::Bool)
 MAKE_EXTERN_SOCKET_DECLARATION(decl::Color)
 MAKE_EXTERN_SOCKET_DECLARATION(decl::String)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Geometry)
 
-#undef MAKE_EXTERN_SOCKET_DECLARATION
 }  // namespace blender::nodes
 
 /** \} */

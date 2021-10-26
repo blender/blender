@@ -27,8 +27,10 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Geometry>("Profile Curve");
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Profile Curve")
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>("Fill Caps")
       .description(
           "If the profile spline is cyclic, fill the ends of the generated mesh with N-gons");
@@ -58,18 +60,6 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
   const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
-  if (profile_set.has_instances()) {
-    params.error_message_add(NodeWarningType::Error,
-                             TIP_("Instances are not supported in the profile input"));
-    params.set_output("Mesh", GeometrySet());
-    return;
-  }
-
-  if (!profile_set.has_curve() && !profile_set.is_empty()) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("No curve data available in the profile input"));
-  }
-
   bool has_curve = false;
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curve()) {
@@ -78,11 +68,6 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
     }
     geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
   });
-
-  if (!has_curve && !curve_set.is_empty()) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("No curve data available in curve input"));
-  }
 
   params.set_output("Mesh", std::move(curve_set));
 }

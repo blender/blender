@@ -30,7 +30,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>("Count").default_value(10).min(2).max(100000);
   b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Points");

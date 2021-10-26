@@ -34,7 +34,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).supports_field();
   b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).supports_field().subtype(
       PROP_DISTANCE);

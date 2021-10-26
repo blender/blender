@@ -27,8 +27,10 @@ namespace blender::nodes {
 
 static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry 1");
-  b.add_input<decl::Geometry>("Geometry 2").multi_input();
+  b.add_input<decl::Geometry>("Geometry 1")
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Geometry 2").multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Geometry");
@@ -83,11 +85,6 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
   GeometrySet set_a;
   if (operation == GEO_NODE_BOOLEAN_DIFFERENCE) {
     set_a = params.extract_input<GeometrySet>("Geometry 1");
-    if (set_a.has_instances()) {
-      params.error_message_add(
-          NodeWarningType::Info,
-          TIP_("Instances are not supported for the first geometry input, and will not be used"));
-    }
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */

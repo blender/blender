@@ -39,7 +39,7 @@ namespace blender::nodes {
 
 static void geo_node_volume_to_mesh_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Volume");
+  b.add_input<decl::Geometry>("Volume").supported_type(GEO_COMPONENT_TYPE_VOLUME);
   b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
   b.add_input<decl::Float>("Threshold").default_value(0.1f).min(0.0f);

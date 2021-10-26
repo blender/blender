@@ -28,7 +28,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
   b.add_input<decl::Float>("End")
       .min(0.0f)

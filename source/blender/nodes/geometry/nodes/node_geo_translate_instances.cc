@@ -22,7 +22,7 @@ namespace blender::nodes {
 
 static void geo_node_translate_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").only_instances();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION).supports_field();
   b.add_input<decl::Bool>("Local Space").default_value(true).supports_field();

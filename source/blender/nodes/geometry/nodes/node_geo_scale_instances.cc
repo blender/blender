@@ -22,7 +22,7 @@ namespace blender::nodes {
 
 static void geo_node_scale_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").only_instances();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>("Scale").subtype(PROP_XYZ).default_value({1, 1, 1}).supports_field();
   b.add_input<decl::Vector>("Center").subtype(PROP_TRANSLATION).supports_field();

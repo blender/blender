@@ -42,7 +42,7 @@ namespace blender::nodes {
 
 static void geo_node_point_distribute_points_on_faces_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>("Distance Min").min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Density Max").default_value(10.0f).min(0.0f);

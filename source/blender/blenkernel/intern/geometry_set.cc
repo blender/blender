@@ -527,6 +527,40 @@ void GeometrySet::gather_attributes_for_propagation(
   delete dummy_component;
 }
 
+static void gather_component_types_recursive(const GeometrySet &geometry_set,
+                                             const bool include_instances,
+                                             const bool ignore_empty,
+                                             Vector<GeometryComponentType> &r_types)
+{
+  for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
+    if (ignore_empty) {
+      if (component->is_empty()) {
+        continue;
+      }
+    }
+    r_types.append_non_duplicates(component->type());
+  }
+  if (!include_instances) {
+    return;
+  }
+  const InstancesComponent *instances = geometry_set.get_component_for_read<InstancesComponent>();
+  if (instances == nullptr) {
+    return;
+  }
+  instances->foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
+    gather_component_types_recursive(
+        instance_geometry_set, include_instances, ignore_empty, r_types);
+  });
+}
+
+blender::Vector<GeometryComponentType> GeometrySet::gather_component_types(
+    const bool include_instances, bool ignore_empty) const
+{
+  Vector<GeometryComponentType> types;
+  gather_component_types_recursive(*this, include_instances, ignore_empty, types);
+  return types;
+}
+
 static void gather_mutable_geometry_sets(GeometrySet &geometry_set,
                                          Vector<GeometrySet *> &r_geometry_sets)
 {
