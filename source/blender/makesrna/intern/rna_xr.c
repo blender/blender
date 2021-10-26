@@ -1747,7 +1747,9 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
                                  "rna_XrSessionSettings_use_absolute_tracking_get",
                                  "rna_XrSessionSettings_use_absolute_tracking_set");
   RNA_def_property_ui_text(
-      prop, "Absolute Tracking", "Use unadjusted location/rotation as defined by the XR runtime");
+      prop,
+      "Absolute Tracking",
+      "Allow the VR tracking origin to be defined independently of the headset location");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 }
 
