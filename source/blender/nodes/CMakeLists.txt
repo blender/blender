@@ -231,6 +231,7 @@ set(SRC
   geometry/nodes/node_geo_image_texture.cc
   geometry/nodes/node_geo_input_curve_handles.cc
   geometry/nodes/node_geo_input_curve_tilt.cc
+  geometry/nodes/node_geo_input_id.cc
   geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material_index.cc
   geometry/nodes/node_geo_input_material.cc
@@ -272,6 +273,7 @@ set(SRC
   geometry/nodes/node_geo_set_curve_handles.cc
   geometry/nodes/node_geo_set_curve_radius.cc
   geometry/nodes/node_geo_set_curve_tilt.cc
+  geometry/nodes/node_geo_set_id.cc
   geometry/nodes/node_geo_set_material_index.cc
   geometry/nodes/node_geo_set_material.cc
   geometry/nodes/node_geo_set_point_radius.cc

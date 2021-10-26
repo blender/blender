@@ -5804,6 +5804,7 @@ static void registerGeometryNodes()
   register_node_type_geo_image_texture();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
+  register_node_type_geo_input_id();
   register_node_type_geo_input_index();
   register_node_type_geo_input_material_index();
   register_node_type_geo_input_material();
@@ -5852,6 +5853,7 @@ static void registerGeometryNodes()
   register_node_type_geo_set_curve_handles();
   register_node_type_geo_set_curve_radius();
   register_node_type_geo_set_curve_tilt();
+  register_node_type_geo_set_id();
   register_node_type_geo_set_material_index();
   register_node_type_geo_set_material();
   register_node_type_geo_set_point_radius();
