@@ -27,6 +27,7 @@ set(INC
   ../../../intern/guardedalloc
   ../../../intern/numaapi/include
   ../../../extern/wcwidth
+  ../../../extern/json/include
 )
 
 set(INC_SYS
@@ -126,6 +127,7 @@ set(SRC
   intern/scanfill.c
   intern/scanfill_utils.c
   intern/session_uuid.c
+  intern/serialize.cc
   intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
@@ -282,6 +284,7 @@ set(SRC
   BLI_session_uuid.h
   BLI_set.hh
   BLI_set_slots.hh
+  BLI_serialize.hh
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
@@ -448,6 +451,7 @@ if(WITH_GTESTS)
     tests/BLI_span_test.cc
     tests/BLI_stack_cxx_test.cc
     tests/BLI_stack_test.cc
+    tests/BLI_serialize_test.cc
     tests/BLI_string_ref_test.cc
     tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc
