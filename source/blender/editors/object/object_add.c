@@ -3630,7 +3630,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
   if (RNA_property_is_set(op->ptr, prop_matrix)) {
     uint objects_len;
-    Object **objects = BKE_view_layer_array_selected_objects(view_layer, NULL, &objects_len, {});
+    Object **objects = BKE_view_layer_array_selected_objects(view_layer, NULL, &objects_len, {0});
 
     float matrix[4][4];
     RNA_property_float_get_array(op->ptr, prop_matrix, &matrix[0][0]);
