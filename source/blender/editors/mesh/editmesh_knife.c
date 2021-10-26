@@ -4796,7 +4796,7 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
                   "Occlude Geometry",
                   "Only cut the front most geometry");
   RNA_def_boolean(ot->srna, "only_selected", false, "Only Selected", "Only cut selected geometry");
-  RNA_def_boolean(ot->srna, "xray", true, "X-Ray", "Show cuts through geometry");
+  RNA_def_boolean(ot->srna, "xray", true, "X-Ray", "Show cuts hidden by geometry");
 
   RNA_def_enum(ot->srna,
                "visible_measurements",
