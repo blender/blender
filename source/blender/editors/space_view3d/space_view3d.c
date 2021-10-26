@@ -524,6 +524,7 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
   }
 
   state = drop->draw_data = ED_view3d_cursor_snap_active();
+  state->draw_plane = true;
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
@@ -678,6 +679,7 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   RNA_boolean_set(drop->ptr, "duplicate", !is_imported_id);
 
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   Object *ob = (Object *)id;
   float obmat_final[4][4];
 
