@@ -238,6 +238,8 @@ class SEQUENCER_MT_editor_menus(Menu):
             layout.menu("SEQUENCER_MT_add")
             layout.menu("SEQUENCER_MT_strip")
 
+        layout.menu("SEQUENCER_MT_image")
+
 
 class SEQUENCER_PT_gizmo_display(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
@@ -787,23 +789,6 @@ class SEQUENCER_MT_add_effect(Menu):
         col.enabled = selected_sequences_len(context) != 0
 
 
-class SEQUENCER_MT_strip_image_transform(Menu):
-    bl_label = "Image Transform"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("sequencer.strip_transform_fit", text="Scale To Fit").fit_method = 'FIT'
-        layout.operator("sequencer.strip_transform_fit", text="Scale to Fill").fit_method = 'FILL'
-        layout.operator("sequencer.strip_transform_fit", text="Stretch To Fill").fit_method = 'STRETCH'
-        layout.separator()
-
-        layout.operator("sequencer.strip_transform_clear", text="Clear Position").property = 'POSITION'
-        layout.operator("sequencer.strip_transform_clear", text="Clear Scale").property = 'SCALE'
-        layout.operator("sequencer.strip_transform_clear", text="Clear Rotation").property = 'ROTATION'
-        layout.operator("sequencer.strip_transform_clear", text="Clear All").property = 'ALL'
-
-
 class SEQUENCER_MT_strip_transform(Menu):
     bl_label = "Transform"
 
@@ -898,7 +883,6 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_transform")
-        layout.menu("SEQUENCER_MT_strip_image_transform")
 
         layout.separator()
         layout.operator("sequencer.split", text="Split").type = 'SOFT'
@@ -956,6 +940,56 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_input")
+
+
+class SEQUENCER_MT_image(Menu):
+    bl_label = "Image"
+
+    def draw(self, context):
+        layout = self.layout
+        st = context.space_data
+
+        if st.view_type == {'PREVIEW', 'SEQUENCER_PREVIEW'}:
+            layout.menu("SEQUENCER_MT_image_transform")
+
+        layout.menu("SEQUENCER_MT_image_clear")
+        layout.menu("SEQUENCER_MT_image_apply")
+
+
+class SEQUENCER_MT_image_transform(Menu):
+    bl_label = "Transfrom"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_PREVIEW'
+
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize", text="Scale")
+
+
+class SEQUENCER_MT_image_clear(Menu):
+    bl_label = "Clear"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("sequencer.strip_transform_clear", text="Position").property = 'POSITION'
+        layout.operator("sequencer.strip_transform_clear", text="Scale").property = 'SCALE'
+        layout.operator("sequencer.strip_transform_clear", text="Rotation").property = 'ROTATION'
+        layout.operator("sequencer.strip_transform_clear", text="All Transforms").property = 'ALL'
+
+
+class SEQUENCER_MT_image_apply(Menu):
+    bl_label = "Apply"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("sequencer.strip_transform_fit", text="Scale To Fit").fit_method = 'FIT'
+        layout.operator("sequencer.strip_transform_fit", text="Scale to Fill").fit_method = 'FILL'
+        layout.operator("sequencer.strip_transform_fit", text="Stretch To Fill").fit_method = 'STRETCH'
 
 
 class SEQUENCER_MT_context_menu(Menu):
@@ -2523,10 +2557,13 @@ classes = (
     SEQUENCER_MT_strip_effect,
     SEQUENCER_MT_strip_movie,
     SEQUENCER_MT_strip,
-    SEQUENCER_MT_strip_image_transform,
     SEQUENCER_MT_strip_transform,
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
+    SEQUENCER_MT_image,
+    SEQUENCER_MT_image_transform,
+    SEQUENCER_MT_image_clear,
+    SEQUENCER_MT_image_apply,
     SEQUENCER_MT_color_tag_picker,
     SEQUENCER_MT_context_menu,
     SEQUENCER_MT_preview_context_menu,
