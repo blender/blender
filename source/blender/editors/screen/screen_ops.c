@@ -219,6 +219,20 @@ bool ED_operator_objectmode(bContext *C)
   return true;
 }
 
+/**
+ * Same as #ED_operator_objectmode() but additionally sets a "disabled hint". That is, a message
+ * to be displayed to the user explaining why the operator can't be used in current context.
+ */
+bool ED_operator_objectmode_poll_msg(bContext *C)
+{
+  if (!ED_operator_objectmode(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Only supported in object mode");
+    return false;
+  }
+
+  return true;
+}
+
 static bool ed_spacetype_test(bContext *C, int type)
 {
   if (ED_operator_areaactive(C)) {

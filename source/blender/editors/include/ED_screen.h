@@ -317,6 +317,7 @@ bool ED_operator_regionactive(struct bContext *C);
 bool ED_operator_scene(struct bContext *C);
 bool ED_operator_scene_editable(struct bContext *C);
 bool ED_operator_objectmode(struct bContext *C);
+bool ED_operator_objectmode_poll_msg(struct bContext *C);
 
 bool ED_operator_view3d_active(struct bContext *C);
 bool ED_operator_region_view3d_active(struct bContext *C);
