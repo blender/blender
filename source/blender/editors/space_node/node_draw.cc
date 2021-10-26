@@ -730,7 +730,7 @@ static void node_draw_mute_line(const View2D *v2d, const SpaceNode *snode, const
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &node->internal_links) {
-    node_draw_link_bezier(v2d, snode, link, TH_REDALERT, TH_REDALERT, -1);
+    node_draw_link_bezier(v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -809,12 +809,10 @@ static void node_socket_outline_color_get(const bool selected,
                                           float r_outline_color[4])
 {
   if (selected) {
-    UI_GetThemeColor4fv(TH_TEXT_HI, r_outline_color);
-    r_outline_color[3] = 0.9f;
+    UI_GetThemeColor4fv(TH_ACTIVE, r_outline_color);
   }
   else {
-    copy_v4_fl(r_outline_color, 0.0f);
-    r_outline_color[3] = 0.6f;
+    UI_GetThemeColor4fv(TH_WIRE, r_outline_color);
   }
 
   /* Until there is a better place for per socket color,
@@ -834,11 +832,6 @@ void node_socket_color_get(
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 
   sock->typeinfo->draw_color(C, &ptr, node_ptr, r_color);
-
-  bNode *node = (bNode *)node_ptr->data;
-  if (node->flag & NODE_MUTED) {
-    r_color[3] *= 0.25f;
-  }
 }
 
 struct SocketTooltipData {
@@ -1174,7 +1167,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   GPU_program_point_size(true);
 
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
-  immUniform1f("outline_scale", 0.7f);
+  immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
   /* Single point. */
@@ -1319,7 +1312,7 @@ void node_draw_sockets(const View2D *v2d,
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
-  immUniform1f("outline_scale", 0.7f);
+  immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
   /* Set handle size. */
@@ -1613,24 +1606,13 @@ static void node_draw_basis(const bContext *C,
   /* Shadow. */
   node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 
+  rctf *rct = &node->totr;
   float color[4];
   int color_id = node_get_colorid(node);
-  if (node->flag & NODE_MUTED) {
-    /* Muted nodes are semi-transparent and colorless. */
-    UI_GetThemeColor3fv(TH_NODE, color);
-    color[3] = 0.25f;
-  }
-  else {
-    /* Opaque headers for regular nodes. */
-    UI_GetThemeColor3fv(color_id, color);
-    color[3] = 1.0f;
-  }
 
   GPU_line_width(1.0f);
 
-  rctf *rct = &node->totr;
-  UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
-
+  /* Header. */
   {
     const rctf rect = {
         rct->xmin,
@@ -1638,7 +1620,19 @@ static void node_draw_basis(const bContext *C,
         rct->ymax - NODE_DY,
         rct->ymax,
     };
-    UI_draw_roundbox_aa(&rect, true, BASIS_RAD, color);
+
+    float color_header[4];
+
+    /* Muted nodes get a mix of the background with the node color. */
+    if (node->flag & NODE_MUTED) {
+      UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.1f, 0, color_header);
+    }
+    else {
+      UI_GetThemeColorBlendShade4fv(TH_NODE, color_id, 0.6f, -40, color_header);
+    }
+
+    UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
+    UI_draw_roundbox_4fv(&rect, true, BASIS_RAD, color_header);
   }
 
   /* Show/hide icons. */
@@ -1721,31 +1715,28 @@ static void node_draw_basis(const bContext *C,
     UI_GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
   }
 
-  /* Open/close entirely. */
+  /* Collapse/expand icon. */
   {
-    int but_size = U.widget_unit * 0.8f;
-    /* XXX button uses a custom triangle draw below, so make it invisible without icon. */
+    const int but_size = U.widget_unit * 0.8f;
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    uiBut *but = uiDefBut(node->block,
-                          UI_BTYPE_BUT_TOGGLE,
-                          0,
-                          "",
-                          rct->xmin + 0.35f * U.widget_unit,
-                          rct->ymax - NODE_DY / 2.2f - but_size / 2,
-                          but_size,
-                          but_size,
-                          nullptr,
-                          0,
-                          0,
-                          0,
-                          0,
-                          "");
+
+    uiBut *but = uiDefIconBut(node->block,
+                              UI_BTYPE_BUT_TOGGLE,
+                              0,
+                              ICON_DOWNARROW_HLT,
+                              rct->xmin + (NODE_MARGIN_X / 3),
+                              rct->ymax - NODE_DY / 2.2f - but_size / 2,
+                              but_size,
+                              but_size,
+                              nullptr,
+                              0.0f,
+                              0.0f,
+                              0.0f,
+                              0.0f,
+                              "");
+
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
-
-    UI_GetThemeColor4fv(TH_TEXT, color);
-    /* Custom draw function for this button. */
-    UI_draw_icon_tri(rct->xmin + 0.65f * U.widget_unit, rct->ymax - NODE_DY / 2.2f, 'v', color);
   }
 
   char showname[128];
@@ -1755,7 +1746,7 @@ static void node_draw_basis(const bContext *C,
                         UI_BTYPE_LABEL,
                         0,
                         showname,
-                        (int)(rct->xmin + NODE_MARGIN_X),
+                        (int)(rct->xmin + NODE_MARGIN_X + 0.4f),
                         (int)(rct->ymax - NODE_DY),
                         (short)(iconofs - rct->xmin - (18.0f * U.dpi_fac)),
                         (short)NODE_DY,
@@ -1769,49 +1760,97 @@ static void node_draw_basis(const bContext *C,
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
   }
 
-  /* Body. */
-  if (nodeTypeUndefined(node)) {
-    /* Use warning color to indicate undefined types. */
-    UI_GetThemeColor4fv(TH_REDALERT, color);
-  }
-  else if (node->flag & NODE_MUTED) {
-    /* Muted nodes are semi-transparent and colorless. */
-    UI_GetThemeColor4fv(TH_NODE, color);
-  }
-  else if (node->flag & NODE_CUSTOM_COLOR) {
-    rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
-  }
-  else {
-    UI_GetThemeColor4fv(TH_NODE, color);
-  }
-
+  /* Wire across the node when muted/disabled. */
   if (node->flag & NODE_MUTED) {
-    color[3] = 0.5f;
+    node_draw_mute_line(v2d, snode, node);
   }
 
+  /* Body. */
+  const float outline_width = 1.0f;
   {
-    UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+    /* Use warning color to indicate undefined types. */
+    if (nodeTypeUndefined(node)) {
+      UI_GetThemeColorBlendShade4fv(TH_REDALERT, color_id, 0.05f, -80, color);
+    }
+    /* Muted nodes get a mix of the background with the node color. */
+    else if (node->flag & NODE_MUTED) {
+      UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.33f, 0, color);
+    }
+    else if (node->flag & NODE_CUSTOM_COLOR) {
+      rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
+    }
+    else {
+      UI_GetThemeColor4fv(TH_NODE, color);
+    }
+
+    /* Draw selected nodes fully opaque. */
+    if (node->flag & SELECT) {
+      color[3] = 1.0f;
+    }
+
+    /* Draw muted nodes slightly transparent so the wires inside are visible. */
+    if (node->flag & NODE_MUTED) {
+      color[3] -= 0.2f;
+    }
+
     const rctf rect = {
         rct->xmin,
         rct->xmax,
         rct->ymin,
+        rct->ymax - (NODE_DY + outline_width),
+    };
+
+    UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+    UI_draw_roundbox_4fv(&rect, true, BASIS_RAD, color);
+  }
+
+  /* Header underline. */
+  {
+    float color_underline[4];
+
+    if (node->flag & NODE_MUTED) {
+      UI_GetThemeColor4fv(TH_WIRE, color_underline);
+    }
+    else {
+      UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.4f, -30, color_underline);
+      color_underline[3] = 1.0f;
+    }
+
+    const rctf rect = {
+        rct->xmin,
+        rct->xmax,
+        rct->ymax - (NODE_DY + outline_width),
         rct->ymax - NODE_DY,
     };
-    UI_draw_roundbox_aa(&rect, true, BASIS_RAD, color);
+
+    UI_draw_roundbox_corner_set(UI_CNR_NONE);
+    UI_draw_roundbox_4fv(&rect, true, 0.0f, color_underline);
   }
 
-  /* Outline active and selected emphasis. */
-  if (node->flag & SELECT) {
-    UI_GetThemeColorShadeAlpha4fv(
-        (node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, 0, -40, color);
+  /* Outline. */
+  {
+    const rctf rect = {
+        rct->xmin - outline_width,
+        rct->xmax + outline_width,
+        rct->ymin - outline_width,
+        rct->ymax + outline_width,
+    };
+
+    /* Color the outline according to active, selected, or undefined status. */
+    float color_outline[4];
+
+    if (node->flag & SELECT) {
+      UI_GetThemeColor4fv((node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
+    }
+    else if (nodeTypeUndefined(node)) {
+      UI_GetThemeColor4fv(TH_REDALERT, color_outline);
+    }
+    else {
+      UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.4f, -20, color_outline);
+    }
 
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
-  }
-
-  /* Disable lines. */
-  if (node->flag & NODE_MUTED) {
-    node_draw_mute_line(v2d, snode, node);
+    UI_draw_roundbox_4fv(&rect, false, BASIS_RAD, color_outline);
   }
 
   node_draw_sockets(v2d, C, ntree, node, true, false);
@@ -1846,46 +1885,45 @@ static void node_draw_hidden(const bContext *C,
   float scale;
   UI_view2d_scale_get(v2d, &scale, nullptr);
 
+  const int color_id = node_get_colorid(node);
+
   /* Shadow. */
   node_draw_shadow(snode, node, hiddenrad, 1.0f);
 
+  /* Wire across the node when muted/disabled. */
+  if (node->flag & NODE_MUTED) {
+    node_draw_mute_line(v2d, snode, node);
+  }
+
   /* Body. */
   float color[4];
-  int color_id = node_get_colorid(node);
-  if (node->flag & NODE_MUTED) {
-    /* Muted nodes are semi-transparent and colorless. */
-    UI_GetThemeColor4fv(TH_NODE, color);
-    color[3] = 0.25f;
-  }
-  else {
-    UI_GetThemeColor4fv(color_id, color);
-  }
+  {
+    if (nodeTypeUndefined(node)) {
+      /* Use warning color to indicate undefined types. */
+      UI_GetThemeColorBlendShade4fv(TH_REDALERT, color_id, 0.05f, -80, color);
+    }
+    else if (node->flag & NODE_MUTED) {
+      /* Muted nodes get a mix of the background with the node color. */
+      UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.1f, 0, color);
+    }
+    else if (node->flag & NODE_CUSTOM_COLOR) {
+      rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
+    }
+    else {
+      UI_GetThemeColorBlendShade4fv(TH_NODE, color_id, 0.6f, -40, color);
+    }
 
-  UI_draw_roundbox_aa(rct, true, hiddenrad, color);
+    /* Draw selected nodes fully opaque. */
+    if (node->flag & SELECT) {
+      color[3] = 1.0f;
+    }
 
-  /* Outline active and selected emphasis. */
-  if (node->flag & SELECT) {
-    UI_GetThemeColorShadeAlpha4fv(
-        (node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, 0, -40, color);
+    /* Draw muted nodes slightly transparent so the wires inside are visible. */
+    if (node->flag & NODE_MUTED) {
+      color[3] -= 0.2f;
+    }
 
-    UI_draw_roundbox_aa(rct, false, hiddenrad, color);
-  }
-
-  /* Custom color inline. */
-  if (node->flag & NODE_CUSTOM_COLOR) {
-    GPU_blend(GPU_BLEND_ALPHA);
-    GPU_line_smooth(true);
-
-    const rctf rect = {
-        rct->xmin + 1,
-        rct->xmax - 1,
-        rct->ymin + 1,
-        rct->ymax - 1,
-    };
-    UI_draw_roundbox_3fv_alpha(&rect, false, hiddenrad, node->color, 1.0f);
-
-    GPU_line_smooth(false);
-    GPU_blend(GPU_BLEND_NONE);
+    UI_draw_roundbox_4fv(rct, true, hiddenrad, color);
   }
 
   /* Title. */
@@ -1896,36 +1934,28 @@ static void node_draw_hidden(const bContext *C,
     UI_GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
   }
 
-  /* Open / collapse icon. */
+  /* Collapse/expand icon. */
   {
-    int but_size = U.widget_unit * 0.8f;
-    /* XXX button uses a custom triangle draw below, so make it invisible without icon */
+    const int but_size = U.widget_unit * 1.0f;
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    uiBut *but = uiDefBut(node->block,
-                          UI_BTYPE_BUT_TOGGLE,
-                          0,
-                          "",
-                          rct->xmin + 0.35f * U.widget_unit,
-                          centy - but_size / 2,
-                          but_size,
-                          but_size,
-                          nullptr,
-                          0,
-                          0,
-                          0,
-                          0,
-                          "");
+
+    uiBut *but = uiDefIconBut(node->block,
+                              UI_BTYPE_BUT_TOGGLE,
+                              0,
+                              ICON_RIGHTARROW,
+                              rct->xmin + (NODE_MARGIN_X / 3),
+                              centy - but_size / 2,
+                              but_size,
+                              but_size,
+                              nullptr,
+                              0.0f,
+                              0.0f,
+                              0.0f,
+                              0.0f,
+                              "");
+
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
-
-    UI_GetThemeColor4fv(TH_TEXT, color);
-    /* Custom draw function for this button. */
-    UI_draw_icon_tri(rct->xmin + 0.65f * U.widget_unit, centy, 'h', color);
-  }
-
-  /* Disable lines. */
-  if (node->flag & NODE_MUTED) {
-    node_draw_mute_line(v2d, snode, node);
   }
 
   char showname[128];
@@ -1945,15 +1975,44 @@ static void node_draw_hidden(const bContext *C,
                         0,
                         0,
                         "");
+
+  /* Outline. */
+  {
+    const float outline_width = 1.0f;
+    const rctf rect = {
+        rct->xmin - outline_width,
+        rct->xmax + outline_width,
+        rct->ymin - outline_width,
+        rct->ymax + outline_width,
+    };
+
+    /* Color the outline according to active, selected, or undefined status. */
+    float color_outline[4];
+
+    if (node->flag & SELECT) {
+      UI_GetThemeColor4fv((node->flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
+    }
+    else if (nodeTypeUndefined(node)) {
+      UI_GetThemeColor4fv(TH_REDALERT, color_outline);
+    }
+    else {
+      UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.4f, -20, color_outline);
+    }
+
+    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+    UI_draw_roundbox_4fv(&rect, false, hiddenrad, color_outline);
+  }
+
   if (node->flag & NODE_MUTED) {
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
   }
 
   /* Scale widget thing. */
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  immUniformThemeColorShade(color_id, -10);
+  immUniformThemeColorShadeAlpha(TH_TEXT, -40, -180);
   float dx = 10.0f;
 
   immBegin(GPU_PRIM_LINES, 4);
@@ -1964,7 +2023,7 @@ static void node_draw_hidden(const bContext *C,
   immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
   immEnd();
 
-  immUniformThemeColorShade(color_id, 30);
+  immUniformThemeColorShadeAlpha(TH_TEXT, 0, -180);
   dx -= snode->runtime->aspect;
 
   immBegin(GPU_PRIM_LINES, 4);
@@ -1976,6 +2035,7 @@ static void node_draw_hidden(const bContext *C,
   immEnd();
 
   immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
 
   node_draw_sockets(v2d, C, ntree, node, true, false);
 

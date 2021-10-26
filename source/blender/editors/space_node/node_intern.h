@@ -332,7 +332,7 @@ extern const char *node_context_dir[];
 #define NODE_SOCKDY (0.1f * U.widget_unit)
 #define NODE_WIDTH(node) (node->width * UI_DPI_FAC)
 #define NODE_HEIGHT(node) (node->height * UI_DPI_FAC)
-#define NODE_MARGIN_X (1.10f * U.widget_unit)
+#define NODE_MARGIN_X (1.2f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
 #define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)

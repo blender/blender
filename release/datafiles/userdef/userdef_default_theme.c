@@ -792,7 +792,7 @@ const bTheme U_theme_default = {
     .row_alternate = RGBA(0xffffff07),
   },
   .space_node = {
-    .back = RGBA(0x23232300),
+    .back = RGBA(0x1a1a1a00),
     .title = RGBA(0xeeeeeeff),
     .text = RGBA(0xe6e6e6ff),
     .text_hi = RGBA(0xffffffff),
@@ -829,7 +829,7 @@ const bTheme U_theme_default = {
     .noodle_curving = 4,
     .grid_levels = 7,
     .dash_alpha = 0.5f,
-    .syntaxl = RGBA(0x565656ff),
+    .syntaxl = RGBA(0x3e3e3eff),
     .syntaxs = RGBA(0x975b5bff),
     .syntaxb = RGBA(0xccb83dff),
     .syntaxn = RGBA(0xe64555ff),
