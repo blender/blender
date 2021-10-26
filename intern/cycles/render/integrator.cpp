@@ -270,7 +270,7 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
   }
 }
 
-uint Integrator::get_kernel_features(const Scene *scene) const
+uint Integrator::get_kernel_features() const
 {
   uint kernel_features = 0;
 

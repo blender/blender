@@ -102,7 +102,7 @@ class Integrator : public Node {
 
   void tag_update(Scene *scene, uint32_t flag);
 
-  uint get_kernel_features(const Scene *scene) const;
+  uint get_kernel_features() const;
 
   AdaptiveSampling get_adaptive_sampling() const;
   DenoiseParams get_denoise_params() const;

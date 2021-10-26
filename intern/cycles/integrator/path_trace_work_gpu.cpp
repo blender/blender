@@ -120,7 +120,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * TODO: store float3 in separate XYZ arrays. */
 #define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
-  if ((kernel_features & feature) && (integrator_state_gpu_.parent_struct.name == nullptr)) { \
+  if ((kernel_features & (feature)) && (integrator_state_gpu_.parent_struct.name == nullptr)) { \
     device_only_memory<type> *array = new device_only_memory<type>(device_, \
                                                                    "integrator_state_" #name); \
     array->alloc_to_device(max_num_paths_); \
@@ -128,7 +128,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     integrator_state_gpu_.parent_struct.name = (type *)array->device_pointer; \
   }
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
-  if ((kernel_features & feature) && \
+  if ((kernel_features & (feature)) && \
       (integrator_state_gpu_.parent_struct[array_index].name == nullptr)) { \
     device_only_memory<type> *array = new device_only_memory<type>(device_, \
                                                                    "integrator_state_" #name); \
