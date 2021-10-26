@@ -979,6 +979,8 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  /* Request a slightly more compact layout for asset browsing. */
+  const bool compact = ED_fileselect_is_asset_browser(sfile);
   FileLayout *layout = NULL;
   View2D *v2d = &region->v2d;
   int numfiles;
@@ -998,12 +1000,13 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   layout->textheight = textheight;
 
   if (params->display == FILE_IMGDISPLAY) {
+    const float pad_fac = compact ? 0.15f : 0.3f;
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
-    layout->tile_border_x = 0.3f * UI_UNIT_X;
-    layout->tile_border_y = 0.3f * UI_UNIT_X;
-    layout->prv_border_x = 0.3f * UI_UNIT_X;
-    layout->prv_border_y = 0.3f * UI_UNIT_Y;
+    layout->tile_border_x = pad_fac * UI_UNIT_X;
+    layout->tile_border_y = pad_fac * UI_UNIT_X;
+    layout->prv_border_x = pad_fac * UI_UNIT_X;
+    layout->prv_border_y = pad_fac * UI_UNIT_Y;
     layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
     layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
     layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
