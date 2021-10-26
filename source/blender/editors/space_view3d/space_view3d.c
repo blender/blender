@@ -1731,7 +1731,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     return 0; /* not found */
   }
 
-  return -1; /* found but not available */
+  return 1;
 }
 
 static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
