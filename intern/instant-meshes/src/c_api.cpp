@@ -19,7 +19,7 @@
 
 int instant_meshes_nprocs = 1;
 
-const float len_v3v3(const float *a, const float *b)
+static const float len_v3v3(const float *a, const float *b)
 {
   float dx = a[0] - b[0];
   float dy = a[1] - b[1];
@@ -28,6 +28,34 @@ const float len_v3v3(const float *a, const float *b)
   float len = dx * dx + dy * dy + dz * dz;
 
   return len > 0.0f ? sqrtf(len) : 0.0f;
+}
+
+static void cross_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3])
+{
+  float n1[3], n2[3];
+
+  n1[0] = v1[0] - v2[0];
+  n2[0] = v2[0] - v3[0];
+  n1[1] = v1[1] - v2[1];
+  n2[1] = v2[1] - v3[1];
+  n1[2] = v1[2] - v2[2];
+  n2[2] = v2[2] - v3[2];
+  n[0] = n1[1] * n2[2] - n1[2] * n2[1];
+  n[1] = n1[2] * n2[0] - n1[0] * n2[2];
+  n[2] = n1[0] * n2[1] - n1[1] * n2[0];
+}
+
+/* Triangles */
+static float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
+{
+  float n[3];
+  cross_tri_v3(n, v1, v2, v3);
+  return sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]) * 0.5f;
+}
+
+static float fract(float f)
+{
+  return f - floorf(f);
 }
 
 extern "C" {
@@ -47,17 +75,21 @@ void instant_meshes_run(RemeshMesh *mesh)
   V.resize(3, mesh->totvert);
   N.resize(3, mesh->totvert);
 
-  // F.resize(mesh->tottri * 3);
-  // V.resize(mesh->totvert * 3);
-  // N.resize(mesh->totvert * 3);
+  float area = 0.0f;
 
   for (int i = 0; i < mesh->tottri; i++) {
     RemeshTri *tri = mesh->tris + i;
 
-    elen += len_v3v3(mesh->verts[tri->v1].co, mesh->verts[tri->v2].co);
-    elen += len_v3v3(mesh->verts[tri->v2].co, mesh->verts[tri->v3].co);
-    elen += len_v3v3(mesh->verts[tri->v3].co, mesh->verts[tri->v1].co);
+    float *co1 = mesh->verts[tri->v1].co;
+    float *co2 = mesh->verts[tri->v2].co;
+    float *co3 = mesh->verts[tri->v3].co;
+
+    elen += len_v3v3(co1, co2);
+    elen += len_v3v3(co2, co3);
+    elen += len_v3v3(co3, co1);
     totlen += 3;
+
+    area += area_tri_v3(co1, co2, co3);
 
     F(0, i) = tri->v1;
     F(1, i) = tri->v2;
@@ -75,14 +107,18 @@ void instant_meshes_run(RemeshMesh *mesh)
 
   if (totlen > 0) {
     elen /= totlen;
-    scale = elen * 4.0f;
+  }
+
+  scale = sqrt(area / (float)mesh->goal_faces);
+  if (scale == 0.0f) {
+    return;  // error
   }
 
   const bool extrinsic = true;
   const bool deterministic = false;
-  const int rosy = 4, posy = 4;
+  const int rosy = 2, posy = 4;
 
-  printf("scale: %.5f\n", scale);
+  printf("totarea: %.4f, scale: %.5f\n", area, scale);
 
   VectorXu V2E, E2E;
   VectorXb boundary;
@@ -161,8 +197,10 @@ void instant_meshes_run(RemeshMesh *mesh)
   opt.setRoSy(rosy);
   opt.setPoSy(posy);
 
+  const int iterations = mesh->iterations;
+
   printf("optimizing orientation field\n");
-  for (int step = 0; step < 1; step++) {
+  for (int step = 0; step < iterations; step++) {
     opt.optimizeOrientations(-1);
     opt.notify();
     opt.wait();
@@ -173,7 +211,7 @@ void instant_meshes_run(RemeshMesh *mesh)
   cout << "Orientation field has " << sing.size() << " singularities." << endl;
 
   printf("optimizing position field\n");
-  for (int step = 0; step < 1; step++) {
+  for (int step = 0; step < iterations; step++) {
     opt.optimizePositions(-1);
     opt.notify();
     opt.wait();
@@ -183,7 +221,49 @@ void instant_meshes_run(RemeshMesh *mesh)
   compute_position_singularities(mRes, sing, pos_sing, extrinsic, rosy, posy);
   cout << "Position field has " << pos_sing.size() << " singularities." << endl;
 
+#ifdef INSTANT_MESHES_VIS_COLOR
+  {
+    mesh->totoutface = mesh->tottri;
+    mesh->totoutvert = mesh->totvert;
+
+    mesh->outfaces = (RemeshOutFace *)MEM_malloc_arrayN(
+        mesh->tottri, sizeof(RemeshOutFace), "RemeshOutFace");
+    mesh->outverts = (RemeshVertex *)MEM_malloc_arrayN(
+        mesh->totvert, sizeof(RemeshVertex), "RemeshVertex");
+    memcpy(mesh->outverts, mesh->verts, sizeof(*mesh->outverts) * mesh->totvert);
+    mesh->out_scracth = (int *)MEM_malloc_arrayN(mesh->tottri * 3, sizeof(int), "out_scratch");
+
+    int li = 0;
+    RemeshOutFace *f = mesh->outfaces;
+    RemeshTri *tri = mesh->tris;
+    RemeshVertex *v = mesh->outverts;
+
+    auto O = mRes.O(0);
+    printf("O size: [%d][%d]\n", (int)O.cols(), (int)O.rows());
+
+    for (int i = 0; i < mesh->totvert; i++, v++) {
+      v->viscolor[0] = O(0, i);
+      v->viscolor[1] = O(1, i);
+      // v->viscolor[2] = O(2, i);
+    }
+
+    for (int i = 0; i < mesh->tottri; i++, f++, tri++) {
+      f->verts = mesh->out_scracth + li;
+      li += 3;
+
+      f->verts[0] = tri->v1;
+      f->verts[1] = tri->v2;
+      f->verts[2] = tri->v3;
+      f->totvert = 3;
+    }
+  }
+#endif
+
   opt.shutdown();
+
+#ifdef INSTANT_MESHES_VIS_COLOR
+  return;
+#endif
 
   std::vector<std::vector<TaggedLink>> adj_extracted;
 
@@ -219,7 +299,7 @@ void instant_meshes_run(RemeshMesh *mesh)
                 mRes.scale(),
                 creaseOut,
                 true,
-                false,
+                true,
                 nullptr,
                 0);
 

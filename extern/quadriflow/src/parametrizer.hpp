@@ -19,6 +19,13 @@
 #include "post-solver.hpp"
 #include "serialize.hpp"
 
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 namespace qflow {
 
 using namespace Eigen;

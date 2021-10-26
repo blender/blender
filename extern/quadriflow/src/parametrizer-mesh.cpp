@@ -8,6 +8,16 @@
 #include "dedge.hpp"
 #include <queue>
 
+#include <algorithm>
+
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
+
 namespace qflow {
 
 void Parametrizer::NormalizeMesh() {

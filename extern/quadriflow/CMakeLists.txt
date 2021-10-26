@@ -67,6 +67,18 @@ set(INC_SYS
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+#if(WITH_TBB)
+#  add_definitions(-DWITH_TBB)
+#
+#  list(APPEND INC_SYS
+#    ${TBB_INCLUDE_DIRS}
+#  )
+#
+#  list(APPEND LIB
+#    ${TBB_LIBRARIES}
+#  )
+#endif()
+
 set(SRC
   src/adjacent-matrix.cpp
   src/adjacent-matrix.hpp

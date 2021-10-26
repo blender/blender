@@ -8,6 +8,14 @@
 #include "field-math.hpp"
 #include "parametrizer.hpp"
 
+#include <algorithm>
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 namespace qflow {
 
 void subdivide(MatrixXi &F, MatrixXd &V, VectorXd& rho, VectorXi &V2E, VectorXi &E2E, VectorXi &boundary,

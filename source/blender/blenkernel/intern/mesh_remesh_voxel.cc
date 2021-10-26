@@ -257,6 +257,7 @@ extern "C" int closest_vec_to_perp(
 
 ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
                                                  int target_faces,
+                                                 int iterations,
                                                  void (*update_cb)(void *,
                                                                    float progress,
                                                                    int *cancel),
@@ -397,7 +398,10 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   }
 
   RemeshMesh remesh;
+
+  remesh.goal_faces = target_faces;
   remesh.tris = faces.data();
+  remesh.iterations = iterations;
   remesh.tottri = (int)faces.size();
 
   remesh.verts = verts.data();
@@ -414,12 +418,22 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
 
   Mesh *mesh = BKE_mesh_new_nomain(remesh.totoutvert, 0, 0, totloop, remesh.totoutface);
 
+#ifdef INSTANT_MESHES_VIS_COLOR
+  MPropCol *cols = (MPropCol *)CustomData_add_layer(
+      &mesh->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, remesh.totoutvert);
+#endif
+
   for (int i : IndexRange(remesh.totoutvert)) {
     MVert *mv = mesh->mvert + i;
     RemeshVertex *v = remesh.outverts + i;
 
     copy_v3_v3(mv->co, v->co);
     normal_float_to_short_v3(mv->no, v->no);
+
+#ifdef INSTANT_MESHES_VIS_COLOR
+    copy_v3_v3(cols[i].color, v->viscolor);
+    cols[i].color[3] = 1.0f;
+#endif
   }
 
   int li = 0;

@@ -13,6 +13,13 @@
 #include "flow.hpp"
 #include "parametrizer.hpp"
 
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 namespace qflow {
 
 #ifdef WITH_CUDA

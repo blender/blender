@@ -45,6 +45,7 @@ struct Mesh *BKE_mesh_remesh_quadriflow(const struct Mesh *mesh,
 
 struct Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
                                             int target_faces,
+                                            int iterations,
                                             void (*update_cb)(void *, float progress, int *cancel),
                                             void *update_cb_data);
 

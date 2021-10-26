@@ -172,13 +172,13 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   const int steps = 2;
 
   /* Setup mesh boundary constraints if needed */
-#if 0
+#if 1
   if (true) {  // field.flag_preserve_boundary) {
     Hierarchy &mRes = field.hierarchy;
     mRes.clearConstraints();
 
     for (uint32_t i = 0; i < 3 * mRes.mF.cols(); ++i) {
-      if (mRes.mFF((i) % 3, i / 3) & QFLOW_CONSTRAINED) {
+      if (qrd->faces[i / 3].eflag[i % 3] & QFLOW_CONSTRAINED) {
         // if (mRes.mE2E[i] == -1) {
         uint32_t i0 = mRes.mF(i % 3, i / 3);
         uint32_t i1 = mRes.mF((i + 1) % 3, i / 3);
@@ -193,7 +193,8 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
         }
       }
     }
-    for (int j = 0; j < 10; j++) {
+
+    for (int j = 0; j < 2; j++) {
       mRes.propagateConstraints();
     }
   }

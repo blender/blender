@@ -1249,9 +1249,10 @@ static int instant_meshes_remesh_exec(bContext *C, wmOperator *op)
       ob, bisect_mesh, (eSymmetryAxes)0);  //(eSymmetryAxes)mesh->symmetry);
 
   int target_faces = RNA_int_get(op->ptr, "target_faces");
+  int iterations = RNA_int_get(op->ptr, "iterations");
 
   Mesh *new_mesh = BKE_mesh_remesh_instant_meshes(
-      bisect_mesh, target_faces, instant_mesh_update_cb, nullptr);
+      bisect_mesh, target_faces, iterations, instant_mesh_update_cb, nullptr);
 
   if (!new_mesh) {
     BKE_report(op->reports, RPT_ERROR, "Remesher failed to create mesh");
@@ -1310,6 +1311,7 @@ void OBJECT_OT_instant_meshes_remesh(wmOperatorType *ot)
 
   PropertyRNA *prop;
   prop = RNA_def_int(ot->srna, "target_faces", 5000, 8, 1 << 23, "Face Count", "", 8, 100000);
+  prop = RNA_def_int(ot->srna, "iterations", 1, 1, 100, "Iterations", "Iterations", 1, 100);
 }
 
 /** \} */

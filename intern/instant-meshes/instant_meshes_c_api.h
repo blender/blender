@@ -1,5 +1,7 @@
 #pragma once
 
+//#define INSTANT_MESHES_VIS_COLOR
+
 /* clang-format off */
 //remeshedge->flag
 enum {
@@ -10,6 +12,9 @@ enum {
 
 typedef struct RemeshVertex {
   float co[3], no[3];
+#ifdef INSTANT_MESHES_VIS_COLOR
+  float viscolor[3];
+#endif
 } RemeshVertex;
 
 // edge constraint
@@ -41,6 +46,8 @@ typedef struct RemeshMesh {
 
   int totoutface;
   int totoutvert;
+
+  int goal_faces, iterations;
 } RemeshMesh;
 
 #ifdef __cplusplus
