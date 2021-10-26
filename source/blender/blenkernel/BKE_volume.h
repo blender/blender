@@ -160,12 +160,17 @@ bool BKE_volume_save(const struct Volume *volume,
 #ifdef __cplusplus
 #  include "BLI_float3.hh"
 #  include "BLI_float4x4.hh"
+#  include "BLI_string_ref.hh"
 
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
 
 #  ifdef WITH_OPENVDB
 #    include <openvdb/openvdb.h>
 #    include <openvdb/points/PointDataGrid.h>
+
+VolumeGrid *BKE_volume_grid_add_vdb(Volume &volume,
+                                    blender::StringRef name,
+                                    openvdb::GridBase::Ptr vdb_grid);
 
 bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
                             blender::float3 &r_min,

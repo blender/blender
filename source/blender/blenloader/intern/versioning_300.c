@@ -967,7 +967,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
 
     /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
      * generate a mesh for all grids in the volume. */
-    case GEO_NODE_VOLUME_TO_MESH:
+    case GEO_NODE_LEGACY_VOLUME_TO_MESH:
       return false;
 
     /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
@@ -2098,6 +2098,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
       version_geometry_nodes_set_position_node_offset(ntree);
+      version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
     }
     /* Keep this block, even when empty. */
 

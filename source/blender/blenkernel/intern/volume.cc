@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -71,6 +72,7 @@ static CLG_LogRef LOG = {"bke.volume"};
 using blender::float3;
 using blender::float4x4;
 using blender::IndexRange;
+using blender::StringRef;
 
 #ifdef WITH_OPENVDB
 #  include <atomic>
@@ -1450,6 +1452,21 @@ VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType
   return nullptr;
 #endif
 }
+
+#ifdef WITH_OPENVDB
+VolumeGrid *BKE_volume_grid_add_vdb(Volume &volume,
+                                    const StringRef name,
+                                    openvdb::GridBase::Ptr vdb_grid)
+{
+  VolumeGridVector &grids = *volume.runtime.grids;
+  BLI_assert(BKE_volume_grid_find_for_read(&volume, name.data()) == nullptr);
+  BLI_assert(BKE_volume_grid_type_openvdb(*vdb_grid) != VOLUME_GRID_UNKNOWN);
+
+  vdb_grid->setName(name);
+  grids.emplace_back(vdb_grid);
+  return &grids.back();
+}
+#endif
 
 void BKE_volume_grid_remove(Volume *volume, VolumeGrid *grid)
 {

@@ -193,6 +193,8 @@ set(SRC
   geometry/nodes/legacy/node_geo_raycast.cc
   geometry/nodes/legacy/node_geo_select_by_material.cc
   geometry/nodes/legacy/node_geo_subdivision_surface.cc
+  geometry/nodes/legacy/node_geo_volume_to_mesh.cc
+
   geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_statistic.cc

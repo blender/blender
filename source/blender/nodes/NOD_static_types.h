@@ -321,6 +321,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_POINTS_TO_VOLUME, def_geo_legacy_points_to
 DefNode(GeometryNode, GEO_NODE_LEGACY_RAYCAST, def_geo_legacy_raycast, "LEGACY_RAYCAST", LegacyRaycast, "Raycast", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, 0, "LEGACY_SELECT_BY_MATERIAL", LegacySelectByMaterial, "Select by Material", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_SUBDIVISION_SURFACE, def_geo_subdivision_surface, "LEGACY_SUBDIVISION_SURFACE", LegacySubdivisionSurface, "Subdivision Surface", "")
+DefNode(GeometryNode, GEO_NODE_LEGACY_VOLUME_TO_MESH, def_geo_volume_to_mesh, "LEGACY_VOLUME_TO_MESH", LegacyVolumeToMesh, "Volume to Mesh", "")
 
 DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, def_geo_attribute_capture, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")

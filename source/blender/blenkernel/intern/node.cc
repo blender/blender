@@ -5753,6 +5753,7 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_select_by_handle_type();
   register_node_type_geo_legacy_select_by_material();
   register_node_type_geo_legacy_subdivision_surface();
+  register_node_type_geo_legacy_volume_to_mesh();
 
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_capture();
