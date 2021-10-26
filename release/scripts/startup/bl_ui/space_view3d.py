@@ -2265,6 +2265,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_asset")
         layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_object_collection")
         layout.menu("VIEW3D_MT_object_relations")
@@ -2757,6 +2758,21 @@ class VIEW3D_MT_object_cleanup(Menu):
         layout.separator()
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
+
+class VIEW3D_MT_object_asset(Menu):
+    bl_label = "Asset"
+
+    @classmethod
+    def poll(cls, context):
+        # TODO(Sybren): once object assets are no longer considered experimental, remove this poll function.
+        return context.preferences.experimental.use_extended_asset_browser
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("asset.mark")
+        layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
+        layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 
 
 class VIEW3D_MT_make_single_user(Menu):
@@ -7541,6 +7557,7 @@ classes = (
     VIEW3D_MT_image_add,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
+    VIEW3D_MT_object_asset,
     VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_context_menu,
