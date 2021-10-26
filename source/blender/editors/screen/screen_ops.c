@@ -5106,7 +5106,7 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Show Preferences";
+  ot->name = "Open Preferences...";
   ot->description = "Edit user preferences and system settings";
   ot->idname = "SCREEN_OT_userpref_show";
 
