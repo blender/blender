@@ -3481,19 +3481,6 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
  * Use for drag & drop.
  * \{ */
 
-static Base *object_add_ensure_in_view_layer(Main *bmain, ViewLayer *view_layer, Object *ob)
-{
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-  if (!base) {
-    LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-    BKE_collection_object_add(bmain, layer_collection->collection, ob);
-    base = BKE_view_layer_base_find(view_layer, ob);
-  }
-
-  return base;
-}
-
 static int object_add_named_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -3501,8 +3488,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Base *basen;
   Object *ob;
-  const bool duplicate = RNA_boolean_get(op->ptr, "duplicate");
-  const bool linked = duplicate && RNA_boolean_get(op->ptr, "linked");
+  const bool linked = RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
   char name[MAX_ID_NAME - 2];
 
@@ -3516,30 +3502,21 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   /* prepare dupli */
-  if (duplicate) {
-    basen = object_add_duplicate_internal(
-        bmain,
-        scene,
-        view_layer,
-        ob,
-        dupflag,
-        /* Sub-process flag because the new-ID remapping (#BKE_libblock_relink_to_newid()) in this
-         * function will only work if the object is already linked in the view layer, which is not
-         * the case here. So we have to do the new-ID relinking ourselves
-         * (#copy_object_set_idnew()).
-         */
-        LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID);
-  }
-  else {
-    /* basen is actually not a new base in this case. */
-    basen = object_add_ensure_in_view_layer(bmain, view_layer, ob);
-  }
+  basen = object_add_duplicate_internal(
+      bmain,
+      scene,
+      view_layer,
+      ob,
+      dupflag,
+      /* Sub-process flag because the new-ID remapping (#BKE_libblock_relink_to_newid()) in this
+       * function will only work if the object is already linked in the view layer, which is not
+       * the case here. So we have to do the new-ID relinking ourselves
+       * (#copy_object_set_idnew()).
+       */
+      LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID);
 
   if (basen == NULL) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               duplicate ? "Object could not be duplicated" :
-                           "Object could not be linked to the view layer");
+    BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
     return OPERATOR_CANCELLED;
   }
 
@@ -3597,24 +3574,117 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop;
-
-  prop = RNA_def_boolean(
-      ot->srna,
-      "duplicate",
-      true,
-      "Duplicate",
-      "Create a duplicate of the object. If not set, only ensures the object is linked into the "
-      "active view layer, positions and selects/activates it (deselecting others)");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
-
   RNA_def_boolean(ot->srna,
                   "linked",
                   false,
                   "Linked",
-                  "Duplicate object but not object data, linking to the original data (ignored if "
-                  "'duplicate' is false)");
+                  "Duplicate object but not object data, linking to the original data");
 
   RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Object name to add");
+
+  prop = RNA_def_float_matrix(
+      ot->srna, "matrix", 4, 4, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  object_add_drop_xy_props(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Object to Mouse Operator
+ * \{ */
+
+/**
+ * Alternate behavior for dropping an asset that positions the appended object(s).
+ */
+static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob;
+
+  if (RNA_struct_property_is_set(op->ptr, "name")) {
+    char name[MAX_ID_NAME - 2];
+    RNA_string_get(op->ptr, "name", name);
+    ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name);
+  }
+  else {
+    ob = OBACT(view_layer);
+  }
+
+  if (ob == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "Object not found");
+    return OPERATOR_CANCELLED;
+  }
+  /* Ensure the locations are updated so snap reads the evaluated active location. */
+  CTX_data_ensure_evaluated_depsgraph(C);
+
+  PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
+  if (RNA_property_is_set(op->ptr, prop_matrix)) {
+    uint objects_len;
+    Object **objects = BKE_view_layer_array_selected_objects(view_layer, NULL, &objects_len, {});
+
+    float matrix[4][4];
+    RNA_property_float_get_array(op->ptr, prop_matrix, &matrix[0][0]);
+
+    float mat_src_unit[4][4];
+    float mat_dst_unit[4][4];
+    float final_delta[4][4];
+
+    normalize_m4_m4(mat_src_unit, ob->obmat);
+    normalize_m4_m4(mat_dst_unit, matrix);
+    invert_m4(mat_src_unit);
+    mul_m4_m4m4(final_delta, mat_dst_unit, mat_src_unit);
+
+    ED_object_xform_array_m4(objects, objects_len, final_delta);
+
+    MEM_freeN(objects);
+  }
+  else {
+    int mval[2];
+    if (object_add_drop_xy_get(C, op, &mval)) {
+      float cursor[3];
+      ED_object_location_from_view(C, cursor);
+      ED_view3d_cursor3d_position(C, mval, false, cursor);
+
+      /* Use the active objects location since this is the ID which the user selected to drop.
+       *
+       * This transforms all selected objects, so that dropping a single object which links in
+       * other objects will have their relative transformation preserved.
+       * For example a child/parent relationship or other objects used with a boolean modifier.
+       *
+       * The caller is responsible for ensuring the selection state gives useful results.
+       * Link/append does this using #FILE_AUTOSELECT. */
+      ED_view3d_snap_selected_to_location(C, cursor, V3D_AROUND_ACTIVE);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Place Object Under Mouse";
+  ot->description = "Snap selected item(s) to the mouse location";
+  ot->idname = "OBJECT_OT_transform_to_mouse";
+
+  /* api callbacks */
+  ot->invoke = object_add_drop_xy_generic_invoke;
+  ot->exec = object_transform_to_mouse_exec;
+  ot->poll = ED_operator_objectmode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+  RNA_def_string(ot->srna,
+                 "name",
+                 NULL,
+                 MAX_ID_NAME - 2,
+                 "Name",
+                 "Object name to place (when unset use the active object)");
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);

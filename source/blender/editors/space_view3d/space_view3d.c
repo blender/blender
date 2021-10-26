@@ -47,6 +47,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -56,6 +57,7 @@
 #include "BKE_workspace.h"
 
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -557,6 +559,25 @@ static bool view3d_ob_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_OB);
 }
+static bool view3d_ob_drop_poll_external_asset(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (!view3d_ob_drop_poll(C, drag, event) || (drag->type != WM_DRAG_ASSET)) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * \note the term local here refers to not being an external asset,
+ * poll will succeed for linked library objects.
+ */
+static bool view3d_ob_drop_poll_local_id(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (!view3d_ob_drop_poll(C, drag, event) || (drag->type != WM_DRAG_ID)) {
+    return false;
+  }
+  return true;
+}
 
 static bool view3d_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -669,22 +690,13 @@ static bool view3d_volume_drop_poll(bContext *UNUSED(C),
   return (drag->type == WM_DRAG_PATH) && (drag->icon == ICON_FILE_VOLUME);
 }
 
-static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
+                                            Object *ob,
+                                            float obmat_final[4][4])
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_OB);
-
-  RNA_string_set(drop->ptr, "name", id->name + 2);
-  /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
-  const bool is_imported_id = drag->type == WM_DRAG_ASSET;
-  RNA_boolean_set(drop->ptr, "duplicate", !is_imported_id);
-
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  BLI_assert(snap_state->draw_box || snap_state->draw_plane);
-  Object *ob = (Object *)id;
-  float obmat_final[4][4];
-
   V3DSnapCursorData *snap_data;
   snap_data = ED_view3d_cursor_snap_data_get(snap_state, NULL, 0, 0);
+  BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   copy_m4_m3(obmat_final, snap_data->plane_omat);
   copy_v3_v3(obmat_final[3], snap_data->loc);
 
@@ -700,6 +712,56 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
     mul_mat3_m4_v3(obmat_final, offset);
     sub_v3_v3(obmat_final[3], offset);
   }
+}
+
+static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
+{
+  ID *id = WM_drag_get_local_ID(drag, ID_OB);
+
+  RNA_string_set(drop->ptr, "name", id->name + 2);
+  /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
+  BLI_assert(drag->type != WM_DRAG_ASSET);
+
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  float obmat_final[4][4];
+
+  view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
+
+  RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
+}
+
+static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+{
+  /* NOTE(@campbellbarton): Selection is handled here, de-selecting objects before append,
+   * using auto-select to ensure the new objects are selected.
+   * This is done so #OBJECT_OT_transform_to_mouse (which runs after this drop handler)
+   * can use the context setup here to place the objects. */
+  BLI_assert(drag->type == WM_DRAG_ASSET);
+
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  bContext *C = asset_drag->evil_C;
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  BKE_view_layer_base_deselect_all(view_layer);
+
+  ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
+
+  RNA_string_set(drop->ptr, "name", id->name + 2);
+
+  Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
+  if (base != NULL) {
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+    WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
+  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  ED_outliner_select_sync_from_object_tag(C);
+
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  float obmat_final[4][4];
+
+  view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
+
   RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
 }
 
@@ -768,8 +830,8 @@ static void view3d_dropboxes(void)
   struct wmDropBox *drop;
   drop = WM_dropbox_add(lb,
                         "OBJECT_OT_add_named",
-                        view3d_ob_drop_poll,
-                        view3d_ob_drop_copy,
+                        view3d_ob_drop_poll_local_id,
+                        view3d_ob_drop_copy_local_id,
                         WM_drag_free_imported_drag_ID,
                         NULL);
 
@@ -777,6 +839,18 @@ static void view3d_dropboxes(void)
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
   drop->opcontext = WM_OP_EXEC_DEFAULT; /* Not really needed. */
+
+  drop = WM_dropbox_add(lb,
+                        "OBJECT_OT_transform_to_mouse",
+                        view3d_ob_drop_poll_external_asset,
+                        view3d_ob_drop_copy_external_asset,
+                        WM_drag_free_imported_drag_ID,
+                        NULL);
+
+  drop->draw = WM_drag_draw_item_name_fn;
+  drop->draw_activate = view3d_ob_drop_draw_activate;
+  drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
+  drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
   WM_dropbox_add(lb,
                  "OBJECT_OT_drop_named_material",

@@ -526,8 +526,15 @@ struct AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode
   return NULL;
 }
 
-static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
+/**
+ * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
+ */
+ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
 {
+  /* Only support passing in limited flags. */
+  BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
+  eFileSel_Params_Flag flag = flag_extra | FILE_ACTIVE_COLLECTION;
+
   const char *name = asset_drag->name;
   ID_Type idtype = asset_drag->id_type;
 
@@ -541,14 +548,8 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
 
   switch ((eFileAssetImportType)asset_drag->import_type) {
     case FILE_ASSET_IMPORT_LINK:
-      return WM_file_link_datablock(bmain,
-                                    scene,
-                                    view_layer,
-                                    view3d,
-                                    asset_drag->path,
-                                    idtype,
-                                    name,
-                                    FILE_ACTIVE_COLLECTION);
+      return WM_file_link_datablock(
+          bmain, scene, view_layer, view3d, asset_drag->path, idtype, name, flag);
     case FILE_ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(bmain,
                                       scene,
@@ -557,7 +558,7 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
                                       asset_drag->path,
                                       idtype,
                                       name,
-                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
+                                      flag | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR);
     case FILE_ASSET_IMPORT_APPEND_REUSE:
       return WM_file_append_datablock(G_MAIN,
@@ -567,7 +568,7 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
                                       asset_drag->path,
                                       idtype,
                                       name,
-                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
+                                      flag | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
                                           BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
   }
@@ -582,6 +583,8 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
  *
  * Use #WM_drag_free_imported_drag_ID() as cancel callback of the drop-box, so that the asset
  * import is rolled back if the drop operator fails.
+ *
+ * \param flag: #eFileSel_Params_Flag passed to linking code.
  */
 ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 {
@@ -599,7 +602,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
   }
 
   /* Link/append the asset. */
-  return wm_drag_asset_id_import(asset_drag);
+  return WM_drag_asset_id_import(asset_drag, 0);
 }
 
 /**

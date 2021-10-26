@@ -36,6 +36,7 @@
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.h"
@@ -427,6 +428,73 @@ void ED_object_data_xform_container_destroy(struct XFormObjectData_Container *xd
 {
   BLI_ghash_free(xds->obdata_in_obmode_map, NULL, trans_obdata_in_obmode_free_elem);
   MEM_freeN(xds);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Object Array
+ *
+ * Low level object transform function, transforming objects by `matrix`.
+ * Simple alternative to full transform logic.
+ * \{ */
+
+static bool object_parent_in_set(GSet *objects_set, Object *ob)
+{
+  for (Object *parent = ob->parent; parent; parent = parent->parent) {
+    if (BLI_gset_lookup(objects_set, parent)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ED_object_xform_array_m4(Object **objects, uint objects_len, const float matrix[4][4])
+{
+  /* Filter out objects that have parents in `objects_set`. */
+  {
+    GSet *objects_set = BLI_gset_ptr_new_ex(__func__, objects_len);
+    for (uint i = 0; i < objects_len; i++) {
+      BLI_gset_add(objects_set, objects[i]);
+    }
+    for (uint i = 0; i < objects_len;) {
+      if (object_parent_in_set(objects_set, objects[i])) {
+        objects[i] = objects[--objects_len];
+      }
+      else {
+        i++;
+      }
+    }
+    BLI_gset_free(objects_set, NULL);
+  }
+
+  /* Detect translation only matrix, prevent rotation/scale channels from being touched at all. */
+  bool is_translation_only;
+  {
+    float test_m4_a[4][4], test_m4_b[4][4];
+    unit_m4(test_m4_a);
+    copy_m4_m4(test_m4_b, matrix);
+    zero_v3(test_m4_b[3]);
+    is_translation_only = equals_m4m4(test_m4_a, test_m4_b);
+  }
+
+  if (is_translation_only) {
+    for (uint i = 0; i < objects_len; i++) {
+      Object *ob = objects[i];
+      add_v3_v3(ob->loc, matrix[3]);
+      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
+  }
+  else {
+    for (uint i = 0; i < objects_len; i++) {
+      float m4[4][4];
+      Object *ob = objects[i];
+      BKE_object_to_mat4(ob, m4);
+      mul_m4_m4m4(m4, matrix, m4);
+      BKE_object_apply_mat4(ob, m4, true, true);
+      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
+  }
 }
 
 /** \} */
