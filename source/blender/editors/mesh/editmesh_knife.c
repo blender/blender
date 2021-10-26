@@ -1460,6 +1460,8 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd,
   ED_view3d_unproject_v3(kcd->vc.region, mval[0], mval[1], ofs, r_origin_ofs);
 }
 
+/* No longer used, but may be useful in the future. */
+#if 0
 static void knifetool_recast_cageco(KnifeTool_OpData *kcd, float mval[3], float r_cage[3])
 {
   float origin[3];
@@ -1474,6 +1476,7 @@ static void knifetool_recast_cageco(KnifeTool_OpData *kcd, float mval[3], float 
 
   knife_bvh_raycast(kcd, origin, ray_normal, 0.0f, NULL, co, r_cage, NULL);
 }
+#endif
 
 static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 {
