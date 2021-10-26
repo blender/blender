@@ -347,6 +347,8 @@ static void view3d_xr_mirror_setup(const wmWindowManager *wm,
                      (wm->xr.session_settings.draw_flags & V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS) !=
                          0,
                      V3D_XR_SHOW_CUSTOM_OVERLAYS);
+  /* Hide navigation gizmo since it gets distorted if the view matrix has a scale factor. */
+  v3d->gizmo_flag |= V3D_GIZMO_HIDE_NAVIGATE;
 
   /* Reset overridden View3D data. */
   v3d->lens = lens_old;
