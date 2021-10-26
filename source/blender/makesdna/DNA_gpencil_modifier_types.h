@@ -1042,7 +1042,6 @@ typedef struct LineartGpencilModifierData {
 
   /** Strength for smoothing jagged chains. */
   float chain_smooth_tolerance;
-  int _pad1;
 
   /* CPU mode */
   float chaining_image_threshold;
@@ -1052,6 +1051,9 @@ typedef struct LineartGpencilModifierData {
 
   /* #eLineArtGPencilModifierFlags, modifier internal state. */
   int flags;
+
+  /* Move strokes towards camera to avoid clipping while preserve depth for the viewport. */
+  float stroke_depth_offset;
 
   /* Runtime data. */
 

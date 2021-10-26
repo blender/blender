@@ -926,9 +926,9 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
 
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
 {
-  LISTBASE_FOREACH (LineartEdgeChain *, rlc, &rb->chains) {
+  LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
     LineartEdgeChainItem *next_eci;
-    for (LineartEdgeChainItem *eci = rlc->chain.first; eci; eci = next_eci) {
+    for (LineartEdgeChainItem *eci = ec->chain.first; eci; eci = next_eci) {
       next_eci = eci->next;
       LineartEdgeChainItem *eci2, *eci3, *eci4;
 
@@ -944,7 +944,7 @@ void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
       if (dist_to_line_segment_v2(eci3->pos, eci->pos, eci2->pos) < tolerance) {
         /* And if p4 is on the extension of p1-p2 , we remove p3. */
         if ((eci4 = eci3->next) && (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {
-          BLI_remlink(&rlc->chain, eci3);
+          BLI_remlink(&ec->chain, eci3);
           next_eci = eci;
         }
       }
@@ -1004,6 +1004,38 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
         new_ec->level = ec->level;
         new_ec->material_mask_bits = ec->material_mask_bits;
         ec = new_ec;
+      }
+    }
+  }
+}
+
+void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb, float dist)
+{
+  float dir[3];
+  float cam[3];
+  float view[3];
+  float view_clamp[3];
+  copy_v3fl_v3db(cam, rb->camera_pos);
+  copy_v3fl_v3db(view, rb->view_vector);
+  if (rb->cam_is_persp) {
+    LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
+      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
+        sub_v3_v3v3(dir, cam, eci->gpos);
+        float orig_len = len_v3(dir);
+        normalize_v3(dir);
+        mul_v3_fl(dir, MIN2(dist, orig_len - rb->near_clip));
+        add_v3_v3(eci->gpos, dir);
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
+      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
+        sub_v3_v3v3(dir, cam, eci->gpos);
+        float len_lim = dot_v3v3(view, dir) - rb->near_clip;
+        normalize_v3_v3(view_clamp, view);
+        mul_v3_fl(view_clamp, MIN2(dist, len_lim));
+        add_v3_v3(eci->gpos, view_clamp);
       }
     }
   }

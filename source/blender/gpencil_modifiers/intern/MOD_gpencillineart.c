@@ -160,12 +160,14 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
 
   LineartCache *local_lc = gpd->runtime.lineart_cache;
   if (!gpd->runtime.lineart_cache) {
-    MOD_lineart_compute_feature_lines(depsgraph, lmd, &gpd->runtime.lineart_cache);
+    MOD_lineart_compute_feature_lines(
+        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
     MOD_lineart_destroy_render_data(lmd);
   }
   else {
     if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
-      MOD_lineart_compute_feature_lines(depsgraph, lmd, &local_lc);
+      MOD_lineart_compute_feature_lines(
+          depsgraph, lmd, &local_lc, (!(ob->dtx & OB_DRAW_IN_FRONT)));
       MOD_lineart_destroy_render_data(lmd);
     }
     MOD_lineart_chain_clear_picked_flag(local_lc);
@@ -210,7 +212,8 @@ static void bakeModifier(Main *UNUSED(bmain),
     lmd->edge_types_override = lmd->edge_types;
     lmd->level_end_override = lmd->level_end;
 
-    MOD_lineart_compute_feature_lines(depsgraph, lmd, &gpd->runtime.lineart_cache);
+    MOD_lineart_compute_feature_lines(
+        depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
     MOD_lineart_destroy_render_data(lmd);
   }
 
@@ -412,14 +415,23 @@ static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
 static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+
+  const bool use_multiple_levels = RNA_boolean_get(ptr, "use_multiple_levels");
+  const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
 
-  const bool use_multiple_levels = RNA_boolean_get(ptr, "use_multiple_levels");
+  if (!show_in_front) {
+    uiItemL(layout, IFACE_("Object is not in front"), ICON_INFO);
+  }
+
+  layout = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(layout, show_in_front);
 
   uiItemR(layout, ptr, "use_multiple_levels", 0, IFACE_("Range"), ICON_NONE);
 
@@ -447,11 +459,14 @@ static bool anything_showing_through(PointerRNA *ptr)
 static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
+
   uiLayoutSetEnabled(layout, !is_baked);
-  uiLayoutSetActive(layout, anything_showing_through(ptr));
+  uiLayoutSetActive(layout, (!show_in_front) && anything_showing_through(ptr));
 
   uiItemR(layout, ptr, "use_material_mask", 0, IFACE_("Material Mask"), ICON_NONE);
 }
@@ -654,6 +669,27 @@ static void bake_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemO(col, NULL, ICON_NONE, "OBJECT_OT_lineart_clear_all");
 }
 
+static void composition_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
+
+  uiLayout *layout = panel->layout;
+
+  const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
+
+  uiLayoutSetPropSep(layout, true);
+
+  if (show_in_front) {
+    uiItemL(layout, IFACE_("Object is shown in front"), ICON_ERROR);
+  }
+
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayoutSetActive(row, !show_in_front);
+
+  uiItemR(row, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+}
+
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
@@ -681,6 +717,8 @@ static void panelRegister(ARegionType *region_type)
       region_type, "chaining", "Chaining", NULL, chaining_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "vgroup", "Vertex Weight Transfer", NULL, vgroup_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(
+      region_type, "composition", "Composition", NULL, composition_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "bake", "Bake", NULL, bake_panel_draw, panel_type);
 }
