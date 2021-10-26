@@ -311,6 +311,7 @@ typedef struct LineartRenderBuffer {
   bool cam_is_persp;
   float cam_obmat[4][4];
   double camera_pos[3];
+  double active_camera_pos[3]; /* Stroke offset calculation may use active or selected camera. */
   double near_clip, far_clip;
   float shift_x, shift_y;
   float crease_threshold;
@@ -595,7 +596,9 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance);
-void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb, float dist);
+void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,
+                                             float dist,
+                                             bool use_custom_camera);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);

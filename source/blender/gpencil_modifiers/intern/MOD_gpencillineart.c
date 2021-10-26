@@ -264,6 +264,12 @@ static void updateDepsgraph(GpencilModifierData *md,
   else {
     add_this_collection(ctx->scene->master_collection, ctx, mode);
   }
+  if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA) {
+    DEG_add_object_relation(
+        ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
+    DEG_add_object_relation(
+        ctx->node, lmd->source_camera, DEG_OB_COMP_PARAMETERS, "Line Art Modifier");
+  }
   if (ctx->scene->camera) {
     DEG_add_object_relation(
         ctx->node, ctx->scene->camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
@@ -280,6 +286,7 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
 
   walk(userData, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&lmd->source_camera, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -385,7 +392,12 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
     return;
   }
 
-  uiItemR(layout, ptr, "overscan", 0, NULL, ICON_NONE);
+  uiLayout *row = uiLayoutRowWithHeading(layout, false, IFACE_("Custom Camera"));
+  uiItemR(row, ptr, "use_custom_camera", 0, "", 0);
+  uiLayout *subrow = uiLayoutRow(row, true);
+  uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "use_custom_camera"));
+  uiLayoutSetPropSep(subrow, true);
+  uiItemR(subrow, ptr, "source_camera", 0, "", ICON_OBJECT_DATA);
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
@@ -684,10 +696,11 @@ static void composition_panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemL(layout, IFACE_("Object is shown in front"), ICON_ERROR);
   }
 
-  uiLayout *row = uiLayoutRow(layout, false);
-  uiLayoutSetActive(row, !show_in_front);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, !show_in_front);
 
-  uiItemR(row, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+  uiItemR(col, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+  uiItemR(col, ptr, "offset_towards_custom_camera", 0, IFACE_("Towards Custom Camera"), ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
