@@ -201,9 +201,9 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           if (path == snode->treepath.first) {
             /* first nodetree in path is same as snode->nodetree */
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
-                                      path->nodetree,
-                                      is_private_nodetree ? IDWALK_CB_EMBEDDED :
-                                                            IDWALK_CB_USER_ONE);
+                                              path->nodetree,
+                                              is_private_nodetree ? IDWALK_CB_EMBEDDED :
+                                                                    IDWALK_CB_USER_ONE);
           }
           else {
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);

@@ -214,4 +214,3 @@ std::unique_ptr<Value> JsonFormatter::deserialize(std::istream &is)
 }
 
 }  // namespace blender::io::serialize
-

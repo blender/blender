@@ -205,4 +205,3 @@ TEST(serialize, json_roundtrip_ordering)
 }
 
 }  // namespace blender::io::serialize::json::testing
-

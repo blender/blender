@@ -161,7 +161,8 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, cob->ob, IDWALK_CB_USER);
   }
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
   }
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
