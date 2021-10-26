@@ -1344,7 +1344,6 @@ static int wm_xr_navigation_teleport_modal(bContext *C, wmOperator *op, const wm
       return OPERATOR_FINISHED;
     }
     default:
-
       /* XR events currently only support press and release. */
       BLI_assert_unreachable();
       wm_xr_raycast_uninit(op);
