@@ -1725,13 +1725,13 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
       }
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   else {
-    return 0; /* not found */
+    return CTX_RESULT_MEMBER_NOT_FOUND;
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
 
 static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
