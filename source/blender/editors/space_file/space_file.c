@@ -659,7 +659,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
     file_highlight_set(sfile, region, event->xy[0], event->xy[1]);
   }
 
-  if (!file_draw_hint_if_invalid(sfile, region)) {
+  if (!file_draw_hint_if_invalid(C, sfile, region)) {
     file_draw_list(C, region);
   }
 

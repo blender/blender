@@ -5072,6 +5072,18 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
   int sizey = 520 * UI_DPI_FAC;
 
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
+  if (prop && RNA_property_is_set(op->ptr, prop)) {
+    /* Set active section via RNA, so it can fail properly. */
+
+    PointerRNA pref_ptr;
+    RNA_pointer_create(NULL, &RNA_Preferences, &U, &pref_ptr);
+    PropertyRNA *active_section_prop = RNA_struct_find_property(&pref_ptr, "active_section");
+
+    RNA_property_enum_set(&pref_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));
+    RNA_property_update(C, &pref_ptr, active_section_prop);
+  }
+
   /* changes context! */
   if (WM_window_open(C,
                      IFACE_("Blender Preferences"),
@@ -5105,6 +5117,8 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Open Preferences...";
   ot->description = "Edit user preferences and system settings";
@@ -5113,6 +5127,14 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
   /* api callbacks */
   ot->exec = userpref_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+
+  prop = RNA_def_enum(ot->srna,
+                      "section",
+                      rna_enum_preference_section_items,
+                      0,
+                      "",
+                      "Section to activate in the Preferences");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
