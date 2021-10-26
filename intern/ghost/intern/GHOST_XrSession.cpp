@@ -127,7 +127,9 @@ void GHOST_XrSession::initSystem()
 /** \name State Management
  * \{ */
 
-static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &base_pose)
+static void create_reference_spaces(OpenXRSessionData &oxr,
+                                    const GHOST_XrPose &base_pose,
+                                    bool isDebugMode)
 {
   XrReferenceSpaceCreateInfo create_info = {XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
   create_info.poseInReferenceSpace.orientation.w = 1.0f;
@@ -163,10 +165,11 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
      * since runtimes are not required to support the stage reference space. If the runtime
      * doesn't support it then just fall back to the local space. */
     if (result == XR_ERROR_REFERENCE_SPACE_UNSUPPORTED) {
-      printf(
-          "Warning: XR runtime does not support stage reference space, falling back to local "
-          "reference space.\n");
-
+      if (isDebugMode) {
+        printf(
+            "Warning: XR runtime does not support stage reference space, falling back to local "
+            "reference space.\n");
+      }
       create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
       CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.reference_space),
                "Failed to create local reference space.");
@@ -182,11 +185,12 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
     CHECK_XR(xrGetReferenceSpaceBoundsRect(oxr.session, XR_REFERENCE_SPACE_TYPE_STAGE, &extents),
              "Failed to get stage reference space bounds.");
     if (extents.width == 0.0f || extents.height == 0.0f) {
-      printf(
-          "Warning: Invalid stage reference space bounds, falling back to local reference space. "
-          "To use the stage reference space, please define a tracking space via the XR "
-          "runtime.\n");
-
+      if (isDebugMode) {
+        printf(
+            "Warning: Invalid stage reference space bounds, falling back to local reference "
+            "space. To use the stage reference space, please define a tracking space via the XR "
+            "runtime.\n");
+      }
       /* Fallback to local space. */
       if (oxr.reference_space != XR_NULL_HANDLE) {
         CHECK_XR(xrDestroySpace(oxr.reference_space), "Failed to destroy stage reference space.");
@@ -255,7 +259,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
            "detailed error information to the command line.");
 
   prepareDrawing();
-  create_reference_spaces(*m_oxr, begin_info->base_pose);
+  create_reference_spaces(*m_oxr, begin_info->base_pose, m_context->isDebugMode());
 
   /* Create and bind actions here. */
   m_context->getCustomFuncs().session_create_fn();
