@@ -1162,11 +1162,9 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
     if (pid_src == NULL) {
       continue;
     }
-    else if (pid_dst->type != pid_src->type || pid_dst->file_type != pid_src->file_type ||
-             pid_dst->default_step != pid_src->default_step ||
-             pid_dst->max_step != pid_src->max_step ||
-             pid_dst->data_types != pid_src->data_types ||
-             pid_dst->info_types != pid_src->info_types) {
+    if (pid_dst->type != pid_src->type || pid_dst->file_type != pid_src->file_type ||
+        pid_dst->default_step != pid_src->default_step || pid_dst->max_step != pid_src->max_step ||
+        pid_dst->data_types != pid_src->data_types || pid_dst->info_types != pid_src->info_types) {
       LISTBASE_FOREACH (PointCache *, point_cache_src, pid_src->ptcaches) {
         point_cache_src->flag |= PTCACHE_FLAG_INFO_DIRTY;
       }
