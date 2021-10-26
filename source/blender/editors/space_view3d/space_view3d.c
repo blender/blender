@@ -747,6 +747,8 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
 
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
   RNA_string_set(drop->ptr, "name", id->name + 2);
 
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
