@@ -240,6 +240,7 @@ typedef struct KnifeTool_OpData {
 
   BLI_mempool *kverts;
   BLI_mempool *kedges;
+  bool no_cuts; /* A cut has not been made yet. */
 
   BLI_Stack *undostack;
   BLI_Stack *splitstack; /* Store edge splits by #knife_split_edge. */
@@ -4089,6 +4090,8 @@ static void knifetool_init(bContext *C,
     knife_init_colors(&kcd->colors);
   }
 
+  kcd->no_cuts = true;
+
   kcd->axis_string[0] = ' ';
   kcd->axis_string[1] = '\0';
 
@@ -4501,12 +4504,23 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         handled = true;
         break;
       case KNF_MODAL_NEW_CUT:
+        /* If no cuts have been made, exit.
+         * Preserves right click cancel workflow which most tools use,
+         * but stops accidentally deleting entire cuts with right click.
+         */
+        if (kcd->no_cuts) {
+          ED_region_tag_redraw(kcd->region);
+          knifetool_exit(op);
+          ED_workspace_status_text(C, NULL);
+          return OPERATOR_CANCELLED;
+        }
         ED_region_tag_redraw(kcd->region);
         knife_finish_cut(kcd);
         kcd->mode = MODE_IDLE;
         handled = true;
         break;
       case KNF_MODAL_ADD_CUT:
+        kcd->no_cuts = false;
         knife_recalc_ortho(kcd);
 
         /* Get the value of the event which triggered this one. */
