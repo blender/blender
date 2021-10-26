@@ -59,6 +59,10 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
     remove_attribute(
         geometry_set.get_component_for_write<CurveComponent>(), params, attribute_names);
   }
+  if (geometry_set.has<InstancesComponent>()) {
+    remove_attribute(
+        geometry_set.get_component_for_write<InstancesComponent>(), params, attribute_names);
+  }
 
   params.set_output("Geometry", geometry_set);
 }
