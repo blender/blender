@@ -61,6 +61,7 @@ set(SRC
   intern/mesh_extractors/extract_mesh_ibo_lines_paint_mask.cc
   intern/mesh_extractors/extract_mesh_ibo_points.cc
   intern/mesh_extractors/extract_mesh_ibo_tris.cc
+  intern/mesh_extractors/extract_mesh_vbo_attributes.cc
   intern/mesh_extractors/extract_mesh_vbo_edge_fac.cc
   intern/mesh_extractors/extract_mesh_vbo_edit_data.cc
   intern/mesh_extractors/extract_mesh_vbo_edituv_data.cc

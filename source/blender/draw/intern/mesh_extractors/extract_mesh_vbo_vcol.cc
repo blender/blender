@@ -43,9 +43,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   GPU_vertformat_deinterleave(&format);
 
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
-  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   uint32_t vcol_layers = cache->cd_used.vcol;
-  uint32_t svcol_layers = cache->cd_used.sculpt_vcol;
 
   for (int i = 0; i < MAX_MCOL; i++) {
     if (vcol_layers & (1 << i)) {
@@ -64,38 +62,10 @@ static void extract_vcol_init(const MeshRenderData *mr,
       }
 
       /* Gather number of auto layers. */
-      /* We only do `vcols` that are not overridden by `uvs` and sculpt vertex colors. */
-      if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1 &&
-          CustomData_get_named_layer_index(cd_vdata, CD_PROP_COLOR, layer_name) == -1) {
+      /* We only do `vcols` that are not overridden by `uvs`. */
+      if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
         BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
         GPU_vertformat_alias_add(&format, attr_name);
-      }
-    }
-  }
-
-  /* Sculpt Vertex Colors */
-  if (U.experimental.use_sculpt_vertex_colors) {
-    for (int i = 0; i < 8; i++) {
-      if (svcol_layers & (1 << i)) {
-        char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-        const char *layer_name = CustomData_get_layer_name(cd_vdata, CD_PROP_COLOR, i);
-        GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
-
-        BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
-        GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-
-        if (i == CustomData_get_render_layer(cd_vdata, CD_PROP_COLOR)) {
-          GPU_vertformat_alias_add(&format, "c");
-        }
-        if (i == CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR)) {
-          GPU_vertformat_alias_add(&format, "ac");
-        }
-        /* Gather number of auto layers. */
-        /* We only do `vcols` that are not overridden by `uvs`. */
-        if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
-          BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-          GPU_vertformat_alias_add(&format, attr_name);
-        }
       }
     }
   }
@@ -108,7 +78,6 @@ static void extract_vcol_init(const MeshRenderData *mr,
   };
 
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)GPU_vertbuf_get_data(vbo);
-  MLoop *loops = (MLoop *)CustomData_get_layer(cd_ldata, CD_MLOOP);
 
   for (int i = 0; i < MAX_MCOL; i++) {
     if (vcol_layers & (1 << i)) {
@@ -136,35 +105,6 @@ static void extract_vcol_init(const MeshRenderData *mr,
           vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
           vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
           vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
-        }
-      }
-    }
-
-    if (svcol_layers & (1 << i) && U.experimental.use_sculpt_vertex_colors) {
-      if (mr->extract_type == MR_EXTRACT_BMESH) {
-        int cd_ofs = CustomData_get_n_offset(cd_vdata, CD_PROP_COLOR, i);
-        BMIter f_iter;
-        BMFace *efa;
-        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BMLoop *l_iter, *l_first;
-          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
-          do {
-            const MPropCol *prop_col = (const MPropCol *)BM_ELEM_CD_GET_VOID_P(l_iter->v, cd_ofs);
-            vcol_data->r = unit_float_to_ushort_clamp(prop_col->color[0]);
-            vcol_data->g = unit_float_to_ushort_clamp(prop_col->color[1]);
-            vcol_data->b = unit_float_to_ushort_clamp(prop_col->color[2]);
-            vcol_data->a = unit_float_to_ushort_clamp(prop_col->color[3]);
-            vcol_data++;
-          } while ((l_iter = l_iter->next) != l_first);
-        }
-      }
-      else {
-        MPropCol *vcol = (MPropCol *)CustomData_get_layer_n(cd_vdata, CD_PROP_COLOR, i);
-        for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vcol_data++) {
-          vcol_data->r = unit_float_to_ushort_clamp(vcol[loops[ml_index].v].color[0]);
-          vcol_data->g = unit_float_to_ushort_clamp(vcol[loops[ml_index].v].color[1]);
-          vcol_data->b = unit_float_to_ushort_clamp(vcol[loops[ml_index].v].color[2]);
-          vcol_data->a = unit_float_to_ushort_clamp(vcol[loops[ml_index].v].color[3]);
         }
       }
     }
