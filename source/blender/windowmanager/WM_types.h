@@ -1044,6 +1044,11 @@ typedef struct wmDrag {
    * triggered.
    */
   struct wmDropBox *active_dropbox;
+  /* Text to show when the operator poll fails. Typically the message the
+   * operator set with CTX_wm_operator_poll_msg_set(). */
+  const char *disabled_info;
+  bool free_disabled_info;
+
   unsigned int flags;
 
   /** List of wmDragIDs, all are guaranteed to have the same ID type. */

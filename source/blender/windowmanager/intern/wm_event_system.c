@@ -3055,12 +3055,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
               ListBase *lb = (ListBase *)event->customdata;
               LISTBASE_FOREACH_MUTABLE (wmDrag *, drag, lb) {
                 if (drop->poll(C, drag, event)) {
-                  /* Optionally copy drag information to operator properties. Don't call it if the
-                   * operator fails anyway, it might do more than just set properties (e.g.
-                   * typically import an asset). */
-                  if (drop->copy && WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
-                    drop->copy(drag, drop);
-                  }
+                  wm_drop_prepare(C, drag, drop);
 
                   /* Pass single matched wmDrag onto the operator. */
                   BLI_remlink(lb, drag);
@@ -3094,6 +3089,8 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
                   break;
                 }
               }
+              /* Always exit all drags on a drop event, even if poll didn't succeed. */
+              wm_drags_exit(wm, win);
             }
           }
         }
@@ -3390,6 +3387,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
     screen->do_draw_drag = true;
   }
   else if (event->type == EVT_ESCKEY) {
+    wm_drags_exit(wm, win);
     WM_drag_free_list(&wm->drags);
 
     screen->do_draw_drag = true;

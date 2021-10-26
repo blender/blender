@@ -207,6 +207,30 @@ wmDrag *WM_event_start_drag(
   return drag;
 }
 
+/**
+ * Additional work to cleanly end dragging. Additional because this doesn't actually remove the
+ * drag items. Should be called whenever dragging is stopped (successful or not, also when
+ * canceled).
+ */
+void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
+{
+  bool any_active = false;
+  LISTBASE_FOREACH (const wmDrag *, drag, &wm->drags) {
+    if (drag->active_dropbox) {
+      any_active = true;
+    }
+  }
+
+  /* If there is no active drop-box #wm_drags_check_ops() set a stop-cursor, which needs to be
+   * restored. */
+  if (!any_active) {
+    WM_cursor_modal_restore(win);
+    /* Ensure the correct area cursor is restored. */
+    win->tag_cursor_refresh = true;
+    WM_event_add_mousemove(win);
+  }
+}
+
 void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
 {
   drag->imb = imb;
@@ -239,6 +263,9 @@ void WM_drag_free(wmDrag *drag)
   }
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
+  }
+  if (drag->free_disabled_info) {
+    MEM_SAFE_FREE(drag->disabled_info);
   }
   BLI_freelistN(&drag->ids);
   LISTBASE_FOREACH_MUTABLE (wmDragAssetListItem *, asset_item, &drag->asset_items) {
@@ -277,14 +304,34 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
+  if (drag->free_disabled_info) {
+    MEM_SAFE_FREE(drag->disabled_info);
+  }
+  drag->disabled_info = NULL;
+
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
       wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
       if (handler->dropboxes) {
         LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
-          if (drop->poll(C, drag, event) &&
-              WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+          if (!drop->poll(C, drag, event)) {
+            /* If the drop's poll fails, don't set the disabled-info. This would be too aggressive.
+             * Instead show it only if the drop box could be used in principle, but the operator
+             * can't be executed. */
+            continue;
+          }
+
+          if (WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
             return drop;
+          }
+
+          /* Attempt to set the disabled hint when the poll fails. Will always be the last hint set
+           * when there are multiple failing polls (could allow multiple disabled-hints too). */
+          bool free_disabled_info = false;
+          const char *disabled_hint = CTX_wm_operator_poll_msg_get(C, &free_disabled_info);
+          if (disabled_hint) {
+            drag->disabled_info = disabled_hint;
+            drag->free_disabled_info = free_disabled_info;
           }
         }
       }
@@ -309,7 +356,10 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
   return drop;
 }
 
-static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *event)
+/**
+ * Update dropping information for the current mouse position in \a event.
+ */
+static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   const int winsize_x = WM_window_pixels_x(win);
@@ -335,13 +385,36 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
   }
 }
 
+void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
+{
+  /* Optionally copy drag information to operator properties. Don't call it if the
+   * operator fails anyway, it might do more than just set properties (e.g.
+   * typically import an asset). */
+  if (drop->copy && WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+    drop->copy(drag, drop);
+  }
+
+  wm_drags_exit(CTX_wm_manager(C), CTX_wm_window(C));
+}
+
 /* called in inner handler loop, region context */
 void wm_drags_check_ops(bContext *C, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
+  bool any_active = false;
   LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
-    wm_drop_operator_options(C, drag, event);
+    wm_drop_update_active(C, drag, event);
+
+    if (drag->active_dropbox) {
+      any_active = true;
+    }
+  }
+
+  /* Change the cursor to display that dropping isn't possible here. But only if there is something
+   * being dragged actually. Cursor will be restored in #wm_drags_exit(). */
+  if (!BLI_listbase_is_empty(&wm->drags)) {
+    WM_cursor_modal_set(CTX_wm_window(C), any_active ? WM_CURSOR_DEFAULT : WM_CURSOR_STOP);
   }
 }
 
@@ -622,6 +695,17 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
+static void wm_drop_redalert_draw(const char *redalert_str, int x, int y)
+{
+  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+  float col_fg[4];
+
+  UI_GetThemeColor4fv(TH_REDALERT, col_fg);
+
+  UI_fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
+}
+
 const char *WM_drag_get_item_name(wmDrag *drag)
 {
   switch (drag->type) {
@@ -721,34 +805,41 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     free_tooltip = true;
   }
 
-  if (tooltip) {
-    const int winsize_y = WM_window_pixels_y(win);
-    int x, y;
-    if (drag->imb) {
-      x = xy[0] - drag->sx / 2;
+  if (!tooltip && !drag->disabled_info) {
+    return;
+  }
 
-      if (xy[1] + drag->sy / 2 + padding + iconsize < winsize_y) {
-        y = xy[1] + drag->sy / 2 + padding;
-      }
-      else {
-        y = xy[1] - drag->sy / 2 - padding - iconsize - padding - iconsize;
-      }
+  const int winsize_y = WM_window_pixels_y(win);
+  int x, y;
+  if (drag->imb) {
+    x = xy[0] - drag->sx / 2;
+
+    if (xy[1] + drag->sy / 2 + padding + iconsize < winsize_y) {
+      y = xy[1] + drag->sy / 2 + padding;
     }
     else {
-      x = xy[0] - 2 * padding;
-
-      if (xy[1] + iconsize + iconsize < winsize_y) {
-        y = (xy[1] + iconsize) + padding;
-      }
-      else {
-        y = (xy[1] - iconsize) - padding;
-      }
+      y = xy[1] - drag->sy / 2 - padding - iconsize - padding - iconsize;
     }
+  }
+  else {
+    x = xy[0] - 2 * padding;
 
+    if (xy[1] + iconsize + iconsize < winsize_y) {
+      y = (xy[1] + iconsize) + padding;
+    }
+    else {
+      y = (xy[1] - iconsize) - padding;
+    }
+  }
+
+  if (tooltip) {
     wm_drop_operator_draw(tooltip, x, y);
     if (free_tooltip) {
       MEM_freeN((void *)tooltip);
     }
+  }
+  else if (drag->disabled_info) {
+    wm_drop_redalert_draw(drag->disabled_info, x, y);
   }
 }
 
