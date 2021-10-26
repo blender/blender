@@ -32,7 +32,7 @@
 #include "GPU_shader.h"
 #include "GPU_vertex_buffer.h"
 
-#define GPU_BATCH_VBO_MAX_LEN 6
+#define GPU_BATCH_VBO_MAX_LEN 16
 #define GPU_BATCH_INST_VBO_MAX_LEN 2
 #define GPU_BATCH_VAO_STATIC_LEN 3
 #define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
@@ -54,11 +54,11 @@ typedef enum eGPUBatchFlag {
   GPU_BATCH_OWNS_INDEX = (GPU_BATCH_OWNS_INST_VBO_MAX << 1),
 
   /** Has been initialized. At least one VBO is set. */
-  GPU_BATCH_INIT = (1 << 16),
+  GPU_BATCH_INIT = (1 << 26),
   /** Batch is initialized but its VBOs are still being populated. (optional) */
-  GPU_BATCH_BUILDING = (1 << 16),
+  GPU_BATCH_BUILDING = (1 << 26),
   /** Cached data need to be rebuild. (VAO, PSO, ...) */
-  GPU_BATCH_DIRTY = (1 << 17),
+  GPU_BATCH_DIRTY = (1 << 27),
 } eGPUBatchFlag;
 
 #define GPU_BATCH_OWNS_NONE GPU_BATCH_INVALID
