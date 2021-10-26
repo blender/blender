@@ -2227,8 +2227,6 @@ void node_draw_space(const bContext *C, ARegion *region)
   snode->runtime->cursor[0] /= UI_DPI_FAC;
   snode->runtime->cursor[1] /= UI_DPI_FAC;
 
-  int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
-
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* Only set once. */
@@ -2259,13 +2257,13 @@ void node_draw_space(const bContext *C, ARegion *region)
       copy_v2_v2(snode->edittree->view_center, center);
     }
 
+    const int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
+    UI_view2d_dot_grid_draw(v2d, TH_GRID, NODE_GRID_STEP_SIZE, grid_levels);
+
     /* Top-level edit tree. */
     bNodeTree *ntree = path->nodetree;
     if (ntree) {
       snode_setup_v2d(snode, region, center);
-
-      /* Grid. */
-      UI_view2d_multi_grid_draw(v2d, TH_GRID, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
 
       /* Backdrop. */
       draw_nodespace_back_pix(C, region, snode, path->parent_key);
@@ -2305,8 +2303,6 @@ void node_draw_space(const bContext *C, ARegion *region)
     }
   }
   else {
-    /* Default grid. */
-    UI_view2d_multi_grid_draw(v2d, TH_GRID, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
 
     /* Backdrop. */
     draw_nodespace_back_pix(C, region, snode, NODE_INSTANCE_KEY_NONE);

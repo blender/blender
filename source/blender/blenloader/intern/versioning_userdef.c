@@ -314,6 +314,11 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_node.dash_alpha = 0.5f;
   }
 
+  if (!USER_VERSION_ATLEAST(300, 39)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.grid);
+    btheme->space_node.grid_levels = 7;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

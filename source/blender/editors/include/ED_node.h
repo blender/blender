@@ -49,7 +49,7 @@ typedef enum {
   NODE_RIGHT = 8,
 } NodeBorder;
 
-#define NODE_GRID_STEPS 5
+#define NODE_GRID_STEP_SIZE 10
 #define NODE_EDGE_PAN_INSIDE_PAD 2
 #define NODE_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for node panning, use whole screen. */
 #define NODE_EDGE_PAN_SPEED_RAMP 1

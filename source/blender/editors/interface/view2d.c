@@ -32,6 +32,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.h"
+#include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -1291,6 +1292,114 @@ void UI_view2d_multi_grid_draw(
   immUnbindProgram();
 }
 
+static void grid_axis_start_and_count(
+    const float step, const float min, const float max, float *r_start, int *r_count)
+{
+  *r_start = min;
+  if (*r_start < 0.0f) {
+    *r_start += -(float)fmod(min, step);
+  }
+  else {
+    *r_start += step - (float)fabs(fmod(min, step));
+  }
+
+  if (*r_start > max) {
+    *r_count = 0;
+  }
+  else {
+    *r_count = (max - *r_start) / step + 1;
+  }
+}
+
+typedef struct DotGridLevelInfo {
+  /* The factor applied to the #min_step argument. This could be easily computed in runtime,
+   * but seeing it together with the other values is helpful. */
+  float step_factor;
+  /* The normalized zoom level at which the grid level starts to fade in.
+   * At lower zoom levels, the points will not be visible and the level will be skipped. */
+  float fade_in_start_zoom;
+  /* The normalized zoom level at which the grid finishes fading in.
+   * At higher zoom levels, the points will be opaque. */
+  float fade_in_end_zoom;
+} DotGridLevelInfo;
+
+static const DotGridLevelInfo level_info[9] = {
+    {128.0f, -0.1f, 0.01f},
+    {64.0f, 0.0f, 0.025f},
+    {32.0f, 0.025f, 0.15f},
+    {16.0f, 0.05f, 0.2f},
+    {8.0f, 0.1f, 0.25f},
+    {4.0f, 0.125f, 0.3f},
+    {2.0f, 0.25f, 0.5f},
+    {1.0f, 0.7f, 0.9f},
+    {0.5f, 0.6f, 0.9f},
+};
+
+/**
+ * Draw a multi-level grid of dots, with a dynamic number of levels based on the fading.
+ *
+ * \param grid_color_id: The theme color used for the points. Faded dynamically based on zoom.
+ * \param min_step: The base size of the grid. At different zoom levels, the visible grid may have
+ * a larger step size.
+ * \param grid_levels: The maximum grid depth. Larger grid levels will subdivide the grid more.
+ */
+void UI_view2d_dot_grid_draw(const View2D *v2d,
+                             const int grid_color_id,
+                             const float min_step,
+                             const int grid_levels)
+{
+  BLI_assert(grid_levels > 0 && grid_levels < 10);
+  const float zoom_x = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+  const float zoom_normalized = (zoom_x - v2d->minzoom) / (v2d->maxzoom - v2d->minzoom);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  GPU_point_size(3.0f * UI_DPI_FAC);
+
+  float color[4];
+  UI_GetThemeColor3fv(grid_color_id, color);
+
+  for (int level = 0; level < grid_levels; level++) {
+    const DotGridLevelInfo *info = &level_info[level];
+    const float step = min_step * info->step_factor;
+
+    const float alpha_factor = (zoom_normalized - info->fade_in_start_zoom) /
+                               (info->fade_in_end_zoom - info->fade_in_start_zoom);
+    color[3] = clamp_f(BLI_easing_cubic_ease_in_out(alpha_factor, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f);
+    if (color[3] == 0.0f) {
+      break;
+    }
+
+    int count_x;
+    float start_x;
+    grid_axis_start_and_count(step, v2d->cur.xmin, v2d->cur.xmax, &start_x, &count_x);
+    int count_y;
+    float start_y;
+    grid_axis_start_and_count(step, v2d->cur.ymin, v2d->cur.ymax, &start_y, &count_y);
+    if (count_x == 0 || count_y == 0) {
+      continue;
+    }
+
+    immBegin(GPU_PRIM_POINTS, count_x * count_y);
+
+    /* Theoretically drawing on top of lower grid levels could be avoided, but it would also
+     * increase the complexity of this loop, which isn't worth the time at the moment. */
+    for (int i_y = 0; i_y < count_y; i_y++) {
+      const float y = start_y + step * i_y;
+      for (int i_x = 0; i_x < count_x; i_x++) {
+        const float x = start_x + step * i_x;
+        immAttr4fv(color_id, color);
+        immVertex2f(pos, x, y);
+      }
+    }
+
+    immEnd();
+  }
+
+  immUnbindProgram();
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */

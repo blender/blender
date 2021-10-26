@@ -2911,10 +2911,10 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "grid_levels");
-  RNA_def_property_int_default(prop, 2);
-  RNA_def_property_range(prop, 0, 2);
+  RNA_def_property_int_default(prop, 7);
+  RNA_def_property_range(prop, 0, 9);
   RNA_def_property_ui_text(
-      prop, "Grid Levels", "Amount of grid lines displayed in the background");
+      prop, "Grid Levels", "Number of subdivisions for the dot grid displayed in the background");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "dash_alpha", PROP_FLOAT, PROP_FACTOR);
