@@ -1298,6 +1298,13 @@ rna_vector_subtype_items = (
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
 )
 
+
+# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
+# This can be moved into the class as a static-method once Python 3.9x is dropped.
+def _wm_properties_edit_subtype_items(_self, _context):
+    return WM_OT_properties_edit.subtype_items
+
+
 class WM_OT_properties_edit(Operator):
     """Change a custom property's type, or adjust how it is displayed in the interface"""
     bl_idname = "wm.properties_edit"
@@ -1312,7 +1319,7 @@ class WM_OT_properties_edit(Operator):
     property_name: rna_custom_property_name
     property_type: EnumProperty(
         name="Type",
-        items=lambda self, _context: WM_OT_properties_edit.type_items,
+        items=rna_custom_property_type_items,
     )
     is_overridable_library: BoolProperty(
         name="Is Library Overridable",
@@ -1404,7 +1411,7 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=lambda self, _context: WM_OT_properties_edit.subtype_items,
+        items=_wm_properties_edit_subtype_items,
     )
 
     # String properties.
