@@ -1625,10 +1625,10 @@ static void node_draw_basis(const bContext *C,
 
     /* Muted nodes get a mix of the background with the node color. */
     if (node->flag & NODE_MUTED) {
-      UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.1f, 0, color_header);
+      UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.1f, color_header);
     }
     else {
-      UI_GetThemeColorBlendShade4fv(TH_NODE, color_id, 0.6f, -40, color_header);
+      UI_GetThemeColorBlend4f(TH_NODE, color_id, 0.4f, color_header);
     }
 
     UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -1770,11 +1770,11 @@ static void node_draw_basis(const bContext *C,
   {
     /* Use warning color to indicate undefined types. */
     if (nodeTypeUndefined(node)) {
-      UI_GetThemeColorBlendShade4fv(TH_REDALERT, color_id, 0.05f, -80, color);
+      UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
     else if (node->flag & NODE_MUTED) {
-      UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.33f, 0, color);
+      UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color);
     }
     else if (node->flag & NODE_CUSTOM_COLOR) {
       rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
@@ -1900,7 +1900,7 @@ static void node_draw_hidden(const bContext *C,
   {
     if (nodeTypeUndefined(node)) {
       /* Use warning color to indicate undefined types. */
-      UI_GetThemeColorBlendShade4fv(TH_REDALERT, color_id, 0.05f, -80, color);
+      UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     else if (node->flag & NODE_MUTED) {
       /* Muted nodes get a mix of the background with the node color. */
@@ -1910,7 +1910,7 @@ static void node_draw_hidden(const bContext *C,
       rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
     }
     else {
-      UI_GetThemeColorBlendShade4fv(TH_NODE, color_id, 0.6f, -40, color);
+      UI_GetThemeColorBlend4f(TH_NODE, color_id, 0.4f, color);
     }
 
     /* Draw selected nodes fully opaque. */
