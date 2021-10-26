@@ -907,22 +907,22 @@ static void create_inspection_string_for_gfield(const geo_log::GFieldValueLog &v
   }
   else {
     if (type.is<int>()) {
-      ss << TIP_("Integer Field");
+      ss << TIP_("Integer field");
     }
     else if (type.is<float>()) {
-      ss << TIP_("Float Field");
+      ss << TIP_("Float field");
     }
     else if (type.is<blender::float3>()) {
-      ss << TIP_("Vector Field");
+      ss << TIP_("Vector field");
     }
     else if (type.is<bool>()) {
-      ss << TIP_("Boolean Field");
+      ss << TIP_("Boolean field");
     }
     else if (type.is<std::string>()) {
-      ss << TIP_("String Field");
+      ss << TIP_("String field");
     }
     else if (type.is<blender::ColorGeometry4f>()) {
-      ss << TIP_("Color Field");
+      ss << TIP_("Color field");
     }
     ss << TIP_(" based on:\n");
 

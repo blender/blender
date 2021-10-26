@@ -241,8 +241,9 @@ static const GVArray *construct_curve_normal_gvarray(const CurveComponent &compo
 
 class NormalFieldInput final : public fn::FieldInput {
  public:
-  NormalFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Normal")
+  NormalFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Normal node")
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

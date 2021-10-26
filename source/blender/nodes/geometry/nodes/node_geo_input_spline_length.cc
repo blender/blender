@@ -57,8 +57,9 @@ static const GVArray *construct_spline_length_gvarray(const CurveComponent &comp
 
 class SplineLengthFieldInput final : public fn::FieldInput {
  public:
-  SplineLengthFieldInput() : fn::FieldInput(CPPType::get<float>(), "Spline Length")
+  SplineLengthFieldInput() : fn::FieldInput(CPPType::get<float>(), "Spline Length node")
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

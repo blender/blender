@@ -1385,7 +1385,7 @@ const GVArray *AttributeFieldInput::get_varray_for_context(const fn::FieldContex
 std::string AttributeFieldInput::socket_inspection_name() const
 {
   std::stringstream ss;
-  ss << TIP_("Attribute: ") << name_;
+  ss << '"' << name_ << '"' << TIP_(" attribute from geometry");
   return ss.str();
 }
 
@@ -1468,7 +1468,7 @@ const GVArray *AnonymousAttributeFieldInput::get_varray_for_context(
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
 {
   std::stringstream ss;
-  ss << TIP_("Anonymous Attribute: ") << debug_name_;
+  ss << '"' << debug_name_ << '"' << TIP_(" from ") << producer_name_;
   return ss.str();
 }
 

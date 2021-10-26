@@ -183,6 +183,11 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
   return default_domain;
 }
 
+std::string GeoNodeExecParams::attribute_producer_name() const
+{
+  return provider_->dnode->label_or_name() + TIP_(" node");
+}
+
 void GeoNodeExecParams::check_input_access(StringRef identifier,
                                            const CPPType *requested_type) const
 {

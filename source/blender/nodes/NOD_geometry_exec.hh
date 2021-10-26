@@ -335,6 +335,8 @@ class GeoNodeExecParams {
                                                     const GeometryComponent &component,
                                                     const AttributeDomain default_domain) const;
 
+  std::string attribute_producer_name() const;
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_input_access(StringRef identifier, const CPPType *requested_type = nullptr) const;

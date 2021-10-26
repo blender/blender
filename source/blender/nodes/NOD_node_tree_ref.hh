@@ -200,6 +200,8 @@ class NodeRef : NonCopyable, NonMovable {
   PointerRNA *rna() const;
   StringRefNull idname() const;
   StringRefNull name() const;
+  StringRefNull label() const;
+  StringRefNull label_or_name() const;
   bNodeType *typeinfo() const;
   const NodeDeclaration *declaration() const;
 
@@ -573,6 +575,20 @@ inline StringRefNull NodeRef::idname() const
 inline StringRefNull NodeRef::name() const
 {
   return bnode_->name;
+}
+
+inline StringRefNull NodeRef::label() const
+{
+  return bnode_->label;
+}
+
+inline StringRefNull NodeRef::label_or_name() const
+{
+  const StringRefNull label = this->label();
+  if (!label.is_empty()) {
+    return label;
+  }
+  return this->name();
 }
 
 inline bNodeType *NodeRef::typeinfo() const

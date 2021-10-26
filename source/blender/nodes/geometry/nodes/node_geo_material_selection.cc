@@ -59,8 +59,9 @@ class MaterialSelectionFieldInput final : public fn::FieldInput {
 
  public:
   MaterialSelectionFieldInput(Material *material)
-      : fn::FieldInput(CPPType::get<bool>(), "Material Selection"), material_(material)
+      : fn::FieldInput(CPPType::get<bool>(), "Material Selection node"), material_(material)
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

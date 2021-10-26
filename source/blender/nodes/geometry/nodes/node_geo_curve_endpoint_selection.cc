@@ -56,8 +56,11 @@ class EndpointFieldInput final : public fn::FieldInput {
 
  public:
   EndpointFieldInput(Field<int> start_size, Field<int> end_size)
-      : FieldInput(CPPType::get<bool>(), "Selection"), start_size_(start_size), end_size_(end_size)
+      : FieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
+        start_size_(start_size),
+        end_size_(end_size)
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

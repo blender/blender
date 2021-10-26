@@ -628,13 +628,14 @@ class IndexTransferFieldInput : public FieldInput {
                           GField src_field,
                           Field<int> index_field,
                           const AttributeDomain domain)
-      : FieldInput(src_field.cpp_type(), "Attribute Transfer Index"),
+      : FieldInput(src_field.cpp_type(), "Attribute Transfer node"),
         src_geometry_(std::move(geometry)),
         src_field_(std::move(src_field)),
         index_field_(std::move(index_field)),
         domain_(domain)
   {
     src_geometry_.ensure_owns_direct_data();
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const FieldContext &context,

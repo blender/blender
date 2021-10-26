@@ -736,6 +736,7 @@ class AttributeFieldInput : public fn::FieldInput {
   AttributeFieldInput(std::string name, const CPPType &type)
       : fn::FieldInput(type, name), name_(std::move(name))
   {
+    category_ = Category::NamedAttribute;
   }
 
   template<typename T> static fn::Field<T> Create(std::string name)
@@ -764,6 +765,7 @@ class IDAttributeFieldInput : public fn::FieldInput {
  public:
   IDAttributeFieldInput() : fn::FieldInput(CPPType::get<int>())
   {
+    category_ = Category::Generated;
   }
 
   static fn::Field<int> Create();
@@ -785,18 +787,25 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
    * automatically.
    */
   StrongAnonymousAttributeID anonymous_id_;
+  std::string producer_name_;
 
  public:
-  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id, const CPPType &type)
-      : fn::FieldInput(type, anonymous_id.debug_name()), anonymous_id_(std::move(anonymous_id))
+  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id,
+                               const CPPType &type,
+                               std::string producer_name)
+      : fn::FieldInput(type, anonymous_id.debug_name()),
+        anonymous_id_(std::move(anonymous_id)),
+        producer_name_(producer_name)
   {
+    category_ = Category::AnonymousAttribute;
   }
 
-  template<typename T> static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id)
+  template<typename T>
+  static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id, std::string producer_name)
   {
     const CPPType &type = CPPType::get<T>();
-    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(std::move(anonymous_id),
-                                                                      type);
+    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(
+        std::move(anonymous_id), type, std::move(producer_name));
     return fn::Field<T>{field_input};
   }
 

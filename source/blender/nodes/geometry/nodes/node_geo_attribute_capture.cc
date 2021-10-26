@@ -144,7 +144,7 @@ static void geo_node_attribute_capture_exec(GeoNodeExecParams params)
       break;
   }
 
-  WeakAnonymousAttributeID anonymous_id{"Attribute Capture"};
+  WeakAnonymousAttributeID anonymous_id{"Attribute"};
   const CPPType &type = field.cpp_type();
 
   static const Array<GeometryComponentType> types = {
@@ -158,8 +158,8 @@ static void geo_node_attribute_capture_exec(GeoNodeExecParams params)
     }
   });
 
-  GField output_field{
-      std::make_shared<bke::AnonymousAttributeFieldInput>(std::move(anonymous_id), type)};
+  GField output_field{std::make_shared<bke::AnonymousAttributeFieldInput>(
+      std::move(anonymous_id), type, params.attribute_producer_name())};
 
   switch (data_type) {
     case CD_PROP_FLOAT: {

@@ -177,9 +177,23 @@ const SocketLog *NodeLog::lookup_socket_log(const bNode &node, const bNodeSocket
 
 GFieldValueLog::GFieldValueLog(fn::GField field, bool log_full_field) : type_(field.cpp_type())
 {
-  VectorSet<std::reference_wrapper<const FieldInput>> field_inputs;
+  Set<std::reference_wrapper<const FieldInput>> field_inputs_set;
   field.node().foreach_field_input(
-      [&](const FieldInput &field_input) { field_inputs.add(field_input); });
+      [&](const FieldInput &field_input) { field_inputs_set.add(field_input); });
+
+  Vector<std::reference_wrapper<const FieldInput>> field_inputs;
+  field_inputs.extend(field_inputs_set.begin(), field_inputs_set.end());
+
+  std::sort(
+      field_inputs.begin(), field_inputs.end(), [](const FieldInput &a, const FieldInput &b) {
+        const int index_a = (int)a.category();
+        const int index_b = (int)b.category();
+        if (index_a == index_b) {
+          return a.socket_inspection_name().size() < b.socket_inspection_name().size();
+        }
+        return index_a < index_b;
+      });
+
   for (const FieldInput &field_input : field_inputs) {
     input_tooltips_.append(field_input.socket_inspection_name());
   }

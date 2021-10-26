@@ -523,6 +523,7 @@ const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
 
 IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
 {
+  category_ = Category::Generated;
 }
 
 GVArray *IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &scope)

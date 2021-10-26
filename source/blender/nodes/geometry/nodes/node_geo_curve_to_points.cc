@@ -357,17 +357,20 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   if (attribute_outputs.tangent_id) {
     params.set_output(
         "Tangent",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.normal_id) {
     params.set_output(
         "Normal",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.rotation_id) {
     params.set_output(
         "Rotation",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id),
+                                                     params.attribute_producer_name()));
   }
 }
 

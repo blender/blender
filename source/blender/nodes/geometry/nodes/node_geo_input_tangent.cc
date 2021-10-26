@@ -121,8 +121,9 @@ static const GVArray *construct_curve_tangent_gvarray(const CurveComponent &comp
 
 class TangentFieldInput final : public fn::FieldInput {
  public:
-  TangentFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Tangent")
+  TangentFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Tangent node")
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
