@@ -32,8 +32,8 @@ typedef struct XrSessionSettings {
   /** Shading settings, struct shared with 3D-View so settings are the same. */
   struct View3DShading shading;
 
-  char _pad[7];
-
+  float base_scale;
+  char _pad[3];
   char base_pose_type; /* #eXRSessionBasePoseType */
   /** Object to take the location and rotation as base position from. */
   Object *base_pose_object;
