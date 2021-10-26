@@ -2272,6 +2272,9 @@ void node_draw_space(const bContext *C, ARegion *region)
   /* Nodes. */
   snode_set_context(C);
 
+  const int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
+  UI_view2d_dot_grid_draw(v2d, TH_GRID, NODE_GRID_STEP_SIZE, grid_levels);
+
   /* Draw parent node trees. */
   if (snode->treepath.last) {
     bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
@@ -2293,9 +2296,6 @@ void node_draw_space(const bContext *C, ARegion *region)
     if (snode->edittree) {
       copy_v2_v2(snode->edittree->view_center, center);
     }
-
-    const int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
-    UI_view2d_dot_grid_draw(v2d, TH_GRID, NODE_GRID_STEP_SIZE, grid_levels);
 
     /* Top-level edit tree. */
     bNodeTree *ntree = path->nodetree;
