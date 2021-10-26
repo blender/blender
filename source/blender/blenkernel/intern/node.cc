@@ -313,28 +313,28 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
-      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value->value, IDWALK_CB_USER);
       break;
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
-      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value->value, IDWALK_CB_USER);
       break;
     }
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                       sock->default_value;
-      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value->value, IDWALK_CB_USER);
       break;
     }
     case SOCK_TEXTURE: {
       bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
-      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value->value, IDWALK_CB_USER);
       break;
     }
     case SOCK_MATERIAL: {
       bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
-      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value->value, IDWALK_CB_USER);
       break;
     }
     case SOCK_FLOAT:
@@ -355,7 +355,7 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bNodeTree *ntree = (bNodeTree *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, ntree->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ntree->gpd, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);

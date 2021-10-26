@@ -131,7 +131,7 @@ static void lattice_free_data(ID *id)
 static void lattice_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Lattice *lattice = (Lattice *)id;
-  BKE_LIB_FOREACHID_PROCESS(data, lattice->key, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lattice->key, IDWALK_CB_USER);
 }
 
 static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_address)

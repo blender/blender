@@ -488,7 +488,7 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
  */
 void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
 {
-  BKE_LIB_FOREACHID_PROCESS(data, strip->act, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (FCurve *, fcu, &strip->fcurves) {
     BKE_fcurve_foreach_id(fcu, data);

@@ -86,7 +86,7 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
   wmWindowManager *wm = (wmWindowManager *)id;
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BKE_LIB_FOREACHID_PROCESS(data, win->scene, IDWALK_CB_USER_ONE);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->scene, IDWALK_CB_USER_ONE);
 
     /* This pointer can be NULL during old files reading, better be safe than sorry. */
     if (win->workspace_hook != NULL) {

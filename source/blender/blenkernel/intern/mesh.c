@@ -176,10 +176,10 @@ static void mesh_free_data(ID *id)
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Mesh *mesh = (Mesh *)id;
-  BKE_LIB_FOREACHID_PROCESS(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
-  BKE_LIB_FOREACHID_PROCESS(data, mesh->key, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->key, IDWALK_CB_USER);
   for (int i = 0; i < mesh->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, mesh->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->mat[i], IDWALK_CB_USER);
   }
 }
 

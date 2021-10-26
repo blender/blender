@@ -453,11 +453,11 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     }
   }
 
-  BKE_LIB_FOREACHID_PROCESS(data, object->parent, IDWALK_CB_NEVER_SELF);
-  BKE_LIB_FOREACHID_PROCESS(data, object->track, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->parent, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->track, IDWALK_CB_NEVER_SELF);
   /* object->proxy is refcounted, but not object->proxy_group... *sigh* */
-  BKE_LIB_FOREACHID_PROCESS(data, object->proxy, IDWALK_CB_USER | IDWALK_CB_NEVER_SELF);
-  BKE_LIB_FOREACHID_PROCESS(data, object->proxy_group, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy, IDWALK_CB_USER | IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy_group, IDWALK_CB_NOP);
 
   /* Special case!
    * Since this field is set/owned by 'user' of this ID (and not ID itself),
@@ -469,22 +469,23 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
             IDWALK_CB_INDIRECT_USAGE :
             0,
         true);
-    BKE_LIB_FOREACHID_PROCESS(data, object->proxy_from, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, object->proxy_from, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
     BKE_lib_query_foreachid_process_callback_flag_override(data, cb_flag_orig, true);
   }
 
-  BKE_LIB_FOREACHID_PROCESS(data, object->poselib, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->poselib, IDWALK_CB_USER);
 
   for (int i = 0; i < object->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, object->mat[i], proxy_cb_flag | IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->mat[i], proxy_cb_flag | IDWALK_CB_USER);
   }
 
   /* Note that ob->gpd is deprecated, so no need to handle it here. */
-  BKE_LIB_FOREACHID_PROCESS(data, object->instance_collection, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->instance_collection, IDWALK_CB_USER);
 
   if (object->pd) {
-    BKE_LIB_FOREACHID_PROCESS(data, object->pd->tex, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, object->pd->f_source, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->pd->tex, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->pd->f_source, IDWALK_CB_NOP);
   }
   /* Note that ob->effect is deprecated, so no need to handle it here. */
 
@@ -494,15 +495,17 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       IDP_foreach_property(
           pchan->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
-      BKE_LIB_FOREACHID_PROCESS(data, pchan->custom, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, pchan->custom, IDWALK_CB_USER);
       BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, data);
     }
     BKE_lib_query_foreachid_process_callback_flag_override(data, cb_flag_orig, true);
   }
 
   if (object->rigidbody_constraint) {
-    BKE_LIB_FOREACHID_PROCESS(data, object->rigidbody_constraint->ob1, IDWALK_CB_NEVER_SELF);
-    BKE_LIB_FOREACHID_PROCESS(data, object->rigidbody_constraint->ob2, IDWALK_CB_NEVER_SELF);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, object->rigidbody_constraint->ob1, IDWALK_CB_NEVER_SELF);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, object->rigidbody_constraint->ob2, IDWALK_CB_NEVER_SELF);
   }
 
   BKE_modifiers_foreach_ID_link(object, library_foreach_modifiersForeachIDLink, data);
@@ -516,10 +519,11 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 
   if (object->soft) {
-    BKE_LIB_FOREACHID_PROCESS(data, object->soft->collision_group, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->soft->collision_group, IDWALK_CB_NOP);
 
     if (object->soft->effector_weights) {
-      BKE_LIB_FOREACHID_PROCESS(data, object->soft->effector_weights->group, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+          data, object->soft->effector_weights->group, IDWALK_CB_NOP);
     }
   }
 }

@@ -227,7 +227,7 @@ static void library_foreach_ID_link(Main *bmain,
   BKE_LIB_FOREACHID_PROCESS_ID(&data, check_id, cb_flag)
 
 #define CALLBACK_INVOKE(check_id_super, cb_flag) \
-  BKE_LIB_FOREACHID_PROCESS(&data, check_id_super, cb_flag)
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(&data, check_id_super, cb_flag)
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;

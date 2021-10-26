@@ -132,19 +132,19 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
   MovieClip *movie_clip = (MovieClip *)id;
   MovieTracking *tracking = &movie_clip->tracking;
 
-  BKE_LIB_FOREACHID_PROCESS(data, movie_clip->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
   }
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
-      BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
     }
   }
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking->plane_tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, plane_track->image, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
   }
 }
 

@@ -107,7 +107,7 @@ static void hair_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Hair *hair = (Hair *)id;
   for (int i = 0; i < hair->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, hair->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, hair->mat[i], IDWALK_CB_USER);
   }
 }
 

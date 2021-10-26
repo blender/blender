@@ -556,7 +556,7 @@ static void volume_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Volume *volume = (Volume *)id;
   for (int i = 0; i < volume->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, volume->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, volume->mat[i], IDWALK_CB_USER);
   }
 }
 

@@ -179,7 +179,7 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    BKE_LIB_FOREACHID_PROCESS(data, marker->camera, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
   }
 }
 

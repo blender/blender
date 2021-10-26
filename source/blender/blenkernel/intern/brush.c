@@ -207,11 +207,11 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Brush *brush = (Brush *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, brush->toggle_brush, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, brush->clone.image, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, brush->paint_curve, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->toggle_brush, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->clone.image, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->paint_curve, IDWALK_CB_USER);
   if (brush->gpencil_settings) {
-    BKE_LIB_FOREACHID_PROCESS(data, brush->gpencil_settings->material, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material, IDWALK_CB_USER);
   }
   BKE_texture_mtex_foreach_id(data, &brush->mtex);
   BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
