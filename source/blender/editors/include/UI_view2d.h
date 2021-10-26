@@ -315,6 +315,9 @@ typedef struct View2DEdgePanData {
   /** View2d we're operating in. */
   struct View2D *v2d;
 
+  /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
+   * outside). */
+  bool enabled;
   /** Inside distance in UI units from the edge of the region within which to start panning. */
   float inside_pad;
   /** Outside distance in UI units from the edge of the region at which to stop panning. */

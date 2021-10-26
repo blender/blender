@@ -156,6 +156,7 @@ void ED_operatormacros_node(void)
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   RNA_boolean_set(mot->ptr, "remove_on_cancel", true);
+  RNA_boolean_set(mot->ptr, "view2d_edge_pan", true);
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
   WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 

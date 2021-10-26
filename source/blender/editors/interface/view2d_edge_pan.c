@@ -92,6 +92,8 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->delay = delay;
   vpd->zoom_influence = zoom_influence;
 
+  vpd->enabled = false;
+
   /* Calculate translation factor, based on size of view. */
   const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
   const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
@@ -227,9 +229,16 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
   BLI_rcti_pad(&inside_rect, -vpd->inside_pad * U.widget_unit, -vpd->inside_pad * U.widget_unit);
   BLI_rcti_pad(&outside_rect, vpd->outside_pad * U.widget_unit, vpd->outside_pad * U.widget_unit);
 
+  /* Check if we can actually start the edge pan (e.g. adding nodes outside the view will start
+   * disabled). */
+  if (BLI_rcti_isect_pt_v(&inside_rect, xy)) {
+    /* We are inside once, can start. */
+    vpd->enabled = true;
+  }
+
   int pan_dir_x = 0;
   int pan_dir_y = 0;
-  if ((vpd->outside_pad == 0) || BLI_rcti_isect_pt_v(&outside_rect, xy)) {
+  if (vpd->enabled && ((vpd->outside_pad == 0) || BLI_rcti_isect_pt_v(&outside_rect, xy))) {
     /* Find whether the mouse is beyond X and Y edges. */
     if (xy[0] > inside_rect.xmax) {
       pan_dir_x = 1;
