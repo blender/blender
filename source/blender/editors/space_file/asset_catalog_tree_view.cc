@@ -389,6 +389,8 @@ bool AssetCatalogDropController::has_droppable_item(const wmDrag &drag,
       return true;
     }
   }
+
+  *r_disabled_hint = "Only assets from this current file can be moved between catalogs";
   return false;
 }
 
