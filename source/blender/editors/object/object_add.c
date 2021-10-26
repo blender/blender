@@ -1542,7 +1542,7 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
                 "stroke_depth_offset",
                 0.05f,
                 0.0f,
-                0.0f,
+                FLT_MAX,
                 "Stroke Offset",
                 "Stroke offset for the line art modifier",
                 0.0f,
