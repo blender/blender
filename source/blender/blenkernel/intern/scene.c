@@ -704,7 +704,7 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
 {
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
 
-#define FOREACHID_PROCESS(_data, _id_super, _cb_flag) \
+#define FOREACHID_PROCESS_IDSUPER(_data, _id_super, _cb_flag) \
   { \
     CHECK_TYPE(&((_id_super)->id), ID *); \
     if (!BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag))) { \
@@ -713,23 +713,23 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
   } \
   ((void)0)
 
-  FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
-  FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
-  FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
-  FOREACHID_PROCESS(data, seq->mask, IDWALK_CB_USER);
-  FOREACHID_PROCESS(data, seq->sound, IDWALK_CB_USER);
+  FOREACHID_PROCESS_IDSUPER(data, seq->scene, IDWALK_CB_NEVER_SELF);
+  FOREACHID_PROCESS_IDSUPER(data, seq->scene_camera, IDWALK_CB_NOP);
+  FOREACHID_PROCESS_IDSUPER(data, seq->clip, IDWALK_CB_USER);
+  FOREACHID_PROCESS_IDSUPER(data, seq->mask, IDWALK_CB_USER);
+  FOREACHID_PROCESS_IDSUPER(data, seq->sound, IDWALK_CB_USER);
   IDP_foreach_property(
       seq->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
-    FOREACHID_PROCESS(data, smd->mask_id, IDWALK_CB_USER);
+    FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
 
   if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
     TextVars *text_data = seq->effectdata;
-    FOREACHID_PROCESS(data, text_data->text_font, IDWALK_CB_USER);
+    FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
   }
 
-#undef FOREACHID_PROCESS
+#undef FOREACHID_PROCESS_IDSUPER
 
   return true;
 }
