@@ -65,7 +65,7 @@ bool set_vec_attrib(const pxr::UsdPrim &prim,
     return false;
   }
 
-  VECT vec_value(static_cast<VECT::ScalarType*>(prop->data.pointer));
+  VECT vec_value(static_cast<typename VECT::ScalarType*>(prop->data.pointer));
 
   return vec_attr.Set(vec_value, timecode);
 }
