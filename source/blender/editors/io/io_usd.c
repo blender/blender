@@ -148,6 +148,32 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
+    {USD_ATTR_IMPORT_NONE,
+     "NONE",
+     0,
+     "None",
+     "Do not import attributes"},
+    {USD_ATTR_IMPORT_USER,
+     "USER",
+     0,
+     "User",
+     "Import attributes in the 'userProperties' namespace as "
+     "Blender custom properties.  The namespace will "
+     "be stripped from the property names. "
+     "Note that attributes in the 'usdProperties:blenderName' namespace "
+     "will not be imported, as use of these attributes is deprecated"},
+    {USD_ATTR_IMPORT_ALL,
+     "ALL",
+     0,
+     "All Custom",
+     "Import all custom attributes as Blender custom properties. "
+     "Attribute namespaces will be retained in the property names. "
+     "Note that attributes in the 'usdProperties:blenderName' namespace "
+     "will not be imported, as use of these attributes is deprecated"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -237,6 +263,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_as_overs = RNA_boolean_get(op->ptr, "export_as_overs");
   const bool merge_transform_and_shape = RNA_boolean_get(op->ptr, "merge_transform_and_shape");
   const bool export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
+  const bool add_properties_namespace = RNA_boolean_get(op->ptr, "add_properties_namespace");
   const bool export_identity_transforms = RNA_boolean_get(op->ptr, "export_identity_transforms");
   const bool apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv");
   const bool author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
@@ -325,6 +352,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_as_overs,
                                    merge_transform_and_shape,
                                    export_custom_properties,
+                                   add_properties_namespace,
                                    export_identity_transforms,
                                    apply_subdiv,
                                    author_blender_name,
@@ -393,7 +421,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   }
   uiItemR(box, ptr, "export_as_overs", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "merge_transform_and_shape", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "export_custom_properties", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_identity_transforms", 0, NULL, ICON_NONE);
 
   if (RNA_boolean_get(ptr, "export_hair") || RNA_boolean_get(ptr, "export_particles")) {
@@ -403,6 +430,13 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   if (RNA_boolean_get(ptr, "export_vertex_colors") ||
       RNA_boolean_get(ptr, "export_vertex_groups")) {
     uiItemR(box, ptr, "vertex_data_as_face_varying", 0, NULL, ICON_NONE);
+  }
+
+  box = uiLayoutBox(layout);
+  uiItemL(box, IFACE_("Attributes:"), ICON_NONE);
+  uiItemR(box, ptr, "export_custom_properties", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "export_custom_properties")) {
+    uiItemR(box, ptr, "add_properties_namespace", 0, NULL, ICON_NONE);
   }
 
   box = uiLayoutBox(layout);
@@ -721,6 +755,11 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Export Custom Properties",
                   "When checked, custom properties will be exported as USD User Properties");
   RNA_def_boolean(ot->srna,
+                  "add_properties_namespace",
+                  true,
+                  "Add Properties Namespace",
+                  "Add exported custom properties to the 'userProperties' USD attribute namespace");
+  RNA_def_boolean(ot->srna,
                   "export_identity_transforms",
                   false,
                   "Export Identity Transforms",
@@ -930,6 +969,9 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDMtlNameCollisionMode mtl_name_collision_mode = RNA_enum_get(op->ptr,
                                                                         "mtl_name_collision_mode");
 
+  const eUSDAttrImportMode attr_import_mode = RNA_enum_get(op->ptr,
+                                                           "attr_import_mode");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -972,7 +1014,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .convert_light_from_nits = convert_light_from_nits,
                                    .scale_light_radius = scale_light_radius,
                                    .create_background_shader = create_background_shader,
-                                   .mtl_name_collision_mode = mtl_name_collision_mode};
+                                   .mtl_name_collision_mode = mtl_name_collision_mode,
+                                   .attr_import_mode = attr_import_mode};
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
@@ -1020,6 +1063,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(box, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "create_background_shader", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "attr_import_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
@@ -1202,6 +1246,14 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
       USD_MTL_NAME_COLLISION_MODIFY,
       "Material Name Collision",
       "Behavior when the name of an imported material conflicts with an existing material");
+
+  RNA_def_enum(
+    ot->srna,
+    "attr_import_mode",
+    rna_enum_usd_attr_import_mode_items,
+    USD_ATTR_IMPORT_NONE,
+    "Import Attributes",
+    "Behavior when importing USD attributes as Blender custom properties");
 }
 
 #endif /* WITH_USD */

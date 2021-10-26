@@ -100,9 +100,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain, double motionSampleTime) = 0;
-  virtual void read_object_data(Main * /* bmain */, double /* motionSampleTime */)
-  {
-  }
+  virtual void read_object_data(Main * bmain, double motionSampleTime);
 
   virtual bool needs_cachefile()
   {
@@ -145,6 +143,10 @@ class USDPrimReader {
   {
     return prim_path_;
   }
+
+ protected:
+  void set_props(ID *id, const pxr::UsdPrim &prim, double motionSampleTime);
+
 };
 
 }  // namespace blender::io::usd

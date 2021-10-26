@@ -69,6 +69,12 @@ typedef enum eUSDMtlNameCollisionMode {
   USD_MTL_NAME_COLLISION_SKIP = 1,
 } eUSDMtlNameCollisionMode;
 
+typedef enum eUSDAttrImportMode {
+  USD_ATTR_IMPORT_NONE = 0,
+  USD_ATTR_IMPORT_USER = 1,
+  USD_ATTR_IMPORT_ALL = 2,
+} eUSDAttrImportMode;
+
 struct USDExportParams {
   double frame_start;
   double frame_end;
@@ -105,6 +111,7 @@ struct USDExportParams {
   bool export_as_overs;
   bool merge_transform_and_shape;
   bool export_custom_properties;
+  bool add_properties_namespace;
   bool export_identity_transforms;
   bool apply_subdiv;
   bool author_blender_name;
@@ -158,6 +165,7 @@ struct USDImportParams {
   bool scale_light_radius;
   bool create_background_shader;
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
+  eUSDAttrImportMode attr_import_mode;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.
