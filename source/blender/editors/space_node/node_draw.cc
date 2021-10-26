@@ -854,60 +854,7 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
 
   const GPointer value = value_log.value();
   const CPPType &type = *value.type();
-  if (const FieldCPPType *field_type = dynamic_cast<const FieldCPPType *>(&type)) {
-    const CPPType &base_type = field_type->field_type();
-    BUFFER_FOR_CPP_TYPE_VALUE(base_type, buffer);
-    const GField &field = field_type->get_gfield(value.get());
-    if (field.node().depends_on_input()) {
-      if (base_type.is<int>()) {
-        ss << TIP_("Integer Field");
-      }
-      else if (base_type.is<float>()) {
-        ss << TIP_("Float Field");
-      }
-      else if (base_type.is<blender::float3>()) {
-        ss << TIP_("Vector Field");
-      }
-      else if (base_type.is<bool>()) {
-        ss << TIP_("Boolean Field");
-      }
-      else if (base_type.is<std::string>()) {
-        ss << TIP_("String Field");
-      }
-      ss << TIP_(" based on:\n");
-
-      /* Use vector set to deduplicate inputs. */
-      VectorSet<std::reference_wrapper<const FieldInput>> field_inputs;
-      field.node().foreach_field_input(
-          [&](const FieldInput &field_input) { field_inputs.add(field_input); });
-      for (const FieldInput &field_input : field_inputs) {
-        ss << "\u2022 " << field_input.socket_inspection_name();
-        if (field_input != field_inputs.as_span().last().get()) {
-          ss << ".\n";
-        }
-      }
-    }
-    else {
-      blender::fn::evaluate_constant_field(field, buffer);
-      if (base_type.is<int>()) {
-        ss << *(int *)buffer << TIP_(" (Integer)");
-      }
-      else if (base_type.is<float>()) {
-        ss << *(float *)buffer << TIP_(" (Float)");
-      }
-      else if (base_type.is<blender::float3>()) {
-        ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
-      }
-      else if (base_type.is<bool>()) {
-        ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
-      }
-      else if (base_type.is<std::string>()) {
-        ss << *(std::string *)buffer << TIP_(" (String)");
-      }
-      base_type.destruct(buffer);
-    }
-  }
-  else if (type.is<Object *>()) {
+  if (type.is<Object *>()) {
     id_to_inspection_string((ID *)*value.get<Object *>(), ID_OB);
   }
   else if (type.is<Material *>()) {
@@ -921,6 +868,71 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
   }
   else if (type.is<Collection *>()) {
     id_to_inspection_string((ID *)*value.get<Collection *>(), ID_GR);
+  }
+}
+
+static void create_inspection_string_for_gfield(const geo_log::GFieldValueLog &value_log,
+                                                std::stringstream &ss)
+{
+  const CPPType &type = value_log.type();
+  const GField &field = value_log.field();
+  const Span<std::string> input_tooltips = value_log.input_tooltips();
+
+  if (input_tooltips.is_empty()) {
+    if (field) {
+      BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
+      blender::fn::evaluate_constant_field(field, buffer);
+      if (type.is<int>()) {
+        ss << *(int *)buffer << TIP_(" (Integer)");
+      }
+      else if (type.is<float>()) {
+        ss << *(float *)buffer << TIP_(" (Float)");
+      }
+      else if (type.is<blender::float3>()) {
+        ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
+      }
+      else if (type.is<bool>()) {
+        ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
+      }
+      else if (type.is<std::string>()) {
+        ss << *(std::string *)buffer << TIP_(" (String)");
+      }
+      type.destruct(buffer);
+    }
+    else {
+      /* Constant values should always be logged. */
+      BLI_assert_unreachable();
+      ss << "Value has not been logged";
+    }
+  }
+  else {
+    if (type.is<int>()) {
+      ss << TIP_("Integer Field");
+    }
+    else if (type.is<float>()) {
+      ss << TIP_("Float Field");
+    }
+    else if (type.is<blender::float3>()) {
+      ss << TIP_("Vector Field");
+    }
+    else if (type.is<bool>()) {
+      ss << TIP_("Boolean Field");
+    }
+    else if (type.is<std::string>()) {
+      ss << TIP_("String Field");
+    }
+    else if (type.is<blender::ColorGeometry4f>()) {
+      ss << TIP_("Color Field");
+    }
+    ss << TIP_(" based on:\n");
+
+    for (const int i : input_tooltips.index_range()) {
+      const blender::StringRef tooltip = input_tooltips[i];
+      ss << "\u2022 " << tooltip;
+      if (i < input_tooltips.size() - 1) {
+        ss << ".\n";
+      }
+    }
   }
 }
 
@@ -1014,6 +1026,10 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
   if (const geo_log::GenericValueLog *generic_value_log =
           dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
     create_inspection_string_for_generic_value(*generic_value_log, ss);
+  }
+  if (const geo_log::GFieldValueLog *gfield_value_log =
+          dynamic_cast<const geo_log::GFieldValueLog *>(value_log)) {
+    create_inspection_string_for_gfield(*gfield_value_log, ss);
   }
   else if (const geo_log::GeometryValueLog *geo_value_log =
                dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {

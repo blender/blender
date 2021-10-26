@@ -574,14 +574,12 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
     if (value_log == nullptr) {
       continue;
     }
-    if (const geo_log::GenericValueLog *generic_value_log =
-            dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
-      const fn::GPointer value = generic_value_log->value();
-      if (!dynamic_cast<const fn::FieldCPPType *>(value.type())) {
-        continue;
+    if (const geo_log::GFieldValueLog *field_value_log =
+            dynamic_cast<const geo_log::GFieldValueLog *>(value_log)) {
+      const GField &field = field_value_log->field();
+      if (field) {
+        r_fields.add("Viewer", std::move(field));
       }
-      GField field = *(const GField *)value.get();
-      r_fields.add("Viewer", std::move(field));
     }
   }
 }

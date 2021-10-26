@@ -21,9 +21,16 @@
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 
+#include "FN_field_cpp_type.hh"
+
+#include "BLT_translation.h"
+
 namespace blender::nodes::geometry_nodes_eval_log {
 
 using fn::CPPType;
+using fn::FieldCPPType;
+using fn::FieldInput;
+using fn::GField;
 
 ModifierLog::ModifierLog(GeoLogger &logger)
     : input_geometry_log_(std::move(logger.input_geometry_log_)),
@@ -166,6 +173,20 @@ const SocketLog *NodeLog::lookup_socket_log(const bNode &node, const bNodeSocket
   ListBase sockets = socket.in_out == SOCK_IN ? node.inputs : node.outputs;
   int index = BLI_findindex(&sockets, &socket);
   return this->lookup_socket_log((eNodeSocketInOut)socket.in_out, index);
+}
+
+GFieldValueLog::GFieldValueLog(fn::GField field, bool log_full_field) : type_(field.cpp_type())
+{
+  VectorSet<std::reference_wrapper<const FieldInput>> field_inputs;
+  field.node().foreach_field_input(
+      [&](const FieldInput &field_input) { field_inputs.add(field_input); });
+  for (const FieldInput &field_input : field_inputs) {
+    input_tooltips_.append(field_input.socket_inspection_name());
+  }
+
+  if (log_full_field) {
+    field_ = std::move(field);
+  }
 }
 
 GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry)
@@ -380,6 +401,26 @@ void LocalGeoLogger::log_value_for_sockets(Span<DSocket> sockets, GPointer value
     const GeometrySet &geometry_set = *value.get<GeometrySet>();
     destruct_ptr<GeometryValueLog> value_log = allocator_->construct<GeometryValueLog>(
         geometry_set, log_full_geometry);
+    values_.append({copied_sockets, std::move(value_log)});
+  }
+  else if (const FieldCPPType *field_type = dynamic_cast<const FieldCPPType *>(&type)) {
+    GField field = field_type->get_gfield(value.get());
+    bool log_full_field = false;
+    if (!field.node().depends_on_input()) {
+      /* Always log constant fields so that their value can be shown in socket inspection.
+       * In the future we can also evaluate the field here and only store the value. */
+      log_full_field = true;
+    }
+    if (!log_full_field) {
+      for (const DSocket &socket : sockets) {
+        if (main_logger_->log_full_sockets_.contains(socket)) {
+          log_full_field = true;
+          break;
+        }
+      }
+    }
+    destruct_ptr<GFieldValueLog> value_log = allocator_->construct<GFieldValueLog>(
+        std::move(field), log_full_field);
     values_.append({copied_sockets, std::move(value_log)});
   }
   else {
