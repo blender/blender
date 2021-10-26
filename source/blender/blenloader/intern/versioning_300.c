@@ -2071,6 +2071,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      wm->xr.session_settings.base_scale = 1.0f;
+      wm->xr.session_settings.draw_flags |= (V3D_OFSDRAW_SHOW_SELECTION |
+                                             V3D_OFSDRAW_XR_SHOW_CONTROLLERS |
+                                             V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
