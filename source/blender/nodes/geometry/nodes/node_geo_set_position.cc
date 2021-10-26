@@ -45,10 +45,6 @@ static void set_position_in_component(GeometryComponent &component,
   selection_evaluator.evaluate();
   const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-  OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output<float3>(
-      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-  MutableSpan<float3> position_mutable = positions.as_span();
-
   fn::FieldEvaluator position_evaluator{field_context, &selection};
   position_evaluator.add(position_field);
   position_evaluator.add(offset_field);
@@ -59,6 +55,10 @@ static void set_position_in_component(GeometryComponent &component,
 
   const VArray<float3> &positions_input = position_evaluator.get_evaluated<float3>(0);
   const VArray<float3> &offsets_input = position_evaluator.get_evaluated<float3>(1);
+
+  OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output<float3>(
+      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
+  MutableSpan<float3> position_mutable = positions.as_span();
 
   for (int i : selection) {
     position_mutable[i] = positions_input[i] + offsets_input[i];
