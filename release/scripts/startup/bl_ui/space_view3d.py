@@ -2762,11 +2762,6 @@ class VIEW3D_MT_object_cleanup(Menu):
 class VIEW3D_MT_object_asset(Menu):
     bl_label = "Asset"
 
-    @classmethod
-    def poll(cls, context):
-        # TODO(Sybren): once object assets are no longer considered experimental, remove this poll function.
-        return context.preferences.experimental.use_extended_asset_browser
-
     def draw(self, _context):
         layout = self.layout
 
