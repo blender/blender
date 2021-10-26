@@ -768,6 +768,14 @@ static const NodeRef *get_existing_viewer(const NodeTreeRef &tree)
 static const OutputSocketRef *find_output_socket_to_be_viewed(const NodeRef *active_viewer_node,
                                                               const NodeRef &node_to_view)
 {
+  /* Check if any of the output sockets is selected, which is the case when the user just clicked
+   * on the socket. */
+  for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
+    if (output_socket->bsocket()->flag & SELECT) {
+      return output_socket;
+    }
+  }
+
   const OutputSocketRef *last_socket_linked_to_viewer = nullptr;
   if (active_viewer_node != nullptr) {
     for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
