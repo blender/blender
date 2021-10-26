@@ -97,6 +97,10 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
   }
 }
 
+/**
+ * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure).
+ */
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
@@ -107,10 +111,8 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
     switch (sl->spacetype) {
       case SPACE_VIEW3D: {
         View3D *v3d = (View3D *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->camera, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->ob_center, IDWALK_CB_NOP);
-
         if (v3d->localvd) {
           BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->localvd->camera, IDWALK_CB_NOP);
         }
@@ -124,7 +126,6 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_ID(data, sbuts->pinid, IDWALK_CB_NOP);
         break;
       }
@@ -132,14 +133,12 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         break;
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
-
         screen_foreach_id_dopesheet(data, &saction->ads);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, saction->action, IDWALK_CB_NOP);
         break;
       }
       case SPACE_IMAGE: {
         SpaceImage *sima = (SpaceImage *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->image, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->gpd, IDWALK_CB_USER);
@@ -147,7 +146,6 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_SEQ: {
         SpaceSeq *sseq = (SpaceSeq *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER);
         break;
       }
@@ -159,21 +157,17 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_TEXT: {
         SpaceText *st = (SpaceText *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_NOP);
         break;
       }
       case SPACE_SCRIPT: {
         SpaceScript *scpt = (SpaceScript *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scpt->script, IDWALK_CB_NOP);
         break;
       }
       case SPACE_OUTLINER: {
         SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_ID(data, space_outliner->search_tse.id, IDWALK_CB_NOP);
-
         if (space_outliner->treestore != NULL) {
           TreeStoreElem *tselem;
           BLI_mempool_iter iter;
@@ -187,13 +181,11 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-
         const bool is_private_nodetree = snode->id != NULL &&
                                          ntreeFromID(snode->id) == snode->nodetree;
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(
             data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
 
@@ -219,14 +211,12 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_CLIP: {
         SpaceClip *sclip = (SpaceClip *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->clip, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
         break;
       }
       case SPACE_SPREADSHEET: {
         SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-
         LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
           if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(

@@ -210,6 +210,10 @@ static void library_foreach_ID_link(Main *bmain,
     flag |= IDWALK_READONLY;
     flag &= ~IDWALK_DO_INTERNAL_RUNTIME_POINTERS;
 
+    /* NOTE: This function itself should never be called recursively when IDWALK_RECURSE is set,
+     * see also comments in #BKE_library_foreach_ID_embedded.
+     * This is why we can always create this data here, and do not need to try and re-use it from
+     * `inherit_data`. */
     data.ids_handled = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     BLI_LINKSTACK_INIT(data.ids_todo);
 
