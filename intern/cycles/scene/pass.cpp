@@ -182,6 +182,7 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo)
       break;
     case PASS_POSITION:
       pass_info.num_components = 3;
+      pass_info.use_filter = false;
       break;
     case PASS_NORMAL:
       pass_info.num_components = 3;
