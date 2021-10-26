@@ -161,7 +161,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
 
   wm_xr_session_draw_data_update(session_state, settings, draw_view, draw_data);
   wm_xr_draw_matrices_create(draw_data, draw_view, settings, session_state, viewmat, winmat);
-  wm_xr_session_state_update(settings, draw_data, draw_view, viewmat, session_state);
+  wm_xr_session_state_update(settings, draw_data, draw_view, session_state);
 
   if (!wm_xr_session_surface_offscreen_ensure(surface_data, draw_view)) {
     return;
