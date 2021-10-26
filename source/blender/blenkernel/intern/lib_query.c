@@ -76,6 +76,13 @@ typedef struct LibraryForeachIDData {
   BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
 
+/** Check whether current iteration over ID usages should be stopped or not.
+ * \return true if the iteration should be stopped, false otherwise. */
+bool BKE_lib_query_foreachid_iter_stop(LibraryForeachIDData *data)
+{
+  return (data->status & IDWALK_STOP) != 0;
+}
+
 bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag)
 {
   if (!(data->status & IDWALK_STOP)) {
