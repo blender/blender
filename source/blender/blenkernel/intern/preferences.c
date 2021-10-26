@@ -120,7 +120,8 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
     return;
   }
 
-  bUserAssetLibrary *library = BKE_preferences_asset_library_add(userdef, DATA_("Default"), NULL);
+  bUserAssetLibrary *library = BKE_preferences_asset_library_add(
+      userdef, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME, NULL);
 
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
   BLI_path_join(

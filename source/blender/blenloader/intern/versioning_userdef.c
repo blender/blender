@@ -27,9 +27,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#ifdef WITH_INTERNATIONAL
-#  include "BLT_translation.h"
-#endif
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -926,6 +924,16 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->dupflag |= USER_DUP_LATTICE;
     userdef->dupflag |= USER_DUP_CAMERA;
     userdef->dupflag |= USER_DUP_SPEAKER;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    /* Rename the default asset library from "Default" to "User Library" */
+    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+      if (STREQ(asset_library->name, DATA_("Default"))) {
+        BKE_preferences_asset_library_name_set(
+            userdef, asset_library, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME);
+      }
+    }
   }
 
   /**
