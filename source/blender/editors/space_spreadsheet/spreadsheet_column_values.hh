@@ -97,9 +97,4 @@ std::unique_ptr<ColumnValues> column_values_from_function(const eSpreadsheetColu
   return column_values;
 }
 
-static constexpr float default_float_column_width = 3;
-static constexpr float default_float2_column_width = 2 * default_float_column_width;
-static constexpr float default_float3_column_width = 3 * default_float_column_width;
-static constexpr float default_color_column_width = 4 * default_float_column_width;
-
 }  // namespace blender::ed::spreadsheet

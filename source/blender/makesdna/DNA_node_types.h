@@ -1586,6 +1586,11 @@ typedef struct NodeGeometryImageTexture {
   int extension;
 } NodeGeometryImageTexture;
 
+typedef struct NodeGeometryViewer {
+  /* CustomDataType. */
+  int8_t data_type;
+} NodeGeometryViewer;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1

@@ -93,7 +93,9 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     const int real_index = spreadsheet_layout_.row_indices[row_index];
     const ColumnValues &column = *spreadsheet_layout_.columns[column_index].values;
     CellValue cell_value;
-    column.get_value(real_index, cell_value);
+    if (real_index < column.size()) {
+      column.get_value(real_index, cell_value);
+    }
 
     if (cell_value.value_int.has_value()) {
       const int value = *cell_value.value_int;

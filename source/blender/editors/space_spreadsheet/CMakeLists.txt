@@ -35,6 +35,7 @@ set(INC
 
 set(SRC
   space_spreadsheet.cc
+  spreadsheet_cache.cc
   spreadsheet_column.cc
   spreadsheet_context.cc
   spreadsheet_data_source.cc
@@ -47,6 +48,7 @@ set(SRC
   spreadsheet_row_filter.cc
   spreadsheet_row_filter_ui.cc
 
+  spreadsheet_cache.hh
   spreadsheet_cell_value.hh
   spreadsheet_column.hh
   spreadsheet_column_values.hh

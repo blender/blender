@@ -57,7 +57,11 @@
 
 #include "BLT_translation.h"
 
+#include "NOD_node_tree_ref.hh"
+
 #include "node_intern.h" /* own include */
+
+using namespace blender::nodes::node_tree_ref_types;
 
 /* -------------------------------------------------------------------- */
 /** \name Relations Helpers
@@ -612,159 +616,273 @@ static void snode_autoconnect(Main *bmain,
 /** \name Link Viewer Operator
  * \{ */
 
-static int node_link_viewer(const bContext *C, bNode *tonode)
+namespace blender::ed::nodes::viewer_linking {
+
+/* Depending on the node tree type, different socket types are supported by viewer nodes. */
+static bool socket_can_be_viewed(const OutputSocketRef &socket)
+{
+  if (nodeSocketIsHidden(socket.bsocket())) {
+    return false;
+  }
+  if (socket.idname() == "NodeSocketVirtual") {
+    return false;
+  }
+  if (socket.tree().btree()->type != NTREE_GEOMETRY) {
+    return true;
+  }
+  return ELEM(socket.typeinfo()->type,
+              SOCK_GEOMETRY,
+              SOCK_FLOAT,
+              SOCK_VECTOR,
+              SOCK_INT,
+              SOCK_BOOLEAN,
+              SOCK_RGBA);
+}
+
+static CustomDataType socket_type_to_custom_data_type(const eNodeSocketDatatype socket_type)
+{
+  switch (socket_type) {
+    case SOCK_FLOAT:
+      return CD_PROP_FLOAT;
+    case SOCK_INT:
+      return CD_PROP_INT32;
+    case SOCK_VECTOR:
+      return CD_PROP_FLOAT3;
+    case SOCK_BOOLEAN:
+      return CD_PROP_BOOL;
+    case SOCK_RGBA:
+      return CD_PROP_COLOR;
+    default:
+      /* Fallback. */
+      return CD_AUTO_FROM_NAME;
+  }
+}
+
+/**
+ * Find the socket to link to in a viewer node.
+ */
+static bNodeSocket *node_link_viewer_get_socket(bNodeTree *ntree,
+                                                bNode *viewer_node,
+                                                bNodeSocket *src_socket)
+{
+  if (viewer_node->type != GEO_NODE_VIEWER) {
+    /* In viewer nodes in the compositor, only the first input should be linked to. */
+    return (bNodeSocket *)viewer_node->inputs.first;
+  }
+  /* For the geometry nodes viewer, find the socket with the correct type. */
+  LISTBASE_FOREACH (bNodeSocket *, viewer_socket, &viewer_node->inputs) {
+    if (viewer_socket->type == src_socket->type) {
+      if (viewer_socket->type == SOCK_GEOMETRY) {
+        return viewer_socket;
+      }
+      NodeGeometryViewer *storage = (NodeGeometryViewer *)viewer_node->storage;
+      const CustomDataType data_type = socket_type_to_custom_data_type(
+          (eNodeSocketDatatype)src_socket->type);
+      BLI_assert(data_type != CD_AUTO_FROM_NAME);
+      storage->data_type = data_type;
+      nodeUpdate(ntree, viewer_node);
+      return viewer_socket;
+    }
+  }
+  return nullptr;
+}
+
+static bool is_viewer_node(const NodeRef &node)
+{
+  return ELEM(node.bnode()->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER);
+}
+
+static Vector<const NodeRef *> find_viewer_nodes(const NodeTreeRef &tree)
+{
+  Vector<const NodeRef *> viewer_nodes;
+  for (const NodeRef *node : tree.nodes()) {
+    if (is_viewer_node(*node)) {
+      viewer_nodes.append(node);
+    }
+  }
+  return viewer_nodes;
+}
+
+static bool is_viewer_socket_in_viewer(const InputSocketRef &socket)
+{
+  const NodeRef &node = socket.node();
+  BLI_assert(is_viewer_node(node));
+  if (node.typeinfo()->type == GEO_NODE_VIEWER) {
+    return true;
+  }
+  return socket.index() == 0;
+}
+
+static bool is_linked_to_viewer(const OutputSocketRef &socket, const NodeRef &viewer_node)
+{
+  for (const InputSocketRef *target_socket : socket.directly_linked_sockets()) {
+    if (&target_socket->node() != &viewer_node) {
+      continue;
+    }
+    if (!target_socket->is_available()) {
+      continue;
+    }
+    if (is_viewer_socket_in_viewer(*target_socket)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static int get_default_viewer_type(const bContext *C)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_node_is_compositor(snode) ? CMP_NODE_VIEWER : GEO_NODE_VIEWER;
+}
 
-  /* context check */
-  if (tonode == nullptr || BLI_listbase_is_empty(&tonode->outputs)) {
+static void remove_links_to_unavailable_viewer_sockets(bNodeTree &btree, bNode &viewer_node)
+{
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &btree.links) {
+    if (link->tonode == &viewer_node) {
+      if (link->tosock->flag & SOCK_UNAVAIL) {
+        nodeRemLink(&btree, link);
+      }
+    }
+  }
+}
+
+static const NodeRef *get_existing_viewer(const NodeTreeRef &tree)
+{
+  Vector<const NodeRef *> viewer_nodes = find_viewer_nodes(tree);
+
+  /* Check if there is already an active viewer node that should be used. */
+  for (const NodeRef *viewer_node : viewer_nodes) {
+    if (viewer_node->bnode()->flag & NODE_DO_OUTPUT) {
+      return viewer_node;
+    }
+  }
+
+  /* If no active but non-active viewers exist, make one active. */
+  if (!viewer_nodes.is_empty()) {
+    viewer_nodes[0]->bnode()->flag |= NODE_DO_OUTPUT;
+    return viewer_nodes[0];
+  }
+  return nullptr;
+}
+
+static const OutputSocketRef *find_output_socket_to_be_viewed(const NodeRef *active_viewer_node,
+                                                              const NodeRef &node_to_view)
+{
+  const OutputSocketRef *last_socket_linked_to_viewer = nullptr;
+  if (active_viewer_node != nullptr) {
+    for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
+      if (!socket_can_be_viewed(*output_socket)) {
+        continue;
+      }
+      if (is_linked_to_viewer(*output_socket, *active_viewer_node)) {
+        last_socket_linked_to_viewer = output_socket;
+      }
+    }
+  }
+  if (last_socket_linked_to_viewer == nullptr) {
+    /* If no output is connected to a viewer, use the first output that can be viewed. */
+    for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
+      if (socket_can_be_viewed(*output_socket)) {
+        return output_socket;
+      }
+    }
+  }
+  else {
+    /* Pick the next socket to be linked to the viewer. */
+    const int tot_outputs = node_to_view.outputs().size();
+    for (const int offset : IndexRange(1, tot_outputs - 1)) {
+      const int index = (last_socket_linked_to_viewer->index() + offset) % tot_outputs;
+      const OutputSocketRef &output_socket = node_to_view.output(index);
+      if (!socket_can_be_viewed(output_socket)) {
+        continue;
+      }
+      if (is_linked_to_viewer(output_socket, *active_viewer_node)) {
+        continue;
+      }
+      return &output_socket;
+    }
+  }
+  return nullptr;
+}
+
+static int link_socket_to_viewer(const bContext *C,
+                                 bNode *viewer_bnode,
+                                 bNode *bnode_to_view,
+                                 bNodeSocket *bsocket_to_view)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *btree = snode->edittree;
+
+  if (viewer_bnode == nullptr) {
+    /* Create a new viewer node if none exists. */
+    const int viewer_type = get_default_viewer_type(C);
+    viewer_bnode = node_add_node(
+        C, nullptr, viewer_type, bsocket_to_view->locx + 100, bsocket_to_view->locy);
+    if (viewer_bnode == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+
+  bNodeSocket *viewer_bsocket = node_link_viewer_get_socket(btree, viewer_bnode, bsocket_to_view);
+  if (viewer_bsocket == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  if (ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
-    return OPERATOR_CANCELLED;
-  }
 
-  /* get viewer */
-  bNode *viewer_node = nullptr;
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
-      if (node->flag & NODE_DO_OUTPUT) {
-        viewer_node = node;
-        break;
-      }
-    }
-  }
-  /* no viewer, we make one active */
-  if (viewer_node == nullptr) {
-    LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-      if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
-        node->flag |= NODE_DO_OUTPUT;
-        viewer_node = node;
-        break;
-      }
+  bNodeLink *link_to_change = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &btree->links) {
+    if (link->tosock == viewer_bsocket) {
+      link_to_change = link;
+      break;
     }
   }
 
-  bNodeSocket *sock = nullptr;
-  bNodeLink *link = nullptr;
-
-  /* try to find an already connected socket to cycle to the next */
-  if (viewer_node) {
-    link = nullptr;
-
-    for (link = (bNodeLink *)snode->edittree->links.first; link; link = link->next) {
-      if (link->tonode == viewer_node && link->fromnode == tonode) {
-        if (link->tosock == viewer_node->inputs.first) {
-          break;
-        }
-      }
-    }
-    if (link) {
-      /* unlink existing connection */
-      sock = link->fromsock;
-      nodeRemLink(snode->edittree, link);
-
-      /* find a socket after the previously connected socket */
-      if (ED_node_is_geometry(snode)) {
-        /* Geometry nodes viewer only supports geometry sockets for now. */
-        for (sock = sock->next; sock; sock = sock->next) {
-          if (sock->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock)) {
-            break;
-          }
-        }
-      }
-      else {
-        for (sock = sock->next; sock; sock = sock->next) {
-          if (!nodeSocketIsHidden(sock)) {
-            break;
-          }
-        }
-      }
-    }
+  if (link_to_change == nullptr) {
+    nodeAddLink(btree, bnode_to_view, bsocket_to_view, viewer_bnode, viewer_bsocket);
+  }
+  else {
+    link_to_change->fromnode = bnode_to_view;
+    link_to_change->fromsock = bsocket_to_view;
+    btree->update |= NTREE_UPDATE_LINKS;
   }
 
-  if (tonode) {
-    /* Find a selected socket that overrides the socket to connect to */
-    if (ED_node_is_geometry(snode)) {
-      /* Geometry nodes viewer only supports geometry sockets for now. */
-      LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
-        if (sock2->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
-          sock = sock2;
-          break;
-        }
-      }
-    }
-    else {
-      LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
-        if (!nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
-          sock = sock2;
-          break;
-        }
-      }
-    }
+  remove_links_to_unavailable_viewer_sockets(*btree, *viewer_bnode);
+
+  if (btree->type == NTREE_GEOMETRY) {
+    ED_spreadsheet_context_paths_set_geometry_node(CTX_data_main(C), snode, viewer_bnode);
   }
 
-  /* find a socket starting from the first socket */
-  if (!sock) {
-    if (ED_node_is_geometry(snode)) {
-      /* Geometry nodes viewer only supports geometry sockets for now. */
-      for (sock = (bNodeSocket *)tonode->outputs.first; sock; sock = sock->next) {
-        if (sock->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock)) {
-          break;
-        }
-      }
-    }
-    else {
-      for (sock = (bNodeSocket *)tonode->outputs.first; sock; sock = sock->next) {
-        if (!nodeSocketIsHidden(sock)) {
-          break;
-        }
-      }
-    }
-  }
-
-  if (sock) {
-    /* add a new viewer if none exists yet */
-    if (!viewer_node) {
-      /* XXX location is a quick hack, just place it next to the linked socket */
-      const int viewer_type = ED_node_is_compositor(snode) ? CMP_NODE_VIEWER : GEO_NODE_VIEWER;
-      viewer_node = node_add_node(C, nullptr, viewer_type, sock->locx + 100, sock->locy);
-      if (!viewer_node) {
-        return OPERATOR_CANCELLED;
-      }
-
-      link = nullptr;
-    }
-    else {
-      /* get link to viewer */
-      for (link = (bNodeLink *)snode->edittree->links.first; link; link = link->next) {
-        if (link->tonode == viewer_node && link->tosock == viewer_node->inputs.first) {
-          break;
-        }
-      }
-    }
-
-    if (link == nullptr) {
-      nodeAddLink(
-          snode->edittree, tonode, sock, viewer_node, (bNodeSocket *)viewer_node->inputs.first);
-    }
-    else {
-      link->fromnode = tonode;
-      link->fromsock = sock;
-      /* make sure the dependency sorting is updated */
-      snode->edittree->update |= NTREE_UPDATE_LINKS;
-    }
-    if (ED_node_is_geometry(snode)) {
-      ED_spreadsheet_context_paths_set_geometry_node(CTX_data_main(C), snode, viewer_node);
-    }
-
-    ntreeUpdateTree(CTX_data_main(C), snode->edittree);
-    snode_update(snode, viewer_node);
-    DEG_id_tag_update(&snode->edittree->id, 0);
-  }
+  ntreeUpdateTree(CTX_data_main(C), btree);
+  snode_update(snode, viewer_bnode);
+  DEG_id_tag_update(&btree->id, 0);
 
   return OPERATOR_FINISHED;
 }
+
+static int node_link_viewer(const bContext *C, bNode *bnode_to_view)
+{
+  if (bnode_to_view == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *btree = snode->edittree;
+
+  const NodeTreeRef tree{btree};
+  const NodeRef &node_to_view = *tree.find_node(*bnode_to_view);
+  const NodeRef *active_viewer_node = get_existing_viewer(tree);
+
+  const OutputSocketRef *socket_to_view = find_output_socket_to_be_viewed(active_viewer_node,
+                                                                          node_to_view);
+  if (socket_to_view == nullptr) {
+    return OPERATOR_FINISHED;
+  }
+
+  bNodeSocket *bsocket_to_view = socket_to_view->bsocket();
+  bNode *viewer_bnode = active_viewer_node ? active_viewer_node->bnode() : nullptr;
+  return link_socket_to_viewer(C, viewer_bnode, bnode_to_view, bsocket_to_view);
+}
+
+}  // namespace blender::ed::nodes::viewer_linking
 
 static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -777,7 +895,7 @@ static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  if (node_link_viewer(C, node) == OPERATOR_CANCELLED) {
+  if (blender::ed::nodes::viewer_linking::node_link_viewer(C, node) == OPERATOR_CANCELLED) {
     return OPERATOR_CANCELLED;
   }
 

@@ -2100,5 +2100,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       version_geometry_nodes_set_position_node_offset(ntree);
     }
     /* Keep this block, even when empty. */
+
+    /* Add storage to viewer node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_VIEWER) {
+          if (node->storage == NULL) {
+            NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(
+                sizeof(NodeGeometryViewer), __func__);
+            data->data_type = CD_PROP_FLOAT;
+            node->storage = data;
+          }
+        }
+      }
+    }
   }
 }

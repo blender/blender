@@ -17,12 +17,24 @@
 #pragma once
 
 #include "BKE_geometry_set.hh"
+#include "spreadsheet_cache.hh"
 
-typedef struct SpaceSpreadsheet_Runtime {
-  int visible_rows;
-  int tot_rows;
-  int tot_columns;
-} SpaceSpreadsheet_Runtime;
+struct SpaceSpreadsheet_Runtime {
+ public:
+  int visible_rows = 0;
+  int tot_rows = 0;
+  int tot_columns = 0;
+
+  blender::ed::spreadsheet::SpreadsheetCache cache;
+
+  SpaceSpreadsheet_Runtime() = default;
+
+  /* The cache is not copied currently. */
+  SpaceSpreadsheet_Runtime(const SpaceSpreadsheet_Runtime &other)
+      : visible_rows(other.visible_rows), tot_rows(other.tot_rows), tot_columns(other.tot_columns)
+  {
+  }
+};
 
 struct bContext;
 

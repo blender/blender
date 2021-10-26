@@ -112,7 +112,7 @@ static void spreadsheet_free(SpaceLink *sl)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
-  MEM_SAFE_FREE(sspreadsheet->runtime);
+  delete sspreadsheet->runtime;
 
   LISTBASE_FOREACH_MUTABLE (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
     spreadsheet_row_filter_free(row_filter);
@@ -129,8 +129,7 @@ static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)area->spacedata.first;
   if (sspreadsheet->runtime == nullptr) {
-    sspreadsheet->runtime = (SpaceSpreadsheet_Runtime *)MEM_callocN(
-        sizeof(SpaceSpreadsheet_Runtime), __func__);
+    sspreadsheet->runtime = new SpaceSpreadsheet_Runtime();
   }
 }
 
@@ -138,7 +137,7 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
 {
   const SpaceSpreadsheet *sspreadsheet_old = (SpaceSpreadsheet *)sl;
   SpaceSpreadsheet *sspreadsheet_new = (SpaceSpreadsheet *)MEM_dupallocN(sspreadsheet_old);
-  sspreadsheet_new->runtime = (SpaceSpreadsheet_Runtime *)MEM_dupallocN(sspreadsheet_old->runtime);
+  sspreadsheet_new->runtime = new SpaceSpreadsheet_Runtime(*sspreadsheet_old->runtime);
 
   BLI_listbase_clear(&sspreadsheet_new->row_filters);
   LISTBASE_FOREACH (const SpreadsheetRowFilter *, src_filter, &sspreadsheet_old->row_filters) {
@@ -294,16 +293,39 @@ static std::unique_ptr<DataSource> get_data_source(const bContext *C)
   return {};
 }
 
-static float get_column_width(const ColumnValues &values)
+static float get_default_column_width(const ColumnValues &values)
 {
-  if (values.default_width > 0) {
+  if (values.default_width > 0.0f) {
     return values.default_width;
   }
+  static const float float_width = 3;
+  switch (values.type()) {
+    case SPREADSHEET_VALUE_TYPE_BOOL:
+      return 2.0f;
+    case SPREADSHEET_VALUE_TYPE_INT32:
+      return float_width;
+    case SPREADSHEET_VALUE_TYPE_FLOAT:
+      return float_width;
+    case SPREADSHEET_VALUE_TYPE_FLOAT2:
+      return 2.0f * float_width;
+    case SPREADSHEET_VALUE_TYPE_FLOAT3:
+      return 3.0f * float_width;
+    case SPREADSHEET_VALUE_TYPE_COLOR:
+      return 4.0f * float_width;
+    case SPREADSHEET_VALUE_TYPE_INSTANCES:
+      return 8.0f;
+  }
+  return float_width;
+}
+
+static float get_column_width(const ColumnValues &values)
+{
+  float data_width = get_default_column_width(values);
   const int fontid = UI_style_get()->widget.uifont_id;
   BLF_size(fontid, UI_DEFAULT_TEXT_POINTS, U.dpi);
   const StringRefNull name = values.name();
   const float name_width = BLF_width(fontid, name.data(), name.size());
-  return std::max<float>(name_width / UI_UNIT_X + 1.0f, 3.0f);
+  return std::max<float>(name_width / UI_UNIT_X + 1.0f, data_width);
 }
 
 static float get_column_width_in_pixels(const ColumnValues &values)
@@ -339,21 +361,28 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
     }
   }
 
-  data_source.foreach_default_column_ids([&](const SpreadsheetColumnID &column_id) {
-    std::unique_ptr<ColumnValues> values = data_source.get_column_values(column_id);
-    if (values) {
-      if (used_ids.add(column_id)) {
-        SpreadsheetColumnID *new_id = spreadsheet_column_id_copy(&column_id);
-        SpreadsheetColumn *new_column = spreadsheet_column_new(new_id);
-        BLI_addtail(&columns, new_column);
-      }
-    }
-  });
+  data_source.foreach_default_column_ids(
+      [&](const SpreadsheetColumnID &column_id, const bool is_extra) {
+        std::unique_ptr<ColumnValues> values = data_source.get_column_values(column_id);
+        if (values) {
+          if (used_ids.add(column_id)) {
+            SpreadsheetColumnID *new_id = spreadsheet_column_id_copy(&column_id);
+            SpreadsheetColumn *new_column = spreadsheet_column_new(new_id);
+            if (is_extra) {
+              BLI_addhead(&columns, new_column);
+            }
+            else {
+              BLI_addtail(&columns, new_column);
+            }
+          }
+        }
+      });
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context_path(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(C);
@@ -394,6 +423,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   ED_region_tag_redraw(footer);
   ARegion *sidebar = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_UI);
   ED_region_tag_redraw(sidebar);
+
+  /* Free all cache items that have not been used. */
+  sspreadsheet->runtime->cache.remove_all_unused();
 }
 
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
