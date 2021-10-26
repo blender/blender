@@ -1324,15 +1324,15 @@ typedef struct DotGridLevelInfo {
 } DotGridLevelInfo;
 
 static const DotGridLevelInfo level_info[9] = {
-    {128.0f, -0.1f, 0.01f},
-    {64.0f, 0.0f, 0.025f},
-    {32.0f, 0.025f, 0.15f},
-    {16.0f, 0.05f, 0.2f},
-    {8.0f, 0.1f, 0.25f},
-    {4.0f, 0.125f, 0.3f},
-    {2.0f, 0.25f, 0.5f},
-    {1.0f, 0.7f, 0.9f},
-    {0.5f, 0.6f, 0.9f},
+    {6.4f, -0.1f, 0.01f},
+    {3.2f, 0.0f, 0.025f},
+    {1.6f, 0.025f, 0.15f},
+    {0.8f, 0.05f, 0.2f},
+    {0.4f, 0.1f, 0.25f},
+    {0.2f, 0.125f, 0.3f},
+    {0.1f, 0.25f, 0.5f},
+    {0.05f, 0.7f, 0.9f},
+    {0.025f, 0.6f, 0.9f},
 };
 
 /**
@@ -1363,7 +1363,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
 
   for (int level = 0; level < grid_levels; level++) {
     const DotGridLevelInfo *info = &level_info[level];
-    const float step = min_step * info->step_factor;
+    const float step = min_step * info->step_factor * U.widget_unit;
 
     const float alpha_factor = (zoom_normalized - info->fade_in_start_zoom) /
                                (info->fade_in_end_zoom - info->fade_in_start_zoom);
