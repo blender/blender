@@ -1700,8 +1700,9 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, view3d_context_dir);
+    return CTX_RESULT_OK;
   }
-  else if (CTX_data_equals(member, "active_object")) {
+  if (CTX_data_equals(member, "active_object")) {
     /* In most cases the active object is the `view_layer->basact->object`.
      * For the 3D view however it can be NULL when hidden.
      *
@@ -1727,11 +1728,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
     return CTX_RESULT_OK;
   }
-  else {
-    return CTX_RESULT_MEMBER_NOT_FOUND;
-  }
 
-  return CTX_RESULT_OK;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
