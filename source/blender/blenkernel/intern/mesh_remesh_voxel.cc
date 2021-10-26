@@ -66,7 +66,9 @@
 #  include "quadriflow_capi.hpp"
 #endif
 
-#include "instant_meshes_c_api.h"
+#ifdef WITH_INSTANT_MESHES
+#  include "instant_meshes_c_api.h"
+#endif
 
 using blender::Array;
 using blender::float3;
@@ -255,14 +257,13 @@ struct HashEdge {
 extern "C" int closest_vec_to_perp(
     float dir[3], float r_dir2[3], float no[3], float *buckets, float w);
 
-ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
-                                                 int target_faces,
-                                                 int iterations,
-                                                 void (*update_cb)(void *,
-                                                                   float progress,
-                                                                   int *cancel),
-                                                 void *update_cb_data)
+Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
+                                     int target_faces,
+                                     int iterations,
+                                     void (*update_cb)(void *, float progress, int *cancel),
+                                     void *update_cb_data)
 {
+#ifdef WITH_INSTANT_MESHES
   /* Ensure that the triangulated mesh data is up to data */
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
   MeshElemMap *epmap = nullptr;
@@ -418,10 +419,10 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
 
   Mesh *mesh = BKE_mesh_new_nomain(remesh.totoutvert, 0, 0, totloop, remesh.totoutface);
 
-#ifdef INSTANT_MESHES_VIS_COLOR
+#  ifdef INSTANT_MESHES_VIS_COLOR
   MPropCol *cols = (MPropCol *)CustomData_add_layer(
       &mesh->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, remesh.totoutvert);
-#endif
+#  endif
 
   for (int i : IndexRange(remesh.totoutvert)) {
     MVert *mv = mesh->mvert + i;
@@ -430,10 +431,10 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
     copy_v3_v3(mv->co, v->co);
     normal_float_to_short_v3(mv->no, v->no);
 
-#ifdef INSTANT_MESHES_VIS_COLOR
+#  ifdef INSTANT_MESHES_VIS_COLOR
     copy_v3_v3(cols[i].color, v->viscolor);
     cols[i].color[3] = 1.0f;
-#endif
+#  endif
   }
 
   int li = 0;
@@ -466,7 +467,7 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   }
 
   return mesh;
-#if 0
+#  if 0
  
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
@@ -500,6 +501,7 @@ ATTR_NO_OPT Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
     MEM_freeN((void *)epmem);
   }
   return mesh;
+#  endif
 #endif
   return nullptr;
 }

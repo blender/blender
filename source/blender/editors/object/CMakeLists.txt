@@ -90,6 +90,11 @@ if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+
+if(WITH_INSTANT_MESHES) 
+  add_definitions(-DWITH_INSTANT_MESHES)
+endif()
+
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_POINT_CLOUD)

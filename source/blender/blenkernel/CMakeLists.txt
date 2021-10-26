@@ -767,7 +767,7 @@ if(WITH_INSTANT_MESHES)
   list(APPEND LIB
     bf_intern_instant_meshes
   )
-  add_definitions(-DWITH_QUADRIFLOW)
+  add_definitions(-DWITH_INSTANT_MESHES)
 endif()
 
 if(WITH_QUADRIFLOW)
