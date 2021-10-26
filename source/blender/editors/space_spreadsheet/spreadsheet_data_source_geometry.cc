@@ -466,14 +466,16 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
                                        });
   }
   Span<int> ids = component_->instance_ids();
-  if (STREQ(column_id.name, "ID")) {
-    /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_INT32,
-        column_id.name,
-        size,
-        [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
-        5.5f);
+  if (!ids.is_empty()) {
+    if (STREQ(column_id.name, "ID")) {
+      /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
+      return column_values_from_function(
+          SPREADSHEET_VALUE_TYPE_INT32,
+          column_id.name,
+          size,
+          [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
+          5.5f);
+    }
   }
   return {};
 }

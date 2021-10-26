@@ -77,13 +77,15 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   const VArray<float> &radii = evaluator.get_evaluated<float>(1);
   copy_attribute_to_points(radii, selection, {pointcloud->radius, pointcloud->totpoint});
 
-  OutputAttribute_Typed<int> id_attribute = points.attribute_try_get_for_output<int>(
-      "id", ATTR_DOMAIN_POINT, 0);
-  MutableSpan<int> ids = id_attribute.as_span();
-  for (const int i : selection.index_range()) {
-    ids[i] = instances.instance_ids()[selection[i]];
+  if (!instances.instance_ids().is_empty()) {
+    OutputAttribute_Typed<int> id_attribute = points.attribute_try_get_for_output<int>(
+        "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+    MutableSpan<int> ids = id_attribute.as_span();
+    for (const int i : selection.index_range()) {
+      ids[i] = instances.instance_ids()[selection[i]];
+    }
+    id_attribute.save();
   }
-  id_attribute.save();
 }
 
 static void geo_node_instances_to_points_exec(GeoNodeExecParams params)

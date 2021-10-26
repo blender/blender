@@ -917,6 +917,10 @@ static void store_output_value_in_geometry(GeometrySet &geometry_set,
     CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
     store_field_on_geometry_component(component, attribute_name, domain, field);
   }
+  if (geometry_set.has_instances()) {
+    InstancesComponent &component = geometry_set.get_component_for_write<InstancesComponent>();
+    store_field_on_geometry_component(component, attribute_name, domain, field);
+  }
 }
 
 /**

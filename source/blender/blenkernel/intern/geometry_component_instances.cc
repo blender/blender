@@ -60,7 +60,9 @@ void InstancesComponent::reserve(int min_capacity)
 {
   instance_reference_handles_.reserve(min_capacity);
   instance_transforms_.reserve(min_capacity);
-  instance_ids_.reserve(min_capacity);
+  if (!instance_ids_.is_empty()) {
+    this->instance_ids_ensure();
+  }
 }
 
 /**
@@ -73,7 +75,9 @@ void InstancesComponent::resize(int capacity)
 {
   instance_reference_handles_.resize(capacity);
   instance_transforms_.resize(capacity);
-  instance_ids_.resize(capacity);
+  if (!instance_ids_.is_empty()) {
+    this->instance_ids_ensure();
+  }
 }
 
 void InstancesComponent::clear()
@@ -85,15 +89,15 @@ void InstancesComponent::clear()
   references_.clear();
 }
 
-void InstancesComponent::add_instance(const int instance_handle,
-                                      const float4x4 &transform,
-                                      const int id)
+void InstancesComponent::add_instance(const int instance_handle, const float4x4 &transform)
 {
   BLI_assert(instance_handle >= 0);
   BLI_assert(instance_handle < references_.size());
   instance_reference_handles_.append(instance_handle);
   instance_transforms_.append(transform);
-  instance_ids_.append(id);
+  if (!instance_ids_.is_empty()) {
+    this->instance_ids_ensure();
+  }
 }
 
 blender::Span<int> InstancesComponent::instance_reference_handles() const
@@ -122,6 +126,22 @@ blender::MutableSpan<int> InstancesComponent::instance_ids()
 blender::Span<int> InstancesComponent::instance_ids() const
 {
   return instance_ids_;
+}
+
+/**
+ * Make sure the ID storage size matches the number of instances. By directly resizing the
+ * component's vectors internally, it is possible to be in a situation where the IDs are not
+ * empty but they do not have the correct size; this function resolves that.
+ */
+blender::MutableSpan<int> InstancesComponent::instance_ids_ensure()
+{
+  instance_ids_.append_n_times(0, this->instances_amount() - instance_ids_.size());
+  return instance_ids_;
+}
+
+void InstancesComponent::instance_ids_clear()
+{
+  instance_ids_.clear_and_make_inline();
 }
 
 /**
@@ -327,8 +347,16 @@ static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
 blender::Span<int> InstancesComponent::almost_unique_ids() const
 {
   std::lock_guard lock(almost_unique_ids_mutex_);
-  if (almost_unique_ids_.size() != instance_ids_.size()) {
-    almost_unique_ids_ = generate_unique_instance_ids(instance_ids_);
+  if (instance_ids().is_empty()) {
+    almost_unique_ids_.reinitialize(this->instances_amount());
+    for (const int i : almost_unique_ids_.index_range()) {
+      almost_unique_ids_[i] = i;
+    }
+  }
+  else {
+    if (almost_unique_ids_.size() != instance_ids_.size()) {
+      almost_unique_ids_ = generate_unique_instance_ids(instance_ids_);
+    }
   }
   return almost_unique_ids_;
 }
@@ -398,11 +426,82 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   }
 };
 
+class InstanceIDAttributeProvider final : public BuiltinAttributeProvider {
+ public:
+  InstanceIDAttributeProvider()
+      : BuiltinAttributeProvider(
+            "id", ATTR_DOMAIN_POINT, CD_PROP_INT32, Creatable, Writable, Deletable)
+  {
+  }
+
+  GVArrayPtr try_get_for_read(const GeometryComponent &component) const final
+  {
+    const InstancesComponent &instances = static_cast<const InstancesComponent &>(component);
+    if (instances.instance_ids().is_empty()) {
+      return {};
+    }
+    return std::make_unique<fn::GVArray_For_Span<int>>(instances.instance_ids());
+  }
+
+  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final
+  {
+    InstancesComponent &instances = static_cast<InstancesComponent &>(component);
+    if (instances.instance_ids().is_empty()) {
+      return {};
+    }
+    return std::make_unique<fn::GVMutableArray_For_MutableSpan<int>>(instances.instance_ids());
+  }
+
+  bool try_delete(GeometryComponent &component) const final
+  {
+    InstancesComponent &instances = static_cast<InstancesComponent &>(component);
+    if (instances.instance_ids().is_empty()) {
+      return false;
+    }
+    instances.instance_ids_clear();
+    return true;
+  }
+
+  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final
+  {
+    InstancesComponent &instances = static_cast<InstancesComponent &>(component);
+    if (instances.instances_amount() == 0) {
+      return false;
+    }
+    MutableSpan<int> ids = instances.instance_ids_ensure();
+    switch (initializer.type) {
+      case AttributeInit::Type::Default: {
+        ids.fill(0);
+        break;
+      }
+      case AttributeInit::Type::VArray: {
+        const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
+        varray->materialize_to_uninitialized(IndexRange(varray->size()), ids.data());
+        break;
+      }
+      case AttributeInit::Type::MoveArray: {
+        void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+        ids.copy_from({static_cast<int *>(source_data), instances.instances_amount()});
+        MEM_freeN(source_data);
+        break;
+      }
+    }
+    return true;
+  }
+
+  bool exists(const GeometryComponent &component) const final
+  {
+    const InstancesComponent &instances = static_cast<const InstancesComponent &>(component);
+    return !instances.instance_ids().is_empty();
+  }
+};
+
 static ComponentAttributeProviders create_attribute_providers_for_instances()
 {
   static InstancePositionAttributeProvider position;
+  static InstanceIDAttributeProvider id;
 
-  return ComponentAttributeProviders({&position}, {});
+  return ComponentAttributeProviders({&position, &id}, {});
 }
 }  // namespace blender::bke
 

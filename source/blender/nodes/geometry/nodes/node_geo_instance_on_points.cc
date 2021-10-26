@@ -77,7 +77,6 @@ static void add_instances_from_component(InstancesComponent &dst_component,
                                                                                   select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
                                                                                    select_len);
-  MutableSpan<int> dst_stable_ids = dst_component.instance_ids().slice(start_len, select_len);
 
   FieldEvaluator field_evaluator{field_context, domain_size};
   const VArray<bool> *pick_instance = nullptr;
@@ -86,7 +85,6 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   const VArray<float3> *scales = nullptr;
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
-  GVArray_Typed<int> stable_ids = src_component.attribute_get_for_read("id", ATTR_DOMAIN_POINT, 0);
   field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
   field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
   field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
@@ -119,7 +117,6 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
     for (const int range_i : selection_range) {
       const int64_t i = selection[range_i];
-      dst_stable_ids[range_i] = (*stable_ids)[i];
 
       /* Compute base transform for every instances. */
       float4x4 &dst_transform = dst_transforms[range_i];
@@ -156,6 +153,17 @@ static void add_instances_from_component(InstancesComponent &dst_component,
       dst_handles[range_i] = dst_handle;
     }
   });
+
+  GVArrayPtr id_attribute = src_component.attribute_try_get_for_read(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  if (id_attribute) {
+    GVArray_Typed<int> ids{*id_attribute};
+    VArray_Span<int> ids_span{ids};
+    MutableSpan<int> dst_ids = dst_component.instance_ids_ensure();
+    for (const int64_t i : selection.index_range()) {
+      dst_ids[i] = ids_span[selection[i]];
+    }
+  }
 
   if (pick_instance->is_single()) {
     if (pick_instance->get_internal_single()) {

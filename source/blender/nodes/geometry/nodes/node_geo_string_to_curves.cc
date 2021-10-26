@@ -242,13 +242,11 @@ static void add_instances_from_handles(InstancesComponent &instances,
   instances.resize(positions.size());
   MutableSpan<int> handles = instances.instance_reference_handles();
   MutableSpan<float4x4> transforms = instances.instance_transforms();
-  MutableSpan<int> instance_ids = instances.instance_ids();
 
   threading::parallel_for(IndexRange(positions.size()), 256, [&](IndexRange range) {
     for (const int i : range) {
       handles[i] = char_handles.lookup(charcodes[i]);
       transforms[i] = float4x4::from_location({positions[i].x, positions[i].y, 0});
-      instance_ids[i] = i;
     }
   });
 }

@@ -270,17 +270,16 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
     }
 
     Span<float4x4> src_transforms = src_component->instance_transforms();
-    Span<int> src_ids = src_component->instance_ids();
     Span<int> src_reference_handles = src_component->instance_reference_handles();
 
     for (const int i : src_transforms.index_range()) {
       const int src_handle = src_reference_handles[i];
       const int dst_handle = handle_map[src_handle];
       const float4x4 &transform = src_transforms[i];
-      const int id = src_ids[i];
-      dst_component.add_instance(dst_handle, transform, id);
+      dst_component.add_instance(dst_handle, transform);
     }
   }
+  join_attributes(to_base_components(src_components), dst_component, {"position"});
 }
 
 static void join_components(Span<const VolumeComponent *> src_components, GeometrySet &result)
