@@ -675,7 +675,9 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
   return a.matches_including_parents(b);
 }
 
-bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const wmDrag *drag)
+bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
+                                const wmDrag *drag,
+                                const char **r_disabled_hint)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
   const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
@@ -684,7 +686,7 @@ bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const wmDrag 
     return false;
   }
 
-  return drop_controller->can_drop(*drag);
+  return drop_controller->can_drop(*drag, r_disabled_hint);
 }
 
 char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_, const wmDrag *drag)
@@ -709,8 +711,9 @@ bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const ListBase *
   std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
       item.create_drop_controller();
 
+  const char *disabled_hint_dummy = nullptr;
   LISTBASE_FOREACH (const wmDrag *, drag, drags) {
-    if (drop_controller->can_drop(*drag)) {
+    if (drop_controller->can_drop(*drag, &disabled_hint_dummy)) {
       return drop_controller->on_drop(*drag);
     }
   }
