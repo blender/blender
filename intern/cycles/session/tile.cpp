@@ -367,20 +367,26 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
 
   buffer_params_ = params;
 
-  /* TODO(sergey): Proper Error handling, so that if configuration has failed we don't attempt to
-   * write to a partially configured file. */
-  configure_image_spec_from_buffer(&write_state_.image_spec, buffer_params_, tile_size_);
+  if (has_multiple_tiles()) {
+    /* TODO(sergey): Proper Error handling, so that if configuration has failed we don't attempt to
+     * write to a partially configured file. */
+    configure_image_spec_from_buffer(&write_state_.image_spec, buffer_params_, tile_size_);
 
-  const DenoiseParams denoise_params = scene->integrator->get_denoise_params();
-  const AdaptiveSampling adaptive_sampling = scene->integrator->get_adaptive_sampling();
+    const DenoiseParams denoise_params = scene->integrator->get_denoise_params();
+    const AdaptiveSampling adaptive_sampling = scene->integrator->get_adaptive_sampling();
 
-  node_to_image_spec_atttributes(
-      &write_state_.image_spec, &denoise_params, ATTR_DENOISE_SOCKET_PREFIX);
+    node_to_image_spec_atttributes(
+        &write_state_.image_spec, &denoise_params, ATTR_DENOISE_SOCKET_PREFIX);
 
-  if (adaptive_sampling.use) {
-    overscan_ = 4;
+    if (adaptive_sampling.use) {
+      overscan_ = 4;
+    }
+    else {
+      overscan_ = 0;
+    }
   }
   else {
+    write_state_.image_spec = ImageSpec();
     overscan_ = 0;
   }
 }
