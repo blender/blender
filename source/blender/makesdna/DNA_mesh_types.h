@@ -127,10 +127,6 @@ typedef struct Mesh_Runtime {
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra;
 
-  /** Needed to ensure some thread-safety during render data pre-processing. */
-  void *render_mutex;
-  void *_pad3;
-
 } Mesh_Runtime;
 
 typedef struct Mesh {

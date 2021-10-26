@@ -24,10 +24,6 @@
 
 struct TaskGraph;
 
-#include "DNA_customdata_types.h"
-
-#include "BKE_attribute.h"
-
 #include "GPU_batch.h"
 #include "GPU_index_buffer.h"
 #include "GPU_vertex_buffer.h"
@@ -60,6 +56,7 @@ typedef struct DRW_MeshCDMask {
   uint32_t uv : 8;
   uint32_t tan : 8;
   uint32_t vcol : 8;
+  uint32_t sculpt_vcol : 8;
   uint32_t orco : 1;
   uint32_t tan_orco : 1;
   uint32_t sculpt_overlays : 1;
@@ -67,10 +64,10 @@ typedef struct DRW_MeshCDMask {
    *  modifiers could remove it. (see T68857) */
   uint32_t edit_uv : 1;
 } DRW_MeshCDMask;
-/* Keep `DRW_MeshCDMask` struct within an `uint32_t`.
+/* Keep `DRW_MeshCDMask` struct within an `uint64_t`.
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
-BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits")
+BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint64_t), "DRW_MeshCDMask exceeds 64 bits")
 typedef enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
@@ -78,17 +75,6 @@ typedef enum eMRIterType {
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
 ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
-
-typedef struct DRW_AttributeRequest {
-  CustomDataType cd_type;
-  int layer_index;
-  AttributeDomain domain;
-} DRW_AttributeRequest;
-
-typedef struct DRW_MeshAttributes {
-  DRW_AttributeRequest requests[GPU_MAX_ATTR];
-  int num_requests;
-} DRW_MeshAttributes;
 
 typedef enum eMRDataType {
   MR_DATA_NONE = 0,
@@ -147,7 +133,6 @@ typedef struct MeshBufferList {
     GPUVertBuf *edge_idx; /* extend */
     GPUVertBuf *poly_idx;
     GPUVertBuf *fdot_idx;
-    GPUVertBuf *attr[GPU_MAX_ATTR];
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */
@@ -299,8 +284,6 @@ typedef struct MeshBatchCache {
   struct DRW_MeshWeightState weight_state;
 
   DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
-
-  DRW_MeshAttributes attr_used, attr_needed, attr_used_over_time;
 
   int lastmatch;
 
