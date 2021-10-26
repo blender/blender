@@ -182,9 +182,9 @@ typedef struct LineartEdgeChain {
 
 typedef struct LineartEdgeChainItem {
   struct LineartEdgeChainItem *next, *prev;
-  /** Need z value for fading */
-  float pos[3];
-  /** For restoring position to 3d space */
+  /** Need z value for fading, w value for image frame clipping. */
+  float pos[4];
+  /** For restoring position to 3d space. */
   float gpos[3];
   float normal[3];
   unsigned char line_type;
@@ -299,6 +299,7 @@ typedef struct LineartRenderBuffer {
   bool use_loose_as_contour;
   bool use_loose_edge_chain;
   bool use_geometry_space_chain;
+  bool use_image_boundary_trimming;
 
   bool filter_face_mark;
   bool filter_face_mark_invert;
@@ -594,6 +595,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb);
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb);
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
+void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance);
 void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,

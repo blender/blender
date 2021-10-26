@@ -3405,6 +3405,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Crease On Sharp Edges", "Allow crease to show on sharp edges");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "use_image_boundary_trimming", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_USE_IMAGE_BOUNDARY_TRIMMING);
+  RNA_def_property_ui_text(
+      prop,
+      "Image Boundary Trimming",
+      "Trim all edges right at the boundary of image(including overscan region)");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   RNA_define_lib_overridable(false);
 }
 

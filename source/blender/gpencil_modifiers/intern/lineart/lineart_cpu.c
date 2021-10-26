@@ -3077,6 +3077,8 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_loose_as_contour = (lmd->calculation_flags & LRT_LOOSE_AS_CONTOUR) != 0;
   rb->use_loose_edge_chain = (lmd->calculation_flags & LRT_CHAIN_LOOSE_EDGES) != 0;
   rb->use_geometry_space_chain = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
+  rb->use_image_boundary_trimming = (lmd->calculation_flags & LRT_USE_IMAGE_BOUNDARY_TRIMMING) !=
+                                    0;
 
   /* See lineart_edge_from_triangle() for how this option may impact performance. */
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
@@ -4200,6 +4202,10 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
        * effective range in image-space (Coordinate only goes from -1 to 1). This value is somewhat
        * arbitrary, but works best for the moment.  */
       MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
+    }
+
+    if (rb->use_image_boundary_trimming) {
+      MOD_lineart_chain_clip_at_border(rb);
     }
 
     if (rb->angle_splitting_threshold > FLT_EPSILON) {

@@ -406,7 +406,7 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_crease_on_smooth", 0, IFACE_("Crease On Smooth"), ICON_NONE);
-  uiItemR(layout, ptr, "use_crease_on_sharp", 0, IFACE_("Crease On Sharp"), ICON_NONE);
+  uiItemR(col, ptr, "use_crease_on_sharp", 0, IFACE_("Crease On Sharp"), ICON_NONE);
 }
 
 static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -691,6 +691,9 @@ static void composition_panel_draw(const bContext *UNUSED(C), Panel *panel)
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
   uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, ptr, "overscan", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_image_boundary_trimming", 0, NULL, ICON_NONE);
 
   if (show_in_front) {
     uiItemL(layout, IFACE_("Object is shown in front"), ICON_ERROR);
