@@ -526,6 +526,12 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
     return;
   }
 
+  /* Don't use the snap cursor when linking the object. Object transform isn't editable then and
+   * would be reset on reload. */
+  if (WM_drag_asset_will_import_linked(drag)) {
+    return;
+  }
+
   state = drop->draw_data = ED_view3d_cursor_snap_active();
   state->draw_plane = true;
 
@@ -552,8 +558,10 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
 static void view3d_ob_drop_draw_deactivate(struct wmDropBox *drop, wmDrag *UNUSED(drag))
 {
   V3DSnapCursorState *state = drop->draw_data;
-  ED_view3d_cursor_snap_deactive(state);
-  drop->draw_data = NULL;
+  if (state) {
+    ED_view3d_cursor_snap_deactive(state);
+    drop->draw_data = NULL;
+  }
 }
 
 static bool view3d_ob_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -762,12 +770,14 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_object_tag(C);
 
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  float obmat_final[4][4];
+  V3DSnapCursorState *snap_state = drop->draw_data;
+  if (snap_state) {
+    float obmat_final[4][4];
 
-  view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
+    view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
 
-  RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
+    RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
+  }
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)

@@ -3617,6 +3617,13 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Object not found");
     return OPERATOR_CANCELLED;
   }
+
+  /* Don't transform a linked object. There's just nothing to do here in this case, so return
+   * #OPERATOR_FINISHED. */
+  if (ID_IS_LINKED(ob)) {
+    return OPERATOR_FINISHED;
+  }
+
   /* Ensure the locations are updated so snap reads the evaluated active location. */
   CTX_data_ensure_evaluated_depsgraph(C);
 

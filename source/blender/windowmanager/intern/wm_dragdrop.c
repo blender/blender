@@ -577,6 +577,16 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   return NULL;
 }
 
+bool WM_drag_asset_will_import_linked(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_ASSET) {
+    return false;
+  }
+
+  const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  return asset_drag->import_type == FILE_ASSET_IMPORT_LINK;
+}
+
 /**
  * When dragging a local ID, return that. Otherwise, if dragging an asset-handle, link or append
  * that depending on what was chosen by the drag-box (currently append only in fact).
