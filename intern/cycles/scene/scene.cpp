@@ -505,8 +505,8 @@ void Scene::update_kernel_features()
       kernel_features |= KERNEL_FEATURE_SHADOW_CATCHER;
     }
     if (geom->is_mesh()) {
-      Mesh *mesh = static_cast<Mesh *>(geom);
 #ifdef WITH_OPENSUBDIV
+      Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
         kernel_features |= KERNEL_FEATURE_PATCH_EVALUATION;
       }
