@@ -137,8 +137,10 @@ void wm_xr_session_toggle(wmWindowManager *wm,
   wmXrData *xr_data = &wm->xr;
 
   if (WM_xr_session_exists(xr_data)) {
-    GHOST_XrSessionEnd(xr_data->runtime->context);
+    /* Must set first, since #GHOST_XrSessionEnd() may immediately free the runtime. */
     xr_data->runtime->session_state.is_started = false;
+
+    GHOST_XrSessionEnd(xr_data->runtime->context);
   }
   else {
     GHOST_XrSessionBeginInfo begin_info;
