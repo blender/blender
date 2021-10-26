@@ -122,7 +122,8 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "activate_asset_by_id", "ED_fileselect_activate_by_id");
-  RNA_def_function_ui_description(func, "Activate the asset entry that represents the given ID");
+  RNA_def_function_ui_description(
+      func, "Activate and select the asset entry that represents the given ID");
 
   parm = RNA_def_property(func, "id_to_activate", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(parm, "ID");

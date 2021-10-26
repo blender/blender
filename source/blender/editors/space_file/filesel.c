@@ -514,14 +514,12 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
     const FileDirEntry *file = filelist_file_ex(files, file_index, false);
 
     if (filelist_file_get_id(file) != asset_id) {
-      filelist_entry_select_set(files, file, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
       continue;
     }
 
     params->active_file = file_index;
     filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
-
-    /* Keep looping to deselect the other files. */
+    break;
   }
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
