@@ -85,6 +85,7 @@
 #endif
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "view3d_intern.h" /* own include */
 
@@ -747,6 +748,8 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
 
+  /* TODO(sergey): Only update relations for the current scene. */
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
