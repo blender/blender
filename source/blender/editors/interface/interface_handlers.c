@@ -10780,7 +10780,7 @@ static int ui_handle_menu_event(bContext *C,
   }
 #endif
 
-  /* Don't handle double click events, rehandle as regular press/release. */
+  /* Don't handle double click events, re-handle as regular press/release. */
   if (retval == WM_UI_HANDLER_CONTINUE && event->val == KM_DBL_CLICK) {
     return retval;
   }

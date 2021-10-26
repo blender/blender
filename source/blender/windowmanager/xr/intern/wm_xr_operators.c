@@ -133,7 +133,8 @@ static int wm_xr_session_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  /* Lazy-create xr context - tries to dynlink to the runtime, reading active_runtime.json. */
+  /* Lazily-create XR context - tries to dynamic-link to the runtime,
+   * reading `active_runtime.json`. */
   if (wm_xr_init(wm) == false) {
     return OPERATOR_CANCELLED;
   }

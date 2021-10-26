@@ -2642,8 +2642,10 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_FINISHED;
 }
 
-/* used for dropbox */
-/* assigns to object under cursor, only first material slot */
+/**
+ * Used for drop-box.
+ * Assigns to object under cursor, only first material slot.
+ */
 void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
   /* identifiers */

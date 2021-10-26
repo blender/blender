@@ -1940,7 +1940,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  /* set typedefinitions */
+  /* Set type-definitions. */
   area->type = BKE_spacetype_from_id(area->spacetype);
 
   if (area->type == NULL) {
@@ -3027,7 +3027,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                   search_filter);
   }
 
-  /* Draw "polyinstantaited" panels that don't have a 1 to 1 correspondence with their types. */
+  /* Draw "poly-instantiated" panels that don't have a 1 to 1 correspondence with their types. */
   if (has_instanced_panel) {
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       if (panel->type == NULL) {

@@ -167,7 +167,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
   scroll = view2d_scroll_mapped(v2d->scroll);
 
-  /* scrollers are based off regionsize
+  /* Scrollers are based off region-size:
    * - they can only be on one to two edges of the region they define
    * - if they overlap, they must not occupy the corners (which are reserved for other widgets)
    */

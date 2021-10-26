@@ -295,7 +295,7 @@ static uint vpaint_blend(const VPaint *vp,
 
   uint color_blend = ED_vpaint_blend_tool(blend, color_curr, color_paint, alpha_i);
 
-  /* if no accumulate, clip color adding with colorig & orig alpha */
+  /* If no accumulate, clip color adding with `color_orig` & `color_test`. */
   if (!brush_use_accumulate(vp)) {
     uint color_test, a;
     char *cp, *ct, *co;

@@ -1283,7 +1283,7 @@ static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
  *
  * callbacks:
  *
- * invoke() gets called on shift+lmb drag in action-zone
+ * invoke() gets called on Shift-LMB drag in action-zone
  * exec()   execute without any user interaction, based on properties
  * call init(), add handler
  *
@@ -2078,7 +2078,7 @@ typedef struct sAreaSplitData {
   int bigger, smaller;   /* constraints for moving new edge */
   int delta;             /* delta move edge */
   int origmin, origsize; /* to calculate fac, for property storage */
-  int previewmode;       /* draw previewline, then split */
+  int previewmode;       /* draw preview-line, then split. */
   void *draw_callback;   /* call `screen_draw_split_preview` */
   bool do_snap;
 
@@ -2628,8 +2628,8 @@ static int area_max_regionsize(ScrArea *area, ARegion *scalear, AZEdge edge)
       dist = BLI_rcti_size_y(&area->totrct);
     }
 
-    /* subtractwidth of regions on opposite side
-     * prevents dragging regions into other opposite regions */
+    /* Subtract the width of regions on opposite side
+     * prevents dragging regions into other opposite regions. */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region == scalear) {
         continue;
@@ -3082,12 +3082,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
   float cfra = (float)(CFRA);
 
-  /* init binarytree-list for getting keyframes */
+  /* Initialize binary-tree-list for getting keyframes. */
   struct AnimKeylist *keylist = ED_keylist_create();
 
-  /* seed up dummy dopesheet context with flags to perform necessary filtering */
+  /* Speed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
-    /* only selected channels are included */
+    /* Only selected channels are included. */
     ads.filterflag |= ADS_FILTER_ONLYSEL;
   }
 
@@ -4206,7 +4206,7 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Region Context Menu Operator (Header/Footer/Navbar)
+/** \name Region Context Menu Operator (Header/Footer/Navigation-Bar)
  * \{ */
 
 static void screen_area_menu_items(ScrArea *area, uiLayout *layout)

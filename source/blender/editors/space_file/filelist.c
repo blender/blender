@@ -919,7 +919,7 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
 }
 
 /**
- * Copy a string from source to dest, but prefix and suffix it with a single space.
+ * Copy a string from source to `dest`, but prefix and suffix it with a single space.
  * Assumes `dest` has at least space enough for the two spaces.
  */
 static void tag_copy_with_spaces(char *dest, const char *source, const size_t dest_size)
@@ -939,9 +939,9 @@ static void tag_copy_with_spaces(char *dest, const char *source, const size_t de
  *
  * Here the tags on the asset are written in set notation:
  *
- * asset_tag_matches_filter(" some tags ", {"some", "blue"}) -> true
- * asset_tag_matches_filter(" some tags ", {"som", "tag"}) -> false
- * asset_tag_matches_filter(" some tags ", {}) -> false
+ * `asset_tag_matches_filter(" some tags ", {"some", "blue"})` -> true
+ * `asset_tag_matches_filter(" some tags ", {"som", "tag"})` -> false
+ * `asset_tag_matches_filter(" some tags ", {})` -> false
  */
 static bool asset_tag_matches_filter(const char *filter_search, const AssetMetaData *asset_data)
 {

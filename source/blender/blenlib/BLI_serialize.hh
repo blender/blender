@@ -316,8 +316,8 @@ class Formatter {
 class JsonFormatter : public Formatter {
  public:
   /**
-   * The identation level to use.
-   * Typically number of chars. Set to 0 to not use identation.
+   * The indentation level to use.
+   * Typically number of chars. Set to 0 to not use indentation.
    */
   int8_t indentation_len = 0;
 
@@ -327,4 +327,3 @@ class JsonFormatter : public Formatter {
 };
 
 }  // namespace blender::io::serialize
-
