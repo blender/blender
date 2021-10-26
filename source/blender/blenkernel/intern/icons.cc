@@ -363,7 +363,7 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
       Object *ob = (Object *)id;
       /* Currently, only object types with real geometry can be rendered as preview. */
       if (!OB_TYPE_IS_GEOMETRY(ob->type)) {
-        return NULL;
+        return nullptr;
       }
       return &ob->preview;
     }

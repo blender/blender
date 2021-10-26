@@ -449,10 +449,8 @@ static bool wm_xr_navigation_grab_is_locked(const XrGrabData *data, const bool b
   if (bimanual) {
     return data->loc_lock && data->rot_lock && data->scale_lock;
   }
-  else {
-    /* Ignore scale lock, as one-handed interaction cannot change navigation scale. */
-    return data->loc_lock && data->rot_lock;
-  }
+  /* Ignore scale lock, as one-handed interaction cannot change navigation scale. */
+  return data->loc_lock && data->rot_lock;
 }
 
 static void wm_xr_navigation_grab_apply(wmXrData *xr,
@@ -558,17 +556,17 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
    dispatching (see #wm_xr_session_action_states_interpret()). For modal XR operators, modal
    handling starts when an input is "pressed" (action state exceeds the action threshold) and
    ends when the input is "released" (state falls below the threshold). */
-  if (event->val == KM_PRESS) {
-    return OPERATOR_RUNNING_MODAL;
+  switch (event->val) {
+    case KM_PRESS:
+      return OPERATOR_RUNNING_MODAL;
+    case KM_RELEASE:
+      wm_xr_grab_uninit(op);
+      return OPERATOR_FINISHED;
+    default:
+      BLI_assert_unreachable();
+      wm_xr_grab_uninit(op);
+      return OPERATOR_CANCELLED;
   }
-  else if (event->val == KM_RELEASE) {
-    wm_xr_grab_uninit(op);
-    return OPERATOR_FINISHED;
-  }
-
-  BLI_assert_unreachable();
-  wm_xr_grab_uninit(op);
-  return OPERATOR_CANCELLED;
 }
 
 static void WM_OT_xr_navigation_grab(wmOperatorType *ot)
@@ -1317,39 +1315,41 @@ static int wm_xr_navigation_teleport_modal(bContext *C, wmOperator *op, const wm
 
   wm_xr_raycast_update(op, xr, actiondata);
 
-  if (event->val == KM_PRESS) {
-    return OPERATOR_RUNNING_MODAL;
+  switch (event->val) {
+    case KM_PRESS:
+      return OPERATOR_RUNNING_MODAL;
+    case KM_RELEASE: {
+      XrRaycastData *data = op->customdata;
+      bool selectable_only, teleport_axes[3];
+      float teleport_t, teleport_ofs, ray_dist;
+
+      RNA_boolean_get_array(op->ptr, "teleport_axes", teleport_axes);
+      teleport_t = RNA_float_get(op->ptr, "interpolation");
+      teleport_ofs = RNA_float_get(op->ptr, "offset");
+      selectable_only = RNA_boolean_get(op->ptr, "selectable_only");
+      ray_dist = RNA_float_get(op->ptr, "distance");
+
+      wm_xr_navigation_teleport(C,
+                                xr,
+                                data->origin,
+                                data->direction,
+                                &ray_dist,
+                                selectable_only,
+                                teleport_axes,
+                                teleport_t,
+                                teleport_ofs);
+
+      wm_xr_raycast_uninit(op);
+
+      return OPERATOR_FINISHED;
+    }
+    default:
+
+      /* XR events currently only support press and release. */
+      BLI_assert_unreachable();
+      wm_xr_raycast_uninit(op);
+      return OPERATOR_CANCELLED;
   }
-  else if (event->val == KM_RELEASE) {
-    XrRaycastData *data = op->customdata;
-    bool selectable_only, teleport_axes[3];
-    float teleport_t, teleport_ofs, ray_dist;
-
-    RNA_boolean_get_array(op->ptr, "teleport_axes", teleport_axes);
-    teleport_t = RNA_float_get(op->ptr, "interpolation");
-    teleport_ofs = RNA_float_get(op->ptr, "offset");
-    selectable_only = RNA_boolean_get(op->ptr, "selectable_only");
-    ray_dist = RNA_float_get(op->ptr, "distance");
-
-    wm_xr_navigation_teleport(C,
-                              xr,
-                              data->origin,
-                              data->direction,
-                              &ray_dist,
-                              selectable_only,
-                              teleport_axes,
-                              teleport_t,
-                              teleport_ofs);
-
-    wm_xr_raycast_uninit(op);
-
-    return OPERATOR_FINISHED;
-  }
-
-  /* XR events currently only support press and release. */
-  BLI_assert_unreachable();
-  wm_xr_raycast_uninit(op);
-  return OPERATOR_CANCELLED;
 }
 
 static void WM_OT_xr_navigation_teleport(wmOperatorType *ot)
