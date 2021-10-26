@@ -71,14 +71,12 @@ void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
 Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 {
-#ifdef WITH_MULTI
   if (!info.multi_devices.empty()) {
     /* Always create a multi device when info contains multiple devices.
      * This is done so that the type can still be e.g. DEVICE_CPU to indicate
      * that it is a homogeneous collection of devices, which simplifies checks. */
     return device_multi_create(info, stats, profiler);
   }
-#endif
 
   Device *device = NULL;
 

@@ -158,9 +158,6 @@ endif()
 if(WITH_CYCLES_DEVICE_OPTIX)
   add_definitions(-DWITH_OPTIX)
 endif()
-if(WITH_CYCLES_DEVICE_MULTI)
-  add_definitions(-DWITH_MULTI)
-endif()
 
 if(WITH_OPENIMAGEDENOISE)
   list(APPEND LIB

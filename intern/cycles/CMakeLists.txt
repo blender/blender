@@ -295,13 +295,6 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
-if(WITH_CYCLES_STANDALONE)
-  set(WITH_CYCLES_DEVICE_CUDA TRUE)
-  set(WITH_CYCLES_DEVICE_HIP TRUE)
-endif()
-# TODO(sergey): Consider removing it, only causes confusion in interface.
-set(WITH_CYCLES_DEVICE_MULTI TRUE)
-
 # Logging capabilities using GLog library.
 if(WITH_CYCLES_LOGGING)
   add_definitions(-DWITH_CYCLES_LOGGING)
