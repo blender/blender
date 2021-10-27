@@ -20,10 +20,10 @@ namespace blender::nodes {
 
 static void geo_node_set_curve_tilt_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>("Tilt").subtype(PROP_ANGLE).supports_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static void set_tilt_in_component(GeometryComponent &component,
@@ -51,7 +51,7 @@ static void set_tilt_in_component(GeometryComponent &component,
 
 static void geo_node_set_curve_tilt_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<float> tilt_field = params.extract_input<Field<float>>("Tilt");
 
@@ -62,7 +62,7 @@ static void geo_node_set_curve_tilt_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Curve", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

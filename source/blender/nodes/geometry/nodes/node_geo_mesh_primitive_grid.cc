@@ -33,7 +33,7 @@ static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Size Y").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Int>("Vertices X").default_value(3).min(2).max(1000);
   b.add_input<decl::Int>("Vertices Y").default_value(3).min(2).max(1000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void calculate_uvs(
@@ -160,7 +160,7 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
   if (verts_x < 1 || verts_y < 1) {
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
@@ -168,7 +168,7 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
   BLI_assert(BKE_mesh_is_valid(mesh));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

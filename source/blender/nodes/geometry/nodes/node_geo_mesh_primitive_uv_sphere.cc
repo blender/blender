@@ -32,7 +32,7 @@ static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Segments").default_value(32).min(3).max(1024);
   b.add_input<decl::Int>("Rings").default_value(16).min(2).max(1024);
   b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static int sphere_vert_total(const int segments, const int rings)
@@ -291,14 +291,14 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
     if (rings_num < 3) {
       params.error_message_add(NodeWarningType::Info, TIP_("Rings must be at least 3"));
     }
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   const float radius = params.extract_input<float>("Radius");
 
   Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num);
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

@@ -31,7 +31,7 @@ static void geo_node_mesh_primitive_circle_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Vertices").default_value(32).min(3);
   b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void geo_node_mesh_primitive_circle_layout(uiLayout *layout,
@@ -204,7 +204,7 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
@@ -212,7 +212,7 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
 
   BLI_assert(BKE_mesh_is_valid(mesh));
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

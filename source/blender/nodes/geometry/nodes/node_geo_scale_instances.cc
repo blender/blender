@@ -22,12 +22,12 @@ namespace blender::nodes {
 
 static void geo_node_scale_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").only_instances();
+  b.add_input<decl::Geometry>("Instances").only_instances();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>("Scale").subtype(PROP_XYZ).default_value({1, 1, 1}).supports_field();
   b.add_input<decl::Vector>("Center").subtype(PROP_TRANSLATION).supports_field();
   b.add_input<decl::Bool>("Local Space").default_value(true).supports_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Instances");
 };
 
 static void scale_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
@@ -74,12 +74,12 @@ static void scale_instances(GeoNodeExecParams &params, InstancesComponent &insta
 
 static void geo_node_scale_instances_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
   if (geometry_set.has_instances()) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
     scale_instances(params, instances);
   }
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Instances", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

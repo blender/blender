@@ -54,7 +54,7 @@ static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .description("The height of the cylinder on the Z axis");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,
@@ -102,14 +102,14 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   const int circle_segments = params.extract_input<int>("Vertices");
   if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   const int side_segments = params.extract_input<int>("Side Segments");
   if (side_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
@@ -117,7 +117,7 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
   if (fill_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
@@ -125,7 +125,7 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   Mesh *mesh = create_cylinder_or_cone_mesh(
       radius, radius, depth, circle_segments, side_segments, fill_segments, fill_type);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

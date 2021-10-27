@@ -2126,6 +2126,31 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         version_node_input_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Points");
         version_node_output_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Volume");
         version_node_socket_name(ntree, GEO_NODE_SUBDIVISION_SURFACE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_RESAMPLE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_RADIUS, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_TILT, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_HANDLES, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_TRANSLATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_ROTATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_SCALE_INSTANCES, "Geometry", "Instances");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry", "Mesh");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 1", "Mesh 1");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 2", "Mesh 2");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_MESH, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_TRIANGULATE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CONE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CUBE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_GRID, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_LINE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_SET_POINT_RADIUS, "Geometry", "Points");
       }
     }
   }

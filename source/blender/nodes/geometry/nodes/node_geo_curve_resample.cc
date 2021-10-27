@@ -34,11 +34,11 @@ namespace blender::nodes {
 
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).supports_field();
   b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).supports_field().subtype(
       PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static void geo_node_curve_resample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -234,7 +234,7 @@ static void geometry_set_curve_resample(GeometrySet &geometry_set,
 
 static void geo_node_resample_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)params.node().storage;
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
@@ -244,7 +244,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     Field<int> count = params.extract_input<Field<int>>("Count");
     if (count < 1) {
-      params.set_output("Geometry", GeometrySet());
+      params.set_output("Curve", GeometrySet());
       return;
     }
     mode_param.count.emplace(count);
@@ -257,7 +257,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets(
       [&](GeometrySet &geometry_set) { geometry_set_curve_resample(geometry_set, mode_param); });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Curve", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

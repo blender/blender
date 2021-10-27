@@ -27,9 +27,9 @@ namespace blender::nodes {
 
 static void geo_node_mesh_subdivide_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int level)
@@ -74,12 +74,12 @@ static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int lev
 
 static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Mesh", std::move(geometry_set));
   return;
 #endif
 
@@ -87,14 +87,14 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
   const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 11);
 
   if (subdiv_level == 0) {
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Mesh", std::move(geometry_set));
     return;
   }
 
   geometry_set.modify_geometry_sets(
       [&](GeometrySet &geometry_set) { geometry_set_mesh_subdivide(geometry_set, subdiv_level); });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Mesh", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

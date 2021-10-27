@@ -30,7 +30,7 @@ static void geo_node_mesh_primitive_cube_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Vertices X").default_value(2).min(2).max(1000);
   b.add_input<decl::Int>("Vertices Y").default_value(2).min(2).max(1000);
   b.add_input<decl::Int>("Vertices Z").default_value(2).min(2).max(1000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 struct CuboidConfig {
@@ -476,13 +476,13 @@ static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
   const int verts_z = params.extract_input<int>("Vertices Z");
   if (verts_x < 1 || verts_y < 1 || verts_z < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

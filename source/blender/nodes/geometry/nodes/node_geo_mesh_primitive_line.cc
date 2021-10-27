@@ -33,7 +33,7 @@ static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Resolution").default_value(1.0f).min(0.1f).subtype(PROP_DISTANCE);
   b.add_input<decl::Vector>("Start Location").subtype(PROP_TRANSLATION);
   b.add_input<decl::Vector>("Offset").default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
@@ -154,7 +154,7 @@ static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
     mesh = create_line_mesh(start, delta, count);
   }
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes
