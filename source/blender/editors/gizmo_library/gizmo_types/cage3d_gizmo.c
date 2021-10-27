@@ -220,7 +220,7 @@ static void cage3d_draw_circle_wire(const float r[3],
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  imm_draw_cube_wire_3d(pos, (float[3]){0}, r);
+  imm_draw_cube_wire_3d(pos, (const float[3]){0}, r);
 
 #if 0
   if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {

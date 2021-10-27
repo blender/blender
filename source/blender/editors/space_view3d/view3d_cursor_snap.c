@@ -372,7 +372,7 @@ static void cursor_box_draw(const float dimensions[3], uchar color[4])
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ubv(color);
-  imm_draw_cube_corners_3d(pos_id, (float[3]){0.0f, 0.0f, dimensions[2]}, dimensions, 0.15f);
+  imm_draw_cube_corners_3d(pos_id, (const float[3]){0.0f, 0.0f, dimensions[2]}, dimensions, 0.15f);
   immUnbindProgram();
 
   GPU_line_smooth(false);

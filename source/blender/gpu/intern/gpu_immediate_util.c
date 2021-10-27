@@ -391,12 +391,12 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
   imm_draw_box_checker_2d_ex(x1, y1, x2, y2, checker_primary, checker_secondary, checker_size);
 }
 
-void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3])
+void imm_draw_cube_fill_3d(uint pos, const float center[3], const float aspect[3])
 {
   float coords[ARRAY_SIZE(cube_coords)][3];
 
   for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
-    madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
   }
 
   immBegin(GPU_PRIM_TRIS, ARRAY_SIZE(cube_quad_index) * 3 * 2);
@@ -412,12 +412,12 @@ void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3])
   immEnd();
 }
 
-void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
+void imm_draw_cube_wire_3d(uint pos, const float center[3], const float aspect[3])
 {
   float coords[ARRAY_SIZE(cube_coords)][3];
 
   for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
-    madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
   }
 
   immBegin(GPU_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 2);
@@ -429,31 +429,31 @@ void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
 }
 
 void imm_draw_cube_corners_3d(uint pos,
-                              const float co[3],
+                              const float center[3],
                               const float aspect[3],
                               const float factor)
 {
   float coords[ARRAY_SIZE(cube_coords)][3];
 
   for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
-    madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
   }
 
   immBegin(GPU_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 4);
   for (int i = 0; i < ARRAY_SIZE(cube_line_index); i++) {
-    float vec[3], _co[3];
+    float vec[3], co[3];
     sub_v3_v3v3(vec, coords[cube_line_index[i][1]], coords[cube_line_index[i][0]]);
     mul_v3_fl(vec, factor);
 
-    copy_v3_v3(_co, coords[cube_line_index[i][0]]);
-    immVertex3fv(pos, _co);
-    add_v3_v3(_co, vec);
-    immVertex3fv(pos, _co);
+    copy_v3_v3(co, coords[cube_line_index[i][0]]);
+    immVertex3fv(pos, co);
+    add_v3_v3(co, vec);
+    immVertex3fv(pos, co);
 
-    copy_v3_v3(_co, coords[cube_line_index[i][1]]);
-    immVertex3fv(pos, _co);
-    sub_v3_v3(_co, vec);
-    immVertex3fv(pos, _co);
+    copy_v3_v3(co, coords[cube_line_index[i][1]]);
+    immVertex3fv(pos, co);
+    sub_v3_v3(co, vec);
+    immVertex3fv(pos, co);
   }
   immEnd();
 }
