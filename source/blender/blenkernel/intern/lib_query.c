@@ -83,48 +83,45 @@ bool BKE_lib_query_foreachid_iter_stop(LibraryForeachIDData *data)
   return (data->status & IDWALK_STOP) != 0;
 }
 
-bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag)
+void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag)
 {
-  if (!(data->status & IDWALK_STOP)) {
-    const int flag = data->flag;
-    ID *old_id = *id_pp;
-
-    /* Update the callback flags with the ones defined (or forbidden) in `data` by the generic
-     * caller code. */
-    cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
-
-    /* Update the callback flags with some extra information regarding overrides: all 'loopback',
-     * 'internal', 'embedded' etc. ID pointers are never overridable. */
-    if (cb_flag &
-        (IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
-      cb_flag |= IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE;
-    }
-
-    const int callback_return = data->callback(
-        &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
-                                            .bmain = data->bmain,
-                                            .id_owner = data->owner_id,
-                                            .id_self = data->self_id,
-                                            .id_pointer = id_pp,
-                                            .cb_flag = cb_flag});
-    if (flag & IDWALK_READONLY) {
-      BLI_assert(*(id_pp) == old_id);
-    }
-    if (old_id && (flag & IDWALK_RECURSE)) {
-      if (BLI_gset_add((data)->ids_handled, old_id)) {
-        if (!(callback_return & IDWALK_RET_STOP_RECURSION)) {
-          BLI_LINKSTACK_PUSH(data->ids_todo, old_id);
-        }
-      }
-    }
-    if (callback_return & IDWALK_RET_STOP_ITER) {
-      data->status |= IDWALK_STOP;
-      return false;
-    }
-    return true;
+  if (BKE_lib_query_foreachid_iter_stop(data)) {
+    return;
   }
 
-  return false;
+  const int flag = data->flag;
+  ID *old_id = *id_pp;
+
+  /* Update the callback flags with the ones defined (or forbidden) in `data` by the generic
+   * caller code. */
+  cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
+
+  /* Update the callback flags with some extra information regarding overrides: all 'loopback',
+   * 'internal', 'embedded' etc. ID pointers are never overridable. */
+  if (cb_flag & (IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+    cb_flag |= IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE;
+  }
+
+  const int callback_return = data->callback(
+      &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
+                                          .bmain = data->bmain,
+                                          .id_owner = data->owner_id,
+                                          .id_self = data->self_id,
+                                          .id_pointer = id_pp,
+                                          .cb_flag = cb_flag});
+  if (flag & IDWALK_READONLY) {
+    BLI_assert(*(id_pp) == old_id);
+  }
+  if (old_id && (flag & IDWALK_RECURSE)) {
+    if (BLI_gset_add((data)->ids_handled, old_id)) {
+      if (!(callback_return & IDWALK_RET_STOP_RECURSION)) {
+        BLI_LINKSTACK_PUSH(data->ids_todo, old_id);
+      }
+    }
+  }
+  if (callback_return & IDWALK_RET_STOP_ITER) {
+    data->status |= IDWALK_STOP;
+  }
 }
 
 int BKE_lib_query_foreachid_process_flags_get(LibraryForeachIDData *data)
@@ -165,19 +162,24 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, cb_flag);
 }
 
-bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
+/** Process embedded ID pointers (root nodetrees, master collections, ...).
+ *
+ * Those require specific care, since they are technically sub-data of their owner, yet in some
+ * cases they still behave as regular IDs. */
+void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships. This call shall be absolutely read-only. */
   ID *id = *id_pp;
   const int flag = data->flag;
 
-  if (!BKE_lib_query_foreachid_process(data, id_pp, IDWALK_CB_EMBEDDED)) {
-    return false;
+  BKE_lib_query_foreachid_process(data, id_pp, IDWALK_CB_EMBEDDED);
+  if (BKE_lib_query_foreachid_iter_stop(data)) {
+    return;
   }
   BLI_assert(id == *id_pp);
 
   if (id == NULL) {
-    return true;
+    return;
   }
 
   if (flag & IDWALK_IGNORE_EMBEDDED_ID) {
@@ -193,11 +195,12 @@ bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
     }
   }
   else {
-    library_foreach_ID_link(
-        data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data);
+    if (!library_foreach_ID_link(
+            data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data)) {
+      data->status |= IDWALK_STOP;
+      return;
+    }
   }
-
-  return true;
 }
 
 static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)

@@ -144,7 +144,7 @@ enum {
 typedef struct LibraryForeachIDData LibraryForeachIDData;
 
 bool BKE_lib_query_foreachid_iter_stop(struct LibraryForeachIDData *data);
-bool BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
+void BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
                                      struct ID **id_pp,
                                      int cb_flag);
 int BKE_lib_query_foreachid_process_flags_get(struct LibraryForeachIDData *data);
@@ -181,7 +181,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
   } \
   ((void)0)
 
-bool BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
+void BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
 void BKE_lib_query_idpropertiesForeachIDLink_callback(struct IDProperty *id_prop, void *user_data);
 
 /* Loop over all of the ID's this datablock links to. */
