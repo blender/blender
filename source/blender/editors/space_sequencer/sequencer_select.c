@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -635,11 +637,51 @@ static void sequencer_select_linked_handle(const bContext *C,
   }
 }
 
-/* Check if click happened on image which belongs to strip. If multiple strips are found, loop
- * through them in order. */
-static Sequence *seq_select_seq_from_preview(const bContext *C,
-                                             const int mval[2],
-                                             const bool center)
+/** Collect sequencer that are candidates for being selected. */
+struct SeqSelect_Link {
+  struct SeqSelect_Link *next, *prev;
+  Sequence *seq;
+  /** Only use for center selection. */
+  float center_dist_sq;
+};
+
+static int seq_sort_for_depth_select(const void *a, const void *b)
+{
+  const struct SeqSelect_Link *slink_a = a;
+  const struct SeqSelect_Link *slink_b = b;
+
+  /* Exactly overlapping strips, sort by machine (so the top-most is first). */
+  if (slink_a->seq->machine < slink_b->seq->machine) {
+    return 1;
+  }
+  if (slink_a->seq->machine > slink_b->seq->machine) {
+    return -1;
+  }
+  return 0;
+}
+
+static int seq_sort_for_center_select(const void *a, const void *b)
+{
+  const struct SeqSelect_Link *slink_a = a;
+  const struct SeqSelect_Link *slink_b = b;
+  if (slink_a->center_dist_sq > slink_b->center_dist_sq) {
+    return 1;
+  }
+  if (slink_a->center_dist_sq < slink_b->center_dist_sq) {
+    return -1;
+  }
+
+  /* Exactly overlapping strips, use depth. */
+  return seq_sort_for_depth_select(a, b);
+}
+
+/**
+ * Check if click happened on image which belongs to strip.
+ * If multiple strips are found, loop through them in order
+ * (depth (top-most first) or closest to mouse when `center` is true).
+ */
+static Sequence *seq_select_seq_from_preview(
+    const bContext *C, const int mval[2], const bool toggle, const bool extend, const bool center)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -650,70 +692,82 @@ static Sequence *seq_select_seq_from_preview(const bContext *C,
   float mouseco_view[2];
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseco_view[0], &mouseco_view[1]);
 
+  /* Always update the coordinates (check extended after). */
+  const bool use_cycle = (!WM_cursor_test_motion_and_update(mval) || extend || toggle);
+
   SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, sseq->chanshown);
 
   /* Allow strips this far from the closest center to be included.
    * This allows cycling over center points which are near enough
    * to overlapping from the users perspective. */
-  const float center_threshold_cycle_px = 5.0f;
-  const float center_dist_sq_eps = square_f(center_threshold_cycle_px * U.pixelsize);
+  const float center_dist_sq_max = square_f(75.0f * U.pixelsize);
   const float center_scale_px[2] = {
       UI_view2d_scale_get_x(v2d),
       UI_view2d_scale_get_y(v2d),
   };
-  float center_co_best[2] = {0.0f};
 
-  if (center) {
-    Sequence *seq_best = NULL;
-    float center_dist_sq_best = 0.0f;
-
-    Sequence *seq;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
-      float co[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, co);
-      const float center_dist_sq_test = len_squared_v2v2(co, mouseco_view);
-      if ((seq_best == NULL) || (center_dist_sq_test < center_dist_sq_best)) {
-        seq_best = seq;
-        center_dist_sq_best = center_dist_sq_test;
-        copy_v2_v2(center_co_best, co);
-      }
-    }
-  }
-
+  struct SeqSelect_Link *slink_active = NULL;
+  Sequence *seq_active = SEQ_select_active_get(scene);
   ListBase strips_ordered = {NULL};
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     bool isect = false;
+    float center_dist_sq_test = 0.0f;
     if (center) {
       /* Detect overlapping center points (scaled by the zoom level). */
       float co[2];
       SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, co);
-      sub_v2_v2(co, center_co_best);
+      sub_v2_v2(co, mouseco_view);
       mul_v2_v2(co, center_scale_px);
-      isect = len_squared_v2(co) <= center_dist_sq_eps;
+      center_dist_sq_test = len_squared_v2(co);
+      isect = center_dist_sq_test <= center_dist_sq_max;
+      if (isect) {
+        /* Use an active strip penalty for "center" selection when cycle is enabled. */
+        if (use_cycle && (seq == seq_active) && (seq_active->flag & SELECT)) {
+          center_dist_sq_test = square_f(sqrtf(center_dist_sq_test) + (3.0f * U.pixelsize));
+        }
+      }
     }
     else {
       isect = seq_point_image_isect(scene, seq, mouseco_view);
     }
 
     if (isect) {
-      BLI_remlink(seqbase, seq);
-      BLI_addtail(&strips_ordered, seq);
+      struct SeqSelect_Link *slink = MEM_callocN(sizeof(*slink), __func__);
+      slink->seq = seq;
+      slink->center_dist_sq = center_dist_sq_test;
+      BLI_addtail(&strips_ordered, slink);
+
+      if (seq == seq_active) {
+        slink_active = slink;
+      }
     }
   }
   SEQ_collection_free(strips);
-  SEQ_sort(&strips_ordered);
 
-  Sequence *seq_active = SEQ_select_active_get(scene);
-  Sequence *seq_select = strips_ordered.first;
-  LISTBASE_FOREACH (Sequence *, seq_iter, &strips_ordered) {
-    if (seq_iter == seq_active && seq_iter->next != NULL) {
-      seq_select = seq_iter->next;
-      break;
+  BLI_listbase_sort(&strips_ordered,
+                    center ? seq_sort_for_center_select : seq_sort_for_depth_select);
+
+  struct SeqSelect_Link *slink_select = strips_ordered.first;
+  Sequence *seq_select = NULL;
+  if (slink_select != NULL) {
+    /* Only use special behavior for the active strip when it's selected. */
+    if ((center == false) && slink_active && (seq_active->flag & SELECT)) {
+      if (use_cycle) {
+        if (slink_active->next) {
+          slink_select = slink_active->next;
+        }
+      }
+      else {
+        /* Match object selection behavior: keep the current active item unless cycle is enabled.
+         * Clicking again in the same location will cycle away from the active object. */
+        slink_select = slink_active;
+      }
     }
+    seq_select = slink_select->seq;
   }
 
-  BLI_movelisttolist(seqbase, &strips_ordered);
+  BLI_freelistN(&strips_ordered);
 
   return seq_select;
 }
@@ -812,7 +866,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   int handle_clicked = SEQ_SIDE_NONE;
   Sequence *seq = NULL;
   if (region->regiontype == RGN_TYPE_PREVIEW) {
-    seq = seq_select_seq_from_preview(C, mval, center);
+    seq = seq_select_seq_from_preview(C, mval, toggle, extend, center);
   }
   else {
     seq = find_nearest_seq(scene, v2d, &handle_clicked, mval);
