@@ -87,8 +87,6 @@ def curve_node_items(context):
     space = context.space_data
     if not space:
         return
-    if not space.edit_tree:
-        return
 
     if geometry_nodes_legacy_poll(context):
         yield NodeItem("GeometryNodeLegacyCurveEndpoints")
@@ -137,8 +135,6 @@ def mesh_node_items(context):
     space = context.space_data
     if not space:
         return
-    if not space.edit_tree:
-        return
 
     if geometry_nodes_legacy_poll(context):
         yield NodeItem("GeometryNodeLegacyEdgeSplit", poll=geometry_nodes_legacy_poll)
@@ -163,8 +159,6 @@ def geometry_node_items(context):
         return
     space = context.space_data
     if not space:
-        return
-    if not space.edit_tree:
         return
 
     if geometry_nodes_legacy_poll(context):
@@ -191,8 +185,6 @@ def geometry_input_node_items(context):
         return
     space = context.space_data
     if not space:
-        return
-    if not space.edit_tree:
         return
 
     if geometry_nodes_legacy_poll(context):
@@ -223,8 +215,6 @@ def geometry_material_node_items(context):
     space = context.space_data
     if not space:
         return
-    if not space.edit_tree:
-        return
 
     if geometry_nodes_legacy_poll(context):
         yield NodeItem("GeometryNodeLegacyMaterialAssign")
@@ -245,8 +235,6 @@ def point_node_items(context):
         return
     space = context.space_data
     if not space:
-        return
-    if not space.edit_tree:
         return
 
     if geometry_nodes_legacy_poll(context):
@@ -273,14 +261,15 @@ def node_group_items(context):
     space = context.space_data
     if not space:
         return
-    ntree = space.edit_tree
-    if not ntree:
-        return
 
     yield NodeItemCustom(draw=group_tools_draw)
 
     yield NodeItem("NodeGroupInput", poll=group_input_output_item_poll)
     yield NodeItem("NodeGroupOutput", poll=group_input_output_item_poll)
+
+    ntree = space.edit_tree
+    if not ntree:
+        return
 
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
