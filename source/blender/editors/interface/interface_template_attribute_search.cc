@@ -80,9 +80,10 @@ void attribute_search_add_items(StringRefNull str,
         break;
       }
     }
-    if (!contained && is_output) {
+    if (!contained) {
       dummy_info.name = str;
-      UI_search_item_add(seach_items, str.c_str(), &dummy_info, ICON_ADD, 0, 0);
+      UI_search_item_add(
+          seach_items, str.c_str(), &dummy_info, is_output ? ICON_ADD : ICON_NONE, 0, 0);
     }
   }
 
