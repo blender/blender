@@ -304,7 +304,6 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const uchar color_line[4],
                                      const uchar color_point[4],
                                      const short snap_elem_type);
-void ED_view3d_cursor_snap_exit(void);
 
 /* view3d_iterators.c */
 
