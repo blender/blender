@@ -535,7 +535,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
     }
     /* Also realize instances for the profile input of the curve to mesh node. */
     if (node->type == GEO_NODE_CURVE_TO_MESH) {
-      bNodeSocket *profile_socket = node->inputs.last;
+      bNodeSocket *profile_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
       add_realize_instances_before_socket(ntree, node, profile_socket);
     }
   }
