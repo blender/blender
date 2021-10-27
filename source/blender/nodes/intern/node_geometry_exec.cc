@@ -52,13 +52,14 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
 
   if (only_realized_data) {
     if (geometry_set.has_instances()) {
-      this->error_message_add(NodeWarningType::Info, "Instances in input geometry are ignored");
+      this->error_message_add(NodeWarningType::Info,
+                              TIP_("Instances in input geometry are ignored"));
     }
   }
   if (only_instances) {
     if (geometry_set.has_realized_data()) {
       this->error_message_add(NodeWarningType::Info,
-                              "Realized data in input geometry are ignored");
+                              TIP_("Realized data in input geometry is ignored"));
     }
   }
   if (supported_types.is_empty()) {
