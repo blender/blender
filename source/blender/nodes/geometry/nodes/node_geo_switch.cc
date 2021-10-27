@@ -60,6 +60,8 @@ static void geo_node_switch_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Texture>("True", "True_009");
   b.add_input<decl::Material>("False", "False_010");
   b.add_input<decl::Material>("True", "True_010");
+  b.add_input<decl::Image>("False", "False_011");
+  b.add_input<decl::Image>("True", "True_011");
 
   b.add_output<decl::Float>("Output").dependent_field();
   b.add_output<decl::Int>("Output", "Output_001").dependent_field();
@@ -72,6 +74,7 @@ static void geo_node_switch_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Collection>("Output", "Output_008");
   b.add_output<decl::Texture>("Output", "Output_009");
   b.add_output<decl::Material>("Output", "Output_010");
+  b.add_output<decl::Image>("Output", "Output_011");
 }
 
 static void geo_node_switch_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -272,6 +275,10 @@ static void geo_node_switch_exec(GeoNodeExecParams params)
     }
     case SOCK_MATERIAL: {
       switch_no_fields<Material *>(params, "_010");
+      break;
+    }
+    case SOCK_IMAGE: {
+      switch_no_fields<Image *>(params, "_011");
       break;
     }
     default:
