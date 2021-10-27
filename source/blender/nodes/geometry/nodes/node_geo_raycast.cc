@@ -42,7 +42,7 @@ static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().supports_field();
 
   b.add_input<decl::Vector>("Source Position").implicit_field();
-  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, 1.0f}).supports_field();
+  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
   b.add_input<decl::Float>("Ray Length")
       .default_value(100.0f)
       .min(0.0f)
