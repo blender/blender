@@ -52,7 +52,9 @@ class FILEBROWSER_HT_header(Header):
             icon_only=True,
         )
 
-        layout.prop(params, "filter_search", text="", icon='VIEWZOOM')
+        sub = layout.row()
+        sub.ui_units_x = 8
+        sub.prop(params, "filter_search", text="", icon='VIEWZOOM')
 
         layout.popover(
             panel="ASSETBROWSER_PT_filter",
