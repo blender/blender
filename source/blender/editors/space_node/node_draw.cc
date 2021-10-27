@@ -1812,8 +1812,7 @@ static void node_draw_basis(const bContext *C,
       UI_GetThemeColor4fv(TH_WIRE, color_underline);
     }
     else {
-      UI_GetThemeColorBlendShade4fv(TH_BACK, color_id, 0.4f, -30, color_underline);
-      color_underline[3] = 1.0f;
+      UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.2f, color_underline);
     }
 
     const rctf rect = {
