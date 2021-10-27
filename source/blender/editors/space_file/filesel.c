@@ -483,6 +483,18 @@ struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
   return filelist_file_get_id(file);
 }
 
+void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID catalog_id)
+{
+  if (!ED_fileselect_is_asset_browser(sfile)) {
+    return;
+  }
+
+  FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params->catalog_id = catalog_id;
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+}
+
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
 {
   ID *asset_id = (ID *)custom_data;

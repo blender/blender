@@ -427,7 +427,12 @@ static int asset_catalog_new_exec(bContext *C, wmOperator *op)
   struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
-  ED_asset_catalog_add(asset_library, "Catalog", parent_path);
+  blender::bke::AssetCatalog *new_catalog = ED_asset_catalog_add(
+      asset_library, "Catalog", parent_path);
+
+  if (sfile) {
+    ED_fileselect_activate_asset_catalog(sfile, new_catalog->catalog_id);
+  }
 
   MEM_freeN(parent_path);
 
