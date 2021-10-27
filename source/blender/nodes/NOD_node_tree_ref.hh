@@ -287,7 +287,17 @@ class NodeTreeRef : NonCopyable, NonMovable {
     RightToLeft,
   };
 
-  Vector<const NodeRef *> toposort(ToposortDirection direction) const;
+  struct ToposortResult {
+    Vector<const NodeRef *> sorted_nodes;
+    /**
+     * There can't be a correct topologycal sort of the nodes when there is a cycle. The nodes will
+     * still be sorted to some degree. The caller has to decide whether it can handle non-perfect
+     * sorts or not.
+     */
+    bool has_cycle = false;
+  };
+
+  ToposortResult toposort(ToposortDirection direction) const;
 
   bNodeTree *btree() const;
   StringRefNull name() const;

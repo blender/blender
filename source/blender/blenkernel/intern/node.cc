@@ -4717,10 +4717,10 @@ static OutputFieldDependency find_group_output_dependencies(
 static void propagate_data_requirements_from_right_to_left(
     const NodeTreeRef &tree, const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
-  const Vector<const NodeRef *> sorted_nodes = tree.toposort(
+  const NodeTreeRef::ToposortResult toposort_result = tree.toposort(
       NodeTreeRef::ToposortDirection::RightToLeft);
 
-  for (const NodeRef *node : sorted_nodes) {
+  for (const NodeRef *node : toposort_result.sorted_nodes) {
     const FieldInferencingInterface inferencing_interface = get_node_field_inferencing_interface(
         *node);
 
@@ -4829,10 +4829,10 @@ static void determine_group_input_states(
 static void propagate_field_status_from_left_to_right(
     const NodeTreeRef &tree, const MutableSpan<SocketFieldState> field_state_by_socket_id)
 {
-  Vector<const NodeRef *> sorted_nodes = tree.toposort(
+  const NodeTreeRef::ToposortResult toposort_result = tree.toposort(
       NodeTreeRef::ToposortDirection::LeftToRight);
 
-  for (const NodeRef *node : sorted_nodes) {
+  for (const NodeRef *node : toposort_result.sorted_nodes) {
     if (node->is_group_input_node()) {
       continue;
     }
