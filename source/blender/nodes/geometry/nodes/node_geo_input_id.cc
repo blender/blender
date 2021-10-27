@@ -25,7 +25,7 @@ static void geo_node_input_id_declare(NodeDeclarationBuilder &b)
 
 static void geo_node_input_id_exec(GeoNodeExecParams params)
 {
-  Field<int> position_field{AttributeFieldInput::Create<int>("id")};
+  Field<int> position_field{std::make_shared<bke::IDAttributeFieldInput>()};
   params.set_output("ID", std::move(position_field));
 }
 
