@@ -2443,39 +2443,6 @@ static void ui_apply_but(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Button Drop Event
- * \{ */
-
-/* only call if event type is EVT_DROP */
-static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleButtonData *data)
-{
-  ListBase *drags = event->customdata; /* drop event type has listbase customdata by default */
-
-  LISTBASE_FOREACH (wmDrag *, wmd, drags) {
-    /* TODO: asset dropping. */
-    if (wmd->type == WM_DRAG_ID) {
-      /* align these types with UI_but_active_drop_name */
-      if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-        ID *id = WM_drag_get_local_ID(wmd, 0);
-
-        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-
-        ui_textedit_string_set(but, data, id->name + 2);
-
-        if (ELEM(but->type, UI_BTYPE_SEARCH_MENU)) {
-          but->changed = true;
-          ui_searchbox_update(C, data->searchbox, but, true);
-        }
-
-        button_activate_state(C, but, BUTTON_STATE_EXIT);
-      }
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Button Copy & Paste
  * \{ */
 
@@ -2672,15 +2639,9 @@ static void ui_but_copy_text(uiBut *but, char *output, int output_len_max)
 
 static void ui_but_paste_text(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
 {
-  button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-  ui_textedit_string_set(but, but->active, buf_paste);
-
-  if (but->type == UI_BTYPE_SEARCH_MENU) {
-    but->changed = true;
-    ui_searchbox_update(C, data->searchbox, but, true);
-  }
-
-  button_activate_state(C, but, BUTTON_STATE_EXIT);
+  BLI_assert(but->active == data);
+  UNUSED_VARS_NDEBUG(data);
+  ui_but_set_string_interactive(C, but, buf_paste);
 }
 
 static void ui_but_copy_colorband(uiBut *but)
@@ -3023,6 +2984,24 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
 /* -------------------------------------------------------------------- */
 /** \name Button Text Selection/Editing
  * \{ */
+
+/**
+ * Use handling code to set a string for the button. Handles the case where the string is set for a
+ * search button while the search menu is open, so the results are updated accordingly.
+ * This is basically the same as pasting the string into the button.
+ */
+void ui_but_set_string_interactive(bContext *C, uiBut *but, const char *value)
+{
+  button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+  ui_textedit_string_set(but, but->active, value);
+
+  if (but->type == UI_BTYPE_SEARCH_MENU && but->active) {
+    but->changed = true;
+    ui_searchbox_update(C, but->active->searchbox, but, true);
+  }
+
+  button_activate_state(C, but, BUTTON_STATE_EXIT);
+}
 
 void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
 {
@@ -7949,7 +7928,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   /* Only hard-coded stuff here, button interactions with configurable
    * keymaps are handled using operators (see #ED_keymap_ui). */
 
-  if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
+  if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* handle copy and paste */
     bool is_press_ctrl_but_no_shift = event->val == KM_PRESS && IS_EVENT_MOD(event, ctrl, oskey) &&
@@ -7996,11 +7975,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     if (do_paste) {
       ui_but_paste(C, but, data, event->alt);
       return WM_UI_HANDLER_BREAK;
-    }
-
-    /* handle drop */
-    if (event->type == EVT_DROP) {
-      ui_but_drop(C, event, but, data);
     }
 
     if ((data->state == BUTTON_STATE_HIGHLIGHT) &&
@@ -11716,20 +11690,25 @@ void UI_screen_free_active_but(const bContext *C, bScreen *screen)
   }
 }
 
-/* returns true if highlighted button allows drop of names */
-/* called in region context */
-bool UI_but_active_drop_name(bContext *C)
+uiBut *UI_but_active_drop_name_button(const bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   uiBut *but = ui_region_find_active_but(region);
 
   if (but) {
     if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-      return true;
+      return but;
     }
   }
 
-  return false;
+  return NULL;
+}
+
+/* returns true if highlighted button allows drop of names */
+/* called in region context */
+bool UI_but_active_drop_name(const bContext *C)
+{
+  return UI_but_active_drop_name_button(C) != NULL;
 }
 
 bool UI_but_active_drop_color(bContext *C)

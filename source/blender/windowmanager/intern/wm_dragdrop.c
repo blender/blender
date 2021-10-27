@@ -821,10 +821,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
 
   const char *tooltip = NULL;
   bool free_tooltip = false;
-  if (UI_but_active_drop_name(C)) {
-    tooltip = IFACE_("Paste name");
-  }
-  else if (drag->active_dropbox) {
+  if (drag->active_dropbox) {
     tooltip = dropbox_tooltip(C, drag, xy, drag->active_dropbox);
     free_tooltip = true;
   }
@@ -907,7 +904,6 @@ void wm_drags_draw(bContext *C, wmWindow *win)
     xy[1] = win->eventstate->xy[1];
   }
 
-  /* Set a region. It is used in the `UI_but_active_drop_name`. */
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, UNPACK2(xy));
   ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, UNPACK2(xy));

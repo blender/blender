@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 
 #include "UI_interface.h"
@@ -59,6 +61,21 @@ static char *ui_tree_view_drop_tooltip(bContext *C,
   return UI_tree_view_item_drop_tooltip(hovered_tree_item, drag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+{
+  return UI_but_active_drop_name(C) && (drag->type == WM_DRAG_ID);
+}
+
+static void ui_drop_name_copy(wmDrag *drag, wmDropBox *drop)
+{
+  const ID *id = WM_drag_get_local_ID(drag, 0);
+  RNA_string_set(drop->ptr, "string", id->name + 2);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ED_dropboxes_ui()
 {
   ListBase *lb = WM_dropboxmap_find("User Interface", SPACE_EMPTY, 0);
@@ -69,4 +86,10 @@ void ED_dropboxes_ui()
                  nullptr,
                  nullptr,
                  ui_tree_view_drop_tooltip);
+  WM_dropbox_add(lb,
+                 "UI_OT_drop_name",
+                 ui_drop_name_poll,
+                 ui_drop_name_copy,
+                 WM_drag_free_imported_drag_ID,
+                 nullptr);
 }
