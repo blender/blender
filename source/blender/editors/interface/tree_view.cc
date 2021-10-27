@@ -169,6 +169,21 @@ void AbstractTreeView::change_state_delayed()
   foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
 }
 
+void AbstractTreeView::unveil_new_items_in_focused_parent() const
+{
+  foreach_item([](AbstractTreeViewItem &item) {
+    if (!item.is_new_ || !item.parent_) {
+      return;
+    }
+    if (item.parent_->is_active() ||
+        /* Tree-row button is not created if a parent is collapsed. It's required for the
+         * hover-check. */
+        (item.parent_->tree_row_but_ && item.parent_->is_hovered())) {
+      item.parent_->set_collapsed(false);
+    }
+  });
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
@@ -393,6 +408,7 @@ void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
   is_open_ = old.is_open_;
   is_active_ = old.is_active_;
   is_renaming_ = old.is_renaming_;
+  is_new_ = false;
 }
 
 bool AbstractTreeViewItem::matches(const AbstractTreeViewItem &other) const
@@ -569,6 +585,7 @@ void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view)
   tree_view.update_from_old(block_);
   tree_view.change_state_delayed();
   tree_view.build_layout_from_tree(TreeViewLayoutBuilder(block_));
+  tree_view.unveil_new_items_in_focused_parent();
 }
 
 /* ---------------------------------------------------------------------- */

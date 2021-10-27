@@ -196,6 +196,15 @@ class AbstractTreeView : public TreeViewItemContainer {
    * the actual state changes are done in a delayed manner through this function.
    */
   void change_state_delayed();
+  /**
+   * Typically when adding a new child from the UI, the parent should be expanded to make the new
+   * item visible. While this isn't totally bullet proof (items may be expanded where the child was
+   * added dynamically, not through user action), it should give the wanted behavior as needed in
+   * practice.
+   * "Focused" here means active or hovered, as a way to tell if the new item came from user
+   * interaction (on the row directly or through the context menu).
+   */
+  void unveil_new_items_in_focused_parent() const;
   void build_layout_from_tree(const TreeViewLayoutBuilder &builder);
 };
 
@@ -223,6 +232,8 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   bool is_open_ = false;
   bool is_active_ = false;
   bool is_renaming_ = false;
+  /* Could the item be identified from a previous redraw? */
+  bool is_new_ = true;
 
   IsActiveFn is_active_fn_;
 
