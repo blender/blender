@@ -46,14 +46,8 @@ static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
                                                 PointerRNA *ptr)
 {
-#ifdef WITH_OPENSUBDIV
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
-#else
-  UNUSED_VARS(layout, ptr);
-#endif
+  uiItemR(layout, ptr, "uv_smooth", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", 0, "", ICON_NONE);
 }
 
 static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *node)
