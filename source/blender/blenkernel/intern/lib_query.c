@@ -146,7 +146,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData 
   return cb_flag_backup;
 }
 
-static void library_foreach_ID_link(Main *bmain,
+static bool library_foreach_ID_link(Main *bmain,
                                     ID *id_owner,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
@@ -200,7 +200,16 @@ bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
   return true;
 }
 
-static void library_foreach_ID_link(Main *bmain,
+static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)
+{
+  if (data->ids_handled != NULL) {
+    BLI_gset_free(data->ids_handled, NULL);
+    BLI_LINKSTACK_FREE(data->ids_todo);
+  }
+}
+
+/** \return false in case iteration over ID pointers must be stopped, true otherwise. */
+static bool library_foreach_ID_link(Main *bmain,
                                     ID *id_owner,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
@@ -235,10 +244,26 @@ static void library_foreach_ID_link(Main *bmain,
   data.user_data = user_data;
 
 #define CALLBACK_INVOKE_ID(check_id, cb_flag) \
-  BKE_LIB_FOREACHID_PROCESS_ID(&data, check_id, cb_flag)
+  { \
+    CHECK_TYPE_ANY((check_id), ID *, void *); \
+    BKE_lib_query_foreachid_process(&data, (ID **)&(check_id), (cb_flag)); \
+    if (BKE_lib_query_foreachid_iter_stop(&data)) { \
+      library_foreach_ID_data_cleanup(&data); \
+      return false; \
+    } \
+  } \
+  ((void)0)
 
 #define CALLBACK_INVOKE(check_id_super, cb_flag) \
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(&data, check_id_super, cb_flag)
+  { \
+    CHECK_TYPE(&((check_id_super)->id), ID *); \
+    BKE_lib_query_foreachid_process(&data, (ID **)&(check_id_super), (cb_flag)); \
+    if (BKE_lib_query_foreachid_iter_stop(&data)) { \
+      library_foreach_ID_data_cleanup(&data); \
+      return false; \
+    } \
+  } \
+  ((void)0)
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;
@@ -280,6 +305,10 @@ static void library_foreach_ID_link(Main *bmain,
            to_id_entry = to_id_entry->next) {
         BKE_lib_query_foreachid_process(
             &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
+        if (BKE_lib_query_foreachid_iter_stop(&data)) {
+          library_foreach_ID_data_cleanup(&data);
+          return false;
+        }
       }
       continue;
     }
@@ -303,26 +332,33 @@ static void library_foreach_ID_link(Main *bmain,
                          IDP_TYPE_FILTER_ID,
                          BKE_lib_query_idpropertiesForeachIDLink_callback,
                          &data);
+    if (BKE_lib_query_foreachid_iter_stop(&data)) {
+      library_foreach_ID_data_cleanup(&data);
+      return false;
+    }
 
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt) {
       BKE_animdata_foreach_id(adt, &data);
+      if (BKE_lib_query_foreachid_iter_stop(&data)) {
+        library_foreach_ID_data_cleanup(&data);
+        return false;
+      }
     }
 
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
     if (id_type->foreach_id != NULL) {
       id_type->foreach_id(id, &data);
 
-      if (data.status & IDWALK_STOP) {
-        break;
+      if (BKE_lib_query_foreachid_iter_stop(&data)) {
+        library_foreach_ID_data_cleanup(&data);
+        return false;
       }
     }
   }
 
-  if (data.ids_handled) {
-    BLI_gset_free(data.ids_handled, NULL);
-    BLI_LINKSTACK_FREE(data.ids_todo);
-  }
+  library_foreach_ID_data_cleanup(&data);
+  return true;
 
 #undef CALLBACK_INVOKE_ID
 #undef CALLBACK_INVOKE
