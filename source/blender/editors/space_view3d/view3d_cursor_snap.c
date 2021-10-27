@@ -883,16 +883,16 @@ static void v3d_cursor_snap_activate(void)
 static void v3d_cursor_snap_free(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (data_intern->handle && G_MAIN->wm.first) {
-    WM_paint_cursor_end(data_intern->handle);
+  if (data_intern->handle) {
+    if (G_MAIN->wm.first) {
+      WM_paint_cursor_end(data_intern->handle);
+    }
     data_intern->handle = NULL;
   }
   if (data_intern->snap_context_v3d) {
     ED_transform_snap_object_context_destroy(data_intern->snap_context_v3d);
     data_intern->snap_context_v3d = NULL;
   }
-
-  BLI_freelistN(&data_intern->state_intern);
 }
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
@@ -973,9 +973,4 @@ struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
   SnapCursorDataIntern *data_intern = &g_data_intern;
   v3d_cursor_snap_context_ensure(scene);
   return data_intern->snap_context_v3d;
-}
-
-void ED_view3d_cursor_snap_exit(void)
-{
-  v3d_cursor_snap_free();
 }
