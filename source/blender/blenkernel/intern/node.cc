@@ -4679,7 +4679,7 @@ static OutputFieldDependency find_group_output_dependencies(
   while (!sockets_to_check.is_empty()) {
     const InputSocketRef *input_socket = sockets_to_check.pop();
 
-    for (const OutputSocketRef *origin_socket : input_socket->logically_linked_sockets()) {
+    for (const OutputSocketRef *origin_socket : input_socket->directly_linked_sockets()) {
       const NodeRef &origin_node = origin_socket->node();
       const SocketFieldState &origin_state = field_state_by_socket_id[origin_socket->id()];
 
@@ -4848,14 +4848,14 @@ static void propagate_field_status_from_left_to_right(
         continue;
       }
       state.is_single = true;
-      if (input_socket->logically_linked_sockets().is_empty()) {
+      if (input_socket->directly_linked_sockets().is_empty()) {
         if (inferencing_interface.inputs[input_socket->index()] ==
             InputSocketFieldType::Implicit) {
           state.is_single = false;
         }
       }
       else {
-        for (const OutputSocketRef *origin_socket : input_socket->logically_linked_sockets()) {
+        for (const OutputSocketRef *origin_socket : input_socket->directly_linked_sockets()) {
           if (!field_state_by_socket_id[origin_socket->id()].is_single) {
             state.is_single = false;
             break;
