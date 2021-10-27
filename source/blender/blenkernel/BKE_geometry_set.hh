@@ -776,8 +776,6 @@ class IDAttributeFieldInput : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  static fn::Field<int> Create();
-
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
                                         IndexMask mask,
                                         ResourceScope &scope) const override;
