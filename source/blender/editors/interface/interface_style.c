@@ -400,6 +400,8 @@ int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
   int width = UI_fontstyle_string_width(fs, str);
 
   if (aspect != 1.0f) {
+    /* While in most cases rounding up isn't important, it can make a difference
+     * with small fonts (3px or less), zooming out in the node-editor for e.g. */
     width = (int)ceilf(width * aspect);
   }
   return width;

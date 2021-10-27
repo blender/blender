@@ -138,7 +138,14 @@ typedef struct wmWindowManager {
   ID id;
 
   /** Separate active from drawable. */
-  struct wmWindow *windrawable, *winactive;
+  struct wmWindow *windrawable;
+  /**
+   * \note `CTX_wm_window(C)` is usually preferred.
+   * Avoid relying on this where possible as this may become NULL during when handling
+   * events that close or replace windows (opening a file for e.g.).
+   * While this happens rarely in practice, it can cause difficult to reproduce bugs.
+   */
+  struct wmWindow *winactive;
   ListBase windows;
 
   /** Set on file read. */
