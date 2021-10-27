@@ -680,6 +680,7 @@ extern bool ui_but_string_eval_number(struct bContext *C,
 extern int ui_but_string_get_max_length(uiBut *but);
 /* Clear & exit the active button's string. */
 extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) ATTR_NONNULL();
+extern void ui_but_set_string_interactive(struct bContext *C, uiBut *but, const char *value);
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 
 void ui_def_but_icon(uiBut *but, const int icon, const int flag);
