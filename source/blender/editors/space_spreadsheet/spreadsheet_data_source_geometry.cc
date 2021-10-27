@@ -176,14 +176,16 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                            r_cell_value.value_float = value;
                                          });
     case CD_PROP_INT32:
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_INT32,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           int value;
-                                           varray->get(index, &value);
-                                           r_cell_value.value_int = value;
-                                         });
+      return column_values_from_function(
+          SPREADSHEET_VALUE_TYPE_INT32,
+          column_id.name,
+          domain_size,
+          [varray](int index, CellValue &r_cell_value) {
+            int value;
+            varray->get(index, &value);
+            r_cell_value.value_int = value;
+          },
+          STREQ(column_id.name, "id") ? 5.5f : 0.0f);
     case CD_PROP_BOOL:
       return column_values_from_function(SPREADSHEET_VALUE_TYPE_BOOL,
                                          column_id.name,
