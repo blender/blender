@@ -2080,17 +2080,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 40)) {
     /* Update the `idnames` for renamed geometry and function nodes. */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type != NTREE_GEOMETRY) {
@@ -2100,7 +2090,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       version_geometry_nodes_set_position_node_offset(ntree);
       version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
     }
-    /* Keep this block, even when empty. */
 
     /* Add storage to viewer node. */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
@@ -2153,5 +2142,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         version_node_socket_name(ntree, GEO_NODE_SET_POINT_RADIUS, "Geometry", "Points");
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
