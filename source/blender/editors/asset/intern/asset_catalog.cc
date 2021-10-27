@@ -121,6 +121,33 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
+void ED_asset_catalog_move(::AssetLibrary *library,
+                           const CatalogID src_catalog_id,
+                           const CatalogID dst_parent_catalog_id)
+{
+  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
+  if (!catalog_service) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  AssetCatalog *src_catalog = catalog_service->find_catalog(src_catalog_id);
+  AssetCatalog *dst_catalog = catalog_service->find_catalog(dst_parent_catalog_id);
+
+  const AssetCatalogPath new_path = dst_catalog->path / StringRef(src_catalog->path.name());
+  const AssetCatalogPath clean_new_path = new_path.cleanup();
+
+  if (new_path == src_catalog->path || clean_new_path == src_catalog->path) {
+    /* Nothing changed, so don't bother renaming for nothing. */
+    return;
+  }
+
+  catalog_service->undo_push();
+  catalog_service->tag_has_unsaved_changes(src_catalog);
+  catalog_service->update_catalog_path(src_catalog_id, clean_new_path);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+}
+
 void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *bmain)
 {
   bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);

@@ -770,6 +770,8 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
                                    struct wmDrag *drag,
                                    struct wmDropBox *drop);
 
+struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *drag);
+
 void WM_drag_add_asset_list_item(wmDrag *drag,
                                  const struct bContext *C,
                                  const struct AssetLibraryReference *asset_library_ref,

@@ -181,6 +181,7 @@ wmDrag *WM_event_start_drag(
       }
       break;
     case WM_DRAG_ASSET:
+    case WM_DRAG_ASSET_CATALOG:
       /* Move ownership of poin to wmDrag. */
       drag->poin = poin;
       drag->flags |= WM_DRAG_FREE_DATA;
@@ -647,6 +648,15 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
   if (id) {
     BKE_id_delete(bmain, id);
   }
+}
+
+wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_ASSET_CATALOG) {
+    return NULL;
+  }
+
+  return drag->poin;
 }
 
 /**
