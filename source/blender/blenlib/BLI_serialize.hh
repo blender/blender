@@ -50,20 +50,20 @@
  * The next example would format an integer value (42) as JSON the result will
  * be stored inside `out`.
  *
- * ```
+ * \code{.cc}
  * JsonFormatter json;
  * std::stringstream out;
  * IntValue test_value(42);
  * json.serialize(out, test_value);
- * ```
+ * \endcode
  *
  * ## Deserializing
  *
- * ```
- * std::stringstream is("42")
+ * \code{.cc}
+ * std::stringstream is("42");
  * JsonFormatter json;
  * std::unique_ptr<Value> value = json.deserialize(is);
- * ```
+ * \endcode
  *
  * # Adding a new formatter
  *
@@ -113,7 +113,7 @@ using ArrayValue =
  * Class containing a (de)serializable value.
  *
  * To serialize from or to a specific format the Value will be used as an intermediate container
- * holding the values. Value class is abstract. There are concreate classes to for different data
+ * holding the values. Value class is abstract. There are concrete classes to for different data
  * types.
  *
  * - `StringValue`: contains a string.
@@ -311,7 +311,7 @@ class Formatter {
 };
 
 /**
- * Formatter to (de)serialize a json formatted stream.
+ * Formatter to (de)serialize a JSON formatted stream.
  */
 class JsonFormatter : public Formatter {
  public:

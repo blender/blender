@@ -133,7 +133,7 @@ static double test_vec_roll_to_mat3_normalized(const float input[3],
   float roll_mat[3][3];
 
   if (normalize) {
-    /* The vector is renormalized to replicate the actual usage. */
+    /* The vector is re-normalized to replicate the actual usage. */
     normalize_v3_v3(input_normalized, input);
   }
   else {

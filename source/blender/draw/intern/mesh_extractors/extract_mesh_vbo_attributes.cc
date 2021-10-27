@@ -63,7 +63,7 @@ static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, Attribut
 
 /* Utility to convert from the type used in the attributes to the types for the VBO.
  * This is mostly used to promote integers and booleans to floats, as other types (float, float2,
- * etc.) directly map to avalaible GPU types. Booleans are still converted as attributes are vec4
+ * etc.) directly map to available GPU types. Booleans are still converted as attributes are vec4
  * in the shader.
  */
 template<typename AttributeType, typename VBOType> struct attribute_type_converter {

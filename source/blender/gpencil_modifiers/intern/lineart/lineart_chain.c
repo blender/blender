@@ -1045,21 +1045,19 @@ void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb)
           is_inside = new_inside;
           continue;
         }
-        else {
-          /* Stroke comes in. */
-          new_eci = lineart_chain_create_crossing_point(rb, eci, prev_eci);
+        /* Stroke comes in. */
+        new_eci = lineart_chain_create_crossing_point(rb, eci, prev_eci);
 
-          ec->chain.first = eci;
-          eci->prev = NULL;
+        ec->chain.first = eci;
+        eci->prev = NULL;
 
-          BLI_addhead(&ec->chain, new_eci);
+        BLI_addhead(&ec->chain, new_eci);
 
-          ec_added = false;
+        ec_added = false;
 
-          next_eci = eci->next;
-          is_inside = new_inside;
-          continue;
-        }
+        next_eci = eci->next;
+        is_inside = new_inside;
+        continue;
       }
     }
 
