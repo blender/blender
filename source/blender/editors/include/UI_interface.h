@@ -2777,6 +2777,7 @@ void UI_interface_tag_script_reload(void);
 
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
+bool UI_tree_view_item_drag_start(struct bContext *C, uiTreeViewItemHandle *item_);
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
                                 const struct wmDrag *drag,
                                 const char **r_disabled_hint);

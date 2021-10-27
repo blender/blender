@@ -2145,6 +2145,12 @@ static bool ui_but_drag_init(bContext *C,
         return false;
       }
     }
+    else if (but->type == UI_BTYPE_TREEROW) {
+      uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+      if (tree_row_but->tree_item) {
+        UI_tree_view_item_drag_start(C, tree_row_but->tree_item);
+      }
+    }
     else {
       wmDrag *drag = WM_event_start_drag(
           C,
@@ -4821,18 +4827,32 @@ static int ui_do_but_TREEROW(bContext *C,
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE) {
-      if (event->val == KM_CLICK) {
-        button_activate_state(C, but, BUTTON_STATE_EXIT);
-        return WM_UI_HANDLER_BREAK;
-      }
-      if (event->val == KM_DBL_CLICK) {
-        data->cancel = true;
+      switch (event->val) {
+        case KM_PRESS:
+          /* Extra icons have priority, don't mess with them. */
+          if (ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+            return WM_UI_HANDLER_BREAK;
+          }
+          button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+          data->dragstartx = event->xy[0];
+          data->dragstarty = event->xy[1];
+          return WM_UI_HANDLER_CONTINUE;
 
-        UI_tree_view_item_begin_rename(tree_row_but->tree_item);
-        ED_region_tag_redraw(CTX_wm_region(C));
-        return WM_UI_HANDLER_BREAK;
+        case KM_CLICK:
+          button_activate_state(C, but, BUTTON_STATE_EXIT);
+          return WM_UI_HANDLER_BREAK;
+
+        case KM_DBL_CLICK:
+          data->cancel = true;
+          UI_tree_view_item_begin_rename(tree_row_but->tree_item);
+          ED_region_tag_redraw(CTX_wm_region(C));
+          return WM_UI_HANDLER_BREAK;
       }
     }
+  }
+  else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+    /* Let "default" button handling take care of the drag logic. */
+    return ui_do_but_EXIT(C, but, data, event);
   }
 
   return WM_UI_HANDLER_CONTINUE;

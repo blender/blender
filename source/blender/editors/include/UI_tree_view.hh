@@ -49,6 +49,7 @@ namespace blender::ui {
 class AbstractTreeView;
 class AbstractTreeViewItem;
 class AbstractTreeViewItemDropController;
+class AbstractTreeViewItemDragController;
 
 /* ---------------------------------------------------------------------- */
 /** \name Tree-View Item Container
@@ -274,6 +275,11 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual bool matches(const AbstractTreeViewItem &other) const;
 
   /**
+   * If an item wants to support being dragged, it has to return a drag controller here.
+   * That is an object implementing #AbstractTreeViewItemDragController.
+   */
+  virtual std::unique_ptr<AbstractTreeViewItemDragController> create_drag_controller() const;
+  /**
    * If an item wants to support dropping data into it, it has to return a drop controller here.
    * That is an object implementing #AbstractTreeViewItemDropController.
    *
@@ -346,6 +352,18 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 /* ---------------------------------------------------------------------- */
 /** \name Drag 'n Drop
  * \{ */
+
+/**
+ * Class to enable dragging a tree-item. An item can return a drop controller for itself via a
+ * custom implementation of #AbstractTreeViewItem::create_drag_controller().
+ */
+class AbstractTreeViewItemDragController {
+ public:
+  virtual ~AbstractTreeViewItemDragController() = default;
+
+  virtual int get_drag_type() const = 0;
+  virtual void *create_drag_data() const = 0;
+};
 
 /**
  * Class to customize the drop behavior of a tree-item, plus the behavior when dragging over this

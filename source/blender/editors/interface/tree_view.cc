@@ -29,6 +29,7 @@
 
 #include "UI_interface.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_tree_view.hh"
@@ -352,6 +353,13 @@ void AbstractTreeViewItem::on_activate()
 void AbstractTreeViewItem::is_active(IsActiveFn is_active_fn)
 {
   is_active_fn_ = is_active_fn;
+}
+
+std::unique_ptr<AbstractTreeViewItemDragController> AbstractTreeViewItem::create_drag_controller()
+    const
+{
+  /* There's no drag controller (and hence no drag support) by default. */
+  return nullptr;
 }
 
 std::unique_ptr<AbstractTreeViewItemDropController> AbstractTreeViewItem::create_drop_controller()
@@ -684,6 +692,29 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
   const AbstractTreeViewItem &b = reinterpret_cast<const AbstractTreeViewItem &>(*b_handle);
   /* TODO should match the tree-view as well. */
   return a.matches_including_parents(b);
+}
+
+/**
+ * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
+ * support dragging, i.e. it won't create a drag-controller upon request.
+ * \return True if dragging started successfully, otherwise false.
+ */
+bool UI_tree_view_item_drag_start(bContext *C, uiTreeViewItemHandle *item_)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
+  const std::unique_ptr<AbstractTreeViewItemDragController> drag_controller =
+      item.create_drag_controller();
+  if (!drag_controller) {
+    return false;
+  }
+
+  WM_event_start_drag(C,
+                      ICON_NONE,
+                      drag_controller->get_drag_type(),
+                      drag_controller->create_drag_data(),
+                      0,
+                      WM_DRAG_FREE_DATA);
+  return true;
 }
 
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
