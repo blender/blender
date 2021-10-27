@@ -819,11 +819,9 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int iconsize = UI_DPI_ICON_SIZE;
   int padding = 4 * UI_DPI_FAC;
 
-  const char *tooltip = NULL;
-  bool free_tooltip = false;
+  char *tooltip = NULL;
   if (drag->active_dropbox) {
     tooltip = dropbox_tooltip(C, drag, xy, drag->active_dropbox);
-    free_tooltip = true;
   }
 
   if (!tooltip && !drag->disabled_info) {
@@ -855,9 +853,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
 
   if (tooltip) {
     wm_drop_operator_draw(tooltip, x, y);
-    if (free_tooltip) {
-      MEM_freeN((void *)tooltip);
-    }
+    MEM_freeN(tooltip);
   }
   else if (drag->disabled_info) {
     wm_drop_redalert_draw(drag->disabled_info, x, y);
