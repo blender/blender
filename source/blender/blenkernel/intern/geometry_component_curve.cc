@@ -1135,6 +1135,9 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 
     MutableSpan<SplinePtr> splines = curve->splines();
     if (splines.size() == 1) {
+      if (update_on_write_) {
+        update_on_write_(*splines[0]);
+      }
       return std::make_unique<fn::GVMutableArray_For_GMutableSpan>(
           get_mutable_span_(*splines.first()));
     }
