@@ -143,7 +143,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return me;
 #else
   FluidModifierData *fmd = (FluidModifierData *)md;
-  Mesh *result = NULL;
 
   if (ctx->flag & MOD_APPLY_ORCO) {
     return me;
