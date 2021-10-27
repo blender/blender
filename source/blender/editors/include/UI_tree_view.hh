@@ -404,6 +404,7 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   explicit BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
 
   void build_row(uiLayout &row) override;
+  void add_label(uiLayout &layout, StringRefNull label_override = "");
   void on_activate(ActivateFn fn);
 
  protected:

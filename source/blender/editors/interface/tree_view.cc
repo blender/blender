@@ -641,7 +641,18 @@ BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(ic
 
 void BasicTreeViewItem::build_row(uiLayout &row)
 {
-  uiItemL(&row, label_.c_str(), icon);
+  add_label(row);
+}
+
+void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override)
+{
+  const StringRefNull label = label_override.is_empty() ? StringRefNull(label_) : label_override;
+
+  /* Some padding for labels without collapse chevron and no icon. Looks weird without. */
+  if (icon == ICON_NONE && !is_collapsible()) {
+    uiItemS_ex(&layout, 0.8f);
+  }
+  uiItemL(&layout, label.c_str(), icon);
 }
 
 void BasicTreeViewItem::on_activate()
