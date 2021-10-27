@@ -122,6 +122,7 @@ typedef struct FluidIsolationData {
   Mesh *result;
 } FluidIsolationData;
 
+#ifdef WITH_FLUID
 static void fluid_modifier_do_isolated(void *userdata)
 {
   FluidIsolationData *isolation_data = (FluidIsolationData *)userdata;
@@ -135,6 +136,7 @@ static void fluid_modifier_do_isolated(void *userdata)
                                        isolation_data->mesh);
   isolation_data->result = result ? result : isolation_data->mesh;
 }
+#endif /* WITH_FLUID */
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
