@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float lookup_table_read(KernelGlobals kg, float x, int offset, int size)
 {
-  x = saturate(x) * (size - 1);
+  x = saturatef(x) * (size - 1);
 
   int index = min(float_to_int(x), size - 1);
   int nindex = min(index + 1, size - 1);
@@ -39,7 +39,7 @@ ccl_device float lookup_table_read(KernelGlobals kg, float x, int offset, int si
 ccl_device float lookup_table_read_2D(
     KernelGlobals kg, float x, float y, int offset, int xsize, int ysize)
 {
-  y = saturate(y) * (ysize - 1);
+  y = saturatef(y) * (ysize - 1);
 
   int index = min(float_to_int(y), ysize - 1);
   int nindex = min(index + 1, ysize - 1);

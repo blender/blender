@@ -173,9 +173,9 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float fresnel = fresnel_dielectric_cos(cosNO, ior);
 
       // calculate weights of the diffuse and specular part
-      float diffuse_weight = (1.0f - saturate(metallic)) * (1.0f - saturate(transmission));
+      float diffuse_weight = (1.0f - saturatef(metallic)) * (1.0f - saturatef(transmission));
 
-      float final_transmission = saturate(transmission) * (1.0f - saturate(metallic));
+      float final_transmission = saturatef(transmission) * (1.0f - saturatef(metallic));
       float specular_weight = (1.0f - final_transmission);
 
       // get the base color
@@ -746,7 +746,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (bsdf) {
         bsdf->N = N;
 
-        bsdf->sigma = saturate(param1);
+        bsdf->sigma = saturatef(param1);
         sd->flag |= bsdf_ashikhmin_velvet_setup(bsdf);
       }
       break;
@@ -1233,7 +1233,7 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
       node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
 
   float weight = stack_load_float(stack, weight_offset);
-  weight = saturate(weight);
+  weight = saturatef(weight);
 
   float in_weight = (stack_valid(in_weight_offset)) ? stack_load_float(stack, in_weight_offset) :
                                                       1.0f;

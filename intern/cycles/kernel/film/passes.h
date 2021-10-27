@@ -312,7 +312,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals kg,
     const float mist_inv_depth = kernel_data.film.mist_inv_depth;
 
     const float depth = camera_distance(kg, sd->P);
-    float mist = saturate((depth - mist_start) * mist_inv_depth);
+    float mist = saturatef((depth - mist_start) * mist_inv_depth);
 
     /* Falloff */
     const float mist_falloff = kernel_data.film.mist_falloff;

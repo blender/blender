@@ -347,9 +347,14 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
 }
 
 #ifndef __KERNEL_CUDA__
-ccl_device_inline float saturate(float a)
+ccl_device_inline float saturatef(float a)
 {
   return clamp(a, 0.0f, 1.0f);
+}
+#else
+ccl_device_inline float saturatef(float a)
+{
+  return __saturatef(a);
 }
 #endif /* __KERNEL_CUDA__ */
 

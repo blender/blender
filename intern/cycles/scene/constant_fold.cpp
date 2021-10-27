@@ -68,15 +68,15 @@ void ConstantFolder::make_constant(float3 value) const
 
 void ConstantFolder::make_constant_clamp(float value, bool clamp) const
 {
-  make_constant(clamp ? saturate(value) : value);
+  make_constant(clamp ? saturatef(value) : value);
 }
 
 void ConstantFolder::make_constant_clamp(float3 value, bool clamp) const
 {
   if (clamp) {
-    value.x = saturate(value.x);
-    value.y = saturate(value.y);
-    value.z = saturate(value.z);
+    value.x = saturatef(value.x);
+    value.y = saturatef(value.y);
+    value.z = saturatef(value.z);
   }
 
   make_constant(value);
@@ -215,7 +215,7 @@ void ConstantFolder::fold_mix(NodeMix type, bool clamp) const
   ShaderInput *color1_in = node->input("Color1");
   ShaderInput *color2_in = node->input("Color2");
 
-  float fac = saturate(node->get_float(fac_in->socket_type));
+  float fac = saturatef(node->get_float(fac_in->socket_type));
   bool fac_is_zero = !fac_in->link && fac == 0.0f;
   bool fac_is_one = !fac_in->link && fac == 1.0f;
 

@@ -44,7 +44,7 @@ ccl_device_inline float float_ramp_lookup(
     return t0 + dy * f * (table_size - 1);
   }
 
-  f = saturate(f) * (table_size - 1);
+  f = saturatef(f) * (table_size - 1);
 
   /* clamp int as well in case of NaN */
   int i = clamp(float_to_int(f), 0, table_size - 1);
@@ -76,7 +76,7 @@ ccl_device_inline float4 rgb_ramp_lookup(
     return t0 + dy * f * (table_size - 1);
   }
 
-  f = saturate(f) * (table_size - 1);
+  f = saturatef(f) * (table_size - 1);
 
   /* clamp int as well in case of NaN */
   int i = clamp(float_to_int(f), 0, table_size - 1);

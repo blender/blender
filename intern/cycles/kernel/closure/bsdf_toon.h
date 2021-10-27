@@ -48,8 +48,8 @@ static_assert(sizeof(ShaderClosure) >= sizeof(ToonBsdf), "ToonBsdf is too large!
 ccl_device int bsdf_diffuse_toon_setup(ccl_private ToonBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_DIFFUSE_TOON_ID;
-  bsdf->size = saturate(bsdf->size);
-  bsdf->smooth = saturate(bsdf->smooth);
+  bsdf->size = saturatef(bsdf->size);
+  bsdf->smooth = saturatef(bsdf->smooth);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -146,8 +146,8 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_glossy_toon_setup(ccl_private ToonBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_GLOSSY_TOON_ID;
-  bsdf->size = saturate(bsdf->size);
-  bsdf->smooth = saturate(bsdf->smooth);
+  bsdf->size = saturatef(bsdf->size);
+  bsdf->smooth = saturatef(bsdf->smooth);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }

@@ -73,7 +73,7 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
     if (fabsf(f) < tolerance || f_ == 0.0f)
       break;
 
-    x = saturate(x - f / f_);
+    x = saturatef(x - f / f_);
   }
 
   return x;

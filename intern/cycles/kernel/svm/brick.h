@@ -56,7 +56,7 @@ ccl_device_noinline_cpu float2 svm_brick(float3 p,
   x = (p.x + offset) - brick_width * bricknum;
   y = p.y - row_height * rownum;
 
-  float tint = saturate((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias));
+  float tint = saturatef((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias));
   float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
 
   float mortar;

@@ -73,7 +73,7 @@ ccl_device_noinline void svm_node_tex_gradient(ccl_private ShaderData *sd,
   float3 co = stack_load_float3(stack, co_offset);
 
   float f = svm_gradient(co, (NodeGradientType)type);
-  f = saturate(f);
+  f = saturatef(f);
 
   if (stack_valid(fac_offset))
     stack_store_float(stack, fac_offset, f);

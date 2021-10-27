@@ -408,7 +408,7 @@ ccl_device_inline float3 project(const float3 v, const float3 v_proj)
 
 ccl_device_inline float3 saturate3(float3 a)
 {
-  return make_float3(saturate(a.x), saturate(a.y), saturate(a.z));
+  return make_float3(saturatef(a.x), saturatef(a.y), saturatef(a.z));
 }
 
 ccl_device_inline float3 normalize_len(const float3 a, ccl_private float *t)

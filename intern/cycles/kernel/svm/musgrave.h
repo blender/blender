@@ -180,7 +180,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal_1d(
 
   for (int i = 1; i < float_to_int(octaves); i++) {
     p *= lacunarity;
-    weight = saturate(signal * gain);
+    weight = saturatef(signal * gain);
     signal = offset - fabsf(snoise_1d(p));
     signal *= signal;
     signal *= weight;
@@ -351,7 +351,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal_2d(
 
   for (int i = 1; i < float_to_int(octaves); i++) {
     p *= lacunarity;
-    weight = saturate(signal * gain);
+    weight = saturatef(signal * gain);
     signal = offset - fabsf(snoise_2d(p));
     signal *= signal;
     signal *= weight;
@@ -522,7 +522,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal_3d(
 
   for (int i = 1; i < float_to_int(octaves); i++) {
     p *= lacunarity;
-    weight = saturate(signal * gain);
+    weight = saturatef(signal * gain);
     signal = offset - fabsf(snoise_3d(p));
     signal *= signal;
     signal *= weight;
@@ -693,7 +693,7 @@ ccl_device_noinline_cpu float noise_musgrave_ridged_multi_fractal_4d(
 
   for (int i = 1; i < float_to_int(octaves); i++) {
     p *= lacunarity;
-    weight = saturate(signal * gain);
+    weight = saturatef(signal * gain);
     signal = offset - fabsf(snoise_4d(p));
     signal *= signal;
     signal *= weight;

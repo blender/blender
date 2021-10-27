@@ -27,7 +27,7 @@ CCL_NAMESPACE_BEGIN
  * roulette. */
 ccl_device_forceinline float film_transparency_to_alpha(float transparency)
 {
-  return saturate(1.0f - transparency);
+  return saturatef(1.0f - transparency);
 }
 
 ccl_device_inline float film_get_scale(ccl_global const KernelFilmConvert *ccl_restrict
@@ -136,7 +136,7 @@ ccl_device_inline void film_get_pass_pixel_mist(ccl_global const KernelFilmConve
 
   /* Note that we accumulate 1 - mist in the kernel to avoid having to
    * track the mist values in the integrator state. */
-  pixel[0] = saturate(1.0f - f * scale_exposure);
+  pixel[0] = saturatef(1.0f - f * scale_exposure);
 }
 
 ccl_device_inline void film_get_pass_pixel_sample_count(
@@ -458,7 +458,7 @@ ccl_device_inline float4 film_calculate_shadow_catcher_matte_with_shadow(
   const float3 color_matte = make_float3(in_matte[0], in_matte[1], in_matte[2]) * scale_exposure;
 
   const float transparency = in_matte[3] * scale;
-  const float alpha = saturate(1.0f - transparency);
+  const float alpha = saturatef(1.0f - transparency);
 
   const float alpha_matte = (1.0f - alpha) * (1.0f - average(shadow_catcher)) + alpha;
 
