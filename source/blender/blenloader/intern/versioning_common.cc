@@ -87,6 +87,18 @@ ID *do_versions_rename_id(Main *bmain,
   return id;
 }
 
+static void change_node_socket_name(ListBase *sockets, const char *old_name, const char *new_name)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    if (STREQ(socket->name, old_name)) {
+      BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+    }
+    if (STREQ(socket->identifier, old_name)) {
+      BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+    }
+  }
+}
+
 void version_node_socket_name(bNodeTree *ntree,
                               const int node_type,
                               const char *old_name,
@@ -94,22 +106,32 @@ void version_node_socket_name(bNodeTree *ntree,
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == node_type) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (STREQ(socket->name, old_name)) {
-          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
-        }
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (STREQ(socket->name, old_name)) {
-          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
-        }
-      }
+      change_node_socket_name(&node->inputs, old_name, new_name);
+      change_node_socket_name(&node->outputs, old_name, new_name);
+    }
+  }
+}
+
+void version_node_input_socket_name(bNodeTree *ntree,
+                                    const int node_type,
+                                    const char *old_name,
+                                    const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      change_node_socket_name(&node->inputs, old_name, new_name);
+    }
+  }
+}
+
+void version_node_output_socket_name(bNodeTree *ntree,
+                                    const int node_type,
+                                    const char *old_name,
+                                    const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      change_node_socket_name(&node->outputs, old_name, new_name);
     }
   }
 }

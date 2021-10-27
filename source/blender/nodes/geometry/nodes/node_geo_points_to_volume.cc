@@ -32,7 +32,7 @@ namespace blender::nodes {
 
 static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f);
   b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
@@ -41,7 +41,7 @@ static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Volume");
 }
 
 static void geo_node_points_to_volume_layout(uiLayout *layout,
@@ -239,17 +239,17 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
 static void geo_node_points_to_volume_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
 
 #ifdef WITH_OPENVDB
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     initialize_volume_component_from_points(params, geometry_set);
   });
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Volume", std::move(geometry_set));
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_output("Geometry", GeometrySet());
+  params.set_output("Volume", GeometrySet());
 #endif
 }
 
