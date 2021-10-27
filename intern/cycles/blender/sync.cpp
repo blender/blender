@@ -340,14 +340,16 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
       cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_SOBOL);
   integrator->set_sampling_pattern(sampling_pattern);
 
+  bool use_adaptive_sampling = false;
   if (preview) {
-    integrator->set_use_adaptive_sampling(
-        RNA_boolean_get(&cscene, "use_preview_adaptive_sampling"));
+    use_adaptive_sampling = RNA_boolean_get(&cscene, "use_preview_adaptive_sampling");
+    integrator->set_use_adaptive_sampling(use_adaptive_sampling);
     integrator->set_adaptive_threshold(get_float(cscene, "preview_adaptive_threshold"));
     integrator->set_adaptive_min_samples(get_int(cscene, "preview_adaptive_min_samples"));
   }
   else {
-    integrator->set_use_adaptive_sampling(RNA_boolean_get(&cscene, "use_adaptive_sampling"));
+    use_adaptive_sampling = RNA_boolean_get(&cscene, "use_adaptive_sampling");
+    integrator->set_use_adaptive_sampling(use_adaptive_sampling);
     integrator->set_adaptive_threshold(get_float(cscene, "adaptive_threshold"));
     integrator->set_adaptive_min_samples(get_int(cscene, "adaptive_min_samples"));
   }
@@ -361,7 +363,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
 
   /* only use scrambling distance in the viewport if user wants to and disable with AS */
   bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
-  if ((preview && !preview_scrambling_distance) || sampling_pattern != SAMPLING_PATTERN_SOBOL)
+  if ((preview && !preview_scrambling_distance) || use_adaptive_sampling)
     scrambling_distance = 1.0f;
 
   VLOG(1) << "Used Scrambling Distance: " << scrambling_distance;

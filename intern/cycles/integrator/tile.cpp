@@ -74,39 +74,9 @@ TileSize tile_calculate_best_size(const int2 &image_size,
   TileSize tile_size;
   const int num_path_states_per_sample = max_num_path_states / num_samples;
   if (scrambling_distance < 0.9f) {
-    /* Prefer large tiles for scrambling distance. */
-    if (image_size.x * image_size.y <= num_path_states_per_sample) {
-      tile_size.width = image_size.x;
-      tile_size.height = image_size.y;
-    }
-    else {
-      /* Pick the option with the biggest tile size */
-      int heightOption = num_path_states_per_sample / image_size.x;
-      int widthOption = num_path_states_per_sample / image_size.y;
-      // Check if these options are possible
-      if ((heightOption > 0) || (widthOption > 0)) {
-        int area1 = image_size.x * heightOption;
-        int area2 = widthOption * image_size.y;
-        /* The option with the biggest pixel area */
-        if (area1 >= area2) {
-          tile_size.width = image_size.x;
-          tile_size.height = heightOption;
-        }
-        else {
-          tile_size.width = widthOption;
-          tile_size.height = image_size.y;
-        }
-      }
-      else {  // Large tiles are not an option so use square tiles
-        if (num_path_states_per_sample != 0) {
-          tile_size.width = round_down_to_power_of_two(lround(sqrt(num_path_states_per_sample)));
-          tile_size.height = tile_size.width;
-        }
-        else {
-          tile_size.width = tile_size.height = 1;
-        }
-      }
-    }
+    /* Prefer large tiles for scrambling distance, bounded by max num path states. */
+    tile_size.width = min(image_size.x, max_num_path_states);
+    tile_size.height = min(image_size.y, max(max_num_path_states / tile_size.width, 1));
   }
   else {
     /* Calculate tile size as if it is the most possible one to fit an entire range of samples.
