@@ -180,7 +180,8 @@ static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
 
   for (int i = 0; i < MAX_MTEX; i++) {
     if (psett->mtex[i]) {
-      BKE_texture_mtex_foreach_id(data, psett->mtex[i]);
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                              BKE_texture_mtex_foreach_id(data, psett->mtex[i]));
     }
   }
 

@@ -172,6 +172,15 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
   } \
   ((void)0)
 
+#define BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(_data, _func_call) \
+  { \
+    _func_call; \
+    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+      return; \
+    } \
+  } \
+  ((void)0)
+
 bool BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
 void BKE_lib_query_idpropertiesForeachIDLink_callback(struct IDProperty *id_prop, void *user_data);
 

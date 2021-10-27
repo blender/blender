@@ -213,8 +213,9 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   if (brush->gpencil_settings) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material, IDWALK_CB_USER);
   }
-  BKE_texture_mtex_foreach_id(data, &brush->mtex);
-  BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                          BKE_texture_mtex_foreach_id(data, &brush->mask_mtex));
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)

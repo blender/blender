@@ -120,8 +120,8 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_GRAPH: {
         SpaceGraph *sipo = (SpaceGraph *)sl;
-
-        screen_foreach_id_dopesheet(data, sipo->ads);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                                screen_foreach_id_dopesheet(data, sipo->ads));
         break;
       }
       case SPACE_PROPERTIES: {
@@ -151,8 +151,8 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_NLA: {
         SpaceNla *snla = (SpaceNla *)sl;
-
-        screen_foreach_id_dopesheet(data, snla->ads);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                                screen_foreach_id_dopesheet(data, snla->ads));
         break;
       }
       case SPACE_TEXT: {
@@ -233,12 +233,13 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
 static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
-    bScreen *screen = (bScreen *)id;
+  if ((BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) == 0) {
+    return;
+  }
+  bScreen *screen = (bScreen *)id;
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      BKE_screen_foreach_id_screen_area(data, area);
-    }
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_screen_foreach_id_screen_area(data, area));
   }
 }
 

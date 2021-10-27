@@ -471,7 +471,8 @@ static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSE
                                                     int cb_flag)
 {
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  BKE_lib_query_foreachid_process(data, id_pointer, cb_flag);
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data, BKE_lib_query_foreachid_process(data, id_pointer, cb_flag));
 }
 
 /**
@@ -629,16 +630,28 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                           IDWALK_CB_USER);
 
   if (toolsett->vpaint) {
-    scene_foreach_paint(
-        data, &toolsett->vpaint->paint, do_undo_restore, reader, &toolsett_old->vpaint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                            scene_foreach_paint(data,
+                                                                &toolsett->vpaint->paint,
+                                                                do_undo_restore,
+                                                                reader,
+                                                                &toolsett_old->vpaint->paint));
   }
   if (toolsett->wpaint) {
-    scene_foreach_paint(
-        data, &toolsett->wpaint->paint, do_undo_restore, reader, &toolsett_old->wpaint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                            scene_foreach_paint(data,
+                                                                &toolsett->wpaint->paint,
+                                                                do_undo_restore,
+                                                                reader,
+                                                                &toolsett_old->wpaint->paint));
   }
   if (toolsett->sculpt) {
-    scene_foreach_paint(
-        data, &toolsett->sculpt->paint, do_undo_restore, reader, &toolsett_old->sculpt->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                            scene_foreach_paint(data,
+                                                                &toolsett->sculpt->paint,
+                                                                do_undo_restore,
+                                                                reader,
+                                                                &toolsett_old->sculpt->paint));
     BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
                                             toolsett->sculpt->gravity_object,
                                             do_undo_restore,
@@ -648,33 +661,47 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                             IDWALK_CB_NOP);
   }
   if (toolsett->uvsculpt) {
-    scene_foreach_paint(
-        data, &toolsett->uvsculpt->paint, do_undo_restore, reader, &toolsett_old->uvsculpt->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                            scene_foreach_paint(data,
+                                                                &toolsett->uvsculpt->paint,
+                                                                do_undo_restore,
+                                                                reader,
+                                                                &toolsett_old->uvsculpt->paint));
   }
   if (toolsett->gp_paint) {
-    scene_foreach_paint(
-        data, &toolsett->gp_paint->paint, do_undo_restore, reader, &toolsett_old->gp_paint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                            scene_foreach_paint(data,
+                                                                &toolsett->gp_paint->paint,
+                                                                do_undo_restore,
+                                                                reader,
+                                                                &toolsett_old->gp_paint->paint));
   }
   if (toolsett->gp_vertexpaint) {
-    scene_foreach_paint(data,
-                        &toolsett->gp_vertexpaint->paint,
-                        do_undo_restore,
-                        reader,
-                        &toolsett_old->gp_vertexpaint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        scene_foreach_paint(data,
+                            &toolsett->gp_vertexpaint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->gp_vertexpaint->paint));
   }
   if (toolsett->gp_sculptpaint) {
-    scene_foreach_paint(data,
-                        &toolsett->gp_sculptpaint->paint,
-                        do_undo_restore,
-                        reader,
-                        &toolsett_old->gp_sculptpaint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        scene_foreach_paint(data,
+                            &toolsett->gp_sculptpaint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->gp_sculptpaint->paint));
   }
   if (toolsett->gp_weightpaint) {
-    scene_foreach_paint(data,
-                        &toolsett->gp_weightpaint->paint,
-                        do_undo_restore,
-                        reader,
-                        &toolsett_old->gp_weightpaint->paint);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        scene_foreach_paint(data,
+                            &toolsett->gp_weightpaint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->gp_weightpaint->paint));
   }
 
   BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
@@ -746,15 +773,18 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->r.bake.cage_object, IDWALK_CB_NOP);
   if (scene->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-    BKE_library_foreach_ID_embedded(data, (ID **)&scene->nodetree);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&scene->nodetree));
   }
   if (scene->ed) {
-    SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_member_id_cb, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_member_id_cb, data));
   }
 
   /* This pointer can be NULL during old files reading, better be safe than sorry. */
   if (scene->master_collection != NULL) {
-    BKE_library_foreach_ID_embedded(data, (ID **)&scene->master_collection);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&scene->master_collection));
   }
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -765,7 +795,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
           data, base->object, IDWALK_CB_NOP | IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
     }
 
-    scene_foreach_layer_collection(data, &view_layer->layer_collections);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, scene_foreach_layer_collection(data, &view_layer->layer_collections));
 
     LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
       if (fmc->script) {
@@ -786,18 +817,25 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
-    IDP_foreach_property(
-        marker->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        IDP_foreach_property(marker->prop,
+                             IDP_TYPE_FILTER_ID,
+                             BKE_lib_query_idpropertiesForeachIDLink_callback,
+                             data));
   }
 
   ToolSettings *toolsett = scene->toolsettings;
   if (toolsett) {
-    scene_foreach_toolsettings(data, toolsett, false, NULL, toolsett);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, scene_foreach_toolsettings(data, toolsett, false, NULL, toolsett));
   }
 
   if (scene->rigidbody_world) {
-    BKE_rigidbody_world_id_loop(
-        scene->rigidbody_world, scene_foreach_rigidbodyworldSceneLooper, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        BKE_rigidbody_world_id_loop(
+            scene->rigidbody_world, scene_foreach_rigidbodyworldSceneLooper, data));
   }
 }
 

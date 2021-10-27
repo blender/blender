@@ -491,11 +491,11 @@ void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (FCurve *, fcu, &strip->fcurves) {
-    BKE_fcurve_foreach_id(fcu, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
   LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
-    BKE_nla_strip_foreach_id(substrip, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_nla_strip_foreach_id(substrip, data));
   }
 }
 

@@ -103,7 +103,8 @@ static void simulation_foreach_id(ID *id, LibraryForeachIDData *data)
   Simulation *simulation = (Simulation *)id;
   if (simulation->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-    BKE_library_foreach_ID_embedded(data, (ID **)&simulation->nodetree);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&simulation->nodetree));
   }
 }
 

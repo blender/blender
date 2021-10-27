@@ -155,12 +155,14 @@ static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
 
   for (int i = 0; i < MAX_MTEX; i++) {
     if (linestyle->mtex[i]) {
-      BKE_texture_mtex_foreach_id(data, linestyle->mtex[i]);
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+          data, BKE_texture_mtex_foreach_id(data, linestyle->mtex[i]));
     }
   }
   if (linestyle->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-    BKE_library_foreach_ID_embedded(data, (ID **)&linestyle->nodetree);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&linestyle->nodetree));
   }
 
   LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->color_modifiers) {
