@@ -3628,7 +3628,8 @@ void wm_event_do_handlers(bContext *C)
       /* Clear tool-tip on mouse move. */
       if (screen->tool_tip && screen->tool_tip->exit_on_event) {
         if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-          if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, event->xy) > U.move_threshold) {
+          if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, event->xy) >
+              WM_EVENT_CURSOR_MOTION_THRESHOLD) {
             WM_tooltip_clear(C, win);
           }
         }
