@@ -923,6 +923,7 @@ void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
 
   SnapStateIntern *state_intern = STATE_INTERN_GET(state);
   BLI_remlink(&data_intern->state_intern, state_intern);
+  MEM_freeN(state_intern);
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     v3d_cursor_snap_free();
   }
