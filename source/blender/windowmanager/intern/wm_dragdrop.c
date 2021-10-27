@@ -218,6 +218,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
   LISTBASE_FOREACH (const wmDrag *, drag, &wm->drags) {
     if (drag->active_dropbox) {
       any_active = true;
+      break;
     }
   }
 
