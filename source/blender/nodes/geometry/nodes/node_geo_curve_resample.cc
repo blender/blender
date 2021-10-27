@@ -79,7 +79,7 @@ static SplinePtr resample_spline(const Spline &src, const int count)
   Spline::copy_base_settings(src, *dst);
 
   if (src.evaluated_edges_size() < 1 || count == 1) {
-    dst->add_point(src.positions().first(), src.tilts().first(), src.radii().first());
+    dst->add_point(src.positions().first(), src.radii().first(), src.tilts().first());
     dst->attributes.reallocate(1);
     src.attributes.foreach_attribute(
         [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
