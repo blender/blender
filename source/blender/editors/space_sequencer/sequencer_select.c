@@ -759,7 +759,7 @@ static void sequencer_select_strip_impl(const Editing *ed,
     action = 0;
   }
   else {
-    if ((seq->flag & SELECT) == 0 || is_active) {
+    if (!((seq->flag & SELECT) && is_active)) {
       action = 1;
     }
     else if (toggle) {
@@ -821,7 +821,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   /* NOTE: `side_of_frame` and `linked_time` functionality is designed to be shared on one keymap,
    * therefore both properties can be true at the same time. */
   if (seq && RNA_boolean_get(op->ptr, "linked_time")) {
-    if (!extend) {
+    if (!extend && !toggle) {
       ED_sequencer_deselect_all(scene);
     }
     sequencer_select_strip_impl(ed, seq, handle_clicked, extend, deselect, toggle);
@@ -833,7 +833,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
   /* Select left, right or overlapping the current frame. */
   if (RNA_boolean_get(op->ptr, "side_of_frame")) {
-    if (!extend) {
+    if (!extend && !toggle) {
       ED_sequencer_deselect_all(scene);
     }
     sequencer_select_side_of_frame(C, v2d, mval, scene);
@@ -843,7 +843,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
   /* On Alt selection, select the strip and bordering handles. */
   if (seq && RNA_boolean_get(op->ptr, "linked_handle")) {
-    if (!extend) {
+    if (!extend && !toggle) {
       ED_sequencer_deselect_all(scene);
     }
     sequencer_select_linked_handle(C, seq, handle_clicked);
