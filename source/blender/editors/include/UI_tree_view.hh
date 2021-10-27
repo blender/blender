@@ -455,6 +455,8 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
 template<class TreeViewType> TreeViewType &AbstractTreeViewItemDropController::tree_view() const
 {
+  static_assert(std::is_base_of<AbstractTreeView, TreeViewType>::value,
+                "Type must derive from and implement the AbstractTreeView interface");
   return static_cast<TreeViewType &>(tree_view_);
 }
 
