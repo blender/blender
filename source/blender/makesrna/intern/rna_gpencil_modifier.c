@@ -1309,7 +1309,7 @@ static void rna_def_modifier_gpencilthick(BlenderRNA *brna)
       prop, "Custom Curve", "Use a custom curve to define thickness change along the strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "normalize_thickness", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_normalized_thickness", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_THICK_NORMALIZE);
   RNA_def_property_ui_text(prop, "Uniform Thickness", "Replace the stroke thickness");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -1865,7 +1865,7 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Inverse Pass", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "normalize_opacity", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_normalized_opacity", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_OPACITY_NORMALIZE);
   RNA_def_property_ui_text(prop, "Uniform Opacity", "Replace the stroke opacity");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_opacity_update");
@@ -3215,7 +3215,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_range(prop, -0.1, FLT_MAX);
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "offset_towards_custom_camera", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_offset_towards_custom_camera", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA);
   RNA_def_property_ui_text(prop,
                            "Offset Towards Custom Camera",

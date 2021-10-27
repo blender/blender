@@ -703,7 +703,8 @@ static void composition_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(col, !show_in_front);
 
   uiItemR(col, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
-  uiItemR(col, ptr, "offset_towards_custom_camera", 0, IFACE_("Towards Custom Camera"), ICON_NONE);
+  uiItemR(
+      col, ptr, "use_offset_towards_custom_camera", 0, IFACE_("Towards Custom Camera"), ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

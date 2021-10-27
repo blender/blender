@@ -240,10 +240,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "hardness", 0, NULL, ICON_NONE);
   }
   else {
-    const bool is_normalized = RNA_boolean_get(ptr, "normalize_opacity");
+    const bool is_normalized = RNA_boolean_get(ptr, "use_normalized_opacity");
     const bool is_weighted = RNA_boolean_get(ptr, "use_weight_factor");
 
-    uiItemR(layout, ptr, "normalize_opacity", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_normalized_opacity", 0, NULL, ICON_NONE);
     const char *text = (is_normalized) ? IFACE_("Strength") : IFACE_("Opacity Factor");
 
     uiLayout *row = uiLayoutRow(layout, true);
