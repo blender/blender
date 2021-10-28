@@ -990,6 +990,13 @@ elseif(WIN32)
     DESTINATION "."
   )
 
+  if(WITH_BLENDER_THUMBNAILER)
+    install(
+      TARGETS BlendThumb
+      DESTINATION "."
+    )
+  endif()
+
   if(WITH_DRACO)
     install(
       PROGRAMS $<TARGET_FILE:extern_draco>

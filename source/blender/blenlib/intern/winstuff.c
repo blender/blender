@@ -172,12 +172,14 @@ bool BLI_windows_register_blend_extension(const bool background)
     return false;
   }
 
+#  ifdef WITH_BLENDER_THUMBNAILER
   BLI_windows_get_executable_dir(InstallDir);
   GetSystemDirectory(SysDir, FILE_MAXDIR);
   ThumbHandlerDLL = "BlendThumb.dll";
   snprintf(
       RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
   system(RegCmd);
+#  endif
 
   RegCloseKey(root);
   printf("success (%s)\n", usr_mode ? "user" : "system");
