@@ -4009,10 +4009,12 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
  *
  * Follow #wmEventHandler_KeymapDynamicFn signature.
  */
-void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
-                                                  wmWindow *win,
-                                                  wmEventHandler_Keymap *handler,
-                                                  wmEventHandler_KeymapResult *km_result)
+void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
+                                            wmWindow *win,
+                                            wmEventHandler_Keymap *handler,
+                                            wmEventHandler_KeymapResult *km_result,
+                                            /* Extra arguments. */
+                                            const bool with_gizmos)
 {
   memset(km_result, 0x0, sizeof(*km_result));
 
@@ -4045,7 +4047,8 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
     if (tref_rt->flag & TOOLREF_FLAG_FALLBACK_KEYMAP) {
       add_keymap = true;
     }
-    if (tref_rt->gizmo_group[0] != '\0') {
+
+    if (with_gizmos && (tref_rt->gizmo_group[0] != '\0')) {
       wmGizmoMap *gzmap = NULL;
       wmGizmoGroup *gzgroup = NULL;
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
@@ -4069,6 +4072,7 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
         }
       }
     }
+
     if (add_keymap) {
       keymap_id_list[keymap_id_list_len++] = tref_rt->keymap_fallback;
     }
@@ -4096,32 +4100,20 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
   }
 }
 
+void WM_event_get_keymap_from_toolsystem_with_gizmos(wmWindowManager *wm,
+                                                     wmWindow *win,
+                                                     wmEventHandler_Keymap *handler,
+                                                     wmEventHandler_KeymapResult *km_result)
+{
+  wm_event_get_keymap_from_toolsystem_ex(wm, win, handler, km_result, true);
+}
+
 void WM_event_get_keymap_from_toolsystem(wmWindowManager *wm,
-                                         wmWindow *UNUSED(win),
+                                         wmWindow *win,
                                          wmEventHandler_Keymap *handler,
                                          wmEventHandler_KeymapResult *km_result)
 {
-  memset(km_result, 0x0, sizeof(*km_result));
-
-  ScrArea *area = handler->dynamic.user_data;
-  handler->keymap_tool = NULL;
-  bToolRef_Runtime *tref_rt = area->runtime.tool ? area->runtime.tool->runtime : NULL;
-  if (tref_rt && tref_rt->keymap[0]) {
-    const char *keymap_id = tref_rt->keymap;
-    {
-      wmKeyMap *km = WM_keymap_list_find_spaceid_or_empty(
-          &wm->userconf->keymaps, keymap_id, area->spacetype, RGN_TYPE_WINDOW);
-      /* We shouldn't use keymaps from unrelated spaces. */
-      if (km != NULL) {
-        handler->keymap_tool = area->runtime.tool;
-        km_result->keymaps[km_result->keymaps_len++] = km;
-      }
-      else {
-        printf(
-            "Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, area->runtime.tool->idname);
-      }
-    }
-  }
+  wm_event_get_keymap_from_toolsystem_ex(wm, win, handler, km_result, false);
 }
 
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(

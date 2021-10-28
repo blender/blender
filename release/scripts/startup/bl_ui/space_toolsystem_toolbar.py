@@ -2462,6 +2462,7 @@ class _defs_sequencer_generic:
             widget=None,
             keymap="Sequencer Tool: Blade",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn

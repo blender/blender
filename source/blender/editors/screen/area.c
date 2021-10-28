@@ -1744,7 +1744,7 @@ static void ed_default_handlers(
   if (flag & ED_KEYMAP_TOOL) {
     if (flag & ED_KEYMAP_GIZMO) {
       WM_event_add_keymap_handler_dynamic(
-          &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
+          &region->handlers, WM_event_get_keymap_from_toolsystem_with_gizmos, area);
     }
     else {
       WM_event_add_keymap_handler_dynamic(
