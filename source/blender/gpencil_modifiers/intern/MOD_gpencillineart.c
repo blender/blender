@@ -478,7 +478,7 @@ static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *pa
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
   uiLayoutSetEnabled(layout, !is_baked);
-  uiLayoutSetActive(layout, (!show_in_front) && anything_showing_through(ptr));
+  uiLayoutSetActive(layout, show_in_front && anything_showing_through(ptr));
 
   uiItemR(layout, ptr, "use_material_mask", 0, IFACE_("Material Mask"), ICON_NONE);
 }
