@@ -716,6 +716,7 @@ void BKE_libblock_relink_to_newid(ID *id)
  * FIXME: Port all usages of #BKE_libblock_relink_to_newid to this
  *        #BKE_libblock_relink_to_newid_new new code and remove old one.
  ************************** */
+static void libblock_relink_to_newid_new(Main *bmain, ID *id);
 static int id_relink_to_newid_looper_new(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
@@ -739,10 +740,20 @@ static int id_relink_to_newid_looper_new(LibraryIDLinkCallbackData *cb_data)
     }
     if (id->tag & LIB_TAG_NEW) {
       id->tag &= ~LIB_TAG_NEW;
-      BKE_libblock_relink_to_newid_new(bmain, id);
+      libblock_relink_to_newid_new(bmain, id);
     }
   }
   return IDWALK_RET_NOP;
+}
+
+static void libblock_relink_to_newid_new(Main *bmain, ID *id)
+{
+  if (ID_IS_LINKED(id)) {
+    return;
+  }
+
+  id->tag &= ~LIB_TAG_NEW;
+  BKE_library_foreach_ID_link(bmain, id, id_relink_to_newid_looper_new, NULL, 0);
 }
 
 /**
@@ -762,6 +773,8 @@ void BKE_libblock_relink_to_newid_new(Main *bmain, ID *id)
   /* We do not want to have those cached relationship data here. */
   BLI_assert(bmain->relations == NULL);
 
-  id->tag &= ~LIB_TAG_NEW;
-  BKE_library_foreach_ID_link(bmain, id, id_relink_to_newid_looper_new, NULL, 0);
+  BKE_layer_collection_resync_forbid();
+  libblock_relink_to_newid_new(bmain, id);
+  BKE_layer_collection_resync_allow();
+  BKE_main_collection_sync_remap(bmain);
 }
