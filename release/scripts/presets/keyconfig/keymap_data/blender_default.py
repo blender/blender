@@ -2868,7 +2868,10 @@ def km_sequencerpreview(params):
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
         ),
+        *_template_items_select_actions(params, "sequencer.select_all"),
+        ("sequencer.select_box", {"type": 'B', "value": 'PRESS'}, None),
 
+        # View.
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
@@ -2886,6 +2889,8 @@ def km_sequencerpreview(params):
          {"properties": [("ratio", 0.25)]}),
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
          {"properties": [("ratio", 0.125)]}),
+
+        # Edit.
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
         op_tool_optional(
             ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
@@ -2902,6 +2907,10 @@ def km_sequencerpreview(params):
          {"properties": [("property", 'SCALE')]}),
         ("sequencer.strip_transform_clear", {"type": 'R', "alt": True, "value": 'PRESS'},
          {"properties": [("property", 'ROTATION')]}),
+
+        ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
+        ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+
         *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
     ])
 
