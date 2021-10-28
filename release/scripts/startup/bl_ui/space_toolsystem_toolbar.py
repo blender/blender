@@ -2429,6 +2429,7 @@ class _defs_node_edit:
             icon="ops.node.links_cut",
             widget=None,
             keymap="Node Tool: Links Cut",
+            options={'KEYMAP_FALLBACK'},
         )
 
 
