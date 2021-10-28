@@ -812,7 +812,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
     BLI_assert(!ID_IS_LINKED(id));
 
-    BKE_libblock_relink_to_newid_new(bmain, id);
+    BKE_libblock_relink_to_newid(bmain, id);
   }
 
   /* Remove linked IDs when a local existing data has been reused instead. */

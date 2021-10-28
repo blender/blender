@@ -1685,18 +1685,20 @@ static bool single_data_needs_duplication(ID *id)
   return (id != NULL && (id->us > 1 || ID_IS_LINKED(id)));
 }
 
-static void libblock_relink_collection(Collection *collection, const bool do_collection)
+static void libblock_relink_collection(Main *bmain,
+                                       Collection *collection,
+                                       const bool do_collection)
 {
   if (do_collection) {
-    BKE_libblock_relink_to_newid(&collection->id);
+    BKE_libblock_relink_to_newid(bmain, &collection->id);
   }
 
   for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
-    BKE_libblock_relink_to_newid(&cob->ob->id);
+    BKE_libblock_relink_to_newid(bmain, &cob->ob->id);
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    libblock_relink_collection(child->collection, true);
+    libblock_relink_collection(bmain, child->collection, true);
   }
 }
 
@@ -1766,10 +1768,10 @@ static void single_object_users(
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
   /* Will also handle the master collection. */
-  BKE_libblock_relink_to_newid(&scene->id);
+  BKE_libblock_relink_to_newid(bmain, &scene->id);
 
   /* Collection and object pointers in collections */
-  libblock_relink_collection(scene->master_collection, false);
+  libblock_relink_collection(bmain, scene->master_collection, false);
 
   /* We also have to handle runtime things in UI. */
   if (v3d) {
