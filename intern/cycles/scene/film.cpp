@@ -194,6 +194,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   /* Mark passes as unused so that the kernel knows the pass is inaccessible. */
   kfilm->pass_denoising_normal = PASS_UNUSED;
   kfilm->pass_denoising_albedo = PASS_UNUSED;
+  kfilm->pass_denoising_depth = PASS_UNUSED;
   kfilm->pass_sample_count = PASS_UNUSED;
   kfilm->pass_adaptive_aux_buffer = PASS_UNUSED;
   kfilm->pass_shadow_catcher = PASS_UNUSED;
