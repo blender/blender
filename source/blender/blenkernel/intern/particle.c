@@ -1974,7 +1974,7 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 	copy_qt_qt(eff_key.rot, (ca - 1)->rot);
 
 	pd_point_from_particle(sim, sim->psys->particles + i, &eff_key, &epoint);
-	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL);
+	pdDoEffectors(sim->psys->effectors, sim->colliders, sim->psys->part->effector_weights, &epoint, force, NULL,  NULL);
 
 	mul_v3_fl(force, effector * powf((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
 

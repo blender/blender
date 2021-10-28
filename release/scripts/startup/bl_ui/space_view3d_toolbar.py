@@ -293,6 +293,7 @@ class VIEW3D_PT_tools_rigid_body(View3DPanel, Panel):
         col.operator("rigidbody.object_settings_copy", text="Copy from Active")
         col.operator("object.visual_transform_apply", text="Apply Transformation")
         col.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
+        col.operator("rigidbody.record_state",text="Record State")
         col.label(text="Constraints:")
         col.operator("rigidbody.connect", text="Connect")
 

@@ -118,20 +118,19 @@ typedef struct RigidBodyOb {
 	/* General Settings for this RigidBodyOb */
 	short type;				/* (eRigidBodyOb_Type) role of RigidBody in sim  */
 	short shape;			/* (eRigidBody_Shape) collision shape to use */ 
-
+	int flag;				/* (eRigidBodyOb_Flag) */
 
 	
-	int flag;				/* (eRigidBodyOb_Flag) */
+	
 	int col_groups;			/* Collision groups that determines wich rigid bodies can collide with each other */
 	short mesh_source;		/* (eRigidBody_MeshSource) mesh source for mesh based collision shapes */
-	short pad;
+	short pad;              /* padding */
 	
 	/* Physics Parameters */
 	float mass;				/* how much object 'weighs' (i.e. absolute 'amount of stuff' it holds) */
-	
 	float friction;			/* resistance of object to movement */
+
 	float restitution;		/* how 'bouncy' object is when it collides */
-	
 	float margin;			/* tolerance for detecting collisions */ 
 	
 	float lin_damping;		/* damping for linear velocities */
@@ -141,22 +140,30 @@ typedef struct RigidBodyOb {
 	float ang_sleep_thresh;	/* deactivation threshold for angular velocities */
 	
 	float orn[4];			/* rigid body orientation */
+	
 	float pos[3];			/* rigid body position */
 	float pad1;
+
 	float totalforce[3];
 	float totaltorque[3];
+
 	float lin_vel[3];
 	float an_vel[3];
+
 	float num_contacts;
 	float rigidbody_id;
+
 	float chris_stress_x[3];
 	float chris_stress_y[3];
+
 	float chris_stress_z[3];
 	float forcechain_id[3];
+
 	float forcechain_force[3];
 	float forcechain_normal1[3];
+
 	float forcechain_normal2[3];
-	float forcechain_normal3[3];/* 名字不能有大写，变量名为偶，对齐 */
+	float forcechain_normal3[3];/* 名字不能有大写，变量大小为偶，8字节对齐，char占1字节，short占 2 字节，int 、float、long(64位win是8字节) 都占 4 字节，double 占8 字节，任意类型的指针都占4个字节 */
 
 	
 	

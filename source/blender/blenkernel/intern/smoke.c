@@ -2471,7 +2471,7 @@ static void update_effectors_task_cb(void *userdata, const int x)
 			mul_m4_v3(sds->obmat, voxelCenter);
 
 			pd_point_from_loc(data->scene, voxelCenter, vel, index, &epoint);
-			pdDoEffectors(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
+			pdDoEffectors(data->effectors, NULL, sds->effector_weights, &epoint, retvel, NULL, NULL);
 
 			/* convert retvel to local space */
 			mag = len_v3(retvel);

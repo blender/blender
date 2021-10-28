@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define BT_CONTACT_SOLVER_INFO
 
 #include "LinearMath/btScalar.h"
-
+#include "LinearMath/btVector3.h"
 enum	btSolverMode
 {
 	SOLVER_RANDMIZE_ORDER = 1,
@@ -34,7 +34,7 @@ enum	btSolverMode
 
 struct btContactSolverInfoData
 {
-	
+
 
 	btScalar	m_tau;
 	btScalar	m_damping;//global non-contact constraint damping, can be locally overridden by constraints during 'getInfo2'.
@@ -58,21 +58,21 @@ struct btContactSolverInfoData
 	int			m_minimumSolverBatchSize;
 	btScalar	m_maxGyroscopicForce;
 	btScalar	m_singleAxisRollingFrictionThreshold;
-
-
+	btVector3   m_box_periodic;
+	btScalar m_leastSquaresResidualThreshold;
 };
 
 struct btContactSolverInfo : public btContactSolverInfoData
 {
 
-	
+
 
 	inline btContactSolverInfo()
 	{
 		m_tau = btScalar(0.6);
 		m_damping = btScalar(1.0);
 		m_friction = btScalar(0.3);
-		m_timeStep = btScalar(1.f/60.f);
+		m_timeStep = btScalar(1.f / 60.f);
 		m_restitution = btScalar(0.);
 		m_maxErrorReduction = btScalar(20.);
 		m_numIterations = 10;
@@ -84,13 +84,15 @@ struct btContactSolverInfo : public btContactSolverInfoData
 		m_splitImpulsePenetrationThreshold = -.04f;
 		m_splitImpulseTurnErp = 0.1f;
 		m_linearSlop = btScalar(0.0);
-		m_warmstartingFactor=btScalar(0.85);
+		m_warmstartingFactor = btScalar(0.85);
 		//m_solverMode =  SOLVER_USE_WARMSTARTING |  SOLVER_SIMD | SOLVER_DISABLE_VELOCITY_DEPENDENT_FRICTION_DIRECTION|SOLVER_USE_2_FRICTION_DIRECTIONS|SOLVER_ENABLE_FRICTION_DIRECTION_CACHING;// | SOLVER_RANDMIZE_ORDER;
 		m_solverMode = SOLVER_USE_WARMSTARTING | SOLVER_SIMD;// | SOLVER_RANDMIZE_ORDER;
 		m_restingContactRestitutionThreshold = 2;//unused as of 2.81
 		m_minimumSolverBatchSize = 128; //try to combine islands until the amount of constraints reaches this limit
 		m_maxGyroscopicForce = 100.f; ///it is only used for 'explicit' version of gyroscopic force
 		m_singleAxisRollingFrictionThreshold = 1e30f;///if the velocity is above this threshold, it will use a single constraint row (axis), otherwise 3 rows.
+		m_box_periodic = btVector3(btScalar(0.0), btScalar(0.0), btScalar(0.0));
+		m_leastSquaresResidualThreshold = 0.0f;
 	}
 };
 

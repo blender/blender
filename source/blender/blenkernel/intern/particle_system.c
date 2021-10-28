@@ -2051,7 +2051,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 	/* add effectors */
 	pd_point_from_particle(efdata->sim, efdata->pa, state, &epoint);
 	if (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)
-		pdDoEffectors(sim->psys->effectors, sim->colliders, part->effector_weights, &epoint, force, impulse);
+		pdDoEffectors(sim->psys->effectors, sim->colliders, part->effector_weights, &epoint, force, impulse, NULL);
 
 	mul_v3_fl(force, efdata->ptex.field);
 	mul_v3_fl(impulse, efdata->ptex.field);

@@ -1511,7 +1511,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						mid_v3_v3v3(pos, sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos);
 						mid_v3_v3v3(vel, sb->bpoint[bs->v1].vec, sb->bpoint[bs->v2].vec);
 						pd_point_from_soft(scene, pos, vel, -1, &epoint);
-						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed, NULL);
 
 						mul_v3_fl(speed, windfactor);
 						add_v3_v3(vel, speed);
@@ -2099,7 +2099,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				float speed[3] = {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 				pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
-				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed, NULL);
 
 				/* apply forcefield*/
 				mul_v3_fl(force, fieldfactor* eval_sb_fric_force_scale);
@@ -2432,7 +2432,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					float speed[3] = {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 					pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
-					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
+					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed, NULL);
 
 					/* apply forcefield*/
 					mul_v3_fl(force, fieldfactor* eval_sb_fric_force_scale);

@@ -528,7 +528,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.images = 100;
 	sce->r.framelen = 1.0;
 	sce->r.blurfac = 0.5;
-	sce->r.frs_sec = 24;
+	sce->r.frs_sec = 50;
 	sce->r.frs_sec_base = 1;
 	sce->r.edgeint = 10;
 	sce->r.ocres = 128;

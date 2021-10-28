@@ -27,11 +27,11 @@
 #ifndef __BKE_EFFECT_H__
 #define __BKE_EFFECT_H__
 
-/** \file BKE_effect.h
- *  \ingroup bke
- *  \since March 2001
- *  \author nzc
- */
+ /** \file BKE_effect.h
+  *  \ingroup bke
+  *  \since March 2001
+  *  \author nzc
+  */
 
 #include "DNA_modifier_types.h"
 
@@ -45,15 +45,15 @@ struct ParticleSimulationData;
 struct ParticleData;
 struct ParticleKey;
 
-struct EffectorWeights *BKE_add_effector_weights(struct Group *group);
-struct PartDeflect *object_add_collision_fields(int type);
+struct EffectorWeights* BKE_add_effector_weights(struct Group* group);
+struct PartDeflect* object_add_collision_fields(int type);
 
 /* Input to effector code */
 typedef struct EffectedPoint {
-	float *loc;
-	float *vel;
-	float *ave;  /* angular velocity for particles with dynamic rotation */
-	float *rot; /* rotation quaternion for particles with dynamic rotation */
+	float* loc;
+	float* vel;
+	float* ave;  /* angular velocity for particles with dynamic rotation */
+	float* rot; /* rotation quaternion for particles with dynamic rotation */
 	float vel_to_frame;
 	float vel_to_sec;
 
@@ -63,7 +63,7 @@ typedef struct EffectedPoint {
 	unsigned int flag;
 	int index;
 
-	struct ParticleSystem *psys;  /* particle system the point belongs to */
+	struct ParticleSystem* psys;  /* particle system the point belongs to */
 } EffectedPoint;
 
 typedef struct GuideEffectorData {
@@ -86,22 +86,22 @@ typedef struct EffectorData {
 	/* only for vortex effector with surface falloff */
 	float nor2[3], vec_to_point2[3];
 
-	int *index; /* point index */
+	int* index; /* point index */
 } EffectorData;
 
 /* used for calculating the effector force */
 typedef struct EffectorCache {
-	struct EffectorCache *next, *prev;
+	struct EffectorCache* next, * prev;
 
-	struct Scene *scene;
-	struct Object *ob;
-	struct ParticleSystem *psys;
-	struct SurfaceModifierData *surmd;
-	
-	struct PartDeflect *pd;
+	struct Scene* scene;
+	struct Object* ob;
+	struct ParticleSystem* psys;
+	struct SurfaceModifierData* surmd;
+
+	struct PartDeflect* pd;
 
 	/* precalculated for guides */
-	struct GuideEffectorData *guide_data;
+	struct GuideEffectorData* guide_data;
 	float guide_loc[4], guide_dir[3], guide_radius;
 	float velocity[3];
 
@@ -109,20 +109,20 @@ typedef struct EffectorCache {
 	int flag;
 } EffectorCache;
 
-void            free_partdeflect(struct PartDeflect *pd);
-struct ListBase *pdInitEffectors(struct Scene *scene, struct Object *ob_src, struct ParticleSystem *psys_src, struct EffectorWeights *weights, bool for_simulation);
-void            pdEndEffectors(struct ListBase **effectors);
-void            pdPrecalculateEffectors(struct ListBase *effectors);
-void            pdDoEffectors(struct ListBase *effectors, struct ListBase *colliders, struct EffectorWeights *weights, struct EffectedPoint *point, float *force, float *impulse);
+void            free_partdeflect(struct PartDeflect* pd);
+struct ListBase* pdInitEffectors(struct Scene* scene, struct Object* ob_src, struct ParticleSystem* psys_src, struct EffectorWeights* weights, bool for_simulation);
+void            pdEndEffectors(struct ListBase** effectors);
+void            pdPrecalculateEffectors(struct ListBase* effectors);
+void            pdDoEffectors(struct ListBase* effectors, struct ListBase* colliders, struct EffectorWeights* weights, struct EffectedPoint* point, float* force, float* impulse, struct Object* ob_src);
 
-void pd_point_from_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleKey *state, struct EffectedPoint *point);
-void pd_point_from_loc(struct Scene *scene, float *loc, float *vel, int index, struct EffectedPoint *point);
-void pd_point_from_soft(struct Scene *scene, float *loc, float *vel, int index, struct EffectedPoint *point);
+void pd_point_from_particle(struct ParticleSimulationData* sim, struct ParticleData* pa, struct ParticleKey* state, struct EffectedPoint* point);
+void pd_point_from_loc(struct Scene* scene, float* loc, float* vel, int index, struct EffectedPoint* point);
+void pd_point_from_soft(struct Scene* scene, float* loc, float* vel, int index, struct EffectedPoint* point);
 
 /* needed for boids */
-float effector_falloff(struct EffectorCache *eff, struct EffectorData *efd, struct EffectedPoint *point, struct EffectorWeights *weights);
-int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], float surface_co[3], float surface_nor[3], float surface_vel[3]);
-int get_effector_data(struct EffectorCache *eff, struct EffectorData *efd, struct EffectedPoint *point, int real_velocity);
+float effector_falloff(struct EffectorCache* eff, struct EffectorData* efd, struct EffectedPoint* point, struct EffectorWeights* weights);
+int closest_point_on_surface(SurfaceModifierData* surmd, const float co[3], float surface_co[3], float surface_nor[3], float surface_vel[3]);
+int get_effector_data(struct EffectorCache* eff, struct EffectorData* efd, struct EffectedPoint* point, int real_velocity);
 
 /* required for particle_system.c */
 //void do_physical_effector(struct EffectorData *eff, struct EffectorPoint *point, float *total_force);
@@ -167,10 +167,10 @@ unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);
 typedef struct SimDebugElement {
 	unsigned int category_hash;
 	unsigned int hash;
-	
+
 	int type;
 	float color[3];
-	
+
 	float v1[3], v2[3];
 	char str[64];
 } SimDebugElement;
@@ -184,17 +184,17 @@ typedef enum eSimDebugElement_Type {
 } eSimDebugElement_Type;
 
 typedef struct SimDebugData {
-	struct GHash *gh;
+	struct GHash* gh;
 } SimDebugData;
 
-extern SimDebugData *_sim_debug_data;
+extern SimDebugData* _sim_debug_data;
 
 void BKE_sim_debug_data_set_enabled(bool enable);
 bool BKE_sim_debug_data_get_enabled(void);
 void BKE_sim_debug_data_free(void);
 
-void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3], const char *str,
-                                    float r, float g, float b, const char *category, unsigned int hash);
+void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3], const char* str,
+	float r, float g, float b, const char* category, unsigned int hash);
 void BKE_sim_debug_data_remove_element(unsigned int hash);
 
 #define BKE_sim_debug_data_add_dot(p, r, g, b, category, ...) { \
@@ -223,7 +223,7 @@ void BKE_sim_debug_data_remove_element(unsigned int hash);
 	BKE_sim_debug_data_remove_element(SIM_DEBUG_HASH(__VA_ARGS__))
 
 void BKE_sim_debug_data_clear(void);
-void BKE_sim_debug_data_clear_category(const char *category);
+void BKE_sim_debug_data_clear_category(const char* category);
 
 #endif
 

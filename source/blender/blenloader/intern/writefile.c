@@ -1247,7 +1247,9 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
 	"", // BPHYS_DATA_TIMES:
-	"BoidData" // case BPHYS_DATA_BOIDS:
+	"BoidData", // case BPHYS_DATA_BOIDS:
+	"", //case BPHYS_DATA_TORQUE
+	""// BPHYS_DATA_CONTACT
 };
 static const char *ptcache_extra_struct[] = {
 	"",

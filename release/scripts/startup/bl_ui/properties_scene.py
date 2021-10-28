@@ -365,11 +365,69 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
             col = split.column()
             col.prop(rbw, "time_scale", text="Speed")
             col.prop(rbw, "use_split_impulse")
-
+            col.prop(rbw, "erp", text="ERP")
+            col.prop(rbw, "cfm", text="CFM")
             col = split.column()
-            col.prop(rbw, "steps_per_second", text="Steps Per Second")
+            col.prop(rbw, "steps_per_frame", text="Steps Per Frame")
             col.prop(rbw, "solver_iterations", text="Solver Iterations")
+            
+            col.prop(rbw, "lsr", text="LSR")
 
+class SCENE_PT_rigid_body_world_Periodic_Boundary(SceneButtonsPanel, Panel):
+    bl_label = "Rigid Body World Periodic Boundary"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        rd = scene.render
+        return scene and (rd.engine in cls.COMPAT_ENGINES)
+
+    
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+
+        rbw = scene.rigidbody_world
+
+        if rbw is not None:
+            col = layout.column(align=True)
+            col.label("Periodic boundary setting:")
+                
+            
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.scale_x = 0.5
+            sub.prop(rbw, "use_periodic_x", toggle=True, text="X Axis")
+            sub = row.row(align=True)
+            sub.active = rbw.use_periodic_x
+            sub.prop(rbw, "lower_periodic_x", text="lower")
+            sub.prop(rbw, "upper_periodic_x", text="upper")
+        
+            
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.scale_x = 0.5
+            sub.prop(rbw, "use_periodic_y", toggle=True, text="Y Axis")
+            sub = row.row(align=True)
+            sub.active = rbw.use_periodic_y
+            sub.prop(rbw, "lower_periodic_y", text="lower")
+            sub.prop(rbw, "upper_periodic_y", text="upper")
+
+            
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.scale_x = 0.5
+            sub.prop(rbw, "use_periodic_z", toggle=True, text="Z Axis")
+            sub = row.row(align=True)
+            sub.active = rbw.use_periodic_z
+            sub.prop(rbw, "lower_periodic_z", text="lower")
+            sub.prop(rbw, "upper_periodic_z", text="upper")
+
+            
 
 class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
     bl_label = "Rigid Body Cache"
@@ -455,6 +513,7 @@ classes = (
     SCENE_PT_audio,
     SCENE_PT_physics,
     SCENE_PT_rigid_body_world,
+    SCENE_PT_rigid_body_world_Periodic_Boundary,
     SCENE_PT_rigid_body_cache,
     SCENE_PT_rigid_body_field_weights,
     SCENE_PT_simplify,
