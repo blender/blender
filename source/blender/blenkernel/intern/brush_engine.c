@@ -1699,11 +1699,11 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
   }
 }
 
-ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
-                                                BrushChannelSet *chset,
-                                                BrushCommandList *cl,
-                                                int tool,
-                                                BrushMappingData *mapdata)
+void BKE_builtin_commandlist_create(Brush *brush,
+                                    BrushChannelSet *chset,
+                                    BrushCommandList *cl,
+                                    int tool,
+                                    BrushMappingData *mapdata)
 {
   BrushCommand *cmd;
   BrushChannel *ch;

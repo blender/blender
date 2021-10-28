@@ -301,14 +301,14 @@ static void sculpt_faceset_bm_end(SculptSession *ss, BMesh *bm)
 
 /* Draw Face Sets Brush. */
 
-ATTR_NO_OPT static int new_fset_apply_curve(SculptSession *ss,
-                                            SculptFaceSetDrawData *data,
-                                            int new_fset,
-                                            float poly_center[3],
-                                            float no[3],
-                                            SculptBrushTest *test,
-                                            BrushChannel *curve_ch,
-                                            int count)
+static int new_fset_apply_curve(SculptSession *ss,
+                                SculptFaceSetDrawData *data,
+                                int new_fset,
+                                float poly_center[3],
+                                float no[3],
+                                SculptBrushTest *test,
+                                BrushChannel *curve_ch,
+                                int count)
 {
   float fade2;
   float tmp[3];
