@@ -4009,12 +4009,12 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
  *
  * Follow #wmEventHandler_KeymapDynamicFn signature.
  */
-void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
-                                            wmWindow *win,
-                                            wmEventHandler_Keymap *handler,
-                                            wmEventHandler_KeymapResult *km_result,
-                                            /* Extra arguments. */
-                                            const bool with_gizmos)
+static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
+                                                   wmWindow *win,
+                                                   wmEventHandler_Keymap *handler,
+                                                   wmEventHandler_KeymapResult *km_result,
+                                                   /* Extra arguments. */
+                                                   const bool with_gizmos)
 {
   memset(km_result, 0x0, sizeof(*km_result));
 
