@@ -159,9 +159,11 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg, IntegratorState s
   if (path_state_ao_bounce(kg, state)) {
     ray.t = kernel_data.integrator.ao_bounces_distance;
 
-    const float object_ao_distance = kernel_tex_fetch(__objects, last_isect_object).ao_distance;
-    if (object_ao_distance != 0.0f) {
-      ray.t = object_ao_distance;
+    if (last_isect_object != OBJECT_NONE) {
+      const float object_ao_distance = kernel_tex_fetch(__objects, last_isect_object).ao_distance;
+      if (object_ao_distance != 0.0f) {
+        ray.t = object_ao_distance;
+      }
     }
   }
 
