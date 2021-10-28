@@ -1709,16 +1709,24 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbasep = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   SEQ_prefetch_stop(scene);
 
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
+  const bool is_preview = sequencer_view_preview_poll(C);
+  if (is_preview) {
+    SEQ_query_rendered_strips_to_tag(seqbasep, scene->r.cfra, 0);
+  }
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+    if (is_preview && (seq->tmp_tag == false)) {
+      continue;
+    }
     if (seq->flag & SELECT) {
-      SEQ_edit_flag_for_removal(scene, ed->seqbasep, seq);
+      SEQ_edit_flag_for_removal(scene, seqbasep, seq);
     }
   }
-  SEQ_edit_remove_flagged_sequences(scene, ed->seqbasep);
+  SEQ_edit_remove_flagged_sequences(scene, seqbasep);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);

@@ -104,6 +104,11 @@ void SEQ_query_strip_effect_chain(struct Sequence *seq_reference,
                                   SeqCollection *collection);
 void SEQ_filter_selected_strips(SeqCollection *collection);
 
+/* Utilities to access these as tags. */
+int SEQ_query_rendered_strips_to_tag(ListBase *seqbase,
+                                     const int timeline_frame,
+                                     const int displayed_channel);
+
 #ifdef __cplusplus
 }
 #endif

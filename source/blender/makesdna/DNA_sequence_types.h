@@ -179,7 +179,9 @@ typedef struct Sequence {
   /** Starting and ending points of the strip in the sequence. */
   int startdisp, enddisp;
   float sat;
-  float mul, handsize;
+  float mul;
+  char tmp_tag;
+  char _pad[3];
 
   short anim_preseek; /* UNUSED. */
   /** Streamindex for movie or sound files with several streams. */
@@ -250,7 +252,7 @@ typedef struct Sequence {
 
   /* Multiview */
   char views_format;
-  char _pad[3];
+  char _pad1[3];
   struct Stereo3dFormat *stereo3d_format;
 
   struct IDProperty *prop;
