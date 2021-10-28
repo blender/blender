@@ -1821,8 +1821,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
   if (CTX_data_equals(member, "selected_ids")) {
     ListBase selected_objects;
     CTX_data_selected_objects(C, &selected_objects);
-    LISTBASE_FOREACH (PointerRNA *, object_ptr, &selected_objects) {
-      ID *selected_id = object_ptr->data;
+    LISTBASE_FOREACH (CollectionPointerLink *, object_ptr_link, &selected_objects) {
+      ID *selected_id = object_ptr_link->ptr.owner_id;
       CTX_data_id_list_add(result, selected_id);
     }
     BLI_freelistN(&selected_objects);
