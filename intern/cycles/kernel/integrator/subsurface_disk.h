@@ -119,9 +119,6 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   float sum_weights = 0.0f;
 
   for (int hit = 0; hit < num_eval_hits; hit++) {
-    /* Quickly retrieve P and Ng without setting up ShaderData. */
-    const float3 hit_P = ray.P + ray.D * ss_isect.hits[hit].t;
-
     /* Get geometric normal. */
     const int object = ss_isect.hits[hit].object;
     const int object_flag = kernel_tex_fetch(__object_flag, object);
@@ -131,10 +128,23 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
     }
 
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      /* Transform normal to world space. */
       Transform itfm;
-      object_fetch_transform_motion_test(kg, object, time, &itfm);
+      Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
       hit_Ng = normalize(transform_direction_transposed(&itfm, hit_Ng));
+
+      /* Transform t to world space, except for OptiX where it already is. */
+#ifdef __KERNEL_OPTIX__
+      (void)tfm;
+#else
+      float3 D = transform_direction(&itfm, ray.D);
+      D = normalize(D) * ss_isect.hits[hit].t;
+      ss_isect.hits[hit].t = len(transform_direction(&tfm, D));
+#endif
     }
+
+    /* Quickly retrieve P and Ng without setting up ShaderData. */
+    const float3 hit_P = ray.P + ray.D * ss_isect.hits[hit].t;
 
     /* Probability densities for local frame axes. */
     const float pdf_N = pick_pdf_N * fabsf(dot(disk_N, hit_Ng));

@@ -306,14 +306,14 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
   }
 #endif
 
-  P = transform_point(&cameratoworld, P);
-  D = normalize(transform_direction(&cameratoworld, D));
-
   /* Stereo transform */
   bool use_stereo = cam->interocular_offset != 0.0f;
   if (use_stereo) {
     spherical_stereo_transform(cam, &P, &D);
   }
+
+  P = transform_point(&cameratoworld, P);
+  D = normalize(transform_direction(&cameratoworld, D));
 
   ray->P = P;
   ray->D = D;
@@ -325,19 +325,19 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
    * and simply take their differences. */
   float3 Pcenter = Pcamera;
   float3 Dcenter = panorama_to_direction(cam, Pcenter.x, Pcenter.y);
-  Pcenter = transform_point(&cameratoworld, Pcenter);
-  Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
   if (use_stereo) {
     spherical_stereo_transform(cam, &Pcenter, &Dcenter);
   }
+  Pcenter = transform_point(&cameratoworld, Pcenter);
+  Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
 
   float3 Px = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
   float3 Dx = panorama_to_direction(cam, Px.x, Px.y);
-  Px = transform_point(&cameratoworld, Px);
-  Dx = normalize(transform_direction(&cameratoworld, Dx));
   if (use_stereo) {
     spherical_stereo_transform(cam, &Px, &Dx);
   }
+  Px = transform_point(&cameratoworld, Px);
+  Dx = normalize(transform_direction(&cameratoworld, Dx));
 
   differential3 dP, dD;
   dP.dx = Px - Pcenter;
@@ -345,11 +345,11 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
   float3 Py = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
   float3 Dy = panorama_to_direction(cam, Py.x, Py.y);
-  Py = transform_point(&cameratoworld, Py);
-  Dy = normalize(transform_direction(&cameratoworld, Dy));
   if (use_stereo) {
     spherical_stereo_transform(cam, &Py, &Dy);
   }
+  Py = transform_point(&cameratoworld, Py);
+  Dy = normalize(transform_direction(&cameratoworld, Dy));
 
   dP.dy = Py - Pcenter;
   dD.dy = Dy - Dcenter;
