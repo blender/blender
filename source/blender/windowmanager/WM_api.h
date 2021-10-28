@@ -276,10 +276,10 @@ typedef void(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
                                              struct wmEventHandler_Keymap *handler,
                                              struct wmEventHandler_KeymapResult *km_result);
 
-void WM_event_get_keymap_from_toolsystem_fallback(struct wmWindowManager *wm,
-                                                  struct wmWindow *win,
-                                                  struct wmEventHandler_Keymap *handler,
-                                                  wmEventHandler_KeymapResult *km_result);
+void WM_event_get_keymap_from_toolsystem_with_gizmos(struct wmWindowManager *wm,
+                                                     struct wmWindow *win,
+                                                     struct wmEventHandler_Keymap *handler,
+                                                     wmEventHandler_KeymapResult *km_result);
 void WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
                                          struct wmWindow *win,
                                          struct wmEventHandler_Keymap *handler,
