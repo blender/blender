@@ -422,6 +422,8 @@ typedef struct SculptSmoothArgs {
   bool do_weighted_smooth : 1;
   bool preserve_fset_boundaries : 1;
   float bound_smooth_radius;  // if 0, ss->cache->radius will be used
+  float vel_smooth_fac;
+  SculptCustomLayer *vel_scl;
 } SculptSmoothArgs;
 
 /* Utils. */
@@ -1095,6 +1097,7 @@ typedef struct SculptThreadedTaskData {
   float crease_pinch_factor;
   bool use_curvature;
   float vel_smooth_fac;
+  int iterations;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -2140,10 +2143,11 @@ void SCULPT_do_scene_project_brush(struct Sculpt *sd,
                                    struct Object *ob,
                                    struct PBVHNode **nodes,
                                    int totnode);
-void SCULPT_do_slide_relax_brush(struct Sculpt *sd,
-                                 struct Object *ob,
-                                 struct PBVHNode **nodes,
-                                 int totnode);
+void SCULPT_do_slide_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 void SCULPT_do_fairing_brush(struct Sculpt *sd,
                              struct Object *ob,
                              struct PBVHNode **nodes,

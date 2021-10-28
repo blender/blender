@@ -1045,6 +1045,10 @@ char SCULPT_mesh_symmetry_xyz_get(Object *object)
 
 int SCULPT_active_face_set_get(SculptSession *ss)
 {
+  if (ss->active_face_index.i == SCULPT_REF_NONE) {
+    return SCULPT_FACE_SET_NONE;
+  }
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       return ss->face_sets[ss->active_face_index.i];
@@ -4072,6 +4076,7 @@ static float brush_strength(const Sculpt *sd,
       }
     case SCULPT_TOOL_DRAW_FACE_SETS:
       return alpha * pressure * overlap * feather;
+    case SCULPT_TOOL_RELAX:
     case SCULPT_TOOL_SLIDE_RELAX:
       return alpha * pressure * overlap * feather * 2.0f;
     case SCULPT_TOOL_PAINT:
@@ -5186,6 +5191,8 @@ bool brush_uses_commandlist(Brush *brush)
     case SCULPT_TOOL_PINCH:
     case SCULPT_TOOL_SIMPLIFY:
     case SCULPT_TOOL_SNAKE_HOOK:
+    case SCULPT_TOOL_SLIDE_RELAX:
+    case SCULPT_TOOL_RELAX:
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_SMEAR:
@@ -5485,7 +5492,10 @@ void do_brush_action(
       SCULPT_do_elastic_deform_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_relax_brush(sd, ob, nodes, totnode);
+      SCULPT_do_slide_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_RELAX:
+      SCULPT_do_relax_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_BOUNDARY:
       SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
@@ -5988,7 +5998,10 @@ static void SCULPT_run_command(
       SCULPT_do_elastic_deform_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_relax_brush(sd, ob, nodes, totnode);
+      SCULPT_do_slide_brush(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_RELAX:
+      SCULPT_do_relax_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_BOUNDARY:
       SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
@@ -6834,6 +6847,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "DynTopo";
     case SCULPT_TOOL_AUTO_FSET:
       return "Auto Face Set";
+    case SCULPT_TOOL_RELAX:
+      return "Relax";
   }
 
   return "Sculpting";
@@ -7057,6 +7072,7 @@ static void sculpt_update_cache_invariants(
     }
     else if (ELEM(brush->sculpt_tool,
                   SCULPT_TOOL_SLIDE_RELAX,
+                  SCULPT_TOOL_RELAX,
                   SCULPT_TOOL_DRAW_FACE_SETS,
                   SCULPT_TOOL_PAINT,
                   SCULPT_TOOL_SMEAR)) {
@@ -8536,9 +8552,14 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
       }
 
       BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
+      int tool = brush->sculpt_tool;
+
+      if (tool == SCULPT_TOOL_SLIDE_RELAX && ss->cache->alt_smooth) {
+        tool = SCULPT_TOOL_RELAX;
+      }
 
       BKE_builtin_commandlist_create(
-          brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
+          brush, ss->cache->channels_final, list, tool, &ss->cache->input_mapping);
     }
 
     SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups);
@@ -8657,6 +8678,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     }
     else if (ELEM(brush->sculpt_tool,
                   SCULPT_TOOL_SLIDE_RELAX,
+                  SCULPT_TOOL_RELAX,
                   SCULPT_TOOL_DRAW_FACE_SETS,
                   SCULPT_TOOL_PAINT,
                   SCULPT_TOOL_SMEAR)) {

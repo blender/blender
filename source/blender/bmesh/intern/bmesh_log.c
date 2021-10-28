@@ -464,7 +464,8 @@ typedef struct {
   void *customdata_f;
   char hflag;
 
-  size_t len;
+  uint len;
+  short mat_nr;
 
   void *customdata_res[MAX_FACE_RESERVED];
   uint v_ids_res[MAX_FACE_RESERVED];
@@ -844,6 +845,7 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 
   lf->len = (size_t)f->len;
   lf->id = (uint)BM_ELEM_GET_ID(log->bm, f);
+  lf->mat_nr = f->mat_nr;
 
   SET_TRACE(lf);
 
@@ -1379,7 +1381,9 @@ static void bm_log_faces_restore(
 
     BMFace *f = BM_face_create_verts(
         bm, vs_tmp, (int)BLI_array_len(vs_tmp), NULL, BM_CREATE_SKIP_ID, true);
+
     f->head.hflag = lf->hflag;
+    f->mat_nr = lf->mat_nr;
 
     copy_v3_v3(f->no, lf->no);
 
@@ -1515,6 +1519,7 @@ static void bm_log_face_values_swap(BMLog *log,
 
     swap_v3_v3(f->no, lf->no);
     SWAP(char, f->head.hflag, lf->hflag);
+    SWAP(short, f->mat_nr, lf->mat_nr);
 
     void *old_cdata = NULL;
 

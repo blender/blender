@@ -280,9 +280,9 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  */
 
 void BM_mesh_bm_from_me(Object *ob,
-                                    BMesh *bm,
-                                    const Mesh *me,
-                                    const struct BMeshFromMeshParams *params)
+                        BMesh *bm,
+                        const Mesh *me,
+                        const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -500,18 +500,30 @@ void BM_mesh_bm_from_me(Object *ob,
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
 
+#define IS_GARBAGE_ID(id) ((id) < 0 || (id) > id_garbage_threshold)
+
   int *existing_id_layers[4] = {NULL, NULL, NULL, NULL};
+
+  /* threshold to detect garbage IDs, number of elements with ids multiplied by 5 */
+  int id_garbage_threshold = 0;
+
   int use_exist_ids = 0;
   int has_ids = bm->idmap.flag & BM_HAS_IDS ?
                     (bm->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)) :
                     0;
-
   if (bm->idmap.flag & BM_HAS_IDS) {
+    int tots[4] = {me->totvert + bm->totvert,
+                   me->totedge + bm->totedge,
+                   me->totloop + bm->totloop,
+                   me->totpoly + bm->totface};
+
     if (!params->ignore_id_layers) {
       for (int i = 0; i < 4; i++) {
         existing_id_layers[i] = (int *)CustomData_get_layer(cdatas[i], CD_MESH_ID);
 
         if (existing_id_layers[i]) {
+          id_garbage_threshold += tots[i];
+
           use_exist_ids |= 1 << i;
         }
       }
@@ -521,6 +533,8 @@ void BM_mesh_bm_from_me(Object *ob,
 
     bm_init_idmap_cdlayers(bm);
   }
+
+  id_garbage_threshold *= 5;
 
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
@@ -560,7 +574,7 @@ void BM_mesh_bm_from_me(Object *ob,
     bm_elem_check_toolflags(bm, (BMElem *)v);
 
     if (has_ids & BM_VERT) {
-      if (use_exist_ids & BM_VERT) {
+      if ((use_exist_ids & BM_VERT) && !IS_GARBAGE_ID(existing_id_layers[0][i])) {
         bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i], false);
       }
       else {
@@ -611,7 +625,7 @@ void BM_mesh_bm_from_me(Object *ob,
     bm_elem_check_toolflags(bm, (BMElem *)e);
 
     if (has_ids & BM_EDGE) {
-      if (use_exist_ids & BM_EDGE) {
+      if ((use_exist_ids & BM_EDGE) && !IS_GARBAGE_ID(existing_id_layers[1][i])) {
         bm_assign_id(bm, (BMElem *)e, existing_id_layers[1][i], false);
       }
       else {
@@ -682,7 +696,7 @@ void BM_mesh_bm_from_me(Object *ob,
       CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
 
       if (has_ids & BM_LOOP) {
-        if (use_exist_ids & BM_LOOP) {
+        if ((use_exist_ids & BM_LOOP) && !IS_GARBAGE_ID(existing_id_layers[2][j - 1])) {
           bm_assign_id(bm, (BMElem *)l_iter, existing_id_layers[2][j - 1], false);
         }
         else {
@@ -697,7 +711,7 @@ void BM_mesh_bm_from_me(Object *ob,
     bm_elem_check_toolflags(bm, (BMElem *)f);
 
     if (has_ids & BM_FACE) {
-      if (use_exist_ids & BM_FACE) {
+      if ((use_exist_ids & BM_FACE) && !IS_GARBAGE_ID(existing_id_layers[3][i])) {
         bm_assign_id(bm, (BMElem *)f, existing_id_layers[3][i], false);
       }
       else {

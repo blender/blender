@@ -77,6 +77,134 @@
 /* join selected meshes into the active mesh, context sensitive
  * return 0 if no join is made (error) and 1 if the join is done */
 
+static void get_id_range(Mesh *mesh,
+                         CustomData *vdata,
+                         CustomData *edata,
+                         CustomData *ldata,
+                         CustomData *pdata,
+                         int totvert,
+                         int totedge,
+                         int totloop,
+                         int totpoly,
+                         int *r_min,
+                         int *r_max)
+{
+  const CustomData *datas[4] = {vdata, edata, ldata, pdata};
+  int tots[4] = {totvert, totedge, totloop, totpoly};
+  int min_id = 0, max_id = 0;
+
+  for (int i = 0; i < 4; i++) {
+    int *ids = CustomData_get_layer(datas[i], CD_MESH_ID);
+    if (!ids) {
+      continue;
+    }
+
+    if (!tots[i]) {
+      continue;
+    }
+
+    if (i == 0) {
+      min_id = max_id = *ids;
+    }
+    else {
+      min_id = MIN2(min_id, *ids);
+      max_id = MAX2(max_id, *ids);
+    }
+
+    ids++;
+
+    for (int j = 1; j < tots[i]; j++, ids++) {
+      min_id = MIN2(min_id, *ids);
+      max_id = MAX2(max_id, *ids);
+    }
+  }
+
+  *r_min = min_id;
+  *r_max = max_id;
+}
+
+static void handle_missing_id_layers(Mesh *src,
+                                     Mesh *dst,
+                                     CustomData *vdata,
+                                     CustomData *edata,
+                                     CustomData *ldata,
+                                     CustomData *pdata,
+                                     int totvert,
+                                     int totedge,
+                                     int totloop,
+                                     int totpoly)
+{
+  const CustomData *src_datas[4] = {&src->vdata, &src->edata, &src->ldata, &src->pdata};
+  const CustomData *dst_datas[4] = {vdata, edata, ldata, pdata};
+  int srctots[4] = {src->totvert, src->totedge, src->totloop, src->totpoly};
+  int dsttots[4] = {totvert, totedge, totloop, totpoly};
+
+  // find starting max id in dst
+  int dst_range[2], src_range[2];
+
+  get_id_range(src,
+               &src->vdata,
+               &src->edata,
+               &src->ldata,
+               &src->pdata,
+               src->totvert,
+               src->totedge,
+               src->totloop,
+               src->totpoly,
+               src_range,
+               src_range + 1);
+
+  get_id_range(dst,
+               vdata,
+               edata,
+               ldata,
+               pdata,
+               totvert,
+               totedge,
+               totloop,
+               totpoly,
+               dst_range,
+               dst_range + 1);
+
+  for (int i = 0; i < 4; i++) {
+    const CustomData *srcdata = src_datas[i];
+    const CustomData *dstdata = dst_datas[i];
+
+    const bool haveid_src = CustomData_has_layer(srcdata, CD_MESH_ID);
+    const bool haveid_dst = CustomData_has_layer(dstdata, CD_MESH_ID);
+
+    if (haveid_dst && haveid_src) {
+      // assign ids
+      int offset = dst_range[1] - src_range[0] + 1;
+
+      int *srcids = CustomData_get_layer(srcdata, CD_MESH_ID);
+      int *dstids = CustomData_get_layer(dstdata, CD_MESH_ID);
+
+      int start = dsttots[i];
+      int end = start + srctots[i];
+
+      // offset ids
+      dstids += start;
+      for (int i = start; i < end; i++, dstids++, srcids++) {
+        *dstids = (*srcids) + offset;
+      }
+    }
+    else if (haveid_dst) {
+      int curid = dst_range[1] + 1;
+      int *dstids = CustomData_get_layer(dstdata, CD_MESH_ID);
+
+      int start = dsttots[i];
+      int end = start + srctots[i];
+      dstids += start;
+
+      // assign new ids
+      for (int i = start; i < end; i++, dstids++) {
+        *dstids = curid++;
+      }
+    }
+  }
+}
+
 static void join_mesh_single(Depsgraph *depsgraph,
                              Main *bmain,
                              Scene *scene,
@@ -285,6 +413,17 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
   }
+
+  handle_missing_id_layers(me,
+                           (Mesh *)ob_dst->data,
+                           vdata,
+                           edata,
+                           ldata,
+                           pdata,
+                           *vertofs,
+                           *edgeofs,
+                           *loopofs,
+                           *polyofs);
 
   /* these are used for relinking (cannot be set earlier, or else reattaching goes wrong) */
   *vertofs += me->totvert;

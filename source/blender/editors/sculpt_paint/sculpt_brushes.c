@@ -3218,6 +3218,8 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
 
   const bool do_reproject = SCULPT_need_reproject;
 
+  const int boundflag = SCULPT_BOUNDARY_ALL;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
@@ -3239,7 +3241,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
     copy_v3_v3(oldco, vd.co);
     SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
 
-    SCULPT_relax_vertex(ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT, vd.co);
+    SCULPT_relax_vertex(ss, &vd, fade * bstrength, boundflag, vd.co);
 
     if (do_reproject) {
       SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
@@ -3252,7 +3254,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_slide_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -3272,14 +3274,32 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  if (ss->cache->alt_smooth) {
-    SCULPT_boundary_info_ensure(ob);
-    for (int i = 0; i < 4; i++) {
-      BLI_task_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
-    }
+  BLI_task_parallel_range(0, totnode, &data, do_topology_slide_task_cb_ex, &settings);
+}
+
+void SCULPT_do_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+    return;
   }
-  else {
-    BLI_task_parallel_range(0, totnode, &data, do_topology_slide_task_cb_ex, &settings);
+
+  BKE_curvemapping_init(brush->curve);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  SCULPT_boundary_info_ensure(ob);
+  for (int i = 0; i < 4; i++) {
+    BLI_task_parallel_range(0, totnode, &data, do_topology_relax_task_cb_ex, &settings);
   }
 }
 

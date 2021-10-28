@@ -1699,11 +1699,11 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
   }
 }
 
-void BKE_builtin_commandlist_create(Brush *brush,
-                                    BrushChannelSet *chset,
-                                    BrushCommandList *cl,
-                                    int tool,
-                                    BrushMappingData *mapdata)
+ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
+                                                BrushChannelSet *chset,
+                                                BrushCommandList *cl,
+                                                int tool,
+                                                BrushMappingData *mapdata)
 {
   BrushCommand *cmd;
   BrushChannel *ch;
@@ -1736,7 +1736,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
   float autosmooth_projection = BKE_brush_channelset_get_float(
       chset, "autosmooth_projection", NULL);
 
-  bool is_cloth = tool = SCULPT_TOOL_CLOTH;
+  bool is_cloth = tool == SCULPT_TOOL_CLOTH;
   is_cloth = is_cloth ||
              (ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_POSE) &&
               BRUSHSET_GET_INT(chset, deform_target, NULL) == BRUSH_DEFORM_TARGET_CLOTH_SIM);
@@ -1761,7 +1761,9 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", NULL);
   if (!no_autosmooth && autosmooth > 0.0f) {
-    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
+    int smooth_tool = tool != SCULPT_TOOL_SLIDE_RELAX ? SCULPT_TOOL_SMOOTH : SCULPT_TOOL_RELAX;
+
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), smooth_tool);
     BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
     BKE_brush_commandset_inherit_all_mappings(cmd->params);
 
