@@ -592,22 +592,26 @@ BoundBox Camera::viewplane_bounds_get()
 
   if (camera_type == CAMERA_PANORAMA) {
     if (use_spherical_stereo == false) {
-      bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w));
+      bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w), nearclip);
     }
     else {
       float half_eye_distance = interocular_distance * 0.5f;
 
-      bounds.grow(make_float3(
-          cameratoworld.x.w + half_eye_distance, cameratoworld.y.w, cameratoworld.z.w));
+      bounds.grow(
+          make_float3(cameratoworld.x.w + half_eye_distance, cameratoworld.y.w, cameratoworld.z.w),
+          nearclip);
 
-      bounds.grow(make_float3(
-          cameratoworld.z.w, cameratoworld.y.w + half_eye_distance, cameratoworld.z.w));
+      bounds.grow(
+          make_float3(cameratoworld.z.w, cameratoworld.y.w + half_eye_distance, cameratoworld.z.w),
+          nearclip);
 
-      bounds.grow(make_float3(
-          cameratoworld.x.w - half_eye_distance, cameratoworld.y.w, cameratoworld.z.w));
+      bounds.grow(
+          make_float3(cameratoworld.x.w - half_eye_distance, cameratoworld.y.w, cameratoworld.z.w),
+          nearclip);
 
-      bounds.grow(make_float3(
-          cameratoworld.x.w, cameratoworld.y.w - half_eye_distance, cameratoworld.z.w));
+      bounds.grow(
+          make_float3(cameratoworld.x.w, cameratoworld.y.w - half_eye_distance, cameratoworld.z.w),
+          nearclip);
     }
   }
   else {
