@@ -4660,17 +4660,6 @@ def _template_view3d_select(*, type, value, legacy):
     )]
 
 
-def _template_view3d_select_for_fallback(params, fallback):
-    if (not fallback) and params.use_fallback_tool_rmb:
-        # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_view3d_select(
-            type=params.select_mouse,
-            value=params.select_mouse_value,
-            legacy=params.legacy,
-        )
-    return []
-
-
 def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
     return [
         *([] if not use_select_mouse else [
@@ -4686,17 +4675,6 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
     ]
 
 
-def _template_view3d_gpencil_select_for_fallback(params, fallback):
-    if (not fallback) and params.use_fallback_tool_rmb:
-        # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_view3d_gpencil_select(
-            type=params.select_mouse,
-            value=params.select_mouse_value,
-            legacy=params.legacy,
-        )
-    return []
-
-
 def _template_uv_select(*, type, value, legacy):
     return [
         ("uv.select", {"type": type, "value": value},
@@ -4704,17 +4682,6 @@ def _template_uv_select(*, type, value, legacy):
         ("uv.select", {"type": type, "value": value, "shift": True},
          {"properties": [("extend", True)]}),
     ]
-
-
-def _template_uv_select_for_fallback(params, fallback):
-    if (not fallback) and params.use_fallback_tool_rmb:
-        # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_uv_select(
-            type=params.select_mouse,
-            value=params.select_mouse_value,
-            legacy=params.legacy,
-        )
-    return []
 
 
 def _template_sequencer_generic_select(*, type, value, legacy):
@@ -4760,17 +4727,6 @@ def _template_sequencer_timeline_select(*, type, value, legacy):
         (("side_of_frame", "linked_time"), ("ctrl",)),
         (("side_of_frame", "linked_time", "extend"), ("ctrl", "shift")),
     )]
-
-
-def _template_sequencer_select_for_fallback(params, fallback):
-    if (not fallback) and params.use_fallback_tool_rmb:
-        # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_sequencer_generic_select(
-            type=params.select_mouse,
-            value=params.select_mouse_value,
-            legacy=params.legacy,
-        )
-    return []
 
 
 def km_image_paint(params):
@@ -6312,7 +6268,6 @@ def km_image_editor_tool_uv_select_box(params, *, fallback):
                 "uv.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_uv_select_for_fallback(params, fallback),
         ]},
     )
 
@@ -6340,7 +6295,6 @@ def km_image_editor_tool_uv_select_lasso(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "uv.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_uv_select_for_fallback(params, fallback),
         ]},
     )
 
@@ -6504,7 +6458,6 @@ def km_3d_view_tool_select_box(params, *, fallback):
                 "view3d.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_select_for_fallback(params, fallback),
         ]},
     )
 
@@ -6534,7 +6487,6 @@ def km_3d_view_tool_select_lasso(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "view3d.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_select_for_fallback(params, fallback),
         ]}
     )
 
@@ -7390,7 +7342,6 @@ def km_3d_view_tool_edit_gpencil_select_box(params, *, fallback):
                 "gpencil.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_gpencil_select_for_fallback(params, fallback),
         ]},
     )
 
@@ -7420,7 +7371,6 @@ def km_3d_view_tool_edit_gpencil_select_lasso(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "gpencil.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_gpencil_select_for_fallback(params, fallback),
         ]}
     )
 
@@ -7546,12 +7496,11 @@ def km_sequencer_editor_tool_select(params, *, fallback):
         _fallback_id("Sequencer Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *([] if fallback else
-              _template_items_tool_select(params, "sequencer.select", "sequencer.cursor_set", extend="toggle")
-              ),
-            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if fallback else _template_items_tool_select(
+                params, "sequencer.select", "sequencer.cursor_set", extend="toggle")),
 
+            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(
+                type=params.select_mouse, value=params.select_mouse_value_fallback, legacy=params.legacy)),
             # Ignored for preview.
             *_template_items_change_frame(params),
         ]},
@@ -7568,7 +7517,6 @@ def km_sequencer_editor_tool_select_box(params, *, fallback):
                 "sequencer.select_box",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event),
                 properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
-            *_template_sequencer_select_for_fallback(params, fallback),
 
             # RMB select can already set the frame, match the tweak tool.
             # Ignored for preview.
