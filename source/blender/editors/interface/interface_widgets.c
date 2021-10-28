@@ -3686,7 +3686,7 @@ static void widget_datasetrow(
 static void widget_nodesocket(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
-  const int radi = 5;
+  const int radi = 0.25f * BLI_rcti_size_y(rect);
 
   uiWidgetBase wtb;
   widget_init(&wtb);
