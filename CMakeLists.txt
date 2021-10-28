@@ -160,8 +160,7 @@ if(APPLE)
   # Currently this causes a build error linking, disable.
   set(WITH_BLENDER_THUMBNAILER OFF)
 elseif(WIN32)
-  # Building the thumbnail extraction DLL could be made optional.
-  set(WITH_BLENDER_THUMBNAILER ON)
+  option(WITH_BLENDER_THUMBNAILER "Build \"BlendThumb.dll\" helper for Windows explorer integration" ON)
 else()
   option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" ON)
 endif()
