@@ -326,17 +326,22 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
   string stdosl_path;
   string shader_path = path_get("shader");
 
-  /* specify output file name */
+  /* Specify output file name. */
   options.push_back("-o");
   options.push_back(outputfile);
 
-  /* specify standard include path */
+  /* Specify standard include path. */
   string include_path_arg = string("-I") + shader_path;
   options.push_back(include_path_arg);
 
   stdosl_path = path_join(shader_path, "stdcycles.h");
 
-  /* compile */
+  /* Compile.
+   *
+   * Mutex protected because the OSL compiler does not appear to be thread safe, see T92503. */
+  static thread_mutex osl_compiler_mutex;
+  thread_scoped_lock lock(osl_compiler_mutex);
+
   OSL::OSLCompiler *compiler = new OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
   bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
   delete compiler;
