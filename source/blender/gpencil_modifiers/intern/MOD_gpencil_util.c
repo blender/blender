@@ -156,7 +156,7 @@ float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
     MDeformWeight *dw = BKE_defvert_find_index(dvert, def_nr);
     weight = dw ? dw->weight : -1.0f;
     if ((weight >= 0.0f) && (inverse)) {
-      return -1.0f;
+      return 1.0f - weight;
     }
 
     if ((weight < 0.0f) && (!inverse)) {
