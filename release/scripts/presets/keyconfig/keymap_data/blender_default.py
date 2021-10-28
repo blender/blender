@@ -6382,7 +6382,8 @@ def km_node_editor_tool_select_box(params, *, fallback):
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "node.select_box",
-                type=params.tool_maybe_tweak, value=params.tool_maybe_tweak_value,
+                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+                **(params.select_tweak_event if fallback else params.tool_tweak_event),
                 properties=[("tweak", True)],
             )),
         ]},
@@ -6395,7 +6396,7 @@ def km_node_editor_tool_select_lasso(params, *, fallback):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "node.select_lasso", type=params.tool_mouse, value='PRESS',
+                "node.select_lasso", **(params.select_tweak_event if fallback else params.tool_tweak_event),
                 properties=[("tweak", True)]))
         ]},
     )
@@ -6407,7 +6408,11 @@ def km_node_editor_tool_select_circle(params, *, fallback):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "node.select_circle", type=params.tool_mouse, value='PRESS',
+                "node.select_circle",
+                # Why circle select should be used on tweak?
+                # So that RMB or Shift-RMB is still able to set an element as active.
+                type=params.select_tweak if fallback else params.tool_mouse,
+                value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
     )
@@ -6474,7 +6479,6 @@ def km_3d_view_tool_select_circle(params, *, fallback):
                 type=params.select_tweak if fallback else params.tool_mouse,
                 value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
-            # No selection fallback since this operates on press.
         ]},
     )
 
@@ -7358,7 +7362,6 @@ def km_3d_view_tool_edit_gpencil_select_circle(params, *, fallback):
                 type=params.select_tweak if fallback else params.tool_mouse,
                 value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
-            # No selection fallback since this operates on press.
         ]},
     )
 
