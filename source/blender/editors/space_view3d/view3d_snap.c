@@ -615,7 +615,7 @@ static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
   const float *snap_target_global = scene->cursor.location;
   const int pivot_point = scene->toolsettings->transform_pivot_point;
 
-  if (snap_selected_to_location(C, snap_target_global, pivot_point, use_offset, true)) {
+  if (snap_selected_to_location(C, snap_target_global, use_offset, pivot_point, true)) {
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
