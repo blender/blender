@@ -33,21 +33,14 @@
 /* Qualifiers for kernel code shared by CPU and GPU */
 
 #ifndef __KERNEL_GPU__
-#  define ccl_device static inline
-#  define ccl_device_noinline static
-#  define ccl_device_noinline_cpu ccl_device_noinline
-#  define ccl_global
-#  define ccl_static_constant static const
-#  define ccl_constant const
-#  define ccl_local
-#  define ccl_local_param
-#  define ccl_private
-#  define ccl_restrict __restrict
-#  define ccl_optional_struct_init
-#  define ccl_loop_no_unroll
-#  define ccl_attr_maybe_unused [[maybe_unused]]
-#  define __KERNEL_WITH_SSE_ALIGN__
 
+/* Leave inlining decisions to compiler for these, the inline keyword here
+ * is not about performance but including function definitions in headers. */
+#  define ccl_device static inline
+#  define ccl_device_noinline static inline
+#  define ccl_device_noinline_cpu ccl_device_noinline
+
+/* Forced inlining. */
 #  if defined(_WIN32) && !defined(FREE_WINDOWS)
 #    define ccl_device_inline static __forceinline
 #    define ccl_device_forceinline static __forceinline
@@ -74,6 +67,18 @@
 #    define ccl_always_inline __attribute__((always_inline))
 #    define ccl_never_inline __attribute__((noinline))
 #  endif /* _WIN32 && !FREE_WINDOWS */
+
+/* Address spaces for GPU. */
+#  define ccl_global
+#  define ccl_static_constant static const
+#  define ccl_constant const
+#  define ccl_private
+
+#  define ccl_restrict __restrict
+#  define ccl_optional_struct_init
+#  define ccl_loop_no_unroll
+#  define ccl_attr_maybe_unused [[maybe_unused]]
+#  define __KERNEL_WITH_SSE_ALIGN__
 
 /* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
 #  ifndef ATTR_FALLTHROUGH
