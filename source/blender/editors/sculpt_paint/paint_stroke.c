@@ -191,7 +191,7 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
 {
-  if (brush->flag & (BRUSH_ANCHORED|BRUSH_DRAG_DOT)) {
+  if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
     return false;
   }
 
@@ -230,7 +230,7 @@ bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
 
   const float t = stroke->stroke_distance_t;
 
-  if (t != 0.0f && t < *state + spacing) {
+  if (t != 0.0f && t < *state + spacing * 2.0f) {
     return false;
   }
   else {
