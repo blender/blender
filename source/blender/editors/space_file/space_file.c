@@ -688,6 +688,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_previous);
   WM_operatortype_append(FILE_OT_next);
   WM_operatortype_append(FILE_OT_refresh);
+  WM_operatortype_append(FILE_OT_asset_library_refresh);
   WM_operatortype_append(FILE_OT_bookmark_add);
   WM_operatortype_append(FILE_OT_bookmark_delete);
   WM_operatortype_append(FILE_OT_bookmark_cleanup);

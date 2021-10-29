@@ -247,7 +247,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
 
   uiItemR(row, &params_ptr, "asset_library_ref", 0, "", ICON_NONE);
   if (params->asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
-    uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_refresh");
+    uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_asset_library_refresh");
   }
 
   uiItemS(col);
