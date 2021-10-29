@@ -570,6 +570,8 @@ struct CurveEval {
   blender::Array<int> evaluated_point_offsets() const;
   blender::Array<float> accumulated_spline_lengths() const;
 
+  void mark_cache_invalid();
+
   void assert_valid_point_attributes() const;
 };
 

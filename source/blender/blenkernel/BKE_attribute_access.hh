@@ -183,6 +183,8 @@ struct WriteAttributeLookup {
   GVMutableArrayPtr varray;
   /* Domain the attributes lives on in the geometry. */
   AttributeDomain domain;
+  /* Call this after changing the attribute to invalidate caches that depend on this attribute. */
+  std::function<void()> tag_modified_fn;
 
   /* Convenience function to check if the attribute has been found. */
   operator bool() const
