@@ -14,7 +14,17 @@ const char *osx_user_locale()
   CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
   NSLocale *myNSLocale = (NSLocale *)myCFLocale;
   [myNSLocale autorelease];
-  NSString *nsIdentifier = [myNSLocale localeIdentifier];
+
+  // This produces gettext-invalid locale in recent macOS versions (11.4),
+  // like `ko-Kore_KR` instead of `ko_KR`. See T88877.
+  // NSString *nsIdentifier = [myNSLocale localeIdentifier];
+
+  const NSString *nsIdentifier = [myNSLocale languageCode];
+  const NSString *const nsIdentifier_country = [myNSLocale countryCode];
+  if ([nsIdentifier length] != 0 && [nsIdentifier_country length] != 0) {
+    nsIdentifier = [NSString stringWithFormat:@"%@_%@", nsIdentifier, nsIdentifier_country];
+  }
+
   user_locale = ::strdup([nsIdentifier UTF8String]);
   [pool drain];
 

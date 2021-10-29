@@ -117,6 +117,13 @@ void bl_locale_set(const char *locale)
 
 #undef LOCALE_INFO
   }
+  // Extra catch on `std::runtime_error` is needed for macOS/Clang as it seems that exceptions
+  // like `boost::locale::conv::conversion_error` (which inherit from `std::runtime_error`) are
+  // not caught by their ancestor `std::exception`. See
+  // https://developer.blender.org/T88877#1177108 .
+  catch (std::runtime_error const &e) {
+    std::cout << "bl_locale_set(" << locale << "): " << e.what() << " \n";
+  }
   catch (std::exception const &e) {
     std::cout << "bl_locale_set(" << locale << "): " << e.what() << " \n";
   }
