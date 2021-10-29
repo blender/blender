@@ -398,15 +398,16 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
         transforms);
   }
 
-  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final
   {
     InstancesComponent &instances_component = static_cast<InstancesComponent &>(component);
     MutableSpan<float4x4> transforms = instances_component.instance_transforms();
-    return std::make_unique<fn::GVMutableArray_For_DerivedSpan<float4x4,
-                                                               float3,
-                                                               get_transform_position,
-                                                               set_transform_position>>(
-        transforms);
+    return {
+        std::make_unique<fn::GVMutableArray_For_DerivedSpan<float4x4,
+                                                            float3,
+                                                            get_transform_position,
+                                                            set_transform_position>>(transforms),
+        domain_};
   }
 
   bool try_delete(GeometryComponent &UNUSED(component)) const final
@@ -443,13 +444,14 @@ class InstanceIDAttributeProvider final : public BuiltinAttributeProvider {
     return std::make_unique<fn::GVArray_For_Span<int>>(instances.instance_ids());
   }
 
-  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final
   {
     InstancesComponent &instances = static_cast<InstancesComponent &>(component);
     if (instances.instance_ids().is_empty()) {
       return {};
     }
-    return std::make_unique<fn::GVMutableArray_For_MutableSpan<int>>(instances.instance_ids());
+    return {std::make_unique<fn::GVMutableArray_For_MutableSpan<int>>(instances.instance_ids()),
+            domain_};
   }
 
   bool try_delete(GeometryComponent &component) const final

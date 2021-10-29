@@ -160,6 +160,13 @@ blender::Array<float> CurveEval::accumulated_spline_lengths() const
   return spline_lengths;
 }
 
+void CurveEval::mark_cache_invalid()
+{
+  for (SplinePtr &spline : splines_) {
+    spline->mark_cache_invalid();
+  }
+}
+
 static BezierSpline::HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_type)
 {
   switch (dna_handle_type) {

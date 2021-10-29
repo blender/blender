@@ -87,7 +87,7 @@ class BuiltinAttributeProvider {
   }
 
   virtual GVArrayPtr try_get_for_read(const GeometryComponent &component) const = 0;
-  virtual GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const = 0;
+  virtual WriteAttributeLookup try_get_for_write(GeometryComponent &component) const = 0;
   virtual bool try_delete(GeometryComponent &component) const = 0;
   virtual bool try_create(GeometryComponent &UNUSED(component),
                           const AttributeInit &UNUSED(initializer)) const = 0;
@@ -267,7 +267,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   }
 
   GVArrayPtr try_get_for_read(const GeometryComponent &component) const final;
-  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final;
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final;
   bool try_delete(GeometryComponent &component) const final;
   bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final;
   bool exists(const GeometryComponent &component) const final;
