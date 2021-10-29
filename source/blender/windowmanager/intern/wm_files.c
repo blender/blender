@@ -2142,7 +2142,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   printf("ok\n");
-
+  BKE_report(op->reports, RPT_INFO, "Startup file saved");
   G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
