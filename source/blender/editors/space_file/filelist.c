@@ -1911,6 +1911,7 @@ static void filelist_clear_asset_library(FileList *filelist)
 {
   /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
   filelist->asset_library = NULL;
+  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
 }
 
 void filelist_clear_ex(struct FileList *filelist,
@@ -2010,7 +2011,6 @@ void filelist_free(struct FileList *filelist)
     filelist->selection_state = NULL;
   }
 
-  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
   MEM_SAFE_FREE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
