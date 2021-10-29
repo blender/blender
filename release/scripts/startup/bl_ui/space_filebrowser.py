@@ -792,7 +792,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         st = context.space_data
         params = st.params
 
-        layout.operator("file.refresh", text="Refresh")
+        layout.operator("file.asset_library_refresh")
 
         layout.separator()
 
