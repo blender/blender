@@ -293,8 +293,8 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
   g->advance_i = (int)g->advance;
   g->pos[0] = slot->bitmap_left;
   g->pos[1] = slot->bitmap_top;
-  g->dims[0] = slot->bitmap.width;
-  g->dims[1] = slot->bitmap.rows;
+  g->dims[0] = (int)slot->bitmap.width;
+  g->dims[1] = (int)slot->bitmap.rows;
   g->pitch = slot->bitmap.pitch;
 
   FT_BBox bbox;
@@ -304,7 +304,7 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
   g->box.ymin = ((float)bbox.yMin) / 64.0f;
   g->box.ymax = ((float)bbox.yMax) / 64.0f;
 
-  const int buffer_size = slot->bitmap.width * slot->bitmap.rows;
+  const int buffer_size = (int)(slot->bitmap.width * slot->bitmap.rows);
   if (buffer_size != 0) {
     if (font->flags & BLF_MONOCHROME) {
       /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
