@@ -112,11 +112,25 @@
 #include "DNA_view3d_types.h"
 
 static CLG_LogRef LOG = {"bke.image"};
-static ThreadMutex *image_mutex;
 
 static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);
 static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
+
+/* Reset runtime image fields when datablock is being initialized. */
+static void image_runtime_reset(struct Image *image)
+{
+  memset(&image->runtime, 0, sizeof(image->runtime));
+  image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
+  BLI_mutex_init(image->runtime.cache_mutex);
+}
+
+/* Reset runtime image fields when datablock is being copied.  */
+static void image_runtime_reset_on_copy(struct Image *image)
+{
+  image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
+  BLI_mutex_init(image->runtime.cache_mutex);
+}
 
 static void image_init_data(ID *id)
 {
@@ -167,6 +181,8 @@ static void image_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   else {
     image_dst->preview = NULL;
   }
+
+  image_runtime_reset_on_copy(image_dst);
 }
 
 static void image_free_data(ID *id)
@@ -194,6 +210,9 @@ static void image_free_data(ID *id)
 
   BLI_freelistN(&image->tiles);
   BLI_freelistN(&image->gpu_refresh_areas);
+
+  BLI_mutex_end(image->runtime.cache_mutex);
+  MEM_freeN(image->runtime.cache_mutex);
 }
 
 static void image_foreach_cache(ID *id,
@@ -327,6 +346,8 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   ima->lastused = 0;
   ima->gpuflag = 0;
   BLI_listbase_clear(&ima->gpu_refresh_areas);
+
+  image_runtime_reset(ima);
 }
 
 static void image_blend_read_lib(BlendLibReader *UNUSED(reader), ID *id)
@@ -454,16 +475,6 @@ static struct ImBuf *imagecache_get(Image *image, int index)
   return NULL;
 }
 
-void BKE_images_init(void)
-{
-  image_mutex = BLI_mutex_alloc();
-}
-
-void BKE_images_exit(void)
-{
-  BLI_mutex_free(image_mutex);
-}
-
 /* ***************** ALLOC & FREE, DATA MANAGING *************** */
 
 static void image_free_cached_frames(Image *image)
@@ -516,7 +527,7 @@ static void image_free_anims(Image *ima)
 void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
 {
   if (do_lock) {
-    BLI_mutex_lock(image_mutex);
+    BLI_mutex_lock(ima->runtime.cache_mutex);
   }
   image_free_cached_frames(ima);
 
@@ -534,7 +545,7 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
   }
 
   if (do_lock) {
-    BLI_mutex_unlock(image_mutex);
+    BLI_mutex_unlock(ima->runtime.cache_mutex);
   }
 }
 
@@ -573,6 +584,8 @@ static void image_init(Image *ima, short source, short type)
       BKE_image_add_renderslot(ima, NULL);
     }
   }
+
+  image_runtime_reset(ima);
 
   BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
   ima->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Image Stereo Format");
@@ -647,7 +660,9 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source)
 {
   /* sanity check */
   if (dest && source && dest != source) {
-    BLI_mutex_lock(image_mutex);
+    BLI_mutex_lock(source->runtime.cache_mutex);
+    BLI_mutex_lock(dest->runtime.cache_mutex);
+
     if (source->cache != NULL) {
       struct MovieCacheIter *iter;
       iter = IMB_moviecacheIter_new(source->cache);
@@ -659,7 +674,9 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source)
       }
       IMB_moviecacheIter_free(iter);
     }
-    BLI_mutex_unlock(image_mutex);
+
+    BLI_mutex_unlock(dest->runtime.cache_mutex);
+    BLI_mutex_unlock(source->runtime.cache_mutex);
 
     BKE_id_free(bmain, source);
   }
@@ -1260,7 +1277,8 @@ static uintptr_t image_mem_size(Image *image)
     return 0;
   }
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
+
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -1292,7 +1310,8 @@ static uintptr_t image_mem_size(Image *image)
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 
   return size;
 }
@@ -1370,11 +1389,11 @@ static bool imagecache_check_free_anim(ImBuf *ibuf, void *UNUSED(userkey), void 
 /* except_frame is weak, only works for seqs without offset... */
 void BKE_image_free_anim_ibufs(Image *ima, int except_frame)
 {
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(ima->runtime.cache_mutex);
   if (ima->cache != NULL) {
     IMB_moviecache_cleanup(ima->cache, imagecache_check_free_anim, &except_frame);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(ima->runtime.cache_mutex);
 }
 
 void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra)
@@ -3293,7 +3312,7 @@ void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *
   }
 
   if (do_reset) {
-    BLI_mutex_lock(image_mutex);
+    BLI_mutex_lock(ima->runtime.cache_mutex);
 
     image_free_cached_frames(ima);
     BKE_image_free_views(ima);
@@ -3301,7 +3320,7 @@ void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *
     /* add new views */
     image_viewer_create_views(rd, ima);
 
-    BLI_mutex_unlock(image_mutex);
+    BLI_mutex_unlock(ima->runtime.cache_mutex);
   }
 
   BLI_thread_unlock(LOCK_DRAW_IMAGE);
@@ -3568,7 +3587,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
     return;
   }
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(ima->runtime.cache_mutex);
 
   switch (signal) {
     case IMA_SIGNAL_FREE:
@@ -3703,7 +3722,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       break;
   }
 
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(ima->runtime.cache_mutex);
 
   /* don't use notifiers because they are not 100% sure to succeeded
    * this also makes sure all scenes are accounted for. */
@@ -5230,11 +5249,11 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 {
   ImBuf *ibuf;
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(ima->runtime.cache_mutex);
 
   ibuf = image_acquire_ibuf(ima, iuser, r_lock);
 
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(ima->runtime.cache_mutex);
 
   return ibuf;
 }
@@ -5253,9 +5272,9 @@ void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
   }
 
   if (ibuf) {
-    BLI_mutex_lock(image_mutex);
+    BLI_mutex_lock(ima->runtime.cache_mutex);
     IMB_freeImBuf(ibuf);
-    BLI_mutex_unlock(image_mutex);
+    BLI_mutex_unlock(ima->runtime.cache_mutex);
   }
 }
 
@@ -5269,7 +5288,7 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
     return false;
   }
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(ima->runtime.cache_mutex);
 
   ibuf = image_get_cached_ibuf(ima, iuser, NULL, NULL);
 
@@ -5277,7 +5296,7 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
     ibuf = image_acquire_ibuf(ima, iuser, NULL);
   }
 
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(ima->runtime.cache_mutex);
 
   IMB_freeImBuf(ibuf);
 
@@ -5297,6 +5316,7 @@ typedef struct ImagePoolItem {
 typedef struct ImagePool {
   ListBase image_buffers;
   BLI_mempool *memory_pool;
+  ThreadMutex mutex;
 } ImagePool;
 
 ImagePool *BKE_image_pool_new(void)
@@ -5304,22 +5324,28 @@ ImagePool *BKE_image_pool_new(void)
   ImagePool *pool = MEM_callocN(sizeof(ImagePool), "Image Pool");
   pool->memory_pool = BLI_mempool_create(sizeof(ImagePoolItem), 0, 128, BLI_MEMPOOL_NOP);
 
+  BLI_mutex_init(&pool->mutex);
+
   return pool;
 }
 
 void BKE_image_pool_free(ImagePool *pool)
 {
   /* Use single lock to dereference all the image buffers. */
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(&pool->mutex);
   for (ImagePoolItem *item = pool->image_buffers.first; item != NULL; item = item->next) {
     if (item->ibuf != NULL) {
+      BLI_mutex_lock(item->image->runtime.cache_mutex);
       IMB_freeImBuf(item->ibuf);
+      BLI_mutex_unlock(item->image->runtime.cache_mutex);
     }
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(&pool->mutex);
 
   BLI_mempool_destroy(pool->memory_pool);
   MEM_freeN(pool);
+
+  BLI_mutex_end(&pool->mutex);
 }
 
 BLI_INLINE ImBuf *image_pool_find_item(
@@ -5350,28 +5376,34 @@ ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool
   }
 
   if (pool == NULL) {
-    /* pool could be NULL, in this case use general acquire function */
+    /* Pool could be NULL, in this case use general acquire function. */
     return BKE_image_acquire_ibuf(ima, iuser, NULL);
   }
 
   image_get_entry_and_index(ima, iuser, &entry, &index);
+
+  /* Use double-checked locking, to avoid locking when the requested image buffer is already in the
+   * pool. */
 
   ibuf = image_pool_find_item(pool, ima, entry, index, &found);
   if (found) {
     return ibuf;
   }
 
-  BLI_mutex_lock(image_mutex);
+  /* Lock the pool, to allow thread-safe modification of the content of the pool. */
+  BLI_mutex_lock(&pool->mutex);
 
   ibuf = image_pool_find_item(pool, ima, entry, index, &found);
 
-  /* will also create item even in cases image buffer failed to load,
-   * prevents trying to load the same buggy file multiple times
-   */
+  /* Will also create item even in cases image buffer failed to load,
+   * prevents trying to load the same buggy file multiple times. */
   if (!found) {
     ImagePoolItem *item;
 
-    ibuf = image_acquire_ibuf(ima, iuser, NULL);
+    /* Thread-safe acquisition of an image buffer from the image.
+     * The acquisition does not use image pools, so there is no risk of recursive or out-of-order
+     * mutex locking. */
+    ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 
     item = BLI_mempool_alloc(pool->memory_pool);
     item->image = ima;
@@ -5382,7 +5414,7 @@ ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool
     BLI_addtail(&pool->image_buffers, item);
   }
 
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(&pool->mutex);
 
   return ibuf;
 }
@@ -5783,7 +5815,7 @@ bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
   bool is_dirty = false;
   bool is_writable = false;
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -5798,7 +5830,7 @@ bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 
   if (r_is_writable) {
     *r_is_writable = is_writable;
@@ -5827,7 +5859,7 @@ bool BKE_image_buffer_format_writable(ImBuf *ibuf)
 
 void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)
 {
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -5839,14 +5871,14 @@ void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 }
 
 bool BKE_image_has_loaded_ibuf(Image *image)
 {
   bool has_loaded_ibuf = false;
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -5856,7 +5888,7 @@ bool BKE_image_has_loaded_ibuf(Image *image)
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 
   return has_loaded_ibuf;
 }
@@ -5869,7 +5901,7 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *name)
 {
   ImBuf *ibuf = NULL;
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -5884,7 +5916,7 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *name)
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 
   return ibuf;
 }
@@ -5902,7 +5934,7 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
 {
   ImBuf *ibuf = NULL;
 
-  BLI_mutex_lock(image_mutex);
+  BLI_mutex_lock(image->runtime.cache_mutex);
   if (image->cache != NULL) {
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
@@ -5913,7 +5945,7 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
     }
     IMB_moviecacheIter_free(iter);
   }
-  BLI_mutex_unlock(image_mutex);
+  BLI_mutex_unlock(image->runtime.cache_mutex);
 
   return ibuf;
 }

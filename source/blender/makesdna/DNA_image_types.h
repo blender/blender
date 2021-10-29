@@ -147,6 +147,12 @@ typedef enum eImageTextureResolution {
   IMA_TEXTURE_RESOLUTION_LEN
 } eImageTextureResolution;
 
+typedef struct Image_Runtime {
+  /* Mutex used to guarantee thread-safe access to the cached ImBuf of the corresponding image ID.
+   */
+  void *cache_mutex;
+} Image_Runtime;
+
 typedef struct Image {
   ID id;
 
@@ -213,6 +219,8 @@ typedef struct Image {
   /** ImageView. */
   ListBase views;
   struct Stereo3dFormat *stereo3d_format;
+
+  Image_Runtime runtime;
 } Image;
 
 /* **************** IMAGE ********************* */

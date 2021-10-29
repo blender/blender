@@ -414,7 +414,6 @@ int main(int argc,
 
   BKE_idtype_init();
   BKE_cachefiles_init();
-  BKE_images_init();
   BKE_modifier_init();
   BKE_gpencil_modifier_init();
   BKE_shaderfx_init();
