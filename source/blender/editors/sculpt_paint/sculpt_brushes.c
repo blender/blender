@@ -1301,8 +1301,6 @@ void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);
   const float displace = radius * (0.18f + offset);
 
-  SCULPT_vertex_random_access_ensure(ss);
-
   /* The sculpt-plane normal (whatever its set to). */
   float area_no_sp[3];
 
@@ -1972,8 +1970,6 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     ss->cache->layer_displacement_factor = ss->custom_layers[SCULPT_SCL_LAYER_DISP]->data;
     ss->cache->layer_stroke_id = ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]->data;
   }
-
-  SCULPT_vertex_random_access_ensure(ss);
 
   SculptThreadedTaskData data = {.sd = sd,
                                  .ob = ob,

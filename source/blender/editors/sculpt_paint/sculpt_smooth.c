@@ -1608,7 +1608,7 @@ void SCULPT_smooth(Sculpt *sd,
     last = 1.0f;
   }
 
-  printf("smooth iterations: %d, last: %.4f\n", count + 1, last);
+  // printf("smooth iterations: %d, last: %.4f\n", count + 1, last);
 
   if (type == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "sculpt smooth: pmap missing");
