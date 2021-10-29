@@ -22,12 +22,12 @@
 namespace blender::nodes {
 static void geo_node_viewer_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Value").supports_field().hide_value();
-  b.add_input<decl::Vector>("Value", "Value_001").supports_field().hide_value();
-  b.add_input<decl::Color>("Value", "Value_002").supports_field().hide_value();
-  b.add_input<decl::Int>("Value", "Value_003").supports_field().hide_value();
-  b.add_input<decl::Bool>("Value", "Value_004").supports_field().hide_value();
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Float>(N_("Value")).supports_field().hide_value();
+  b.add_input<decl::Vector>(N_("Value"), "Value_001").supports_field().hide_value();
+  b.add_input<decl::Color>(N_("Value"), "Value_002").supports_field().hide_value();
+  b.add_input<decl::Int>(N_("Value"), "Value_003").supports_field().hide_value();
+  b.add_input<decl::Bool>(N_("Value"), "Value_004").supports_field().hide_value();
 }
 
 static void geo_node_viewer_init(bNodeTree *UNUSED(tree), bNode *node)

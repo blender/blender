@@ -42,22 +42,22 @@ namespace blender::nodes {
 
 static void geo_node_point_distribute_points_on_faces_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>("Distance Min").min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Density Max").default_value(10.0f).min(0.0f);
-  b.add_input<decl::Float>("Density").default_value(10.0f).supports_field();
-  b.add_input<decl::Float>("Density Factor")
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Distance Min")).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Density Max")).default_value(10.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Density")).default_value(10.0f).supports_field();
+  b.add_input<decl::Float>(N_("Density Factor"))
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .supports_field();
-  b.add_input<decl::Int>("Seed");
+  b.add_input<decl::Int>(N_("Seed"));
 
-  b.add_output<decl::Geometry>("Points");
-  b.add_output<decl::Vector>("Normal").field_source();
-  b.add_output<decl::Vector>("Rotation").subtype(PROP_EULER).field_source();
+  b.add_output<decl::Geometry>(N_("Points"));
+  b.add_output<decl::Vector>(N_("Normal")).field_source();
+  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_source();
 }
 
 static void geo_node_point_distribute_points_on_faces_layout(uiLayout *layout,

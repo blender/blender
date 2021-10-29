@@ -23,14 +23,14 @@ namespace blender::nodes {
 
 static void geo_node_attribute_fill_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute").is_attribute_name();
-  b.add_input<decl::Vector>("Value", "Value");
-  b.add_input<decl::Float>("Value", "Value_001");
-  b.add_input<decl::Color>("Value", "Value_002");
-  b.add_input<decl::Bool>("Value", "Value_003");
-  b.add_input<decl::Int>("Value", "Value_004");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute")).is_attribute_name();
+  b.add_input<decl::Vector>(N_("Value"), "Value");
+  b.add_input<decl::Float>(N_("Value"), "Value_001");
+  b.add_input<decl::Color>(N_("Value"), "Value_002");
+  b.add_input<decl::Bool>(N_("Value"), "Value_003");
+  b.add_input<decl::Int>(N_("Value"), "Value_004");
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_fill_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

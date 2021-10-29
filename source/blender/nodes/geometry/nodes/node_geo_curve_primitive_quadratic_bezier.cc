@@ -21,11 +21,19 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_quadratic_bezier_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Resolution").default_value(16).min(3).max(256).subtype(PROP_UNSIGNED);
-  b.add_input<decl::Vector>("Start").default_value({-1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Middle").default_value({0.0f, 2.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(16)
+      .min(3)
+      .max(256)
+      .subtype(PROP_UNSIGNED);
+  b.add_input<decl::Vector>(N_("Start"))
+      .default_value({-1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Middle"))
+      .default_value({0.0f, 2.0f, 0.0f})
+      .subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("End")).default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,

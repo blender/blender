@@ -29,32 +29,32 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Vertices")
+  b.add_input<decl::Int>(N_("Vertices"))
       .default_value(32)
       .min(3)
       .max(512)
-      .description("The number of vertices around the circumference");
-  b.add_input<decl::Int>("Side Segments")
+      .description(N_("The number of vertices around the circumference"));
+  b.add_input<decl::Int>(N_("Side Segments"))
       .default_value(1)
       .min(1)
       .max(512)
-      .description("The number of segments along the side");
-  b.add_input<decl::Int>("Fill Segments")
+      .description(N_("The number of segments along the side"));
+  b.add_input<decl::Int>(N_("Fill Segments"))
       .default_value(1)
       .min(1)
       .max(512)
-      .description("The number of concentric segments of the fill");
-  b.add_input<decl::Float>("Radius")
+      .description(N_("The number of concentric segments of the fill"));
+  b.add_input<decl::Float>(N_("Radius"))
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description("The radius of the cylinder");
-  b.add_input<decl::Float>("Depth")
+      .description(N_("The radius of the cylinder"));
+  b.add_input<decl::Float>(N_("Depth"))
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description("The height of the cylinder on the Z axis");
-  b.add_output<decl::Geometry>("Mesh");
+      .description(N_("The height of the cylinder on the Z axis"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,

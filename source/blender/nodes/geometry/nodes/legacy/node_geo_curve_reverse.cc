@@ -24,9 +24,9 @@ namespace blender::nodes {
 
 static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_reverse_exec(GeoNodeExecParams params)

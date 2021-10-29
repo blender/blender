@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_handle_type_selection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Selection").field_source();
+  b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
 static void geo_node_curve_handle_type_selection_layout(uiLayout *layout,

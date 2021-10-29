@@ -23,15 +23,15 @@ namespace blender::nodes {
 
 static void geo_node_attribute_combine_xyz_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("X");
-  b.add_input<decl::Float>("X", "X_001");
-  b.add_input<decl::String>("Y");
-  b.add_input<decl::Float>("Y", "Y_001");
-  b.add_input<decl::String>("Z");
-  b.add_input<decl::Float>("Z", "Z_001");
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("X"));
+  b.add_input<decl::Float>(N_("X"), "X_001");
+  b.add_input<decl::String>(N_("Y"));
+  b.add_input<decl::Float>(N_("Y"), "Y_001");
+  b.add_input<decl::String>(N_("Z"));
+  b.add_input<decl::Float>(N_("Z"), "Z_001");
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_combine_xyz_layout(uiLayout *layout,

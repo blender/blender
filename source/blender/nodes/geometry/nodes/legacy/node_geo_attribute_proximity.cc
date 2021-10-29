@@ -30,11 +30,11 @@ namespace blender::nodes {
 
 static void geo_node_attribute_proximity_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Geometry>("Target");
-  b.add_input<decl::String>("Distance");
-  b.add_input<decl::String>("Position");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Geometry>(N_("Target"));
+  b.add_input<decl::String>(N_("Distance"));
+  b.add_input<decl::String>(N_("Position"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_proximity_layout(uiLayout *layout,

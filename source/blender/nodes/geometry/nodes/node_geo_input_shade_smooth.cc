@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_shade_smooth_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Smooth").field_source();
+  b.add_output<decl::Bool>(N_("Smooth")).field_source();
 }
 
 static void geo_node_input_shade_smooth_exec(GeoNodeExecParams params)

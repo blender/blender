@@ -20,12 +20,12 @@ namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Geometry>("Mesh");
-  b.add_output<decl::Geometry>("Point Cloud");
-  b.add_output<decl::Geometry>("Curve");
-  b.add_output<decl::Geometry>("Volume");
-  b.add_output<decl::Geometry>("Instances");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Geometry>(N_("Point Cloud"));
+  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>(N_("Instances"));
 }
 
 static void geo_node_separate_components_exec(GeoNodeExecParams params)

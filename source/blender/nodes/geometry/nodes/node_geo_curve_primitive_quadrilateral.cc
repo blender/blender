@@ -23,18 +23,32 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_quadrilateral_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Width").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Height").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Bottom Width").default_value(4.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Top Width").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Offset").default_value(1.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Bottom Height").default_value(3.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Top Height").default_value(1.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 1").default_value({-1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 2").default_value({1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 3").default_value({1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 4").default_value({-1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Float>(N_("Width")).default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Height")).default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Bottom Width"))
+      .default_value(4.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Top Width")).default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Offset")).default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Bottom Height"))
+      .default_value(3.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Top Height")).default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>(N_("Point 1"))
+      .default_value({-1.0f, -1.0f, 0.0f})
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>(N_("Point 2"))
+      .default_value({1.0f, -1.0f, 0.0f})
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>(N_("Point 3"))
+      .default_value({1.0f, 1.0f, 0.0f})
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>(N_("Point 4"))
+      .default_value({-1.0f, 1.0f, 0.0f})
+      .subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_primitive_quadrilateral_layout(uiLayout *layout,

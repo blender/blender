@@ -27,9 +27,9 @@ namespace blender::nodes {
 
 static void geo_node_points_to_vertices_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 template<typename T>

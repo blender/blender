@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_id_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("ID").field_source();
+  b.add_output<decl::Int>(N_("ID")).field_source();
 }
 
 static void geo_node_input_id_exec(GeoNodeExecParams params)

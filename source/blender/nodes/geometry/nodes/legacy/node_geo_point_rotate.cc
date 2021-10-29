@@ -25,14 +25,16 @@ namespace blender::nodes {
 
 static void geo_node_point_rotate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Axis");
-  b.add_input<decl::Vector>("Axis", "Axis_001").default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
-  b.add_input<decl::String>("Angle");
-  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
-  b.add_input<decl::String>("Rotation");
-  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Axis"));
+  b.add_input<decl::Vector>(N_("Axis"), "Axis_001")
+      .default_value({0.0, 0.0, 1.0})
+      .subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Angle"));
+  b.add_input<decl::Float>(N_("Angle"), "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>(N_("Rotation"));
+  b.add_input<decl::Vector>(N_("Rotation"), "Rotation_001").subtype(PROP_EULER);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

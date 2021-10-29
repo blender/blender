@@ -29,14 +29,14 @@ namespace blender::nodes {
 
 static void cmp_node_texture_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>("Offset").min(-2.0f).max(2.0f).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Scale")
+  b.add_input<decl::Vector>(N_("Offset")).min(-2.0f).max(2.0f).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Scale"))
       .default_value({1.0f, 1.0f, 1.0f})
       .min(-10.0f)
       .max(10.0f)
       .subtype(PROP_XYZ);
-  b.add_output<decl::Float>("Value");
-  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>(N_("Value"));
+  b.add_output<decl::Color>(N_("Color"));
 }
 
 }  // namespace blender::nodes

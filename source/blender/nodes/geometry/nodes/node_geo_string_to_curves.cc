@@ -34,18 +34,30 @@ namespace blender::nodes {
 
 static void geo_node_string_to_curves_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String");
-  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Character Spacing")
+  b.add_input<decl::String>(N_("String"));
+  b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Character Spacing"))
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Text Box Width").default_value(0.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Text Box Height").default_value(0.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Curves");
-  b.add_output<decl::String>("Remainder");
+  b.add_input<decl::Float>(N_("Word Spacing"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Line Spacing"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Text Box Width"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Text Box Height"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Curves"));
+  b.add_output<decl::String>(N_("Remainder"));
 }
 
 static void geo_node_string_to_curves_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)

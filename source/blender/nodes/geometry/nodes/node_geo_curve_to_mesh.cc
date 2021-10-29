@@ -27,14 +27,14 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Geometry>("Profile Curve")
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>(N_("Profile Curve"))
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>("Fill Caps")
+  b.add_input<decl::Bool>(N_("Fill Caps"))
       .description(
-          "If the profile spline is cyclic, fill the ends of the generated mesh with N-gons");
-  b.add_output<decl::Geometry>("Mesh");
+          N_("If the profile spline is cyclic, fill the ends of the generated mesh with N-gons"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,

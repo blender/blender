@@ -31,15 +31,15 @@ namespace blender::nodes {
 
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>("Collection").hide_label();
-  b.add_input<decl::Bool>("Separate Children")
+  b.add_input<decl::Collection>(N_("Collection")).hide_label();
+  b.add_input<decl::Bool>(N_("Separate Children"))
       .description(
-          "Output each child of the collection as a separate instance, sorted alphabetically");
-  b.add_input<decl::Bool>("Reset Children")
+          N_("Output each child of the collection as a separate instance, sorted alphabetically"));
+  b.add_input<decl::Bool>(N_("Reset Children"))
       .description(
-          "Reset the transforms of every child instance in the output. Only used when Separate "
-          "Children is enabled");
-  b.add_output<decl::Geometry>("Geometry");
+          N_("Reset the transforms of every child instance in the output. Only used when Separate "
+          "Children is enabled"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_collection_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

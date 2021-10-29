@@ -20,9 +20,9 @@ namespace blender::nodes {
 
 static void geo_node_string_join_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("Delimiter");
-  b.add_input<decl::String>("Strings").multi_input().hide_value();
-  b.add_output<decl::String>("String");
+  b.add_input<decl::String>(N_("Delimiter"));
+  b.add_input<decl::String>(N_("Strings")).multi_input().hide_value();
+  b.add_output<decl::String>(N_("String"));
 };
 
 static void geo_node_string_join_exec(GeoNodeExecParams params)

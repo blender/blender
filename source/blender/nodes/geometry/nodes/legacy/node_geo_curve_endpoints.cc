@@ -29,9 +29,9 @@ namespace blender::nodes {
 
 static void geo_node_curve_endpoints_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Geometry>("Start Points");
-  b.add_output<decl::Geometry>("End Points");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Start Points"));
+  b.add_output<decl::Geometry>(N_("End Points"));
 }
 
 /**

@@ -25,14 +25,20 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_bezier_segment_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Resolution").default_value(16).min(1).max(256).subtype(PROP_UNSIGNED);
-  b.add_input<decl::Vector>("Start").default_value({-1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Start Handle")
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(16)
+      .min(1)
+      .max(256)
+      .subtype(PROP_UNSIGNED);
+  b.add_input<decl::Vector>(N_("Start"))
+      .default_value({-1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Start Handle"))
       .default_value({-0.5f, 0.5f, 0.0f})
       .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End Handle").subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Vector>(N_("End Handle")).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("End")).default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_primitive_bezier_segment_layout(uiLayout *layout,

@@ -28,21 +28,24 @@ namespace blender::nodes {
 
 static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
-  b.add_input<decl::Float>("End")
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Float>(N_("Start")).min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
+  b.add_input<decl::Float>(N_("End"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .supports_field();
-  b.add_input<decl::Float>("Start", "Start_001").min(0.0f).subtype(PROP_DISTANCE).supports_field();
-  b.add_input<decl::Float>("End", "End_001")
+  b.add_input<decl::Float>(N_("Start"), "Start_001")
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .supports_field();
+  b.add_input<decl::Float>(N_("End"), "End_001")
       .min(0.0f)
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
-  b.add_output<decl::Geometry>("Curve");
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_trim_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

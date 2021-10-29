@@ -25,15 +25,15 @@ namespace blender::nodes {
 
 static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Object>("Object").hide_label();
-  b.add_input<decl::Bool>("As Instance")
+  b.add_input<decl::Object>(N_("Object")).hide_label();
+  b.add_input<decl::Bool>(N_("As Instance"))
       .description(
-          "Output the entire object as single instance. "
-          "This allows instancing non-geometry object types");
-  b.add_output<decl::Vector>("Location");
-  b.add_output<decl::Vector>("Rotation");
-  b.add_output<decl::Vector>("Scale");
-  b.add_output<decl::Geometry>("Geometry");
+          N_("Output the entire object as single instance. "
+          "This allows instancing non-geometry object types"));
+  b.add_output<decl::Vector>(N_("Location"));
+  b.add_output<decl::Vector>(N_("Rotation"));
+  b.add_output<decl::Vector>(N_("Scale"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

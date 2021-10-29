@@ -23,8 +23,8 @@ namespace blender::nodes {
 
 static void geo_node_realize_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_realize_instances_exec(GeoNodeExecParams params)

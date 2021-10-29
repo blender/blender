@@ -27,10 +27,10 @@ namespace blender::nodes {
 
 static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
-  b.add_input<decl::Bool>("Use Creases");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
+  b.add_input<decl::Bool>(N_("Use Creases"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_subdivision_surface_layout(uiLayout *layout,

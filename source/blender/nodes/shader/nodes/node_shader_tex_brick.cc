@@ -27,34 +27,34 @@ namespace blender::nodes {
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field();
-  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
-  b.add_input<decl::Color>("Mortar").default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
-  b.add_input<decl::Float>("Scale")
+  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Color>(N_("Color1")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>(N_("Color2")).default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Color>(N_("Mortar")).default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
+  b.add_input<decl::Float>(N_("Scale"))
       .min(-1000.0f)
       .max(1000.0f)
       .default_value(5.0f)
       .no_muted_links();
-  b.add_input<decl::Float>("Mortar Size")
+  b.add_input<decl::Float>(N_("Mortar Size"))
       .min(0.0f)
       .max(0.125f)
       .default_value(0.02f)
       .no_muted_links();
-  b.add_input<decl::Float>("Mortar Smooth").min(0.0f).max(1.0f).no_muted_links();
-  b.add_input<decl::Float>("Bias").min(-1.0f).max(1.0f).no_muted_links();
-  b.add_input<decl::Float>("Brick Width")
+  b.add_input<decl::Float>(N_("Mortar Smooth")).min(0.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>(N_("Bias")).min(-1.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>(N_("Brick Width"))
       .min(0.01f)
       .max(100.0f)
       .default_value(0.5f)
       .no_muted_links();
-  b.add_input<decl::Float>("Row Height")
+  b.add_input<decl::Float>(N_("Row Height"))
       .min(0.01f)
       .max(100.0f)
       .default_value(0.25f)
       .no_muted_links();
-  b.add_output<decl::Color>("Color");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("Fac"));
 };
 
 }  // namespace blender::nodes

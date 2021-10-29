@@ -24,18 +24,18 @@ namespace blender::nodes {
 
 static void geo_node_attribute_clamp_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::String>("Result");
-  b.add_input<decl::Vector>("Min");
-  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Min", "Min_001");
-  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
-  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
-  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
-  b.add_input<decl::Color>("Min", "Min_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_input<decl::Color>("Max", "Max_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_input<decl::Vector>(N_("Min"));
+  b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Min"), "Min_001");
+  b.add_input<decl::Float>(N_("Max"), "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>(N_("Min"), "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Max"), "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Color>(N_("Min"), "Min_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::Color>(N_("Max"), "Max_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_clamp_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

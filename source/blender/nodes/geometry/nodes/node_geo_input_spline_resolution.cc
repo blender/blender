@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_spline_resolution_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Resolution").field_source();
+  b.add_output<decl::Int>(N_("Resolution")).field_source();
 }
 
 static void geo_node_input_spline_resolution_exec(GeoNodeExecParams params)

@@ -22,10 +22,10 @@ namespace blender::nodes {
 
 static void fn_node_slice_string_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String");
-  b.add_input<decl::Int>("Position");
-  b.add_input<decl::Int>("Length").min(0).default_value(10);
-  b.add_output<decl::String>("String");
+  b.add_input<decl::String>(N_("String"));
+  b.add_input<decl::Int>(N_("Position"));
+  b.add_input<decl::Int>(N_("Length")).min(0).default_value(10);
+  b.add_output<decl::String>(N_("String"));
 };
 
 static void fn_node_slice_string_build_multi_function(NodeMultiFunctionBuilder &builder)

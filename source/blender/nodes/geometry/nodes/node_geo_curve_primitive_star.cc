@@ -22,11 +22,17 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_star_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Points").default_value(8).min(3).max(256).subtype(PROP_UNSIGNED);
-  b.add_input<decl::Float>("Inner Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Outer Radius").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Twist").subtype(PROP_ANGLE);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Int>(N_("Points")).default_value(8).min(3).max(256).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Float>(N_("Inner Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Outer Radius"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Twist")).subtype(PROP_ANGLE);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static std::unique_ptr<CurveEval> create_star_curve(const float inner_radius,

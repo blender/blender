@@ -25,18 +25,18 @@ namespace blender::nodes {
 
 static void geo_node_attribute_compare_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("A");
-  b.add_input<decl::Float>("A", "A_001");
-  b.add_input<decl::Vector>("A", "A_002");
-  b.add_input<decl::Color>("A", "A_003").default_value({0.5, 0.5, 0.5, 1.0});
-  b.add_input<decl::String>("B");
-  b.add_input<decl::Float>("B", "B_001");
-  b.add_input<decl::Vector>("B", "B_002");
-  b.add_input<decl::Color>("B", "B_003").default_value({0.5, 0.5, 0.5, 1.0});
-  b.add_input<decl::Float>("Threshold").default_value(0.01f).min(0.0f);
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("A"));
+  b.add_input<decl::Float>(N_("A"), "A_001");
+  b.add_input<decl::Vector>(N_("A"), "A_002");
+  b.add_input<decl::Color>(N_("A"), "A_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::String>(N_("B"));
+  b.add_input<decl::Float>(N_("B"), "B_001");
+  b.add_input<decl::Vector>(N_("B"), "B_002");
+  b.add_input<decl::Color>(N_("B"), "B_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::Float>(N_("Threshold")).default_value(0.01f).min(0.0f);
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_compare_layout(uiLayout *layout,

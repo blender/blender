@@ -25,19 +25,19 @@ namespace blender::nodes {
 
 static void geo_node_attribute_capture_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Vector>("Value").supports_field();
-  b.add_input<decl::Float>("Value", "Value_001").supports_field();
-  b.add_input<decl::Color>("Value", "Value_002").supports_field();
-  b.add_input<decl::Bool>("Value", "Value_003").supports_field();
-  b.add_input<decl::Int>("Value", "Value_004").supports_field();
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Vector>(N_("Value")).supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_001").supports_field();
+  b.add_input<decl::Color>(N_("Value"), "Value_002").supports_field();
+  b.add_input<decl::Bool>(N_("Value"), "Value_003").supports_field();
+  b.add_input<decl::Int>(N_("Value"), "Value_004").supports_field();
 
-  b.add_output<decl::Geometry>("Geometry");
-  b.add_output<decl::Vector>("Attribute").field_source();
-  b.add_output<decl::Float>("Attribute", "Attribute_001").field_source();
-  b.add_output<decl::Color>("Attribute", "Attribute_002").field_source();
-  b.add_output<decl::Bool>("Attribute", "Attribute_003").field_source();
-  b.add_output<decl::Int>("Attribute", "Attribute_004").field_source();
+  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Vector>(N_("Attribute")).field_source();
+  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").field_source();
+  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").field_source();
+  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").field_source();
+  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").field_source();
 }
 
 static void geo_node_attribute_capture_layout(uiLayout *layout,

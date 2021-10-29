@@ -23,10 +23,10 @@ namespace blender::nodes {
 
 static void geo_node_point_translate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Translation");
-  b.add_input<decl::Vector>("Translation", "Translation_001").subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Translation"));
+  b.add_input<decl::Vector>(N_("Translation"), "Translation_001").subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

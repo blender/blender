@@ -22,12 +22,12 @@ namespace blender::nodes {
 
 static void geo_node_rotate_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Instances").only_instances();
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).supports_field();
-  b.add_input<decl::Vector>("Pivot Point").subtype(PROP_TRANSLATION).supports_field();
-  b.add_input<decl::Bool>("Local Space").default_value(true).supports_field();
-  b.add_output<decl::Geometry>("Instances");
+  b.add_input<decl::Geometry>(N_("Instances")).only_instances();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).supports_field();
+  b.add_input<decl::Vector>(N_("Pivot Point")).subtype(PROP_TRANSLATION).supports_field();
+  b.add_input<decl::Bool>(N_("Local Space")).default_value(true).supports_field();
+  b.add_output<decl::Geometry>(N_("Instances"));
 };
 
 static void rotate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)

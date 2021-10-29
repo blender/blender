@@ -27,14 +27,15 @@ namespace blender::nodes {
 
 static void geo_node_curve_sample_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").only_realized_data().supported_type(
-      GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Float>("Factor").min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
-  b.add_input<decl::Float>("Length").min(0.0f).subtype(PROP_DISTANCE).supports_field();
+  b.add_input<decl::Geometry>(N_("Curve"))
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Float>(N_("Factor")).min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
+  b.add_input<decl::Float>(N_("Length")).min(0.0f).subtype(PROP_DISTANCE).supports_field();
 
-  b.add_output<decl::Vector>("Position").dependent_field();
-  b.add_output<decl::Vector>("Tangent").dependent_field();
-  b.add_output<decl::Vector>("Normal").dependent_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field();
+  b.add_output<decl::Vector>(N_("Tangent")).dependent_field();
+  b.add_output<decl::Vector>(N_("Normal")).dependent_field();
 }
 
 static void geo_node_curve_sample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

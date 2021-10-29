@@ -40,23 +40,24 @@ namespace blender::nodes {
 
 static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target").only_realized_data().supported_type(
-      {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
+  b.add_input<decl::Geometry>(N_("Target"))
+      .only_realized_data()
+      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
 
-  b.add_input<decl::Vector>("Attribute").hide_value().supports_field();
-  b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().supports_field();
-  b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().supports_field();
-  b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().supports_field();
-  b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
+  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
+  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
 
-  b.add_input<decl::Vector>("Source Position").implicit_field();
-  b.add_input<decl::Int>("Index").implicit_field();
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_input<decl::Int>(N_("Index")).implicit_field();
 
-  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7});
-  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7});
-  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7});
-  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7});
-  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7});
+  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7});
+  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7});
+  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7});
+  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7});
+  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7});
 }
 
 static void geo_node_transfer_attribute_layout(uiLayout *layout,

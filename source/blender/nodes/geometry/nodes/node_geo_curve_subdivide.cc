@@ -33,9 +33,9 @@ namespace blender::nodes {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>("Cuts").default_value(1).min(0).max(1000).supports_field();
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>(N_("Cuts")).default_value(1).min(0).max(1000).supports_field();
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static Array<int> get_subdivided_offsets(const Spline &spline,

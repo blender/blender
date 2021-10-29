@@ -26,19 +26,19 @@ namespace blender::nodes {
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").implicit_field();
-  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_input<decl::Float>("Detail").min(0.0f).max(16.0f).default_value(2.0f);
-  b.add_input<decl::Float>("Detail Scale").min(-1000.0f).max(1000.0f).default_value(1.0f);
-  b.add_input<decl::Float>("Detail Roughness")
+  b.add_input<decl::Vector>(N_("Vector")).implicit_field();
+  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>(N_("Distortion")).min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(16.0f).default_value(2.0f);
+  b.add_input<decl::Float>(N_("Detail Scale")).min(-1000.0f).max(1000.0f).default_value(1.0f);
+  b.add_input<decl::Float>(N_("Detail Roughness"))
       .min(0.0f)
       .max(1.0f)
       .default_value(0.5f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Phase Offset").min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_output<decl::Color>("Color").no_muted_links();
-  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_input<decl::Float>(N_("Phase Offset")).min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 };
 
 }  // namespace blender::nodes

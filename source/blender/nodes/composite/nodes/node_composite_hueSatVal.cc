@@ -29,16 +29,20 @@ namespace blender::nodes {
 
 static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Hue").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Saturation")
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Hue")).default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Saturation"))
       .default_value(1.0f)
       .min(0.0f)
       .max(2.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Value").default_value(1.0f).min(0.0f).max(2.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Float>(N_("Value"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(2.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Fac")).default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes
