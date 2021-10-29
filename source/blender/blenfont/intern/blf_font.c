@@ -301,6 +301,9 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
     FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t str_len, size_t *i_p)
 {
   uint charcode = BLI_str_utf8_as_unicode_step(str, str_len, i_p);
+  /* Invalid unicode sequences return the byte value, stepping forward one.
+   * This allows `latin1` to display (which is sometimes used for file-paths). */
+  BLI_assert(charcode != BLI_UTF8_ERR);
   return blf_glyph_ensure(font, gc, charcode);
 }
 
@@ -366,9 +369,6 @@ static void blf_font_draw_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
-    }
     pen_x += blf_kerning(font, g_prev, g);
 
     /* do not return this loop if clipped, we want every character tested */
@@ -410,10 +410,6 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
-    }
-
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_draw(font, gc, g, (float)pen_x, (float)pen_y);
 
@@ -465,9 +461,6 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
 
     if (UNLIKELY(g == NULL)) {
       continue;
-    }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
     }
     pen_x += blf_kerning(font, g_prev, g);
 
@@ -600,12 +593,10 @@ static bool blf_font_width_to_strlen_glyph_process(
   if (UNLIKELY(g == NULL)) {
     return false; /* continue the calling loop. */
   }
-  if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-    return true; /* break the calling loop. */
-  }
   *pen_x += blf_kerning(font, g_prev, g);
   *pen_x += g->advance_i;
 
+  /* When true, break the calling loop. */
   return (*pen_x >= width_i);
 }
 
@@ -708,9 +699,6 @@ static void blf_font_boundbox_ex(FontBLF *font,
 
     if (UNLIKELY(g == NULL)) {
       continue;
-    }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
     }
     pen_x += blf_kerning(font, g_prev, g);
 
@@ -880,9 +868,6 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
-    }
     pen_x += blf_kerning(font, g_prev, g);
 
     gbox.xmin = pen_x;
@@ -967,9 +952,6 @@ static void blf_font_wrap_apply(FontBLF *font,
 
     if (UNLIKELY(g == NULL)) {
       continue;
-    }
-    if (UNLIKELY(g->c == BLI_UTF8_ERR)) {
-      break;
     }
     pen_x += blf_kerning(font, g_prev, g);
 
