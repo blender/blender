@@ -37,6 +37,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -764,16 +765,12 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
     return false;
   }
 
-  ARegion *region = CTX_wm_region(C);
-  if (region->regiontype != RGN_TYPE_WINDOW) {
-    return false;
-  }
-
   ScrArea *area = CTX_wm_area(C);
   if (area->spacetype != SPACE_VIEW3D) {
     return false;
   }
 
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   RegionView3D *rv3d = region->regiondata;
   if (rv3d->rflag & RV3D_NAVIGATING) {
     /* Don't draw the cursor while navigating. It can be distracting. */
@@ -790,7 +787,8 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   V3DSnapCursorData *snap_data = &data_intern->snap_data;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   x -= region->winrct.xmin;
   y -= region->winrct.ymin;
   if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
@@ -955,7 +953,8 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
     if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene = DEG_get_input_scene(depsgraph);
-      ARegion *region = CTX_wm_region(C);
+      ScrArea *area = CTX_wm_area(C);
+      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       View3D *v3d = CTX_wm_view3d(C);
 
       if (!state) {
