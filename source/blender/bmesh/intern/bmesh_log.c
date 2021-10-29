@@ -83,7 +83,7 @@ static void free_smallhash(SmallHash *sh)
   MEM_freeN(sh);
 }
 
-static void smallhash_reserve(SmallHash *sh, int n)
+static void smallhash_reserve(SmallHash *sh, unsigned int n)
 {
 }
 

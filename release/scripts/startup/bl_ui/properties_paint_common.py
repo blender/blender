@@ -66,15 +66,20 @@ class DynamicBrushCategoryPanel(Panel):
         layout.use_property_split = True
 
         channels = self.get_channels(context)
+        group = DynamicPaintPanelGen.getGroup(self)
 
         for ch in channels:
+            inserts = group.getInserts(ch.idname) if group else []
+
             ok = ch.show_in_workspace
             ok = ok and ch.category == idname
 
             if not ok:
                 continue
 
-            UnifiedPaintPanel.channel_unified(layout,
+            row = layout if len(inserts) == 0 else layout.row(align=True)
+
+            UnifiedPaintPanel.channel_unified(row,
                 context,
                 brush,
                 ch.idname,
@@ -83,6 +88,18 @@ class DynamicBrushCategoryPanel(Panel):
                 show_reorder=opt["show_reorder"],
                 show_mappings=opt["show_mappings"])
 
+            for item in inserts:
+                if item.sameLine:
+                    item.cb(row)
+
+            for item in inserts:
+                if not item.sameLine:
+                    item.cb(layout)
+
+class InsertAfterItem:
+    def __init__(self, cb, sameLine):
+        self.cb = cb
+        self.sameLine = sameLine
 
 class DynamicPaintPanelGen:
     class Group:
@@ -93,8 +110,42 @@ class DynamicPaintPanelGen:
             self.rnaclass = None
             self.parent = parent
             self.options = {}
+            self.insert_cbs = {}
+
+        def getInserts(self, key):
+            return self.insert_cbs[key] if key in self.insert_cbs else []
+
+        def insertEachAfter(self, insertdict):
+            #return
+            for key in insertdict.keys():
+                item = insertdict[key]
+
+                if isinstance(item, dict):
+                    callback = item["callback"]
+                    sameLine = item["sameLine"] if "sameLine" in item else False
+                else:
+                    callback = item
+                    sameLine = False
+
+                self.insertAfter(key, callback, sameLine)
+
+        def insertAfter(self, key, cb, sameLine=True):
+            """
+            example:
+            group.insertAfter("color", lambda layout: layout.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False))
+            """
+            if key not in self.insert_cbs:
+                self.insert_cbs[key] = []
+
+            self.insert_cbs[key].append(InsertAfterItem(cb, sameLine))
 
     groups = {}
+
+    @staticmethod
+    def getGroup(panel):
+        idname = panel.bl_idname
+
+        return DynamicPaintPanelGen.groups[idname] if idname in DynamicPaintPanelGen.groups else None
 
     @staticmethod
     def ensureCategory(idname, name=None, prefix="VIEW3D_PT_brush_category_", parent=None, show_reorder=False, ui_editing=False, show_mappings=None):
@@ -154,9 +205,6 @@ class DynamicPaintPanelGen:
         name = name2
 
         for cls in classes[:]:
-            #print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name) #
-            #r, dir(cls.bl_rna)) #.name)
-
             if cls.bl_rna.identifier == name:
                 try:
                     unregister_class(cls)
@@ -194,12 +242,21 @@ classes.append(CLASSNAME)
 
         exec(code)
 
+#custom UI code that is inserted
+#for different brush channel properties
+insertAfters = {
+    "color" : {
+        "sameLine" : True,
+        "callback" : lambda layout: layout.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
+     }
+}
+
 #pre create category panels in correct order
 for cat in builtin_channel_categories:
     DynamicPaintPanelGen.ensureCategory(cat, cat, parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_",
-                                        ui_editing=False, show_mappings=True)
+                                        ui_editing=False, show_mappings=True).insertEachAfter(insertAfters)
     DynamicPaintPanelGen.ensureCategory(cat, cat,  prefix="VIEW3D_PT_brush_category_edit_",
-                                parent="VIEW3D_PT_tools_brush_settings_channels_preview")
+                                parent="VIEW3D_PT_tools_brush_settings_channels_preview").insertEachAfter(insertAfters)
 
 channel_name_map = {
     "size": "radius",
@@ -381,7 +438,7 @@ class UnifiedPaintPanel:
             ui_editing = False
             show_reorder = False
 
-        if ui_editing and show_mappings is None:
+        if show_mappings is None:
             show_mappings = True
 
         if context.mode != "SCULPT":
@@ -458,8 +515,9 @@ class UnifiedPaintPanel:
 
         if ui_editing and not header:
             row2 = row.row(align=True)
-            row2.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
+            row2.prop(ch, "show_in_workspace", text="", icon="WORKSPACE")
             row2.prop(ch, "show_in_context_menu", text="", icon="MENU_PANEL")
+            row2.prop(ch, "show_in_header", text="", icon="TOPBAR")
 
         if ch.type == "CURVE":
             row.prop(finalch.curve, "curve_preset", text=text)
@@ -541,7 +599,7 @@ class UnifiedPaintPanel:
             if not show_mappings and not show_reorder:
                 return
 
-            row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
+            row.prop(ch, "ui_expanded",  emboss=False, text="", icon="DOWNARROW_HLT" if ch.ui_expanded else "RIGHTARROW")
 
             if ch.ui_expanded:
                 layout = baselayout.column()
@@ -562,12 +620,12 @@ class UnifiedPaintPanel:
                     else:
                         name = "name error"
 
+                    row2.prop(mp0, "ui_expanded", text="", emboss=False, icon="DOWNARROW_HLT" if mp.ui_expanded else "RIGHTARROW")
+
                     row2.label(text=name)
                     row2.prop(mp0, "inherit", text="", icon="BRUSHES_ALL")
                     row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
                     row2.prop(mp, "invert", text="", icon="ARROW_LEFTRIGHT")
-
-                    row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
                     if mp0.ui_expanded:
                         #XXX why do I have to feed use_negative_slope as true
@@ -577,6 +635,9 @@ class UnifiedPaintPanel:
                         box.template_curve_mapping(mp, "curve", brush=True, use_negative_slope=True)
 
                         col = box.column(align=True)
+                        col.use_property_split = True
+                        col.use_property_decorate = False
+                        
                         row = col.row(align=True)
 
                         if mp0.inherit or toolsettings_only:
@@ -597,17 +658,16 @@ class UnifiedPaintPanel:
                         col.prop(mp, "blendmode")
 
                         col.label(text="Input Mapping")
-                        row = col.row()
-                        row.prop(mp, "premultiply")
-                        row.prop(mp, "mapfunc")
+                        #row = col.row()
+                        col.prop(mp, "premultiply", slider=True)
+                        col.prop(mp, "mapfunc")
 
                         if mp.mapfunc in ("SQUARE", "CUTOFF"):
                             col.prop(mp, "func_cutoff")
 
                         col.label(text="Output Mapping")
-                        row = col.row()
-                        row.prop(mp, "min")
-                        row.prop(mp, "max")
+                        col.prop(mp, "min", slider=True)
+                        col.prop(mp, "max", slider=True)
 
                     #row2.prop(mp, "curve")
 
@@ -1435,8 +1495,13 @@ def brush_settings(layout, context, brush, popover=False):
                 row.separator()
                 row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
                 row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
-            layout.prop(brush, "blend", text="Blend Mode")
-
+                layout.prop(brush, "blend", text="Blend Mode")
+            else:
+                UnifiedPaintPanel.channel_unified(row,
+                    context,
+                    brush,
+                    "blend",
+                    text="Blend Mode")
         # Per sculpt tool options.
 
         def doprop(col, prop, slider=None, text=None, baselayout=None):
@@ -1775,7 +1840,14 @@ def brush_shared_settings(layout, context, brush, popover=False):
     ups = context.scene.tool_settings.unified_paint_settings
 
     if blend_mode:
-        layout.prop(brush, "blend", text="Blend")
+        if context.mode != "SCULPT":
+            layout.prop(brush, "blend", text="Blend")
+        else:
+            UnifiedPaintPanel.channel_unified(layout,
+                context,
+                brush,
+                "blend",
+                text="Blend Mode")
         layout.separator()
 
     if weight:
@@ -2196,7 +2268,14 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
 
     if capabilities.has_color:
         UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
-        layout.prop(brush, "blend", text="" if compact else "Blend")
+        if context.mode != "SCULT":
+            layout.prop(brush, "blend", text="" if compact else "Blend")
+        else:
+            UnifiedPaintPanel.channel_unified(layout,
+                context,
+                brush,
+                "blend",
+                text="Blend Mode")
 
     UnifiedPaintPanel.prop_unified(layout,
         context,

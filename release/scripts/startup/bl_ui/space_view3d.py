@@ -38,7 +38,6 @@ from bl_ui.space_toolsystem_common import (
 )
 from bpy.app.translations import contexts as i18n_contexts
 
-
 class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOL_HEADER'
@@ -61,6 +60,7 @@ class VIEW3D_HT_tool_header(Header):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout,
             tool_key=('VIEW_3D', tool_mode),)
+
         # Object Mode Options
         # -------------------
 
@@ -70,10 +70,14 @@ class VIEW3D_HT_tool_header(Header):
         # (obviously separated for from the users POV)
         draw_fn = getattr(_draw_tool_settings_context_mode, tool_mode, None)
         if draw_fn is not None:
-            is_valid_context = draw_fn(context, layout, tool)
+            if tool_mode == "SCULPT":
+                is_valid_context = draw_fn(self, context, layout, tool)
+            else:
+                is_valid_context = draw_fn(context, layout, tool)
 
         def draw_3d_brush_settings(layout, tool_mode):
-            layout.popover("VIEW3D_PT_tools_brush_settings_advanced", text="Brush")
+            layout.popover("VIEW3D_PT_tools_brush_settings_channels", text="Brush")
+
             if tool_mode != 'PAINT_WEIGHT':
                 layout.popover("VIEW3D_PT_tools_brush_texture")
             if tool_mode == 'PAINT_TEXTURE':
@@ -214,10 +218,9 @@ class VIEW3D_HT_tool_header(Header):
             sub.popover(panel="TOPBAR_PT_gpencil_layers",
                 text=text,)
 
-
 class _draw_tool_settings_context_mode:
     @staticmethod
-    def SCULPT(context, layout, tool):
+    def SCULPT(header, context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
             return False
 
@@ -230,7 +233,9 @@ class _draw_tool_settings_context_mode:
             pass
 
         paint = context.tool_settings.sculpt
-        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+        row = layout.row()
+        row.ui_units_x = 4
+        row.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
         if brush is None:
@@ -239,48 +244,6 @@ class _draw_tool_settings_context_mode:
         tool_settings = context.tool_settings
         capabilities = brush.sculpt_capabilities
 
-        ups = tool_settings.unified_paint_settings
-
-        size = "size"
-        size_owner = ups if ups.use_unified_size else brush
-        if size_owner.use_locked_size == 'SCENE':
-            size = "unprojected_radius"
-
-        UnifiedPaintPanel.prop_unified(layout,
-            context,
-            brush,
-            size,
-            pressure_name="use_pressure_size",
-            unified_name="use_unified_size",
-            text="Radius",
-            slider=True,
-            header=True)
-
-        # strength, use_strength_pressure
-        pressure_name = "use_pressure_strength" if capabilities.has_strength_pressure else None
-        UnifiedPaintPanel.prop_unified(layout,
-            context,
-            brush,
-            "strength",
-            pressure_name=pressure_name,
-            unified_name="use_unified_strength",
-            text="Strength",
-            header=True)
-
-        # direction
-        if not capabilities.has_direction:
-            row = layout.row()
-
-            UnifiedPaintPanel.prop_unified(layout,
-                context,
-                brush,
-                "direction",
-                pressure_name=pressure_name,
-                unified_name="use_unified_strength",
-                text="",
-                header=True,
-                expand=True)
-
         if capabilities.has_color:
             #note we swap the labels here so users don't get confused.
             row = layout.row(align=True)
@@ -288,10 +251,109 @@ class _draw_tool_settings_context_mode:
             row.prop_enum(context.space_data.shading, "color_type", "VERTEX", text="Colors")
             row.prop_enum(context.space_data.shading, "color_type", "MATERIAL", text="Normal")
 
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
-            row = layout.row()
-            row.ui_units_x = 3
-            row.prop(brush, "blend", text="", expand=False)
+        sculpt = tool_settings.sculpt
+
+        row1 = layout.row(align=True)
+        row1.use_property_split = False
+        row1.use_property_decorate = False
+
+        name_size_overrides = {
+            "accumulate" : ["Accu..", 2.5] #needs an icon
+        }
+        
+        for ch in brush.channels:
+            final_ch = ch
+
+            if ch.inherit:
+                sculpt.channels.ensure(ch)
+                final_ch = sculpt.channels[ch.idname]
+
+            row = row1.row(align=False).row(align=True)
+            row.use_property_split = False
+            row.use_property_decorate = False
+            layoutuse_property_split = False
+
+            if ch.show_in_header:
+                text = ch.name if ch.type in ["BOOL", "FLOAT", "INT"] else ""
+
+                if final_ch.type in ["VEC3", "VEC4"]:
+                    row.ui_units_x = 2
+                    text = ""
+                elif final_ch.type in ["INT", "FLOAT"]:
+                    row.ui_units_x = 7
+                elif final_ch.type == "BOOL":
+                    row.ui_units_x = 4
+                elif final_ch.type in ["ENUM", "BITMASK"]:
+                    row.ui_units_x = 3
+
+                if len(text) > 0 and ch.idname in name_size_overrides:
+                    text, row.ui_units_x = name_size_overrides[ch.idname]
+
+                row.prop(final_ch, "value", slider=True, expand=False, text=text)
+                if final_ch.type in ["FLOAT", "INT"]:
+                    row.prop(final_ch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
+                
+                #UnifiedPaintPanel.channel_unified(row, context, brush,
+                #ch.idname, header=True)
+
+
+        if 0:
+            ups = tool_settings.unified_paint_settings
+
+            size = "size"
+            size_owner = ups if ups.use_unified_size else brush
+            if size_owner.use_locked_size == 'SCENE':
+                size = "unprojected_radius"
+
+            UnifiedPaintPanel.prop_unified(layout,
+                context,
+                brush,
+                size,
+                pressure_name="use_pressure_size",
+                unified_name="use_unified_size",
+                text="Radius",
+                slider=True,
+                header=True)
+
+            # strength, use_strength_pressure
+            pressure_name = "use_pressure_strength" if capabilities.has_strength_pressure else None
+            UnifiedPaintPanel.prop_unified(layout,
+                context,
+                brush,
+                "strength",
+                pressure_name=pressure_name,
+                unified_name="use_unified_strength",
+                text="Strength",
+                header=True)
+
+            # direction
+            if not capabilities.has_direction:
+                row = layout.row()
+
+                UnifiedPaintPanel.prop_unified(layout,
+                    context,
+                    brush,
+                    "direction",
+                    pressure_name=pressure_name,
+                    unified_name="use_unified_strength",
+                    text="",
+                    header=True,
+                    expand=True)
+
+            if capabilities.has_color:
+                #note we swap the labels here so users don't get confused.
+                row = layout.row(align=True)
+                row.ui_units_x = 4.5
+                row.prop_enum(context.space_data.shading, "color_type", "VERTEX", text="Colors")
+                row.prop_enum(context.space_data.shading, "color_type", "MATERIAL", text="Normal")
+
+                row = layout.row()
+                row.ui_units_x = 4
+                UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
+
+                row = layout.row()
+                row.ui_units_x = 4
+                UnifiedPaintPanel.prop_unified_color(row, context, brush, "blend", text="")
 
         return True
 
@@ -7354,11 +7416,6 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         channels.sort(key=lambda ch: keys[ch.idname])
 
-        """
-    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None,
-                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None):
-
-        """
         if colorch:
             split = layout.split(factor=0.1)
             UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="")

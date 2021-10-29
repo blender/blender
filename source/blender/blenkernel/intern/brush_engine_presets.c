@@ -1268,7 +1268,9 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 #ifdef SHOWALL
 #  undef SHOWALL
 #endif
-
+#ifdef SHOW_WRK_CTX
+#  undef SHOW_WRK_CTX
+#endif
 #ifdef SETFLAG_SAFE
 #  undef SETFLAG_SAFE
 #endif
@@ -1282,6 +1284,10 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 #define SHOWHDR(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_HEADER)
 #define SHOWWRK(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
 #define SHOWCTX(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU)
+
+#define SHOW_WRK_CTX(idname) \
+  SHOWWRK(idname); \
+  SHOWCTX(idname)
 
 #define SHOWALL(idname) \
   SETFLAG_SAFE(idname, \
@@ -1309,6 +1315,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
             SCULPT_TOOL_ROTATE,
             SCULPT_TOOL_SCENE_PROJECT,
             SCULPT_TOOL_SMEAR,
+            SCULPT_TOOL_GRAB,
             SCULPT_TOOL_SLIDE_RELAX,
             SCULPT_TOOL_CLOTH,
             SCULPT_TOOL_ELASTIC_DEFORM,
@@ -1392,8 +1399,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(use_plane_trim);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SHOWWRK(slide_deform_type);
-      SHOWCTX(slide_deform_type);
+      SHOWALL(slide_deform_type);
       break;
     case SCULPT_TOOL_GRAB:
       SHOWCTX(normal_weight);
@@ -1404,27 +1410,23 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWALL(grab_silhouette);
       break;
     case SCULPT_TOOL_SMEAR:
-      SHOWWRK(smear_deform_type);
-      SHOWCTX(smear_deform_type);
-      SHOWWRK(spacing);
+      SHOWALL(smear_deform_type);
+      SHOW_WRK_CTX(spacing);
 
       // hrm, not sure this is such a good idea - joeedh
       // SHOWALL(smear_deform_blend);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
       SHOWWRK(area_radius_factor);
-      SHOWWRK(plane_offset);
-      SHOWWRK(plane_trim);
+      SHOW_WRK_CTX(plane_offset);
+      SHOW_WRK_CTX(plane_trim);
       SHOWWRK(tip_roundness);
-      SHOWWRK(use_plane_trim);
+      SHOW_WRK_CTX(use_plane_trim);
 
       SHOWWRK(use_smoothed_rake);
       SHOWCTX(use_smoothed_rake);
 
       SHOWCTX(autosmooth);
-      SHOWCTX(plane_offset);
-      SHOWCTX(plane_trim);
-      SHOWCTX(use_plane_trim);
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_FLATTEN:
@@ -1444,8 +1446,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(plane_offset);
       SHOWCTX(autosmooth);
       SHOWCTX(multiplane_scrape_angle);
-      SHOWWRK(use_plane_trim);
-      SHOWCTX(use_plane_trim);
+      SHOW_WRK_CTX(use_plane_trim);
 
       SHOWWRK(plane_offset);
       SHOWWRK(plane_trim);
@@ -1455,39 +1456,40 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 
       break;
     case SCULPT_TOOL_SIMPLIFY:
-      SHOWCTX(autosmooth);
-      SHOWCTX(topology_rake);
-      SHOWCTX(topology_rake_mode);
+      SHOW_WRK_CTX(autosmooth);
+      SHOW_WRK_CTX(topology_rake);
+      SHOW_WRK_CTX(topology_rake_mode);
       break;
     case SCULPT_TOOL_LAYER:
-      SHOWWRK(use_persistent);
-      SHOWWRK(height);
-
-      SHOWCTX(autosmooth);
-      SHOWCTX(height);
+      SHOW_WRK_CTX(use_persistent);
+      SHOWALL(height);
+      SHOW_WRK_CTX(autosmooth);
       break;
     case SCULPT_TOOL_CLOTH:
-      SHOWWRK(spacing);
-      SHOWCTX(spacing);
+      SHOW_WRK_CTX(spacing);
+
       SHOWWRK(cloth_solve_bending);
       SHOWWRK(cloth_bending_stiffness);
-      SHOWWRK(cloth_deform_type);
-      SHOWWRK(cloth_force_falloff_type);
-      SHOWWRK(cloth_simulation_area_type);
+
+      SHOWALL(cloth_deform_type);
+      SHOWALL(cloth_simulation_area_type);
+
+      SHOW_WRK_CTX(cloth_force_falloff_type);
+
       SHOWWRK(cloth_mass);
       SHOWWRK(cloth_damping);
       SHOWWRK(cloth_constraint_softbody_strength);
-      SHOWWRK(cloth_sim_limit);
-      SHOWWRK(cloth_sim_falloff);
+      SHOW_WRK_CTX(cloth_sim_limit);
+      SHOW_WRK_CTX(cloth_sim_falloff);
       SHOWWRK(cloth_constraint_softbody_strength);
-      SHOWWRK(cloth_use_collision);
-      SHOWWRK(cloth_pin_simulation_boundary);
+      SHOW_WRK_CTX(cloth_use_collision);
+      SHOW_WRK_CTX(cloth_pin_simulation_boundary);
       SHOWWRK(elastic_deform_type);
 
       break;
     case SCULPT_TOOL_BOUNDARY:
       SHOWWRK(boundary_offset);
-      SHOWWRK(boundary_deform_type);
+      SHOWALL(boundary_deform_type);
       SHOWWRK(boundary_falloff_type);
       SHOWWRK(deform_target);
       SHOWCTX(boundary_offset);
@@ -1496,11 +1498,11 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(boundary_falloff_type);
       break;
     case SCULPT_TOOL_CREASE:
-      SHOWALL(crease_pinch_factor);
+      SHOWWRK(crease_pinch_factor);
+      SHOWCTX(crease_pinch_factor);
       SHOWCTX(autosmooth);
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
-
       SHOWCTX(autosmooth);
 
       SHOWWRK(crease_pinch_factor);
@@ -1539,22 +1541,22 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(blend);
       break;
     case SCULPT_TOOL_POSE:
-      SHOWWRK(pose_ik_segments);
+      SHOW_WRK_CTX(pose_ik_segments);
       SHOWWRK(pose_smooth_iterations);
       SHOWWRK(disconnected_distance_max);
-      SHOWWRK(pose_offset);
-      SHOWWRK(use_connected_only);
+      SHOW_WRK_CTX(pose_offset);
+      SHOW_WRK_CTX(use_connected_only);
       SHOWWRK(use_pose_ik_anchored);
       SHOWWRK(use_pose_lock_rotation);
       SHOWWRK(pose_deform_type);
-      SHOWWRK(pose_origin_type);
+
+      SHOWALL(pose_origin_type);
       SHOWWRK(deform_target);
       SHOWWRK(elastic_deform_type);
 
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
-      SHOWWRK(elastic_deform_type);
-      SHOWCTX(elastic_deform_type);
+      SHOWALL(elastic_deform_type);
       break;
     case SCULPT_TOOL_ARRAY:
       SHOWWRK(array_deform_type);

@@ -137,6 +137,7 @@ typedef struct BrushChannelType {
   int type, flag;
   int subtype;
   int ivalue;
+  int icon;
   float fvalue;
   float vector[4];
   int curve_preset;

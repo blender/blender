@@ -1280,7 +1280,29 @@ static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
 
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
+  Sculpt *sd = NULL;
 
+  if (scene->toolsettings->sculpt) {
+    sd = scene->toolsettings->sculpt;
+  }
+
+  BrushChannel *ch1 = BRUSHSET_LOOKUP(br->channels, color);
+  BrushChannel *ch2 = BRUSHSET_LOOKUP(br->channels, secondary_color);
+
+  if (!ch1 || (ch1->flag & BRUSH_CHANNEL_INHERIT)) {
+    BKE_brush_channelset_ensure_builtin(sd->channels, "color");
+    BKE_brush_channelset_ensure_builtin(sd->channels, "secondary_color");
+
+    BrushChannel *ch3 = BRUSHSET_LOOKUP(sd->channels, color);
+    BrushChannel *ch4 = BRUSHSET_LOOKUP(sd->channels, secondary_color);
+
+    swap_v4_v4(ch3->vector, ch4->vector);
+  }
+  else {
+    swap_v4_v4(ch1->vector, ch2->vector);
+  }
+
+  /* check old setting fields too */
   if (ups->flag & UNIFIED_PAINT_COLOR) {
     swap_v3_v3(ups->rgb, ups->secondary_rgb);
   }

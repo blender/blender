@@ -2311,6 +2311,35 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  /* patch brush channel show in header flags */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 40)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      /* copy brush channels*/
+      BrushChannelSet *chset = BKE_brush_channelset_copy(brush->channels);
+      Brush temp = *brush;
+      temp.channels = chset;
+
+      BKE_brush_channelset_ui_init(&temp, temp.sculpt_tool);
+
+      LISTBASE_FOREACH (BrushChannel *, ch1, &brush->channels->channels) {
+        BrushChannel *ch2 = BKE_brush_channelset_lookup(chset, ch1->idname);
+
+        if (!ch2) {
+          printf("failed to find brush channel %s\n", ch1->idname);
+          continue;
+        }
+
+        ch1->flag |= ch2->flag &
+                     (BRUSH_CHANNEL_SHOW_IN_HEADER | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
+      }
+
+      BKE_brush_channelset_free(chset);
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

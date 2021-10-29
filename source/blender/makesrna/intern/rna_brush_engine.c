@@ -907,6 +907,7 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_in_header", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_HEADER);
   RNA_def_property_ui_text(prop, "In Header", "Show in header");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "show_in_workspace", PROP_BOOLEAN, PROP_NONE);
