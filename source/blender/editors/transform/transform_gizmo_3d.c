@@ -646,10 +646,8 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = area->spacedata.first;
-  Object *obedit = CTX_data_edit_object(C);
   RegionView3D *rv3d = region->regiondata;
   Base *base;
-  Object *ob = OBACT(view_layer);
   bGPdata *gpd = CTX_data_gpencil_data(C);
   const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
   const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
@@ -659,6 +657,15 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   const short orient_index = params->orientation_index ?
                                  (params->orientation_index - 1) :
                                  BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
+
+  Object *ob = OBACT(view_layer);
+  Object *obedit = OBEDIT_FROM_OBACT(ob);
+  if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+    Object *obpose = BKE_object_pose_armature_get(ob);
+    if (obpose != NULL) {
+      ob = obpose;
+    }
+  }
 
   /* transform widget matrix */
   unit_m4(rv3d->twmat);
