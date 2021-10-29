@@ -546,12 +546,9 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
   if (fcu_w && fcu_x && fcu_y && fcu_z) {
     float quat_final[4];
 
-    /* perform blending */
-    if (pso->mode == POSESLIDE_BREAKDOWN) {
-      /* Just perform the interpolation between quat_prev and
-       * quat_next using pso->percentage as a guide. */
-      float quat_prev[4];
-      float quat_next[4];
+    /* Perform blending. */
+    if (ELEM(pso->mode, POSESLIDE_BREAKDOWN, POSESLIDE_PUSH, POSESLIDE_RELAX)) {
+      float quat_prev[4], quat_next[4];
 
       quat_prev[0] = evaluate_fcurve(fcu_w, prevFrameF);
       quat_prev[1] = evaluate_fcurve(fcu_x, prevFrameF);
@@ -566,29 +563,29 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       normalize_qt(quat_prev);
       normalize_qt(quat_next);
 
-      interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->percentage);
-    }
-    else {
-      /* POSESLIDE_PUSH and POSESLIDE_RELAX. */
-      float quat_breakdown[4];
-      float quat_curr[4];
-
-      copy_qt_qt(quat_curr, pchan->quat);
-
-      quat_breakdown[0] = evaluate_fcurve(fcu_w, cframe);
-      quat_breakdown[1] = evaluate_fcurve(fcu_x, cframe);
-      quat_breakdown[2] = evaluate_fcurve(fcu_y, cframe);
-      quat_breakdown[3] = evaluate_fcurve(fcu_z, cframe);
-
-      normalize_qt(quat_breakdown);
-      normalize_qt(quat_curr);
-
-      if (pso->mode == POSESLIDE_PUSH) {
-        interp_qt_qtqt(quat_final, quat_breakdown, quat_curr, 1.0f + pso->percentage);
+      if (pso->mode == POSESLIDE_BREAKDOWN) {
+        /* Just perform the interpolation between quat_prev and
+         * quat_next using pso->factor as a guide. */
+        interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->percentage);
       }
       else {
-        BLI_assert(pso->mode == POSESLIDE_RELAX);
-        interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, pso->percentage);
+        float quat_curr[4], quat_breakdown[4];
+
+        normalize_qt_qt(quat_curr, pchan->quat);
+
+        /* Compute breakdown based on actual frame range. */
+        const float factor = (cframe - pso->prevFrame) / (float)(pso->nextFrame - pso->prevFrame);
+
+        interp_qt_qtqt(quat_breakdown, quat_prev, quat_next, factor);
+
+        if (pso->mode == POSESLIDE_PUSH) {
+          interp_qt_qtqt(
+              quat_final, quat_breakdown, quat_curr, 1.0f + pso->percentage);
+        }
+        else {
+          BLI_assert(pso->mode == POSESLIDE_RELAX);
+          interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, pso->percentage);
+        }
       }
     }
 
