@@ -202,11 +202,14 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
           instances, *geometry_set.get_component_for_read<CurveComponent>(), instance, params);
       geometry_set.remove(GEO_COMPONENT_TYPE_CURVE);
     }
-    /* Unused references may have been added above. Remove those now so that other nodes don't
-     * process them needlessly. */
-    /** \note: This currently expects that all originally existing instances were used. */
-    instances.remove_unused_references();
   });
+
+  /* Unused references may have been added above. Remove those now so that other nodes don't
+   * process them needlessly.
+   * This should eventually be moved into the loop above, but currently this is quite tricky
+   * because it might remove references that the loop still wants to iterate over. */
+  InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+  instances.remove_unused_references();
 
   params.set_output("Instances", std::move(geometry_set));
 }
