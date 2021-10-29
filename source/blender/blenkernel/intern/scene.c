@@ -523,7 +523,10 @@ static void scene_foreach_toolsettings_id_pointer_process(
   }
 }
 
-#define BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS( \
+/* Special handling is needed here, as `scene_foreach_toolsettings` (and its dependency
+ * `scene_foreach_paint`) are also used by `scene_undo_preserve`, where `LibraryForeachIDData
+ * *data` is NULL. */
+#define BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER( \
     __data, __id, __do_undo_restore, __action, __reader, __id_old, __cb_flag) \
   { \
     if (__do_undo_restore) { \
@@ -531,7 +534,21 @@ static void scene_foreach_toolsettings_id_pointer_process(
           (ID **)&(__id), __action, __reader, (ID **)&(__id_old), __cb_flag); \
     } \
     else { \
+      BLI_assert((__data) != NULL); \
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(__data, __id, __cb_flag); \
+    } \
+  } \
+  (void)0
+
+#define BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL( \
+    __data, __do_undo_restore, __func_call) \
+  { \
+    if (__do_undo_restore) { \
+      __func_call; \
+    } \
+    else { \
+      BLI_assert((__data) != NULL); \
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(__data, __func_call); \
     } \
   } \
   (void)0
@@ -542,13 +559,13 @@ static void scene_foreach_paint(LibraryForeachIDData *data,
                                 BlendLibReader *reader,
                                 Paint *paint_old)
 {
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          paint->brush,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_RESTORE,
-                                          reader,
-                                          paint_old->brush,
-                                          IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  paint->brush,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_RESTORE,
+                                                  reader,
+                                                  paint_old->brush,
+                                                  IDWALK_CB_USER);
   for (int i = 0; i < paint_old->tool_slots_len; i++) {
     /* This is a bit tricky.
      *  - In case we do not do `undo_restore`, `paint` and `paint_old` pointers are the same, so
@@ -560,21 +577,21 @@ static void scene_foreach_paint(LibraryForeachIDData *data,
      */
     Brush *brush_tmp = NULL;
     Brush **brush_p = i < paint->tool_slots_len ? &paint->tool_slots[i].brush : &brush_tmp;
-    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                            *brush_p,
-                                            do_undo_restore,
-                                            SCENE_FOREACH_UNDO_RESTORE,
-                                            reader,
-                                            paint_old->brush,
-                                            IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                    *brush_p,
+                                                    do_undo_restore,
+                                                    SCENE_FOREACH_UNDO_RESTORE,
+                                                    reader,
+                                                    paint_old->brush,
+                                                    IDWALK_CB_USER);
   }
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          paint->palette,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_RESTORE,
-                                          reader,
-                                          paint_old->palette,
-                                          IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  paint->palette,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_RESTORE,
+                                                  reader,
+                                                  paint_old->palette,
+                                                  IDWALK_CB_USER);
 }
 
 static void scene_foreach_toolsettings(LibraryForeachIDData *data,
@@ -583,102 +600,113 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                        BlendLibReader *reader,
                                        ToolSettings *toolsett_old)
 {
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->particle.scene,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_NO_RESTORE,
-                                          reader,
-                                          toolsett_old->particle.scene,
-                                          IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->particle.object,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_NO_RESTORE,
-                                          reader,
-                                          toolsett_old->particle.object,
-                                          IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->particle.shape_object,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_NO_RESTORE,
-                                          reader,
-                                          toolsett_old->particle.shape_object,
-                                          IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->particle.scene,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_NO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->particle.scene,
+                                                  IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->particle.object,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_NO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->particle.object,
+                                                  IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->particle.shape_object,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_NO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->particle.shape_object,
+                                                  IDWALK_CB_NOP);
 
   scene_foreach_paint(
       data, &toolsett->imapaint.paint, do_undo_restore, reader, &toolsett_old->imapaint.paint);
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->imapaint.stencil,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_RESTORE,
-                                          reader,
-                                          toolsett_old->imapaint.stencil,
-                                          IDWALK_CB_USER);
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->imapaint.clone,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_RESTORE,
-                                          reader,
-                                          toolsett_old->imapaint.clone,
-                                          IDWALK_CB_USER);
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->imapaint.canvas,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_RESTORE,
-                                          reader,
-                                          toolsett_old->imapaint.canvas,
-                                          IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->imapaint.stencil,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->imapaint.stencil,
+                                                  IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->imapaint.clone,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->imapaint.clone,
+                                                  IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->imapaint.canvas,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->imapaint.canvas,
+                                                  IDWALK_CB_USER);
 
   if (toolsett->vpaint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                            scene_foreach_paint(data,
-                                                                &toolsett->vpaint->paint,
-                                                                do_undo_restore,
-                                                                reader,
-                                                                &toolsett_old->vpaint->paint));
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->vpaint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->vpaint->paint));
   }
   if (toolsett->wpaint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                            scene_foreach_paint(data,
-                                                                &toolsett->wpaint->paint,
-                                                                do_undo_restore,
-                                                                reader,
-                                                                &toolsett_old->wpaint->paint));
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->wpaint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->wpaint->paint));
   }
   if (toolsett->sculpt) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                            scene_foreach_paint(data,
-                                                                &toolsett->sculpt->paint,
-                                                                do_undo_restore,
-                                                                reader,
-                                                                &toolsett_old->sculpt->paint));
-    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                            toolsett->sculpt->gravity_object,
-                                            do_undo_restore,
-                                            SCENE_FOREACH_UNDO_NO_RESTORE,
-                                            reader,
-                                            toolsett_old->sculpt->gravity_object,
-                                            IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->sculpt->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->sculpt->paint));
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                    toolsett->sculpt->gravity_object,
+                                                    do_undo_restore,
+                                                    SCENE_FOREACH_UNDO_NO_RESTORE,
+                                                    reader,
+                                                    toolsett_old->sculpt->gravity_object,
+                                                    IDWALK_CB_NOP);
   }
   if (toolsett->uvsculpt) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                            scene_foreach_paint(data,
-                                                                &toolsett->uvsculpt->paint,
-                                                                do_undo_restore,
-                                                                reader,
-                                                                &toolsett_old->uvsculpt->paint));
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->uvsculpt->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->uvsculpt->paint));
   }
   if (toolsett->gp_paint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
-                                            scene_foreach_paint(data,
-                                                                &toolsett->gp_paint->paint,
-                                                                do_undo_restore,
-                                                                reader,
-                                                                &toolsett_old->gp_paint->paint));
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->gp_paint->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->gp_paint->paint));
   }
   if (toolsett->gp_vertexpaint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
         data,
+        do_undo_restore,
         scene_foreach_paint(data,
                             &toolsett->gp_vertexpaint->paint,
                             do_undo_restore,
@@ -686,8 +714,9 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                             &toolsett_old->gp_vertexpaint->paint));
   }
   if (toolsett->gp_sculptpaint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
         data,
+        do_undo_restore,
         scene_foreach_paint(data,
                             &toolsett->gp_sculptpaint->paint,
                             do_undo_restore,
@@ -695,8 +724,9 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                             &toolsett_old->gp_sculptpaint->paint));
   }
   if (toolsett->gp_weightpaint) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
         data,
+        do_undo_restore,
         scene_foreach_paint(data,
                             &toolsett->gp_weightpaint->paint,
                             do_undo_restore,
@@ -704,14 +734,17 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                             &toolsett_old->gp_weightpaint->paint));
   }
 
-  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS(data,
-                                          toolsett->gp_sculpt.guide.reference_object,
-                                          do_undo_restore,
-                                          SCENE_FOREACH_UNDO_NO_RESTORE,
-                                          reader,
-                                          toolsett_old->gp_sculpt.guide.reference_object,
-                                          IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
+                                                  toolsett->gp_sculpt.guide.reference_object,
+                                                  do_undo_restore,
+                                                  SCENE_FOREACH_UNDO_NO_RESTORE,
+                                                  reader,
+                                                  toolsett_old->gp_sculpt.guide.reference_object,
+                                                  IDWALK_CB_NOP);
 }
+
+#undef BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER
+#undef BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL
 
 static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
