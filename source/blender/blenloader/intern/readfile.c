@@ -6789,7 +6789,11 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
   link_list(fd, lb);
 
   for (seq = lb->first; seq; seq = seq->next) {
-    if (seq->seqbase.first) {
+    /* Sanity check. */
+    if ((seq->machine < 1) || (seq->machine > MAXSEQ)) {
+      BLI_freelinkN(lb, seq);
+    }
+    else if (seq->seqbase.first) {
       link_recurs_seq(fd, &seq->seqbase);
     }
   }
