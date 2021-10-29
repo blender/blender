@@ -140,13 +140,10 @@ void blf_glyph_cache_clear(struct FontBLF *font);
 void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
 struct GlyphBLF *blf_glyph_search(struct GlyphCacheBLF *gc, unsigned int c);
-struct GlyphBLF *blf_glyph_add(struct FontBLF *font,
-                               struct GlyphCacheBLF *gc,
-                               unsigned int index,
-                               unsigned int c);
+struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc, uint charcode);
 
 void blf_glyph_free(struct GlyphBLF *g);
-void blf_glyph_render(
+void blf_glyph_draw(
     struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, float x, float y);
 
 #ifdef WIN32

@@ -175,33 +175,8 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
   return NULL;
 }
 
-GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, unsigned int c)
+static bool blf_glyph_render(FontBLF *font, FT_UInt glyph_index)
 {
-  FT_GlyphSlot slot;
-  GlyphBLF *g;
-  FT_Error err;
-  FT_Bitmap bitmap, tempbitmap;
-  FT_BBox bbox;
-  unsigned int key;
-
-  g = blf_glyph_search(gc, c);
-  if (g) {
-    return g;
-  }
-
-  /* glyphs are dynamically created as needed by font rendering. this means that
-   * to make font rendering thread safe we have to do locking here. note that this
-   * must be a lock for the whole library and not just per font, because the font
-   * renderer uses a shared buffer internally */
-  BLI_spin_lock(font->ft_lib_mutex);
-
-  /* search again after locking */
-  g = blf_glyph_search(gc, c);
-  if (g) {
-    BLI_spin_unlock(font->ft_lib_mutex);
-    return g;
-  }
-
   int load_flags;
   int render_mode;
 
@@ -228,7 +203,10 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
     }
   }
 
-  err = FT_Load_Glyph(font->face, (FT_UInt)index, load_flags);
+  FT_Error err = FT_Load_Glyph(font->face, glyph_index, load_flags);
+  if (err != 0) {
+    return false;
+  }
 
   /* Do not oblique a font that is designed to be italic! */
   if (((font->flags & BLF_ITALIC) != 0) && !(font->face->style_flags & FT_STYLE_FLAG_ITALIC) &&
@@ -243,9 +221,8 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
   }
 
   /* Do not embolden an already bold font! */
-  if (((font->flags & BLF_BOLD) != 0) &&
-      !(font->face->style_flags & FT_STYLE_FLAG_BOLD) &
-          (font->face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)) {
+  if (((font->flags & BLF_BOLD) != 0) && !(font->face->style_flags & FT_STYLE_FLAG_BOLD) &&
+      (font->face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)) {
     /* Strengthen the width more than the height. */
     const FT_Pos extra_x = FT_MulFix(font->face->units_per_EM, font->face->size->metrics.x_scale) /
                            14;
@@ -263,14 +240,11 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
     }
   }
 
-  if (err) {
-    BLI_spin_unlock(font->ft_lib_mutex);
-    return NULL;
-  }
-
   /* get the glyph. */
-  slot = font->face->glyph;
+  FT_GlyphSlot slot = font->face->glyph;
   err = FT_Render_Glyph(slot, render_mode);
+
+  FT_Bitmap tempbitmap;
 
   if (font->flags & BLF_MONOCHROME) {
     /* Convert result from 1 bit per pixel to 8 bit per pixel */
@@ -284,45 +258,69 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
   }
 
   if (err || slot->format != FT_GLYPH_FORMAT_BITMAP) {
-    BLI_spin_unlock(font->ft_lib_mutex);
+    return false;
+  }
+
+  return true;
+}
+
+GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
+{
+  GlyphBLF *g = (charcode < GLYPH_ASCII_TABLE_SIZE) ? (gc->glyph_ascii_table)[charcode] :
+                                                      blf_glyph_search(gc, charcode);
+  if (g) {
+    return g;
+  }
+
+  FT_UInt glyph_index = FT_Get_Char_Index(font->face, charcode);
+
+  if (!blf_glyph_render(font, glyph_index)) {
     return NULL;
   }
 
-  g = (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_add");
-  g->c = c;
-  g->idx = (FT_UInt)index;
-  bitmap = slot->bitmap;
-  g->dims[0] = (int)bitmap.width;
-  g->dims[1] = (int)bitmap.rows;
+  FT_GlyphSlot slot = font->face->glyph;
 
-  const int buffer_size = g->dims[0] * g->dims[1];
+  /* glyphs are dynamically created as needed by font rendering. this means that
+   * to make font rendering thread safe we have to do locking here. note that this
+   * must be a lock for the whole library and not just per font, because the font
+   * renderer uses a shared buffer internally */
+  BLI_spin_lock(font->ft_lib_mutex);
 
-  if (buffer_size != 0) {
-    if (font->flags & BLF_MONOCHROME) {
-      /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
-      for (int i = 0; i < buffer_size; i++) {
-        bitmap.buffer[i] = bitmap.buffer[i] ? 255 : 0;
-      }
-    }
-
-    g->bitmap = MEM_mallocN((size_t)buffer_size, "glyph bitmap");
-    memcpy(g->bitmap, bitmap.buffer, (size_t)buffer_size);
-  }
-
+  g = (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_get");
+  g->c = charcode;
+  g->idx = glyph_index;
   g->advance = ((float)slot->advance.x) / 64.0f;
   g->advance_i = (int)g->advance;
   g->pos[0] = slot->bitmap_left;
   g->pos[1] = slot->bitmap_top;
+  g->dims[0] = slot->bitmap.width;
+  g->dims[1] = slot->bitmap.rows;
   g->pitch = slot->bitmap.pitch;
 
+  FT_BBox bbox;
   FT_Outline_Get_CBox(&(slot->outline), &bbox);
   g->box.xmin = ((float)bbox.xMin) / 64.0f;
   g->box.xmax = ((float)bbox.xMax) / 64.0f;
   g->box.ymin = ((float)bbox.yMin) / 64.0f;
   g->box.ymax = ((float)bbox.yMax) / 64.0f;
 
-  key = blf_hash(g->c);
+  const int buffer_size = slot->bitmap.width * slot->bitmap.rows;
+  if (buffer_size != 0) {
+    if (font->flags & BLF_MONOCHROME) {
+      /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
+      for (int i = 0; i < buffer_size; i++) {
+        slot->bitmap.buffer[i] = slot->bitmap.buffer[i] ? 255 : 0;
+      }
+    }
+    g->bitmap = MEM_mallocN((size_t)buffer_size, "glyph bitmap");
+    memcpy(g->bitmap, slot->bitmap.buffer, (size_t)buffer_size);
+  }
+
+  unsigned int key = blf_hash(g->c);
   BLI_addhead(&(gc->bucket[key]), g);
+  if (charcode < GLYPH_ASCII_TABLE_SIZE) {
+    gc->glyph_ascii_table[charcode] = g;
+  }
 
   BLI_spin_unlock(font->ft_lib_mutex);
 
@@ -419,7 +417,7 @@ static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y
   blf_glyph_calc_rect(rect, g, x + (float)font->shadow_x, y + (float)font->shadow_y);
 }
 
-void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, float y)
+void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, float y)
 {
   if ((!g->dims[0]) || (!g->dims[1])) {
     return;

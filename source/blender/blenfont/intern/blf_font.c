@@ -300,24 +300,8 @@ static void blf_batch_draw_end(void)
 BLI_INLINE GlyphBLF *blf_utf8_next_fast(
     FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t str_len, size_t *i_p)
 {
-  GlyphBLF *g;
-  uint charcode = (uint)str[*i_p];
-  if (charcode < GLYPH_ASCII_TABLE_SIZE) {
-    g = (gc->glyph_ascii_table)[charcode];
-    if (UNLIKELY(g == NULL)) {
-      g = blf_glyph_add(font, gc, FT_Get_Char_Index(font->face, charcode), charcode);
-      gc->glyph_ascii_table[charcode] = g;
-    }
-    (*i_p)++;
-  }
-  else {
-    charcode = BLI_str_utf8_as_unicode_step(str, str_len, i_p);
-    g = blf_glyph_search(gc, charcode);
-    if (UNLIKELY(g == NULL)) {
-      g = blf_glyph_add(font, gc, FT_Get_Char_Index(font->face, charcode), charcode);
-    }
-  }
-  return g;
+  uint charcode = BLI_str_utf8_as_unicode_step(str, str_len, i_p);
+  return blf_glyph_ensure(font, gc, charcode);
 }
 
 BLI_INLINE int blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const GlyphBLF *g)
@@ -388,7 +372,7 @@ static void blf_font_draw_ex(FontBLF *font,
     pen_x += blf_kerning(font, g_prev, g);
 
     /* do not return this loop if clipped, we want every character tested */
-    blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
+    blf_glyph_draw(font, gc, g, (float)pen_x, (float)pen_y);
 
     pen_x += g->advance_i;
     g_prev = g;
@@ -431,7 +415,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
     }
 
     /* do not return this loop if clipped, we want every character tested */
-    blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
+    blf_glyph_draw(font, gc, g, (float)pen_x, (float)pen_y);
 
     col = BLI_wcwidth((char32_t)g->c);
     if (col < 0) {
@@ -857,7 +841,7 @@ float blf_font_fixed_width(FontBLF *font)
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   GlyphBLF *g = blf_glyph_search(gc, c);
   if (!g) {
-    g = blf_glyph_add(font, gc, FT_Get_Char_Index(font->face, c), c);
+    g = blf_glyph_ensure(font, gc, FT_Get_Char_Index(font->face, c));
 
     /* if we don't find the glyph. */
     if (!g) {
