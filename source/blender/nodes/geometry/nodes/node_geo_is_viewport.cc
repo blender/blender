@@ -22,7 +22,7 @@ namespace blender::nodes {
 
 static void geo_node_is_viewport_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Is Viewport");
+  b.add_output<decl::Bool>(N_("Is Viewport"));
 }
 
 static void geo_node_is_viewport_exec(GeoNodeExecParams params)

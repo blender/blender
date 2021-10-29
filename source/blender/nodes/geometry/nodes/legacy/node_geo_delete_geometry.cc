@@ -47,10 +47,10 @@ namespace blender::nodes {
 
 static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Selection");
-  b.add_input<decl::Bool>("Invert");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_input<decl::Bool>(N_("Invert"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 template<typename T> static void copy_data(Span<T> data, MutableSpan<T> r_data, IndexMask mask)

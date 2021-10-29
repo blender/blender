@@ -22,11 +22,11 @@ namespace blender::nodes {
 
 static void geo_node_set_position_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>("Position").implicit_field();
-  b.add_input<decl::Vector>("Offset").supports_field().subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Offset")).supports_field().subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void set_position_in_component(GeometryComponent &component,

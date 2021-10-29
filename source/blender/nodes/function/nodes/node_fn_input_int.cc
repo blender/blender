@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void fn_node_input_int_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Integer");
+  b.add_output<decl::Int>(N_("Integer"));
 };
 
 static void fn_node_input_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

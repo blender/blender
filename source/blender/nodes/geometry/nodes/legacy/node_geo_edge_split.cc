@@ -26,15 +26,15 @@ namespace blender::nodes {
 
 static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Edge Angle").default_value(true);
-  b.add_input<decl::Float>("Angle")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Edge Angle")).default_value(true);
+  b.add_input<decl::Float>(N_("Angle"))
       .default_value(DEG2RADF(30.0f))
       .min(0.0f)
       .max(DEG2RADF(180.0f))
       .subtype(PROP_ANGLE);
-  b.add_input<decl::Bool>("Sharp Edges");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>(N_("Sharp Edges"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_edge_split_exec(GeoNodeExecParams params)

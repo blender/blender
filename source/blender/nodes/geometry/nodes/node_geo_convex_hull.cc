@@ -32,8 +32,8 @@ namespace blender::nodes {
 
 static void geo_node_convex_hull_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Geometry>("Convex Hull");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Convex Hull"));
 }
 
 using bke::GeometryInstanceGroup;

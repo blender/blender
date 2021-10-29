@@ -27,13 +27,13 @@ namespace blender::nodes {
 
 static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh 1")
+  b.add_input<decl::Geometry>(N_("Mesh 1"))
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Geometry>("Mesh 2").multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>("Self Intersection");
-  b.add_input<decl::Bool>("Hole Tolerant");
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>(N_("Mesh 2")).multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Self Intersection"));
+  b.add_input<decl::Bool>(N_("Hole Tolerant"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

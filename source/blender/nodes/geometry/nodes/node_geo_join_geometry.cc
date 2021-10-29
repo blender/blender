@@ -33,8 +33,8 @@ namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").multi_input();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent *> src_components)

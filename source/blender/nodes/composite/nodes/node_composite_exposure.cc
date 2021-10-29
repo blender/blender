@@ -29,9 +29,9 @@ namespace blender::nodes {
 
 static void cmp_node_exposure_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Exposure").min(-10.0f).max(10.0f);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Exposure")).min(-10.0f).max(10.0f);
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes

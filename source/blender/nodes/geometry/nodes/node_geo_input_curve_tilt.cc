@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_curve_tilt_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Tilt").field_source();
+  b.add_output<decl::Float>(N_("Tilt")).field_source();
 }
 
 static void geo_node_input_curve_tilt_exec(GeoNodeExecParams params)

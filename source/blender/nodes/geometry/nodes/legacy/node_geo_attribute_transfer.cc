@@ -33,11 +33,11 @@ namespace blender::nodes {
 
 static void geo_node_attribute_transfer_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Geometry>("Source Geometry");
-  b.add_input<decl::String>("Source");
-  b.add_input<decl::String>("Destination");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Geometry>(N_("Source Geometry"));
+  b.add_input<decl::String>(N_("Source"));
+  b.add_input<decl::String>(N_("Destination"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_transfer_layout(uiLayout *layout,

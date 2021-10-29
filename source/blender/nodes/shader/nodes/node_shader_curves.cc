@@ -28,9 +28,9 @@ namespace blender::nodes {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f);
-  b.add_output<decl::Vector>("Vector");
+  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Vector>(N_("Vector")).min(-1.0f).max(1.0f);
+  b.add_output<decl::Vector>(N_("Vector"));
 };
 
 }  // namespace blender::nodes
@@ -175,9 +175,9 @@ namespace blender::nodes {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>("Color");
+  b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Color"));
 };
 
 }  // namespace blender::nodes
@@ -352,9 +352,13 @@ namespace blender::nodes {
 static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Factor").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Value").default_value(1.0f);
-  b.add_output<decl::Float>("Value");
+  b.add_input<decl::Float>(N_("Factor"))
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Value")).default_value(1.0f);
+  b.add_output<decl::Float>(N_("Value"));
 };
 
 }  // namespace blender::nodes

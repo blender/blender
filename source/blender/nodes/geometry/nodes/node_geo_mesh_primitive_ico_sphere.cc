@@ -28,9 +28,9 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_ico_sphere_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Int>("Subdivisions").default_value(1).min(1).max(7);
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Subdivisions")).default_value(1).min(1).max(7);
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)

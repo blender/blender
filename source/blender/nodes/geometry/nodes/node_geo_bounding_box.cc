@@ -20,10 +20,10 @@ namespace blender::nodes {
 
 static void geo_node_bounding_box_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Geometry>("Bounding Box");
-  b.add_output<decl::Vector>("Min");
-  b.add_output<decl::Vector>("Max");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Bounding Box"));
+  b.add_output<decl::Vector>(N_("Min"));
+  b.add_output<decl::Vector>(N_("Max"));
 }
 
 static void geo_node_bounding_box_exec(GeoNodeExecParams params)

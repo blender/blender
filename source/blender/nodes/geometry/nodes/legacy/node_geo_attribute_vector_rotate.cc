@@ -25,21 +25,21 @@ namespace blender::nodes {
 
 static void geo_node_attribute_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Vector");
-  b.add_input<decl::Vector>("Vector", "Vector_001").min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::String>("Center");
-  b.add_input<decl::Vector>("Center", "Center_001").subtype(PROP_XYZ);
-  b.add_input<decl::String>("Axis");
-  b.add_input<decl::Vector>("Axis", "Axis_001").min(-1.0f).max(1.0f).subtype(PROP_XYZ);
-  b.add_input<decl::String>("Angle");
-  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
-  b.add_input<decl::String>("Rotation");
-  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
-  b.add_input<decl::Bool>("Invert");
-  b.add_input<decl::String>("Result");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Vector"));
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_001").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::String>(N_("Center"));
+  b.add_input<decl::Vector>(N_("Center"), "Center_001").subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Axis"));
+  b.add_input<decl::Vector>(N_("Axis"), "Axis_001").min(-1.0f).max(1.0f).subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Angle"));
+  b.add_input<decl::Float>(N_("Angle"), "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>(N_("Rotation"));
+  b.add_input<decl::Vector>(N_("Rotation"), "Rotation_001").subtype(PROP_EULER);
+  b.add_input<decl::Bool>(N_("Invert"));
+  b.add_input<decl::String>(N_("Result"));
 
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_vector_rotate_layout(uiLayout *layout,

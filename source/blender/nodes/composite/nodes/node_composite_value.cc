@@ -29,7 +29,7 @@ namespace blender::nodes {
 
 static void cmp_node_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Value").default_value(0.5f);
+  b.add_output<decl::Float>(N_("Value")).default_value(0.5f);
 }
 
 }  // namespace blender::nodes

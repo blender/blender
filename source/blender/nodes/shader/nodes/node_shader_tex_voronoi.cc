@@ -26,25 +26,25 @@ namespace blender::nodes {
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").hide_value().implicit_field();
-  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>("Smoothness")
+  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>(N_("Smoothness"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Exponent").min(0.0f).max(32.0f).default_value(0.5f);
-  b.add_input<decl::Float>("Randomness")
+  b.add_input<decl::Float>(N_("Exponent")).min(0.0f).max(32.0f).default_value(0.5f);
+  b.add_input<decl::Float>(N_("Randomness"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Float>("Distance").no_muted_links();
-  b.add_output<decl::Color>("Color").no_muted_links();
-  b.add_output<decl::Vector>("Position").no_muted_links();
-  b.add_output<decl::Float>("W").no_muted_links();
-  b.add_output<decl::Float>("Radius").no_muted_links();
+  b.add_output<decl::Float>(N_("Distance")).no_muted_links();
+  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+  b.add_output<decl::Vector>(N_("Position")).no_muted_links();
+  b.add_output<decl::Float>(N_("W")).no_muted_links();
+  b.add_output<decl::Float>(N_("Radius")).no_muted_links();
 };
 
 }  // namespace blender::nodes

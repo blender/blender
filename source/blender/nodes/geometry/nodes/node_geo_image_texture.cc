@@ -36,12 +36,13 @@ namespace blender::nodes {
 
 static void geo_node_image_texture_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>("Image").hide_label();
-  b.add_input<decl::Vector>("Vector").implicit_field().description(
-      "Texture coordinates from 0 to 1");
-  b.add_input<decl::Int>("Frame").min(0).max(MAXFRAMEF);
-  b.add_output<decl::Color>("Color").no_muted_links().dependent_field();
-  b.add_output<decl::Float>("Alpha").no_muted_links().dependent_field();
+  b.add_input<decl::Image>(N_("Image")).hide_label();
+  b.add_input<decl::Vector>(N_("Vector"))
+      .implicit_field()
+      .description(("Texture coordinates from 0 to 1"));
+  b.add_input<decl::Int>(N_("Frame")).min(0).max(MAXFRAMEF);
+  b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field();
+  b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
 }
 
 static void geo_node_image_texture_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

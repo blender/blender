@@ -30,17 +30,17 @@ namespace blender::nodes {
 
 static void geo_node_attribute_vector_math_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("A");
-  b.add_input<decl::Vector>("A", "A_001");
-  b.add_input<decl::String>("B");
-  b.add_input<decl::Vector>("B", "B_001");
-  b.add_input<decl::Float>("B", "B_002");
-  b.add_input<decl::String>("C");
-  b.add_input<decl::Vector>("C", "C_001");
-  b.add_input<decl::Float>("C", "C_002");
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("A"));
+  b.add_input<decl::Vector>(N_("A"), "A_001");
+  b.add_input<decl::String>(N_("B"));
+  b.add_input<decl::Vector>(N_("B"), "B_001");
+  b.add_input<decl::Float>(N_("B"), "B_002");
+  b.add_input<decl::String>(N_("C"));
+  b.add_input<decl::Vector>(N_("C"), "C_001");
+  b.add_input<decl::Float>(N_("C"), "C_002");
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static bool operation_use_input_b(const NodeVectorMathOperation operation)

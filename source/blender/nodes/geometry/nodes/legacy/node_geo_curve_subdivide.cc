@@ -33,10 +33,10 @@ namespace blender::nodes {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Cuts");
-  b.add_input<decl::Int>("Cuts", "Cuts_001").default_value(1).min(0).max(1000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Cuts"));
+  b.add_input<decl::Int>(N_("Cuts"), "Cuts_001").default_value(1).min(0).max(1000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_curve_subdivide_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

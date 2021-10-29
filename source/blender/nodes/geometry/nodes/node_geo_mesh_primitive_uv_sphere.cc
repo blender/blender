@@ -29,10 +29,10 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Segments").default_value(32).min(3).max(1024);
-  b.add_input<decl::Int>("Rings").default_value(16).min(2).max(1024);
-  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Int>(N_("Segments")).default_value(32).min(3).max(1024);
+  b.add_input<decl::Int>(N_("Rings")).default_value(16).min(2).max(1024);
+  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static int sphere_vert_total(const int segments, const int rings)

@@ -34,11 +34,14 @@ namespace blender::nodes {
 
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).supports_field();
-  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).supports_field().subtype(
-      PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>(N_("Count")).default_value(10).min(1).max(100000).supports_field();
+  b.add_input<decl::Float>(N_("Length"))
+      .default_value(0.1f)
+      .min(0.001f)
+      .supports_field()
+      .subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_resample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

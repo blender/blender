@@ -25,11 +25,11 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>("Start").subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End").default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Direction").default_value({0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Float>("Length").default_value(1.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Vector>(N_("Start")).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("End")).default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Direction")).default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Length")).default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_primitive_line_layout(uiLayout *layout,

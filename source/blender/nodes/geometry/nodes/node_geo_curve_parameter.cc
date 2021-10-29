@@ -24,7 +24,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_parameter_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Factor").field_source();
+  b.add_output<decl::Float>(N_("Factor")).field_source();
 }
 
 /**

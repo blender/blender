@@ -27,10 +27,10 @@ namespace blender::nodes {
 
 static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Mask");
-  b.add_output<decl::Geometry>("Geometry 1");
-  b.add_output<decl::Geometry>("Geometry 2");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Mask"));
+  b.add_output<decl::Geometry>(N_("Geometry 1"));
+  b.add_output<decl::Geometry>(N_("Geometry 2"));
 }
 
 template<typename T>

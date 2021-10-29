@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_radius_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Radius").default_value(1.0f).min(0.0f).field_source();
+  b.add_output<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).field_source();
 }
 
 static void geo_node_input_radius_exec(GeoNodeExecParams params)

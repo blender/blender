@@ -23,15 +23,15 @@ namespace blender::nodes {
 
 static void geo_node_instances_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Instances").only_instances();
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>("Position").implicit_field();
-  b.add_input<decl::Float>("Radius")
+  b.add_input<decl::Geometry>(N_("Instances")).only_instances();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
-  b.add_output<decl::Geometry>("Points");
+  b.add_output<decl::Geometry>(N_("Points"));
 }
 
 template<typename T>

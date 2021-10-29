@@ -26,21 +26,21 @@ namespace blender::nodes {
 
 static void geo_node_attribute_map_range_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::String>("Result");
-  b.add_input<decl::Float>("From Min");
-  b.add_input<decl::Float>("From Max").default_value(1.0f);
-  b.add_input<decl::Float>("To Min");
-  b.add_input<decl::Float>("To Max").default_value(1.0f);
-  b.add_input<decl::Float>("Steps").default_value(4.0f);
-  b.add_input<decl::Vector>("From Min", "From Min_001");
-  b.add_input<decl::Vector>("From Max", "From Max_001").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>("To Min", "To Min_001");
-  b.add_input<decl::Vector>("To Max", "To Max_001").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>("Steps", "Steps_001").default_value({4.0f, 4.0f, 4.0f});
-  b.add_input<decl::Bool>("Clamp");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_input<decl::Float>(N_("From Min"));
+  b.add_input<decl::Float>(N_("From Max")).default_value(1.0f);
+  b.add_input<decl::Float>(N_("To Min"));
+  b.add_input<decl::Float>(N_("To Max")).default_value(1.0f);
+  b.add_input<decl::Float>(N_("Steps")).default_value(4.0f);
+  b.add_input<decl::Vector>(N_("From Min"), "From Min_001");
+  b.add_input<decl::Vector>(N_("From Max"), "From Max_001").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("To Min"), "To Min_001");
+  b.add_input<decl::Vector>(N_("To Max"), "To Max_001").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("Steps"), "Steps_001").default_value({4.0f, 4.0f, 4.0f});
+  b.add_input<decl::Bool>(N_("Clamp"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void fn_attribute_map_range_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

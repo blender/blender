@@ -26,18 +26,18 @@ namespace blender::nodes {
 
 static void geo_node_align_rotation_to_vector_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Factor");
-  b.add_input<decl::Float>("Factor", "Factor_001")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Factor"));
+  b.add_input<decl::Float>(N_("Factor"), "Factor_001")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::String>("Vector");
-  b.add_input<decl::Vector>("Vector", "Vector_001")
+  b.add_input<decl::String>(N_("Vector"));
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_001")
       .default_value({0.0, 0.0, 1.0})
       .subtype(PROP_ANGLE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,

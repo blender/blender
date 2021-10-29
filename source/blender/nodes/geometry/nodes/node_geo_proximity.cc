@@ -31,11 +31,12 @@ namespace blender::nodes {
 
 static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target").only_realized_data().supported_type(
-      {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
-  b.add_input<decl::Vector>("Source Position").implicit_field();
-  b.add_output<decl::Vector>("Position").dependent_field();
-  b.add_output<decl::Float>("Distance").dependent_field();
+  b.add_input<decl::Geometry>(N_("Target"))
+      .only_realized_data()
+      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field();
+  b.add_output<decl::Float>(N_("Distance")).dependent_field();
 }
 
 static void geo_node_proximity_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

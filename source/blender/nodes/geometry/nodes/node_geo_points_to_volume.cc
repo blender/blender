@@ -32,16 +32,16 @@ namespace blender::nodes {
 
 static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
-  b.add_input<decl::Float>("Radius")
+  b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Voxel Size")).default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Voxel Amount")).default_value(64.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.5f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
-  b.add_output<decl::Geometry>("Volume");
+  b.add_output<decl::Geometry>(N_("Volume"));
 }
 
 static void geo_node_points_to_volume_layout(uiLayout *layout,

@@ -28,10 +28,10 @@ namespace blender::nodes {
 
 static void geo_node_set_material_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Material>("Material").hide_label();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Material>(N_("Material")).hide_label();
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Material *material)

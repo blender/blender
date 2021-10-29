@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_position_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Position").field_source();
+  b.add_output<decl::Vector>(N_("Position")).field_source();
 }
 
 static void geo_node_input_position_exec(GeoNodeExecParams params)
