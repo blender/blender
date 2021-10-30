@@ -222,16 +222,12 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Volume *volume = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
   BKE_volume_init_grids(volume);
 
-  VolumeGrid *c_density_grid = BKE_volume_grid_add(volume, "density", VOLUME_GRID_FLOAT);
-  openvdb::FloatGrid::Ptr density_grid = openvdb::gridPtrCast<openvdb::FloatGrid>(
-      BKE_volume_grid_openvdb_for_write(volume, c_density_grid, false));
-
   const float density = params.get_input<float>("Density");
   convert_to_grid_index_space(voxel_size, positions, radii);
   openvdb::FloatGrid::Ptr new_grid = generate_volume_from_points(positions, radii, density);
-  /* This merge is cheap, because the #density_grid is empty. */
-  density_grid->merge(*new_grid);
-  density_grid->transform().postScale(voxel_size);
+  new_grid->transform().postScale(voxel_size);
+  BKE_volume_grid_add_vdb(*volume, "density", std::move(new_grid));
+
   r_geometry_set.keep_only({GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES});
   r_geometry_set.replace_volume(volume);
 }
