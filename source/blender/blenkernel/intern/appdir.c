@@ -259,23 +259,24 @@ bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
 /**
  * Gets a good default directory for fonts.
  */
-bool BKE_appdir_font_folder_default(
-    /* This parameter can only be `const` on non-windows platforms.
-     * NOLINTNEXTLINE: readability-non-const-parameter. */
-    char *dir)
+bool BKE_appdir_font_folder_default(char *dir)
 {
-  bool success = false;
 #ifdef WIN32
   wchar_t wpath[FILE_MAXDIR];
-  success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
-  if (success) {
+  if (SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0)) {
     wcscat(wpath, L"\\");
     BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
+    return (BLI_exists(dir));
   }
+  return false;
+#elif defined(__APPLE__)
+  const char *home = BLI_getenv("HOME");
+  BLI_snprintf(dir, FILE_MAXDIR, "%s/Library/Fonts/", home);
+  return (BLI_exists(dir));
+#else
+  BLI_strncpy(dir, "/usr/share/fonts/", FILE_MAXDIR);
+  return (BLI_exists(dir));
 #endif
-  /* TODO: Values for other platforms. */
-  UNUSED_VARS(dir);
-  return success;
 }
 
 /** \} */
