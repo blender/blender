@@ -257,7 +257,7 @@ bool BufferParams::modified(const BufferParams &other) const
   }
 
   if (layer != other.layer || view != other.view) {
-    return false;
+    return true;
   }
 
   if (exposure != other.exposure ||
