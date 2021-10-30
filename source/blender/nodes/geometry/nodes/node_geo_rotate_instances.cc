@@ -55,22 +55,43 @@ static void rotate_instances(GeoNodeExecParams &params, InstancesComponent &inst
     for (const int i_selection : range) {
       const int i = selection[i_selection];
       const float3 pivot = pivots[i];
+      const float3 euler = rotations[i];
       float4x4 &instance_transform = instance_transforms[i];
-      const float4x4 rotation_matrix = float4x4::from_loc_eul_scale(
-          {0, 0, 0}, rotations[i], {1, 1, 1});
+
+      float4x4 rotation_matrix;
+      float3 used_pivot;
 
       if (local_spaces[i]) {
-        instance_transform *= float4x4::from_location(pivot);
-        instance_transform *= rotation_matrix;
-        instance_transform *= float4x4::from_location(-pivot);
+        /* Find rotation axis from the matrix. This should work even if the instance is skewed. */
+        const float3 rotation_axis_x = instance_transform.values[0];
+        const float3 rotation_axis_y = instance_transform.values[1];
+        const float3 rotation_axis_z = instance_transform.values[2];
+
+        /* Create rotations around the individual axis. This could be optimized to skip some axis
+         * when the angle is zero. */
+        float rotation_x[3][3], rotation_y[3][3], rotation_z[3][3];
+        axis_angle_to_mat3(rotation_x, rotation_axis_x, euler.x);
+        axis_angle_to_mat3(rotation_y, rotation_axis_y, euler.y);
+        axis_angle_to_mat3(rotation_z, rotation_axis_z, euler.z);
+
+        /* Combine the previously computed rotations into the final rotation matrix. */
+        float rotation[3][3];
+        mul_m3_series(rotation, rotation_z, rotation_y, rotation_x);
+        copy_m4_m3(rotation_matrix.values, rotation);
+
+        /* Transform the passed in pivot into the local space of the instance. */
+        used_pivot = instance_transform * pivot;
       }
       else {
-        const float4x4 orgiginal_transform = instance_transform;
-        instance_transform = float4x4::from_location(pivot);
-        instance_transform *= rotation_matrix;
-        instance_transform *= float4x4::from_location(-pivot);
-        instance_transform *= orgiginal_transform;
+        used_pivot = pivot;
+        eul_to_mat4(rotation_matrix.values, euler);
       }
+      /* Move the pivot to the origin so that we can rotate around it. */
+      sub_v3_v3(instance_transform.values[3], used_pivot);
+      /* Perform the actual rotation. */
+      mul_m4_m4_pre(instance_transform.values, rotation_matrix.values);
+      /* Undo the pivot shifting done before. */
+      add_v3_v3(instance_transform.values[3], used_pivot);
     }
   });
 }
