@@ -360,7 +360,9 @@ string HIPDevice::compile_kernel(const uint kernel_features,
                                  source_path.c_str(),
                                  fatbin.c_str());
 
-  printf("Compiling HIP kernel ...\n%s\n", command.c_str());
+  printf("Compiling %sHIP kernel ...\n%s\n",
+         (use_adaptive_compilation()) ? "adaptive " : "",
+         command.c_str());
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -387,13 +389,15 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 
 bool HIPDevice::load_kernels(const uint kernel_features)
 {
-  /* TODO(sergey): Support kernels re-load for HIP devices.
+  /* TODO(sergey): Support kernels re-load for CUDA devices adaptive compile.
    *
    * Currently re-loading kernel will invalidate memory pointers,
-   * causing problems in hipCtxSynchronize.
+   * causing problems in cuCtxSynchronize.
    */
   if (hipModule) {
-    VLOG(1) << "Skipping kernel reload, not currently supported.";
+    if (use_adaptive_compilation()) {
+      VLOG(1) << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
+    }
     return true;
   }
 

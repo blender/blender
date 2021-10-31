@@ -99,26 +99,4 @@ void DebugFlags::reset()
   optix.reset();
 }
 
-std::ostream &operator<<(std::ostream &os, DebugFlagsConstRef debug_flags)
-{
-  os << "CPU flags:\n"
-     << "  AVX2       : " << string_from_bool(debug_flags.cpu.avx2) << "\n"
-     << "  AVX        : " << string_from_bool(debug_flags.cpu.avx) << "\n"
-     << "  SSE4.1     : " << string_from_bool(debug_flags.cpu.sse41) << "\n"
-     << "  SSE3       : " << string_from_bool(debug_flags.cpu.sse3) << "\n"
-     << "  SSE2       : " << string_from_bool(debug_flags.cpu.sse2) << "\n"
-     << "  BVH layout : " << bvh_layout_name(debug_flags.cpu.bvh_layout) << "\n";
-
-  os << "CUDA flags:\n"
-     << "  Adaptive Compile : " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";
-
-  os << "OptiX flags:\n"
-     << "  Debug : " << string_from_bool(debug_flags.optix.use_debug) << "\n";
-
-  os << "HIP flags:\n"
-     << "  HIP streams : " << string_from_bool(debug_flags.hip.adaptive_compile) << "\n";
-
-  return os;
-}
-
 CCL_NAMESPACE_END

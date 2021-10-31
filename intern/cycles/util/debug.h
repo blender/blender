@@ -160,8 +160,6 @@ inline DebugFlags &DebugFlags()
   return DebugFlags::get();
 }
 
-std::ostream &operator<<(std::ostream &os, DebugFlagsConstRef debug_flags);
-
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_DEBUG_H__ */
