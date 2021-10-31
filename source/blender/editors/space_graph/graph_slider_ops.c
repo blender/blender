@@ -53,6 +53,36 @@
   (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
    ANIMFILTER_NODUPLIS)
 
+/* ------------------- */
+
+/* This data type is only used for modal operation. */
+typedef struct tDecimateGraphOp {
+  bAnimContext ac;
+  Scene *scene;
+  ScrArea *area;
+  ARegion *region;
+
+  /** A 0-1 value for determining how much we should decimate. */
+  PropertyRNA *percentage_prop;
+
+  /** The original bezt curve data (used for restoring fcurves). */
+  ListBase bezt_arr_list;
+
+  struct tSlider *slider;
+
+  NumInput num;
+} tDecimateGraphOp;
+
+typedef struct tBeztCopyData {
+  int tot_vert;
+  BezTriple *bezt;
+} tBeztCopyData;
+
+typedef enum tDecimModes {
+  DECIM_RATIO = 1,
+  DECIM_ERROR,
+} tDecimModes;
+
 /* ******************** GRAPH SLIDER OPERATORS ************************* */
 /* This file contains a collection of operators to modify keyframes in the graph editor. All
  * operators are modal and use a slider that allows the user to define a percentage to modify the
@@ -123,36 +153,6 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 }
-
-/* ------------------- */
-
-/* This data type is only used for modal operation. */
-typedef struct tDecimateGraphOp {
-  bAnimContext ac;
-  Scene *scene;
-  ScrArea *area;
-  ARegion *region;
-
-  /** A 0-1 value for determining how much we should decimate. */
-  PropertyRNA *percentage_prop;
-
-  /** The original bezt curve data (used for restoring fcurves). */
-  ListBase bezt_arr_list;
-
-  struct tSlider *slider;
-
-  NumInput num;
-} tDecimateGraphOp;
-
-typedef struct tBeztCopyData {
-  int tot_vert;
-  BezTriple *bezt;
-} tBeztCopyData;
-
-typedef enum tDecimModes {
-  DECIM_RATIO = 1,
-  DECIM_ERROR,
-} tDecimModes;
 
 /* Overwrite the current bezts arrays with the original data. */
 static void decimate_reset_bezts(tDecimateGraphOp *dgo)
