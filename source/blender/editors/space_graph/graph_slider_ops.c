@@ -48,6 +48,11 @@
 
 #include "graph_intern.h"
 
+/* Used to obtain a list of animation channels for the operators to work on. */
+#define OPERATOR_DATA_FILTER \
+  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
+   ANIMFILTER_NODUPLIS)
+
 /* ******************** GRAPH SLIDER OPERATORS ************************* */
 /* This file contains a collection of operators to modify keyframes in the graph editor. All
  * operators are modal and use a slider that allows the user to define a percentage to modify the
@@ -59,12 +64,9 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
-  int filter;
 
   /* Filter data. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
 
   /* Loop through filtered data and clean curves. */
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -116,14 +118,11 @@ static void decimate_reset_bezts(tDecimateGraphOp *dgo)
   ListBase anim_data = {NULL, NULL};
   LinkData *link_bezt;
   bAnimListElem *ale;
-  int filter;
 
   bAnimContext *ac = &dgo->ac;
 
   /* Filter data. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
 
   /* Loop through filtered data and reset bezts. */
   for (ale = anim_data.first, link_bezt = dgo->bezt_arr_list.first; ale; ale = ale->next) {
@@ -242,12 +241,8 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
     bAnimContext *ac = &dgo->ac;
     bAnimListElem *ale;
 
-    int filter;
-
     /* Filter data. */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-              ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+    ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
 
     /* Loop through filtered data and copy the curves. */
     for (ale = anim_data.first; ale; ale = ale->next) {
