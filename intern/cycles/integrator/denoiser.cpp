@@ -29,23 +29,11 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 {
   DCHECK(params.use);
 
-  switch (params.type) {
-    case DENOISER_OPTIX:
-      return make_unique<OptiXDenoiser>(path_trace_device, params);
-
-    case DENOISER_OPENIMAGEDENOISE:
-      return make_unique<OIDNDenoiser>(path_trace_device, params);
-
-    case DENOISER_NUM:
-    case DENOISER_NONE:
-    case DENOISER_ALL:
-      /* pass */
-      break;
+  if (params.type == DENOISER_OPTIX && Device::available_devices(DEVICE_MASK_OPTIX).size()) {
+    return make_unique<OptiXDenoiser>(path_trace_device, params);
   }
 
-  LOG(FATAL) << "Unhandled denoiser type " << params.type << ", should never happen.";
-
-  return nullptr;
+  return make_unique<OIDNDenoiser>(path_trace_device, params);
 }
 
 Denoiser::Denoiser(Device *path_trace_device, const DenoiseParams &params)
