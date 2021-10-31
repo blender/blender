@@ -223,7 +223,7 @@ static void draw_main_line(const rctf *main_line_rect,
 
 static void draw_backdrop(const int fontid,
                           const rctf *main_line_rect,
-                          const float color_bg[4],
+                          const uint8_t color_bg[4],
                           const short region_y_size,
                           const float base_tick_height)
 {
@@ -241,7 +241,7 @@ static void draw_backdrop(const int fontid,
       .ymin = pad[1],
       .ymax = region_y_size - pad[1],
   };
-  UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
+  UI_draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
 }
 
 /**
@@ -260,19 +260,19 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
   uint8_t color_line[4];
   uint8_t color_handle[4];
   uint8_t color_overshoot[4];
-  float color_bg[4];
+  uint8_t color_bg[4];
 
   /* Get theme colors. */
-  UI_GetThemeColor4ubv(TH_TEXT, color_text);
-  UI_GetThemeColor4ubv(TH_TEXT, color_line);
-  UI_GetThemeColor4ubv(TH_TEXT, color_overshoot);
-  UI_GetThemeColor4ubv(TH_ACTIVE, color_handle);
-  UI_GetThemeColor3fv(TH_BACK, color_bg);
+  UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, color_handle);
+  UI_GetThemeColor4ubv(TH_HEADER_TEXT, color_text);
+  UI_GetThemeColor4ubv(TH_HEADER_TEXT, color_line);
+  UI_GetThemeColor4ubv(TH_HEADER_TEXT, color_overshoot);
+  UI_GetThemeColor4ubv(TH_HEADER, color_bg);
 
-  color_bg[3] = 0.5f;
-  color_overshoot[0] = color_overshoot[0] * 0.7;
-  color_overshoot[1] = color_overshoot[1] * 0.7;
-  color_overshoot[2] = color_overshoot[2] * 0.7;
+  color_overshoot[0] = color_overshoot[0] * 0.8;
+  color_overshoot[1] = color_overshoot[1] * 0.8;
+  color_overshoot[2] = color_overshoot[2] * 0.8;
+  color_bg[3] = 160;
 
   /* Get the default font. */
   const uiStyle *style = UI_style_get();
