@@ -86,7 +86,7 @@ def do_versions(self):
             # Device might not currently be available so this can fail
             try:
                 if system.legacy_compute_device_type == 1:
-                    prop.compute_device_type = 'OPENCL'
+                    prop.compute_device_type = 'NONE' # Was OpenCL
                 elif system.legacy_compute_device_type == 2:
                     prop.compute_device_type = 'CUDA'
                 else:
@@ -96,6 +96,12 @@ def do_versions(self):
 
             # Init device list for UI
             prop.get_devices(prop.compute_device_type)
+
+    if bpy.context.preferences.version <= (3, 0, 40):
+        # Disable OpenCL device
+        prop = bpy.context.preferences.addons[__package__].preferences
+        if prop['compute_device_type'] == 4:
+            prop.compute_device_type = 'NONE'
 
     # We don't modify startup file because it assumes to
     # have all the default values only.
