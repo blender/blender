@@ -20,7 +20,7 @@ KERNEL_STRUCT_BEGIN(shadow_path)
 /* Index of a pixel within the device render buffer. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, render_pixel_index, KERNEL_FEATURE_PATH_TRACING)
 /* Current sample number. */
-KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, sample, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, sample, KERNEL_FEATURE_PATH_TRACING)
 /* Random number generator seed. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, rng_hash, KERNEL_FEATURE_PATH_TRACING)
 /* Random number dimension offset. */
