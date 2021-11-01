@@ -2145,7 +2145,7 @@ static void copy_object_set_idnew(bContext *C)
   Main *bmain = CTX_data_main(C);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    BKE_libblock_relink_to_newid(bmain, &ob->id);
+    BKE_libblock_relink_to_newid(bmain, &ob->id, 0);
   }
   CTX_DATA_END;
 
@@ -2378,7 +2378,7 @@ static void make_object_duplilist_real(bContext *C,
     Object *ob_dst = BLI_ghash_lookup(dupli_gh, dob);
 
     /* Remap new object to itself, and clear again newid pointer of orig object. */
-    BKE_libblock_relink_to_newid(bmain, &ob_dst->id);
+    BKE_libblock_relink_to_newid(bmain, &ob_dst->id, 0);
 
     DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
 
@@ -3374,8 +3374,11 @@ Base *ED_object_add_duplicate(
 
   ob = basen->object;
 
-  /* link own references to the newly duplicated data T26816. */
-  BKE_libblock_relink_to_newid(bmain, &ob->id);
+  /* Link own references to the newly duplicated data T26816.
+   * Note that this function can be called from edit-mode code, in which case we may have to
+   * enforce remapping obdata (by default this is forbidden in edit mode). */
+  const int remap_flag = BKE_object_is_in_editmode(ob) ? ID_REMAP_FORCE_OBDATA_IN_EDITMODE : 0;
+  BKE_libblock_relink_to_newid(bmain, &ob->id, remap_flag);
 
   /* DAG_relations_tag_update(bmain); */ /* caller must do */
 

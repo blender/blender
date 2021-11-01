@@ -1925,7 +1925,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
     if (!is_subprocess) {
       /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
-      BKE_libblock_relink_to_newid(bmain, &sce_copy->id);
+      BKE_libblock_relink_to_newid(bmain, &sce_copy->id, 0);
 
 #ifndef NDEBUG
       /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those

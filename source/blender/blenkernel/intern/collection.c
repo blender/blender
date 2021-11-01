@@ -716,7 +716,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
     collection_new->id.tag &= ~LIB_TAG_NEW;
 
     /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
-    BKE_libblock_relink_to_newid(bmain, &collection_new->id);
+    BKE_libblock_relink_to_newid(bmain, &collection_new->id, 0);
 
 #ifndef NDEBUG
     /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */
