@@ -3254,17 +3254,17 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
  * \param r_no: hit normal (optional).
  * \return Snap success
  */
-bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
-                                             Depsgraph *depsgraph,
-                                             const ARegion *region,
-                                             const View3D *v3d,
-                                             const ushort snap_to,
-                                             const struct SnapObjectParams *params,
-                                             const float mval[2],
-                                             const float prev_co[3],
-                                             float *dist_px,
-                                             float r_loc[3],
-                                             float r_no[3])
+short ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
+                                              Depsgraph *depsgraph,
+                                              const ARegion *region,
+                                              const View3D *v3d,
+                                              const ushort snap_to,
+                                              const struct SnapObjectParams *params,
+                                              const float mval[2],
+                                              const float prev_co[3],
+                                              float *dist_px,
+                                              float r_loc[3],
+                                              float r_no[3])
 {
   return ED_transform_snap_object_project_view3d_ex(sctx,
                                                     depsgraph,
@@ -3280,7 +3280,7 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                                     NULL,
                                                     NULL,
                                                     NULL,
-                                                    NULL) != 0;
+                                                    NULL);
 }
 
 /**

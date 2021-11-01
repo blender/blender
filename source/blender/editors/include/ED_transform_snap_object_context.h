@@ -142,18 +142,18 @@ short ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                  struct Object **r_ob,
                                                  float r_obmat[4][4],
                                                  float r_face_nor[3]);
-bool ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
-                                             struct Depsgraph *depsgraph,
-                                             const ARegion *region,
-                                             const View3D *v3d,
-                                             const unsigned short snap_to,
-                                             const struct SnapObjectParams *params,
-                                             const float mval[2],
-                                             const float prev_co[3],
-                                             float *dist_px,
-                                             /* return args */
-                                             float r_loc[3],
-                                             float r_no[3]);
+short ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
+                                              struct Depsgraph *depsgraph,
+                                              const ARegion *region,
+                                              const View3D *v3d,
+                                              const unsigned short snap_to,
+                                              const struct SnapObjectParams *params,
+                                              const float mval[2],
+                                              const float prev_co[3],
+                                              float *dist_px,
+                                              /* return args */
+                                              float r_loc[3],
+                                              float r_no[3]);
 
 bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     struct Depsgraph *depsgraph,
