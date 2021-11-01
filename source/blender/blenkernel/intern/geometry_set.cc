@@ -610,24 +610,32 @@ bool BKE_object_has_geometry_set_instances(const Object *ob)
   if (geometry_set == nullptr) {
     return false;
   }
-  if (geometry_set->has_instances()) {
-    return true;
-  }
-  const bool has_mesh = geometry_set->has_mesh();
-  const bool has_pointcloud = geometry_set->has_pointcloud();
-  const bool has_volume = geometry_set->has_volume();
-  const bool has_curve = geometry_set->has_curve();
-  if (ob->type == OB_MESH) {
-    return has_pointcloud || has_volume || has_curve;
-  }
-  if (ob->type == OB_POINTCLOUD) {
-    return has_mesh || has_volume || has_curve;
-  }
-  if (ob->type == OB_VOLUME) {
-    return has_mesh || has_pointcloud || has_curve;
-  }
-  if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-    return has_mesh || has_pointcloud || has_volume;
+  for (const GeometryComponent *component : geometry_set->get_components_for_read()) {
+    if (component->is_empty()) {
+      continue;
+    }
+    const GeometryComponentType type = component->type();
+    bool is_instance = false;
+    switch (type) {
+      case GEO_COMPONENT_TYPE_MESH:
+        is_instance = ob->type != OB_MESH;
+        break;
+      case GEO_COMPONENT_TYPE_POINT_CLOUD:
+        is_instance = ob->type != OB_POINTCLOUD;
+        break;
+      case GEO_COMPONENT_TYPE_INSTANCES:
+        is_instance = true;
+        break;
+      case GEO_COMPONENT_TYPE_VOLUME:
+        is_instance = ob->type != OB_VOLUME;
+        break;
+      case GEO_COMPONENT_TYPE_CURVE:
+        is_instance = !ELEM(ob->type, OB_CURVE, OB_FONT);
+        break;
+    }
+    if (is_instance) {
+      return true;
+    }
   }
   return false;
 }
