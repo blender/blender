@@ -181,6 +181,13 @@ struct TransformBounds {
   /* Normalized axis */
   float axis[3][3];
   float axis_min[3], axis_max[3];
+
+  /**
+   * When #TransformCalcParams.use_local_axis is used.
+   * This is the local space matrix the caller may need to access.
+   */
+  bool use_matrix_space;
+  float matrix_space[4][4];
 };
 
 struct TransformCalcParams {

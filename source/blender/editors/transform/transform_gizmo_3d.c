@@ -667,6 +667,8 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     }
   }
 
+  tbounds->use_matrix_space = false;
+
   /* transform widget matrix */
   unit_m4(rv3d->twmat);
 
@@ -689,13 +691,16 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   reset_tw_center(tbounds);
 
   copy_m3_m4(tbounds->axis, rv3d->twmat);
-  if (params->use_local_axis && (ob && ob->mode & OB_MODE_EDIT)) {
+  if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
     float diff_mat[3][3];
     copy_m3_m4(diff_mat, ob->obmat);
     normalize_m3(diff_mat);
     invert_m3(diff_mat);
     mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
     normalize_m3(tbounds->axis);
+
+    tbounds->use_matrix_space = true;
+    copy_m4_m4(tbounds->matrix_space, ob->obmat);
   }
 
   if (is_gp_edit) {
@@ -970,8 +975,10 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       if (totsel_iter) {
         float mat_local[4][4];
-        if (use_mat_local) {
-          mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
+        if (params->use_local_axis) {
+          if (use_mat_local) {
+            mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
+          }
         }
 
         /* use channels to get stats */
@@ -2117,10 +2124,8 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
   }
   else {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *ob = OBACT(view_layer);
-    if (ob && ob->mode & OB_MODE_EDIT) {
-      copy_m4_m4(gz->matrix_space, ob->obmat);
+    if (tbounds.use_matrix_space) {
+      copy_m4_m4(gz->matrix_space, tbounds.matrix_space);
     }
     else {
       unit_m4(gz->matrix_space);
