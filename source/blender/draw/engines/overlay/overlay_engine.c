@@ -465,7 +465,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
         break;
       case OB_LATTICE: {
         /* Unlike the other types above, lattices actually have a bounding box defined, so hide the
-         * lattice wires if only the boundingbox is requested. */
+         * lattice wires if only the bounding-box is requested. */
         if (ob->dt > OB_BOUNDBOX) {
           OVERLAY_lattice_cache_populate(vedata, ob);
         }
