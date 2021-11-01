@@ -2234,7 +2234,7 @@ void sequencer_draw_preview(const bContext *C,
   }
 
   if (!draw_backdrop && scene->ed != NULL) {
-    SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
+    SeqCollection *collection = SEQ_query_rendered_strips(scene->ed->seqbasep, timeline_frame, 0);
     Sequence *seq;
     Sequence *active_seq = SEQ_select_active_get(scene);
     SEQ_ITERATOR_FOREACH (seq, collection) {
