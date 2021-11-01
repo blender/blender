@@ -170,6 +170,26 @@ const char *BKE_appdir_folder_default(void)
 #endif /* WIN32 */
 }
 
+const char *BKE_appdir_folder_root(void)
+{
+#ifndef WIN32
+  return "/";
+#else
+  static char root[4];
+  BLI_windows_get_default_root_dir(root);
+  return root;
+#endif
+}
+
+const char *BKE_appdir_folder_default_or_root(void)
+{
+  const char *path = BKE_appdir_folder_default();
+  if (path == NULL) {
+    path = BKE_appdir_folder_root();
+  }
+  return path;
+}
+
 /**
  * Get the user's home directory, i.e.
  * - Unix: `$HOME`

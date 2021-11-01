@@ -769,21 +769,22 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                         FS_INSERT_LAST);
 
     const char *home = BLI_getenv("HOME");
-
+    if (home) {
 #  define FS_MACOS_PATH(path, name, icon) \
     BLI_snprintf(line, sizeof(line), path, home); \
     fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, line, name, icon, FS_INSERT_LAST);
 
-    FS_MACOS_PATH("%s/", NULL, ICON_HOME)
-    FS_MACOS_PATH("%s/Desktop/", N_("Desktop"), ICON_DESKTOP)
-    FS_MACOS_PATH("%s/Documents/", N_("Documents"), ICON_DOCUMENTS)
-    FS_MACOS_PATH("%s/Downloads/", N_("Downloads"), ICON_IMPORT)
-    FS_MACOS_PATH("%s/Movies/", N_("Movies"), ICON_FILE_MOVIE)
-    FS_MACOS_PATH("%s/Music/", N_("Music"), ICON_FILE_SOUND)
-    FS_MACOS_PATH("%s/Pictures/", N_("Pictures"), ICON_FILE_IMAGE)
-    FS_MACOS_PATH("%s/Library/Fonts/", N_("Fonts"), ICON_FILE_FONT)
+      FS_MACOS_PATH("%s/", NULL, ICON_HOME)
+      FS_MACOS_PATH("%s/Desktop/", N_("Desktop"), ICON_DESKTOP)
+      FS_MACOS_PATH("%s/Documents/", N_("Documents"), ICON_DOCUMENTS)
+      FS_MACOS_PATH("%s/Downloads/", N_("Downloads"), ICON_IMPORT)
+      FS_MACOS_PATH("%s/Movies/", N_("Movies"), ICON_FILE_MOVIE)
+      FS_MACOS_PATH("%s/Music/", N_("Music"), ICON_FILE_SOUND)
+      FS_MACOS_PATH("%s/Pictures/", N_("Pictures"), ICON_FILE_IMAGE)
+      FS_MACOS_PATH("%s/Library/Fonts/", N_("Fonts"), ICON_FILE_FONT)
 
 #  undef FS_MACOS_PATH
+    }
 
     /* Get mounted volumes better method OSX 10.6 and higher, see:
      * https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html
