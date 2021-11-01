@@ -23,17 +23,16 @@
 #include <memory>
 #include <string>
 
+#include "DNA_ID.h"
+
 #include "BKE_asset.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 
 #include "BLO_readfile.h"
-
-#include "DNA_ID.h"
-#include "DNA_asset_types.h"
-#include "DNA_space_types.h"
 
 #include "UI_interface_icons.h"
 
@@ -66,6 +65,11 @@ bool ED_asset_mark_id(ID *id)
 
 void ED_asset_generate_preview(const bContext *C, ID *id)
 {
+  PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (preview) {
+    BKE_previewimg_clear(preview);
+  }
+
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 }
 
