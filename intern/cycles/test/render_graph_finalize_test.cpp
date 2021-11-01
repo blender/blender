@@ -179,7 +179,7 @@ class RenderGraph : public testing::Test {
   virtual void SetUp()
   {
     util_logging_start();
-    util_logging_verbosity_set(1);
+    util_logging_verbosity_set(3);
 
     device_cpu = Device::create(device_info, stats, profiler);
     scene = new Scene(scene_params, device_cpu);
