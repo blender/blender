@@ -30,7 +30,8 @@ OIIOImageLoader::~OIIOImageLoader()
 {
 }
 
-bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
+bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
+                                    ImageMetaData &metadata)
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!path_exists(filepath.string())) {
