@@ -27,7 +27,6 @@
 
 #include "BKE_preferences.h"
 
-#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "UI_resources.h"

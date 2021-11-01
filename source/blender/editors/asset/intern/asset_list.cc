@@ -32,7 +32,6 @@
 #include "BLI_path_util.h"
 #include "BLI_utility_mixins.hh"
 
-#include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_preferences.h"
@@ -40,7 +39,6 @@
 #include "ED_fileselect.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 /* XXX uses private header of file-space. */
 #include "../space_file/filelist.h"

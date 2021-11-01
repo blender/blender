@@ -20,9 +20,6 @@
  * Functions for marking and clearing assets.
  */
 
-#include <memory>
-#include <string>
-
 #include "DNA_ID.h"
 
 #include "BKE_asset.h"
@@ -31,8 +28,6 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-
-#include "BLO_readfile.h"
 
 #include "UI_interface_icons.h"
 

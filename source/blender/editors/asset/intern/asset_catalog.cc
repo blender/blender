@@ -19,7 +19,6 @@
  */
 
 #include "BKE_asset_catalog.hh"
-#include "BKE_asset_catalog_path.hh"
 #include "BKE_asset_library.hh"
 #include "BKE_main.h"
 

@@ -21,14 +21,12 @@
 #include <cstring>
 
 #include "DNA_ID.h"
-#include "DNA_asset_types.h"
 #include "DNA_defaults.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.h"
-#include "BLI_utildefines.h"
 #include "BLI_uuid.h"
 
 #include "BKE_asset.h"

@@ -22,7 +22,6 @@
 
 #include "BLI_listbase.h"
 
-#include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
 #include "ED_asset_filter.h"

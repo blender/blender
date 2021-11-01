@@ -18,19 +18,13 @@
  * \ingroup edasset
  */
 
-#include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
-
 #include "ED_asset.h"
-#include "ED_asset_catalog.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
 
@@ -38,7 +32,6 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 using namespace blender;
 
