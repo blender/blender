@@ -400,6 +400,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "verts only",
     "view",
     "virtual parents",
+    "and NVIDIA driver version 470 or newer",
+    "and AMD driver version ??? or newer",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 

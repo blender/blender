@@ -66,6 +66,7 @@ class SpellChecker:
         "ons",  # add-ons
         "pong",  # ping pong
         "resumable",
+        "runtimes",
         "scalable",
         "shadeless",
         "shouldn",  # shouldn't
@@ -75,6 +76,12 @@ class SpellChecker:
         "tangency",
         "vertices",
         "wasn",  # wasn't
+
+        # Brands etc.
+        "htc",
+        "huawei",
+        "vive",
+        "xbox",
 
         # Merged words
         "antialiasing", "antialias",
@@ -131,6 +138,7 @@ class SpellChecker:
         "forcefield", "forcefields",
         "fulldome", "fulldomes",
         "fullscreen",
+        "gamepad",
         "gridline", "gridlines",
         "hardlight",
         "hemi",

@@ -1103,7 +1103,7 @@ static void file_draw_invalid_library_hint(const bContext *C,
 
     const char *suggestion = TIP_(
         "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-        "Manage Asset Libraries from the File Paths section in Preferences.");
+        "Manage Asset Libraries from the File Paths section in Preferences");
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, NULL, &sy);
 
