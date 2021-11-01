@@ -40,10 +40,10 @@ class AddPresetIntegrator(AddPresetBase, Operator):
         "cycles.transparent_max_bounces",
         "cycles.caustics_reflective",
         "cycles.caustics_refractive",
-        "cycles.blur_glossy"
-        "cycles.use_fast_gi"
-        "cycles.ao_bounces"
-        "cycles.ao_bounces_render"
+        "cycles.blur_glossy",
+        "cycles.use_fast_gi",
+        "cycles.ao_bounces",
+        "cycles.ao_bounces_render",
     ]
 
     preset_subdir = "cycles/integrator"
