@@ -21,6 +21,8 @@
 
 #include <stddef.h>
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,7 +34,9 @@ void BKE_appdir_exit(void);
 
 /* note on naming: typical _get() suffix is omitted here,
  * since its the main purpose of the API. */
-const char *BKE_appdir_folder_default(void);
+const char *BKE_appdir_folder_default(void) ATTR_WARN_UNUSED_RESULT;
+const char *BKE_appdir_folder_root(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_appdir_folder_default_or_root(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 const char *BKE_appdir_folder_home(void);
 bool BKE_appdir_folder_documents(char *dir);
 bool BKE_appdir_folder_caches(char *r_path, size_t path_len);

@@ -193,7 +193,7 @@ bool BLI_windows_register_blend_extension(const bool background)
   return true;
 }
 
-void BLI_windows_get_default_root_dir(char *root)
+void BLI_windows_get_default_root_dir(char root[4])
 {
   char str[MAX_PATH + 1];
 
