@@ -2397,7 +2397,7 @@ void GlossyBsdfNode::simplify_settings(Scene *scene)
      * Note: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
-      VLOG(1) << "Using sharp glossy BSDF.";
+      VLOG(3) << "Using sharp glossy BSDF.";
       distribution = CLOSURE_BSDF_REFLECTION_ID;
     }
   }
@@ -2406,7 +2406,7 @@ void GlossyBsdfNode::simplify_settings(Scene *scene)
      * benefit from closure blur to remove unwanted noise.
      */
     if (roughness_input->link == NULL && distribution == CLOSURE_BSDF_REFLECTION_ID) {
-      VLOG(1) << "Using GGX glossy with filter glossy.";
+      VLOG(3) << "Using GGX glossy with filter glossy.";
       distribution = CLOSURE_BSDF_MICROFACET_GGX_ID;
       roughness = 0.0f;
     }
@@ -2490,7 +2490,7 @@ void GlassBsdfNode::simplify_settings(Scene *scene)
      * Note: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
-      VLOG(1) << "Using sharp glass BSDF.";
+      VLOG(3) << "Using sharp glass BSDF.";
       distribution = CLOSURE_BSDF_SHARP_GLASS_ID;
     }
   }
@@ -2499,7 +2499,7 @@ void GlassBsdfNode::simplify_settings(Scene *scene)
      * benefit from closure blur to remove unwanted noise.
      */
     if (roughness_input->link == NULL && distribution == CLOSURE_BSDF_SHARP_GLASS_ID) {
-      VLOG(1) << "Using GGX glass with filter glossy.";
+      VLOG(3) << "Using GGX glass with filter glossy.";
       distribution = CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID;
       roughness = 0.0f;
     }
@@ -2583,7 +2583,7 @@ void RefractionBsdfNode::simplify_settings(Scene *scene)
      * Note: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
-      VLOG(1) << "Using sharp refraction BSDF.";
+      VLOG(3) << "Using sharp refraction BSDF.";
       distribution = CLOSURE_BSDF_REFRACTION_ID;
     }
   }
@@ -2592,7 +2592,7 @@ void RefractionBsdfNode::simplify_settings(Scene *scene)
      * benefit from closure blur to remove unwanted noise.
      */
     if (roughness_input->link == NULL && distribution == CLOSURE_BSDF_REFRACTION_ID) {
-      VLOG(1) << "Using GGX refraction with filter glossy.";
+      VLOG(3) << "Using GGX refraction with filter glossy.";
       distribution = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
       roughness = 0.0f;
     }

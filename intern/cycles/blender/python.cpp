@@ -157,8 +157,6 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 
   DebugFlags().running_inside_blender = true;
 
-  VLOG(2) << "Debug flags initialized to:\n" << DebugFlags();
-
   Py_RETURN_NONE;
 }
 
@@ -885,8 +883,6 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
 
   debug_flags_sync_from_scene(b_scene);
 
-  VLOG(2) << "Debug flags set to:\n" << DebugFlags();
-
   debug_flags_set = true;
 
   Py_RETURN_NONE;
@@ -896,7 +892,6 @@ static PyObject *debug_flags_reset_func(PyObject * /*self*/, PyObject * /*args*/
 {
   debug_flags_reset();
   if (debug_flags_set) {
-    VLOG(2) << "Debug flags reset to:\n" << DebugFlags();
     debug_flags_set = false;
   }
   Py_RETURN_NONE;

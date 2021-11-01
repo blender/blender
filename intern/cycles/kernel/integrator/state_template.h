@@ -25,7 +25,7 @@ KERNEL_STRUCT_BEGIN(path)
  * The multiplication is delayed for later, so that state can use 32bit integer. */
 KERNEL_STRUCT_MEMBER(path, uint32_t, render_pixel_index, KERNEL_FEATURE_PATH_TRACING)
 /* Current sample number. */
-KERNEL_STRUCT_MEMBER(path, uint16_t, sample, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(path, uint32_t, sample, KERNEL_FEATURE_PATH_TRACING)
 /* Current ray bounce depth. */
 KERNEL_STRUCT_MEMBER(path, uint16_t, bounce, KERNEL_FEATURE_PATH_TRACING)
 /* Current transparent ray bounce depth. */

@@ -807,10 +807,10 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
     interop_use_ = device->should_use_graphics_interop();
 
     if (interop_use_) {
-      VLOG(2) << "Will be using graphics interop GPU display update.";
+      VLOG(2) << "Using graphics interop GPU display update.";
     }
     else {
-      VLOG(2) << "Will be using naive GPU display update.";
+      VLOG(2) << "Using naive GPU display update.";
     }
 
     interop_use_checked_ = true;

@@ -366,7 +366,9 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   if ((preview && !preview_scrambling_distance) || use_adaptive_sampling)
     scrambling_distance = 1.0f;
 
-  VLOG(1) << "Used Scrambling Distance: " << scrambling_distance;
+  if (scrambling_distance != 1.0f) {
+    VLOG(3) << "Using scrambling distance: " << scrambling_distance;
+  }
   integrator->set_scrambling_distance(scrambling_distance);
 
   if (get_boolean(cscene, "use_fast_gi")) {

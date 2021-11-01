@@ -1360,7 +1360,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif entry.type == 'CPU':
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if compute_device_type != 'CPU':
+        if len(devices) and compute_device_type != 'CPU':
             devices.extend(cpu_devices)
         return devices
 
@@ -1378,12 +1378,18 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         self.refresh_devices()
         return None
 
+    def get_compute_device_type(self):
+        if self.compute_device_type == '':
+            return 'NONE'
+        return self.compute_device_type
+
     def get_num_gpu_devices(self):
         import _cycles
-        device_list = _cycles.available_devices(self.compute_device_type)
+        compute_device_type = self.get_compute_device_type()
+        device_list = _cycles.available_devices(compute_device_type)
         num = 0
         for device in device_list:
-            if device[1] != self.compute_device_type:
+            if device[1] != compute_device_type:
                 continue
             for dev in self.devices:
                 if dev.use and dev.id == device[2]:
@@ -1425,15 +1431,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         row = layout.row()
         row.prop(self, "compute_device_type", expand=True)
 
-        if self.compute_device_type == 'NONE':
+        compute_device_type = self.get_compute_device_type()
+        if compute_device_type == 'NONE':
             return
         row = layout.row()
-        devices = self.get_devices_for_type(self.compute_device_type)
-        self._draw_devices(row, self.compute_device_type, devices)
+        devices = self.get_devices_for_type(compute_device_type)
+        self._draw_devices(row, compute_device_type, devices)
 
         import _cycles
         has_peer_memory = 0
-        for device in _cycles.available_devices(self.compute_device_type):
+        for device in _cycles.available_devices(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
                 has_peer_memory += 1
         if has_peer_memory > 1:
