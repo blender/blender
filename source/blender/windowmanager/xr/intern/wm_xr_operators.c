@@ -1164,7 +1164,7 @@ static void WM_OT_xr_navigation_fly(wmOperatorType *ot)
                   "lock_direction",
                   false,
                   "Lock Direction",
-                  "Limit movement to viewer's intial direction");
+                  "Limit movement to viewer's initial direction");
   RNA_def_boolean(ot->srna,
                   "speed_frame_based",
                   true,

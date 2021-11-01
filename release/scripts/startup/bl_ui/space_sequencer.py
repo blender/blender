@@ -1004,7 +1004,7 @@ class SEQUENCER_MT_image(Menu):
 
 
 class SEQUENCER_MT_image_transform(Menu):
-    bl_label = "Transfrom"
+    bl_label = "Transform"
 
     def draw(self, _context):
         layout = self.layout
