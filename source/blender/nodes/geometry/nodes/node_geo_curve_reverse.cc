@@ -38,7 +38,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
       return;
     }
 
-    Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+    Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
     CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
     GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
     const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
