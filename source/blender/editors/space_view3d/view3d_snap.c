@@ -659,7 +659,7 @@ static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!snap_selected_to_location(C, snap_target_global, -1, false, true)) {
+  if (!snap_selected_to_location(C, snap_target_global, false, -1, true)) {
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
