@@ -89,6 +89,12 @@ enum {
    * dealing with IDs temporarily out of Main, but which will be put in it ultimately).
    */
   ID_REMAP_FORCE_USER_REFCOUNT = 1 << 8,
+  /**
+   * Force obdata pointers to also be processed, even when object (`id_owner`) is in Edit mode.
+   * This is required by some tools creating/deleting IDs while operating in Edit mode, like e.g.
+   * the 'separate' mesh operator.
+   */
+  ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 9,
 };
 
 /* NOTE: Requiring new_id to be non-null, this *may* not be the case ultimately,

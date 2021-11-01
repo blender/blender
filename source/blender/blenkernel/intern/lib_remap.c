@@ -132,7 +132,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     const bool is_obj = (GS(id_owner->name) == ID_OB);
     const bool is_obj_proxy = (is_obj &&
                                (((Object *)id_owner)->proxy || ((Object *)id_owner)->proxy_group));
-    const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner));
+    const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner) &&
+                                  (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
     const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
     const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
