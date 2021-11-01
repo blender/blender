@@ -285,7 +285,6 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.description = "Multi Device";
   info.num = 0;
 
-  info.has_half_images = true;
   info.has_nanovdb = true;
   info.has_osl = true;
   info.has_profiling = true;
@@ -332,7 +331,6 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     }
 
     /* Accumulate device info. */
-    info.has_half_images &= device.has_half_images;
     info.has_nanovdb &= device.has_nanovdb;
     info.has_osl &= device.has_osl;
     info.has_profiling &= device.has_profiling;

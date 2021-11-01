@@ -100,7 +100,6 @@ class ImageMetaData {
 /* Information about supported features that Image loaders can use. */
 class ImageDeviceFeatures {
  public:
-  bool has_half_float;
   bool has_nanovdb;
 };
 

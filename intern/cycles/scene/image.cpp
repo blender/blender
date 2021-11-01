@@ -303,7 +303,6 @@ ImageManager::ImageManager(const DeviceInfo &info)
   animation_frame = 0;
 
   /* Set image limits */
-  features.has_half_float = info.has_half_images;
   features.has_nanovdb = info.has_nanovdb;
 }
 
@@ -357,8 +356,6 @@ void ImageManager::load_image_metadata(Image *img)
 
   metadata.detect_colorspace();
 
-  assert(features.has_half_float ||
-         (metadata.type != IMAGE_DATA_TYPE_HALF4 && metadata.type != IMAGE_DATA_TYPE_HALF));
   assert(features.has_nanovdb || (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
                                   metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3));
 

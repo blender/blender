@@ -38,7 +38,6 @@ void device_cpu_info(vector<DeviceInfo> &devices)
   info.id = "CPU";
   info.num = 0;
   info.has_osl = true;
-  info.has_half_images = true;
   info.has_nanovdb = true;
   info.has_profiling = true;
   if (openimagedenoise_supported()) {
