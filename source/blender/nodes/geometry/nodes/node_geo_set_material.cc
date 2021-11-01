@@ -21,6 +21,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_volume_types.h"
 
 #include "BKE_material.h"
 
@@ -28,7 +29,8 @@ namespace blender::nodes {
 
 static void geo_node_set_material_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>(N_("Geometry"))
+      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_VOLUME});
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Material>(N_("Material")).hide_label();
   b.add_output<decl::Geometry>(N_("Geometry"));
@@ -64,6 +66,7 @@ static void geo_node_set_material_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  bool volume_selection_warning = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has<MeshComponent>()) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
@@ -79,7 +82,23 @@ static void geo_node_set_material_exec(GeoNodeExecParams params)
         assign_material_to_faces(*mesh, selection, material);
       }
     }
+    if (geometry_set.has_volume()) {
+      Volume &volume = *geometry_set.get_volume_for_write();
+
+      if (selection_field.node().depends_on_input()) {
+        volume_selection_warning = true;
+      }
+
+      BKE_id_material_eval_assign(&volume.id, 1, material);
+    }
   });
+
+  if (volume_selection_warning) {
+    /* Only add the warning once, even if there are many unique volume instances. */
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("Volumes only support a single material; selection input can not be a field"));
+  }
 
   params.set_output("Geometry", std::move(geometry_set));
 }
