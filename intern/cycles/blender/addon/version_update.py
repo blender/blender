@@ -100,7 +100,7 @@ def do_versions(self):
     if bpy.context.preferences.version <= (3, 0, 40):
         # Disable OpenCL device
         prop = bpy.context.preferences.addons[__package__].preferences
-        if prop['compute_device_type'] == 4:
+        if prop.is_property_set("compute_device_type") and prop['compute_device_type'] == 4:
             prop.compute_device_type = 'NONE'
 
     # We don't modify startup file because it assumes to
