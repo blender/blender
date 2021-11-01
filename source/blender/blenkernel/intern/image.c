@@ -5343,9 +5343,10 @@ void BKE_image_pool_free(ImagePool *pool)
   BLI_mutex_unlock(&pool->mutex);
 
   BLI_mempool_destroy(pool->memory_pool);
-  MEM_freeN(pool);
 
   BLI_mutex_end(&pool->mutex);
+
+  MEM_freeN(pool);
 }
 
 BLI_INLINE ImBuf *image_pool_find_item(
