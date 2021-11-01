@@ -107,8 +107,8 @@ static void space_image_gpu_texture_get(Image *image,
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-  if (BKE_image_is_multilayer(image)) {
-    /* update multiindex and pass for the current eye */
+  if (image->rr != NULL) {
+    /* Update multi-index and pass for the current eye. */
     BKE_image_multilayer_index(image->rr, &sima->iuser);
   }
   else {
