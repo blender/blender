@@ -56,7 +56,7 @@ void version_node_socket_index_animdata(
     Main *bmain,
     int node_tree_type, /* NTREE_....., e.g. NTREE_SHADER */
     int node_type,      /* SH_NODE_..., e.g. SH_NODE_BSDF_PRINCIPLED */
-    int socket_index_lowest_modified,
+    int socket_index_orig,
     int socket_index_offset,
     int total_number_of_sockets);
 

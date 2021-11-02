@@ -201,7 +201,7 @@ void version_node_socket_index_animdata(Main *bmain,
 
         const int new_index = input_index + socket_index_offset;
         BKE_animdata_fix_paths_rename_all_ex(
-            bmain, owner_id, rna_path_prefix, NULL, NULL, input_index, new_index, false);
+            bmain, owner_id, rna_path_prefix, nullptr, nullptr, input_index, new_index, false);
         MEM_freeN(rna_path_prefix);
         MEM_freeN(node_name_escaped);
       }
