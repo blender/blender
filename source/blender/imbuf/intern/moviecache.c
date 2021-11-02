@@ -122,8 +122,8 @@ static void moviecache_valfree(void *val)
 
   PRINT("%s: cache '%s' free item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
 
+  MEM_CacheLimiter_unmanage(item->c_handle);
   if (item->ibuf) {
-    MEM_CacheLimiter_unmanage(item->c_handle);
     IMB_freeImBuf(item->ibuf);
   }
 
