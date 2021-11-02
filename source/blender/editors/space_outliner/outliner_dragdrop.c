@@ -1311,7 +1311,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
     }
 
     if (from) {
-      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
     }
   }
 
