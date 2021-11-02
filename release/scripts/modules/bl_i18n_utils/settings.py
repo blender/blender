@@ -195,7 +195,7 @@ DOMAIN = "blender"
 
 # Our own "gettext" stuff.
 # File type (ext) to parse.
-PYGETTEXT_ALLOWED_EXTS = {".c", ".cpp", ".cxx", ".hpp", ".hxx", ".h"}
+PYGETTEXT_ALLOWED_EXTS = {".c", ".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx", ".h"}
 
 # Max number of contexts into a BLT_I18N_MSGID_MULTI_CTXT macro...
 PYGETTEXT_MAX_MULTI_CTXT = 16
