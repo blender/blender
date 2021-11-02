@@ -1409,7 +1409,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (has_legacy_node) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, IFACE_("Node tree has legacy node"), ICON_ERROR);
+    uiItemL(row, N_("Node tree has legacy node"), ICON_ERROR);
     uiLayout *sub = uiLayoutRow(row, false);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
     uiItemO(sub, "", ICON_VIEWZOOM, "NODE_OT_geometry_node_view_legacy");
@@ -1438,7 +1438,7 @@ static void output_attribute_panel_draw(const bContext *UNUSED(C), Panel *panel)
     }
   }
   if (!has_output_attribute) {
-    uiItemL(layout, IFACE_("No group output attributes connected."), ICON_INFO);
+    uiItemL(layout, N_("No group output attributes connected"), ICON_INFO);
   }
 }
 
