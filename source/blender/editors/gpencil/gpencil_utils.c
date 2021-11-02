@@ -979,7 +979,7 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * to 3D coordinates.
  *
  * \param point2D: The screen-space 2D point data to convert.
- * \param depth: Depth array (via #ED_view3d_autodist_depth()).
+ * \param depth: Depth array (via #ED_view3d_depth_read_cached()).
  * \param r_out: The resulting 2D point data.
  */
 void gpencil_stroke_convertcoords_tpoint(Scene *scene,

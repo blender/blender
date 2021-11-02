@@ -609,12 +609,8 @@ bool ED_view3d_autodist_simple(struct ARegion *region,
                                float mouse_worldloc[3],
                                int margin,
                                const float *force_depth);
-bool ED_view3d_autodist_depth(struct ARegion *region, const int mval[2], int margin, float *depth);
-bool ED_view3d_autodist_depth_seg(struct ARegion *region,
-                                  const int mval_sta[2],
-                                  const int mval_end[2],
-                                  int margin,
-                                  float *depth);
+bool ED_view3d_depth_read_cached_seg(
+    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
 /* select */
 #define MAXPICKELEMS 2500

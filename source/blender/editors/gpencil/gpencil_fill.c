@@ -127,6 +127,8 @@ typedef struct tGPDfill {
   struct bGPDstroke *gps_mouse;
   /** Pointer to report messages. */
   struct ReportList *reports;
+  /** For operations that require occlusion testing. */
+  struct ViewDepths *depths;
   /** flags */
   short flag;
   /** avoid too fast events */
@@ -1374,7 +1376,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(tgpf->win, tgpf->region);
     ED_view3d_depth_override(
-        tgpf->depsgraph, tgpf->region, tgpf->v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
+        tgpf->depsgraph, tgpf->region, tgpf->v3d, NULL, V3D_DEPTH_NO_GPENCIL, &tgpf->depths);
 
     /* Since strokes are so fine, when using their depth we need a margin
      * otherwise they might get missed. */
@@ -1385,6 +1387,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     int interp_depth = 0;
     int found_depth = 0;
 
+    const ViewDepths *depths = tgpf->depths;
     tgpf->depth_arr = MEM_mallocN(sizeof(float) * totpoints, "depth_points");
 
     for (i = 0, ptc = tgpf->sbuffer; i < totpoints; i++, ptc++) {
@@ -1392,11 +1395,9 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
       int mval_i[2];
       round_v2i_v2fl(mval_i, &ptc->x);
 
-      if ((ED_view3d_autodist_depth(tgpf->region, mval_i, depth_margin, tgpf->depth_arr + i) ==
-           0) &&
-          (i &&
-           (ED_view3d_autodist_depth_seg(
-                tgpf->region, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0))) {
+      if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, tgpf->depth_arr + i) == 0) &&
+          (i && (ED_view3d_depth_read_cached_seg(
+                     depths, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0))) {
         interp_depth = true;
       }
       else {
@@ -1769,6 +1770,11 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
     /* remove drawing handler */
     if (tgpf->draw_handle_3d) {
       ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
+    }
+
+    /* Remove depth buffer in cache. */
+    if (tgpf->depths) {
+      ED_view3d_depths_free(tgpf->depths);
     }
 
     /* finally, free memory used by temp data */
