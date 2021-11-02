@@ -141,10 +141,11 @@ class Params:
             # Use the "cursor" functionality for RMB select.
             if use_alt_tool_or_cursor:
                 self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}
+                self.cursor_tweak_event = {"type": 'EVT_TWEAK_L', "value": 'ANY', "alt": True}
             else:
                 self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'CLICK'}
+                self.cursor_tweak_event = None
 
-            self.cursor_tweak_event = None
             self.use_fallback_tool = use_fallback_tool
             self.tool_modifier = {}
         else:
