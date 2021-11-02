@@ -1548,6 +1548,7 @@ void voronoi_smooth_f1(const float w,
 {
   const float cellPosition = floorf(w);
   const float localPosition = w - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
   float smoothDistance = 8.0f;
   float smoothPosition = 0.0f;
@@ -1558,7 +1559,7 @@ void voronoi_smooth_f1(const float w,
                                 hash_float_to_float(cellPosition + cellOffset) * randomness;
     const float distanceToPoint = voronoi_distance(pointPosition, localPosition);
     const float h = smoothstep(
-        0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
+        0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
     float correctionFactor = smoothness * h * (1.0f - h);
     smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
     if (r_color != nullptr || r_w != nullptr) {
@@ -1752,6 +1753,7 @@ void voronoi_smooth_f1(const float2 coord,
 {
   const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
   float smoothDistance = 8.0f;
   float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
@@ -1764,7 +1766,7 @@ void voronoi_smooth_f1(const float2 coord,
       const float distanceToPoint = voronoi_distance(
           pointPosition, localPosition, metric, exponent);
       const float h = smoothstep(
-          0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
+          0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
       float correctionFactor = smoothness * h * (1.0f - h);
       smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
       if (r_color != nullptr || r_position != nullptr) {
@@ -1999,6 +2001,7 @@ void voronoi_smooth_f1(const float3 coord,
 {
   const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
   float smoothDistance = 8.0f;
   float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
@@ -2012,7 +2015,7 @@ void voronoi_smooth_f1(const float3 coord,
         const float distanceToPoint = voronoi_distance(
             pointPosition, localPosition, metric, exponent);
         const float h = smoothstep(
-            0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
+            0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
         float correctionFactor = smoothness * h * (1.0f - h);
         smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
         if (r_color != nullptr || r_position != nullptr) {
@@ -2262,6 +2265,7 @@ void voronoi_smooth_f1(const float4 coord,
 {
   const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
   float smoothDistance = 8.0f;
   float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
@@ -2277,7 +2281,7 @@ void voronoi_smooth_f1(const float4 coord,
           const float distanceToPoint = voronoi_distance(
               pointPosition, localPosition, metric, exponent);
           const float h = smoothstep(
-              0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness);
+              0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
           float correctionFactor = smoothness * h * (1.0f - h);
           smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
           if (r_color != nullptr || r_position != nullptr) {
