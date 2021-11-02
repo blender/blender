@@ -211,6 +211,12 @@ enum {
   G_TRANSFORM_SEQ = (1 << 2),
   G_TRANSFORM_FCURVES = (1 << 3),
   G_TRANSFORM_WM = (1 << 4),
+  /**
+   * Set when transforming the cursor it's self.
+   * Used as a hint to draw the cursor (even when hidden).
+   * Otherwise it's not possible to see whats being transformed.
+   */
+  G_TRANSFORM_CURSOR = (1 << 5),
 };
 
 /** Defined in blender.c */
