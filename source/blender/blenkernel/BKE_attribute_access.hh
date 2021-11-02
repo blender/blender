@@ -372,6 +372,11 @@ class CustomDataAttributes {
                       void *buffer);
   bool remove(const AttributeIDRef &attribute_id);
 
+  /**
+   * Change the order of the attributes to match the order of IDs in the argument.
+   */
+  void reorder(Span<AttributeIDRef> new_order);
+
   bool foreach_attribute(const AttributeForeachCallback callback,
                          const AttributeDomain domain) const;
 };
