@@ -1085,7 +1085,14 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_RESIZE: {
       float mouse_dir_constraint[3];
       if (op) {
-        RNA_float_get_array(op->ptr, "mouse_dir_constraint", mouse_dir_constraint);
+        PropertyRNA *prop = RNA_struct_find_property(op->ptr, "mouse_dir_constraint");
+        if (prop) {
+          RNA_property_float_get_array(op->ptr, prop, mouse_dir_constraint);
+        }
+        else {
+          /* Resize is expected to have this property. */
+          BLI_assert(!STREQ(op->idname, "TRANSFORM_OT_resize"));
+        }
       }
       else {
         zero_v3(mouse_dir_constraint);
