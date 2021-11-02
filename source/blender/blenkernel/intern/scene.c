@@ -1055,8 +1055,12 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
   BLO_read_list(reader, lb);
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (seq->seqbase.first) {
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, lb) {
+    /* Sanity check. */
+    if ((seq->machine < 1) || (seq->machine > MAXSEQ)) {
+      BLI_freelinkN(lb, seq);
+    }
+    else if (seq->seqbase.first) {
       link_recurs_seq(reader, &seq->seqbase);
     }
   }
