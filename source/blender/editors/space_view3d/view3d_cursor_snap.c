@@ -777,6 +777,13 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
     return false;
   };
 
+  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
+  if (state->region && (state->region != region)) {
+    /* Some gizmos are still available even when the region is not available.
+     * We need to disable the cursor in these cases. */
+    return false;
+  }
+
   return true;
 }
 

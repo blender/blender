@@ -241,6 +241,10 @@ static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  ARegion *region = CTX_wm_region(C);
+
+  /* Make sure the cursor is only drawn in the gizmo region. */
+  snap_gizmo->snap_state->region = region;
 
   /* Snap Elements can change while the gizmo is active. Need to be updated somewhere. */
   snap_gizmo_snap_elements_update(snap_gizmo);
@@ -251,7 +255,6 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     wmWindowManager *wm = CTX_wm_manager(C);
     const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
     if (event) {
-      ARegion *region = CTX_wm_region(C);
       x = event->xy[0] - region->winrct.xmin;
       y = event->xy[1] - region->winrct.ymin;
     }
