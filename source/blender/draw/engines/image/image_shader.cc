@@ -29,12 +29,14 @@
 #include "image_engine.h"
 #include "image_private.hh"
 
+extern "C" {
 extern char datatoc_common_colormanagement_lib_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 
 extern char datatoc_engine_image_frag_glsl[];
 extern char datatoc_engine_image_vert_glsl[];
+}
 
 namespace blender::draw::image_engine {
 
@@ -84,4 +86,3 @@ void IMAGE_shader_free()
 }
 
 }  // namespace blender::draw::image_engine
-
