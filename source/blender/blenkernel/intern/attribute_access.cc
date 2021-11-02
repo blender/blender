@@ -234,6 +234,14 @@ OutputAttribute::~OutputAttribute()
   }
 }
 
+static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer &layer)
+{
+  if (layer.anonymous_id != nullptr) {
+    return layer.anonymous_id;
+  }
+  return layer.name;
+}
+
 static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data,
                                                          const CustomDataType data_type,
                                                          const int domain_size,
@@ -595,13 +603,7 @@ bool CustomDataAttributeProvider::foreach_attribute(const GeometryComponent &com
     const CustomDataType data_type = (CustomDataType)layer.type;
     if (this->type_is_supported(data_type)) {
       AttributeMetaData meta_data{domain_, data_type};
-      AttributeIDRef attribute_id;
-      if (layer.anonymous_id != nullptr) {
-        attribute_id = layer.anonymous_id;
-      }
-      else {
-        attribute_id = layer.name;
-      }
+      const AttributeIDRef attribute_id = attribute_id_from_custom_data_layer(layer);
       if (!callback(attribute_id, meta_data)) {
         return false;
       }
@@ -825,13 +827,7 @@ bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback call
 {
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     AttributeMetaData meta_data{domain, (CustomDataType)layer.type};
-    AttributeIDRef attribute_id;
-    if (layer.anonymous_id != nullptr) {
-      attribute_id = layer.anonymous_id;
-    }
-    else {
-      attribute_id = layer.name;
-    }
+    const AttributeIDRef attribute_id = attribute_id_from_custom_data_layer(layer);
     if (!callback(attribute_id, meta_data)) {
       return false;
     }
