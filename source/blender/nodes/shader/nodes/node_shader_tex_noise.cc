@@ -29,7 +29,7 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Vector")).implicit_field();
   b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
   b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(16.0f).default_value(2.0f);
+  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
   b.add_input<decl::Float>(N_("Roughness"))
       .min(0.0f)
       .max(1.0f)

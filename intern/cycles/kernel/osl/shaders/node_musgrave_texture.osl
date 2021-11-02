@@ -697,7 +697,7 @@ shader node_musgrave_texture(
     output float Fac = 0.0)
 {
   float dimension = max(Dimension, 1e-5);
-  float octaves = clamp(Detail, 0.0, 16.0);
+  float octaves = clamp(Detail, 0.0, 15.0);
   float lacunarity = max(Lacunarity, 1e-5);
 
   vector3 s = Vector;

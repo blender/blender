@@ -90,7 +90,7 @@ float fractal_noise(float p, float details, float roughness)
   float amp = 1.0;
   float maxamp = 0.0;
   float sum = 0.0;
-  float octaves = clamp(details, 0.0, 16.0);
+  float octaves = clamp(details, 0.0, 15.0);
   int n = (int)octaves;
   for (int i = 0; i <= n; i++) {
     float t = safe_noise(fscale * p);
@@ -119,7 +119,7 @@ float fractal_noise(vector2 p, float details, float roughness)
   float amp = 1.0;
   float maxamp = 0.0;
   float sum = 0.0;
-  float octaves = clamp(details, 0.0, 16.0);
+  float octaves = clamp(details, 0.0, 15.0);
   int n = (int)octaves;
   for (int i = 0; i <= n; i++) {
     float t = safe_noise(fscale * p);
@@ -148,7 +148,7 @@ float fractal_noise(vector3 p, float details, float roughness)
   float amp = 1.0;
   float maxamp = 0.0;
   float sum = 0.0;
-  float octaves = clamp(details, 0.0, 16.0);
+  float octaves = clamp(details, 0.0, 15.0);
   int n = (int)octaves;
   for (int i = 0; i <= n; i++) {
     float t = safe_noise(fscale * p);
@@ -177,7 +177,7 @@ float fractal_noise(vector4 p, float details, float roughness)
   float amp = 1.0;
   float maxamp = 0.0;
   float sum = 0.0;
-  float octaves = clamp(details, 0.0, 16.0);
+  float octaves = clamp(details, 0.0, 15.0);
   int n = (int)octaves;
   for (int i = 0; i <= n; i++) {
     float t = safe_noise(fscale * p);

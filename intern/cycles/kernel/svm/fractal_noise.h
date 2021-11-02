@@ -27,7 +27,7 @@ ccl_device_noinline float fractal_noise_1d(float p, float octaves, float roughne
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 16.0f);
+  octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
     float t = noise_1d(fscale * p);
@@ -56,7 +56,7 @@ ccl_device_noinline float fractal_noise_2d(float2 p, float octaves, float roughn
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 16.0f);
+  octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
     float t = noise_2d(fscale * p);
@@ -85,7 +85,7 @@ ccl_device_noinline float fractal_noise_3d(float3 p, float octaves, float roughn
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 16.0f);
+  octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
     float t = noise_3d(fscale * p);
@@ -114,7 +114,7 @@ ccl_device_noinline float fractal_noise_4d(float4 p, float octaves, float roughn
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = clamp(octaves, 0.0f, 16.0f);
+  octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
     float t = noise_4d(fscale * p);

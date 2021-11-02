@@ -582,7 +582,7 @@ template<typename T> float perlin_fractal_template(T position, float octaves, fl
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = CLAMPIS(octaves, 0.0f, 16.0f);
+  octaves = CLAMPIS(octaves, 0.0f, 15.0f);
   int n = static_cast<int>(octaves);
   for (int i = 0; i <= n; i++) {
     float t = perlin(fscale * position);
@@ -771,12 +771,16 @@ float3 perlin_float3_fractal_distorted(float4 position,
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float musgrave_fBm(const float co, const float H, const float lacunarity, const float octaves)
+float musgrave_fBm(const float co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
 {
   float p = co;
   float value = 0.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value += perlin_signed(p) * pwr;
@@ -802,12 +806,13 @@ float musgrave_fBm(const float co, const float H, const float lacunarity, const 
 float musgrave_multi_fractal(const float co,
                              const float H,
                              const float lacunarity,
-                             const float octaves)
+                             const float octaves_unclamped)
 {
   float p = co;
   float value = 1.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
@@ -831,12 +836,16 @@ float musgrave_multi_fractal(const float co,
  * offset: raises the terrain from `sea level'
  */
 
-float musgrave_hetero_terrain(
-    const float co, const float H, const float lacunarity, const float octaves, const float offset)
+float musgrave_hetero_terrain(const float co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves_unclamped,
+                              const float offset)
 {
   float p = co;
   const float pwHL = powf(lacunarity, -H);
   float pwr = pwHL;
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   /* first unscaled octave of function; later octaves are scaled */
   float value = offset + perlin_signed(p);
@@ -869,7 +878,7 @@ float musgrave_hetero_terrain(
 float musgrave_hybrid_multi_fractal(const float co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -880,6 +889,8 @@ float musgrave_hybrid_multi_fractal(const float co,
   float value = perlin_signed(p) + offset;
   float weight = gain * value;
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
     if (weight > 1.0f) {
@@ -912,7 +923,7 @@ float musgrave_hybrid_multi_fractal(const float co,
 float musgrave_ridged_multi_fractal(const float co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -924,6 +935,8 @@ float musgrave_ridged_multi_fractal(const float co,
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
@@ -947,12 +960,16 @@ float musgrave_ridged_multi_fractal(const float co,
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float musgrave_fBm(const float2 co, const float H, const float lacunarity, const float octaves)
+float musgrave_fBm(const float2 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
 {
   float2 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value += perlin_signed(p) * pwr;
@@ -978,12 +995,13 @@ float musgrave_fBm(const float2 co, const float H, const float lacunarity, const
 float musgrave_multi_fractal(const float2 co,
                              const float H,
                              const float lacunarity,
-                             const float octaves)
+                             const float octaves_unclamped)
 {
   float2 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
@@ -1010,7 +1028,7 @@ float musgrave_multi_fractal(const float2 co,
 float musgrave_hetero_terrain(const float2 co,
                               const float H,
                               const float lacunarity,
-                              const float octaves,
+                              const float octaves_unclamped,
                               const float offset)
 {
   float2 p = co;
@@ -1020,6 +1038,8 @@ float musgrave_hetero_terrain(const float2 co,
   /* first unscaled octave of function; later octaves are scaled */
   float value = offset + perlin_signed(p);
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
@@ -1048,7 +1068,7 @@ float musgrave_hetero_terrain(const float2 co,
 float musgrave_hybrid_multi_fractal(const float2 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1059,6 +1079,8 @@ float musgrave_hybrid_multi_fractal(const float2 co,
   float value = perlin_signed(p) + offset;
   float weight = gain * value;
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
     if (weight > 1.0f) {
@@ -1091,7 +1113,7 @@ float musgrave_hybrid_multi_fractal(const float2 co,
 float musgrave_ridged_multi_fractal(const float2 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1103,6 +1125,8 @@ float musgrave_ridged_multi_fractal(const float2 co,
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
@@ -1126,12 +1150,17 @@ float musgrave_ridged_multi_fractal(const float2 co,
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float musgrave_fBm(const float3 co, const float H, const float lacunarity, const float octaves)
+float musgrave_fBm(const float3 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
 {
   float3 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value += perlin_signed(p) * pwr;
@@ -1157,12 +1186,14 @@ float musgrave_fBm(const float3 co, const float H, const float lacunarity, const
 float musgrave_multi_fractal(const float3 co,
                              const float H,
                              const float lacunarity,
-                             const float octaves)
+                             const float octaves_unclamped)
 {
   float3 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
@@ -1189,7 +1220,7 @@ float musgrave_multi_fractal(const float3 co,
 float musgrave_hetero_terrain(const float3 co,
                               const float H,
                               const float lacunarity,
-                              const float octaves,
+                              const float octaves_unclamped,
                               const float offset)
 {
   float3 p = co;
@@ -1199,6 +1230,8 @@ float musgrave_hetero_terrain(const float3 co,
   /* first unscaled octave of function; later octaves are scaled */
   float value = offset + perlin_signed(p);
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
@@ -1227,7 +1260,7 @@ float musgrave_hetero_terrain(const float3 co,
 float musgrave_hybrid_multi_fractal(const float3 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1238,6 +1271,8 @@ float musgrave_hybrid_multi_fractal(const float3 co,
   float value = perlin_signed(p) + offset;
   float weight = gain * value;
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
     if (weight > 1.0f) {
@@ -1270,7 +1305,7 @@ float musgrave_hybrid_multi_fractal(const float3 co,
 float musgrave_ridged_multi_fractal(const float3 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1282,6 +1317,8 @@ float musgrave_ridged_multi_fractal(const float3 co,
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
@@ -1305,12 +1342,17 @@ float musgrave_ridged_multi_fractal(const float3 co,
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float musgrave_fBm(const float4 co, const float H, const float lacunarity, const float octaves)
+float musgrave_fBm(const float4 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
 {
   float4 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value += perlin_signed(p) * pwr;
@@ -1336,12 +1378,14 @@ float musgrave_fBm(const float4 co, const float H, const float lacunarity, const
 float musgrave_multi_fractal(const float4 co,
                              const float H,
                              const float lacunarity,
-                             const float octaves)
+                             const float octaves_unclamped)
 {
   float4 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
   const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
@@ -1368,7 +1412,7 @@ float musgrave_multi_fractal(const float4 co,
 float musgrave_hetero_terrain(const float4 co,
                               const float H,
                               const float lacunarity,
-                              const float octaves,
+                              const float octaves_unclamped,
                               const float offset)
 {
   float4 p = co;
@@ -1378,6 +1422,8 @@ float musgrave_hetero_terrain(const float4 co,
   /* first unscaled octave of function; later octaves are scaled */
   float value = offset + perlin_signed(p);
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
@@ -1406,7 +1452,7 @@ float musgrave_hetero_terrain(const float4 co,
 float musgrave_hybrid_multi_fractal(const float4 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1417,6 +1463,8 @@ float musgrave_hybrid_multi_fractal(const float4 co,
   float value = perlin_signed(p) + offset;
   float weight = gain * value;
   p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
     if (weight > 1.0f) {
@@ -1449,7 +1497,7 @@ float musgrave_hybrid_multi_fractal(const float4 co,
 float musgrave_ridged_multi_fractal(const float4 co,
                                     const float H,
                                     const float lacunarity,
-                                    const float octaves,
+                                    const float octaves_unclamped,
                                     const float offset,
                                     const float gain)
 {
@@ -1461,6 +1509,8 @@ float musgrave_ridged_multi_fractal(const float4 co,
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
