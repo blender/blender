@@ -348,6 +348,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
  * because attributes are stored on splines rather than in a flat array on the curve:
  *  - The same set of attributes exists on every spline.
  *  - Attributes with the same name have the same type on every spline.
+ *  - Attributes are in the same order on every spline.
  */
 void CurveEval::assert_valid_point_attributes() const
 {
@@ -356,25 +357,40 @@ void CurveEval::assert_valid_point_attributes() const
     return;
   }
   const int layer_len = splines_.first()->attributes.data.totlayer;
-  Map<AttributeIDRef, AttributeMetaData> map;
-  for (const SplinePtr &spline : splines_) {
-    BLI_assert(spline->attributes.data.totlayer == layer_len);
-    spline->attributes.foreach_attribute(
+
+  Array<AttributeIDRef> ids_in_order(layer_len);
+  Array<AttributeMetaData> meta_data_in_order(layer_len);
+
+  {
+    int i = 0;
+    splines_.first()->attributes.foreach_attribute(
         [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          map.add_or_modify(
-              attribute_id,
-              [&](AttributeMetaData *map_data) {
-                /* All unique attribute names should be added on the first spline. */
-                BLI_assert(spline == splines_.first());
-                *map_data = meta_data;
-              },
-              [&](AttributeMetaData *map_data) {
-                /* Attributes on different splines should all have the same type. */
-                BLI_assert(meta_data == *map_data);
-              });
+          ids_in_order[i] = attribute_id;
+          meta_data_in_order[i] = meta_data;
+          i++;
           return true;
         },
         ATTR_DOMAIN_POINT);
   }
+
+  for (const SplinePtr &spline : splines_) {
+    /* All splines should have the same number of attributes. */
+    BLI_assert(spline->attributes.data.totlayer == layer_len);
+
+    int i = 0;
+    spline->attributes.foreach_attribute(
+        [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+          /* Attribute names and IDs should have the same order and exist on all splines. */
+          BLI_assert(attribute_id == ids_in_order[i]);
+
+          /* Attributes with the same ID different splines should all have the same type. */
+          BLI_assert(meta_data == meta_data_in_order[i]);
+
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
+  }
+
 #endif
 }

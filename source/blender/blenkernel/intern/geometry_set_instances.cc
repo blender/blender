@@ -569,6 +569,7 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
   sort_curve_point_attributes(attributes, curve->splines());
+  curve->assert_valid_point_attributes();
 }
 
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)

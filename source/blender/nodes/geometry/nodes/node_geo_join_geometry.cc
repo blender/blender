@@ -469,6 +469,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   dst_curve->attributes.reallocate(dst_curve->splines().size());
 
   join_curve_attributes(info, src_components, *dst_curve);
+  dst_curve->assert_valid_point_attributes();
 
   dst_component.replace(dst_curve);
 }
