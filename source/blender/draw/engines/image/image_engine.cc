@@ -39,7 +39,9 @@
 #include "GPU_batch.h"
 
 #include "image_engine.h"
-#include "image_private.h"
+#include "image_private.hh"
+
+namespace blender::draw::image_engine {
 
 #define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
 #define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
@@ -115,14 +117,14 @@ static void space_image_gpu_texture_get(Image *image,
     BKE_image_multiview_index(image, &sima->iuser);
   }
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->rect == nullptr && ibuf->rect_float == nullptr) {
     /* This code-path is only supposed to happen when drawing a lazily-allocatable render result.
-     * In all the other cases the `ED_space_image_acquire_buffer()` is expected to return NULL as
-     * an image buffer when it has no pixels. */
+     * In all the other cases the `ED_space_image_acquire_buffer()` is expected to return nullptr
+     * as an image buffer when it has no pixels. */
 
     BLI_assert(image->type == IMA_TYPE_R_RESULT);
 
@@ -150,7 +152,7 @@ static void space_image_gpu_texture_get(Image *image,
   }
   else if (image->source == IMA_SRC_TILED) {
     *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, ibuf);
-    *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, NULL);
+    *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, nullptr);
     *r_owns_texture = false;
   }
   else {
@@ -168,7 +170,7 @@ static void space_node_gpu_texture_get(Image *image,
 {
   *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
   *r_owns_texture = false;
-  *r_tex_tile_data = NULL;
+  *r_tex_tile_data = nullptr;
 }
 
 static void image_gpu_texture_get(Image *image,
@@ -204,7 +206,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
   const char space_type = draw_ctx->space_data->spacetype;
   const Scene *scene = draw_ctx->scene;
 
-  GPUTexture *tex_tile_data = NULL;
+  GPUTexture *tex_tile_data = nullptr;
   image_gpu_texture_get(image, iuser, ibuf, &pd->texture, &pd->owns_texture, &tex_tile_data);
 
   if (pd->texture) {
@@ -218,7 +220,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     }
 
     const bool use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, ibuf);
-    const bool is_tiled_texture = tex_tile_data != NULL;
+    const bool is_tiled_texture = tex_tile_data != nullptr;
 
     int draw_flags = 0;
     if (space_type == SPACE_IMAGE) {
@@ -307,11 +309,11 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     GPUShader *shader = IMAGE_shader_image_get(is_tiled_texture);
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, psl->image_pass);
     if (is_tiled_texture) {
-      DRW_shgroup_uniform_texture_ex(shgrp, "imageTileArray", pd->texture, 0);
+      DRW_shgroup_uniform_texture_ex(shgrp, "imageTileArray", pd->texture, GPU_SAMPLER_DEFAULT);
       DRW_shgroup_uniform_texture(shgrp, "imageTileData", tex_tile_data);
     }
     else {
-      DRW_shgroup_uniform_texture_ex(shgrp, "imageTexture", pd->texture, 0);
+      DRW_shgroup_uniform_texture_ex(shgrp, "imageTexture", pd->texture, GPU_SAMPLER_DEFAULT);
     }
     DRW_shgroup_uniform_vec2_copy(shgrp, "farNearDistances", far_near);
     DRW_shgroup_uniform_vec4_copy(shgrp, "color", color);
@@ -332,13 +334,13 @@ static void IMAGE_engine_init(void *ved)
   IMAGE_Data *vedata = (IMAGE_Data *)ved;
   IMAGE_StorageList *stl = vedata->stl;
   if (!stl->pd) {
-    stl->pd = MEM_callocN(sizeof(IMAGE_PrivateData), __func__);
+    stl->pd = static_cast<IMAGE_PrivateData *>(MEM_callocN(sizeof(IMAGE_PrivateData), __func__));
   }
   IMAGE_PrivateData *pd = stl->pd;
 
-  pd->ibuf = NULL;
-  pd->lock = NULL;
-  pd->texture = NULL;
+  pd->ibuf = nullptr;
+  pd->lock = nullptr;
+  pd->texture = nullptr;
 }
 
 static void IMAGE_cache_init(void *ved)
@@ -352,14 +354,14 @@ static void IMAGE_cache_init(void *ved)
   {
     /* Write depth is needed for background overlay rendering. Near depth is used for
      * transparency checker and Far depth is used for indicating the image size. */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
-                     DRW_STATE_BLEND_ALPHA_PREMUL;
+    DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                                           DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA_PREMUL);
     psl->image_pass = DRW_pass_create("Image", state);
   }
 
   const SpaceLink *space_link = draw_ctx->space_data;
   const char space_type = space_link->spacetype;
-  pd->view = NULL;
+  pd->view = nullptr;
   if (space_type == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
     Image *image = ED_space_image(sima);
@@ -372,15 +374,15 @@ static void IMAGE_cache_init(void *ved)
     ARegion *region = draw_ctx->region;
     Main *bmain = CTX_data_main(draw_ctx->evil_C);
     Image *image = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &pd->lock);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, &pd->lock);
     {
       /* Setup a screen pixel view. The backdrop of the node editor doesn't follow the region. */
       float winmat[4][4], viewmat[4][4];
       orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
       unit_m4(winmat);
-      pd->view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+      pd->view = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
     }
-    image_cache_image(vedata, image, NULL, ibuf);
+    image_cache_image(vedata, image, nullptr, ibuf);
     pd->image = image;
     pd->ibuf = ibuf;
   }
@@ -405,14 +407,14 @@ static void image_draw_finish(IMAGE_Data *ved)
   else if (space_type == SPACE_NODE) {
     BKE_image_release_ibuf(pd->image, pd->ibuf, pd->lock);
   }
-  pd->image = NULL;
-  pd->ibuf = NULL;
+  pd->image = nullptr;
+  pd->ibuf = nullptr;
 
   if (pd->texture && pd->owns_texture) {
     GPU_texture_free(pd->texture);
     pd->owns_texture = false;
   }
-  pd->texture = NULL;
+  pd->texture = nullptr;
 }
 
 static void IMAGE_draw_scene(void *ved)
@@ -428,11 +430,11 @@ static void IMAGE_draw_scene(void *ved)
 
   DRW_view_set_active(pd->view);
   DRW_draw_pass(psl->image_pass);
-  DRW_view_set_active(NULL);
+  DRW_view_set_active(nullptr);
   image_draw_finish(vedata);
 }
 
-static void IMAGE_engine_free(void)
+static void IMAGE_engine_free()
 {
   IMAGE_shader_free();
 }
@@ -441,19 +443,27 @@ static void IMAGE_engine_free(void)
 
 static const DrawEngineDataSize IMAGE_data_size = DRW_VIEWPORT_DATA_SIZE(IMAGE_Data);
 
+}  // namespace blender::draw::image_engine
+
+extern "C" {
+
+using namespace blender::draw::image_engine;
+
 DrawEngineType draw_engine_image_type = {
-    NULL,                  /* next */
-    NULL,                  /* prev */
+    nullptr,               /* next */
+    nullptr,               /* prev */
     N_("UV/Image"),        /* idname */
     &IMAGE_data_size,      /* vedata_size */
     &IMAGE_engine_init,    /* engine_init */
     &IMAGE_engine_free,    /* engine_free */
     &IMAGE_cache_init,     /* cache_init */
     &IMAGE_cache_populate, /* cache_populate */
-    NULL,                  /* cache_finish */
+    nullptr,               /* cache_finish */
     &IMAGE_draw_scene,     /* draw_scene */
-    NULL,                  /* view_update */
-    NULL,                  /* id_update */
-    NULL,                  /* render_to_image */
-    NULL,                  /* store_metadata */
+    nullptr,               /* view_update */
+    nullptr,               /* id_update */
+    nullptr,               /* render_to_image */
+    nullptr,               /* store_metadata */
 };
+}
+

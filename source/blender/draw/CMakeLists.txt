@@ -112,8 +112,8 @@ set(SRC
   intern/draw_view_data.cc
   intern/smaa_textures.c
   engines/basic/basic_engine.c
-  engines/image/image_engine.c
-  engines/image/image_shader.c
+  engines/image/image_engine.cc
+  engines/image/image_shader.cc
   engines/eevee/eevee_bloom.c
   engines/eevee/eevee_cryptomatte.c
   engines/eevee/eevee_data.c
@@ -220,7 +220,7 @@ set(SRC
   engines/eevee/eevee_private.h
   engines/external/external_engine.h
   engines/image/image_engine.h
-  engines/image/image_private.h
+  engines/image/image_private.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/select/select_engine.h

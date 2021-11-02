@@ -15,12 +15,14 @@
 
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
-#include "engines/image/image_private.h"
+#include "engines/image/image_private.hh"
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
 #include "intern/draw_shader.h"
 
 namespace blender::draw {
+
+using namespace blender::draw::image_engine;
 
 static void test_workbench_glsl_shaders()
 {
