@@ -121,7 +121,7 @@ void node_draw_sockets(const struct View2D *v2d,
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
 int node_select_area_default(struct bNode *node, int x, int y);
 int node_tweak_area_default(struct bNode *node, int x, int y);
-void node_socket_color_get(struct bContext *C,
+void node_socket_color_get(const struct bContext *C,
                            struct bNodeTree *ntree,
                            struct PointerRNA *node_ptr,
                            struct bNodeSocket *sock,
@@ -186,8 +186,12 @@ void NODE_OT_backimage_sample(struct wmOperatorType *ot);
 void nodelink_batch_start(struct SpaceNode *snode);
 void nodelink_batch_end(struct SpaceNode *snode);
 
-void node_draw_link(struct View2D *v2d, struct SpaceNode *snode, struct bNodeLink *link);
-void node_draw_link_bezier(const struct View2D *v2d,
+void node_draw_link(const struct bContext *C,
+                    struct View2D *v2d,
+                    struct SpaceNode *snode,
+                    struct bNodeLink *link);
+void node_draw_link_bezier(const struct bContext *C,
+                           const struct View2D *v2d,
                            const struct SpaceNode *snode,
                            const struct bNodeLink *link,
                            int th_col1,

@@ -4268,7 +4268,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
 }
 
 /* don't do shadows if th_col3 is -1. */
-void node_draw_link_bezier(const View2D *v2d,
+void node_draw_link_bezier(const bContext *C,
+                           const View2D *v2d,
                            const SpaceNode *snode,
                            const bNodeLink *link,
                            int th_col1,
@@ -4310,18 +4311,21 @@ void node_draw_link_bezier(const View2D *v2d,
         snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
         ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
          (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
+      PointerRNA from_node_ptr, to_node_ptr;
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->fromnode, &from_node_ptr);
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->tonode, &to_node_ptr);
       if (link->fromsock) {
-        copy_v4_v4(colors[1], std_node_socket_colors[link->fromsock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[1]);
       }
       else {
-        copy_v4_v4(colors[1], std_node_socket_colors[link->tosock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[1]);
       }
 
       if (link->tosock) {
-        copy_v4_v4(colors[2], std_node_socket_colors[link->tosock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[2]);
       }
       else {
-        copy_v4_v4(colors[2], std_node_socket_colors[link->fromsock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[2]);
       }
     }
     else {
@@ -4392,7 +4396,7 @@ void node_draw_link_bezier(const View2D *v2d,
 }
 
 /* NOTE: this is used for fake links in groups too. */
-void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
+void node_draw_link(const bContext *C, View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;
 
@@ -4436,7 +4440,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
     }
   }
 
-  node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, th_col3);
+  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3);
 }
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)

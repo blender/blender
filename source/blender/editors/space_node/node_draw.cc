@@ -725,12 +725,15 @@ int node_get_colorid(bNode *node)
   }
 }
 
-static void node_draw_mute_line(const View2D *v2d, const SpaceNode *snode, const bNode *node)
+static void node_draw_mute_line(const bContext *C,
+                                const View2D *v2d,
+                                const SpaceNode *snode,
+                                const bNode *node)
 {
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &node->internal_links) {
-    node_draw_link_bezier(v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE);
+    node_draw_link_bezier(C, v2d, snode, link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -825,13 +828,13 @@ static void node_socket_outline_color_get(const bool selected,
 /* Usual convention here would be node_socket_get_color(), but that's already used (for setting a
  * color property socket). */
 void node_socket_color_get(
-    bContext *C, bNodeTree *ntree, PointerRNA *node_ptr, bNodeSocket *sock, float r_color[4])
+    const bContext *C, bNodeTree *ntree, PointerRNA *node_ptr, bNodeSocket *sock, float r_color[4])
 {
   PointerRNA ptr;
   BLI_assert(RNA_struct_is_a(node_ptr->type, &RNA_Node));
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 
-  sock->typeinfo->draw_color(C, &ptr, node_ptr, r_color);
+  sock->typeinfo->draw_color((bContext *)C, &ptr, node_ptr, r_color);
 }
 
 struct SocketTooltipData {
@@ -1049,7 +1052,7 @@ static void node_socket_draw_nested(const bContext *C,
   float color[4];
   float outline_color[4];
 
-  node_socket_color_get((bContext *)C, ntree, node_ptr, sock, color);
+  node_socket_color_get(C, ntree, node_ptr, sock, color);
   node_socket_outline_color_get(selected, sock->type, outline_color);
 
   node_socket_draw(sock,
@@ -1464,7 +1467,7 @@ void node_draw_sockets(const View2D *v2d,
 
     float color[4];
     float outline_color[4];
-    node_socket_color_get((bContext *)C, ntree, &node_ptr, socket, color);
+    node_socket_color_get(C, ntree, &node_ptr, socket, color);
     node_socket_outline_color_get(selected, socket->type, outline_color);
 
     node_socket_draw_multi_input(color, outline_color, width, height, socket->locx, socket->locy);
@@ -1762,7 +1765,7 @@ static void node_draw_basis(const bContext *C,
 
   /* Wire across the node when muted/disabled. */
   if (node->flag & NODE_MUTED) {
-    node_draw_mute_line(v2d, snode, node);
+    node_draw_mute_line(C, v2d, snode, node);
   }
 
   /* Body. */
@@ -1891,7 +1894,7 @@ static void node_draw_hidden(const bContext *C,
 
   /* Wire across the node when muted/disabled. */
   if (node->flag & NODE_MUTED) {
-    node_draw_mute_line(v2d, snode, node);
+    node_draw_mute_line(C, v2d, snode, node);
   }
 
   /* Body. */
@@ -2202,7 +2205,7 @@ void node_draw_nodetree(const bContext *C,
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (!nodeLinkIsHidden(link)) {
-      node_draw_link(&region->v2d, snode, link);
+      node_draw_link(C, &region->v2d, snode, link);
     }
   }
   nodelink_batch_end(snode);
@@ -2387,7 +2390,7 @@ void node_draw_space(const bContext *C, ARegion *region)
     GPU_line_smooth(true);
     LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
       LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
-        node_draw_link(v2d, snode, (bNodeLink *)linkdata->data);
+        node_draw_link(C, v2d, snode, (bNodeLink *)linkdata->data);
       }
     }
     GPU_line_smooth(false);
