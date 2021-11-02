@@ -775,6 +775,19 @@ static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *
   sseq->flag &= ~SEQ_ZOOM_TO_FIT;
 }
 
+static bool is_cursor_visible(const SpaceSeq *sseq)
+{
+  if (G.moving & G_TRANSFORM_CURSOR) {
+    return true;
+  }
+
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_2D_CURSOR) != 0) {
+    return true;
+  }
+  return false;
+}
+
 static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -809,8 +822,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 
   /* No need to show the cursor for scopes. */
-  if (draw_overlay && (is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
-      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_2D_CURSOR) != 0) {
+  if ((is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF) && is_cursor_visible(sseq)) {
     GPU_color_mask(true, true, true, true);
     GPU_depth_mask(false);
     GPU_depth_test(GPU_DEPTH_NONE);

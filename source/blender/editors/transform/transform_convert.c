@@ -965,6 +965,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 int special_transform_moving(TransInfo *t)
 {
+  if (t->options & CTX_CURSOR) {
+    return G_TRANSFORM_CURSOR;
+  }
   if (t->spacetype == SPACE_SEQ) {
     return G_TRANSFORM_SEQ;
   }

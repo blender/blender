@@ -40,6 +40,7 @@
 
 #include "WM_types.h"
 
+#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
@@ -63,6 +64,10 @@ void DRW_draw_region_info(void)
 
 static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, ViewLayer *view_layer)
 {
+  if (G.moving & G_TRANSFORM_CURSOR) {
+    return true;
+  }
+
   View3D *v3d = draw_ctx->v3d;
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
     return false;
