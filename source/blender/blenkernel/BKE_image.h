@@ -153,10 +153,6 @@ struct RenderData;
 struct RenderPass;
 struct RenderResult;
 
-/* ima->ok */
-#define IMA_OK 1
-#define IMA_OK_LOADED 2
-
 /* signals */
 /* reload only frees, doesn't read until image_get_ibuf() called */
 #define IMA_SIGNAL_RELOAD 0

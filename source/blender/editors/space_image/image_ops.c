@@ -2227,7 +2227,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
     iter = IMB_moviecacheIter_new(image->cache);
     while (!IMB_moviecacheIter_done(iter)) {
       ibuf = IMB_moviecacheIter_getImBuf(iter);
-      if (ibuf->userflags & IB_BITMAPDIRTY) {
+      if (ibuf != NULL && ibuf->userflags & IB_BITMAPDIRTY) {
         if (first_ibuf == NULL) {
           first_ibuf = ibuf;
         }
@@ -2251,7 +2251,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   while (!IMB_moviecacheIter_done(iter)) {
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
-    if (ibuf->userflags & IB_BITMAPDIRTY) {
+    if (ibuf != NULL && ibuf->userflags & IB_BITMAPDIRTY) {
       char name[FILE_MAX];
       BLI_strncpy(name, ibuf->name, sizeof(name));
 

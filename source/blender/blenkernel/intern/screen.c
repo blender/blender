@@ -1624,7 +1624,6 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       SpaceImage *sima = (SpaceImage *)sl;
 
       sima->iuser.scene = NULL;
-      sima->iuser.ok = 1;
       sima->scopes.waveform_1 = NULL;
       sima->scopes.waveform_2 = NULL;
       sima->scopes.waveform_3 = NULL;

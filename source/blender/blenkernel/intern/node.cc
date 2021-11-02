@@ -748,13 +748,11 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         }
         case SH_NODE_TEX_IMAGE: {
           NodeTexImage *tex = (NodeTexImage *)node->storage;
-          tex->iuser.ok = 1;
           tex->iuser.scene = nullptr;
           break;
         }
         case SH_NODE_TEX_ENVIRONMENT: {
           NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
-          tex->iuser.ok = 1;
           tex->iuser.scene = nullptr;
           break;
         }
@@ -763,7 +761,6 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         case CMP_NODE_VIEWER:
         case CMP_NODE_SPLITVIEWER: {
           ImageUser *iuser = (ImageUser *)node->storage;
-          iuser->ok = 1;
           iuser->scene = nullptr;
           break;
         }
@@ -777,7 +774,6 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         }
         case TEX_NODE_IMAGE: {
           ImageUser *iuser = (ImageUser *)node->storage;
-          iuser->ok = 1;
           iuser->scene = nullptr;
           break;
         }

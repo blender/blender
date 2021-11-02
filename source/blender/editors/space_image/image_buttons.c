@@ -729,10 +729,6 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
   RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
 
-  /* ideally this would be done by RNA itself, but there we have
-   * no image user available, so we just update this flag here */
-  cb->iuser->ok = 1;
-
   /* we call update here on the pointer property, this way the
    * owner of the image pointer can still define its own update
    * and notifier */

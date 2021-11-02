@@ -842,7 +842,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int fl
       key.render_flag = 0;
     }
 
-    return IMB_moviecache_get(clip->cache->moviecache, &key);
+    return IMB_moviecache_get(clip->cache->moviecache, &key, NULL);
   }
 
   return NULL;

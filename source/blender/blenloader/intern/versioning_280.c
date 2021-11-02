@@ -4517,7 +4517,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "tiles")) {
       for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
         ImageTile *tile = MEM_callocN(sizeof(ImageTile), "Image Tile");
-        tile->ok = 1;
         tile->tile_number = 1001;
         BLI_addtail(&ima->tiles, tile);
       }
