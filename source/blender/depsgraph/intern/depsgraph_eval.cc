@@ -44,6 +44,7 @@
 #include "intern/node/deg_node_time.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_tag.h"
 
 namespace deg = blender::deg;
 
@@ -54,6 +55,7 @@ static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph)
     BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->frame);
   }
 
+  deg::graph_tag_ids_for_visible_update(deg_graph);
   deg::deg_graph_flush_updates(deg_graph);
   deg::deg_evaluate_on_refresh(deg_graph);
 }
