@@ -47,7 +47,7 @@ static struct {
   DRWShaderLibrary *lib;
 } e_data = {{{nullptr}}}; /* Engine data */
 
-void IMAGE_shader_library_ensure(void)
+void IMAGE_shader_library_ensure()
 {
   if (e_data.lib == nullptr) {
     e_data.lib = DRW_shader_library_create();
@@ -73,7 +73,7 @@ GPUShader *IMAGE_shader_image_get(bool is_tiled_image)
   return sh_data->image_sh[index];
 }
 
-void IMAGE_shader_free(void)
+void IMAGE_shader_free()
 {
   GPUShader **sh_data_as_array = (GPUShader **)&e_data.shaders;
   for (int i = 0; i < (sizeof(IMAGE_Shaders) / sizeof(GPUShader *)); i++) {
