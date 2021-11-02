@@ -86,27 +86,6 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
 
-  gc->ascender = ((float)font->face->size->metrics.ascender) / 64.0f;
-  gc->descender = ((float)font->face->size->metrics.descender) / 64.0f;
-
-  if (FT_IS_SCALABLE(font->face)) {
-    gc->glyph_width_max = (int)((float)(font->face->bbox.xMax - font->face->bbox.xMin) *
-                                (((float)font->face->size->metrics.x_ppem) /
-                                 ((float)font->face->units_per_EM)));
-
-    gc->glyph_height_max = (int)((float)(font->face->bbox.yMax - font->face->bbox.yMin) *
-                                 (((float)font->face->size->metrics.y_ppem) /
-                                  ((float)font->face->units_per_EM)));
-  }
-  else {
-    gc->glyph_width_max = (int)(((float)font->face->size->metrics.max_advance) / 64.0f);
-    gc->glyph_height_max = (int)(((float)font->face->size->metrics.height) / 64.0f);
-  }
-
-  /* can happen with size 1 fonts */
-  CLAMP_MIN(gc->glyph_width_max, 1);
-  CLAMP_MIN(gc->glyph_height_max, 1);
-
   BLI_addhead(&font->cache, gc);
   return gc;
 }
@@ -159,7 +138,7 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
   MEM_freeN(gc);
 }
 
-GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
+static GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
 {
   GlyphBLF *p;
   unsigned int key;

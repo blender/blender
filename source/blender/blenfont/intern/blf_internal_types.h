@@ -86,13 +86,6 @@ typedef struct GlyphCacheBLF {
   int bitmap_len_landed;
   int bitmap_len_alloc;
 
-  /* and the bigger glyph in the font. */
-  int glyph_width_max;
-  int glyph_height_max;
-
-  /* ascender and descender value. */
-  float ascender;
-  float descender;
 } GlyphCacheBLF;
 
 typedef struct GlyphBLF {
@@ -213,6 +206,9 @@ typedef struct FontBLF {
 
   /* font size. */
   unsigned int size;
+
+  /* Column width when printing monospaced. */
+  int fixed_width;
 
   /* max texture size. */
   int tex_size_max;

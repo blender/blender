@@ -34,6 +34,7 @@
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#include FT_ADVANCES_H /* For FT_Get_Advance */
 
 #include "MEM_guardedalloc.h"
 
@@ -824,22 +825,7 @@ float blf_font_height(FontBLF *font,
 
 float blf_font_fixed_width(FontBLF *font)
 {
-  const unsigned int c = ' ';
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  GlyphBLF *g = blf_glyph_search(gc, c);
-  if (!g) {
-    g = blf_glyph_ensure(font, gc, FT_Get_Char_Index(font->face, c));
-
-    /* if we don't find the glyph. */
-    if (!g) {
-      blf_glyph_cache_release(font);
-      return 0.0f;
-    }
-  }
-
-  blf_glyph_cache_release(font);
-  return g->advance;
+  return (float)font->fixed_width;
 }
 
 static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
@@ -991,7 +977,7 @@ static void blf_font_wrap_apply(FontBLF *font,
       wrap.start = wrap.last[0];
       i = wrap.last[1];
       pen_x = 0;
-      pen_y -= gc->glyph_height_max;
+      pen_y -= blf_font_height_max(font);
       g_prev = NULL;
       lines += 1;
       continue;
@@ -1114,45 +1100,41 @@ int blf_font_count_missing_chars(FontBLF *font,
 int blf_font_height_max(FontBLF *font)
 {
   int height_max;
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  height_max = gc->glyph_height_max;
-
-  blf_glyph_cache_release(font);
-  return height_max;
+  if (FT_IS_SCALABLE(font->face)) {
+    height_max = (int)((float)(font->face->ascender - font->face->descender) *
+                       (((float)font->face->size->metrics.y_ppem) /
+                        ((float)font->face->units_per_EM)));
+  }
+  else {
+    height_max = (int)(((float)font->face->size->metrics.height) / 64.0f);
+  }
+  /* can happen with size 1 fonts */
+  return MAX2(height_max, 1);
 }
 
 int blf_font_width_max(FontBLF *font)
 {
   int width_max;
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  width_max = gc->glyph_width_max;
-
-  blf_glyph_cache_release(font);
-  return width_max;
+  if (FT_IS_SCALABLE(font->face)) {
+    width_max = (int)((float)(font->face->bbox.xMax - font->face->bbox.xMin) *
+                      (((float)font->face->size->metrics.x_ppem) /
+                       ((float)font->face->units_per_EM)));
+  }
+  else {
+    width_max = (int)(((float)font->face->size->metrics.max_advance) / 64.0f);
+  }
+  /* can happen with size 1 fonts */
+  return MAX2(width_max, 1);
 }
 
 float blf_font_descender(FontBLF *font)
 {
-  float descender;
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  descender = gc->descender;
-
-  blf_glyph_cache_release(font);
-  return descender;
+  return ((float)font->face->size->metrics.descender) / 64.0f;
 }
 
 float blf_font_ascender(FontBLF *font)
 {
-  float ascender;
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  ascender = gc->ascender;
-
-  blf_glyph_cache_release(font);
-  return ascender;
+  return ((float)font->face->size->metrics.ascender) / 64.0f;
 }
 
 char *blf_display_name(FontBLF *font)
@@ -1383,6 +1365,22 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
   }
 
   blf_glyph_cache_release(font);
+
+  /* Set fixed-width size for monospaced output. */
+  FT_UInt gindex = FT_Get_Char_Index(font->face, U'0');
+  if (gindex) {
+    FT_Fixed advance = 0;
+    FT_Get_Advance(font->face, gindex, FT_LOAD_NO_HINTING, &advance);
+    /* Use CSS 'ch unit' width, advance of zero character. */
+    font->fixed_width = (int)(advance >> 16);
+  }
+  else {
+    /* Font does not contain "0" so use CSS fallback of 1/2 of em. */
+    font->fixed_width = (int)((font->face->size->metrics.height / 2) >> 6);
+  }
+  if (font->fixed_width < 1) {
+    font->fixed_width = 1;
+  }
 }
 
 /** \} */
