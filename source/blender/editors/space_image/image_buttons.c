@@ -1056,7 +1056,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   if (imf->imtype == R_IMF_IMTYPE_CINEON) {
 #if 1
-    uiItemL(col, IFACE_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
+    uiItemL(col, TIP_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
 #else
     uiItemR(col, imfptr, "use_cineon_log", 0, NULL, ICON_NONE);
     uiItemR(col, imfptr, "cineon_black", 0, NULL, ICON_NONE);

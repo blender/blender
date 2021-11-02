@@ -2743,7 +2743,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
     uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
   }
   else {
-    uiItemL(row, con->name, ICON_NONE);
+    uiItemL(row, IFACE_(con->name), ICON_NONE);
   }
 
   /* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
@@ -6142,8 +6142,8 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
     uiLayout *row = uiLayoutRow(col, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-    const char *msg = WM_window_cursor_keymap_status_get(win, i, 0);
-    const char *msg_drag = WM_window_cursor_keymap_status_get(win, i, 1);
+    const char *msg = TIP_(WM_window_cursor_keymap_status_get(win, i, 0));
+    const char *msg_drag = TIP_(WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg || (msg_drag == NULL)) {
       uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));
@@ -6498,12 +6498,15 @@ void uiTemplateCacheFile(uiLayout *layout,
     row = uiLayoutRow(layout, false);
     /* For Cycles, verify that experimental features are enabled. */
     if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
-      uiItemL(row,
-              "The Cycles Alembic Procedural is only available with the experimental feature set",
-              ICON_INFO);
+      uiItemL(
+          row,
+          TIP_(
+              "The Cycles Alembic Procedural is only available with the experimental feature set"),
+          ICON_INFO);
     }
     else {
-      uiItemL(row, "The active render engine does not have an Alembic Procedural", ICON_INFO);
+      uiItemL(
+          row, TIP_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
     }
   }
 

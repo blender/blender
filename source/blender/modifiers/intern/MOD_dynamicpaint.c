@@ -193,7 +193,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemL(layout, IFACE_("Settings are inside the Physics tab"), ICON_NONE);
+  uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

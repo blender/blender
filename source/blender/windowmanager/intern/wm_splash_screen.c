@@ -323,7 +323,7 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemL_ex(col, N_("Blender"), ICON_NONE, true, false);
+  uiItemL_ex(col, IFACE_("Blender"), ICON_NONE, true, false);
 
   MenuType *mt = WM_menutype_find("WM_MT_splash_about", true);
   if (mt) {

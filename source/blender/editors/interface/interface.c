@@ -4450,7 +4450,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
   }
   else {
     char msg[256];
-    SNPRINTF(msg, "Missing Panel: %s", panel_type);
+    SNPRINTF(msg, TIP_("Missing Panel: %s"), panel_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4479,7 +4479,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, "Missing Menu: %s", menu_type);
+    SNPRINTF(msg, TIP_("Missing Menu: %s"), menu_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }

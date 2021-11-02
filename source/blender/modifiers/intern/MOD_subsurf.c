@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -414,8 +415,12 @@ static void panel_draw(const bContext *C, Panel *panel)
     float preview = MAX2(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
                              RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                          0.1f);
-    char output[64];
-    snprintf(output, 64, "Final Scale: Render %.2f px, Viewport %.2f px", render, preview);
+    char output[256];
+    BLI_snprintf(output,
+                 sizeof(output),
+                 TIP_("Final Scale: Render %.2f px, Viewport %.2f px"),
+                 render,
+                 preview);
     uiItemL(layout, output, ICON_NONE);
 
     uiItemS(layout);

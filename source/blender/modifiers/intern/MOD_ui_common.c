@@ -108,7 +108,7 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
   ModifierData *md = ptr->data;
   if (md->error) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, IFACE_(md->error), ICON_ERROR);
+    uiItemL(row, TIP_(md->error), ICON_ERROR);
   }
 }
 
