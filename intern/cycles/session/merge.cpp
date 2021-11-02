@@ -163,8 +163,26 @@ static bool parse_channels(const ImageSpec &in_spec,
     file_layers[layername].passes.push_back(pass);
   }
 
-  /* Loop over all detected render-layers, check whether they contain a full set of input channels.
-   * Any channels that won't be processed internally are also passed through. */
+  /* If file contains a single unnamed layer, name it after the first layer metadata we find. */
+  if (file_layers.size() == 1 && file_layers.find("") != file_layers.end()) {
+    for (const ParamValue &attrib : in_spec.extra_attribs) {
+      const string attrib_name = attrib.name().string();
+      if (string_startswith(attrib_name, "cycles.") && string_endswith(attrib_name, ".samples")) {
+        /* Extract layer name. */
+        const size_t start = strlen("cycles.");
+        const size_t end = attrib_name.size() - strlen(".samples");
+        const string layername = attrib_name.substr(start, end - start);
+
+        /* Reinsert as named instead of unnamed layer. */
+        const MergeImageLayer layer = file_layers[""];
+        file_layers.clear();
+        file_layers[layername] = layer;
+      }
+    }
+  }
+
+  /* Loop over all detected render-layers, check whether they contain a full set of input
+   * channels. Any channels that won't be processed internally are also passed through. */
   for (auto &i : file_layers) {
     const string &name = i.first;
     MergeImageLayer &layer = i.second;
