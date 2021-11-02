@@ -583,9 +583,9 @@ bool CUDADevice::load_kernels(const DeviceRequestedFeatures &requested_features)
 
   if (result == CUDA_SUCCESS) {
     reserve_local_memory(requested_features);
-  }
 
-  load_functions();
+    load_functions();
+  }
 
   return (result == CUDA_SUCCESS);
 }
