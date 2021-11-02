@@ -993,7 +993,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
     }
   }
   else {
-    uiItemL(layout, "No mesh in active object.", ICON_ERROR);
+    uiItemL(layout, TIP_("No mesh in active object"), ICON_ERROR);
   }
 }
 

@@ -403,10 +403,10 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       char xval[32];
 
       /* The first value gets a "Coefficient" label. */
-      BLI_strncpy(xval, "Coefficient", sizeof(xval));
+      BLI_strncpy(xval, N_("Coefficient"), sizeof(xval));
 
       for (int i = 0; i < data->arraysize; i++) {
-        uiItemFullR(col, ptr, prop, i, 0, 0, N_(xval), ICON_NONE);
+        uiItemFullR(col, ptr, prop, i, 0, 0, IFACE_(xval), ICON_NONE);
         BLI_snprintf(xval, sizeof(xval), "x^%d", i + 1);
       }
       break;
@@ -420,17 +420,17 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
         uiLayoutColumn(split, false);
         uiLayout *title_col = uiLayoutColumn(split, false);
         uiLayout *title_row = uiLayoutRow(title_col, true);
-        uiItemL(title_row, N_("A"), ICON_NONE);
-        uiItemL(title_row, N_("B"), ICON_NONE);
+        uiItemL(title_row, IFACE_("A"), ICON_NONE);
+        uiItemL(title_row, IFACE_("B"), ICON_NONE);
       }
 
       uiLayout *first_row = uiLayoutRow(col, true);
-      uiItemFullR(first_row, ptr, prop, 0, 0, 0, N_("y = (Ax + B)"), ICON_NONE);
+      uiItemFullR(first_row, ptr, prop, 0, 0, 0, IFACE_("y = (Ax + B)"), ICON_NONE);
       uiItemFullR(first_row, ptr, prop, 1, 0, 0, "", ICON_NONE);
       for (int i = 2; i < data->arraysize - 1; i++) {
         /* \u2715 is the multiplication symbol. */
         uiLayout *row = uiLayoutRow(col, true);
-        uiItemFullR(row, ptr, prop, i, 0, 0, N_("\u2715 (Ax + B)"), ICON_NONE);
+        uiItemFullR(row, ptr, prop, i, 0, 0, IFACE_("\u2715 (Ax + B)"), ICON_NONE);
         uiItemFullR(row, ptr, prop, i + 1, 0, 0, "", ICON_NONE);
       }
       break;

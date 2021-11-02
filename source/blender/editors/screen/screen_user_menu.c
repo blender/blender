@@ -234,7 +234,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s", umi_op->op_idname);
+            SNPRINTF(label, TIP_("Missing: %s"), umi_op->op_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -248,7 +248,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s", umi_mt->mt_idname);
+            SNPRINTF(label, TIP_("Missing: %s"), umi_mt->mt_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -290,7 +290,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         if (!ok) {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s.%s", umi_pr->context_data_path, umi_pr->prop_id);
+            SNPRINTF(label, TIP_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }

@@ -236,8 +236,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int decimate_type = RNA_enum_get(ptr, "decimate_type");
-  char count_info[32];
-  snprintf(count_info, 32, "%s: %d", IFACE_("Face Count"), RNA_int_get(ptr, "face_count"));
+  char count_info[64];
+  snprintf(count_info, 32, TIP_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
 
   uiItemR(layout, ptr, "decimate_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 

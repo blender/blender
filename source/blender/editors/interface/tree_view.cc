@@ -660,7 +660,7 @@ void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override
   if (icon == ICON_NONE && !is_collapsible()) {
     uiItemS_ex(&layout, 0.8f);
   }
-  uiItemL(&layout, label.c_str(), icon);
+  uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 
 void BasicTreeViewItem::on_activate()

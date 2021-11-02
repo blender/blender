@@ -101,7 +101,7 @@ void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
   ShaderFxData *fx = ptr->data;
   if (fx->error) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, IFACE_(fx->error), ICON_ERROR);
+    uiItemL(row, TIP_(fx->error), ICON_ERROR);
   }
 }
 
