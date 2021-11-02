@@ -769,6 +769,18 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
       WM_toolsystem_init(C);
     }
   }
+
+  /* Keep last. */
+  if (use_data) {
+    if (!G.background) {
+      /* Special case, when calling indirectly (from a Python script for example),
+       * the event loop wont run again to set the active window.
+       * Set the window here to allow scripts to continue running other operations, see: T92464. */
+      if (wm->op_undo_depth > 0) {
+        CTX_wm_window_set(C, wm->windows.first);
+      }
+    }
+  }
 }
 
 /** \} */
