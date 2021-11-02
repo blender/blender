@@ -370,7 +370,7 @@ std::string AssetCatalogDropController::drop_tooltip_asset_catalog(const wmDrag 
   AssetCatalog *src_catalog = catalog_service->find_catalog(catalog_drag->drag_catalog_id);
 
   return std::string(TIP_("Move Catalog")) + " '" + src_catalog->path.name() + "' " +
-         IFACE_("into") + " '" + catalog_item_.get_name() + "'";
+         TIP_("into") + " '" + catalog_item_.get_name() + "'";
 }
 
 std::string AssetCatalogDropController::drop_tooltip_asset_list(const wmDrag &drag) const
