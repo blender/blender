@@ -7624,7 +7624,7 @@ def km_sequencer_editor_tool_move(params):
         "Sequencer Tool: Move",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("transform.translate", params.tool_maybe_tweak_event,
+            ("transform.translate", {**params.tool_maybe_tweak_event, **params.tool_modifier},
              {"properties": [("release_confirm", True)]}),
         ]},
     )
@@ -7635,7 +7635,7 @@ def km_sequencer_editor_tool_rotate(params):
         "Sequencer Tool: Rotate",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("transform.rotate", params.tool_maybe_tweak_event,
+            ("transform.rotate", {**params.tool_maybe_tweak_event, **params.tool_modifier},
              {"properties": [("release_confirm", True)]}),
         ]},
     )
@@ -7646,7 +7646,7 @@ def km_sequencer_editor_tool_scale(params):
         "Sequencer Tool: Scale",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("transform.resize", params.tool_maybe_tweak_event,
+            ("transform.resize", {**params.tool_maybe_tweak_event, **params.tool_modifier},
              {"properties": [("release_confirm", True)]}),
         ]},
     )
