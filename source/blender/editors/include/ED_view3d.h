@@ -277,6 +277,7 @@ typedef struct V3DSnapCursorState {
   uchar color_line[4];
   uchar color_point[4];
   uchar color_box[4];
+  struct ARegion *region; /* Forces the cursor to be drawn only in this specific region. */
   float *prevpoint;
   float box_dimensions[3];
   short snap_elem_force; /* If zero, use scene settings. */
