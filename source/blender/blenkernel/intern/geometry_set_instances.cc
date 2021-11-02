@@ -530,6 +530,24 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
+/**
+ * Curve point domain attributes must be in the same order on every spline. The order might have
+ * been different on separate instances, so ensure that all splines have the same order. Note that
+ * because #Map is used, the order is not necessarily consistent every time, but it is the same for
+ * every spline, and that's what matters.
+ */
+static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeKind> &info,
+                                        MutableSpan<SplinePtr> splines)
+{
+  Vector<AttributeIDRef> new_order;
+  for (const AttributeIDRef attribute_id : info.keys()) {
+    new_order.append(attribute_id);
+  }
+  for (SplinePtr &spline : splines) {
+    spline->attributes.reorder(new_order);
+  }
+}
+
 static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
 {
   CurveEval *curve = join_curve_splines_and_builtin_attributes(set_groups);
@@ -550,6 +568,8 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
                   {GEO_COMPONENT_TYPE_CURVE},
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
+  sort_curve_point_attributes(attributes, curve->splines());
+  curve->assert_valid_point_attributes();
 }
 
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)

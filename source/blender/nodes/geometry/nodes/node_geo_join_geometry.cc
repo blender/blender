@@ -357,6 +357,24 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
 }
 
 /**
+ * Curve point domain attributes must be in the same order on every spline. The order might have
+ * been different on separate instances, so ensure that all splines have the same order. Note that
+ * because #Map is used, the order is not necessarily consistent every time, but it is the same for
+ * every spline, and that's what matters.
+ */
+static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeMetaData> &info,
+                                        MutableSpan<SplinePtr> splines)
+{
+  Vector<AttributeIDRef> new_order;
+  for (const AttributeIDRef attribute_id : info.keys()) {
+    new_order.append(attribute_id);
+  }
+  for (SplinePtr &spline : splines) {
+    spline->attributes.reorder(new_order);
+  }
+}
+
+/**
  * Fill data for an attribute on the new curve based on all source curves.
  */
 static void ensure_spline_attribute(const AttributeIDRef &attribute_id,
@@ -409,6 +427,8 @@ static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &
       ensure_control_point_attribute(attribute_id, meta_data.data_type, src_components, result);
     }
   }
+
+  sort_curve_point_attributes(info, result.splines());
 }
 
 static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, GeometrySet &result)
@@ -449,6 +469,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   dst_curve->attributes.reallocate(dst_curve->splines().size());
 
   join_curve_attributes(info, src_components, *dst_curve);
+  dst_curve->assert_valid_point_attributes();
 
   dst_component.replace(dst_curve);
 }
