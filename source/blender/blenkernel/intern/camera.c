@@ -140,7 +140,6 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &ca->bg_images);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    bgpic->iuser.ok = 1;
     bgpic->iuser.scene = NULL;
   }
 }
@@ -1128,7 +1127,6 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
 
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;
-  bgpic->iuser.ok = 1;
   bgpic->iuser.flag |= IMA_ANIM_ALWAYS;
   bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED;
 

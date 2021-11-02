@@ -87,6 +87,8 @@ typedef struct MovieCacheItem {
   ImBuf *ibuf;
   MEM_CacheLimiterHandleC *c_handle;
   void *priority_data;
+  /* Indicates that #ibuf is null, because there was an error during load. */
+  bool added_empty;
 } MovieCacheItem;
 
 static unsigned int moviecache_hashhash(const void *keyv)
@@ -141,11 +143,16 @@ static void check_unused_keys(MovieCache *cache)
   while (!BLI_ghashIterator_done(&gh_iter)) {
     const MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     const MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
-    bool remove;
 
     BLI_ghashIterator_step(&gh_iter);
 
-    remove = !item->ibuf;
+    if (item->added_empty) {
+      /* Don't remove entries that have been added empty. Those indicate that the image couldn't be
+       * loaded correctly. */
+      continue;
+    }
+
+    bool remove = !item->ibuf;
 
     if (remove) {
       PRINT("%s: cache '%s' remove item %p without buffer\n", __func__, cache->name, item);
@@ -309,7 +316,9 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
     IMB_moviecache_init();
   }
 
-  IMB_refImBuf(ibuf);
+  if (ibuf != NULL) {
+    IMB_refImBuf(ibuf);
+  }
 
   key = BLI_mempool_alloc(cache->keys_pool);
   key->cache_owner = cache;
@@ -324,6 +333,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
   item->cache_owner = cache;
   item->c_handle = NULL;
   item->priority_data = NULL;
+  item->added_empty = ibuf == NULL;
 
   if (cache->getprioritydatafp) {
     item->priority_data = cache->getprioritydatafp(userkey);
@@ -365,7 +375,7 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
   size_t mem_in_use, mem_limit, elem_size;
   bool result = false;
 
-  elem_size = get_size_in_memory(ibuf);
+  elem_size = (ibuf == NULL) ? 0 : get_size_in_memory(ibuf);
   mem_limit = MEM_CacheLimiter_get_maximum();
 
   BLI_mutex_lock(&limitor_lock);
@@ -389,7 +399,7 @@ void IMB_moviecache_remove(MovieCache *cache, void *userkey)
   BLI_ghash_remove(cache->hash, &key, moviecache_keyfree, moviecache_valfree);
 }
 
-ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
+ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_empty)
 {
   MovieCacheKey key;
   MovieCacheItem *item;
@@ -397,6 +407,10 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
   key.cache_owner = cache;
   key.userkey = userkey;
   item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
+
+  if (r_is_cached_empty) {
+    *r_is_cached_empty = false;
+  }
 
   if (item) {
     if (item->ibuf) {
@@ -407,6 +421,9 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
       IMB_refImBuf(item->ibuf);
 
       return item->ibuf;
+    }
+    if (r_is_cached_empty) {
+      *r_is_cached_empty = true;
     }
   }
 

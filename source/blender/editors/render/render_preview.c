@@ -1476,14 +1476,8 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
         return;
       }
 
-      ImageTile *tile = BKE_image_get_tile(ima, 0);
-      /* tile->ok is zero when Image cannot load */
-      if (tile->ok == 0) {
-        return;
-      }
-
       /* setup dummy image user */
-      iuser.ok = iuser.framenr = 1;
+      iuser.framenr = 1;
       iuser.scene = sp->scene;
 
       /* elubie: this needs to be changed: here image is always loaded if not

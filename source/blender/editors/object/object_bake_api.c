@@ -314,11 +314,8 @@ static void bake_targets_refresh(BakeTargets *targets)
 
     if (ima) {
       LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-        if (tile->ok == IMA_OK_LOADED) {
-          BKE_image_free_gputextures(ima);
-          DEG_id_tag_update(&ima->id, 0);
-          break;
-        }
+        BKE_image_free_gputextures(ima);
+        DEG_id_tag_update(&ima->id, 0);
       }
     }
   }

@@ -391,7 +391,6 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
           iuser->sfra = nia->sfra;
           iuser->offset = nia->nr - 1;
           iuser->cycl = nia->cyclic;
-          iuser->ok = 1;
 
           node->storage = iuser;
           MEM_freeN(nia);
@@ -399,7 +398,6 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
         else {
           ImageUser *iuser = node->storage = MEM_callocN(sizeof(ImageUser), "node image user");
           iuser->sfra = 1;
-          iuser->ok = 1;
         }
       }
     }

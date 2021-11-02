@@ -916,8 +916,6 @@ static bool paint_2d_ensure_tile_canvas(ImagePaintState *s, int i)
 
   s->tiles[i].cache.lastdiameter = -1;
 
-  s->tiles[i].iuser.ok = true;
-
   ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, &s->tiles[i].iuser, NULL);
   if (ibuf != NULL) {
     if (ibuf->channels != 4) {
@@ -1683,7 +1681,6 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;
   }
-  s->tiles[0].iuser.ok = true;
 
   zero_v2(s->tiles[0].uv_origin);
 
