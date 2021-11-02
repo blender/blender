@@ -622,7 +622,9 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
     IDP_ui_data_free(property);
   }
 
-  property->ui_data = IDP_ui_data_copy(ui_manager_src->property);
+  if (ui_manager_src->property && ui_manager_src->property->ui_data) {
+    property->ui_data = IDP_ui_data_copy(ui_manager_src->property);
+  }
 
   Py_RETURN_NONE;
 }
