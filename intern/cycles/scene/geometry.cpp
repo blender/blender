@@ -1588,9 +1588,20 @@ void GeometryManager::device_update_displacement_images(Device *device,
   set<int> bump_images;
   foreach (Geometry *geom, scene->geometry) {
     if (geom->is_modified()) {
+      /* Geometry-level check for hair shadow transparency.
+       * This matches the logic in the `Hair::update_shadow_transparency()`, avoiding access to
+       * possible non-loaded images. */
+      bool need_shadow_transparency = false;
+      if (geom->geometry_type == Geometry::HAIR) {
+        Hair *hair = static_cast<Hair *>(geom);
+        need_shadow_transparency = hair->need_shadow_transparency();
+      }
+
       foreach (Node *node, geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
-        if (!shader->has_displacement || shader->get_displacement_method() == DISPLACE_BUMP) {
+        const bool is_true_displacement = (shader->has_displacement &&
+                                           shader->get_displacement_method() != DISPLACE_BUMP);
+        if (!is_true_displacement && !need_shadow_transparency) {
           continue;
         }
         foreach (ShaderNode *node, shader->graph->nodes) {

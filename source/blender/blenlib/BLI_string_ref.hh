@@ -610,6 +610,10 @@ constexpr bool operator==(StringRef a, StringRef b)
   if (a.size() != b.size()) {
     return false;
   }
+  if (a.data() == b.data()) {
+    /* This also avoids passing null to the call below, which would results in an ASAN warning. */
+    return true;
+  }
   return STREQLEN(a.data(), b.data(), (size_t)a.size());
 }
 
