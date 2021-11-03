@@ -1250,6 +1250,19 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      /* buggy code in wm_toolsystem broke smear in old files,
+         reset to defaults*/
+      if (br->sculpt_tool == SCULPT_TOOL_SMEAR) {
+        br->alpha = 1.0f;
+        br->spacing = 5;
+        br->flag &= ~BRUSH_ALPHA_PRESSURE;
+        br->flag &= ~BRUSH_SPACE_ATTEN;
+        br->curve_preset = BRUSH_CURVE_SPHERE;
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -46,6 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -154,19 +155,141 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
   return NULL;
 }
 
-const float *SCULPT_vertex_color_get(SculptSession *ss, int index)
+bool SCULPT_has_colors(const SculptSession *ss)
+{
+  return ss->vcol || ss->mcol || ss->f3col;
+}
+
+bool SCULPT_vertex_color_get(SculptSession *ss, int index, float out[4])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      if (ss->vcol) {
-        return ss->vcol[index].color;
+      if (!(ss->vcol || ss->mcol || ss->f3col)) {
+        zero_v4(out);
+        return false;
       }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+        zero_v4(out);
+
+        int count = ss->pmap[index].count;
+        for (int i = 0; i < count; i++) {
+          MPoly *mp = ss->mpoly + ss->pmap[index].indices[i];
+          MLoop *ml = ss->mloop + mp->loopstart;
+          int li = mp->loopstart;
+
+          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
+            if (ml->v != index) {
+              continue;
+            }
+
+            if (ss->vcol_type == CD_MLOOPCOL) {
+              MLoopCol *col = ss->mcol + li;
+
+              float tmp[4];
+
+              rgba_uchar_to_float(tmp, (const char *)col);
+              add_v4_v4(out, tmp);
+            }
+            else if (ss->vcol_type == CD_PROP_FLOAT3) {
+              add_v3_v3(out, ss->f3col[li]);
+              out[3] += 1.0f;
+            }
+            else {
+              add_v4_v4(out, ss->vcol[li].color);
+            }
+          }
+        }
+
+        if (count) {
+          mul_v4_fl(out, 1.0f / (float)count);
+        }
+      }
+      else {
+        if (ss->vcol_type == CD_MLOOPCOL) {
+          MLoopCol *col = ss->mcol + index;
+
+          float tmp[4];
+          rgba_uchar_to_float(tmp, (const char *)col);
+          copy_v4_v4(out, tmp);
+        }
+        else if (ss->vcol_type == CD_PROP_FLOAT3) {
+          copy_v3_v3(out, ss->f3col[index]);
+          out[3] = 1.0f;
+        }
+        else {
+          copy_v4_v4(out, ss->vcol[index].color);
+        }
+      }
+
+      return ss->vcol || ss->mcol || ss->f3col;
+    case PBVH_BMESH:
+    case PBVH_GRIDS:
+      break;
+  }
+
+  return false;
+}
+
+void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      if (!(ss->vcol || ss->mcol || ss->f3col)) {
+        return;
+      }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+        int count = ss->pmap[index].count;
+        for (int i = 0; i < count; i++) {
+          MPoly *mp = ss->mpoly + ss->pmap[index].indices[i];
+          MLoop *ml = ss->mloop + mp->loopstart;
+          int li = mp->loopstart;
+
+          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
+            if (ml->v != index) {
+              continue;
+            }
+
+            if (ss->vcol_type == CD_MLOOPCOL) {
+              MLoopCol *col = ss->mcol + li;
+
+              col->r = (unsigned char)(color[0] * 255.0f);
+              col->g = (unsigned char)(color[1] * 255.0f);
+              col->b = (unsigned char)(color[2] * 255.0f);
+              col->a = (unsigned char)(color[3] * 255.0f);
+            }
+            else if (ss->vcol_type == CD_PROP_FLOAT3) {
+              copy_v3_v3(ss->f3col[li], color);
+            }
+            else {
+              copy_v4_v4(ss->vcol[li].color, color);
+            }
+          }
+        }
+      }
+      else {
+        if (ss->vcol_type == CD_MLOOPCOL) {
+          MLoopCol *col = ss->mcol + index;
+
+          col->r = (unsigned char)(color[0] * 255.0f);
+          col->g = (unsigned char)(color[1] * 255.0f);
+          col->b = (unsigned char)(color[2] * 255.0f);
+          col->a = (unsigned char)(color[3] * 255.0f);
+        }
+        else if (ss->vcol_type == CD_PROP_FLOAT3) {
+          copy_v3_v3(ss->f3col[index], color);
+        }
+        else {
+          copy_v4_v4(ss->vcol[index].color, color);
+        }
+      }
+
       break;
     case PBVH_BMESH:
     case PBVH_GRIDS:
       break;
   }
-  return NULL;
 }
 
 void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
@@ -1506,7 +1629,10 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       *vd.mask = orig_data.mask;
     }
     else if (orig_data.unode->type == SCULPT_UNDO_COLOR) {
-      copy_v4_v4(vd.col, orig_data.col);
+      float col[4];
+      SCULPT_vertex_color_get(ss, vd.index, col);
+
+      copy_v4_v4(col, orig_data.col);
     }
 
     if (vd.mvert) {
@@ -6584,9 +6710,6 @@ bool SCULPT_mode_poll(bContext *C)
 
 bool SCULPT_vertex_colors_poll(bContext *C)
 {
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return false;
-  }
   return SCULPT_mode_poll(C);
 }
 
@@ -7285,7 +7408,8 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
   return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
           (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) || (brush->autosmooth_factor > 0) ||
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
-          (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
+          (brush->sculpt_tool == SCULPT_TOOL_POSE) || (brush->sculpt_tool == SCULPT_TOOL_PAINT) ||
+          (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
@@ -8022,7 +8146,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   SCULPT_cache_free(ss->cache);
   ss->cache = NULL;
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -8272,7 +8396,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       /* Finish undo. */
       BM_log_all_added(ss->bm, ss->bm_log);
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
 
       break;
     case PBVH_FACES:
@@ -8434,7 +8558,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
       if (has_undo) {
         SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-        SCULPT_undo_push_end();
+        SCULPT_undo_push_end(ob);
       }
     }
     else {
@@ -8697,15 +8821,25 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+bool SCULPT_convert_colors_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  bool ok = ob && ob->data && ob->type == OB_MESH;
+  ok = ok && ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_OBJECT);
+
+  return ok;
+}
+
 static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Sculpt Vertex Color to Vertex Color";
-  ot->description = "Copy the Sculpt Vertex Color to a regular color layer";
+  ot->description = "Copy to active face corner color attribute";
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_convert_colors_poll;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8764,11 +8898,11 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Vertex Color to Sculpt Vertex Color";
-  ot->description = "Copy the active loop color layer to the vertex color";
+  ot->description = "Load from active face corner color attribute";
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_convert_colors_poll;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8784,8 +8918,9 @@ static int sculpt_sample_color_invoke(bContext *C,
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
   int active_vertex = SCULPT_active_vertex_get(ss);
-  const float *active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
-  if (!active_vertex_color) {
+  float active_vertex_color[4];
+
+  if (!SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -9180,7 +9315,9 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
     SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
 {
   MaskByColorContiguousFloodFillData *data = userdata;
-  const float *current_color = SCULPT_vertex_color_get(ss, to_v);
+  float current_color[4];
+  SCULPT_vertex_color_get(ss, to_v, current_color);
+
   float new_vertex_mask = sculpt_mask_by_color_delta_get(
       current_color, data->initial_color, data->threshold, data->invert);
   data->new_mask[to_v] = new_vertex_mask;
@@ -9219,7 +9356,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   ffd.threshold = threshold;
   ffd.invert = invert;
   ffd.new_mask = new_mask;
-  copy_v3_v3(ffd.initial_color, SCULPT_vertex_color_get(ss, vertex));
+  SCULPT_vertex_color_get(ss, vertex, ffd.initial_color);
 
   SCULPT_floodfill_execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill_cb, &ffd);
   SCULPT_floodfill_free(&flood);
@@ -9261,12 +9398,17 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
   const float threshold = data->mask_by_color_threshold;
   const bool invert = data->mask_by_color_invert;
   const bool preserve_mask = data->mask_by_color_preserve_mask;
-  const float *active_color = SCULPT_vertex_color_get(ss, data->mask_by_color_vertex);
+  float active_color[4];
+
+  SCULPT_vertex_color_get(ss, data->mask_by_color_vertex, active_color);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+
     const float current_mask = *vd.mask;
-    const float new_mask = sculpt_mask_by_color_delta_get(active_color, vd.col, threshold, invert);
+    const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);
     *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
 
     if (current_mask == *vd.mask) {
@@ -9324,7 +9466,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -9353,7 +9495,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
 

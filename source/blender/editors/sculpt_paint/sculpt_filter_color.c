@@ -197,12 +197,19 @@ static void color_filter_task_cb(void *__restrict userdata,
         fade = clamp_f(fade, -1.0f, 1.0f);
         float smooth_color[4];
         SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
-        blend_color_interpolate_float(final_color, vd.col, smooth_color, fade);
+
+        float col[4];
+        SCULPT_vertex_color_get(ss, vd.index, col);
+
+        blend_color_interpolate_float(final_color, col, smooth_color, fade);
         break;
       }
     }
 
-    copy_v3_v3(vd.col, final_color);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+
+    copy_v3_v3(col, final_color);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -221,7 +228,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_undo_push_end();
+    SCULPT_undo_push_end(ob);
     SCULPT_filter_cache_free(ss);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
     return OPERATOR_FINISHED;
@@ -285,7 +292,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -451,7 +451,7 @@ static bool bake_object_check(ViewLayer *view_layer,
 
   if (target == R_BAKE_TARGET_VERTEX_COLORS) {
     MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
-    const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
+    const bool mcol_valid = (mcol != NULL);
     MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
     if (mloopcol == NULL && !mcol_valid) {
       BKE_reportf(reports,
@@ -937,7 +937,7 @@ static bool bake_targets_init_vertex_colors(BakeTargets *targets, Object *ob, Re
 
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
-  const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
+  const bool mcol_valid = (mcol != NULL);
   MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
   if (mloopcol == NULL && !mcol_valid) {
     BKE_report(reports, RPT_ERROR, "No vertex colors layer found to bake to");
@@ -1092,7 +1092,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
-  const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
+  const bool mcol_valid = (mcol != NULL);
   MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
   const int num_channels = targets->num_channels;
   const float *result = targets->result;

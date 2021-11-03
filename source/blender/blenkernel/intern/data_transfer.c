@@ -150,6 +150,7 @@ bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
       case DT_TYPE_UV:
         ret = true;
         break;
+      case DT_TYPE_PROPCOL:
       case DT_TYPE_VCOL:
         *r_advanced_mixing = true;
         *r_threshold = true;
@@ -230,12 +231,12 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
       return CD_FAKE_SHARP;
     case DT_TYPE_FREESTYLE_FACE:
       return CD_FREESTYLE_FACE;
-
     case DT_TYPE_VCOL:
       return CD_MLOOPCOL;
     case DT_TYPE_LNOR:
       return CD_FAKE_LNOR;
-
+    case DT_TYPE_PROPCOL:
+      return CD_PROP_COLOR;
     default:
       BLI_assert(0);
   }
@@ -253,6 +254,8 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
       return DT_MULTILAYER_INDEX_UV;
     case DT_TYPE_VCOL:
       return DT_MULTILAYER_INDEX_VCOL;
+    case DT_TYPE_PROPCOL:
+      return DT_MULTILAYER_INDEX_PROPCOL;
     default:
       return DT_MULTILAYER_INDEX_INVALID;
   }

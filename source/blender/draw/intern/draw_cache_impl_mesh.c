@@ -374,10 +374,8 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             type = CD_MTFACE;
 
             if (layer == -1) {
-              if (U.experimental.use_sculpt_vertex_colors) {
-                layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
-                type = CD_PROP_COLOR;
-              }
+              layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
+              type = CD_PROP_COLOR;
             }
 
             if (layer == -1) {

@@ -31,6 +31,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
@@ -1258,6 +1259,33 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
   return update_flags;
 }
 
+bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_cl, AttributeDomain *r_attr)
+{
+  CustomDataLayer *cl = BKE_id_attributes_active_get((ID *)me);
+  AttributeDomain domain;
+
+  if (!cl || !ELEM(cl->type, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    return false;
+  }
+
+  domain = BKE_id_attribute_domain((ID *)me, cl);
+
+  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    return false;
+  }
+
+  if (cl) {
+    *r_cl = cl;
+    *r_attr = domain;
+
+    return true;
+  }
+  else {
+    *r_cl = NULL;
+    return false;
+  }
+}
+
 static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1308,17 +1336,23 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      &pbvh->gridkey,
                                      update_flags);
         break;
-      case PBVH_FACES:
+      case PBVH_FACES: {
+        CustomDataLayer *cl = NULL;
+        AttributeDomain domain;
+
+        BKE_pbvh_get_color_layer(pbvh->mesh, &cl, &domain);
+
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      pbvh->verts,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     CustomData_get_layer(pbvh->ldata, CD_MLOOPCOL),
+                                     cl ? cl->data : NULL,
+                                     cl ? cl->type : -1,
+                                     cl ? domain : ATTR_DOMAIN_AUTO,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
-                                     CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR),
                                      update_flags);
-        break;
+      } break;
       case PBVH_BMESH:
         GPU_pbvh_bmesh_buffers_update(node->draw_buffers,
                                       pbvh->bm,
@@ -1445,7 +1479,9 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
   }
 
   if (flag & (PBVH_UpdateColor)) {
-    /* Do nothing */
+    for (int i = 0; i < totnode; i++) {
+      nodes[i]->flag |= PBVH_UpdateRedraw | PBVH_UpdateDrawBuffers | PBVH_UpdateColor;
+    }
   }
 
   if (flag & (PBVH_UpdateVisibility)) {
@@ -2981,7 +3017,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->mask = NULL;
   if (pbvh->type == PBVH_FACES) {
     vi->vmask = CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
-    vi->vcol = CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR);
   }
 }
 

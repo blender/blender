@@ -45,6 +45,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -1673,7 +1674,31 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.modifier = NULL;
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-    ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    CustomDataLayer *cl;
+    AttributeDomain domain;
+
+    ss->vcol = NULL;
+    ss->mcol = NULL;
+    ss->f3col = NULL;
+
+    if (BKE_pbvh_get_color_layer(me, &cl, &domain)) {
+      if (cl->type == CD_PROP_COLOR) {
+        ss->vcol = cl->data;
+      }
+      else if (cl->type == CD_PROP_FLOAT3) {
+        ss->f3col = cl->data;
+      }
+      else {
+        ss->mcol = cl->data;
+      }
+
+      ss->vcol_domain = domain;
+      ss->vcol_type = cl->type;
+    }
+    else {
+      ss->vcol_type = -1;
+    }
   }
 
   /* Sculpt Face Sets. */
@@ -1798,17 +1823,53 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return;
+
+  int types[] = {CD_PROP_COLOR, CD_PROP_FLOAT3, CD_MLOOPCOL};
+  bool has_color = false;
+
+  for (int i = 0; i < 3; i++) {
+    bool ok = CustomData_has_layer(&orig_me->vdata, types[i]);
+    ok = ok || CustomData_has_layer(&orig_me->ldata, types[i]);
+
+    if (ok) {
+      has_color = true;
+      break;
+    }
   }
 
-  if (CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
-    return;
+  CustomDataLayer *cl;
+  if (has_color) {
+    cl = BKE_id_attributes_active_get(&orig_me->id);
+    if (!ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL, CD_PROP_FLOAT3)) {
+      cl = NULL;
+
+      /* find a color layer */
+      for (int step = 0; !cl && step < 2; step++) {
+        CustomData *cdata = step ? &orig_me->ldata : &orig_me->vdata;
+
+        for (int i = 0; i < cdata->totlayer; i++) {
+          if (ELEM(cdata->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL, CD_PROP_FLOAT3)) {
+            cl = cdata->layers + i;
+            break;
+          }
+        }
+      }
+    }
+    else {
+      cl = NULL; /* no need to update active layer */
+    }
+  }
+  else {
+    CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+    cl = orig_me->vdata.layers + CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+
+    BKE_mesh_update_customdata_pointers(orig_me, true);
   }
 
-  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
-  BKE_mesh_update_customdata_pointers(orig_me, true);
-  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  if (cl) {
+    BKE_id_attributes_active_set(&orig_me->id, cl);
+    DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  }
 }
 
 /** \warning Expects a fully evaluated depsgraph. */
@@ -2026,8 +2087,8 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv
     const bool is_hidden = (face_sets[face_index] < 0);
 
     /* Avoid creating and modifying the grid_hidden bitmap if the base mesh face is visible and
-     * there is not bitmap for the grid. This is because missing grid_hidden implies grid is fully
-     * visible. */
+     * there is not bitmap for the grid. This is because missing grid_hidden implies grid is
+     * fully visible. */
     if (is_hidden) {
       BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg, i);
     }
@@ -2066,8 +2127,8 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
     object->sculpt->face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
     /* NOTE: In theory we could add that on the fly when required by sculpt code.
-     * But this then requires proper update of depsgraph etc. For now we play safe, optimization is
-     * always possible later if it's worth it. */
+     * But this then requires proper update of depsgraph etc. For now we play safe, optimization
+     * is always possible later if it's worth it. */
     BKE_sculpt_mask_layers_ensure(object, mmd);
   }
 
@@ -2075,8 +2136,8 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
   BKE_mesh_tessface_clear(mesh);
 
   /* We always need to flush updates from depsgraph here, since at the very least
-   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer of
-   * the mesh.
+   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer
+   * of the mesh.
    *
    * All known potential sources of updates:
    *   - Addition of, or changes to, the `CD_SCULPT_FACE_SETS` data layer

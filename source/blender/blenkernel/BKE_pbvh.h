@@ -25,6 +25,7 @@
 #include "BLI_ghash.h"
 
 /* For embedding CCGKey in iterator. */
+#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 
 #ifdef __cplusplus
@@ -358,7 +359,6 @@ typedef struct PBVHVertexIter {
   struct MVert *mverts;
   int totvert;
   const int *vert_indices;
-  struct MPropCol *vcol;
   float *vmask;
 
   /* bmesh */
@@ -375,7 +375,6 @@ typedef struct PBVHVertexIter {
   short *no;
   float *fno;
   float *mask;
-  float *col;
   bool visible;
 } PBVHVertexIter;
 
@@ -430,9 +429,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.index = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
-          } \
-          if (vi.vcol) { \
-            vi.col = vi.vcol[vi.index].color; \
           } \
         } \
         else { \
@@ -489,6 +485,9 @@ struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
+bool BKE_pbvh_get_color_layer(const struct Mesh *me,
+                              CustomDataLayer **cl_out,
+                              AttributeDomain *attr_out);
 
 #ifdef __cplusplus
 }

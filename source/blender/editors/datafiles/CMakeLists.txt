@@ -763,9 +763,11 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.mask
   brush.sculpt.multiplane_scrape
   brush.sculpt.nudge
+  brush.sculpt.paint
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
+  brush.sculpt.smear
   brush.sculpt.scrape
   brush.sculpt.simplify
   brush.sculpt.smooth

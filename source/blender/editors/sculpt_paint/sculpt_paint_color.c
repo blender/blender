@@ -101,7 +101,11 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
 
     float smooth_color[4];
     SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
-    blend_color_interpolate_float(vd.col, vd.col, smooth_color, fade);
+    float col[4];
+
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    blend_color_interpolate_float(col, col, smooth_color, fade);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -193,9 +197,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     /* Final mix over the original color using brush alpha. */
     mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha);
 
-    IMB_blend_color_float(vd.col, orig_data.col, buffer_color, brush->blend);
-
-    CLAMP4(vd.col, 0.0f, 1.0f);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    IMB_blend_color_float(col, orig_data.col, buffer_color, brush->blend);
+    CLAMP4(col, 0.0f, 1.0f);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -230,7 +236,10 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
       continue;
     }
 
-    add_v4_v4(swptd->color, vd.col);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+
+    add_v4_v4(swptd->color, col);
     swptd->tot_samples++;
   }
   BKE_pbvh_vertex_iter_end;
@@ -252,7 +261,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return;
   }
 
@@ -305,7 +314,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BKE_pbvh_parallel_range_settings(&settings, false, totnode);
     BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
     return;
   }
@@ -361,7 +370,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, false, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
 }
 
@@ -433,7 +442,10 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    blend_color_interpolate_float(vd.col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -451,7 +463,10 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.index));
+    float tmp[4] = {0};
+
+    SCULPT_vertex_color_get(ss, vd.index, tmp);
+    copy_v4_v4(ss->cache->prev_colors[vd.index], tmp);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -461,7 +476,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return;
   }
 
@@ -471,7 +486,10 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (!ss->cache->prev_colors) {
       ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
       for (int i = 0; i < totvert; i++) {
-        copy_v4_v4(ss->cache->prev_colors[i], SCULPT_vertex_color_get(ss, i));
+        float tmp[4] = {0};
+
+        SCULPT_vertex_color_get(ss, i, tmp);
+        copy_v4_v4(ss->cache->prev_colors[i], tmp);
       }
     }
   }
