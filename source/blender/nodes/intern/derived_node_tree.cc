@@ -231,45 +231,90 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) c
 
 /* Calls `target_fn` for every "real" target socket. "Real" means that reroutes, muted nodes
  * and node groups are handled by this function. Target sockets are on the nodes that use the value
- * from this socket. The `skipped_fn` function is called for sockets that have been skipped during
- * the search for target sockets (e.g. reroutes). */
-void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> target_fn,
-                                          FunctionRef<void(DSocket)> skipped_fn) const
+ * from this socket. */
+void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn) const
 {
-  for (const SocketRef *skipped_socket : socket_ref_->logically_linked_skipped_sockets()) {
-    skipped_fn.call_safe({context_, skipped_socket});
-  }
-  for (const InputSocketRef *linked_socket : socket_ref_->as_output().logically_linked_sockets()) {
-    const NodeRef &linked_node = linked_socket->node();
-    DInputSocket linked_dsocket{context_, linked_socket};
+  TargetSocketPathInfo path_info;
+  this->foreach_target_socket(target_fn, path_info);
+}
 
-    if (linked_node.is_group_output_node()) {
+void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
+                                          TargetSocketPathInfo &path_info) const
+{
+  for (const LinkRef *link : socket_ref_->as_output().directly_linked_links()) {
+    if (link->is_muted()) {
+      continue;
+    }
+    const DInputSocket &linked_socket{context_, &link->to()};
+    if (!linked_socket->is_available()) {
+      continue;
+    }
+    const DNode linked_node = linked_socket.node();
+    if (linked_node->is_reroute_node()) {
+      const DInputSocket reroute_input = linked_socket;
+      const DOutputSocket reroute_output = linked_node.output(0);
+      path_info.sockets.append(reroute_input);
+      path_info.sockets.append(reroute_output);
+      reroute_output.foreach_target_socket(target_fn, path_info);
+      path_info.sockets.pop_last();
+      path_info.sockets.pop_last();
+    }
+    else if (linked_node->is_muted()) {
+      for (const InternalLinkRef *internal_link : linked_node->internal_links()) {
+        if (&internal_link->from() != linked_socket.socket_ref()) {
+          continue;
+        }
+        /* The internal link only forwards the first incoming link. */
+        if (linked_socket->is_multi_input_socket()) {
+          if (linked_socket->directly_linked_links()[0] == link) {
+            continue;
+          }
+        }
+        const DInputSocket mute_input = linked_socket;
+        const DOutputSocket mute_output{context_, &internal_link->to()};
+        path_info.sockets.append(mute_input);
+        path_info.sockets.append(mute_output);
+        mute_output.foreach_target_socket(target_fn, path_info);
+        path_info.sockets.pop_last();
+        path_info.sockets.pop_last();
+        break;
+      }
+    }
+    else if (linked_node->is_group_output_node()) {
       if (context_->is_root()) {
         /* This is a group output in the root node group. */
-        target_fn(linked_dsocket);
+        path_info.sockets.append(linked_socket);
+        target_fn(linked_socket, path_info);
+        path_info.sockets.pop_last();
       }
       else {
         /* Follow the links going out of the group node in the parent node group. */
-        DOutputSocket socket_in_parent_group =
-            linked_dsocket.get_corresponding_group_node_output();
-        skipped_fn.call_safe(linked_dsocket);
-        skipped_fn.call_safe(socket_in_parent_group);
-        socket_in_parent_group.foreach_target_socket(target_fn, skipped_fn);
+        const DOutputSocket socket_in_parent_group =
+            linked_socket.get_corresponding_group_node_output();
+        path_info.sockets.append(linked_socket);
+        path_info.sockets.append(socket_in_parent_group);
+        socket_in_parent_group.foreach_target_socket(target_fn, path_info);
+        path_info.sockets.pop_last();
+        path_info.sockets.pop_last();
       }
     }
-    else if (linked_node.is_group_node()) {
+    else if (linked_node->is_group_node()) {
       /* Follow the links within the nested node group. */
-      Vector<DOutputSocket> sockets_in_group =
-          linked_dsocket.get_corresponding_group_input_sockets();
-      skipped_fn.call_safe(linked_dsocket);
-      for (DOutputSocket socket_in_group : sockets_in_group) {
-        skipped_fn.call_safe(socket_in_group);
-        socket_in_group.foreach_target_socket(target_fn, skipped_fn);
+      path_info.sockets.append(linked_socket);
+      const Vector<DOutputSocket> sockets_in_group =
+          linked_socket.get_corresponding_group_input_sockets();
+      for (const DOutputSocket &socket_in_group : sockets_in_group) {
+        path_info.sockets.append(socket_in_group);
+        socket_in_group.foreach_target_socket(target_fn, path_info);
+        path_info.sockets.pop_last();
       }
+      path_info.sockets.pop_last();
     }
     else {
       /* The normal case: just use the linked input socket as target. */
-      target_fn(linked_dsocket);
+      path_info.sockets.append(linked_socket);
+      target_fn(linked_socket, path_info);
+      path_info.sockets.pop_last();
     }
   }
 }
