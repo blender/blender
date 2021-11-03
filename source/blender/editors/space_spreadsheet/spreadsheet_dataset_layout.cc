@@ -75,6 +75,12 @@ constexpr DatasetComponentLayoutInfo DATASET_layout_hierarchy[] = {
         },
     },
     {
+        GEO_COMPONENT_TYPE_VOLUME,
+        N_("Volume Grids"),
+        ICON_VOLUME_DATA,
+        {},
+    },
+    {
         GEO_COMPONENT_TYPE_INSTANCES,
         N_("Instances"),
         ICON_EMPTY_AXIS,

@@ -2006,6 +2006,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_FLOAT3 = 4,
   SPREADSHEET_VALUE_TYPE_COLOR = 5,
   SPREADSHEET_VALUE_TYPE_INSTANCES = 6,
+  SPREADSHEET_VALUE_TYPE_STRING = 7,
 } eSpreadsheetColumnValueType;
 
 /**

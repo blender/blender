@@ -20,6 +20,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
+#include "BKE_volume.h"
 
 #include "BLF_api.h"
 
@@ -48,7 +49,7 @@ static int is_component_row_selected(struct uiBut *but, const void *arg)
   const bool is_domain_selected = (AttributeDomain)sspreadsheet->attribute_domain == domain;
   bool is_selected = is_component_selected && is_domain_selected;
 
-  if (component == GEO_COMPONENT_TYPE_INSTANCES) {
+  if (ELEM(component, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
     is_selected = is_component_selected;
   }
 
@@ -141,6 +142,14 @@ static int element_count_from_instances(const GeometrySet &geometry_set)
   return 0;
 }
 
+static int element_count_from_volume(const GeometrySet &geometry_set)
+{
+  if (const Volume *volume = geometry_set.get_volume_for_read()) {
+    return BKE_volume_num_grids(volume);
+  }
+  return 0;
+}
+
 static int element_count_from_component_domain(const GeometrySet &geometry_set,
                                                GeometryComponentType component,
                                                AttributeDomain domain)
@@ -191,6 +200,10 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
     BLI_str_format_attribute_domain_size(
         element_count, element_count_from_instances(draw_context.current_geometry_set));
   }
+  if (component == GEO_COMPONENT_TYPE_VOLUME) {
+    BLI_str_format_attribute_domain_size(
+        element_count, element_count_from_volume(draw_context.current_geometry_set));
+  }
   else {
     BLI_str_format_attribute_domain_size(
         element_count,
@@ -237,7 +250,7 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
 
 void DatasetRegionDrawer::draw_component_row(const DatasetComponentLayoutInfo &component_info)
 {
-  if (component_info.type == GEO_COMPONENT_TYPE_INSTANCES) {
+  if (ELEM(component_info.type, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
     draw_dataset_row(
         0, component_info.type, std::nullopt, component_info.icon, component_info.label, true);
   }

@@ -228,6 +228,23 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        nullptr);
     }
+    else if (cell_value.value_string.has_value()) {
+      uiDefIconTextBut(params.block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       ICON_NONE,
+                       cell_value.value_string->c_str(),
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       0,
+                       0,
+                       0,
+                       0,
+                       nullptr);
+    }
   }
 
   void draw_float_vector(const CellDrawParams &params, const Span<float> values) const
