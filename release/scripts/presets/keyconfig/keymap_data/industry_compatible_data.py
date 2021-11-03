@@ -4203,20 +4203,29 @@ def keymap_transform_tool_mmb(keymap):
             km_items_new = []
             for kmi in km_items:
                 ty = kmi[1]["type"]
-                if ty == 'LEFTMOUSE':
-                    kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                    kmi[1]["type"] = 'MIDDLEMOUSE'
-                    km_items_new.append(kmi)
-                elif ty == 'EVT_TWEAK_L':
-                    kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                    if kmi[1]["value"] == 'ANY':
+                if km_name.endswith(" (fallback)"):
+                    if ty == 'RIGHTMOUSE':
+                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                        kmi[1]["type"] = 'LEFTMOUSE'
+                        km_items_new.append(kmi)
+                    elif ty == 'EVT_TWEAK_R':
+                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                        kmi[1]["type"] = 'EVT_TWEAK_L'
+                        km_items_new.append(kmi)
+                else:
+                    if ty == 'LEFTMOUSE':
+                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
                         kmi[1]["type"] = 'MIDDLEMOUSE'
-                        kmi[1]["value"] = 'PRESS'
-                    else:
-                        # Directional tweaking can't be replaced by middle-mouse.
-                        kmi[1]["type"] = 'EVT_TWEAK_M'
-
-                    km_items_new.append(kmi)
+                        km_items_new.append(kmi)
+                    elif ty == 'EVT_TWEAK_L':
+                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                        if kmi[1]["value"] == 'ANY':
+                            kmi[1]["type"] = 'MIDDLEMOUSE'
+                            kmi[1]["value"] = 'PRESS'
+                        else:
+                            # Directional tweaking can't be replaced by middle-mouse.
+                            kmi[1]["type"] = 'EVT_TWEAK_M'
+                        km_items_new.append(kmi)
             km_items.extend(km_items_new)
 
 
@@ -4227,9 +4236,17 @@ def generate_keymaps(params=None):
 
     # Combine the key-map to support manipulating it, so we don't need to manually
     # define key-map here just to manipulate them.
-    blender_default = execfile(
+    blender_default_mod = execfile(
         os.path.join(os.path.dirname(__file__), "blender_default.py"),
-    ).generate_keymaps()
+    )
+
+    blender_default = blender_default_mod.generate_keymaps(
+        # Use the default key-map with only minor changes to default arguments.
+        blender_default_mod.Params(
+            # Needed so the fallback key-map items are populated.
+            use_fallback_tool=True,
+        ),
+    )
 
     keymap_existing_names = {km[0] for km in keymap}
     keymap.extend([km for km in blender_default if km[0] not in keymap_existing_names])
