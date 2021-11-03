@@ -56,7 +56,7 @@ static void OVERLAY_engine_init(void *vedata)
   OVERLAY_shader_library_ensure();
 
   if (!stl->pd) {
-    /* Alloc transient pointers */
+    /* Allocate transient pointers. */
     stl->pd = MEM_callocN(sizeof(*stl->pd), __func__);
   }
 
@@ -235,7 +235,7 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
       *do_init = true;
     }
     else if ((*dupli_data)->base_flag != ob->base_flag) {
-      /* Select state might have change, reinit. */
+      /* Select state might have change, reinitialize. */
       *do_init = true;
     }
     return *dupli_data;
@@ -478,7 +478,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
     OVERLAY_particle_cache_populate(vedata, ob);
   }
 
-  /* Relationship, object center, bounbox ... */
+  /* Relationship, object center, bounding-box... etc. */
   if (!pd->hide_overlays) {
     OVERLAY_extra_cache_populate(vedata, ob);
   }
@@ -581,7 +581,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_extra_blend_draw(vedata);
   OVERLAY_volume_draw(vedata);
 
-  /* These overlays are drawn here to avoid artifacts with wireframe opacity. */
+  /* These overlays are drawn here to avoid artifacts with wire-frame opacity. */
   switch (pd->ctx_mode) {
     case CTX_MODE_SCULPT:
       OVERLAY_sculpt_draw(vedata);
