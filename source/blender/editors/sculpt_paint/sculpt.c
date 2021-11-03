@@ -6945,6 +6945,22 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
   MEM_freeN(cache);
 }
 
+void SCULPT_release_customlayers(SculptSession *ss, bool non_customdata_only)
+{
+  for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
+    if (ss->custom_layers[i]) {
+      if (non_customdata_only && !ss->custom_layers[i]->params.simple_array) {
+        continue;
+      }
+
+      SCULPT_temp_customlayer_release(ss, ss->custom_layers[i]);
+
+      MEM_freeN(ss->custom_layers[i]);
+      ss->custom_layers[i] = NULL;
+    }
+  }
+}
+
 void SCULPT_clear_scl_pointers(SculptSession *ss)
 {
   for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {

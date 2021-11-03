@@ -127,6 +127,26 @@ struct {
 #endif
 };
 
+/* clang-format off */
+enum {
+  CLOTH_POS_POS,
+  CLOTH_POS_INIT,
+  CLOTH_POS_SOFT,
+  CLOTH_POS_DEF
+};
+/* clang-format on */
+
+#ifdef CLOTH_NO_POS_PTR
+#  define PACK_POS_TYPE(index, type) ((index) | ((type) << 26))
+#  define UNPACK_POS_TYPE(index) ((index) >> 26)
+#  define UNPACK_POS_INDEX(index) ((index) & ~(3 << 26))
+#  define GET_POS_PTR(index) (&cloth_sim->pos)[UNPACK_POS_TYPE(index)][UNPACK_POS_INDEX(index)]
+//#  define GET_POS_PTR_TYPE(index, type) (&cloth_sim->pos)[type][index]
+#else
+#  define PACK_POS_TYPE(index, type) index
+#  define UNPACK_POS_INDEX(index) index
+#endif
+
 /* C port of:
    https://github.com/InteractiveComputerGraphics/PositionBasedDynamics/blob/master/PositionBasedDynamics/PositionBasedDynamics.cpp
   MIT license
@@ -254,17 +274,25 @@ static bool calc_bending_gradients(const SculptClothBendConstraint *constraint,
   return true;
 }
 #  else
-static bool calc_bending_gradients(const SculptClothBendConstraint *constraint,
+static bool calc_bending_gradients(const SculptClothSimulation *cloth_sim,
+                                   const SculptClothBendConstraint *constraint,
                                    float gradients[4][3])
 {
   // derivatives from Bridson, Simulation of Clothing with Folds and Wrinkles
   // his modes correspond to the derivatives of the bending angle arccos(n1 dot n2) with correct
   // scaling
   const float invMass0 = 1.0f, invMass1 = 1.0f, invMass2 = 1.0f, invMass3 = 1.0f;
+#    ifndef CLOTH_NO_POS_PTR
   float *p0 = constraint->elems[0].position;
   float *p1 = constraint->elems[1].position;
   float *p2 = constraint->elems[2].position;
   float *p3 = constraint->elems[3].position;
+#    else
+  float *p0 = GET_POS_PTR(constraint->elems[0].index);
+  float *p1 = GET_POS_PTR(constraint->elems[1].index);
+  float *p2 = GET_POS_PTR(constraint->elems[2].index);
+  float *p3 = GET_POS_PTR(constraint->elems[3].index);
+#    endif
 
   float *d0 = gradients[0];
   float *d1 = gradients[1];
@@ -602,17 +630,19 @@ static void cloth_brush_add_bend_constraint(SculptSession *ss,
   v3 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v3i);
   v4 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v4i);
 
-  bend_constraint->elems[0].index = v1i;
-  bend_constraint->elems[1].index = v2i;
-  bend_constraint->elems[2].index = v3i;
-  bend_constraint->elems[3].index = v4i;
+  bend_constraint->elems[0].index = PACK_POS_TYPE(v1i, CLOTH_POS_POS);
+  bend_constraint->elems[1].index = PACK_POS_TYPE(v2i, CLOTH_POS_POS);
+  bend_constraint->elems[2].index = PACK_POS_TYPE(v3i, CLOTH_POS_POS);
+  bend_constraint->elems[3].index = PACK_POS_TYPE(v4i, CLOTH_POS_POS);
 
   bend_constraint->node = node_index;
 
+#  ifndef CLOTH_NO_POS_PTR
   bend_constraint->elems[0].position = cloth_sim->pos[v1i];
   bend_constraint->elems[1].position = cloth_sim->pos[v2i];
   bend_constraint->elems[2].position = cloth_sim->pos[v3i];
   bend_constraint->elems[3].position = cloth_sim->pos[v4i];
+#  endif
 
   const float *co1, *co2, *co3, *co4;
 
@@ -642,12 +672,12 @@ static void cloth_brush_add_bend_constraint(SculptSession *ss,
 }
 #endif
 
-static void cloth_brush_add_length_constraint(SculptSession *ss,
-                                              SculptClothSimulation *cloth_sim,
-                                              const int node_index,
-                                              const int v1i,
-                                              const int v2i,
-                                              const bool use_persistent)
+ATTR_NO_OPT static void cloth_brush_add_length_constraint(SculptSession *ss,
+                                                          SculptClothSimulation *cloth_sim,
+                                                          const int node_index,
+                                                          const int v1i,
+                                                          const int v2i,
+                                                          const bool use_persistent)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
   SculptVertRef v1, v2;
@@ -655,13 +685,15 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   v1 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v1i);
   v2 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2i);
 
-  length_constraint->elems[0].index = v1i;
-  length_constraint->elems[1].index = v2i;
+  length_constraint->elems[0].index = PACK_POS_TYPE(v1i, CLOTH_POS_POS);
+  length_constraint->elems[1].index = PACK_POS_TYPE(v2i, CLOTH_POS_POS);
 
   length_constraint->node = node_index;
 
+#ifndef CLOTH_NO_POS_PTR
   length_constraint->elems[0].position = cloth_sim->pos[v1i];
   length_constraint->elems[1].position = cloth_sim->pos[v2i];
+#endif
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_STRUCTURAL;
 
@@ -689,13 +721,15 @@ static void cloth_brush_add_softbody_constraint(SculptClothSimulation *cloth_sim
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
 
-  length_constraint->elems[0].index = v;
-  length_constraint->elems[1].index = v;
+  length_constraint->elems[0].index = PACK_POS_TYPE(v, CLOTH_POS_POS);
+  length_constraint->elems[1].index = PACK_POS_TYPE(v, CLOTH_POS_SOFT);
 
   length_constraint->node = node_index;
 
+#ifndef CLOTH_NO_POS_PTR
   length_constraint->elems[0].position = cloth_sim->pos[v];
   length_constraint->elems[1].position = cloth_sim->softbody_pos[v];
+#endif
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_SOFTBODY;
 
@@ -713,13 +747,15 @@ static void cloth_brush_add_pin_constraint(SculptClothSimulation *cloth_sim,
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
 
-  length_constraint->elems[0].index = v;
-  length_constraint->elems[1].index = v;
+  length_constraint->elems[0].index = PACK_POS_TYPE(v, CLOTH_POS_POS);
+  length_constraint->elems[1].index = PACK_POS_TYPE(v, CLOTH_POS_INIT);
 
   length_constraint->node = node_index;
 
+#ifndef CLOTH_NO_POS_PTR
   length_constraint->elems[0].position = cloth_sim->pos[v];
   length_constraint->elems[1].position = cloth_sim->init_pos[v];
+#endif
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_PIN;
 
@@ -730,22 +766,24 @@ static void cloth_brush_add_pin_constraint(SculptClothSimulation *cloth_sim,
   cloth_brush_reallocate_constraints(cloth_sim);
 }
 
-static void cloth_brush_add_deformation_constraint(SculptClothSimulation *cloth_sim,
-                                                   const int node_index,
-                                                   const int v,
-                                                   const float strength)
+ATTR_NO_OPT static void cloth_brush_add_deformation_constraint(SculptClothSimulation *cloth_sim,
+                                                               const int node_index,
+                                                               const int v,
+                                                               const float strength)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
 
-  length_constraint->elems[0].index = v;
-  length_constraint->elems[1].index = v;
+  length_constraint->elems[0].index = PACK_POS_TYPE(v, CLOTH_POS_POS);
+  length_constraint->elems[1].index = PACK_POS_TYPE(v, CLOTH_POS_DEF);
 
   length_constraint->node = node_index;
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_DEFORMATION;
 
+#ifndef CLOTH_NO_POS_PTR
   length_constraint->elems[0].position = cloth_sim->pos[v];
   length_constraint->elems[1].position = cloth_sim->deformation_pos[v];
+#endif
 
   length_constraint->length = 0.0f;
   length_constraint->strength = strength;
@@ -814,6 +852,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
       build_indices[tot_indices] = vd.index;
       tot_indices++;
+
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
         build_indices[tot_indices] = ni.index;
 
@@ -1630,10 +1669,10 @@ static void cloth_free_tasks(SculptClothSimulation *cloth_sim)
   cloth_sim->tot_constraint_tasks = 0;
 }
 
-static void cloth_sort_constraints_for_tasks(SculptSession *ss,
-                                             Brush *brush,
-                                             SculptClothSimulation *cloth_sim,
-                                             int totthread)
+ATTR_NO_OPT static void cloth_sort_constraints_for_tasks(SculptSession *ss,
+                                                         Brush *brush,
+                                                         SculptClothSimulation *cloth_sim,
+                                                         int totthread)
 {
   SculptClothTaskData *tasks = MEM_calloc_arrayN(
       totthread + 1, sizeof(SculptClothTaskData), "SculptClothTaskData");
@@ -1675,7 +1714,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
       int last = 0, same = true;
 
       for (int j = 0; j < totelem; j++) {
-        int threadnr = vthreads[con->elems[j].index];
+        int threadnr = vthreads[UNPACK_POS_INDEX(con->elems[j].index)];
 
         if (threadnr) {
           ok = false;
@@ -1695,14 +1734,14 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
         tasknr = BLI_rng_get_int(rng) % totthread;
 
         for (int j = 0; j < totelem; j++) {
-          vthreads[con->elems[j].index] = tasknr + 1;
+          vthreads[UNPACK_POS_INDEX(con->elems[j].index)] = tasknr + 1;
         }
       }
       else if (same) {
         tasknr = last - 1;
 
         for (int j = 0; j < totelem; j++) {
-          vthreads[con->elems[j].index] = tasknr + 1;
+          vthreads[UNPACK_POS_INDEX(con->elems[j].index)] = tasknr + 1;
         }
       }
       else {
@@ -1719,7 +1758,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
         dynamic mode where the performance benefits are
         not worth it*/
       for (int step = 0; not_dynamic && step < totelem; step++) {
-        int v = con->elems[step].index;
+        int v = UNPACK_POS_INDEX(con->elems[step].index);
 
         SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, v);
         SculptVertexNeighborIter ni;
@@ -1764,6 +1803,11 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   cloth_sim->tot_constraint_tasks = totthread + 1;
 
 #if 1
+  unsigned int size = sizeof(SculptClothLengthConstraint) * cloth_sim->tot_constraints[0];
+  size += sizeof(SculptClothBendConstraint) * cloth_sim->tot_constraints[1];
+
+  printf("%.2fmb", (float)size / 1024.0f / 1024.0f);
+
   for (int i = 0; i < totthread + 1; i++) {
     printf("%d: ", i);
 
@@ -1802,10 +1846,13 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
       continue;
     }
 
+#  ifndef CLOTH_NO_POS_PTR
     for (int j = 0; j < 4; j++) {
       constraint->elems[j].position = cloth_sim->pos[constraint->elems[j].index];
     }
-    if (!calc_bending_gradients(constraint, gradients)) {
+#  endif
+
+    if (!calc_bending_gradients(cloth_sim, constraint, gradients)) {
       continue;
     }
 
@@ -1813,9 +1860,14 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
     cloth_brush_simulation_location_get(ss, brush, sim_location);
 
     for (int j = 0; j < 4; j++) {
-      int vi = constraint->elems[j].index;
+      int vi = UNPACK_POS_INDEX(constraint->elems[j].index);
 
-#  if 1
+#  ifndef CLOTH_NO_POS_PTR
+      float *pos = constraint->elems[j].position;
+#  else
+      float *pos = GET_POS_PTR(constraint->elems[j].index);
+#  endif
+
       float sim_factor = ss->cache ? cloth_brush_simulation_falloff_get(cloth_sim,
                                                                         brush,
                                                                         ss->cache->radius,
@@ -1823,11 +1875,8 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
                                                                         cloth_sim->init_pos[vi]) :
                                      1.0f;
 
-      /*increase strength of bending constraints*/
+      /* increase strength of bending constraints */
       sim_factor = sqrtf(sim_factor);
-#  else
-      float sim_factor = 0.9f;
-#  endif
 
       if (sim_factor == 0.0f) {
         continue;
@@ -1838,7 +1887,7 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
       sim_factor *= SCULPT_automasking_factor_get(automasking, ss, vref) * 1.0f -
                     SCULPT_vertex_mask_get(ss, vref);
 
-      madd_v3_v3fl(constraint->elems[j].position, gradients[j], sim_factor);
+      madd_v3_v3fl(pos, gradients[j], sim_factor);
 
       if (USE_SOLVER_RIPPLE_CONSTRAINT) {
         cloth_brush_constraint_pos_to_line(cloth_sim, vi);
@@ -1855,14 +1904,23 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
       continue;
     }
 
-    const int v1 = constraint->elems[0].index;
-    const int v2 = constraint->elems[1].index;
+#ifndef CLOTH_NO_POS_PTR
+    float *pos1 = constraint->elems[0].position;
+    float *pos2 = constraint->elems[1].position;
+#else
+    float *pos1 = GET_POS_PTR(constraint->elems[0].index);
+    float *pos2 = GET_POS_PTR(constraint->elems[1].index);
+#endif
+
+    const int v1 = UNPACK_POS_INDEX(constraint->elems[0].index);
+    const int v2 = UNPACK_POS_INDEX(constraint->elems[1].index);
 
     const SculptVertRef v1ref = BKE_pbvh_table_index_to_vertex(ss->pbvh, v1);
     const SculptVertRef v2ref = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2);
 
     float v1_to_v2[3];
-    sub_v3_v3v3(v1_to_v2, constraint->elems[1].position, constraint->elems[0].position);
+    sub_v3_v3v3(v1_to_v2, pos2, pos1);
+
     const float current_distance = len_v3(v1_to_v2);
     float correction_vector[3];
     float correction_vector_half[3];

@@ -1540,11 +1540,21 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 }
 #endif
 
-void SCULPT_bound_smooth_init(SculptSession *ss, SculptCustomLayer *r_bound_scl)
+void SCULPT_bound_smooth_ensure(SculptSession *ss)
 {
   SculptLayerParams params = {.permanent = true, .simple_array = false};
-  SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "t__smooth_bdist", r_bound_scl, &params);
+
+  if (!ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS]) {
+    ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] = MEM_callocN(sizeof(SculptCustomLayer),
+                                                            "bound_scl");
+
+    SCULPT_temp_customlayer_get(ss,
+                                ATTR_DOMAIN_POINT,
+                                CD_PROP_COLOR,
+                                "t__smooth_bdist",
+                                ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS],
+                                &params);
+  }
 }
 
 void SCULPT_smooth(Sculpt *sd,
@@ -1575,13 +1585,19 @@ void SCULPT_smooth(Sculpt *sd,
   }
 
   SculptLayerParams params = {.permanent = false, .simple_array = false};
-  SculptCustomLayer vel_scl;
 
   if (do_vel_smooth) {
-    SCULPT_temp_customlayer_ensure(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &params);
-    SCULPT_temp_customlayer_get(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &vel_scl, &params);
+    if (!ss->custom_layers[SCULPT_SCL_SMOOTH_VEL]) {
+      ss->custom_layers[SCULPT_SCL_SMOOTH_VEL] = MEM_callocN(sizeof(SculptCustomLayer),
+                                                             "vel_smooth_scl");
+
+      SCULPT_temp_customlayer_get(ss,
+                                  ATTR_DOMAIN_POINT,
+                                  CD_PROP_FLOAT3,
+                                  "__scl_smooth_vel",
+                                  ss->custom_layers[SCULPT_SCL_SMOOTH_VEL],
+                                  &params);
+    }
   }
 
   float bstrength2 = bstrength;
@@ -1618,8 +1634,6 @@ void SCULPT_smooth(Sculpt *sd,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
-  SculptCustomLayer _scl, *bound_scl = NULL;
-
   float bound_smooth = SCULPT_get_float(ss, boundary_smooth, sd, brush);
   float fset_slide = SCULPT_get_float(ss, fset_slide, sd, brush);
 
@@ -1627,13 +1641,8 @@ void SCULPT_smooth(Sculpt *sd,
   if (bound_smooth > 0.0f) {
     bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
-    bound_scl = &_scl;
-    SCULPT_bound_smooth_init(ss, bound_scl);
-
-    if (do_vel_smooth) {
-      SCULPT_temp_customlayer_get(
-          ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &vel_scl, &params);
-    }
+    /* ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists */
+    SCULPT_bound_smooth_ensure(ss);
   }
 
 #ifdef PROXY_ADVANCED
@@ -1672,8 +1681,8 @@ void SCULPT_smooth(Sculpt *sd,
         .smooth_projection = projection,
         .fset_slide = fset_slide,
         .bound_smooth = bound_smooth,
-        .scl = do_vel ? &vel_scl : NULL,
-        .scl2 = bound_scl,
+        .scl = do_vel ? ss->custom_layers[SCULPT_SCL_SMOOTH_VEL] : NULL,
+        .scl2 = ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS],
         .vel_smooth_fac = vel_fac,
         .do_origco = do_origco,
         .iterations = count + 1,

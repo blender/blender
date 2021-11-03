@@ -1722,8 +1722,6 @@ typedef struct FilterCache {
   float hard_edge_fac;
   bool hard_edge_mode;
   float bound_smooth_radius;
-
-  struct SculptCustomLayer bound_scl;
 } FilterCache;
 
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
@@ -1959,6 +1957,7 @@ bool SCULPT_temp_customlayer_has(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
                                  const char *name);
+void SCULPT_release_customlayers(SculptSession *ss, bool non_customdata_only);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
@@ -2037,7 +2036,7 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
 
 /* initializes customdata layer used by SCULPT_neighbor_coords_average_interior when bound_smooth >
  * 0.0f*/
-void SCULPT_bound_smooth_init(SculptSession *ss, SculptCustomLayer *r_bound_scl);
+void SCULPT_bound_smooth_ensure(SculptSession *ss);
 
 #define SCULPT_stroke_needs_original(brush) \
   ELEM(brush->sculpt_tool, \

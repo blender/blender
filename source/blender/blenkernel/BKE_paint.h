@@ -302,6 +302,8 @@ typedef enum eSculptClothConstraintType {
   SCULPT_CLOTH_CONSTRAINT_PIN = 3,
 } eSculptClothConstraintType;
 
+#define CLOTH_NO_POS_PTR
+
 typedef struct SculptClothConstraint {
   signed char ctype, thread_nr;
 
@@ -328,18 +330,30 @@ typedef struct SculptClothConstraint {
 
   struct {
     int index;
-    float *co;
+#ifndef CLOTH_NO_POS_PTR
+    float *position;
+#endif
   } elems[];
 } SculptClothConstraint;
 
-#define MAKE_CONSTRAINT_STRUCT(totelem) \
-  signed char ctype, thread_nr; \
-  short node; \
-  float strength; \
-  struct { \
-    int index; \
-    float *position; \
-  } elems[totelem]
+#ifndef CLOTH_NO_POS_PTR
+#  define MAKE_CONSTRAINT_STRUCT(totelem) \
+    signed char ctype, thread_nr; \
+    short node; \
+    float strength; \
+    struct { \
+      int index; \
+      float *position; \
+    } elems[totelem]
+#else
+#  define MAKE_CONSTRAINT_STRUCT(totelem) \
+    signed char ctype, thread_nr; \
+    short node; \
+    float strength; \
+    struct { \
+      int index; \
+    } elems[totelem]
+#endif
 
 typedef struct SculptClothLengthConstraint {
   MAKE_CONSTRAINT_STRUCT(2);
@@ -375,12 +389,6 @@ typedef struct SculptClothSimulation {
    */
   int tot_constraint_tasks;
 
-  /* Position anchors for deformation brushes. These positions are modified by the brush and the
-   * final positions of the simulated vertices are updated with constraints that use these points
-   * as targets. */
-  float (*deformation_pos)[3];
-  float *deformation_strength;
-
   float mass;
   float damping;
   float softbody_strength;
@@ -392,9 +400,17 @@ typedef struct SculptClothSimulation {
   float sim_falloff;
 
   float (*acceleration)[3];
+
   float (*pos)[3];
   float (*init_pos)[3];
   float (*softbody_pos)[3];
+
+  /* Position anchors for deformation brushes. These positions are modified by the brush and the
+   * final positions of the simulated vertices are updated with constraints that use these points
+   * as targets. */
+  float (*deformation_pos)[3];
+  float *deformation_strength;
+
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];
   float (*init_normal)[3];
@@ -602,7 +618,9 @@ enum {
   SCULPT_SCL_LAYER_DISP,
   SCULPT_SCL_LAYER_STROKE_ID,
   SCULPT_SCL_ORIG_FSETS,
-  SCULPT_SCL_LAYER_MAX
+  SCULPT_SCL_SMOOTH_VEL,
+  SCULPT_SCL_SMOOTH_BDIS,
+  SCULPT_SCL_LAYER_MAX,
 };
 
 typedef struct SculptSession {
