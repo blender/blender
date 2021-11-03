@@ -1582,10 +1582,12 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
 
-          bool is_occluded_pt0, is_occluded_pt1, is_occluded_pt2 = true;
-          is_occluded_pt0 = (pt0 && ((pt0->flag & GP_SPOINT_TEMP_TAG) != 0)) ?
-                                ((pt0->flag & GP_SPOINT_TEMP_TAG2) != 0) :
-                                gpencil_stroke_eraser_is_occluded(p, gpl, pt0, pc0[0], pc0[1]);
+          bool is_occluded_pt0 = true, is_occluded_pt1 = true, is_occluded_pt2 = true;
+          if (pt0) {
+            is_occluded_pt0 = ((pt0->flag & GP_SPOINT_TEMP_TAG) != 0) ?
+                                  ((pt0->flag & GP_SPOINT_TEMP_TAG2) != 0) :
+                                  gpencil_stroke_eraser_is_occluded(p, gpl, pt0, pc0[0], pc0[1]);
+          }
           if (is_occluded_pt0) {
             is_occluded_pt1 = ((pt1->flag & GP_SPOINT_TEMP_TAG) != 0) ?
                                   ((pt1->flag & GP_SPOINT_TEMP_TAG2) != 0) :
