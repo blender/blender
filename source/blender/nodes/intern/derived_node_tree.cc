@@ -266,7 +266,7 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
         }
         /* The internal link only forwards the first incoming link. */
         if (linked_socket->is_multi_input_socket()) {
-          if (linked_socket->directly_linked_links()[0] == link) {
+          if (linked_socket->directly_linked_links()[0] != link) {
             continue;
           }
         }

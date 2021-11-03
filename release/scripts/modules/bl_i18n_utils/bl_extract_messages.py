@@ -252,27 +252,50 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
     # Function definitions
     def walk_properties(cls):
+        # This handles properties whose name is the same as their identifier.
+        # Usually, it means that those are internal properties not exposed in the UI, however there are some cases
+        # where the UI label is actually defined and same as the identifier (color spaces e.g., `RGB` etc.).
+        # So we only exclude those properties in case they belong to an operator for now.
+        def prop_name_validate(cls, prop_name, prop_identifier):
+            if prop_name != prop_identifier:
+                return True
+            # Heuristic: A lot of operator's HIDDEN properties have no UI label/description.
+            # While this is not ideal (for API doc purposes, description should always be provided),
+            # for now skip those properties.
+            # NOTE: keep in sync with C code in ui_searchbox_region_draw_cb__operator().
+            if issubclass(cls, bpy.types.OperatorProperties) and "_OT_" in cls.__name__:
+                return False
+            # Heuristic: If UI label is not capitalized, it is likely a private (undocumented) property,
+            # that can be skipped.
+            if prop_name and not prop_name[0].isupper():
+                return False
+            return True
+
         bl_rna = cls.bl_rna
         # Get our parents' properties, to not export them multiple times.
         bl_rna_base = bl_rna.base
+        bl_rna_base_props = set()
         if bl_rna_base:
-            bl_rna_base_props = set(bl_rna_base.properties.values())
-        else:
-            bl_rna_base_props = set()
+            bl_rna_base_props |= set(bl_rna_base.properties.values())
+        for cls_base in cls.__bases__:
+            bl_rna_base = getattr(cls_base, "bl_rna", None)
+            if not bl_rna_base:
+                continue
+            bl_rna_base_props |= set(bl_rna_base.properties.values())
 
         props = sorted(bl_rna.properties, key=lambda p: p.identifier)
         for prop in props:
             # Only write this property if our parent hasn't got it.
             if prop in bl_rna_base_props:
                 continue
-            if prop.identifier == "rna_type":
+            if prop.identifier in {"rna_type", "bl_icon", "icon"}:
                 continue
             reports["rna_props"].append((cls, prop))
 
             msgsrc = "bpy.types.{}.{}".format(bl_rna.identifier, prop.identifier)
             msgctxt = prop.translation_context or default_context
 
-            if prop.name and (prop.name != prop.identifier or msgctxt != default_context):
+            if prop.name and prop_name_validate(cls, prop.name, prop.identifier):
                 process_msg(msgs, msgctxt, prop.name, msgsrc, reports, check_ctxt_rna, settings)
             if prop.description:
                 process_msg(msgs, default_context, prop.description, msgsrc, reports, check_ctxt_rna_tip, settings)
@@ -282,7 +305,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                 for item in prop.enum_items:
                     msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
                     done_items.add(item.identifier)
-                    if item.name and item.name != item.identifier:
+                    if item.name and prop_name_validate(cls, item.name, item.identifier):
                         process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
                     if item.description:
                         process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
@@ -292,7 +315,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                         continue
                     msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
                     done_items.add(item.identifier)
-                    if item.name and item.name != item.identifier:
+                    if item.name and prop_name_validate(cls, item.name, item.identifier):
                         process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
                     if item.description:
                         process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,

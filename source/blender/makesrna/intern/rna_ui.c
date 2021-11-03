@@ -1451,6 +1451,11 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "type->translation_context");
   RNA_def_property_string_default(prop, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "",
+                           "Specific translation context, only define when the label needs to be "
+                           "disambiguated from others using the exact same label");
+
   RNA_define_verify_sdna(true);
 
   prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
@@ -1460,14 +1465,21 @@ static void rna_def_panel(BlenderRNA *brna)
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
+  RNA_def_property_ui_text(prop, "", "The panel tooltip");
 
   prop = RNA_def_property(srna, "bl_category", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->category");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "",
+      "The category (tab) in which the panel will be displayed, when applicable");
 
   prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->owner_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop, "", "The ID owning the data displayed in the panel, if any");
 
   prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
