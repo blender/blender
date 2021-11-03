@@ -290,7 +290,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   struct ToposortResult {
     Vector<const NodeRef *> sorted_nodes;
     /**
-     * There can't be a correct topologycal sort of the nodes when there is a cycle. The nodes will
+     * There can't be a correct topological sort of the nodes when there is a cycle. The nodes will
      * still be sorted to some degree. The caller has to decide whether it can handle non-perfect
      * sorts or not.
      */
