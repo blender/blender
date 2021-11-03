@@ -1019,6 +1019,11 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
   }
 
   if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
+    if (t->options & CTX_POSE_BONE) {
+      /* Without this, the resulting location of scaled bones aren't correct,
+       * especially noticeable scaling root or disconnected bones around the cursor, see T92515. */
+      mul_mat3_m4_v3(tc->poseobj->obmat, vec);
+    }
     mul_m3_v3(td->smtx, vec);
   }
 
