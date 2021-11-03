@@ -173,10 +173,10 @@ typedef const IntegratorShadowStateCPU *ccl_restrict ConstIntegratorShadowState;
 
 /* Array access on GPU with Structure-of-Arrays. */
 
-typedef const int IntegratorState;
-typedef const int ConstIntegratorState;
-typedef const int IntegratorShadowState;
-typedef const int ConstIntegratorShadowState;
+typedef int IntegratorState;
+typedef int ConstIntegratorState;
+typedef int IntegratorShadowState;
+typedef int ConstIntegratorShadowState;
 
 #  define INTEGRATOR_STATE_NULL -1
 
