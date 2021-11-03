@@ -267,7 +267,12 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     }
   }
   else if (color_type == V3D_SHADING_VERTEX_COLOR) {
-    if ((me == NULL) || !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
+    bool has_color = me && (CustomData_has_layer(&me->vdata, CD_PROP_COLOR) ||
+                            CustomData_has_layer(&me->vdata, CD_MLOOPCOL) ||
+                            CustomData_has_layer(&me->ldata, CD_PROP_COLOR) ||
+                            CustomData_has_layer(&me->ldata, CD_MLOOPCOL));
+
+    if (!has_color) {
       color_type = V3D_SHADING_OBJECT_COLOR;
     }
   }

@@ -45,37 +45,9 @@ static void extract_vcol_init(const MeshRenderData *mr,
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 
-#if 0
-  uint32_t vcol_layers = cache->cd_used.vcol;
-  for (int i = 0; i < MAX_MCOL; i++) {
-    if (vcol_layers & (1 << i)) {
-      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
-      GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
-
-      BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
-      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-
-      if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL)) {
-        GPU_vertformat_alias_add(&format, "c");
-      }
-      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL)) {
-        GPU_vertformat_alias_add(&format, "ac");
-      }
-
-      /* Gather number of auto layers. */
-      /* We only do `vcols` that are not overridden by `uvs`. */
-      if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
-        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-        GPU_vertformat_alias_add(&format, attr_name);
-      }
-    }
-  }
-#endif
-
   /*
-  note that there are three color attribute types that operate over two domains
-  (verts and face corners)
+  Note there are two color attribute types that operate over two domains
+  (verts and face corners).
   */
   int vcol_types[2] = {CD_MLOOPCOL, CD_PROP_COLOR};
 
@@ -84,11 +56,14 @@ static void extract_vcol_init(const MeshRenderData *mr,
                                          ATTR_DOMAIN_AUTO;
   int actn = -1;
 
-  if (actlayer && ELEM(actdomain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-    CustomData *cdata = actdomain == ATTR_DOMAIN_POINT ? &mr->me->vdata : &mr->me->ldata;
+  /* prefer the active attribute to set active color if it's a color layer  */
+  if (actlayer && ELEM(actlayer->type, CD_PROP_COLOR, CD_MLOOPCOL) &&
+      ELEM(actdomain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    CustomData *cdata = actdomain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
     actn = actlayer - (cdata->layers + cdata->typemap[actlayer->type]);
   }
 
+  /* set up vbo format */
   for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
     int type = vcol_types[i];
 
@@ -137,7 +112,8 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)GPU_vertbuf_get_data(vbo);
 
-  for (int i = 0; i < 3; i++) {
+  /* build data */
+  for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
     int type = vcol_types[i];
 
     for (int step = 0; step < 2; step++) {
@@ -151,7 +127,9 @@ static void extract_vcol_init(const MeshRenderData *mr,
           BMFace *f;
           BMIter iter;
 
-          int cd_vcol = cdata->layers[idx].offset;
+          CustomData *cdata_orig = step ? &mr->bm->ldata : &mr->bm->vdata;
+          int idx_orig = CustomData_get_layer_index_n(cdata_orig, type, j);
+          int cd_vcol = cdata_orig->layers[idx_orig].offset;
 
           BM_ITER_MESH (f, &iter, mr->bm, BM_FACES_OF_MESH) {
             BMLoop *l_iter = BM_FACE_FIRST_LOOP(f);
@@ -173,8 +151,8 @@ static void extract_vcol_init(const MeshRenderData *mr,
                   float temp[4];
 
                   MLoopCol *mloopcol = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
-                  rgba_float_to_uchar((unsigned char *)mloopcol, temp);
-                  linearrgb_to_srgb_v3_v3(temp, temp);
+                  rgba_uchar_to_float(temp, (unsigned char *)mloopcol);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
 
                   vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
                   vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
@@ -189,10 +167,6 @@ static void extract_vcol_init(const MeshRenderData *mr,
           }
         }
         else {
-          using MPropCol3 = struct {
-            float color[3];
-          };
-
           switch (type) {
             case CD_PROP_COLOR: {
               MPropCol *colors = (MPropCol *)cdata->layers[idx].data;
@@ -225,8 +199,9 @@ static void extract_vcol_init(const MeshRenderData *mr,
               if (step) {
                 for (int k = 0; k < mr->loop_len; k++, vcol_data++, colors++) {
                   float temp[4];
-                  rgba_float_to_uchar((unsigned char *)colors, temp);
-                  linearrgb_to_srgb_v3_v3(temp, temp);
+
+                  rgba_uchar_to_float(temp, (unsigned char *)colors);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
 
                   vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
                   vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
@@ -241,8 +216,8 @@ static void extract_vcol_init(const MeshRenderData *mr,
                   MLoopCol *color = colors + ml->v;
                   float temp[4];
 
-                  rgba_float_to_uchar((unsigned char *)color, temp);
-                  linearrgb_to_srgb_v3_v3(temp, temp);
+                  rgba_uchar_to_float(temp, (unsigned char *)color);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
 
                   vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
                   vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
