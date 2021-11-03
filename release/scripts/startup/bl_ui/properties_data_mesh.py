@@ -576,7 +576,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
 
         active = mesh.attributes.active
-        print(active.domain, active.data_type)
+        
         if active.domain == "POINT" and active.data_type == "FLOAT_COLOR":
             layout.operator("sculpt.vertex_to_loop_colors", text="Save To Corners")
             layout.operator("sculpt.loop_to_vertex_colors", text="Load From Corners")

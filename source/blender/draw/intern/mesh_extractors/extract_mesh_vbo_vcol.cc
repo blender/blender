@@ -44,9 +44,9 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
-  uint32_t vcol_layers = cache->cd_used.vcol;
 
 #if 0
+  uint32_t vcol_layers = cache->cd_used.vcol;
   for (int i = 0; i < MAX_MCOL; i++) {
     if (vcol_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -79,27 +79,42 @@ static void extract_vcol_init(const MeshRenderData *mr,
   */
   int vcol_types[3] = {CD_MLOOPCOL, CD_PROP_COLOR, CD_PROP_FLOAT3};
 
+  CustomDataLayer *actlayer = BKE_id_attributes_active_get((ID *)mr->me);
+  AttributeDomain actdomain = actlayer ? BKE_id_attribute_domain((ID *)mr->me, actlayer) :
+                                         ATTR_DOMAIN_AUTO;
+  int actn = -1;
+
+  if (actlayer && ELEM(actdomain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    CustomData *cdata = actdomain == ATTR_DOMAIN_POINT ? &mr->me->vdata : &mr->me->ldata;
+    actn = actlayer - (cdata->layers + cdata->typemap[actlayer->type]);
+  }
+
   for (int i = 0; i < 3; i++) {
     int type = vcol_types[i];
 
     for (int step = 0; step < 2; step++) {
       CustomData *cdata = step ? cd_ldata : cd_vdata;
       int count = CustomData_number_of_layers(cdata, type);
+      AttributeDomain domain = step ? ATTR_DOMAIN_CORNER : ATTR_DOMAIN_POINT;
 
       for (int j = 0; j < count; j++) {
         int idx = CustomData_get_layer_index_n(cdata, type, j);
 
         char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-        const char *layer_name = CustomData_get_layer_name(cdata, type, i);
+        const char *layer_name = CustomData_get_layer_name(cdata, type, j);
         GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
         BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
         GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-        if (i == CustomData_get_render_layer(cdata, type)) {
+        if (j == CustomData_get_render_layer(cdata, type)) {
           GPU_vertformat_alias_add(&format, "c");
         }
-        if (i == CustomData_get_active_layer(cdata, type)) {
+
+        bool is_active = actn == -1 && j == CustomData_get_active_layer(cdata, type);
+        is_active |= actn != -1 && domain == actdomain && j == actn && type == actlayer->type;
+
+        if (is_active) {
           GPU_vertformat_alias_add(&format, "ac");
         }
 
