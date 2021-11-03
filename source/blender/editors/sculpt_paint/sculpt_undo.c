@@ -1570,16 +1570,12 @@ static void sculpt_undosys_step_decode_undo_impl(struct bContext *C,
   BLI_assert(us->step.is_applied == true);
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = false;
-
-  // sculpt_undo_load_vcol_layer(C, us);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
                                                  Depsgraph *depsgraph,
                                                  SculptUndoStep *us)
 {
-  // sculpt_undo_load_vcol_layer(C, us);
-
   BLI_assert(us->step.is_applied == false);
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = true;
@@ -1635,9 +1631,6 @@ static void sculpt_undosys_step_decode_redo(struct bContext *C,
 
     if (us_iter == us) {
       sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter)->active_attr_end);
-      // if (us_iter->step.next && us_iter->step.next->type == BKE_UNDOSYS_TYPE_SCULPT) {
-      // sculpt_undo_load_vcol_layer(C, (SculptUndoStep *)us_iter->step.next);
-      //}
       break;
     }
     us_iter = (SculptUndoStep *)us_iter->step.next;

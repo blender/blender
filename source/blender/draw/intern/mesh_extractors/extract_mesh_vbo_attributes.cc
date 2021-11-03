@@ -95,18 +95,6 @@ template<> struct attribute_type_converter<MPropCol, gpuMeshCol> {
   }
 };
 
-template<> struct attribute_type_converter<MLoopCol, gpuMeshCol> {
-  static gpuMeshCol convert_value(MLoopCol value)
-  {
-    gpuMeshCol result;
-    result.r = value.r * 257;
-    result.g = value.g * 257;
-    result.b = value.b * 257;
-    result.a = value.a * 257;
-    return result;
-  }
-};
-
 /* Return the number of component for the attribute's value type, or 0 if is it unsupported. */
 static uint gpu_component_size_for_attribute_type(CustomDataType type)
 {
@@ -338,10 +326,6 @@ static void extract_attr_init(const MeshRenderData *mr,
     }
     case CD_PROP_COLOR: {
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, vbo, request);
-      break;
-    }
-    case CD_MLOOPCOL: {
-      extract_attr_generic<MLoopCol, gpuMeshCol>(mr, vbo, request);
       break;
     }
     default: {

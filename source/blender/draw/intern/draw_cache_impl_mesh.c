@@ -468,7 +468,7 @@ static bool mesh_cd_calc_active_vcol_layer(Mesh *me, DRW_MeshAttributes *attrs_u
   int type, idx = -1;
   AttributeDomain domain;
 
-  if (layer && ELEM(layer->type, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_MLOOPCOL)) {
+  if (layer && ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
     domain = BKE_id_attribute_domain((ID *)me, layer);
     type = layer->type;
 
@@ -661,11 +661,11 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             cd_used.orco = 1;
             break;
           }
-          case CD_PROP_FLOAT3:
+
           case CD_PROP_COLOR:
             cd_used.vcol = 1;
-
             /* fallthrough */
+          case CD_PROP_FLOAT3:
           case CD_PROP_BOOL:
           case CD_PROP_INT32:
           case CD_PROP_FLOAT:

@@ -213,11 +213,6 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
               else {
                 brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
 
-                if (paint->runtime.ob_mode == OB_MODE_SCULPT) {
-                  brush->sculpt_tool = slot_index;
-                  BKE_brush_sculpt_reset(brush);
-                }
-
                 BKE_brush_tool_set(brush, paint, slot_index);
               }
               BKE_paint_brush_set(paint, brush);

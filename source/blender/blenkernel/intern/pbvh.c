@@ -1264,7 +1264,7 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_cl, AttributeD
   CustomDataLayer *cl = BKE_id_attributes_active_get((ID *)me);
   AttributeDomain domain;
 
-  if (!cl || !ELEM(cl->type, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_MLOOPCOL)) {
+  if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
     return false;
   }
 

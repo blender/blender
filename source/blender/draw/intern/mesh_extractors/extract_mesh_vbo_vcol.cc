@@ -77,7 +77,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   note that there are three color attribute types that operate over two domains
   (verts and face corners)
   */
-  int vcol_types[3] = {CD_MLOOPCOL, CD_PROP_COLOR, CD_PROP_FLOAT3};
+  int vcol_types[2] = {CD_MLOOPCOL, CD_PROP_COLOR};
 
   CustomDataLayer *actlayer = BKE_id_attributes_active_get((ID *)mr->me);
   AttributeDomain actdomain = actlayer ? BKE_id_attribute_domain((ID *)mr->me, actlayer) :
@@ -89,7 +89,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
     actn = actlayer - (cdata->layers + cdata->typemap[actlayer->type]);
   }
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
     int type = vcol_types[i];
 
     for (int step = 0; step < 2; step++) {
@@ -159,28 +159,27 @@ static void extract_vcol_init(const MeshRenderData *mr,
               BMElem *elem = step ? (BMElem *)l_iter : (BMElem *)l_iter->v;
 
               switch (type) {
-                case CD_PROP_FLOAT3:
                 case CD_PROP_COLOR: {
                   float *color = (float *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
 
                   vcol_data->r = unit_float_to_ushort_clamp(color[0]);
                   vcol_data->g = unit_float_to_ushort_clamp(color[1]);
                   vcol_data->b = unit_float_to_ushort_clamp(color[2]);
-                  vcol_data->a = unit_float_to_ushort_clamp(type == CD_PROP_COLOR ? color[3] :
-                                                                                    1.0f);
+                  vcol_data->a = unit_float_to_ushort_clamp(color[3]);
 
                   break;
                 }
                 case CD_MLOOPCOL: {
-                  MLoopCol *mloopcol = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
+                  float temp[4];
 
-                  vcol_data->r = unit_float_to_ushort_clamp(
-                      BLI_color_from_srgb_table[mloopcol->r]);
-                  vcol_data->g = unit_float_to_ushort_clamp(
-                      BLI_color_from_srgb_table[mloopcol->r]);
-                  vcol_data->b = unit_float_to_ushort_clamp(
-                      BLI_color_from_srgb_table[mloopcol->r]);
-                  vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
+                  MLoopCol *mloopcol = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
+                  rgba_float_to_uchar((unsigned char *)mloopcol, temp);
+                  linearrgb_to_srgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
                   break;
                 }
               }
@@ -195,31 +194,6 @@ static void extract_vcol_init(const MeshRenderData *mr,
           };
 
           switch (type) {
-            case CD_PROP_FLOAT3: {
-              MPropCol3 *colors = (MPropCol3 *)cdata->layers[idx].data;
-
-              if (step) {
-                for (int k = 0; k < mr->loop_len; k++, vcol_data++, colors++) {
-                  vcol_data->r = unit_float_to_ushort_clamp(colors->color[0]);
-                  vcol_data->g = unit_float_to_ushort_clamp(colors->color[1]);
-                  vcol_data->b = unit_float_to_ushort_clamp(colors->color[2]);
-                  unit_float_to_ushort_clamp(1.0f);
-                }
-              }
-              else {
-                const MLoop *ml = mr->mloop;
-
-                for (int k = 0; k < mr->loop_len; k++, vcol_data++, ml++) {
-                  MPropCol3 *color = colors + ml->v;
-
-                  vcol_data->r = unit_float_to_ushort_clamp(color->color[0]);
-                  vcol_data->g = unit_float_to_ushort_clamp(color->color[1]);
-                  vcol_data->b = unit_float_to_ushort_clamp(color->color[2]);
-                  vcol_data->a = unit_float_to_ushort_clamp(1.0f);
-                }
-              }
-              break;
-            }
             case CD_PROP_COLOR: {
               MPropCol *colors = (MPropCol *)cdata->layers[idx].data;
 
@@ -250,10 +224,14 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
               if (step) {
                 for (int k = 0; k < mr->loop_len; k++, vcol_data++, colors++) {
-                  vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[colors->r]);
-                  vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[colors->g]);
-                  vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[colors->b]);
-                  vcol_data->a = unit_float_to_ushort_clamp((float)colors->a * (1.0f / 255.0f));
+                  float temp[4];
+                  rgba_float_to_uchar((unsigned char *)colors, temp);
+                  linearrgb_to_srgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
                 }
               }
               else {
@@ -261,11 +239,15 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
                 for (int k = 0; k < mr->loop_len; k++, vcol_data++, ml++) {
                   MLoopCol *color = colors + ml->v;
+                  float temp[4];
 
-                  vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[color->r]);
-                  vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[color->g]);
-                  vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[color->b]);
-                  vcol_data->a = unit_float_to_ushort_clamp((float)color->a * (1.0f / 255.0f));
+                  rgba_float_to_uchar((unsigned char *)color, temp);
+                  linearrgb_to_srgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
                 }
               }
               break;

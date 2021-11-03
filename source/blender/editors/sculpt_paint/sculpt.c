@@ -158,14 +158,14 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 
 bool SCULPT_has_colors(const SculptSession *ss)
 {
-  return ss->vcol || ss->mcol || ss->f3col;
+  return ss->vcol || ss->mcol;
 }
 
 bool SCULPT_vertex_color_get(SculptSession *ss, int index, float out[4])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      if (!(ss->vcol || ss->mcol || ss->f3col)) {
+      if (!(ss->vcol || ss->mcol)) {
         zero_v4(out);
         return false;
       }
@@ -187,16 +187,14 @@ bool SCULPT_vertex_color_get(SculptSession *ss, int index, float out[4])
             if (ss->vcol_type == CD_MLOOPCOL) {
               MLoopCol *col = ss->mcol + li;
 
-              float tmp[4];
+              float temp[4];
 
-              rgba_uchar_to_float(tmp, (const char *)col);
-              add_v4_v4(out, tmp);
+              rgba_uchar_to_float(temp, (const char *)col);
+              srgb_to_linearrgb_v3_v3(temp, temp);
+
+              add_v4_v4(out, temp);
             }
-            else if (ss->vcol_type == CD_PROP_FLOAT3) {
-              add_v3_v3(out, ss->f3col[li]);
-              out[3] += 1.0f;
-            }
-            else {
+            else if (ss->vcol_type == CD_PROP_COLOR) {
               add_v4_v4(out, ss->vcol[li].color);
             }
           }
@@ -210,20 +208,18 @@ bool SCULPT_vertex_color_get(SculptSession *ss, int index, float out[4])
         if (ss->vcol_type == CD_MLOOPCOL) {
           MLoopCol *col = ss->mcol + index;
 
-          float tmp[4];
-          rgba_uchar_to_float(tmp, (const char *)col);
-          copy_v4_v4(out, tmp);
+          float temp[4];
+          rgba_uchar_to_float(temp, (const char *)col);
+          srgb_to_linearrgb_v3_v3(temp, temp);
+
+          copy_v4_v4(out, temp);
         }
-        else if (ss->vcol_type == CD_PROP_FLOAT3) {
-          copy_v3_v3(out, ss->f3col[index]);
-          out[3] = 1.0f;
-        }
-        else {
+        if (ss->vcol_type == CD_PROP_COLOR) {
           copy_v4_v4(out, ss->vcol[index].color);
         }
       }
 
-      return ss->vcol || ss->mcol || ss->f3col;
+      return ss->vcol || ss->mcol;
     case PBVH_BMESH:
     case PBVH_GRIDS:
       break;
@@ -236,7 +232,7 @@ void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      if (!(ss->vcol || ss->mcol || ss->f3col)) {
+      if (!(ss->vcol || ss->mcol)) {
         return;
       }
 
@@ -253,17 +249,16 @@ void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
             }
 
             if (ss->vcol_type == CD_MLOOPCOL) {
+              float temp[4];
+
               MLoopCol *col = ss->mcol + li;
 
-              col->r = (unsigned char)(color[0] * 255.0f);
-              col->g = (unsigned char)(color[1] * 255.0f);
-              col->b = (unsigned char)(color[2] * 255.0f);
-              col->a = (unsigned char)(color[3] * 255.0f);
+              linearrgb_to_srgb_v3_v3(temp, color);
+              temp[4] = color[4];
+
+              rgba_float_to_uchar((char *)col, temp);
             }
-            else if (ss->vcol_type == CD_PROP_FLOAT3) {
-              copy_v3_v3(ss->f3col[li], color);
-            }
-            else {
+            else if (ss->vcol_type == CD_PROP_COLOR) {
               copy_v4_v4(ss->vcol[li].color, color);
             }
           }
@@ -272,16 +267,14 @@ void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
       else {
         if (ss->vcol_type == CD_MLOOPCOL) {
           MLoopCol *col = ss->mcol + index;
+          float temp[4];
 
-          col->r = (unsigned char)(color[0] * 255.0f);
-          col->g = (unsigned char)(color[1] * 255.0f);
-          col->b = (unsigned char)(color[2] * 255.0f);
-          col->a = (unsigned char)(color[3] * 255.0f);
+          linearrgb_to_srgb_v3_v3(temp, color);
+          temp[4] = color[4];
+
+          rgba_float_to_uchar((char *)col, temp);
         }
-        else if (ss->vcol_type == CD_PROP_FLOAT3) {
-          copy_v3_v3(ss->f3col[index], color);
-        }
-        else {
+        if (ss->vcol_type == CD_PROP_COLOR) {
           copy_v4_v4(ss->vcol[index].color, color);
         }
       }

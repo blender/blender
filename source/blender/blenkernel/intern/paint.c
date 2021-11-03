@@ -1680,14 +1680,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
     ss->vcol = NULL;
     ss->mcol = NULL;
-    ss->f3col = NULL;
 
     if (BKE_pbvh_get_color_layer(me, &cl, &domain)) {
       if (cl->type == CD_PROP_COLOR) {
         ss->vcol = cl->data;
-      }
-      else if (cl->type == CD_PROP_FLOAT3) {
-        ss->f3col = cl->data;
       }
       else {
         ss->mcol = cl->data;
@@ -1824,7 +1820,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
 
-  int types[] = {CD_PROP_COLOR, CD_PROP_FLOAT3, CD_MLOOPCOL};
+  int types[] = {CD_PROP_COLOR, CD_MLOOPCOL};
   bool has_color = false;
 
   for (int i = 0; i < 3; i++) {
@@ -1840,7 +1836,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   CustomDataLayer *cl;
   if (has_color) {
     cl = BKE_id_attributes_active_get(&orig_me->id);
-    if (!ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL, CD_PROP_FLOAT3)) {
+    if (!ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
       cl = NULL;
 
       /* find a color layer */
@@ -1848,7 +1844,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
         CustomData *cdata = step ? &orig_me->ldata : &orig_me->vdata;
 
         for (int i = 0; i < cdata->totlayer; i++) {
-          if (ELEM(cdata->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL, CD_PROP_FLOAT3)) {
+          if (ELEM(cdata->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
             cl = cdata->layers + i;
             break;
           }

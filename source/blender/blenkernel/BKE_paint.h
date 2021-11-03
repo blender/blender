@@ -467,7 +467,6 @@ typedef struct SculptSession {
 
   struct KeyBlock *shapekey_active;
   struct MPropCol *vcol;
-  float (*f3col)[3];
   struct MLoopCol *mcol;
 
   int vcol_domain;
