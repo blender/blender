@@ -742,7 +742,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.particle.puff
   brush.particle.smooth
   brush.particle.weight
-  brush.sculpt.array
   brush.sculpt.blob
   brush.sculpt.boundary
   brush.sculpt.clay
@@ -755,7 +754,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp
   brush.sculpt.elastic_deform
-  brush.sculpt.fairing
   brush.sculpt.fill
   brush.sculpt.flatten
   brush.sculpt.grab
@@ -764,19 +762,15 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.mask
   brush.sculpt.multiplane_scrape
   brush.sculpt.nudge
-  brush.sculpt.paint
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
-  brush.sculpt.scene_project
   brush.sculpt.scrape
   brush.sculpt.simplify
-  brush.sculpt.smear
   brush.sculpt.smooth
   brush.sculpt.snake_hook
   brush.sculpt.thumb
   brush.sculpt.topology
-  brush.sculpt.vcol_boundary
   brush.uv_sculpt.grab
   brush.uv_sculpt.pinch
   brush.uv_sculpt.relax
@@ -866,7 +860,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_trim
   ops.sculpt.line_mask
   ops.sculpt.line_project
-  ops.sculpt.mask_select
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope
