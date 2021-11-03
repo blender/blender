@@ -52,19 +52,12 @@ class AssetBrowserPanel:
     bl_space_type = 'FILE_BROWSER'
 
     @classmethod
-    def poll(cls, context):
+    def asset_browser_panel_poll(cls, context):
         return SpaceAssetInfo.is_asset_browser_poll(context)
-
-
-class AssetBrowserSpecificCategoryPanel(AssetBrowserPanel):
-    asset_categories = set()  # Set of strings like 'ANIMATIONS', see `asset_category_items` in rna_space.c
 
     @classmethod
     def poll(cls, context):
-        return (
-            SpaceAssetInfo.is_asset_browser_poll(context)
-            and context.space_data.params.asset_category in cls.asset_categories
-        )
+        return cls.asset_browser_panel_poll(context)
 
 
 class AssetMetaDataPanel:

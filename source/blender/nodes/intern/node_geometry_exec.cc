@@ -36,6 +36,72 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
   local_logger.log_node_warning(provider_->dnode, type, std::move(message));
 }
 
+void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
+                                                 const GeometrySet &geometry_set) const
+{
+  const int input_index = provider_->dnode->input_by_identifier(identifier).index();
+  const SocketDeclaration &decl = *provider_->dnode->declaration()->inputs()[input_index];
+  const decl::Geometry *geo_decl = dynamic_cast<const decl::Geometry *>(&decl);
+  if (geo_decl == nullptr) {
+    return;
+  }
+
+  const bool only_realized_data = geo_decl->only_realized_data();
+  const bool only_instances = geo_decl->only_instances();
+  const Span<GeometryComponentType> supported_types = geo_decl->supported_types();
+
+  if (only_realized_data) {
+    if (geometry_set.has_instances()) {
+      this->error_message_add(NodeWarningType::Info,
+                              TIP_("Instances in input geometry are ignored"));
+    }
+  }
+  if (only_instances) {
+    if (geometry_set.has_realized_data()) {
+      this->error_message_add(NodeWarningType::Info,
+                              TIP_("Realized data in input geometry is ignored"));
+    }
+  }
+  if (supported_types.is_empty()) {
+    /* Assume all types are supported. */
+    return;
+  }
+  const Vector<GeometryComponentType> types_in_geometry = geometry_set.gather_component_types(
+      true, true);
+  for (const GeometryComponentType type : types_in_geometry) {
+    if (type == GEO_COMPONENT_TYPE_INSTANCES) {
+      continue;
+    }
+    if (supported_types.contains(type)) {
+      continue;
+    }
+    std::string message = TIP_("Input geometry has unsupported type: ");
+    switch (type) {
+      case GEO_COMPONENT_TYPE_MESH: {
+        message += TIP_("Mesh");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+        message += TIP_("Point Cloud");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_INSTANCES: {
+        BLI_assert_unreachable();
+        break;
+      }
+      case GEO_COMPONENT_TYPE_VOLUME: {
+        message += TIP_("Volume");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_CURVE: {
+        message += TIP_("Curve");
+        break;
+      }
+    }
+    this->error_message_add(NodeWarningType::Info, std::move(message));
+  }
+}
+
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
 {
   for (const InputSocketRef *socket : provider_->dnode->inputs()) {
@@ -181,6 +247,11 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
   }
 
   return default_domain;
+}
+
+std::string GeoNodeExecParams::attribute_producer_name() const
+{
+  return provider_->dnode->label_or_name() + TIP_(" node");
 }
 
 void GeoNodeExecParams::check_input_access(StringRef identifier,

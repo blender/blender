@@ -24,15 +24,15 @@ namespace blender::compositor {
 
 class DotproductOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_input1Operation;
-  SocketReader *m_input2Operation;
+  SocketReader *input1Operation_;
+  SocketReader *input2Operation_;
 
  public:
   DotproductOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

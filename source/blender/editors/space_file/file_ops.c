@@ -536,7 +536,7 @@ static rcti file_select_mval_to_select_rect(const int mval[2])
   return rect;
 }
 
-static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int file_select_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -549,16 +549,26 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool only_activate_if_selected = RNA_boolean_get(op->ptr, "only_activate_if_selected");
   /* Used so right mouse clicks can do both, activate and spawn the context menu. */
   const bool pass_through = RNA_boolean_get(op->ptr, "pass_through");
+  bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
 
   if (region->regiontype != RGN_TYPE_WINDOW) {
     return OPERATOR_CANCELLED;
   }
 
-  rect = file_select_mval_to_select_rect(event->mval);
+  int mval[2];
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
+  rect = file_select_mval_to_select_rect(mval);
 
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
+
+  if (extend || fill) {
+    wait_to_deselect_others = false;
+  }
+
+  int ret_val = OPERATOR_FINISHED;
 
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (sfile && params) {
@@ -570,6 +580,9 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                FILE_SEL_SELECTED;
       if (only_activate_if_selected && is_selected) {
         /* Don't deselect other items. */
+      }
+      else if (wait_to_deselect_others && is_selected) {
+        ret_val = OPERATOR_RUNNING_MODAL;
       }
       /* single select, deselect all selected first */
       else if (!extend) {
@@ -601,7 +614,10 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   WM_event_add_mousemove(CTX_wm_window(C)); /* for directory changes */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
-  return pass_through ? (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH) : OPERATOR_FINISHED;
+  if ((ret_val == OPERATOR_FINISHED) && pass_through) {
+    ret_val |= OPERATOR_PASS_THROUGH;
+  }
+  return ret_val;
 }
 
 void FILE_OT_select(wmOperatorType *ot)
@@ -614,11 +630,14 @@ void FILE_OT_select(wmOperatorType *ot)
   ot->description = "Handle mouse clicks to select and activate items";
 
   /* api callbacks */
-  ot->invoke = file_select_invoke;
+  ot->invoke = WM_generic_select_invoke;
+  ot->exec = file_select_exec;
+  ot->modal = WM_generic_select_modal;
   /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
+  WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(ot->srna,
                          "extend",
                          false,
@@ -1430,7 +1449,7 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   ARegion *region = CTX_wm_region(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
-  if (!file_highlight_set(sfile, region, event->x, event->y)) {
+  if (!file_highlight_set(sfile, region, event->xy[0], event->xy[1])) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -1931,8 +1950,36 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_refresh_exec;
-  /* Operator works for file or asset browsing */
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Refresh Asset Library Operator
+ * \{ */
+
+static int file_asset_library_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  ED_fileselect_clear(wm, sfile);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_asset_library_refresh(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Refresh Asset Library";
+  ot->description = "Reread assets and asset catalogs from the asset library on disk";
+  ot->idname = "FILE_OT_asset_library_refresh";
+
+  /* api callbacks */
+  ot->exec = file_asset_library_refresh_exec;
+  ot->poll = ED_operator_asset_browsing_active;
 }
 
 /** \} */
@@ -2444,12 +2491,14 @@ static void file_expand_directory(bContext *C)
     if (BLI_path_is_rel(params->dir)) {
       /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
       BLI_path_abs(params->dir,
-                   G.relbase_valid ? BKE_main_blendfile_path(bmain) : BKE_appdir_folder_default());
+                   G.relbase_valid ? BKE_main_blendfile_path(bmain) :
+                                     BKE_appdir_folder_default_or_root());
     }
     else if (params->dir[0] == '~') {
       char tmpstr[sizeof(params->dir) - 1];
       BLI_strncpy(tmpstr, params->dir + 1, sizeof(tmpstr));
-      BLI_join_dirfile(params->dir, sizeof(params->dir), BKE_appdir_folder_default(), tmpstr);
+      BLI_path_join(
+          params->dir, sizeof(params->dir), BKE_appdir_folder_default_or_root(), tmpstr, NULL);
     }
 
     else if (params->dir[0] == '\0')

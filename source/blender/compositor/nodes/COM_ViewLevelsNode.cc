@@ -17,48 +17,45 @@
  */
 
 #include "COM_ViewLevelsNode.h"
-#include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_SetValueOperation.h"
 
 namespace blender::compositor {
 
-ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
+ViewLevelsNode::ViewLevelsNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ViewLevelsNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext & /*context*/) const
+void ViewLevelsNode::convert_to_operations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
-  NodeInput *input = this->getInputSocket(0);
-  if (input->isLinked()) {
+  NodeInput *input = this->get_input_socket(0);
+  if (input->is_linked()) {
     /* Add preview to input-socket. */
 
     /* calculate mean operation */
     {
       CalculateMeanOperation *operation = new CalculateMeanOperation();
-      operation->setSetting(this->getbNode()->custom1);
+      operation->set_setting(this->get_bnode()->custom1);
 
-      converter.addOperation(operation);
-      converter.mapInputSocket(input, operation->getInputSocket(0));
-      converter.mapOutputSocket(this->getOutputSocket(0), operation->getOutputSocket());
+      converter.add_operation(operation);
+      converter.map_input_socket(input, operation->get_input_socket(0));
+      converter.map_output_socket(this->get_output_socket(0), operation->get_output_socket());
     }
 
     /* calculate standard deviation operation */
     {
       CalculateStandardDeviationOperation *operation = new CalculateStandardDeviationOperation();
-      operation->setSetting(this->getbNode()->custom1);
+      operation->set_setting(this->get_bnode()->custom1);
 
-      converter.addOperation(operation);
-      converter.mapInputSocket(input, operation->getInputSocket(0));
-      converter.mapOutputSocket(this->getOutputSocket(1), operation->getOutputSocket());
+      converter.add_operation(operation);
+      converter.map_input_socket(input, operation->get_input_socket(0));
+      converter.map_output_socket(this->get_output_socket(1), operation->get_output_socket());
     }
   }
   else {
-    converter.addOutputValue(getOutputSocket(0), 0.0f);
-    converter.addOutputValue(getOutputSocket(1), 0.0f);
+    converter.add_output_value(get_output_socket(0), 0.0f);
+    converter.add_output_value(get_output_socket(1), 0.0f);
   }
 }
 

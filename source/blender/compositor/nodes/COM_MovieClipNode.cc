@@ -17,10 +17,8 @@
  */
 
 #include "COM_MovieClipNode.h"
-#include "COM_ConvertColorProfileOperation.h"
-#include "COM_ExecutionSystem.h"
+
 #include "COM_MovieClipOperation.h"
-#include "COM_SetValueOperation.h"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -31,58 +29,58 @@
 
 namespace blender::compositor {
 
-MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)
+MovieClipNode::MovieClipNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MovieClipNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext &context) const
+void MovieClipNode::convert_to_operations(NodeConverter &converter,
+                                          const CompositorContext &context) const
 {
-  NodeOutput *outputMovieClip = this->getOutputSocket(0);
-  NodeOutput *alphaMovieClip = this->getOutputSocket(1);
-  NodeOutput *offsetXMovieClip = this->getOutputSocket(2);
-  NodeOutput *offsetYMovieClip = this->getOutputSocket(3);
-  NodeOutput *scaleMovieClip = this->getOutputSocket(4);
-  NodeOutput *angleMovieClip = this->getOutputSocket(5);
+  NodeOutput *output_movie_clip = this->get_output_socket(0);
+  NodeOutput *alpha_movie_clip = this->get_output_socket(1);
+  NodeOutput *offset_xmovie_clip = this->get_output_socket(2);
+  NodeOutput *offset_ymovie_clip = this->get_output_socket(3);
+  NodeOutput *scale_movie_clip = this->get_output_socket(4);
+  NodeOutput *angle_movie_clip = this->get_output_socket(5);
 
-  bNode *editorNode = this->getbNode();
-  MovieClip *movieClip = (MovieClip *)editorNode->id;
-  MovieClipUser *movieClipUser = (MovieClipUser *)editorNode->storage;
-  bool cacheFrame = !context.isRendering();
+  bNode *editor_node = this->get_bnode();
+  MovieClip *movie_clip = (MovieClip *)editor_node->id;
+  MovieClipUser *movie_clip_user = (MovieClipUser *)editor_node->storage;
+  bool cache_frame = !context.is_rendering();
 
   ImBuf *ibuf = nullptr;
-  if (movieClip) {
-    if (cacheFrame) {
-      ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
+  if (movie_clip) {
+    if (cache_frame) {
+      ibuf = BKE_movieclip_get_ibuf(movie_clip, movie_clip_user);
     }
     else {
       ibuf = BKE_movieclip_get_ibuf_flag(
-          movieClip, movieClipUser, movieClip->flag, MOVIECLIP_CACHE_SKIP);
+          movie_clip, movie_clip_user, movie_clip->flag, MOVIECLIP_CACHE_SKIP);
     }
   }
 
   /* Always connect the output image. */
   MovieClipOperation *operation = new MovieClipOperation();
-  operation->setMovieClip(movieClip);
-  operation->setMovieClipUser(movieClipUser);
-  operation->setFramenumber(context.getFramenumber());
-  operation->setCacheFrame(cacheFrame);
+  operation->set_movie_clip(movie_clip);
+  operation->set_movie_clip_user(movie_clip_user);
+  operation->set_framenumber(context.get_framenumber());
+  operation->set_cache_frame(cache_frame);
 
-  converter.addOperation(operation);
-  converter.mapOutputSocket(outputMovieClip, operation->getOutputSocket());
-  converter.addPreview(operation->getOutputSocket());
+  converter.add_operation(operation);
+  converter.map_output_socket(output_movie_clip, operation->get_output_socket());
+  converter.add_preview(operation->get_output_socket());
 
-  MovieClipAlphaOperation *alphaOperation = new MovieClipAlphaOperation();
-  alphaOperation->setMovieClip(movieClip);
-  alphaOperation->setMovieClipUser(movieClipUser);
-  alphaOperation->setFramenumber(context.getFramenumber());
-  alphaOperation->setCacheFrame(cacheFrame);
+  MovieClipAlphaOperation *alpha_operation = new MovieClipAlphaOperation();
+  alpha_operation->set_movie_clip(movie_clip);
+  alpha_operation->set_movie_clip_user(movie_clip_user);
+  alpha_operation->set_framenumber(context.get_framenumber());
+  alpha_operation->set_cache_frame(cache_frame);
 
-  converter.addOperation(alphaOperation);
-  converter.mapOutputSocket(alphaMovieClip, alphaOperation->getOutputSocket());
+  converter.add_operation(alpha_operation);
+  converter.map_output_socket(alpha_movie_clip, alpha_operation->get_output_socket());
 
-  MovieTrackingStabilization *stab = &movieClip->tracking.stabilization;
+  MovieTrackingStabilization *stab = &movie_clip->tracking.stabilization;
   float loc[2], scale, angle;
   loc[0] = 0.0f;
   loc[1] = 0.0f;
@@ -91,18 +89,18 @@ void MovieClipNode::convertToOperations(NodeConverter &converter,
 
   if (ibuf) {
     if (stab->flag & TRACKING_2D_STABILIZATION) {
-      int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip,
-                                                                 context.getFramenumber());
+      int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movie_clip,
+                                                                 context.get_framenumber());
 
       BKE_tracking_stabilization_data_get(
-          movieClip, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
+          movie_clip, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
     }
   }
 
-  converter.addOutputValue(offsetXMovieClip, loc[0]);
-  converter.addOutputValue(offsetYMovieClip, loc[1]);
-  converter.addOutputValue(scaleMovieClip, scale);
-  converter.addOutputValue(angleMovieClip, angle);
+  converter.add_output_value(offset_xmovie_clip, loc[0]);
+  converter.add_output_value(offset_ymovie_clip, loc[1]);
+  converter.add_output_value(scale_movie_clip, scale);
+  converter.add_output_value(angle_movie_clip, angle);
 
   if (ibuf) {
     IMB_freeImBuf(ibuf);

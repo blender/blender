@@ -22,25 +22,25 @@ namespace blender::compositor {
 
 SetSamplerOperation::SetSamplerOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void SetSamplerOperation::initExecution()
+void SetSamplerOperation::init_execution()
 {
-  this->m_reader = this->getInputSocketReader(0);
+  reader_ = this->get_input_socket_reader(0);
 }
-void SetSamplerOperation::deinitExecution()
+void SetSamplerOperation::deinit_execution()
 {
-  this->m_reader = nullptr;
+  reader_ = nullptr;
 }
 
-void SetSamplerOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler /*sampler*/)
+void SetSamplerOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler /*sampler*/)
 {
-  this->m_reader->readSampled(output, x, y, this->m_sampler);
+  reader_->read_sampled(output, x, y, sampler_);
 }
 
 }  // namespace blender::compositor

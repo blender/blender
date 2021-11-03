@@ -651,9 +651,8 @@ extern void (*BKE_mesh_batch_cache_free_cb)(struct Mesh *me);
 
 /* Inlines */
 
-/* Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
- * but I don't want to force every user of BKE_mesh.h to also include that file.
- * ~~ Sybren */
+/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
+ * but I don't want to force every user of BKE_mesh.h to also include that file. */
 BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
                                               const int *index_mp_to_orig,
                                               const int i)

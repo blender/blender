@@ -27,9 +27,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#ifdef WITH_INTERNATIONAL
-#  include "BLT_translation.h"
-#endif
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -60,10 +58,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
 
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
-  if (!USER_VERSION_ATLEAST(280, 20)) {
-    memcpy(btheme, &U_theme_default, sizeof(*btheme));
-  }
-
 #define FROM_DEFAULT_V4_UCHAR(member) copy_v4_v4_uchar(btheme->member, U_theme_default.member)
 
   if (!USER_VERSION_ATLEAST(280, 25)) {
@@ -289,6 +283,38 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   if (!USER_VERSION_ATLEAST(300, 15)) {
     copy_v4_uchar(btheme->space_sequencer.grid, 33);
     btheme->space_sequencer.grid[3] = 255;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 30)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.wire);
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 31)) {
+    for (int i = 0; i < SEQUENCE_COLOR_TOT; ++i) {
+      FROM_DEFAULT_V4_UCHAR(strip_color[i].color);
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 33)) {
+    /* Adjust the frame node alpha now that it is used differently. */
+    btheme->space_node.movie[3] = U_theme_default.space_node.movie[3];
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 34)) {
+    btheme->tui.panel_roundness = 0.4f;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 37)) {
+    btheme->space_node.dash_alpha = 0.5f;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 39)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.grid);
+    btheme->space_node.grid_levels = 7;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
   /**
@@ -728,7 +754,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  /* patch to set Dupli Lightprobes and Grease Pencil */
+  /* Patch to set dupli light-probes and grease-pencil. */
   if (!USER_VERSION_ATLEAST(280, 58)) {
     userdef->dupflag |= USER_DUP_LIGHTPROBE;
     userdef->dupflag |= USER_DUP_GPENCIL;
@@ -891,6 +917,35 @@ void blo_do_versions_userdef(UserDef *userdef)
                                                                         USER_FILE_PREVIEW_NONE;
     /* Clear for reuse. */
     userdef->flag &= ~USER_FLAG_UNUSED_5;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 38)) {
+    /* Patch to set Dupli Lattice/Camera/Speaker. */
+    userdef->dupflag |= USER_DUP_LATTICE;
+    userdef->dupflag |= USER_DUP_CAMERA;
+    userdef->dupflag |= USER_DUP_SPEAKER;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    /* Rename the default asset library from "Default" to "User Library". This isn't bullet proof
+     * since it doesn't handle translations and ignores user changes. But this was an alpha build
+     * (experimental) feature and the name is just for display in the UI anyway. So it doesn't have
+     * to work perfectly at all. */
+    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+      /* Ignores translations, since that would depend on the current preferences (global `U`). */
+      if (STREQ(asset_library->name, "Default")) {
+        BKE_preferences_asset_library_name_set(
+            userdef, asset_library, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME);
+      }
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    LISTBASE_FOREACH (uiStyle *, style, &userdef->uistyles) {
+      const int default_title_points = 11; /* UI_DEFAULT_TITLE_POINTS */
+      style->paneltitle.points = default_title_points;
+      style->grouplabel.points = default_title_points;
+    }
   }
 
   /**

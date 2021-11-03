@@ -98,62 +98,10 @@ static bool gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[2], 
     zero_v2(margin);
     return false;
   }
+
   margin[0] = ((handle_size * scale_xy[0]));
   margin[1] = ((handle_size * scale_xy[1]));
   return true;
-}
-
-/* -------------------------------------------------------------------- */
-
-static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_constrain_axis[2])
-{
-  bool x = true, y = true;
-  switch (part) {
-    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X: {
-      ARRAY_SET_ITEMS(r_pt, 0.5, 0.0);
-      x = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
-      ARRAY_SET_ITEMS(r_pt, -0.5, 0.0);
-      x = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y: {
-      ARRAY_SET_ITEMS(r_pt, 0.0, 0.5);
-      y = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
-      ARRAY_SET_ITEMS(r_pt, 0.0, -0.5);
-      y = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y: {
-      ARRAY_SET_ITEMS(r_pt, 0.5, 0.5);
-      x = y = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y: {
-      ARRAY_SET_ITEMS(r_pt, 0.5, -0.5);
-      x = y = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y: {
-      ARRAY_SET_ITEMS(r_pt, -0.5, 0.5);
-      x = y = false;
-      break;
-    }
-    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y: {
-      ARRAY_SET_ITEMS(r_pt, -0.5, -0.5);
-      x = y = false;
-      break;
-    }
-    default:
-      BLI_assert(0);
-  }
-  r_constrain_axis[0] = x;
-  r_constrain_axis[1] = y;
 }
 
 /* -------------------------------------------------------------------- */
@@ -400,6 +348,7 @@ static void cage2d_draw_box_interaction(const float color[4],
       ARRAY_SET_ITEMS(verts[1], r_rotate.xmin, r_rotate.ymax);
       ARRAY_SET_ITEMS(verts[2], r_rotate.xmax, r_rotate.ymax);
       ARRAY_SET_ITEMS(verts[3], r_rotate.xmax, r_rotate.ymin);
+
       verts_len = 4;
       if (is_solid) {
         prim_type = GPU_PRIM_TRI_FAN;
@@ -769,10 +718,10 @@ static int gizmo_cage2d_get_cursor(wmGizmo *gz)
       return WM_CURSOR_NSEW_SCROLL;
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X:
-      return WM_CURSOR_X_MOVE;
+      return WM_CURSOR_NSEW_SCROLL;
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y:
-      return WM_CURSOR_Y_MOVE;
+      return WM_CURSOR_NSEW_SCROLL;
 
       /* TODO: diagonal cursor. */
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y:
@@ -935,6 +884,57 @@ static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   gz->interaction_data = data;
 
   return OPERATOR_RUNNING_MODAL;
+}
+
+static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_constrain_axis[2])
+{
+  bool x = true, y = true;
+  switch (part) {
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, 0.0);
+      x = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, 0.0);
+      x = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.0, 0.5);
+      y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.0, -0.5);
+      y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, 0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, -0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, 0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, -0.5);
+      x = y = false;
+      break;
+    }
+    default:
+      BLI_assert(0);
+  }
+  r_constrain_axis[0] = x;
+  r_constrain_axis[1] = y;
 }
 
 static int gizmo_cage2d_modal(bContext *C,

@@ -79,7 +79,7 @@ static void sig_handle_fpe(int UNUSED(sig))
 }
 #  endif
 
-/* handling ctrl-c event in console */
+/* Handling `Ctrl-C` event in the console. */
 #  if !defined(WITH_HEADLESS)
 static void sig_handle_blender_esc(int sig)
 {
@@ -258,7 +258,9 @@ void main_signal_setup_background(void)
   BLI_assert(G.background);
 
 #  if !defined(WITH_HEADLESS)
-  signal(SIGINT, sig_handle_blender_esc); /* ctrl c out bg render */
+  /* Support pressing `Ctrl-C` to close Blender in background-mode.
+   * Useful to be able to cancel a render operation. */
+  signal(SIGINT, sig_handle_blender_esc);
 #  endif
 }
 

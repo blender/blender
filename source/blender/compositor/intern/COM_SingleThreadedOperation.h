@@ -24,12 +24,12 @@ namespace blender::compositor {
 
 class SingleThreadedOperation : public NodeOperation {
  private:
-  MemoryBuffer *m_cachedInstance;
+  MemoryBuffer *cached_instance_;
 
  protected:
-  inline bool isCached()
+  inline bool is_cached()
   {
-    return this->m_cachedInstance != nullptr;
+    return cached_instance_ != nullptr;
   }
 
  public:
@@ -38,21 +38,21 @@ class SingleThreadedOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
-  virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
+  virtual MemoryBuffer *create_memory_buffer(rcti *rect) = 0;
 };
 
 }  // namespace blender::compositor

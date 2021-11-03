@@ -17,10 +17,10 @@
 #include "graph/node.h"
 #include "graph/node_type.h"
 
-#include "util/util_foreach.h"
-#include "util/util_md5.h"
-#include "util/util_param.h"
-#include "util/util_transform.h"
+#include "util/foreach.h"
+#include "util/md5.h"
+#include "util/param.h"
+#include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -814,7 +814,7 @@ bool Node::socket_is_modified(const SocketType &input) const
   return (socket_modified & input.modified_flag_bit) != 0;
 }
 
-bool Node::is_modified()
+bool Node::is_modified() const
 {
   return socket_modified != 0;
 }

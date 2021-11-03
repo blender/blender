@@ -18,30 +18,29 @@
 
 #include "COM_VectorBlurNode.h"
 #include "COM_VectorBlurOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
-VectorBlurNode::VectorBlurNode(bNode *editorNode) : Node(editorNode)
+VectorBlurNode::VectorBlurNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void VectorBlurNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext &context) const
+void VectorBlurNode::convert_to_operations(NodeConverter &converter,
+                                           const CompositorContext &context) const
 {
-  bNode *node = this->getbNode();
-  NodeBlurData *vectorBlurSettings = (NodeBlurData *)node->storage;
+  bNode *node = this->get_bnode();
+  NodeBlurData *vector_blur_settings = (NodeBlurData *)node->storage;
 
   VectorBlurOperation *operation = new VectorBlurOperation();
-  operation->setVectorBlurSettings(vectorBlurSettings);
-  operation->setQuality(context.getQuality());
-  converter.addOperation(operation);
+  operation->set_vector_blur_settings(vector_blur_settings);
+  operation->set_quality(context.get_quality());
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-  converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-  converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+  converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+  converter.map_output_socket(get_output_socket(), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

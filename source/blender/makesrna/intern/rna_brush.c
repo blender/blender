@@ -734,6 +734,12 @@ static void rna_Brush_icon_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 
+static bool rna_Brush_imagetype_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+{
+  Image *image = (Image *)value.owner_id;
+  return image->type != IMA_TYPE_R_RESULT && image->type != IMA_TYPE_COMPOSITE;
+}
+
 static void rna_TextureSlot_brush_angle_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
@@ -3434,6 +3440,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Clone Image", "Image for clone tool");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update");
+  RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Brush_imagetype_poll");
 
   prop = RNA_def_property(srna, "clone_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "clone.alpha");

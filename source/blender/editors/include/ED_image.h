@@ -41,15 +41,25 @@ struct SpaceImage;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
+struct View2D;
+
+/* image_draw.c */
+float ED_space_image_zoom_level(const struct View2D *v2d, const int grid_dimension);
+void ED_space_image_grid_steps(struct SpaceImage *sima,
+                               float grid_steps[SI_GRID_STEPS_LEN],
+                               const int grid_dimension);
+float ED_space_image_increment_snap_value(const int grid_dimesnions,
+                                          const float grid_steps[SI_GRID_STEPS_LEN],
+                                          const float zoom_factor);
 
 /* image_edit.c, exported for transform */
-struct Image *ED_space_image(struct SpaceImage *sima);
+struct Image *ED_space_image(const struct SpaceImage *sima);
 void ED_space_image_set(struct Main *bmain,
                         struct SpaceImage *sima,
                         struct Image *ima,
                         bool automatic);
 void ED_space_image_auto_set(const struct bContext *C, struct SpaceImage *sima);
-struct Mask *ED_space_image_get_mask(struct SpaceImage *sima);
+struct Mask *ED_space_image_get_mask(const struct SpaceImage *sima);
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
 bool ED_space_image_get_position(struct SpaceImage *sima,
@@ -102,9 +112,9 @@ void ED_image_point_pos__reverse(struct SpaceImage *sima,
                                  float r_co[2]);
 bool ED_image_slot_cycle(struct Image *image, int direction);
 
-bool ED_space_image_show_render(struct SpaceImage *sima);
-bool ED_space_image_show_paint(struct SpaceImage *sima);
-bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
+bool ED_space_image_show_render(const struct SpaceImage *sima);
+bool ED_space_image_show_paint(const struct SpaceImage *sima);
+bool ED_space_image_show_uvedit(const struct SpaceImage *sima, struct Object *obedit);
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 
@@ -126,7 +136,10 @@ void ED_image_draw_info(struct Scene *scene,
                         const int *zp,
                         const float *zpf);
 
-bool ED_space_image_show_cache(struct SpaceImage *sima);
+bool ED_space_image_show_cache(const struct SpaceImage *sima);
+bool ED_space_image_show_cache_and_mval_over(const struct SpaceImage *sima,
+                                             struct ARegion *region,
+                                             const int mval[2]);
 
 bool ED_image_should_save_modified(const struct Main *bmain);
 int ED_image_save_all_modified_info(const struct Main *bmain, struct ReportList *reports);

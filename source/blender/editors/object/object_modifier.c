@@ -1044,6 +1044,10 @@ bool edit_modifier_poll_generic(bContext *C,
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *mod = ptr.data; /* May be NULL. */
 
+  if (mod == NULL && ob != NULL) {
+    mod = BKE_object_active_modifier(ob);
+  }
+
   if (!ob || ID_IS_LINKED(ob)) {
     return false;
   }

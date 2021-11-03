@@ -50,7 +50,7 @@ typedef struct SubdivMeshContext {
   const Mesh *coarse_mesh;
   Subdiv *subdiv;
   Mesh *subdiv_mesh;
-  /* Cached custom data arrays for fastter access. */
+  /* Cached custom data arrays for faster access. */
   int *vert_origindex;
   int *edge_origindex;
   int *loop_origindex;
@@ -108,9 +108,9 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
   /* TODO(sergey): Technically, this is overallocating, we don't need memory
    * for an inner subdivision vertices. */
   ctx->accumulated_normals = MEM_calloc_arrayN(
-      sizeof(*ctx->accumulated_normals), num_vertices, "subdiv accumulated normals");
+      num_vertices, sizeof(*ctx->accumulated_normals), "subdiv accumulated normals");
   ctx->accumulated_counters = MEM_calloc_arrayN(
-      sizeof(*ctx->accumulated_counters), num_vertices, "subdiv accumulated counters");
+      num_vertices, sizeof(*ctx->accumulated_counters), "subdiv accumulated counters");
 }
 
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)

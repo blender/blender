@@ -52,7 +52,7 @@
 #include "WM_types.h"
 
 /* NOTE: image_panel_properties() uses pointer to sima->image directly. */
-Image *ED_space_image(SpaceImage *sima)
+Image *ED_space_image(const SpaceImage *sima)
 {
   return sima->image;
 }
@@ -113,7 +113,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
   }
 }
 
-Mask *ED_space_image_get_mask(SpaceImage *sima)
+Mask *ED_space_image_get_mask(const SpaceImage *sima)
 {
   return sima->mask_info.mask;
 }
@@ -378,7 +378,7 @@ void ED_image_point_pos__reverse(SpaceImage *sima,
 }
 
 /**
- * This is more a user-level functionality, for going to next/prev used slot,
+ * This is more a user-level functionality, for going to `next/prev` used slot,
  * Stepping onto the last unused slot too.
  */
 bool ED_image_slot_cycle(struct Image *image, int direction)
@@ -434,7 +434,7 @@ void ED_space_image_scopes_update(const struct bContext *C,
   /* We also don't update scopes of render result during render. */
   if (G.is_rendering) {
     const Image *image = sima->image;
-    if (image != NULL && (image->type == IMA_TYPE_R_RESULT || image->type == IMA_TYPE_COMPOSITE)) {
+    if (image != NULL && (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))) {
       return;
     }
   }
@@ -445,12 +445,12 @@ void ED_space_image_scopes_update(const struct bContext *C,
                     &scene->display_settings);
 }
 
-bool ED_space_image_show_render(SpaceImage *sima)
+bool ED_space_image_show_render(const SpaceImage *sima)
 {
   return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
 }
 
-bool ED_space_image_show_paint(SpaceImage *sima)
+bool ED_space_image_show_paint(const SpaceImage *sima)
 {
   if (ED_space_image_show_render(sima)) {
     return false;
@@ -459,7 +459,7 @@ bool ED_space_image_show_paint(SpaceImage *sima)
   return (sima->mode == SI_MODE_PAINT);
 }
 
-bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
+bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit)
 {
   if (sima) {
     if (ED_space_image_show_render(sima)) {

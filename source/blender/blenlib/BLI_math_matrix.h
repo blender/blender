@@ -57,6 +57,7 @@ void copy_m4_m4_db(double m1[4][4], const double m2[4][4]);
 void copy_m3_m3d(float m1[3][3], const double m2[3][3]);
 
 /* float->double */
+void copy_m3d_m3(double m1[3][3], const float m2[3][3]);
 void copy_m4d_m4(double m1[4][4], const float m2[4][4]);
 
 void swap_m3m3(float m1[3][3], float m2[3][3]);
@@ -291,6 +292,7 @@ float determinant_m3(
     float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3);
 float determinant_m3_array(const float m[3][3]);
 float determinant_m4_mat3_array(const float m[4][4]);
+double determinant_m3_array_db(const double m[3][3]);
 float determinant_m4(const float m[4][4]);
 
 #define PSEUDOINVERSE_EPSILON 1e-8f
@@ -326,13 +328,9 @@ void mat4_to_size(float size[3], const float M[4][4]);
 
 void mat4_to_size_fix_shear(float size[3], const float M[4][4]);
 
-void translate_m3(float mat[3][3], float tx, float ty);
 void translate_m4(float mat[4][4], float tx, float ty, float tz);
-void rotate_m3(float mat[3][3], const float angle);
 void rotate_m4(float mat[4][4], const char axis, const float angle);
-void rescale_m3(float mat[3][3], const float scale[2]);
 void rescale_m4(float mat[4][4], const float scale[3]);
-void transform_pivot_set_m3(float mat[3][3], const float pivot[2]);
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3]);
 
 void mat4_to_rot(float rot[3][3], const float wmat[4][4]);
@@ -343,10 +341,6 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], const float wmat
 
 void mat3_polar_decompose(const float mat3[3][3], float r_U[3][3], float r_P[3][3]);
 
-void loc_rot_size_to_mat3(float R[3][3],
-                          const float loc[2],
-                          const float angle,
-                          const float size[2]);
 void loc_rot_size_to_mat4(float R[4][4],
                           const float loc[3],
                           const float rot[3][3],

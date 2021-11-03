@@ -423,7 +423,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
         }
         *fmt = FMT_TYPE_STRING;
       }
-      /* Whitespace (all ws. has been converted to spaces) */
+      /* White-space (all ws. has been converted to spaces). */
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }

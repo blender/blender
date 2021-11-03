@@ -173,9 +173,11 @@ void flushTransNodes(TransInfo *t)
     }
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region */
-      const float x = t->region->winrct.xmin + t->mval[0];
-      const float y = t->region->winrct.ymin + t->mval[1];
-      UI_view2d_edge_pan_apply(t->context, customdata, x, y);
+      const int xy[2] = {
+          t->region->winrct.xmin + t->mval[0],
+          t->region->winrct.ymin + t->mval[1],
+      };
+      UI_view2d_edge_pan_apply(t->context, customdata, xy);
     }
   }
 

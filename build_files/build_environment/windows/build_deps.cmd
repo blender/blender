@@ -79,6 +79,9 @@ set STAGING=%BUILD_DIR%\S
 rem for python module build
 set MSSdk=1 
 set DISTUTILS_USE_SDK=1  
+rem if you let pip pick its own build dirs, it'll stick it somewhere deep inside the user profile
+rem and cython will refuse to link due to a path that gets too long.
+set TMPDIR=c:\t\
 rem for python externals source to be shared between the various archs and compilers
 mkdir %BUILD_DIR%\downloads\externals
 

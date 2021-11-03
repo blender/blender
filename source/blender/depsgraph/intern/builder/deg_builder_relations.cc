@@ -65,6 +65,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -2496,6 +2497,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       OperationKey clip_key(id, NodeType::PARAMETERS, OperationCode::MOVIECLIP_EVAL);
       add_relation(clip_key, shading_key, "Clip -> Node");
     }
+    else if (id_type == ID_VF) {
+      build_vfont((VFont *)id);
+      ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
+      add_relation(vfont_key, shading_key, "VFont -> Node");
+    }
     else if (ELEM(bnode->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
@@ -2840,6 +2846,15 @@ void DepsgraphRelationBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer
     }
     build_object(base->object);
   }
+}
+
+void DepsgraphRelationBuilder::build_vfont(VFont *vfont)
+{
+  if (built_map_.checkIsBuiltAndTag(vfont)) {
+    return;
+  }
+  build_parameters(&vfont->id);
+  build_idproperties(vfont->id.properties);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

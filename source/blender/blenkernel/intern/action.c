@@ -175,11 +175,11 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   bAction *act = (bAction *)id;
 
   LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-    BKE_fcurve_foreach_id(fcu, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    BKE_LIB_FOREACHID_PROCESS(data, marker->camera, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
   }
 }
 
@@ -1211,7 +1211,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   /* copy bone group */
   pchan->agrp_index = pchan_from->agrp_index;
 
-  /* ik (dof) settings */
+  /* IK (DOF) settings. */
   pchan->ikflag = pchan_from->ikflag;
   copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
   copy_v3_v3(pchan->limitmax, pchan_from->limitmax);

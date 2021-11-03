@@ -541,64 +541,241 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
 }
 
 /**
+ * Give extra stroke points before and after the original tip points.
+ * \param gps: Target stroke
+ * \param count_before: how many extra points to be added before a stroke
+ * \param count_after: how many extra points to be added after a stroke
+ */
+static bool BKE_gpencil_stroke_extra_points(bGPDstroke *gps,
+                                            const int count_before,
+                                            const int count_after)
+{
+  bGPDspoint *pts = gps->points;
+
+  BLI_assert(count_before >= 0);
+  BLI_assert(count_after >= 0);
+  if (!count_before && !count_after) {
+    return false;
+  }
+
+  const int new_count = count_before + count_after + gps->totpoints;
+
+  bGPDspoint *new_pts = (bGPDspoint *)MEM_mallocN(sizeof(bGPDspoint) * new_count, __func__);
+
+  for (int i = 0; i < count_before; i++) {
+    memcpy(&new_pts[i], &pts[0], sizeof(bGPDspoint));
+  }
+  memcpy(&new_pts[count_before], pts, sizeof(bGPDspoint) * gps->totpoints);
+  for (int i = new_count - count_after; i < new_count; i++) {
+    memcpy(&new_pts[i], &pts[gps->totpoints - 1], sizeof(bGPDspoint));
+  }
+
+  if (gps->dvert) {
+    MDeformVert *new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count, __func__);
+
+    for (int i = 0; i < new_count; i++) {
+      MDeformVert *dv = &gps->dvert[CLAMPIS(i - count_before, 0, gps->totpoints - 1)];
+      int inew = i;
+      new_dv[inew].flag = dv->flag;
+      new_dv[inew].totweight = dv->totweight;
+      new_dv[inew].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
+                                                     __func__);
+      memcpy(new_dv[inew].dw, dv->dw, sizeof(MDeformWeight) * dv->totweight);
+    }
+    BKE_gpencil_free_stroke_weights(gps);
+    MEM_freeN(gps->dvert);
+    gps->dvert = new_dv;
+  }
+
+  MEM_freeN(gps->points);
+  gps->points = new_pts;
+  gps->totpoints = new_count;
+
+  return true;
+}
+
+/**
  * Backbone stretch similar to Freestyle.
  * \param gps: Stroke to sample.
- * \param dist: Distance of one segment.
- * \param overshoot_fac: How exact is the follow curve algorithm.
+ * \param dist: Length of the added section.
+ * \param overshoot_fac: Relative length of the curve which is used to determine the extension.
  * \param mode: Affect to Start, End or Both extremes (0->Both, 1->Start, 2->End)
+ * \param follow_curvature: True for approximating curvature of given overshoot.
+ * \param extra_point_count: When follow_curvature is true, use this amount of extra points
  */
 bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
                                 const float dist,
                                 const float overshoot_fac,
-                                const short mode)
+                                const short mode,
+                                const bool follow_curvature,
+                                const int extra_point_count,
+                                const float segment_influence,
+                                const float max_angle,
+                                const bool invert_curvature)
 {
 #define BOTH 0
 #define START 1
 #define END 2
 
-  bGPDspoint *pt = gps->points, *last_pt, *second_last, *next_pt;
-  int i;
-  float threshold = (overshoot_fac == 0 ? 0.001f : overshoot_fac);
+  const bool do_start = ELEM(mode, BOTH, START);
+  const bool do_end = ELEM(mode, BOTH, END);
+  float used_percent_length = overshoot_fac;
+  CLAMP(used_percent_length, 1e-4f, 1.0f);
+  if (!isfinite(used_percent_length)) {
+    /* #used_percent_length must always be finite, otherwise a segfault occurs.
+     * Since this function should never segfault, set #used_percent_length to a safe fallback. */
+    /* NOTE: This fallback is used if gps->totpoints == 2, see MOD_gpencillength.c */
+    used_percent_length = 0.1f;
+  }
 
-  if (gps->totpoints < 2 || dist < FLT_EPSILON) {
+  if (gps->totpoints <= 1 || dist < FLT_EPSILON || extra_point_count <= 0) {
     return false;
   }
 
-  last_pt = &pt[gps->totpoints - 1];
-  second_last = &pt[gps->totpoints - 2];
-  next_pt = &pt[1];
+  /* NOTE: When it's just a straight line, we don't need to do the curvature stuff. */
+  if (!follow_curvature || gps->totpoints <= 2) {
+    /* Not following curvature, just straight line. */
+    /* NOTE: #overshoot_point_param can not be zero. */
+    float overshoot_point_param = used_percent_length * (gps->totpoints - 1);
+    float result[3];
 
-  if (mode == BOTH || mode == START) {
-    float len1 = 0.0f;
-    i = 1;
-    while (len1 < threshold && gps->totpoints > i) {
-      next_pt = &pt[i];
-      len1 = len_v3v3(&next_pt->x, &pt->x);
-      i++;
-    }
-    float extend1 = (len1 + dist) / len1;
-    float result1[3];
-
-    interp_v3_v3v3(result1, &next_pt->x, &pt->x, extend1);
-    copy_v3_v3(&pt->x, result1);
-  }
-
-  if (mode == BOTH || mode == END) {
-    float len2 = 0.0f;
-    i = 2;
-    while (len2 < threshold && gps->totpoints >= i) {
-      second_last = &pt[gps->totpoints - i];
-      len2 = len_v3v3(&last_pt->x, &second_last->x);
-      i++;
+    if (do_start) {
+      int index1 = floor(overshoot_point_param);
+      int index2 = ceil(overshoot_point_param);
+      interp_v3_v3v3(result,
+                     &gps->points[index1].x,
+                     &gps->points[index2].x,
+                     fmodf(overshoot_point_param, 1.0f));
+      sub_v3_v3(result, &gps->points[0].x);
+      if (UNLIKELY(is_zero_v3(result))) {
+        sub_v3_v3v3(result, &gps->points[1].x, &gps->points[0].x);
+      }
+      madd_v3_v3fl(&gps->points[0].x, result, -dist / len_v3(result));
     }
 
-    float extend2 = (len2 + dist) / len2;
-    float result2[3];
-    interp_v3_v3v3(result2, &second_last->x, &last_pt->x, extend2);
-
-    copy_v3_v3(&last_pt->x, result2);
+    if (do_end) {
+      int index1 = gps->totpoints - 1 - floor(overshoot_point_param);
+      int index2 = gps->totpoints - 1 - ceil(overshoot_point_param);
+      interp_v3_v3v3(result,
+                     &gps->points[index1].x,
+                     &gps->points[index2].x,
+                     fmodf(overshoot_point_param, 1.0f));
+      sub_v3_v3(result, &gps->points[gps->totpoints - 1].x);
+      if (UNLIKELY(is_zero_v3(result))) {
+        sub_v3_v3v3(
+            result, &gps->points[gps->totpoints - 2].x, &gps->points[gps->totpoints - 1].x);
+      }
+      madd_v3_v3fl(&gps->points[gps->totpoints - 1].x, result, -dist / len_v3(result));
+    }
+    return true;
   }
 
+  /* Curvature calculation. */
+
+  /* First allocate the new stroke size. */
+  const int first_old_index = do_start ? extra_point_count : 0;
+  const int last_old_index = gps->totpoints - 1 + first_old_index;
+  const int orig_totpoints = gps->totpoints;
+  BKE_gpencil_stroke_extra_points(gps, first_old_index, do_end ? extra_point_count : 0);
+
+  /* The fractional amount of points to query when calculating the average curvature of the
+   * strokes. */
+  const float overshoot_parameter = used_percent_length * (orig_totpoints - 2);
+  int overshoot_pointcount = ceil(overshoot_parameter);
+  CLAMP(overshoot_pointcount, 1, orig_totpoints - 2);
+
+  /* Do for both sides without code duplication. */
+  float no[3], vec1[3], vec2[3], total_angle[3];
+  for (int k = 0; k < 2; k++) {
+    if ((k == 0 && !do_start) || (k == 1 && !do_end)) {
+      continue;
+    }
+
+    const int start_i = k == 0 ? first_old_index :
+                                 last_old_index;  // first_old_index, last_old_index
+    const int dir_i = 1 - k * 2;                  // 1, -1
+
+    sub_v3_v3v3(vec1, &gps->points[start_i + dir_i].x, &gps->points[start_i].x);
+    zero_v3(total_angle);
+    float segment_length = normalize_v3(vec1);
+    float overshoot_length = 0.0f;
+
+    /* Accumulate rotation angle and length. */
+    int j = 0;
+    for (int i = start_i; j < overshoot_pointcount; i += dir_i, j++) {
+      /* Don't fully add last segment to get continuity in overshoot_fac. */
+      float fac = fmin(overshoot_parameter - j, 1.0f);
+
+      /* Read segments. */
+      copy_v3_v3(vec2, vec1);
+      sub_v3_v3v3(vec1, &gps->points[i + dir_i * 2].x, &gps->points[i + dir_i].x);
+      const float len = normalize_v3(vec1);
+      float angle = angle_normalized_v3v3(vec1, vec2) * fac;
+
+      /* Add half of both adjacent legs of the current angle. */
+      const float added_len = (segment_length + len) * 0.5f * fac;
+      overshoot_length += added_len;
+      segment_length = len;
+
+      if (angle > max_angle) {
+        continue;
+      }
+      if (angle > M_PI * 0.995f) {
+        continue;
+      }
+
+      angle *= powf(added_len, segment_influence);
+
+      cross_v3_v3v3(no, vec1, vec2);
+      normalize_v3_length(no, angle);
+      add_v3_v3(total_angle, no);
+    }
+
+    if (UNLIKELY(overshoot_length == 0.0f)) {
+      /* Don't do a proper extension if the used points are all in the same position. */
+      continue;
+    }
+
+    sub_v3_v3v3(vec1, &gps->points[start_i].x, &gps->points[start_i + dir_i].x);
+    /* In general curvature = 1/radius. For the case without the
+     * weights introduced by #segment_influence, the calculation is:
+     * `curvature = delta angle/delta arclength = len_v3(total_angle) / overshoot_length` */
+    float curvature = normalize_v3(total_angle) / overshoot_length;
+    /* Compensate for the weights powf(added_len, segment_influence). */
+    curvature /= powf(overshoot_length / fminf(overshoot_parameter, (float)j), segment_influence);
+    if (invert_curvature) {
+      curvature = -curvature;
+    }
+    const float angle_step = curvature * dist / extra_point_count;
+    float step_length = dist / extra_point_count;
+    if (fabsf(angle_step) > FLT_EPSILON) {
+      /* Make a direct step length from the assigned arc step length. */
+      step_length *= sin(angle_step * 0.5f) / (angle_step * 0.5f);
+    }
+    else {
+      zero_v3(total_angle);
+    }
+    const float prev_length = normalize_v3_length(vec1, step_length);
+
+    /* Build rotation matrix here to get best performance. */
+    float rot[3][3];
+    float q[4];
+    axis_angle_to_quat(q, total_angle, angle_step);
+    quat_to_mat3(rot, q);
+
+    /* Rotate the starting direction to account for change in edge lengths. */
+    axis_angle_to_quat(q,
+                       total_angle,
+                       fmaxf(0.0f, 1.0f - fabs(segment_influence)) *
+                           (curvature * prev_length - angle_step) / 2.0f);
+    mul_qt_v3(q, vec1);
+
+    /* Now iteratively accumulate the segments with a rotating added direction. */
+    for (int i = start_i - dir_i, j = 0; j < extra_point_count; i -= dir_i, j++) {
+      mul_v3_m3v3(vec1, rot, vec1);
+      add_v3_v3v3(&gps->points[i].x, vec1, &gps->points[i + dir_i].x);
+    }
+  }
   return true;
 }
 
@@ -749,6 +926,7 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
 
   second_last = &pt[gps->totpoints - 2];
 
+  float len;
   float len1, cut_len1;
   float len2, cut_len2;
   len1 = len2 = cut_len1 = cut_len2 = 0.0f;
@@ -759,11 +937,13 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
     i = 0;
     index_end = gps->totpoints - 1;
     while (len1 < dist && gps->totpoints > i + 1) {
-      len1 += len_v3v3(&pt[i].x, &pt[i + 1].x);
+      len = len_v3v3(&pt[i].x, &pt[i + 1].x);
+      len1 += len;
       cut_len1 = len1 - dist;
       i++;
     }
     index_start = i - 1;
+    interp_v3_v3v3(&pt[index_start].x, &pt[index_start + 1].x, &pt[index_start].x, cut_len1 / len);
   }
 
   if (mode == END) {
@@ -771,18 +951,20 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
     i = 2;
     while (len2 < dist && gps->totpoints >= i) {
       second_last = &pt[gps->totpoints - i];
-      len2 += len_v3v3(&second_last[1].x, &second_last->x);
+      len = len_v3v3(&second_last[1].x, &second_last->x);
+      len2 += len;
       cut_len2 = len2 - dist;
       i++;
     }
     index_end = gps->totpoints - i + 2;
+    interp_v3_v3v3(&pt[index_end].x, &pt[index_end - 1].x, &pt[index_end].x, cut_len2 / len);
   }
 
   if (index_end <= index_start) {
     index_start = index_end = 0; /* empty stroke */
   }
 
-  if ((index_end == index_start + 1) && (cut_len1 + cut_len2 < dist)) {
+  if ((index_end == index_start + 1) && (cut_len1 + cut_len2 < 0)) {
     index_start = index_end = 0; /* no length left to cut */
   }
 

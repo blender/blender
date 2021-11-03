@@ -268,8 +268,8 @@ data_to_c_simple(shaders/gpu_shader_2D_edituvs_stretch_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_keyframe_diamond_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_keyframe_diamond_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_keyframe_shape_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_keyframe_shape_frag.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_codegen_lib.glsl SRC)
 
@@ -296,6 +296,7 @@ data_to_c_simple(shaders/material/gpu_shader_material_diffuse.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_displacement.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_eevee_specular.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_emission.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_float_curve.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_fractal_noise.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_fresnel.glsl SRC)
 data_to_c_simple(shaders/material/gpu_shader_material_gamma.glsl SRC)

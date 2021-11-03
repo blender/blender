@@ -132,19 +132,19 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
   MovieClip *movie_clip = (MovieClip *)id;
   MovieTracking *tracking = &movie_clip->tracking;
 
-  BKE_LIB_FOREACHID_PROCESS(data, movie_clip->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
   }
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
-      BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
     }
   }
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking->plane_tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, plane_track->image, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
   }
 }
 
@@ -346,7 +346,7 @@ IDTypeInfo IDType_ID_MC = {
     .name = "MovieClip",
     .name_plural = "movieclips",
     .translation_context = BLT_I18NCONTEXT_ID_MOVIECLIP,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = movie_clip_init_data,
     .copy_data = movie_clip_copy_data,
@@ -842,7 +842,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int fl
       key.render_flag = 0;
     }
 
-    return IMB_moviecache_get(clip->cache->moviecache, &key);
+    return IMB_moviecache_get(clip->cache->moviecache, &key, NULL);
   }
 
   return NULL;

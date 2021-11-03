@@ -34,20 +34,20 @@ namespace blender::compositor {
  */
 class ImageNode : public Node {
  private:
-  NodeOperation *doMultilayerCheck(NodeConverter &converter,
-                                   RenderLayer *render_layer,
-                                   RenderPass *render_pass,
-                                   Image *image,
-                                   ImageUser *user,
-                                   int framenumber,
-                                   int outputsocketIndex,
-                                   int view,
-                                   DataType datatype) const;
+  NodeOperation *do_multilayer_check(NodeConverter &converter,
+                                     RenderLayer *render_layer,
+                                     RenderPass *render_pass,
+                                     Image *image,
+                                     ImageUser *user,
+                                     int framenumber,
+                                     int outputsocket_index,
+                                     int view,
+                                     DataType datatype) const;
 
  public:
-  ImageNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  ImageNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

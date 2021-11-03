@@ -18,40 +18,23 @@ BLACKLIST_OSL = [
 ]
 
 BLACKLIST_OPTIX = [
-    # No branched path on Optix.
-    'T53854.blend',
+    # Ray intersection precision issues
     'T50164.blend',
-    'portal.blend',
-    'denoise_sss.blend',
-    'denoise_passes.blend',
-    'distant_light.blend',
-    'aov_position.blend',
-    'subsurface_branched_path.blend',
     'T43865.blend',
 ]
 
 BLACKLIST_GPU = [
-    # Missing equiangular sampling on GPU.
-    'area_light.blend',
-    'denoise_hair.blend',
-    'point_density_.*.blend',
-    'point_light.blend',
-    'shadow_catcher_bpt_.*.blend',
-    'sphere_light.blend',
-    'spot_light.blend',
-    'T48346.blend',
-    'world_volume.blend',
     # Uninvestigated differences with GPU.
     'image_log.blend',
-    'subsurface_behind_glass_branched.blend',
     'T40964.blend',
     'T45609.blend',
-    'T48860.blend',
     'smoke_color.blend',
     'bevel_mblur.blend',
     # Inconsistency between Embree and Hair primitive on GPU.
+    'denoise_hair.blend',
     'hair_basemesh_intercept.blend',
     'hair_instancer_uv.blend',
+    'hair_length_info.blend',
     'hair_particle_random.blend',
     'principled_hair_.*.blend',
     'transparent_shadow_hair.*.blend',

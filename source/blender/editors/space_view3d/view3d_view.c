@@ -1730,7 +1730,12 @@ void ED_view3d_xr_shading_update(wmWindowManager *wm, const View3D *v3d, const S
   if (v3d->runtime.flag & V3D_RUNTIME_XR_SESSION_ROOT) {
     View3DShading *xr_shading = &wm->xr.session_settings.shading;
     /* Flags that shouldn't be overridden by the 3D View shading. */
-    const int flag_copy = V3D_SHADING_WORLD_ORIENTATION;
+    int flag_copy = 0;
+    if (v3d->shading.type !=
+        OB_SOLID) { /* Don't set V3D_SHADING_WORLD_ORIENTATION for solid shading since it results
+                       in distorted lighting when the view matrix has a scale factor. */
+      flag_copy |= V3D_SHADING_WORLD_ORIENTATION;
+    }
 
     BLI_assert(WM_xr_session_exists(&wm->xr));
 

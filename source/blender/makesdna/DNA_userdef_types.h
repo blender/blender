@@ -206,6 +206,9 @@ typedef struct ThemeUI {
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
+  float panel_roundness;
+  char _pad2[4];
+
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
@@ -319,6 +322,8 @@ typedef struct ThemeSpace {
   unsigned char vertex_size, outline_width, obcenter_dia, facedot_size;
   unsigned char noodle_curving;
   unsigned char grid_levels;
+  char _pad5[3];
+  float dash_alpha;
 
   /* syntax for textwindow and nodes */
   unsigned char syntaxl[4], syntaxs[4]; /* in nodespace used for backdrop matte */
@@ -341,6 +346,7 @@ typedef struct ThemeSpace {
   unsigned char active_strip[4], selected_strip[4];
 
   /** For dopesheet - scale factor for size of keyframes (i.e. height of channels). */
+  char _pad7[1];
   float keyframe_scale_fac;
 
   unsigned char editmesh_active[4];
@@ -458,6 +464,10 @@ typedef struct ThemeCollectionColor {
   unsigned char color[4];
 } ThemeCollectionColor;
 
+typedef struct ThemeStripColor {
+  unsigned char color[4];
+} ThemeStripColor;
+
 /**
  * A theme.
  *
@@ -500,8 +510,10 @@ typedef struct bTheme {
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];
 
+  /* See SEQUENCE_COLOR_TOT for the total number of strip colors. */
+  ThemeStripColor strip_color[9];
+
   int active_theme_area;
-  char _pad0[4];
 } bTheme;
 
 #define UI_THEMESPACE_START(btheme) \
@@ -635,7 +647,9 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
+  char no_proxy_to_override_conversion;
   char use_cycles_debug;
+  char use_geometry_nodes_legacy;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -646,8 +660,7 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_override_templates;
-  char use_geometry_nodes_fields;
-  char _pad[4];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1235,6 +1248,9 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_HAIR = (1 << 14),
   USER_DUP_POINTCLOUD = (1 << 15),
   USER_DUP_VOLUME = (1 << 16),
+  USER_DUP_LATTICE = (1 << 17),
+  USER_DUP_CAMERA = (1 << 18),
+  USER_DUP_SPEAKER = (1 << 19),
 
   USER_DUP_OBDATA = (~0) & ((1 << 24) - 1),
 

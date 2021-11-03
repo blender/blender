@@ -255,7 +255,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
     BKE_gpencil_frame_active_set(depsgraph, gpd);
     bGPDframe *gpf = gpl->actframe;
     if (gpf == NULL) {
-      return;
+      continue;
     }
     apply_dash_for_frame(ob, gpl, gpd, gpf, (DashGpencilModifierData *)md);
   }

@@ -38,6 +38,7 @@
 #include "BLT_translation.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 #include "UI_resources.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
@@ -60,40 +61,6 @@ struct AttributeSearchData {
 /* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
 BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
 
-static StringRef attribute_data_type_string(const CustomDataType type)
-{
-  const char *name = nullptr;
-  RNA_enum_name_from_value(rna_enum_attribute_type_items, type, &name);
-  return StringRef(IFACE_(name));
-}
-
-static StringRef attribute_domain_string(const AttributeDomain domain)
-{
-  const char *name = nullptr;
-  RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &name);
-  return StringRef(IFACE_(name));
-}
-
-/* Unicode arrow. */
-#define MENU_SEP "\xe2\x96\xb6"
-
-static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttributeInfo &item)
-{
-  const StringRef data_type_name = attribute_data_type_string(item.data_type);
-  const StringRef domain_name = attribute_domain_string(item.domain);
-  std::string search_item_text = domain_name + " " + MENU_SEP + item.name + UI_SEP_CHAR +
-                                 data_type_name;
-
-  return UI_search_item_add(
-      items, search_item_text.c_str(), (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
-}
-
-static GeometryAttributeInfo &get_dummy_item_info()
-{
-  static GeometryAttributeInfo info;
-  return info;
-}
-
 static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
@@ -107,51 +74,7 @@ static void attribute_search_update_fn(
   }
   blender::Vector<const GeometryAttributeInfo *> infos = node_log->lookup_available_attributes();
 
-  GeometryAttributeInfo &dummy_info = get_dummy_item_info();
-
-  /* Any string may be valid, so add the current search string along with the hints. */
-  if (str[0] != '\0') {
-    bool contained = false;
-    for (const GeometryAttributeInfo *attribute_info : infos) {
-      if (attribute_info->name == str) {
-        contained = true;
-        break;
-      }
-    }
-    if (!contained) {
-      dummy_info.name = str;
-      UI_search_item_add(items, str, &dummy_info, ICON_ADD, 0, 0);
-    }
-  }
-
-  if (str[0] == '\0' && !is_first) {
-    /* Allow clearing the text field when the string is empty, but not on the first pass,
-     * or opening an attribute field for the first time would show this search item. */
-    dummy_info.name = str;
-    UI_search_item_add(items, str, &dummy_info, ICON_X, 0, 0);
-  }
-
-  /* Don't filter when the menu is first opened, but still run the search
-   * so the items are in the same order they will appear in while searching. */
-  const char *string = is_first ? "" : str;
-
-  StringSearch *search = BLI_string_search_new();
-  for (const GeometryAttributeInfo *item : infos) {
-    BLI_string_search_add(search, item->name.c_str(), (void *)item);
-  }
-
-  GeometryAttributeInfo **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
-
-  for (const int i : IndexRange(filtered_amount)) {
-    const GeometryAttributeInfo *item = filtered_items[i];
-    if (!attribute_search_item_add(items, *item)) {
-      break;
-    }
-  }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
+  blender::ui::attribute_search_add_items(str, true, infos, items, is_first);
 }
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
@@ -198,7 +121,7 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
       AttributeSearchData, {node_tree, node, (bNodeSocket *)socket_ptr->data});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, MENU_SEP);
+  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
   UI_but_func_search_set(but,
                          nullptr,
                          attribute_search_update_fn,

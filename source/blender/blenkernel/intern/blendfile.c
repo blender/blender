@@ -251,7 +251,7 @@ static void setup_app_data(bContext *C,
        * replace it with 'curscene' if its needed */
     }
     /* and we enforce curscene to be in current screen */
-    else if (win) { /* can run in bgmode */
+    else if (win) { /* The window may be NULL in background-mode. */
       win->scene = curscene;
     }
 
@@ -342,6 +342,13 @@ static void setup_app_data(bContext *C,
    * but we still get too many unrelated data-corruption crashes otherwise... */
   if (bmain->versionfile < 250) {
     do_versions_ipos_to_animato(bmain);
+  }
+
+  /* FIXME: Same as above, readfile's `do_version` do not allow to create new IDs. */
+  /* TODO: Once this is definitively validated for 3.0 and option to not do it is removed, add a
+   * version bump and check here. */
+  if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_proxy_to_override_conversion)) {
+    BKE_lib_override_library_main_proxy_convert(bmain, reports);
   }
 
   bmain->recovered = 0;

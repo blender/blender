@@ -110,7 +110,7 @@ void CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluate
 }
 
 /**
- * Return the start indices for each of the curve spline's evaluated points, as if they were part
+ * Return the start indices for each of the curve spline's control points, if they were part
  * of a flattened array. This can be used to facilitate parallelism by avoiding the need to
  * accumulate an offset while doing more complex calculations.
  *
@@ -141,6 +141,30 @@ blender::Array<int> CurveEval::evaluated_point_offsets() const
   }
   offsets.last() = offset;
   return offsets;
+}
+
+/**
+ * Return the accumulated length at the start of every spline in the curve.
+ *
+ * \note The result is one longer than the spline count; the last element is the total length.
+ */
+blender::Array<float> CurveEval::accumulated_spline_lengths() const
+{
+  Array<float> spline_lengths(splines_.size() + 1);
+  float spline_length = 0.0f;
+  for (const int i : splines_.index_range()) {
+    spline_lengths[i] = spline_length;
+    spline_length += splines_[i]->length();
+  }
+  spline_lengths.last() = spline_length;
+  return spline_lengths;
+}
+
+void CurveEval::mark_cache_invalid()
+{
+  for (SplinePtr &spline : splines_) {
+    spline->mark_cache_invalid();
+  }
 }
 
 static BezierSpline::HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_type)
@@ -324,6 +348,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
  * because attributes are stored on splines rather than in a flat array on the curve:
  *  - The same set of attributes exists on every spline.
  *  - Attributes with the same name have the same type on every spline.
+ *  - Attributes are in the same order on every spline.
  */
 void CurveEval::assert_valid_point_attributes() const
 {
@@ -332,25 +357,40 @@ void CurveEval::assert_valid_point_attributes() const
     return;
   }
   const int layer_len = splines_.first()->attributes.data.totlayer;
-  Map<AttributeIDRef, AttributeMetaData> map;
-  for (const SplinePtr &spline : splines_) {
-    BLI_assert(spline->attributes.data.totlayer == layer_len);
-    spline->attributes.foreach_attribute(
+
+  Array<AttributeIDRef> ids_in_order(layer_len);
+  Array<AttributeMetaData> meta_data_in_order(layer_len);
+
+  {
+    int i = 0;
+    splines_.first()->attributes.foreach_attribute(
         [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          map.add_or_modify(
-              attribute_id,
-              [&](AttributeMetaData *map_data) {
-                /* All unique attribute names should be added on the first spline. */
-                BLI_assert(spline == splines_.first());
-                *map_data = meta_data;
-              },
-              [&](AttributeMetaData *map_data) {
-                /* Attributes on different splines should all have the same type. */
-                BLI_assert(meta_data == *map_data);
-              });
+          ids_in_order[i] = attribute_id;
+          meta_data_in_order[i] = meta_data;
+          i++;
           return true;
         },
         ATTR_DOMAIN_POINT);
   }
+
+  for (const SplinePtr &spline : splines_) {
+    /* All splines should have the same number of attributes. */
+    BLI_assert(spline->attributes.data.totlayer == layer_len);
+
+    int i = 0;
+    spline->attributes.foreach_attribute(
+        [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+          /* Attribute names and IDs should have the same order and exist on all splines. */
+          BLI_assert(attribute_id == ids_in_order[i]);
+
+          /* Attributes with the same ID different splines should all have the same type. */
+          BLI_assert(meta_data == meta_data_in_order[i]);
+
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
+  }
+
 #endif
 }

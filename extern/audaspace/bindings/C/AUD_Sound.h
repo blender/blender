@@ -36,7 +36,15 @@ extern AUD_API AUD_Specs AUD_Sound_getSpecs(AUD_Sound* sound);
  * \return The length of the sound in samples.
  * \note This function creates a reader from the sound and deletes it again.
  */
-extern AUD_API int AUD_getLength(AUD_Sound* sound);
+extern AUD_API int AUD_Sound_getLength(AUD_Sound* sound);
+
+/**
+ * Retrieves the stream infos of a sound file.
+ * \param sound The sound to retrieve from which must be a file sound.
+ * \param infos A pointer to a AUD_StreamInfo array that will be allocated and must afterwards be freed by the caller.
+ * \return The number of items in the infos array.
+ */
+extern AUD_API int AUD_Sound_getFileStreams(AUD_Sound* sound, AUD_StreamInfo** stream_infos);
 
 /**
  * Reads a sound's samples into memory.
@@ -90,6 +98,15 @@ extern AUD_API AUD_Sound* AUD_Sound_buffer(sample_t* data, int length, AUD_Specs
 extern AUD_API AUD_Sound* AUD_Sound_bufferFile(unsigned char* buffer, int size);
 
 /**
+ * Loads a sound file from a memory buffer.
+ * \param buffer The buffer which contains the sound file.
+ * \param size The size of the buffer.
+ * \param stream The index of the audio stream within the file if it contains multiple audio streams.
+ * \return A handle of the sound file.
+ */
+extern AUD_API AUD_Sound* AUD_Sound_bufferFileStream(unsigned char* buffer, int size, int stream);
+
+/**
  * Caches a sound into a memory buffer.
  * \param sound The sound to cache.
  * \return A handle of the cached sound.
@@ -102,6 +119,14 @@ extern AUD_API AUD_Sound* AUD_Sound_cache(AUD_Sound* sound);
  * \return A handle of the sound file.
  */
 extern AUD_API AUD_Sound* AUD_Sound_file(const char* filename);
+
+/**
+ * Loads a sound file.
+ * \param filename The filename of the sound file.
+ * \param stream The index of the audio stream within the file if it contains multiple audio streams.
+ * \return A handle of the sound file.
+ */
+extern AUD_API AUD_Sound* AUD_Sound_fileStream(const char* filename, int stream);
 
 /**
  * Creates a sawtooth sound.

@@ -569,6 +569,7 @@ typedef enum {
   GHOST_kUserSpecialDirMusic,
   GHOST_kUserSpecialDirPictures,
   GHOST_kUserSpecialDirVideos,
+  GHOST_kUserSpecialDirCaches,
   /* Can be extended as needed. */
 } GHOST_TUserSpecialDirTypes;
 
@@ -753,8 +754,31 @@ typedef struct GHOST_XrActionProfileInfo {
   const char *profile_path;
   uint32_t count_subaction_paths;
   const char **subaction_paths;
-  /* Bindings for each subaction path. */
+  /** Bindings for each subaction path. */
   const GHOST_XrActionBindingInfo *bindings;
 } GHOST_XrActionProfileInfo;
+
+typedef struct GHOST_XrControllerModelVertex {
+  float position[3];
+  float normal[3];
+} GHOST_XrControllerModelVertex;
+
+typedef struct GHOST_XrControllerModelComponent {
+  /** World space transform. */
+  float transform[4][4];
+  uint32_t vertex_offset;
+  uint32_t vertex_count;
+  uint32_t index_offset;
+  uint32_t index_count;
+} GHOST_XrControllerModelComponent;
+
+typedef struct GHOST_XrControllerModelData {
+  uint32_t count_vertices;
+  const GHOST_XrControllerModelVertex *vertices;
+  uint32_t count_indices;
+  const uint32_t *indices;
+  uint32_t count_components;
+  const GHOST_XrControllerModelComponent *components;
+} GHOST_XrControllerModelData;
 
 #endif /* WITH_XR_OPENXR */

@@ -87,11 +87,6 @@ void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,
                                   const bool for_render);
-void BKE_displist_make_curveTypes_forRender(struct Depsgraph *depsgraph,
-                                            const struct Scene *scene,
-                                            struct Object *ob,
-                                            struct ListBase *dispbase,
-                                            struct Mesh **r_final);
 void BKE_displist_make_mball(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 
 void BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,

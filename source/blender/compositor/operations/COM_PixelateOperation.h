@@ -34,33 +34,33 @@ class PixelateOperation : public NodeOperation {
   /**
    * \brief cached reference to the input operation
    */
-  SocketReader *m_inputOperation;
+  SocketReader *input_operation_;
 
  public:
   /**
    * \brief PixelateOperation
-   * \param dataType: the datatype to create this operator for (saves datatype conversions)
+   * \param data_type: the datatype to create this operator for (saves datatype conversions)
    */
-  PixelateOperation(DataType dataType);
+  PixelateOperation(DataType data_type);
 
   /**
    * \brief initialization of the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * \brief de-initialization of the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   /**
-   * \brief executePixel
+   * \brief execute_pixel
    * \param output: result
    * \param x: x-coordinate
    * \param y: y-coordinate
    * \param sampler: sampler
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 }  // namespace blender::compositor

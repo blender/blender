@@ -177,7 +177,7 @@ static bool is_vertex_diagonal(BMVert *from_v, BMVert *to_v)
  */
 static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(sizeof(bool), bm->totvert, "visited vertices");
+  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   GSQueue *queue;
   queue = BLI_gsqueue_new(sizeof(BMVert *));
 
@@ -368,7 +368,7 @@ static bool unsubdivide_tag_disconnected_mesh_element(BMesh *bm, int *elem_id, i
  */
 static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(sizeof(bool), bm->totvert, "visited vertices");
+  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   int current_id = 0;
   for (int i = 0; i < bm->totvert; i++) {
     if (!visited_vertices[i]) {
@@ -475,7 +475,7 @@ static bool multires_unsubdivide_single_level(BMesh *bm)
   BM_mesh_elem_table_ensure(bm, BM_VERT);
 
   /* Build disconnected elements IDs. Each disconnected mesh element is evaluated separately. */
-  int *elem_id = MEM_calloc_arrayN(sizeof(int), bm->totvert, " ELEM ID");
+  int *elem_id = MEM_calloc_arrayN(bm->totvert, sizeof(int), " ELEM ID");
   const int tot_ids = unsubdivide_init_elem_ids(bm, elem_id);
 
   bool valid_tag_found = true;
@@ -961,7 +961,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
   }
 
   /* Create a map from loop index to poly index for the original mesh. */
-  context->loop_to_face_map = MEM_calloc_arrayN(sizeof(int), original_mesh->totloop, "loop map");
+  context->loop_to_face_map = MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map");
 
   for (int i = 0; i < original_mesh->totpoly; i++) {
     MPoly *poly = &original_mesh->mpoly[i];
@@ -1005,13 +1005,13 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
 
   context->num_grids = base_mesh->totloop;
   context->base_mesh_grids = MEM_calloc_arrayN(
-      sizeof(MultiresUnsubdivideGrid), base_mesh->totloop, "grids");
+      base_mesh->totloop, sizeof(MultiresUnsubdivideGrid), "grids");
 
   /* Based on the existing indices in the data-layers, generate two vertex indices maps. */
   /* From vertex index in original to vertex index in base and from vertex index in base to vertex
    * index in original. */
-  int *orig_to_base_vmap = MEM_calloc_arrayN(sizeof(int), bm_original_mesh->totvert, "orig vmap");
-  int *base_to_orig_vmap = MEM_calloc_arrayN(sizeof(int), base_mesh->totvert, "base vmap");
+  int *orig_to_base_vmap = MEM_calloc_arrayN(bm_original_mesh->totvert, sizeof(int), "orig vmap");
+  int *base_to_orig_vmap = MEM_calloc_arrayN(base_mesh->totvert, sizeof(int), "base vmap");
 
   context->base_to_orig_vmap = CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname);
   for (int i = 0; i < base_mesh->totvert; i++) {

@@ -20,10 +20,10 @@
 /** \file
  * \ingroup modifiers
  *
- * EdgeSplit modifier
+ * Edge Split modifier
  *
  * Splits edges in the mesh according to sharpness flag
- * or edge angle (can be used to achieve autosmoothing)
+ * or edge angle (can be used to achieve auto-smoothing)
  */
 
 #include "BLI_utildefines.h"

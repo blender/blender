@@ -20,7 +20,7 @@
 /** \file
  * \ingroup avi
  *
- * This is external code. Converts rgb-type avi-s.
+ * This is external code. Converts RGB-type AVI files.
  */
 
 #include <stdlib.h>

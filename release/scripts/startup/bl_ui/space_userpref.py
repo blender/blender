@@ -398,21 +398,26 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col = flow.column()
         col.prop(edit, "use_duplicate_action", text="Action")
         col.prop(edit, "use_duplicate_armature", text="Armature")
+        col.prop(edit, "use_duplicate_camera", text="Camera")
         col.prop(edit, "use_duplicate_curve", text="Curve")
         # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
         if hasattr(edit, "use_duplicate_hair"):
             col.prop(edit, "use_duplicate_hair", text="Hair")
-        col.prop(edit, "use_duplicate_light", text="Light")
+
         col = flow.column()
+        col.prop(edit, "use_duplicate_lattice", text="Lattice")
+        col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_lightprobe", text="Light Probe")
         col.prop(edit, "use_duplicate_material", text="Material")
         col.prop(edit, "use_duplicate_mesh", text="Mesh")
         col.prop(edit, "use_duplicate_metaball", text="Metaball")
-        col.prop(edit, "use_duplicate_particle", text="Particle")
+
         col = flow.column()
+        col.prop(edit, "use_duplicate_particle", text="Particle")
         if hasattr(edit, "use_duplicate_pointcloud"):
             col.prop(edit, "use_duplicate_pointcloud", text="Point Cloud")
+        col.prop(edit, "use_duplicate_speaker", text="Speaker")
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
         # col.prop(edit, "use_duplicate_texture", text="Texture")  # Not implemented.
@@ -920,6 +925,7 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "editor_outline")
         flow.prop(ui, "widget_text_cursor")
         flow.prop(ui, "widget_emboss")
+        flow.prop(ui, "panel_roundness")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
@@ -1070,6 +1076,25 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
         for i, ui in enumerate(theme.collection_color, 1):
+            flow.prop(ui, "color", text=iface_("Color %d") % i, translate=False)
+
+
+class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
+    bl_label = "Strip Colors"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, _context):
+        layout = self.layout
+
+        layout.label(icon='SEQ_STRIP_DUPLICATE')
+
+    def draw_centered(self, context, layout):
+        theme = context.preferences.themes[0]
+
+        layout.use_property_split = True
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        for i, ui in enumerate(theme.strip_color, 1):
             flow.prop(ui, "color", text=iface_("Color %d") % i, translate=False)
 
 
@@ -1385,12 +1410,18 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         row.label(text="Path")
 
         for i, library in enumerate(paths.asset_libraries):
-            name_col.prop(library, "name", text="")
+            row = name_col.row()
+            row.alert = not library.name
+            row.prop(library, "name", text="")
+
             row = path_col.row()
-            row.prop(library, "path", text="")
+            subrow = row.row()
+            subrow.alert = not library.path
+            subrow.prop(library, "path", text="")
             row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+
         row = box.row()
-        row.alignment = 'LEFT'
+        row.alignment = 'RIGHT'
         row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
 
@@ -2250,7 +2281,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
-                ({"property": "use_geometry_nodes_fields"}, "T91274"),
             ),
         )
 
@@ -2282,7 +2312,9 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
                 ({"property": "override_auto_resync"}, "T83811"),
+                ({"property": "proxy_to_override_auto_conversion"}, "T91671"),
                 ({"property": "use_cycles_debug"}, None),
+                ({"property": "use_geometry_nodes_legacy"}, "T91274"),
             ),
         )
 
@@ -2346,6 +2378,7 @@ classes = (
     USERPREF_PT_theme_text_style,
     USERPREF_PT_theme_bone_color_sets,
     USERPREF_PT_theme_collection_colors,
+    USERPREF_PT_theme_strip_colors,
 
     USERPREF_PT_file_paths_data,
     USERPREF_PT_file_paths_render,

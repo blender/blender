@@ -30,6 +30,7 @@
 #include "GHOST_IXrGraphicsBinding.h"
 #include "GHOST_XrAction.h"
 #include "GHOST_XrContext.h"
+#include "GHOST_XrControllerModel.h"
 #include "GHOST_XrException.h"
 #include "GHOST_XrSwapchain.h"
 #include "GHOST_Xr_intern.h"
@@ -52,6 +53,8 @@ struct OpenXRSessionData {
   std::vector<GHOST_XrSwapchain> swapchains;
 
   std::map<std::string, GHOST_XrActionSet> action_sets;
+  /* Controller models identified by subaction path. */
+  std::map<std::string, GHOST_XrControllerModel> controller_models;
 };
 
 struct GHOST_XrDrawInfo {
@@ -124,7 +127,9 @@ void GHOST_XrSession::initSystem()
 /** \name State Management
  * \{ */
 
-static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &base_pose)
+static void create_reference_spaces(OpenXRSessionData &oxr,
+                                    const GHOST_XrPose &base_pose,
+                                    bool isDebugMode)
 {
   XrReferenceSpaceCreateInfo create_info = {XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
   create_info.poseInReferenceSpace.orientation.w = 1.0f;
@@ -160,10 +165,11 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
      * since runtimes are not required to support the stage reference space. If the runtime
      * doesn't support it then just fall back to the local space. */
     if (result == XR_ERROR_REFERENCE_SPACE_UNSUPPORTED) {
-      printf(
-          "Warning: XR runtime does not support stage reference space, falling back to local "
-          "reference space.\n");
-
+      if (isDebugMode) {
+        printf(
+            "Warning: XR runtime does not support stage reference space, falling back to local "
+            "reference space.\n");
+      }
       create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
       CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.reference_space),
                "Failed to create local reference space.");
@@ -179,11 +185,12 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
     CHECK_XR(xrGetReferenceSpaceBoundsRect(oxr.session, XR_REFERENCE_SPACE_TYPE_STAGE, &extents),
              "Failed to get stage reference space bounds.");
     if (extents.width == 0.0f || extents.height == 0.0f) {
-      printf(
-          "Warning: Invalid stage reference space bounds, falling back to local reference space. "
-          "To use the stage reference space, please define a tracking space via the XR "
-          "runtime.\n");
-
+      if (isDebugMode) {
+        printf(
+            "Warning: Invalid stage reference space bounds, falling back to local reference "
+            "space. To use the stage reference space, please define a tracking space via the XR "
+            "runtime.\n");
+      }
       /* Fallback to local space. */
       if (oxr.reference_space != XR_NULL_HANDLE) {
         CHECK_XR(xrDestroySpace(oxr.reference_space), "Failed to destroy stage reference space.");
@@ -252,7 +259,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
            "detailed error information to the command line.");
 
   prepareDrawing();
-  create_reference_spaces(*m_oxr, begin_info->base_pose);
+  create_reference_spaces(*m_oxr, begin_info->base_pose, m_context->isDebugMode());
 
   /* Create and bind actions here. */
   m_context->getCustomFuncs().session_create_fn();
@@ -916,3 +923,71 @@ void GHOST_XrSession::getActionCustomdataArray(const char *action_set_name,
 }
 
 /** \} */ /* Actions */
+
+/* -------------------------------------------------------------------- */
+/** \name Controller Model
+ *
+ * \{ */
+
+bool GHOST_XrSession::loadControllerModel(const char *subaction_path)
+{
+  if (!m_context->isExtensionEnabled(XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME)) {
+    return false;
+  }
+
+  XrSession session = m_oxr->session;
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = controller_models.find(
+      subaction_path);
+
+  if (it == controller_models.end()) {
+    XrInstance instance = m_context->getInstance();
+    it = controller_models
+             .emplace(std::piecewise_construct,
+                      std::make_tuple(subaction_path),
+                      std::make_tuple(instance, subaction_path))
+             .first;
+  }
+
+  it->second.load(session);
+
+  return true;
+}
+
+void GHOST_XrSession::unloadControllerModel(const char *subaction_path)
+{
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  if (controller_models.find(subaction_path) != controller_models.end()) {
+    controller_models.erase(subaction_path);
+  }
+}
+
+bool GHOST_XrSession::updateControllerModelComponents(const char *subaction_path)
+{
+  XrSession session = m_oxr->session;
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+      subaction_path);
+  if (it == m_oxr->controller_models.end()) {
+    return false;
+  }
+
+  it->second.updateComponents(session);
+
+  return true;
+}
+
+bool GHOST_XrSession::getControllerModelData(const char *subaction_path,
+                                             GHOST_XrControllerModelData &r_data)
+{
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+      subaction_path);
+  if (it == m_oxr->controller_models.end()) {
+    return false;
+  }
+
+  it->second.getData(r_data);
+
+  return true;
+}
+
+/** \} */ /* Controller Model */

@@ -1383,7 +1383,7 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
-        tmp_bool = MEM_malloc_arrayN(sizeof(*tmp_bool), length, __func__);
+        tmp_bool = MEM_malloc_arrayN(length, sizeof(*tmp_bool), __func__);
         RNA_property_boolean_get_default_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
           r_values[i] = (float)tmp_bool[i];
@@ -1391,7 +1391,7 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
         MEM_freeN(tmp_bool);
         break;
       case PROP_INT:
-        tmp_int = MEM_malloc_arrayN(sizeof(*tmp_int), length, __func__);
+        tmp_int = MEM_malloc_arrayN(length, sizeof(*tmp_int), __func__);
         RNA_property_int_get_default_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
           r_values[i] = (float)tmp_int[i];

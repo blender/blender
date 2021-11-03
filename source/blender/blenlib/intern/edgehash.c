@@ -230,8 +230,8 @@ EdgeHash *BLI_edgehash_new_ex(const char *info, const uint reserve)
   UPDATE_SLOT_MASK(eh);
   eh->length = 0;
   eh->dummy_count = 0;
-  eh->entries = MEM_calloc_arrayN(sizeof(EdgeHashEntry), ENTRIES_CAPACITY(eh), "eh entries");
-  eh->map = MEM_malloc_arrayN(sizeof(int32_t), MAP_CAPACITY(eh), "eh map");
+  eh->entries = MEM_calloc_arrayN(ENTRIES_CAPACITY(eh), sizeof(EdgeHashEntry), "eh entries");
+  eh->map = MEM_malloc_arrayN(MAP_CAPACITY(eh), sizeof(int32_t), "eh map");
   CLEAR_MAP(eh);
   return eh;
 }
@@ -515,8 +515,8 @@ EdgeSet *BLI_edgeset_new_ex(const char *info, const uint reserve)
   es->capacity_exp = calc_capacity_exp_for_reserve(reserve);
   UPDATE_SLOT_MASK(es);
   es->length = 0;
-  es->entries = MEM_malloc_arrayN(sizeof(Edge), ENTRIES_CAPACITY(es), "es entries");
-  es->map = MEM_malloc_arrayN(sizeof(int32_t), MAP_CAPACITY(es), "es map");
+  es->entries = MEM_malloc_arrayN(ENTRIES_CAPACITY(es), sizeof(Edge), "es entries");
+  es->map = MEM_malloc_arrayN(MAP_CAPACITY(es), sizeof(int32_t), "es map");
   CLEAR_MAP(es);
   return es;
 }

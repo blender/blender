@@ -103,13 +103,13 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Camera *camera = (Camera *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, camera->dof.focus_object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof.focus_object, IDWALK_CB_NOP);
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
     if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-      BKE_LIB_FOREACHID_PROCESS(data, bgpic->ima, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->ima, IDWALK_CB_USER);
     }
     else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-      BKE_LIB_FOREACHID_PROCESS(data, bgpic->clip, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->clip, IDWALK_CB_USER);
     }
   }
 }
@@ -140,7 +140,6 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &ca->bg_images);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    bgpic->iuser.ok = 1;
     bgpic->iuser.scene = NULL;
   }
 }
@@ -182,7 +181,7 @@ IDTypeInfo IDType_ID_CA = {
     .name = "Camera",
     .name_plural = "cameras",
     .translation_context = BLT_I18NCONTEXT_ID_CAMERA,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = camera_init_data,
     .copy_data = camera_copy_data,
@@ -1128,7 +1127,6 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
 
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;
-  bgpic->iuser.ok = 1;
   bgpic->iuser.flag |= IMA_ANIM_ALWAYS;
   bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED;
 

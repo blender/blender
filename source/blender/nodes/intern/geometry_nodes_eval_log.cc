@@ -21,11 +21,20 @@
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 
+#include "FN_field_cpp_type.hh"
+
+#include "BLT_translation.h"
+
 namespace blender::nodes::geometry_nodes_eval_log {
 
 using fn::CPPType;
+using fn::FieldCPPType;
+using fn::FieldInput;
+using fn::GField;
 
 ModifierLog::ModifierLog(GeoLogger &logger)
+    : input_geometry_log_(std::move(logger.input_geometry_log_)),
+      output_geometry_log_(std::move(logger.output_geometry_log_))
 {
   root_tree_logs_ = allocator_.construct<TreeLog>();
 
@@ -106,6 +115,15 @@ void ModifierLog::foreach_node_log(FunctionRef<void(const NodeLog &)> fn) const
   }
 }
 
+const GeometryValueLog *ModifierLog::input_geometry_log() const
+{
+  return input_geometry_log_.get();
+}
+const GeometryValueLog *ModifierLog::output_geometry_log() const
+{
+  return output_geometry_log_.get();
+}
+
 const NodeLog *TreeLog::lookup_node_log(StringRef node_name) const
 {
   const destruct_ptr<NodeLog> *node_log = node_logs_.lookup_ptr_as(node_name);
@@ -157,17 +175,58 @@ const SocketLog *NodeLog::lookup_socket_log(const bNode &node, const bNodeSocket
   return this->lookup_socket_log((eNodeSocketInOut)socket.in_out, index);
 }
 
+GFieldValueLog::GFieldValueLog(fn::GField field, bool log_full_field) : type_(field.cpp_type())
+{
+  Set<std::reference_wrapper<const FieldInput>> field_inputs_set;
+  field.node().foreach_field_input(
+      [&](const FieldInput &field_input) { field_inputs_set.add(field_input); });
+
+  Vector<std::reference_wrapper<const FieldInput>> field_inputs;
+  field_inputs.extend(field_inputs_set.begin(), field_inputs_set.end());
+
+  std::sort(
+      field_inputs.begin(), field_inputs.end(), [](const FieldInput &a, const FieldInput &b) {
+        const int index_a = (int)a.category();
+        const int index_b = (int)b.category();
+        if (index_a == index_b) {
+          return a.socket_inspection_name().size() < b.socket_inspection_name().size();
+        }
+        return index_a < index_b;
+      });
+
+  for (const FieldInput &field_input : field_inputs) {
+    input_tooltips_.append(field_input.socket_inspection_name());
+  }
+
+  if (log_full_field) {
+    field_ = std::move(field);
+  }
+}
+
 GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry)
 {
-  bke::geometry_set_instances_attribute_foreach(
-      geometry_set,
-      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-        if (attribute_id.is_named()) {
+  static std::array all_component_types = {GEO_COMPONENT_TYPE_CURVE,
+                                           GEO_COMPONENT_TYPE_INSTANCES,
+                                           GEO_COMPONENT_TYPE_MESH,
+                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                           GEO_COMPONENT_TYPE_VOLUME};
+
+  /* Keep track handled attribute names to make sure that we do not return the same name twice.
+   * Currently #GeometrySet::attribute_foreach does not do that. Note that this will merge
+   * attributes with the same name but different domains or data types on separate components. */
+  Set<StringRef> names;
+
+  geometry_set.attribute_foreach(
+      all_component_types,
+      true,
+      [&](const bke::AttributeIDRef &attribute_id,
+          const AttributeMetaData &meta_data,
+          const GeometryComponent &UNUSED(component)) {
+        if (attribute_id.is_named() && names.add(attribute_id.name())) {
           this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
         }
-        return true;
-      },
-      8);
+      });
+
   for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
     component_types_.append(component->type());
     switch (component->type()) {
@@ -347,7 +406,7 @@ void LocalGeoLogger::log_value_for_sockets(Span<DSocket> sockets, GPointer value
   if (type.is<GeometrySet>()) {
     bool log_full_geometry = false;
     for (const DSocket &socket : sockets) {
-      if (main_logger_->log_full_geometry_sockets_.contains(socket)) {
+      if (main_logger_->log_full_sockets_.contains(socket)) {
         log_full_geometry = true;
         break;
       }
@@ -356,6 +415,26 @@ void LocalGeoLogger::log_value_for_sockets(Span<DSocket> sockets, GPointer value
     const GeometrySet &geometry_set = *value.get<GeometrySet>();
     destruct_ptr<GeometryValueLog> value_log = allocator_->construct<GeometryValueLog>(
         geometry_set, log_full_geometry);
+    values_.append({copied_sockets, std::move(value_log)});
+  }
+  else if (const FieldCPPType *field_type = dynamic_cast<const FieldCPPType *>(&type)) {
+    GField field = field_type->get_gfield(value.get());
+    bool log_full_field = false;
+    if (!field.node().depends_on_input()) {
+      /* Always log constant fields so that their value can be shown in socket inspection.
+       * In the future we can also evaluate the field here and only store the value. */
+      log_full_field = true;
+    }
+    if (!log_full_field) {
+      for (const DSocket &socket : sockets) {
+        if (main_logger_->log_full_sockets_.contains(socket)) {
+          log_full_field = true;
+          break;
+        }
+      }
+    }
+    destruct_ptr<GFieldValueLog> value_log = allocator_->construct<GFieldValueLog>(
+        std::move(field), log_full_field);
     values_.append({copied_sockets, std::move(value_log)});
   }
   else {

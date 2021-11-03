@@ -17,12 +17,11 @@
  */
 
 #include "COM_GlareGhostOperation.h"
-#include "BLI_math.h"
 #include "COM_FastGaussianBlurOperation.h"
 
 namespace blender::compositor {
 
-static float smoothMask(float x, float y)
+static float smooth_mask(float x, float y)
 {
   float t;
   x = 2.0f * x - 1.0f;
@@ -34,7 +33,9 @@ static float smoothMask(float x, float y)
   return 0.0f;
 }
 
-void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
+void GlareGhostOperation::generate_glare(float *data,
+                                         MemoryBuffer *input_tile,
+                                         NodeGlare *settings)
 {
   const int qt = 1 << settings->quality;
   const float s1 = 4.0f / (float)qt, s2 = 2.0f * s1;
@@ -43,8 +44,8 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
   float sc, isc, u, v, sm, s, t, ofs, scalef[64];
   const float cmo = 1.0f - settings->colmod;
 
-  MemoryBuffer gbuf(*inputTile);
-  MemoryBuffer tbuf1(*inputTile);
+  MemoryBuffer gbuf(*input_tile);
+  MemoryBuffer tbuf1(*input_tile);
 
   bool breaked = false;
 
@@ -52,7 +53,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(&tbuf1, s1, 1, 3);
   }
-  if (isBraked()) {
+  if (is_braked()) {
     breaked = true;
   }
   if (!breaked) {
@@ -61,19 +62,19 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
   MemoryBuffer tbuf2(tbuf1);
 
-  if (isBraked()) {
+  if (is_braked()) {
     breaked = true;
   }
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(&tbuf2, s2, 0, 3);
   }
-  if (isBraked()) {
+  if (is_braked()) {
     breaked = true;
   }
   if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(&tbuf2, s2, 1, 3);
   }
-  if (isBraked()) {
+  if (is_braked()) {
     breaked = true;
   }
   if (!breaked) {
@@ -101,59 +102,59 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
   sc = 2.13;
   isc = -0.97;
-  for (y = 0; y < gbuf.getHeight() && (!breaked); y++) {
-    v = ((float)y + 0.5f) / (float)gbuf.getHeight();
-    for (x = 0; x < gbuf.getWidth(); x++) {
-      u = ((float)x + 0.5f) / (float)gbuf.getWidth();
+  for (y = 0; y < gbuf.get_height() && (!breaked); y++) {
+    v = ((float)y + 0.5f) / (float)gbuf.get_height();
+    for (x = 0; x < gbuf.get_width(); x++) {
+      u = ((float)x + 0.5f) / (float)gbuf.get_width();
       s = (u - 0.5f) * sc + 0.5f;
       t = (v - 0.5f) * sc + 0.5f;
-      tbuf1.readBilinear(c, s * gbuf.getWidth(), t * gbuf.getHeight());
-      sm = smoothMask(s, t);
+      tbuf1.read_bilinear(c, s * gbuf.get_width(), t * gbuf.get_height());
+      sm = smooth_mask(s, t);
       mul_v3_fl(c, sm);
       s = (u - 0.5f) * isc + 0.5f;
       t = (v - 0.5f) * isc + 0.5f;
-      tbuf2.readBilinear(tc, s * gbuf.getWidth() - 0.5f, t * gbuf.getHeight() - 0.5f);
-      sm = smoothMask(s, t);
+      tbuf2.read_bilinear(tc, s * gbuf.get_width() - 0.5f, t * gbuf.get_height() - 0.5f);
+      sm = smooth_mask(s, t);
       madd_v3_v3fl(c, tc, sm);
 
-      gbuf.writePixel(x, y, c);
+      gbuf.write_pixel(x, y, c);
     }
-    if (isBraked()) {
+    if (is_braked()) {
       breaked = true;
     }
   }
 
-  memset(tbuf1.getBuffer(),
+  memset(tbuf1.get_buffer(),
          0,
-         tbuf1.getWidth() * tbuf1.getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
+         tbuf1.get_width() * tbuf1.get_height() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
   for (n = 1; n < settings->iter && (!breaked); n++) {
-    for (y = 0; y < gbuf.getHeight() && (!breaked); y++) {
-      v = ((float)y + 0.5f) / (float)gbuf.getHeight();
-      for (x = 0; x < gbuf.getWidth(); x++) {
-        u = ((float)x + 0.5f) / (float)gbuf.getWidth();
+    for (y = 0; y < gbuf.get_height() && (!breaked); y++) {
+      v = ((float)y + 0.5f) / (float)gbuf.get_height();
+      for (x = 0; x < gbuf.get_width(); x++) {
+        u = ((float)x + 0.5f) / (float)gbuf.get_width();
         tc[0] = tc[1] = tc[2] = 0.0f;
         for (p = 0; p < 4; p++) {
           np = (n << 2) + p;
           s = (u - 0.5f) * scalef[np] + 0.5f;
           t = (v - 0.5f) * scalef[np] + 0.5f;
-          gbuf.readBilinear(c, s * gbuf.getWidth() - 0.5f, t * gbuf.getHeight() - 0.5f);
+          gbuf.read_bilinear(c, s * gbuf.get_width() - 0.5f, t * gbuf.get_height() - 0.5f);
           mul_v3_v3(c, cm[np]);
-          sm = smoothMask(s, t) * 0.25f;
+          sm = smooth_mask(s, t) * 0.25f;
           madd_v3_v3fl(tc, c, sm);
         }
-        tbuf1.addPixel(x, y, tc);
+        tbuf1.add_pixel(x, y, tc);
       }
-      if (isBraked()) {
+      if (is_braked()) {
         breaked = true;
       }
     }
-    memcpy(gbuf.getBuffer(),
-           tbuf1.getBuffer(),
-           tbuf1.getWidth() * tbuf1.getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
+    memcpy(gbuf.get_buffer(),
+           tbuf1.get_buffer(),
+           tbuf1.get_width() * tbuf1.get_height() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
   }
   memcpy(data,
-         gbuf.getBuffer(),
-         gbuf.getWidth() * gbuf.getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
+         gbuf.get_buffer(),
+         gbuf.get_width() * gbuf.get_height() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
 }
 
 }  // namespace blender::compositor

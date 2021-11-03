@@ -17,12 +17,6 @@
  */
 
 #include "COM_AntiAliasOperation.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "RE_texture.h"
 
 namespace blender::compositor {
 
@@ -116,26 +110,26 @@ static int extrapolate9(float *E0,
 
 AntiAliasOperation::AntiAliasOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->m_valueReader = nullptr;
-  this->flags.complex = true;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  value_reader_ = nullptr;
+  flags_.complex = true;
 }
 
-void AntiAliasOperation::initExecution()
+void AntiAliasOperation::init_execution()
 {
-  this->m_valueReader = this->getInputSocketReader(0);
+  value_reader_ = this->get_input_socket_reader(0);
 }
 
-void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
+void AntiAliasOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   MemoryBuffer *input_buffer = (MemoryBuffer *)data;
-  const int buffer_width = input_buffer->getWidth(), buffer_height = input_buffer->getHeight();
+  const int buffer_width = input_buffer->get_width(), buffer_height = input_buffer->get_height();
   if (y < 0 || y >= buffer_height || x < 0 || x >= buffer_width) {
     output[0] = 0.0f;
   }
   else {
-    const float *buffer = input_buffer->getBuffer();
+    const float *buffer = input_buffer->get_buffer();
     const float *row_curr = &buffer[y * buffer_width];
     if (x == 0 || x == buffer_width - 1 || y == 0 || y == buffer_height - 1) {
       output[0] = row_curr[x];
@@ -179,27 +173,27 @@ void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
   }
 }
 
-void AntiAliasOperation::deinitExecution()
+void AntiAliasOperation::deinit_execution()
 {
-  this->m_valueReader = nullptr;
+  value_reader_ = nullptr;
 }
 
-bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input,
-                                                          ReadBufferOperation *readOperation,
-                                                          rcti *output)
+bool AntiAliasOperation::determine_depending_area_of_interest(rcti *input,
+                                                              ReadBufferOperation *read_operation,
+                                                              rcti *output)
 {
-  rcti imageInput;
-  NodeOperation *operation = getInputOperation(0);
-  imageInput.xmax = input->xmax + 1;
-  imageInput.xmin = input->xmin - 1;
-  imageInput.ymax = input->ymax + 1;
-  imageInput.ymin = input->ymin - 1;
-  return operation->determineDependingAreaOfInterest(&imageInput, readOperation, output);
+  rcti image_input;
+  NodeOperation *operation = get_input_operation(0);
+  image_input.xmax = input->xmax + 1;
+  image_input.xmin = input->xmin - 1;
+  image_input.ymax = input->ymax + 1;
+  image_input.ymin = input->ymin - 1;
+  return operation->determine_depending_area_of_interest(&image_input, read_operation, output);
 }
 
-void *AntiAliasOperation::initializeTileData(rcti *rect)
+void *AntiAliasOperation::initialize_tile_data(rcti *rect)
 {
-  return getInputOperation(0)->initializeTileData(rect);
+  return get_input_operation(0)->initialize_tile_data(rect);
 }
 
 void AntiAliasOperation::get_area_of_interest(const int input_idx,

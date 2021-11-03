@@ -25,18 +25,18 @@ namespace blender::compositor {
 class InpaintSimpleOperation : public NodeOperation {
  protected:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputImageProgram;
+  SocketReader *input_image_program_;
 
-  int m_iterations;
+  int iterations_;
 
-  float *m_cached_buffer;
-  bool m_cached_buffer_ready;
+  float *cached_buffer_;
+  bool cached_buffer_ready_;
 
-  int *m_pixelorder;
-  int m_area_size;
-  short *m_manhattan_distance;
+  int *pixelorder_;
+  int area_size_;
+  short *manhattan_distance_;
 
  public:
   InpaintSimpleOperation();
@@ -44,27 +44,27 @@ class InpaintSimpleOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setIterations(int iterations)
+  void set_iterations(int iterations)
   {
-    this->m_iterations = iterations;
+    iterations_ = iterations;
   }
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,

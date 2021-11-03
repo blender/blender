@@ -52,7 +52,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-#include "tiffio.h"
+#include <tiffio.h>
 
 #ifdef WIN32
 #  include "utfconv.h"
@@ -457,7 +457,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
   }
 
   /* simple RGBA image */
-  if (!(bitspersample == 32 || bitspersample == 16)) {
+  if (!(ELEM(bitspersample, 32, 16))) {
     success |= TIFFReadRGBAImage(image, ibuf->x, ibuf->y, tmpibuf->rect, 0);
   }
   /* contiguous channels: RGBRGBRGB */
@@ -895,9 +895,7 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
             copy_v3_v3(rgb, &fromf[from_i]);
           }
           else {
-            /* Standard linear-to-srgb conversion if float buffer
-             * wasn't managed.
-             */
+            /* Standard linear-to-SRGB conversion if float buffer wasn't managed. */
             linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
           }
           if (channels_in_float == 4) {

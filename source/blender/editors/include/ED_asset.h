@@ -36,14 +36,17 @@ void ED_operatortypes_asset(void);
 }
 #endif
 
+#include "../asset/ED_asset_catalog.h"
 #include "../asset/ED_asset_filter.h"
 #include "../asset/ED_asset_handle.h"
 #include "../asset/ED_asset_library.h"
 #include "../asset/ED_asset_list.h"
 #include "../asset/ED_asset_mark_clear.h"
 #include "../asset/ED_asset_temp_id_consumer.h"
+#include "../asset/ED_asset_type.h"
 
 /* C++ only headers. */
 #ifdef __cplusplus
+#  include "../asset/ED_asset_catalog.hh"
 #  include "../asset/ED_asset_list.hh"
 #endif

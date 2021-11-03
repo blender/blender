@@ -48,7 +48,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -61,6 +60,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+#include "BKE_vfont.h"
 #include "BKE_workspace.h"
 #include "BKE_world.h"
 
@@ -690,7 +690,7 @@ static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
     Object *ob = objects[ob_index];
     int actcol = ob->actcol;
     for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob->data, slot)) {
+      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob, slot)) {
         ob->actcol = slot;
         BKE_object_material_slot_remove(bmain, ob);
 

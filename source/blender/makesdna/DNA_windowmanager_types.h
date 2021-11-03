@@ -59,7 +59,7 @@ struct wmTimer;
 #define KMAP_MAX_NAME 64
 
 /* keep in sync with 'rna_enum_wm_report_items' in wm_rna.c */
-typedef enum ReportType {
+typedef enum eReportType {
   RPT_DEBUG = (1 << 0),
   RPT_INFO = (1 << 1),
   RPT_OPERATOR = (1 << 2),
@@ -69,7 +69,7 @@ typedef enum ReportType {
   RPT_ERROR_INVALID_INPUT = (1 << 6),
   RPT_ERROR_INVALID_CONTEXT = (1 << 7),
   RPT_ERROR_OUT_OF_MEMORY = (1 << 8),
-} ReportType;
+} eReportType;
 
 #define RPT_DEBUG_ALL (RPT_DEBUG)
 #define RPT_INFO_ALL (RPT_INFO)
@@ -91,7 +91,7 @@ enum ReportListFlags {
 #
 typedef struct Report {
   struct Report *next, *prev;
-  /** ReportType. */
+  /** eReportType. */
   short type;
   short flag;
   /** `strlen(message)`, saves some time calculating the word wrap. */
@@ -103,9 +103,9 @@ typedef struct Report {
 /* saved in the wm, don't remove */
 typedef struct ReportList {
   ListBase list;
-  /** ReportType. */
+  /** eReportType. */
   int printlevel;
-  /** ReportType. */
+  /** eReportType. */
   int storelevel;
   int flag;
   char _pad[4];
@@ -138,7 +138,14 @@ typedef struct wmWindowManager {
   ID id;
 
   /** Separate active from drawable. */
-  struct wmWindow *windrawable, *winactive;
+  struct wmWindow *windrawable;
+  /**
+   * \note `CTX_wm_window(C)` is usually preferred.
+   * Avoid relying on this where possible as this may become NULL during when handling
+   * events that close or replace windows (opening a file for e.g.).
+   * While this happens rarely in practice, it can cause difficult to reproduce bugs.
+   */
+  struct wmWindow *winactive;
   ListBase windows;
 
   /** Set on file read. */

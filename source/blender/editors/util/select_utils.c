@@ -18,13 +18,13 @@
  * \ingroup edutil
  */
 
+#include <float.h>
+
 #include "BLI_kdtree.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "ED_select_utils.h"
-
-#include "float.h"
 
 /** 1: select, 0: deselect, -1: pass. */
 int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside)

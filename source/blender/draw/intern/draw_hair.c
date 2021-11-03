@@ -38,6 +38,7 @@
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
+#include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
@@ -172,18 +173,23 @@ static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache 
   }
 }
 
-static ParticleHairCache *drw_hair_particle_cache_get(
-    Object *object, ParticleSystem *psys, ModifierData *md, int subdiv, int thickness_res)
+static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
+                                                      ParticleSystem *psys,
+                                                      ModifierData *md,
+                                                      GPUMaterial *gpu_material,
+                                                      int subdiv,
+                                                      int thickness_res)
 {
   bool update;
   ParticleHairCache *cache;
   if (psys) {
     /* Old particle hair. */
-    update = particles_ensure_procedural_data(object, psys, md, &cache, subdiv, thickness_res);
+    update = particles_ensure_procedural_data(
+        object, psys, md, &cache, gpu_material, subdiv, thickness_res);
   }
   else {
     /* New hair object. */
-    update = hair_ensure_procedural_data(object, &cache, subdiv, thickness_res);
+    update = hair_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
   }
 
   if (update) {
@@ -206,7 +212,8 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
   int subdiv = scene->r.hair_subdiv;
   int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  ParticleHairCache *cache = drw_hair_particle_cache_get(object, psys, md, subdiv, thickness_res);
+  ParticleHairCache *cache = drw_hair_particle_cache_get(
+      object, psys, md, NULL, subdiv, thickness_res);
 
   return cache->final[subdiv].proc_buf;
 }
@@ -248,7 +255,8 @@ void DRW_hair_duplimat_get(Object *object,
 DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
                                              ParticleSystem *psys,
                                              ModifierData *md,
-                                             DRWShadingGroup *shgrp_parent)
+                                             DRWShadingGroup *shgrp_parent,
+                                             GPUMaterial *gpu_material)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
@@ -258,7 +266,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
   ParticleHairCache *hair_cache = drw_hair_particle_cache_get(
-      object, psys, md, subdiv, thickness_res);
+      object, psys, md, gpu_material, subdiv, thickness_res);
 
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(shgrp_parent);
 
@@ -308,6 +316,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   }
 
   DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
+  if (hair_cache->length_tex) {
+    DRW_shgroup_uniform_texture(shgrp, "hairLen", hair_cache->length_tex);
+  }
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);

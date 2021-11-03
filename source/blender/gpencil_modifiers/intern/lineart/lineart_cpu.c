@@ -1830,7 +1830,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     if (usage == OBJECT_LRT_INTERSECTION_ONLY) {
       tri->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
     }
-    else if (usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_OCCLUSION_ONLY) {
+    else if (ELEM(usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
       tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
     }
 
@@ -1917,8 +1917,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
       la_e->flags = use_type;
       la_e->object_ref = orig_ob;
       BLI_addtail(&la_e->segments, la_s);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage, OBJECT_LRT_INHERIT, OBJECT_LRT_INCLUDE, OBJECT_LRT_NO_INTERSECTION)) {
         lineart_add_edge_to_list_thread(obi, la_e);
       }
 
@@ -2168,6 +2167,12 @@ static void lineart_main_load_geometries(
       use_mesh = use_ob->data;
     }
     else {
+      /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, the curve objects are going to have a mesh
+       * equivalent already in the object list, so ignore converting the original curve in this
+       * case. */
+      if (allow_duplicates) {
+        continue;
+      }
       use_mesh = BKE_mesh_new_from_object(depsgraph, use_ob, true, true);
     }
 
@@ -2993,7 +2998,7 @@ void MOD_lineart_destroy_render_data(LineartGpencilModifierData *lmd)
   }
 }
 
-static LineartCache *lineart_init_cache()
+static LineartCache *lineart_init_cache(void)
 {
   LineartCache *lc = MEM_callocN(sizeof(LineartCache), "Lineart Cache");
   return lc;
@@ -3011,6 +3016,8 @@ void MOD_lineart_clear_cache(struct LineartCache **lc)
 
 static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
                                                          LineartGpencilModifierData *lmd,
+                                                         Object *camera,
+                                                         Object *active_camera,
                                                          LineartCache *lc)
 {
   LineartRenderBuffer *rb = MEM_callocN(sizeof(LineartRenderBuffer), "Line Art render buffer");
@@ -3019,10 +3026,10 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   lmd->render_buffer_ptr = rb;
   lc->rb_edge_types = lmd->edge_types_override;
 
-  if (!scene || !scene->camera || !lc) {
+  if (!scene || !camera || !lc) {
     return NULL;
   }
-  Camera *c = scene->camera->data;
+  Camera *c = camera->data;
   double clipping_offset = 0;
 
   if (lmd->calculation_flags & LRT_ALLOW_CLIPPING_BOUNDARIES) {
@@ -3030,8 +3037,11 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(rb->camera_pos, scene->camera->obmat[3]);
-  copy_m4_m4(rb->cam_obmat, scene->camera->obmat);
+  copy_v3db_v3fl(rb->camera_pos, camera->obmat[3]);
+  if (active_camera) {
+    copy_v3db_v3fl(rb->active_camera_pos, active_camera->obmat[3]);
+  }
+  copy_m4_m4(rb->cam_obmat, camera->obmat);
   rb->cam_is_persp = (c->type == CAM_PERSP);
   rb->near_clip = c->clip_start + clipping_offset;
   rb->far_clip = c->clip_end - clipping_offset;
@@ -3056,8 +3066,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->shift_y /= (1 + rb->overscan);
 
   rb->crease_threshold = cos(M_PI - lmd->crease_threshold);
-  rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
   rb->chaining_image_threshold = lmd->chaining_image_threshold;
+  rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
+  rb->chain_smooth_tolerance = lmd->chain_smooth_tolerance;
 
   rb->fuzzy_intersections = (lmd->calculation_flags & LRT_INTERSECTION_AS_CONTOUR) != 0;
   rb->fuzzy_everything = (lmd->calculation_flags & LRT_EVERYTHING_AS_CONTOUR) != 0;
@@ -3066,6 +3077,8 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_loose_as_contour = (lmd->calculation_flags & LRT_LOOSE_AS_CONTOUR) != 0;
   rb->use_loose_edge_chain = (lmd->calculation_flags & LRT_CHAIN_LOOSE_EDGES) != 0;
   rb->use_geometry_space_chain = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
+  rb->use_image_boundary_trimming = (lmd->calculation_flags & LRT_USE_IMAGE_BOUNDARY_TRIMMING) !=
+                                    0;
 
   /* See lineart_edge_from_triangle() for how this option may impact performance. */
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
@@ -4070,11 +4083,13 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
  */
 bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
                                        LineartGpencilModifierData *lmd,
-                                       LineartCache **cached_result)
+                                       LineartCache **cached_result,
+                                       bool enable_stroke_depth_offset)
 {
   LineartRenderBuffer *rb;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
+  Object *use_camera;
 
   double t_start;
 
@@ -4084,14 +4099,24 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   BKE_scene_camera_switch_update(scene);
 
-  if (!scene->camera) {
-    return false;
+  if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA) {
+    if (!lmd->source_camera ||
+        (use_camera = DEG_get_evaluated_object(depsgraph, lmd->source_camera))->type !=
+            OB_CAMERA) {
+      return false;
+    }
+  }
+  else {
+    if (!scene->camera) {
+      return false;
+    }
+    use_camera = scene->camera;
   }
 
   LineartCache *lc = lineart_init_cache();
   *cached_result = lc;
 
-  rb = lineart_create_render_buffer(scene, lmd, lc);
+  rb = lineart_create_render_buffer(scene, lmd, use_camera, scene->camera, lc);
 
   /* Triangle thread testing data size varies depending on the thread count.
    * See definition of LineartTriangleThread for details. */
@@ -4111,7 +4136,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   /* Get view vector before loading geometries, because we detect feature lines there. */
   lineart_main_get_view_vector(rb);
   lineart_main_load_geometries(
-      depsgraph, scene, scene->camera, rb, lmd->calculation_flags & LRT_ALLOW_DUPLI_OBJECTS);
+      depsgraph, scene, use_camera, rb, lmd->calculation_flags & LRT_ALLOW_DUPLI_OBJECTS);
 
   if (!rb->vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
@@ -4172,8 +4197,24 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     /* This configuration ensures there won't be accidental lost of short unchained segments. */
     MOD_lineart_chain_discard_short(rb, MIN2(*t_image, 0.001f) - FLT_EPSILON);
 
+    if (rb->chain_smooth_tolerance > FLT_EPSILON) {
+      /* Keeping UI range of 0-1 for ease of read while scaling down the actual value for best
+       * effective range in image-space (Coordinate only goes from -1 to 1). This value is somewhat
+       * arbitrary, but works best for the moment.  */
+      MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
+    }
+
+    if (rb->use_image_boundary_trimming) {
+      MOD_lineart_chain_clip_at_border(rb);
+    }
+
     if (rb->angle_splitting_threshold > FLT_EPSILON) {
       MOD_lineart_chain_split_angle(rb, rb->angle_splitting_threshold);
+    }
+
+    if (enable_stroke_depth_offset && lmd->stroke_depth_offset > FLT_EPSILON) {
+      MOD_lineart_chain_offset_towards_camera(
+          rb, lmd->stroke_depth_offset, lmd->flags & LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA);
     }
 
     /* Finally transfer the result list into cache. */

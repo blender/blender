@@ -303,7 +303,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
   if (oglrender->is_sequencer) {
     SpaceSeq *sseq = oglrender->sseq;
-    struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_SHOW_GPENCIL)) ? sseq->gpd : NULL;
+    struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : NULL;
 
     /* use pre-calculated ImBuf (avoids deadlock), see: */
     ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];
@@ -836,7 +836,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   BKE_image_backup_render(oglrender->scene, oglrender->ima, true);
 
   oglrender->iuser.scene = scene;
-  oglrender->iuser.ok = 1;
 
   /* create render result */
   RE_InitState(oglrender->re, NULL, &scene->r, &scene->view_layers, NULL, sizex, sizey, NULL);
@@ -1263,7 +1262,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   oglrender = op->customdata;
-  render_view_open(C, event->x, event->y, op->reports);
+  render_view_open(C, event->xy[0], event->xy[1], op->reports);
 
   /* View may be changed above #USER_RENDER_DISPLAY_WINDOW. */
   oglrender->win = CTX_wm_window(C);

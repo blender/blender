@@ -51,7 +51,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
-        SEQ_time_update_sequence(scene, seq);
+        SEQ_time_update_sequence(scene, seqbase, seq);
         changed = true;
       }
     }
@@ -67,7 +67,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       seq->endofs *= fac;
       seq->start += (old - seq->startofs); /* So that visual/"real" start frame does not change! */
 
-      SEQ_time_update_sequence(scene, seq);
+      SEQ_time_update_sequence(scene, seqbase, seq);
       changed = true;
     }
   }
@@ -111,12 +111,8 @@ void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
       /* We have to take into account start frame of the sequence's scene! */
       int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
 
-      BKE_sound_move_scene_sound(scene,
-                                 seq->scene_sound,
-                                 seq->startdisp,
-                                 seq->enddisp,
-                                 startofs,
-                                 seq->sound->offset_time);
+      BKE_sound_move_scene_sound(
+          scene, seq->scene_sound, seq->startdisp, seq->enddisp, startofs, 0.0);
     }
   }
   else {

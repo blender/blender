@@ -31,7 +31,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
                                                              const float3 color,
                                                              const float alpha_x,
                                                              const float alpha_y,
-                                                             ccl_addr_space uint *lcg_state,
+                                                             ccl_private uint *lcg_state,
                                                              const float eta,
                                                              bool use_fresnel,
                                                              const float3 cspec0)
@@ -101,12 +101,12 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
 
   for (int order = 0; order < 10; order++) {
     /* Sample microfacet height. */
-    float height_rand = lcg_step_float_addrspace(lcg_state);
+    float height_rand = lcg_step_float(lcg_state);
     if (!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, height_rand))
       break;
     /* Sample microfacet normal. */
-    float vndf_rand_y = lcg_step_float_addrspace(lcg_state);
-    float vndf_rand_x = lcg_step_float_addrspace(lcg_state);
+    float vndf_rand_y = lcg_step_float(lcg_state);
+    float vndf_rand_x = lcg_step_float(lcg_state);
     float3 wm = mf_sample_vndf(-wr, alpha, vndf_rand_x, vndf_rand_y);
 
 #ifdef MF_MULTI_GLASS
@@ -145,7 +145,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
 #ifdef MF_MULTI_GLASS
       bool next_outside;
       float3 wi_prev = -wr;
-      float phase_rand = lcg_step_float_addrspace(lcg_state);
+      float phase_rand = lcg_step_float(lcg_state);
       wr = mf_sample_phase_glass(-wr, outside ? eta : 1.0f / eta, wm, phase_rand, &next_outside);
       if (!next_outside) {
         outside = !outside;
@@ -186,11 +186,11 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
  * reflection losses due to coloring or fresnel absorption in conductors, the sampling is optimal.
  */
 ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
-                                                               float3 *wo,
+                                                               ccl_private float3 *wo,
                                                                const float3 color,
                                                                const float alpha_x,
                                                                const float alpha_y,
-                                                               ccl_addr_space uint *lcg_state,
+                                                               ccl_private uint *lcg_state,
                                                                const float eta,
                                                                bool use_fresnel,
                                                                const float3 cspec0)
@@ -213,15 +213,15 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
   int order;
   for (order = 0; order < 10; order++) {
     /* Sample microfacet height. */
-    float height_rand = lcg_step_float_addrspace(lcg_state);
+    float height_rand = lcg_step_float(lcg_state);
     if (!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, height_rand)) {
       /* The random walk has left the surface. */
       *wo = outside ? wr : -wr;
       return throughput;
     }
     /* Sample microfacet normal. */
-    float vndf_rand_y = lcg_step_float_addrspace(lcg_state);
-    float vndf_rand_x = lcg_step_float_addrspace(lcg_state);
+    float vndf_rand_y = lcg_step_float(lcg_state);
+    float vndf_rand_x = lcg_step_float(lcg_state);
     float3 wm = mf_sample_vndf(-wr, alpha, vndf_rand_x, vndf_rand_y);
 
     /* First-bounce color is already accounted for in mix weight. */
@@ -232,7 +232,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
 #ifdef MF_MULTI_GLASS
     bool next_outside;
     float3 wi_prev = -wr;
-    float phase_rand = lcg_step_float_addrspace(lcg_state);
+    float phase_rand = lcg_step_float(lcg_state);
     wr = mf_sample_phase_glass(-wr, outside ? eta : 1.0f / eta, wm, phase_rand, &next_outside);
     if (!next_outside) {
       hr = -hr;

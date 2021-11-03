@@ -34,6 +34,8 @@ struct UndoStep;
 struct UndoType;
 struct bContext;
 
+bool ED_text_activate_in_screen(struct bContext *C, struct Text *text);
+
 void ED_text_scroll_to_cursor(struct SpaceText *st, struct ARegion *region, bool center);
 
 bool ED_text_region_location_from_cursor(struct SpaceText *st,

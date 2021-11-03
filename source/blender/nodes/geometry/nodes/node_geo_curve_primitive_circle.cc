@@ -25,15 +25,36 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_circle_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Resolution").default_value(32).min(3).max(512);
-  b.add_input<decl::Vector>("Point 1")
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(32)
+      .min(3)
+      .max(512)
+      .description(N_("Number of points on the circle"));
+  b.add_input<decl::Vector>(N_("Point 1"))
       .default_value({-1.0f, 0.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Point 2").default_value({0.0f, 1.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Point 3").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Curve");
-  b.add_output<decl::Vector>("Center");
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
+  b.add_input<decl::Vector>(N_("Point 2"))
+      .default_value({0.0f, 1.0f, 0.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
+  b.add_input<decl::Vector>(N_("Point 3"))
+      .default_value({1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
+  b.add_input<decl::Float>(N_("Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Distance of the points from the origin"));
+  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Vector>(N_("Center"));
 }
 
 static void geo_node_curve_primitive_circle_layout(uiLayout *layout,
@@ -77,7 +98,7 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 {
   const float3 a = (p2 - p1).normalized();
   const float3 b = (p3 - p1).normalized();
-  return (a == b || a == b * -1.0f);
+  return (ELEM(a, b, b * -1.0f));
 }
 
 static std::unique_ptr<CurveEval> create_point_circle_curve(
@@ -132,7 +153,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
      */
 
     const float theta = theta_step * i;
-    positions[i] = center + r * cos(theta) * v1 + r * sin(theta) * v4;
+    positions[i] = center + r * sin(theta) * v1 + r * cos(theta) * v4;
   }
 
   spline->radii().fill(1.0f);

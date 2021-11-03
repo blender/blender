@@ -31,6 +31,7 @@ struct AssetLibraryReference;
 struct BlendHandle;
 struct FileList;
 struct FileSelection;
+struct bUUID;
 struct wmWindowManager;
 
 struct FileDirEntry;
@@ -71,6 +72,11 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const bool filter_assets_only,
                                 const char *filter_glob,
                                 const char *filter_search);
+void filelist_set_asset_catalog_filter_options(
+    struct FileList *filelist,
+    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
+    const struct bUUID *catalog_id);
+void filelist_tag_needs_filtering(struct FileList *filelist);
 void filelist_filter(struct FileList *filelist);
 void filelist_setlibrary(struct FileList *filelist,
                          const struct AssetLibraryReference *asset_library_ref);
@@ -86,7 +92,11 @@ int filelist_geticon(struct FileList *filelist, const int index, const bool is_m
 struct FileList *filelist_new(short type);
 void filelist_settype(struct FileList *filelist, short type);
 void filelist_clear(struct FileList *filelist);
-void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const bool do_selection);
+void filelist_clear_ex(struct FileList *filelist,
+                       const bool do_asset_library,
+                       const bool do_cache,
+                       const bool do_selection);
+void filelist_clear_from_reset_tag(struct FileList *filelist);
 void filelist_free(struct FileList *filelist);
 
 const char *filelist_dir(struct FileList *filelist);
@@ -108,6 +118,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index);
 
 bool filelist_needs_force_reset(struct FileList *filelist);
 void filelist_tag_force_reset(struct FileList *filelist);
+void filelist_tag_force_reset_mainfiles(struct FileList *filelist);
 bool filelist_pending(struct FileList *filelist);
 bool filelist_needs_reset_on_main_changes(const struct FileList *filelist);
 bool filelist_is_ready(struct FileList *filelist);
@@ -140,6 +151,8 @@ void filelist_entry_parent_select_set(struct FileList *filelist,
                                       FileCheckType check);
 
 void filelist_setrecursion(struct FileList *filelist, const int recursion_level);
+
+struct AssetLibrary *filelist_asset_library(struct FileList *filelist);
 
 struct BlendHandle *filelist_lib(struct FileList *filelist);
 bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group);

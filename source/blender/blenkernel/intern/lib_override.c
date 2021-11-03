@@ -865,7 +865,9 @@ static void lib_override_library_create_post_process(Main *bmain,
             Object *ob_ref = (Object *)id_ref;
             LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
               if (BKE_collection_has_object(collection, ob_ref) &&
-                  BKE_view_layer_has_collection(view_layer, collection) &&
+                  (view_layer != NULL ?
+                       BKE_view_layer_has_collection(view_layer, collection) :
+                       BKE_collection_has_collection(scene->master_collection, collection)) &&
                   !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
                 default_instantiating_collection = collection;
               }
@@ -897,6 +899,8 @@ static void lib_override_library_create_post_process(Main *bmain,
  * \note It will override all IDs tagged with \a LIB_TAG_DOIT, and it does not clear that tag at
  * its beginning, so caller code can add extra data-blocks to be overridden as well.
  *
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
  * \param id_root: The root ID to create an override from.
  * \param id_reference: Some reference ID used to do some post-processing after overrides have been
  * created, may be NULL. Typically, the Empty object instantiating the linked collection we
@@ -960,6 +964,8 @@ bool BKE_lib_override_library_template_create(struct ID *id)
  * \note This is a thin wrapper around \a BKE_lib_override_library_create, only extra work is to
  * actually convert the proxy itself into an override first.
  *
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
  * \return true if override was successfully created.
  */
 bool BKE_lib_override_library_proxy_convert(Main *bmain,
@@ -994,7 +1000,90 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
 
   DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
 
+  /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
+   * overrides.
+   * While this might not be 100% the desired behavior, it is likely to be the case most of the
+   * time. Ref: T91711. */
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (!ID_IS_LINKED(id_iter)) {
+      id_iter->tag |= LIB_TAG_DOIT;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
   return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference, NULL);
+}
+
+static void lib_override_library_proxy_convert_do(Main *bmain,
+                                                  Scene *scene,
+                                                  Object *ob_proxy,
+                                                  BlendFileReadReport *reports)
+{
+  Object *ob_proxy_group = ob_proxy->proxy_group;
+  const bool is_override_instancing_object = ob_proxy_group != NULL;
+
+  const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, NULL, ob_proxy);
+
+  if (success) {
+    CLOG_INFO(&LOG,
+              4,
+              "Proxy object '%s' successfuly converted to library overrides",
+              ob_proxy->id.name);
+    /* Remove the instance empty from this scene, the items now have an overridden collection
+     * instead. */
+    if (is_override_instancing_object) {
+      BKE_scene_collections_object_remove(bmain, scene, ob_proxy_group, true);
+    }
+    reports->count.proxies_to_lib_overrides_success++;
+  }
+}
+
+/**
+ * Convert all proxy objects into library overrides.
+ *
+ * \note Only affects local proxies, linked ones are not affected.
+ *
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
+ */
+void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
+      if (object->proxy_group == NULL) {
+        continue;
+      }
+
+      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
+    }
+    FOREACH_SCENE_OBJECT_END;
+
+    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
+      if (object->proxy == NULL) {
+        continue;
+      }
+
+      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
+    }
+    FOREACH_SCENE_OBJECT_END;
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ID_IS_LINKED(object)) {
+      if (object->proxy != NULL) {
+        CLOG_WARN(&LOG, "Did not try to convert linked proxy object '%s'", object->id.name);
+        reports->count.linked_proxies++;
+      }
+      continue;
+    }
+
+    if (object->proxy_group != NULL || object->proxy != NULL) {
+      CLOG_WARN(
+          &LOG, "Proxy object '%s' failed to be converted to library override", object->id.name);
+      reports->count.proxies_to_lib_overrides_failures++;
+    }
+  }
 }
 
 /**
@@ -1002,6 +1091,8 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
  * data, from an existing override hierarchy.
  *
  * \param id_root: The root liboverride ID to resync from.
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
  * \return true if override was successfully resynced.
  */
 bool BKE_lib_override_library_resync(Main *bmain,
@@ -1723,6 +1814,9 @@ static int lib_override_libraries_index_define(Main *bmain)
  *
  * Then it will handle the resync of necessary IDs (through calls to
  * #BKE_lib_override_library_resync).
+ *
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
  */
 void BKE_lib_override_library_main_resync(Main *bmain,
                                           Scene *scene,
@@ -1824,6 +1918,16 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
  */
 void BKE_lib_override_library_make_local(ID *id)
 {
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
+    /* We should never directly 'make local' virtual overrides (aka shape keys). */
+    BLI_assert_unreachable();
+    id->flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+    return;
+  }
+
   BKE_lib_override_library_free(&id->override_library, true);
 
   Key *shape_key = BKE_key_from_id(id);
@@ -2876,6 +2980,31 @@ void BKE_lib_override_library_main_update(Main *bmain)
   FOREACH_MAIN_ID_END;
 
   G_MAIN = orig_gmain;
+}
+
+/** In case an ID is used by another liboverride ID, user may not be allowed to delete it. */
+bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID *id)
+{
+  if (!(ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
+    return true;
+  }
+
+  /* The only strong known case currently are objects used by override collections. */
+  /* TODO: There are most likely other cases... This may need to be addressed in a better way at
+   * some point. */
+  if (GS(id->name) != ID_OB) {
+    return true;
+  }
+  Object *ob = (Object *)id;
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+    if (!ID_IS_OVERRIDE_LIBRARY(collection)) {
+      continue;
+    }
+    if (BKE_collection_has_object(collection, ob)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**

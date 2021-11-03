@@ -29,9 +29,9 @@ namespace blender::compositor {
  */
 class CompositorNode : public Node {
  public:
-  CompositorNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  CompositorNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

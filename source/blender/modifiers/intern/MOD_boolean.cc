@@ -386,7 +386,7 @@ static void BMD_mesh_intersection(BMesh *bm,
  * Caller owns the returned array. */
 static Array<short> get_material_remap(Object *dest_ob, Object *src_ob)
 {
-  int n = dest_ob->totcol;
+  int n = src_ob->totcol;
   if (n <= 0) {
     n = 1;
   }

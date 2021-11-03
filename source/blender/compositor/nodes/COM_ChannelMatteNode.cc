@@ -17,26 +17,25 @@
  */
 
 #include "COM_ChannelMatteNode.h"
-#include "BKE_node.h"
 #include "COM_ChannelMatteOperation.h"
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 
-ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
+ChannelMatteNode::ChannelMatteNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ChannelMatteNode::convertToOperations(NodeConverter &converter,
-                                           const CompositorContext & /*context*/) const
+void ChannelMatteNode::convert_to_operations(NodeConverter &converter,
+                                             const CompositorContext & /*context*/) const
 {
-  bNode *node = this->getbNode();
+  bNode *node = this->get_bnode();
 
-  NodeInput *inputSocketImage = this->getInputSocket(0);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
-  NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+  NodeInput *input_socket_image = this->get_input_socket(0);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
+  NodeOutput *output_socket_matte = this->get_output_socket(1);
 
   NodeOperation *convert = nullptr, *inv_convert = nullptr;
   /* colorspace */
@@ -53,9 +52,9 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_YCC: /* YCC */
       convert = new ConvertRGBToYCCOperation();
-      ((ConvertRGBToYCCOperation *)convert)->setMode(BLI_YCC_ITU_BT709);
+      ((ConvertRGBToYCCOperation *)convert)->set_mode(BLI_YCC_ITU_BT709);
       inv_convert = new ConvertYCCToRGBOperation();
-      ((ConvertYCCToRGBOperation *)inv_convert)->setMode(BLI_YCC_ITU_BT709);
+      ((ConvertYCCToRGBOperation *)inv_convert)->set_mode(BLI_YCC_ITU_BT709);
       break;
     default:
       break;
@@ -63,36 +62,36 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
 
   ChannelMatteOperation *operation = new ChannelMatteOperation();
   /* pass the ui properties to the operation */
-  operation->setSettings((NodeChroma *)node->storage, node->custom2);
-  converter.addOperation(operation);
+  operation->set_settings((NodeChroma *)node->storage, node->custom2);
+  converter.add_operation(operation);
 
-  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
-  converter.addOperation(operationAlpha);
+  SetAlphaMultiplyOperation *operation_alpha = new SetAlphaMultiplyOperation();
+  converter.add_operation(operation_alpha);
 
   if (convert != nullptr) {
-    converter.addOperation(convert);
+    converter.add_operation(convert);
 
-    converter.mapInputSocket(inputSocketImage, convert->getInputSocket(0));
-    converter.addLink(convert->getOutputSocket(), operation->getInputSocket(0));
-    converter.addLink(convert->getOutputSocket(), operationAlpha->getInputSocket(0));
+    converter.map_input_socket(input_socket_image, convert->get_input_socket(0));
+    converter.add_link(convert->get_output_socket(), operation->get_input_socket(0));
+    converter.add_link(convert->get_output_socket(), operation_alpha->get_input_socket(0));
   }
   else {
-    converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));
-    converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
+    converter.map_input_socket(input_socket_image, operation->get_input_socket(0));
+    converter.map_input_socket(input_socket_image, operation_alpha->get_input_socket(0));
   }
 
-  converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
-  converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
+  converter.map_output_socket(output_socket_matte, operation->get_output_socket(0));
+  converter.add_link(operation->get_output_socket(), operation_alpha->get_input_socket(1));
 
   if (inv_convert != nullptr) {
-    converter.addOperation(inv_convert);
-    converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));
-    converter.mapOutputSocket(outputSocketImage, inv_convert->getOutputSocket());
-    converter.addPreview(inv_convert->getOutputSocket());
+    converter.add_operation(inv_convert);
+    converter.add_link(operation_alpha->get_output_socket(0), inv_convert->get_input_socket(0));
+    converter.map_output_socket(output_socket_image, inv_convert->get_output_socket());
+    converter.add_preview(inv_convert->get_output_socket());
   }
   else {
-    converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
-    converter.addPreview(operationAlpha->getOutputSocket());
+    converter.map_output_socket(output_socket_image, operation_alpha->get_output_socket());
+    converter.add_preview(operation_alpha->get_output_socket());
   }
 }
 

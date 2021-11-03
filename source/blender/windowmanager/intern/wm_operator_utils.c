@@ -41,6 +41,24 @@
 #include "ED_screen.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Generic Utilities
+ * \{ */
+
+/**
+ * Only finish + pass through for press events (allowing press-tweak).
+ */
+int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event)
+{
+  if ((event->val != KM_PRESS) &&
+      ((retval & OPERATOR_PASS_THROUGH) && (retval & OPERATOR_FINISHED))) {
+    retval &= ~OPERATOR_PASS_THROUGH;
+  }
+  return retval;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Value Interaction Helper
  *
  * Possible additions (add as needed).

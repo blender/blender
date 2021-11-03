@@ -330,7 +330,8 @@ static bool update_changed_seq_recurs(
     }
 
     if (len_change) {
-      SEQ_time_update_sequence(scene, seq);
+      ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+      SEQ_time_update_sequence(scene, seqbase, seq);
     }
   }
 
@@ -354,7 +355,6 @@ void SEQ_relations_update_changed_seq_and_deps(Scene *scene,
   }
 }
 
-/* Unused */
 static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
@@ -367,7 +367,6 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
   }
 }
 
-/* Unused */
 void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
 {
   Editing *ed = SEQ_editing_get(scene);
@@ -375,7 +374,6 @@ void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
     return;
   }
   sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
-  SEQ_cache_cleanup(scene);
 }
 
 static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)

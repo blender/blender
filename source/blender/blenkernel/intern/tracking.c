@@ -3014,6 +3014,61 @@ static int channels_average_error_sort(const void *a, const void *b)
   return 0;
 }
 
+static int compare_firstlast_putting_undefined_first(
+    bool inverse, bool a_markerless, int a_value, bool b_markerless, int b_value)
+{
+  if (a_markerless && b_markerless) {
+    /* Neither channel has not-disabled markers, return whatever. */
+    return 0;
+  }
+  if (a_markerless) {
+    /* Put the markerless channel first. */
+    return 0;
+  }
+  if (b_markerless) {
+    /* Put the markerless channel first. */
+    return 1;
+  }
+
+  /* Both channels have markers. */
+
+  if (inverse) {
+    if (a_value < b_value) {
+      return 1;
+    }
+    return 0;
+  }
+
+  if (a_value > b_value) {
+    return 1;
+  }
+  return 0;
+}
+
+static int channels_start_sort(const void *a, const void *b)
+{
+  const MovieTrackingDopesheetChannel *channel_a = a;
+  const MovieTrackingDopesheetChannel *channel_b = b;
+
+  return compare_firstlast_putting_undefined_first(false,
+                                                   channel_a->tot_segment == 0,
+                                                   channel_a->first_not_disabled_marker_framenr,
+                                                   channel_b->tot_segment == 0,
+                                                   channel_b->first_not_disabled_marker_framenr);
+}
+
+static int channels_end_sort(const void *a, const void *b)
+{
+  const MovieTrackingDopesheetChannel *channel_a = a;
+  const MovieTrackingDopesheetChannel *channel_b = b;
+
+  return compare_firstlast_putting_undefined_first(false,
+                                                   channel_a->tot_segment == 0,
+                                                   channel_a->last_not_disabled_marker_framenr,
+                                                   channel_b->tot_segment == 0,
+                                                   channel_b->last_not_disabled_marker_framenr);
+}
+
 static int channels_alpha_inverse_sort(const void *a, const void *b)
 {
   if (channels_alpha_sort(a, b)) {
@@ -3053,15 +3108,43 @@ static int channels_average_error_inverse_sort(const void *a, const void *b)
   return 0;
 }
 
+static int channels_start_inverse_sort(const void *a, const void *b)
+{
+  const MovieTrackingDopesheetChannel *channel_a = a;
+  const MovieTrackingDopesheetChannel *channel_b = b;
+
+  return compare_firstlast_putting_undefined_first(true,
+                                                   channel_a->tot_segment == 0,
+                                                   channel_a->first_not_disabled_marker_framenr,
+                                                   channel_b->tot_segment == 0,
+                                                   channel_b->first_not_disabled_marker_framenr);
+}
+
+static int channels_end_inverse_sort(const void *a, const void *b)
+{
+  const MovieTrackingDopesheetChannel *channel_a = a;
+  const MovieTrackingDopesheetChannel *channel_b = b;
+
+  return compare_firstlast_putting_undefined_first(true,
+                                                   channel_a->tot_segment == 0,
+                                                   channel_a->last_not_disabled_marker_framenr,
+                                                   channel_b->tot_segment == 0,
+                                                   channel_b->last_not_disabled_marker_framenr);
+}
+
 /* Calculate frames segments at which track is tracked continuously. */
 static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 {
   MovieTrackingTrack *track = channel->track;
   int i, segment;
+  bool first_not_disabled_marker_framenr_set;
 
   channel->tot_segment = 0;
   channel->max_segment = 0;
   channel->total_frames = 0;
+
+  channel->first_not_disabled_marker_framenr = 0;
+  channel->last_not_disabled_marker_framenr = 0;
 
   /* TODO(sergey): looks a bit code-duplicated, need to look into
    *               logic de-duplication here.
@@ -3069,6 +3152,7 @@ static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChan
 
   /* count */
   i = 0;
+  first_not_disabled_marker_framenr_set = false;
   while (i < track->markersnr) {
     MovieTrackingMarker *marker = &track->markers[i];
 
@@ -3085,6 +3169,12 @@ static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChan
         if (marker->flag & MARKER_DISABLED) {
           break;
         }
+
+        if (!first_not_disabled_marker_framenr_set) {
+          channel->first_not_disabled_marker_framenr = marker->framenr;
+          first_not_disabled_marker_framenr_set = true;
+        }
+        channel->last_not_disabled_marker_framenr = marker->framenr;
 
         prev_fra = marker->framenr;
         len++;
@@ -3203,6 +3293,12 @@ static void tracking_dopesheet_channels_sort(MovieTracking *tracking,
     else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
       BLI_listbase_sort(&dopesheet->channels, channels_average_error_inverse_sort);
     }
+    else if (sort_method == TRACKING_DOPE_SORT_START) {
+      BLI_listbase_sort(&dopesheet->channels, channels_start_inverse_sort);
+    }
+    else if (sort_method == TRACKING_DOPE_SORT_END) {
+      BLI_listbase_sort(&dopesheet->channels, channels_end_inverse_sort);
+    }
   }
   else {
     if (sort_method == TRACKING_DOPE_SORT_NAME) {
@@ -3216,6 +3312,12 @@ static void tracking_dopesheet_channels_sort(MovieTracking *tracking,
     }
     else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
       BLI_listbase_sort(&dopesheet->channels, channels_average_error_sort);
+    }
+    else if (sort_method == TRACKING_DOPE_SORT_START) {
+      BLI_listbase_sort(&dopesheet->channels, channels_start_sort);
+    }
+    else if (sort_method == TRACKING_DOPE_SORT_END) {
+      BLI_listbase_sort(&dopesheet->channels, channels_end_sort);
     }
   }
 }

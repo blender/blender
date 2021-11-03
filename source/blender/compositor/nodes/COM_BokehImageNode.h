@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class BokehImageNode : public Node {
  public:
-  BokehImageNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  BokehImageNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

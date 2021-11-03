@@ -75,6 +75,14 @@ const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+    {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
+    {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
+    {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {ATTR_DOMAIN_AUTO, "AUTO", 0, "Auto", ""},
     {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
@@ -315,8 +323,10 @@ static void rna_AttributeGroup_next_domain(ID *id,
                                            int(skip)(CollectionPropertyIterator *iter, void *data))
 {
   do {
-    CustomDataLayer *prev_layers = (CustomDataLayer *)iter->internal.array.endptr -
-                                   iter->internal.array.length;
+    CustomDataLayer *prev_layers = (iter->internal.array.endptr == NULL) ?
+                                       NULL :
+                                       (CustomDataLayer *)iter->internal.array.endptr -
+                                           iter->internal.array.length;
     CustomData *customdata = BKE_id_attributes_iterator_next_domain(id, prev_layers);
     if (customdata == NULL) {
       return;

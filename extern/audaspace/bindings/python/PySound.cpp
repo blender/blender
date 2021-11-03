@@ -89,10 +89,11 @@ Sound_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 	self = (Sound*)type->tp_alloc(type, 0);
 	if(self != nullptr)
 	{
-		static const char* kwlist[] = {"filename", nullptr};
+		static const char* kwlist[] = {"filename", "stream", nullptr};
 		const char* filename = nullptr;
+		int stream = 0;
 
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "s:Sound", const_cast<char**>(kwlist), &filename))
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "s|i:Sound", const_cast<char**>(kwlist), &filename, &stream))
 		{
 			Py_DECREF(self);
 			return nullptr;
@@ -100,7 +101,7 @@ Sound_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
 		try
 		{
-			self->sound = new std::shared_ptr<ISound>(new File(filename));
+			self->sound = new std::shared_ptr<ISound>(new File(filename, stream));
 		}
 		catch(Exception& e)
 		{
@@ -289,7 +290,7 @@ PyDoc_STRVAR(M_aud_Sound_buffer_doc,
 			 ".. classmethod:: buffer(data, rate)\n\n"
 			 "   Creates a sound from a data buffer.\n\n"
 			 "   :arg data: The data as two dimensional numpy array.\n"
-			 "   :type data: numpy.ndarray\n"
+			 "   :type data: :class:`numpy.ndarray`\n"
 			 "   :arg rate: The sample rate.\n"
 			 "   :type rate: double\n"
 			 "   :return: The created :class:`Sound` object.\n"
@@ -407,8 +408,9 @@ static PyObject *
 Sound_file(PyTypeObject* type, PyObject* args)
 {
 	const char* filename = nullptr;
+	int stream = 0;
 
-	if(!PyArg_ParseTuple(args, "s:file", &filename))
+	if(!PyArg_ParseTuple(args, "s|i:file", &filename, &stream))
 		return nullptr;
 
 	Sound* self;
@@ -418,7 +420,7 @@ Sound_file(PyTypeObject* type, PyObject* args)
 	{
 		try
 		{
-			self->sound = new std::shared_ptr<ISound>(new File(filename));
+			self->sound = new std::shared_ptr<ISound>(new File(filename, stream));
 		}
 		catch(Exception& e)
 		{

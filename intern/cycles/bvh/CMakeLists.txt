@@ -22,34 +22,34 @@ set(INC_SYS
 set(SRC
   bvh.cpp
   bvh2.cpp
-  bvh_binning.cpp
-  bvh_build.cpp
-  bvh_embree.cpp
-  bvh_multi.cpp
-  bvh_node.cpp
-  bvh_optix.cpp
-  bvh_sort.cpp
-  bvh_split.cpp
-  bvh_unaligned.cpp
+  binning.cpp
+  build.cpp
+  embree.cpp
+  multi.cpp
+  node.cpp
+  optix.cpp
+  sort.cpp
+  split.cpp
+  unaligned.cpp
 )
 
 set(SRC_HEADERS
   bvh.h
   bvh2.h
-  bvh_binning.h
-  bvh_build.h
-  bvh_embree.h
-  bvh_multi.h
-  bvh_node.h
-  bvh_optix.h
-  bvh_params.h
-  bvh_sort.h
-  bvh_split.h
-  bvh_unaligned.h
+  binning.h
+  build.h
+  embree.h
+  multi.h
+  node.h
+  optix.h
+  params.h
+  sort.h
+  split.h
+  unaligned.h
 )
 
 set(LIB
-  cycles_render
+  cycles_scene
   cycles_util
 )
 

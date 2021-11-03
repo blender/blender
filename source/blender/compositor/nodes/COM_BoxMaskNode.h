@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class BoxMaskNode : public Node {
  public:
-  BoxMaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  BoxMaskNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

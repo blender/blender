@@ -22,25 +22,25 @@ namespace blender::compositor {
 
 IDMaskOperation::IDMaskOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->flags.complex = true;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 
-void *IDMaskOperation::initializeTileData(rcti *rect)
+void *IDMaskOperation::initialize_tile_data(rcti *rect)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(rect);
+  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
   return buffer;
 }
 
-void IDMaskOperation::executePixel(float output[4], int x, int y, void *data)
+void IDMaskOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   MemoryBuffer *input_buffer = (MemoryBuffer *)data;
-  const int buffer_width = input_buffer->getWidth();
-  float *buffer = input_buffer->getBuffer();
+  const int buffer_width = input_buffer->get_width();
+  float *buffer = input_buffer->get_buffer();
   int buffer_index = (y * buffer_width + x);
-  output[0] = (roundf(buffer[buffer_index]) == this->m_objectIndex) ? 1.0f : 0.0f;
+  output[0] = (roundf(buffer[buffer_index]) == object_index_) ? 1.0f : 0.0f;
 }
 
 void IDMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -54,7 +54,7 @@ void IDMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float *in = input->get_elem(area.xmin, y);
     const float *row_end = out + width * output->elem_stride;
     while (out < row_end) {
-      out[0] = (roundf(in[0]) == m_objectIndex) ? 1.0f : 0.0f;
+      out[0] = (roundf(in[0]) == object_index_) ? 1.0f : 0.0f;
       in += input->elem_stride;
       out += output->elem_stride;
     }

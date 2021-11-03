@@ -17,31 +17,28 @@
  */
 
 #include "COM_SetVectorOperation.h"
-#include "COM_defines.h"
 
 namespace blender::compositor {
 
 SetVectorOperation::SetVectorOperation()
 {
-  this->addOutputSocket(DataType::Vector);
-  flags.is_set_operation = true;
+  this->add_output_socket(DataType::Vector);
+  flags_.is_set_operation = true;
 }
 
-void SetVectorOperation::executePixelSampled(float output[4],
-                                             float /*x*/,
-                                             float /*y*/,
-                                             PixelSampler /*sampler*/)
+void SetVectorOperation::execute_pixel_sampled(float output[4],
+                                               float /*x*/,
+                                               float /*y*/,
+                                               PixelSampler /*sampler*/)
 {
   output[0] = vector_.x;
   output[1] = vector_.y;
   output[2] = vector_.z;
 }
 
-void SetVectorOperation::determineResolution(unsigned int resolution[2],
-                                             unsigned int preferredResolution[2])
+void SetVectorOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = preferredResolution[0];
-  resolution[1] = preferredResolution[1];
+  r_area = preferred_area;
 }
 
 }  // namespace blender::compositor

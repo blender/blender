@@ -190,6 +190,7 @@ static void file_draw_icon(const SpaceFile *sfile,
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
+                              file->asset_data,
                               asset_params->import_type,
                               icon,
                               preview_image,
@@ -242,8 +243,9 @@ static void file_draw_string(int sx,
 }
 
 /**
- * \param r_sx, r_sy: The lower right corner of the last line drawn. AKA the cursor position on
- *                    completion.
+ * \param r_sx, r_sy: The lower right corner of the last line drawn, plus the height of the last
+ *                    line. This is the cursor position on completion to allow drawing more text
+ *                    behind that.
  */
 static void file_draw_string_multiline(int sx,
                                        int sy,
@@ -465,6 +467,17 @@ static void file_draw_preview(const SpaceFile *sfile,
     UI_icon_draw_ex(icon_x, icon_y, icon, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
   }
 
+  const bool is_current_main_data = filelist_file_get_id(file) != NULL;
+  if (is_current_main_data) {
+    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
+     * current file (from current #Main in fact). */
+    float icon_x, icon_y;
+    const uchar light[4] = {255, 255, 255, 255};
+    icon_x = xco + ex - UI_UNIT_X;
+    icon_y = yco + ey - UI_UNIT_Y;
+    UI_icon_draw_ex(icon_x, icon_y, ICON_FILE_BLEND, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+  }
+
   /* Contrasting outline around some preview types. */
   if (show_outline) {
     GPUVertFormat *format = immVertexFormat();
@@ -504,6 +517,7 @@ static void file_draw_preview(const SpaceFile *sfile,
         UI_but_drag_set_asset(but,
                               &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
+                              file->asset_data,
                               asset_params->import_type,
                               icon,
                               imb,
@@ -1053,7 +1067,9 @@ void file_draw_list(const bContext *C, ARegion *region)
   layout->curr_size = params->thumbnail_size;
 }
 
-static void file_draw_invalid_library_hint(const SpaceFile *sfile, const ARegion *region)
+static void file_draw_invalid_library_hint(const bContext *C,
+                                           const SpaceFile *sfile,
+                                           ARegion *region)
 {
   const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
 
@@ -1061,9 +1077,7 @@ static void file_draw_invalid_library_hint(const SpaceFile *sfile, const ARegion
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
   uchar text_col[4];
-  uchar text_alert_col[4];
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
-  UI_GetThemeColor4ubv(TH_REDALERT, text_alert_col);
 
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
@@ -1074,23 +1088,42 @@ static void file_draw_invalid_library_hint(const SpaceFile *sfile, const ARegion
   int sy = v2d->tot.ymax;
 
   {
-    const char *message = TIP_("Library not found");
-    const int draw_string_str_len = strlen(message) + 2 + sizeof(library_ui_path);
-    char *draw_string = alloca(draw_string_str_len);
-    BLI_snprintf(draw_string, draw_string_str_len, "%s: %s", message, library_ui_path);
-    file_draw_string_multiline(sx, sy, draw_string, width, line_height, text_alert_col, NULL, &sy);
+    const char *message = TIP_("Path to asset library does not exist:");
+    file_draw_string_multiline(sx, sy, message, width, line_height, text_col, NULL, &sy);
+
+    sy -= line_height;
+    file_draw_string(sx, sy, library_ui_path, width, line_height, UI_STYLE_TEXT_LEFT, text_col);
   }
 
-  /* Next line, but separate it a bit further. */
-  sy -= line_height;
+  /* Separate a bit further. */
+  sy -= line_height * 2.2f;
 
   {
     UI_icon_draw(sx, sy - UI_UNIT_Y, ICON_INFO);
 
     const char *suggestion = TIP_(
-        "Set up the library or edit libraries in the Preferences, File Paths section");
+        "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
+        "Manage Asset Libraries from the File Paths section in Preferences");
     file_draw_string_multiline(
-        sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, NULL, NULL);
+        sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, NULL, &sy);
+
+    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+    uiBut *but = uiDefIconTextButO(block,
+                                   UI_BTYPE_BUT,
+                                   "SCREEN_OT_userpref_show",
+                                   WM_OP_INVOKE_DEFAULT,
+                                   ICON_PREFERENCES,
+                                   NULL,
+                                   sx + UI_UNIT_X,
+                                   sy - line_height - UI_UNIT_Y * 1.2f,
+                                   UI_UNIT_X * 8,
+                                   UI_UNIT_Y,
+                                   NULL);
+    PointerRNA *but_opptr = UI_but_operator_ptr_get(but);
+    RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
+
+    UI_block_end(C, block);
+    UI_block_draw(C, block);
   }
 }
 
@@ -1098,7 +1131,7 @@ static void file_draw_invalid_library_hint(const SpaceFile *sfile, const ARegion
  * Draw a string hint if the file list is invalid.
  * \return true if the list is invalid and a hint was drawn.
  */
-bool file_draw_hint_if_invalid(const SpaceFile *sfile, const ARegion *region)
+bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
   FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
   /* Only for asset browser. */
@@ -1111,7 +1144,7 @@ bool file_draw_hint_if_invalid(const SpaceFile *sfile, const ARegion *region)
     return false;
   }
 
-  file_draw_invalid_library_hint(sfile, region);
+  file_draw_invalid_library_hint(C, sfile, region);
 
   return true;
 }

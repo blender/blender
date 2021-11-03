@@ -180,6 +180,15 @@ static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
 static PyMethodDef id_free_weakref_cb_def = {
     "id_free_weakref_cb", (PyCFunction)id_free_weakref_cb, METH_O, NULL};
 
+/**
+ * Only used when there are values left on exit (causing memory leaks).
+ */
+static void id_weakref_pool_free_value_fn(void *p)
+{
+  GHash *weakinfo_hash = p;
+  BLI_ghash_free(weakinfo_hash, NULL, NULL);
+}
+
 /* Adds a reference to the list, remember to decref. */
 static GHash *id_weakref_pool_get(ID *id)
 {
@@ -5486,7 +5495,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   }
   else {
     const char f = buf.format ? buf.format[0] : 0;
-    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (f != 'l' && f != 'i'))) ||
+    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (!ELEM(f, 'l', 'i')))) ||
         (prop_type == PROP_FLOAT && (buf.itemsize != sizeof(float) || f != 'f'))) {
       PyBuffer_Release(&buf);
       PyErr_Format(PyExc_TypeError, "incorrect sequence item type: %s", buf.format);
@@ -7238,7 +7247,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
   /* Sanity check, could skip this unless in debug mode. */
   if (newclass) {
     PyObject *base_compare = pyrna_srna_PyBase(srna);
-    /* Can't do this because it gets superclasses values! */
+    /* Can't do this because it gets super-classes values! */
     // PyObject *slots = PyObject_GetAttrString(newclass, "__slots__");
     /* Can do this, but faster not to. */
     // PyObject *bases = PyObject_GetAttrString(newclass, "__bases__");
@@ -7633,7 +7642,7 @@ void BPY_rna_exit(void)
       printf("ID: %s\n", id->name);
     }
   }
-  BLI_ghash_free(id_weakref_pool, NULL, NULL);
+  BLI_ghash_free(id_weakref_pool, NULL, id_weakref_pool_free_value_fn);
   id_weakref_pool = NULL;
 #endif
 }
@@ -8777,7 +8786,7 @@ void pyrna_free_types(void)
  * - Should still be fixed - Campbell
  */
 PyDoc_STRVAR(pyrna_register_class_doc,
-             ".. method:: register_class(cls)\n"
+             ".. function:: register_class(cls)\n"
              "\n"
              "   Register a subclass of a Blender type class.\n"
              "\n"
@@ -8962,7 +8971,7 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
 }
 
 PyDoc_STRVAR(pyrna_unregister_class_doc,
-             ".. method:: unregister_class(cls)\n"
+             ".. function:: unregister_class(cls)\n"
              "\n"
              "   Unload the Python class from blender.\n"
              "\n"

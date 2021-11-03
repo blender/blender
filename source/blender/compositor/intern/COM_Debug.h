@@ -21,9 +21,11 @@
 #include <map>
 #include <string>
 
+#include "BLI_vector.hh"
+
 #include "COM_ExecutionSystem.h"
-#include "COM_NodeOperation.h"
-#include "COM_defines.h"
+#include "COM_MemoryBuffer.h"
+#include "COM_Node.h"
 
 namespace blender::compositor {
 
@@ -34,6 +36,7 @@ static constexpr bool COM_GRAPHVIZ_SHOW_NODE_NAME = false;
 static constexpr bool COM_EXPORT_OPERATION_BUFFERS = false;
 
 class Node;
+class NodeOperation;
 class ExecutionSystem;
 class ExecutionGroup;
 
@@ -49,33 +52,33 @@ class DebugInfo {
   static std::string operation_name(const NodeOperation *op);
 
  private:
-  static int m_file_index;
+  static int file_index_;
   /** Map nodes to usable names for debug output. */
-  static NodeNameMap m_node_names;
+  static NodeNameMap node_names_;
   /** Map operations to usable names for debug output. */
-  static OpNameMap m_op_names;
+  static OpNameMap op_names_;
   /** Base name for all operations added by a node. */
-  static std::string m_current_node_name;
+  static std::string current_node_name_;
   /** Base name for automatic sub-operations. */
-  static std::string m_current_op_name;
+  static std::string current_op_name_;
   /** For visualizing group states. */
-  static GroupStateMap m_group_states;
+  static GroupStateMap group_states_;
 
  public:
   static void convert_started()
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_op_names.clear();
+      op_names_.clear();
     }
   }
 
   static void execute_started(const ExecutionSystem *system)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_file_index = 1;
-      m_group_states.clear();
-      for (ExecutionGroup *execution_group : system->m_groups) {
-        m_group_states[execution_group] = EG_WAIT;
+      file_index_ = 1;
+      group_states_.clear();
+      for (ExecutionGroup *execution_group : system->groups_) {
+        group_states_[execution_group] = EG_WAIT;
       }
     }
     if (COM_EXPORT_OPERATION_BUFFERS) {
@@ -86,41 +89,41 @@ class DebugInfo {
   static void node_added(const Node *node)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_node_names[node] = std::string(node->getbNode() ? node->getbNode()->name : "");
+      node_names_[node] = std::string(node->get_bnode() ? node->get_bnode()->name : "");
     }
   }
 
   static void node_to_operations(const Node *node)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_current_node_name = m_node_names[node];
+      current_node_name_ = node_names_[node];
     }
   }
 
   static void operation_added(const NodeOperation *operation)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_op_names[operation] = m_current_node_name;
+      op_names_[operation] = current_node_name_;
     }
   };
 
   static void operation_read_write_buffer(const NodeOperation *operation)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_current_op_name = m_op_names[operation];
+      current_op_name_ = op_names_[operation];
     }
   };
 
   static void execution_group_started(const ExecutionGroup *group)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_group_states[group] = EG_RUNNING;
+      group_states_[group] = EG_RUNNING;
     }
   };
   static void execution_group_finished(const ExecutionGroup *group)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      m_group_states[group] = EG_FINISHED;
+      group_states_[group] = EG_FINISHED;
     }
   };
 

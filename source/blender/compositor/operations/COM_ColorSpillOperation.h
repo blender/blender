@@ -28,14 +28,14 @@ namespace blender::compositor {
  */
 class ColorSpillOperation : public MultiThreadedOperation {
  protected:
-  NodeColorspill *m_settings;
-  SocketReader *m_inputImageReader;
-  SocketReader *m_inputFacReader;
-  int m_spillChannel;
-  int m_spillMethod;
-  int m_channel2;
-  int m_channel3;
-  float m_rmut, m_gmut, m_bmut;
+  NodeColorspill *settings_;
+  SocketReader *input_image_reader_;
+  SocketReader *input_fac_reader_;
+  int spill_channel_;
+  int spill_method_;
+  int channel2_;
+  int channel3_;
+  float rmut_, gmut_, bmut_;
 
  public:
   /**
@@ -46,25 +46,25 @@ class ColorSpillOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setSettings(NodeColorspill *nodeColorSpill)
+  void set_settings(NodeColorspill *node_color_spill)
   {
-    this->m_settings = nodeColorSpill;
+    settings_ = node_color_spill;
   }
-  void setSpillChannel(int channel)
+  void set_spill_channel(int channel)
   {
-    this->m_spillChannel = channel;
+    spill_channel_ = channel;
   }
-  void setSpillMethod(int method)
+  void set_spill_method(int method)
   {
-    this->m_spillMethod = method;
+    spill_method_ = method;
   }
 
-  float calculateMapValue(float fac, float *input);
+  float calculate_map_value(float fac, float *input);
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

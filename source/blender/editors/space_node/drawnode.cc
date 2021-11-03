@@ -73,6 +73,7 @@
 
 #include "NOD_composite.h"
 #include "NOD_geometry.h"
+#include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 #include "node_intern.h" /* own include */
@@ -162,6 +163,11 @@ static void node_buts_colorramp(uiLayout *layout, bContext *UNUSED(C), PointerRN
 static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
+}
+
+static void node_buts_curvefloat(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false);
 }
 
 #define SAMPLE_FLT_ISNONE FLT_MAX
@@ -446,7 +452,7 @@ static void node_draw_frame(const bContext *C,
 
   const rctf *rct = &node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(rct, true, BASIS_RAD, color);
+  UI_draw_roundbox_4fv(rct, true, BASIS_RAD, color);
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
@@ -986,7 +992,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
     }
   }
   else {
-    uiItemL(layout, "No mesh in active object.", ICON_ERROR);
+    uiItemL(layout, TIP_("No mesh in active object"), ICON_ERROR);
   }
 }
 
@@ -1181,6 +1187,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_CURVE_RGB:
       ntype->draw_buttons = node_buts_curvecol;
+      break;
+    case SH_NODE_CURVE_FLOAT:
+      ntype->draw_buttons = node_buts_curvefloat;
       break;
     case SH_NODE_MAPPING:
       ntype->draw_buttons = node_shader_buts_mapping;
@@ -1562,7 +1571,7 @@ static void node_composit_buts_antialiasing(uiLayout *layout, bContext *UNUSED(C
   uiItemR(col, ptr, "corner_rounding", 0, nullptr, ICON_NONE);
 }
 
-/* qdn: glare node */
+/* glare node */
 static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "glare_type", DEFAULT_FLAGS, "", ICON_NONE);
@@ -2078,7 +2087,7 @@ static void node_composit_buts_premulkey(uiLayout *layout, bContext *UNUSED(C), 
 
 static void node_composit_buts_view_levels(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "channel", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "channel", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2864,6 +2873,8 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext *UNUSED(C), Po
 #  endif
 #endif
 
+  uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
+  uiItemR(layout, ptr, "prefilter", DEFAULT_FLAGS, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "use_hdr", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
@@ -3524,6 +3535,18 @@ static void node_file_output_socket_draw(bContext *C,
   }
 }
 
+static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
+{
+  if (node.declaration == nullptr) {
+    return false;
+  }
+  if (socket.in_out == SOCK_OUT) {
+    return false;
+  }
+  const int socket_index = BLI_findindex(&node.inputs, &socket);
+  return node.declaration->inputs()[socket_index]->is_attribute_name();
+}
+
 static void std_node_socket_draw(
     bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
 {
@@ -3566,17 +3589,22 @@ static void std_node_socket_draw(
       }
       break;
     case SOCK_RGBA: {
-      uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-      uiItemL(row, text, 0);
-      uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      if (text[0] == '\0') {
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      }
+      else {
+        uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+        uiItemL(row, text, 0);
+        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      }
       break;
     }
     case SOCK_STRING: {
       uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
       uiItemL(row, text, 0);
 
-      const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
-      if (node_tree->type == NTREE_GEOMETRY) {
+      if (socket_needs_attribute_search(*node, *sock)) {
+        const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
         node_geometry_add_attribute_search_button(C, node_tree, node, ptr, row);
       }
       else {
@@ -3590,7 +3618,39 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_IMAGE: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
+      if (node_tree->type == NTREE_GEOMETRY) {
+        if (text[0] == '\0') {
+          uiTemplateID(layout,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+        else {
+          /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
+          uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+          uiItemL(row, text, 0);
+          uiTemplateID(row,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+      }
+      else {
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      }
       break;
     }
     case SOCK_COLLECTION: {
@@ -3928,11 +3988,17 @@ static struct {
   GPUBatch *batch_single; /* for single line */
   GPUVertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
-  uint colid_id, muted_id;
+  uint colid_id, muted_id, start_color_id, end_color_id;
   uint dim_factor_id;
+  uint thickness_id;
+  uint dash_factor_id;
+  uint dash_alpha_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
-  GPUVertBufRaw colid_step, muted_step;
+  GPUVertBufRaw colid_step, muted_step, start_color_step, end_color_step;
   GPUVertBufRaw dim_factor_step;
+  GPUVertBufRaw thickness_step;
+  GPUVertBufRaw dash_factor_step;
+  GPUVertBufRaw dash_alpha_step;
   uint count;
   bool enabled;
 } g_batch_link;
@@ -3949,6 +4015,16 @@ static void nodelink_batch_reset()
       g_batch_link.inst_vbo, g_batch_link.muted_id, &g_batch_link.muted_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.dim_factor_id, &g_batch_link.dim_factor_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.thickness_id, &g_batch_link.thickness_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.dash_factor_id, &g_batch_link.dash_factor_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.dash_alpha_id, &g_batch_link.dash_alpha_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.start_color_id, &g_batch_link.start_color_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.end_color_id, &g_batch_link.end_color_step);
   g_batch_link.count = 0;
 }
 
@@ -4064,10 +4140,20 @@ static void nodelink_batch_init()
       &format_inst, "P3", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   g_batch_link.colid_id = GPU_vertformat_attr_add(
       &format_inst, "colid_doarrow", GPU_COMP_U8, 4, GPU_FETCH_INT);
+  g_batch_link.start_color_id = GPU_vertformat_attr_add(
+      &format_inst, "start_color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  g_batch_link.end_color_id = GPU_vertformat_attr_add(
+      &format_inst, "end_color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   g_batch_link.muted_id = GPU_vertformat_attr_add(
       &format_inst, "domuted", GPU_COMP_U8, 2, GPU_FETCH_INT);
   g_batch_link.dim_factor_id = GPU_vertformat_attr_add(
       &format_inst, "dim_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  g_batch_link.thickness_id = GPU_vertformat_attr_add(
+      &format_inst, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  g_batch_link.dash_factor_id = GPU_vertformat_attr_add(
+      &format_inst, "dash_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  g_batch_link.dash_alpha_id = GPU_vertformat_attr_add(
+      &format_inst, "dash_alpha", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -4142,9 +4228,14 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
                                     int th_col1,
                                     int th_col2,
                                     int th_col3,
+                                    const float start_color[4],
+                                    const float end_color[4],
                                     bool drawarrow,
                                     bool drawmuted,
-                                    float dim_factor)
+                                    float dim_factor,
+                                    float thickness,
+                                    float dash_factor,
+                                    float dash_alpha)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
   BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
@@ -4161,9 +4252,14 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
   colid[1] = nodelink_get_color_id(th_col2);
   colid[2] = nodelink_get_color_id(th_col3);
   colid[3] = drawarrow;
+  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.start_color_step), start_color);
+  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.end_color_step), end_color);
   char *muted = (char *)GPU_vertbuf_raw_step(&g_batch_link.muted_step);
   muted[0] = drawmuted;
   *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = dim_factor;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = thickness;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_factor_step) = dash_factor;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_alpha_step) = dash_alpha;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -4171,7 +4267,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
 }
 
 /* don't do shadows if th_col3 is -1. */
-void node_draw_link_bezier(const View2D *v2d,
+void node_draw_link_bezier(const bContext *C,
+                           const View2D *v2d,
                            const SpaceNode *snode,
                            const bNodeLink *link,
                            int th_col1,
@@ -4179,6 +4276,20 @@ void node_draw_link_bezier(const View2D *v2d,
                            int th_col3)
 {
   const float dim_factor = node_link_dim_factor(v2d, link);
+  float thickness = 1.5f;
+  float dash_factor = 1.0f;
+
+  bTheme *btheme = UI_GetTheme();
+  const float dash_alpha = btheme->space_node.dash_alpha;
+
+  if (snode->edittree->type == NTREE_GEOMETRY) {
+    if (link->fromsock && link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+      /* Make field links a bit thinner. */
+      thickness = 1.0f;
+      /* Draw field as dashes. */
+      dash_factor = 0.75f;
+    }
+  }
 
   float vec[4][2];
   const bool highlighted = link->flag & NODE_LINK_TEMP_HIGHLIGHT;
@@ -4188,6 +4299,56 @@ void node_draw_link_bezier(const View2D *v2d,
     int drawmuted = (link->flag & NODE_LINK_MUTED);
     if (g_batch_link.batch == nullptr) {
       nodelink_batch_init();
+    }
+    /* Draw single link. */
+    float colors[3][4] = {{0.0f}};
+    if (th_col3 != -1) {
+      UI_GetThemeColor4fv(th_col3, colors[0]);
+    }
+
+    if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
+        ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
+         (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
+      PointerRNA from_node_ptr, to_node_ptr;
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->fromnode, &from_node_ptr);
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->tonode, &to_node_ptr);
+      if (link->fromsock) {
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[1]);
+      }
+      else {
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[1]);
+      }
+
+      if (link->tosock) {
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[2]);
+      }
+      else {
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[2]);
+      }
+    }
+    else {
+      UI_GetThemeColor4fv(th_col1, colors[1]);
+      UI_GetThemeColor4fv(th_col2, colors[2]);
+    }
+
+    /* Highlight links connected to selected nodes. */
+    const bool is_fromnode_selected = link->fromnode && link->fromnode->flag & SELECT;
+    const bool is_tonode_selected = link->tonode && link->tonode->flag & SELECT;
+    if (is_fromnode_selected || is_tonode_selected) {
+      float color_selected[4];
+      UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
+      const float alpha = color_selected[3];
+
+      /* Interpolate color if highlight color is not fully transparent. */
+      if (alpha != 0.0) {
+        if (is_fromnode_selected) {
+          interp_v3_v3v3(colors[1], colors[1], color_selected, alpha);
+        }
+        if (is_tonode_selected) {
+          interp_v3_v3v3(colors[2], colors[2], color_selected, alpha);
+        }
+      }
     }
 
     if (g_batch_link.enabled && !highlighted) {
@@ -4200,19 +4361,16 @@ void node_draw_link_bezier(const View2D *v2d,
                               th_col1,
                               th_col2,
                               th_col3,
+                              colors[1],
+                              colors[2],
                               drawarrow,
                               drawmuted,
-                              dim_factor);
+                              dim_factor,
+                              thickness,
+                              dash_factor,
+                              dash_alpha);
     }
     else {
-      /* Draw single link. */
-      float colors[3][4] = {{0.0f}};
-      if (th_col3 != -1) {
-        UI_GetThemeColor4fv(th_col3, colors[0]);
-      }
-      UI_GetThemeColor4fv(th_col1, colors[1]);
-      UI_GetThemeColor4fv(th_col2, colors[2]);
-
       if (highlighted) {
         float link_preselection_highlight_color[4];
         UI_GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
@@ -4228,13 +4386,16 @@ void node_draw_link_bezier(const View2D *v2d,
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
       GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
       GPU_batch_uniform_1f(batch, "dim_factor", dim_factor);
+      GPU_batch_uniform_1f(batch, "thickness", thickness);
+      GPU_batch_uniform_1f(batch, "dash_factor", dash_factor);
+      GPU_batch_uniform_1f(batch, "dash_alpha", dash_alpha);
       GPU_batch_draw(batch);
     }
   }
 }
 
 /* NOTE: this is used for fake links in groups too. */
-void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
+void node_draw_link(const bContext *C, View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;
 
@@ -4263,15 +4424,6 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       else if (link->flag & NODE_LINK_MUTED) {
         th_col1 = th_col2 = TH_REDALERT;
       }
-      else {
-        /* Regular link, highlight if connected to selected node. */
-        if (link->fromnode && link->fromnode->flag & SELECT) {
-          th_col1 = TH_EDGE_SELECT;
-        }
-        if (link->tonode && link->tonode->flag & SELECT) {
-          th_col2 = TH_EDGE_SELECT;
-        }
-      }
     }
     else {
       /* Invalid link. */
@@ -4279,8 +4431,15 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       // th_col3 = -1; /* no shadow */
     }
   }
+  /* Links from field to non-field sockets are not allowed. */
+  if (snode->edittree->type == NTREE_GEOMETRY && !(link->flag & NODE_LINK_DRAGGED)) {
+    if ((link->fromsock && link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
+        (link->tosock && link->tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
+      th_col1 = th_col2 = th_col3 = TH_REDALERT;
+    }
+  }
 
-  node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, th_col3);
+  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3);
 }
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)

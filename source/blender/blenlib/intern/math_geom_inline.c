@@ -99,7 +99,7 @@ MINLINE float dot_shsh(const float a[9], const float b[9])
   return r;
 }
 
-MINLINE float diffuse_shv3(float sh[9], const float v[3])
+MINLINE float diffuse_shv3(const float sh[9], const float v[3])
 {
   /* See formula (13) in:
    * "An Efficient Representation for Irradiance Environment Maps" */

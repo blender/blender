@@ -11,7 +11,7 @@ def get_cpu_name() -> str:
         return platform.processor()
     elif platform.system() == "Darwin":
         cmd = ['/usr/sbin/sysctl', "-n", "machdep.cpu.brand_string"]
-        return subprocess.check_output(cmd).strip().decode('utf-8')
+        return subprocess.check_output(cmd).strip().decode('utf-8', 'ignore')
     else:
         with open('/proc/cpuinfo') as f:
             for line in f:

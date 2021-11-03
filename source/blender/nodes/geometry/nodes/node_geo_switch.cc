@@ -19,46 +19,68 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "BKE_material.h"
+
+#include "FN_multi_function_signature.hh"
+
 namespace blender::nodes {
 
 static void geo_node_switch_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>("Switch");
+  b.add_input<decl::Bool>(N_("Switch")).default_value(false).supports_field();
+  b.add_input<decl::Bool>(N_("Switch"), "Switch_001").default_value(false);
 
-  b.add_input<decl::Float>("False");
-  b.add_input<decl::Float>("True");
-  b.add_input<decl::Int>("False", "False_001").min(-100000).max(100000);
-  b.add_input<decl::Int>("True", "True_001").min(-100000).max(100000);
-  b.add_input<decl::Bool>("False", "False_002");
-  b.add_input<decl::Bool>("True", "True_002");
-  b.add_input<decl::Vector>("False", "False_003");
-  b.add_input<decl::Vector>("True", "True_003");
-  b.add_input<decl::Color>("False", "False_004").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>("True", "True_004").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::String>("False", "False_005");
-  b.add_input<decl::String>("True", "True_005");
-  b.add_input<decl::Geometry>("False", "False_006");
-  b.add_input<decl::Geometry>("True", "True_006");
-  b.add_input<decl::Object>("False", "False_007");
-  b.add_input<decl::Object>("True", "True_007");
-  b.add_input<decl::Collection>("False", "False_008");
-  b.add_input<decl::Collection>("True", "True_008");
-  b.add_input<decl::Texture>("False", "False_009");
-  b.add_input<decl::Texture>("True", "True_009");
-  b.add_input<decl::Material>("False", "False_010");
-  b.add_input<decl::Material>("True", "True_010");
+  b.add_input<decl::Float>(N_("False")).supports_field();
+  b.add_input<decl::Float>(N_("True")).supports_field();
+  b.add_input<decl::Int>(N_("False"), "False_001").min(-100000).max(100000).supports_field();
+  b.add_input<decl::Int>(N_("True"), "True_001").min(-100000).max(100000).supports_field();
+  b.add_input<decl::Bool>(N_("False"), "False_002")
+      .default_value(false)
+      .hide_value()
+      .supports_field();
+  b.add_input<decl::Bool>(N_("True"), "True_002")
+      .default_value(true)
+      .hide_value()
+      .supports_field();
+  b.add_input<decl::Vector>(N_("False"), "False_003").supports_field();
+  b.add_input<decl::Vector>(N_("True"), "True_003").supports_field();
+  b.add_input<decl::Color>(N_("False"), "False_004")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .supports_field();
+  b.add_input<decl::Color>(N_("True"), "True_004")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .supports_field();
+  b.add_input<decl::String>(N_("False"), "False_005").supports_field();
+  b.add_input<decl::String>(N_("True"), "True_005").supports_field();
 
-  b.add_output<decl::Float>("Output");
-  b.add_output<decl::Int>("Output", "Output_001");
-  b.add_output<decl::Bool>("Output", "Output_002");
-  b.add_output<decl::Vector>("Output", "Output_003");
-  b.add_output<decl::Color>("Output", "Output_004");
-  b.add_output<decl::String>("Output", "Output_005");
-  b.add_output<decl::Geometry>("Output", "Output_006");
-  b.add_output<decl::Object>("Output", "Output_007");
-  b.add_output<decl::Collection>("Output", "Output_008");
-  b.add_output<decl::Texture>("Output", "Output_009");
-  b.add_output<decl::Material>("Output", "Output_010");
+  b.add_input<decl::Geometry>(N_("False"), "False_006");
+  b.add_input<decl::Geometry>(N_("True"), "True_006");
+  b.add_input<decl::Object>(N_("False"), "False_007");
+  b.add_input<decl::Object>(N_("True"), "True_007");
+  b.add_input<decl::Collection>(N_("False"), "False_008");
+  b.add_input<decl::Collection>(N_("True"), "True_008");
+  b.add_input<decl::Texture>(N_("False"), "False_009");
+  b.add_input<decl::Texture>(N_("True"), "True_009");
+  b.add_input<decl::Material>(N_("False"), "False_010");
+  b.add_input<decl::Material>(N_("True"), "True_010");
+  b.add_input<decl::Image>(N_("False"), "False_011");
+  b.add_input<decl::Image>(N_("True"), "True_011");
+
+  b.add_output<decl::Float>(N_("Output")).dependent_field();
+  b.add_output<decl::Int>(N_("Output"), "Output_001").dependent_field();
+  b.add_output<decl::Bool>(N_("Output"), "Output_002").dependent_field();
+  b.add_output<decl::Vector>(N_("Output"), "Output_003").dependent_field();
+  b.add_output<decl::Color>(N_("Output"), "Output_004").dependent_field();
+  b.add_output<decl::String>(N_("Output"), "Output_005").dependent_field();
+  b.add_output<decl::Geometry>(N_("Output"), "Output_006");
+  b.add_output<decl::Object>(N_("Output"), "Output_007");
+  b.add_output<decl::Collection>(N_("Output"), "Output_008");
+  b.add_output<decl::Texture>(N_("Output"), "Output_009");
+  b.add_output<decl::Material>(N_("Output"), "Output_010");
+  b.add_output<decl::Image>(N_("Output"), "Output_011");
 }
 
 static void geo_node_switch_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -77,91 +99,192 @@ static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeSwitch *node_storage = (NodeSwitch *)node->storage;
   int index = 0;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    nodeSetSocketAvailability(
-        socket, index == 0 || socket->type == (eNodeSocketDatatype)node_storage->input_type);
-    index++;
+  bNodeSocket *field_switch = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *non_field_switch = (bNodeSocket *)field_switch->next;
+
+  const bool fields_type = ELEM((eNodeSocketDatatype)node_storage->input_type,
+                                SOCK_FLOAT,
+                                SOCK_INT,
+                                SOCK_BOOLEAN,
+                                SOCK_VECTOR,
+                                SOCK_RGBA,
+                                SOCK_STRING);
+
+  nodeSetSocketAvailability(field_switch, fields_type);
+  nodeSetSocketAvailability(non_field_switch, !fields_type);
+
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
+    if (index <= 1) {
+      continue;
+    }
+    nodeSetSocketAvailability(socket,
+                              socket->type == (eNodeSocketDatatype)node_storage->input_type);
   }
+
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
     nodeSetSocketAvailability(socket,
                               socket->type == (eNodeSocketDatatype)node_storage->input_type);
   }
 }
 
-template<typename T>
-static void output_input(GeoNodeExecParams &params,
-                         const bool input,
-                         const StringRef input_suffix,
-                         const StringRef output_identifier)
+template<typename T> class SwitchFieldsFunction : public fn::MultiFunction {
+ public:
+  SwitchFieldsFunction()
+  {
+    static fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+  static fn::MFSignature create_signature()
+  {
+    fn::MFSignatureBuilder signature{"Switch"};
+    signature.single_input<bool>("Switch");
+    signature.single_input<T>("False");
+    signature.single_input<T>("True");
+    signature.single_output<T>("Output");
+    return signature.build();
+  }
+
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  {
+    const VArray<bool> &switches = params.readonly_single_input<bool>(0, "Switch");
+    const VArray<T> &falses = params.readonly_single_input<T>(1, "False");
+    const VArray<T> &trues = params.readonly_single_input<T>(2, "True");
+    MutableSpan<T> values = params.uninitialized_single_output_if_required<T>(3, "Output");
+    for (int64_t i : mask) {
+      new (&values[i]) T(switches[i] ? trues[i] : falses[i]);
+    }
+  }
+};
+
+template<typename T> void switch_fields(GeoNodeExecParams &params, const StringRef suffix)
 {
-  const std::string name_a = "False" + input_suffix;
-  const std::string name_b = "True" + input_suffix;
-  if (input) {
-    params.set_input_unused(name_a);
-    if (params.lazy_require_input(name_b)) {
+  if (params.lazy_require_input("Switch")) {
+    return;
+  }
+
+  const std::string name_false = "False" + suffix;
+  const std::string name_true = "True" + suffix;
+  const std::string name_output = "Output" + suffix;
+
+  Field<bool> switches_field = params.get_input<Field<bool>>("Switch");
+  if (switches_field.node().depends_on_input()) {
+    /* The switch has to be incorporated into the field. Both inputs have to be evaluated. */
+    const bool require_false = params.lazy_require_input(name_false);
+    const bool require_true = params.lazy_require_input(name_true);
+    if (require_false | require_true) {
       return;
     }
-    params.set_output(output_identifier, params.extract_input<T>(name_b));
+
+    Field<T> falses_field = params.extract_input<Field<T>>(name_false);
+    Field<T> trues_field = params.extract_input<Field<T>>(name_true);
+
+    auto switch_fn = std::make_unique<SwitchFieldsFunction<T>>();
+    auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
+        std::move(switch_fn),
+        {std::move(switches_field), std::move(falses_field), std::move(trues_field)}));
+
+    params.set_output(name_output, Field<T>(switch_op, 0));
   }
   else {
-    params.set_input_unused(name_b);
-    if (params.lazy_require_input(name_a)) {
+    /* The switch input is constant, so just evaluate and forward one of the inputs. */
+    const bool switch_value = fn::evaluate_constant_field(switches_field);
+    if (switch_value) {
+      params.set_input_unused(name_false);
+      if (params.lazy_require_input(name_true)) {
+        return;
+      }
+      params.set_output(name_output, params.extract_input<Field<T>>(name_true));
+    }
+    else {
+      params.set_input_unused(name_true);
+      if (params.lazy_require_input(name_false)) {
+        return;
+      }
+      params.set_output(name_output, params.extract_input<Field<T>>(name_false));
+    }
+  }
+}
+
+template<typename T> void switch_no_fields(GeoNodeExecParams &params, const StringRef suffix)
+{
+  if (params.lazy_require_input("Switch_001")) {
+    return;
+  }
+  bool switch_value = params.get_input<bool>("Switch_001");
+
+  const std::string name_false = "False" + suffix;
+  const std::string name_true = "True" + suffix;
+  const std::string name_output = "Output" + suffix;
+
+  if (switch_value) {
+    params.set_input_unused(name_false);
+    if (params.lazy_require_input(name_true)) {
       return;
     }
-    params.set_output(output_identifier, params.extract_input<T>(name_a));
+    params.set_output(name_output, params.extract_input<T>(name_true));
+  }
+  else {
+    params.set_input_unused(name_true);
+    if (params.lazy_require_input(name_false)) {
+      return;
+    }
+    params.set_output(name_output, params.extract_input<T>(name_false));
   }
 }
 
 static void geo_node_switch_exec(GeoNodeExecParams params)
 {
-  if (params.lazy_require_input("Switch")) {
-    return;
-  }
   const NodeSwitch &storage = *(const NodeSwitch *)params.node().storage;
-  const bool input = params.get_input<bool>("Switch");
-  switch ((eNodeSocketDatatype)storage.input_type) {
+  const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.input_type);
+
+  switch (data_type) {
+
     case SOCK_FLOAT: {
-      output_input<float>(params, input, "", "Output");
+      switch_fields<float>(params, "");
       break;
     }
     case SOCK_INT: {
-      output_input<int>(params, input, "_001", "Output_001");
+      switch_fields<int>(params, "_001");
       break;
     }
     case SOCK_BOOLEAN: {
-      output_input<bool>(params, input, "_002", "Output_002");
+      switch_fields<bool>(params, "_002");
       break;
     }
     case SOCK_VECTOR: {
-      output_input<float3>(params, input, "_003", "Output_003");
+      switch_fields<float3>(params, "_003");
       break;
     }
     case SOCK_RGBA: {
-      output_input<ColorGeometry4f>(params, input, "_004", "Output_004");
+      switch_fields<ColorGeometry4f>(params, "_004");
       break;
     }
     case SOCK_STRING: {
-      output_input<std::string>(params, input, "_005", "Output_005");
+      switch_fields<std::string>(params, "_005");
       break;
     }
     case SOCK_GEOMETRY: {
-      output_input<GeometrySet>(params, input, "_006", "Output_006");
+      switch_no_fields<GeometrySet>(params, "_006");
       break;
     }
     case SOCK_OBJECT: {
-      output_input<Object *>(params, input, "_007", "Output_007");
+      switch_no_fields<Object *>(params, "_007");
       break;
     }
     case SOCK_COLLECTION: {
-      output_input<Collection *>(params, input, "_008", "Output_008");
+      switch_no_fields<Collection *>(params, "_008");
       break;
     }
     case SOCK_TEXTURE: {
-      output_input<Tex *>(params, input, "_009", "Output_009");
+      switch_no_fields<Tex *>(params, "_009");
       break;
     }
     case SOCK_MATERIAL: {
-      output_input<Material *>(params, input, "_010", "Output_010");
+      switch_no_fields<Material *>(params, "_010");
+      break;
+    }
+    case SOCK_IMAGE: {
+      switch_no_fields<Image *>(params, "_011");
       break;
     }
     default:

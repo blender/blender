@@ -20,97 +20,95 @@
 
 #include "COM_MixOperation.h"
 
-#include "COM_ExecutionSystem.h"
-#include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" /* the ramp types */
 
 namespace blender::compositor {
 
-MixNode::MixNode(bNode *editorNode) : Node(editorNode)
+MixNode::MixNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MixNode::convertToOperations(NodeConverter &converter,
-                                  const CompositorContext & /*context*/) const
+void MixNode::convert_to_operations(NodeConverter &converter,
+                                    const CompositorContext & /*context*/) const
 {
-  NodeInput *valueSocket = this->getInputSocket(0);
-  NodeInput *color1Socket = this->getInputSocket(1);
-  NodeInput *color2Socket = this->getInputSocket(2);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
-  bNode *editorNode = this->getbNode();
-  bool useAlphaPremultiply = (this->getbNode()->custom2 & 1) != 0;
-  bool useClamp = (this->getbNode()->custom2 & 2) != 0;
+  NodeInput *value_socket = this->get_input_socket(0);
+  NodeInput *color1Socket = this->get_input_socket(1);
+  NodeInput *color2Socket = this->get_input_socket(2);
+  NodeOutput *output_socket = this->get_output_socket(0);
+  bNode *editor_node = this->get_bnode();
+  bool use_alpha_premultiply = (this->get_bnode()->custom2 & 1) != 0;
+  bool use_clamp = (this->get_bnode()->custom2 & 2) != 0;
 
-  MixBaseOperation *convertProg;
-  switch (editorNode->custom1) {
+  MixBaseOperation *convert_prog;
+  switch (editor_node->custom1) {
     case MA_RAMP_ADD:
-      convertProg = new MixAddOperation();
+      convert_prog = new MixAddOperation();
       break;
     case MA_RAMP_MULT:
-      convertProg = new MixMultiplyOperation();
+      convert_prog = new MixMultiplyOperation();
       break;
     case MA_RAMP_LIGHT:
-      convertProg = new MixLightenOperation();
+      convert_prog = new MixLightenOperation();
       break;
     case MA_RAMP_BURN:
-      convertProg = new MixColorBurnOperation();
+      convert_prog = new MixColorBurnOperation();
       break;
     case MA_RAMP_HUE:
-      convertProg = new MixHueOperation();
+      convert_prog = new MixHueOperation();
       break;
     case MA_RAMP_COLOR:
-      convertProg = new MixColorOperation();
+      convert_prog = new MixColorOperation();
       break;
     case MA_RAMP_SOFT:
-      convertProg = new MixSoftLightOperation();
+      convert_prog = new MixSoftLightOperation();
       break;
     case MA_RAMP_SCREEN:
-      convertProg = new MixScreenOperation();
+      convert_prog = new MixScreenOperation();
       break;
     case MA_RAMP_LINEAR:
-      convertProg = new MixLinearLightOperation();
+      convert_prog = new MixLinearLightOperation();
       break;
     case MA_RAMP_DIFF:
-      convertProg = new MixDifferenceOperation();
+      convert_prog = new MixDifferenceOperation();
       break;
     case MA_RAMP_SAT:
-      convertProg = new MixSaturationOperation();
+      convert_prog = new MixSaturationOperation();
       break;
     case MA_RAMP_DIV:
-      convertProg = new MixDivideOperation();
+      convert_prog = new MixDivideOperation();
       break;
     case MA_RAMP_SUB:
-      convertProg = new MixSubtractOperation();
+      convert_prog = new MixSubtractOperation();
       break;
     case MA_RAMP_DARK:
-      convertProg = new MixDarkenOperation();
+      convert_prog = new MixDarkenOperation();
       break;
     case MA_RAMP_OVERLAY:
-      convertProg = new MixOverlayOperation();
+      convert_prog = new MixOverlayOperation();
       break;
     case MA_RAMP_VAL:
-      convertProg = new MixValueOperation();
+      convert_prog = new MixValueOperation();
       break;
     case MA_RAMP_DODGE:
-      convertProg = new MixDodgeOperation();
+      convert_prog = new MixDodgeOperation();
       break;
 
     case MA_RAMP_BLEND:
     default:
-      convertProg = new MixBlendOperation();
+      convert_prog = new MixBlendOperation();
       break;
   }
-  convertProg->setUseValueAlphaMultiply(useAlphaPremultiply);
-  convertProg->setUseClamp(useClamp);
-  converter.addOperation(convertProg);
+  convert_prog->set_use_value_alpha_multiply(use_alpha_premultiply);
+  convert_prog->set_use_clamp(use_clamp);
+  converter.add_operation(convert_prog);
 
-  converter.mapInputSocket(valueSocket, convertProg->getInputSocket(0));
-  converter.mapInputSocket(color1Socket, convertProg->getInputSocket(1));
-  converter.mapInputSocket(color2Socket, convertProg->getInputSocket(2));
-  converter.mapOutputSocket(outputSocket, convertProg->getOutputSocket(0));
+  converter.map_input_socket(value_socket, convert_prog->get_input_socket(0));
+  converter.map_input_socket(color1Socket, convert_prog->get_input_socket(1));
+  converter.map_input_socket(color2Socket, convert_prog->get_input_socket(2));
+  converter.map_output_socket(output_socket, convert_prog->get_output_socket(0));
 
-  converter.addPreview(convertProg->getOutputSocket(0));
+  converter.add_preview(convert_prog->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

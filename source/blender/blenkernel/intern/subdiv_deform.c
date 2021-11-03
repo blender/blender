@@ -69,7 +69,7 @@ static void subdiv_mesh_prepare_accumulator(SubdivDeformContext *ctx, int num_ve
     return;
   }
   ctx->accumulated_counters = MEM_calloc_arrayN(
-      sizeof(*ctx->accumulated_counters), num_vertices, "subdiv accumulated counters");
+      num_vertices, sizeof(*ctx->accumulated_counters), "subdiv accumulated counters");
 }
 
 static void subdiv_mesh_context_free(SubdivDeformContext *ctx)

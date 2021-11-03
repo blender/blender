@@ -132,6 +132,8 @@ enum {
   V2D_PIXELOFS_X = (1 << 2),
   /* apply pixel offsets on y-axis when setting view matrices */
   V2D_PIXELOFS_Y = (1 << 3),
+  /* zoom, pan or similar action is in progress */
+  V2D_IS_NAVIGATING = (1 << 9),
   /* view settings need to be set still... */
   V2D_IS_INIT = (1 << 10),
 };

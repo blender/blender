@@ -221,7 +221,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
     string ics = spec.get_string_attribute("oiio:ColorSpace");
     BLI_strncpy(file_colorspace, ics.c_str(), IM_MAX_SPACE);
 
-    /* only use colorspaces exis */
+    /* Only use color-spaces exist. */
     if (colormanage_colorspace_get_named(file_colorspace)) {
       strcpy(colorspace, file_colorspace);
     }

@@ -342,7 +342,7 @@ static ImBuf *colormanage_cache_get_ibuf(ImBuf *ibuf,
 
   *cache_handle = NULL;
 
-  cache_ibuf = IMB_moviecache_get(moviecache, key);
+  cache_ibuf = IMB_moviecache_get(moviecache, key, NULL);
 
   *cache_handle = cache_ibuf;
 

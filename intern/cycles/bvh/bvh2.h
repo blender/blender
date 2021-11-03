@@ -19,10 +19,10 @@
 #define __BVH2_H__
 
 #include "bvh/bvh.h"
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

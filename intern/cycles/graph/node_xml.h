@@ -18,9 +18,9 @@
 
 #include "graph/node.h"
 
-#include "util/util_map.h"
-#include "util/util_string.h"
-#include "util/util_xml.h"
+#include "util/map.h"
+#include "util/string.h"
+#include "util/xml.h"
 
 CCL_NAMESPACE_BEGIN
 

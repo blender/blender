@@ -34,6 +34,7 @@ set(INC
 )
 
 set(SRC
+  asset_catalog_tree_view.cc
   file_draw.c
   file_ops.c
   file_panels.c
@@ -49,6 +50,7 @@ set(SRC
 )
 
 set(LIB
+  bf_blenkernel
 )
 
 if(WITH_HEADLESS)

@@ -18,53 +18,47 @@
 
 #include "COM_KeyingBlurOperation.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 KeyingBlurOperation::KeyingBlurOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 
-  this->m_size = 0;
-  this->m_axis = BLUR_AXIS_X;
+  size_ = 0;
+  axis_ = BLUR_AXIS_X;
 
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 
-void *KeyingBlurOperation::initializeTileData(rcti *rect)
+void *KeyingBlurOperation::initialize_tile_data(rcti *rect)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(rect);
+  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
 
   return buffer;
 }
 
-void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  const int bufferWidth = inputBuffer->getWidth();
-  float *buffer = inputBuffer->getBuffer();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  const int buffer_width = input_buffer->get_width();
+  float *buffer = input_buffer->get_buffer();
   int count = 0;
   float average = 0.0f;
 
-  if (this->m_axis == 0) {
-    const int start = MAX2(0, x - this->m_size + 1), end = MIN2(bufferWidth, x + this->m_size);
+  if (axis_ == 0) {
+    const int start = MAX2(0, x - size_ + 1), end = MIN2(buffer_width, x + size_);
     for (int cx = start; cx < end; cx++) {
-      int bufferIndex = (y * bufferWidth + cx);
-      average += buffer[bufferIndex];
+      int buffer_index = (y * buffer_width + cx);
+      average += buffer[buffer_index];
       count++;
     }
   }
   else {
-    const int start = MAX2(0, y - this->m_size + 1),
-              end = MIN2(inputBuffer->getHeight(), y + this->m_size);
+    const int start = MAX2(0, y - size_ + 1), end = MIN2(input_buffer->get_height(), y + size_);
     for (int cy = start; cy < end; cy++) {
-      int bufferIndex = (cy * bufferWidth + x);
-      average += buffer[bufferIndex];
+      int buffer_index = (cy * buffer_width + x);
+      average += buffer[buffer_index];
       count++;
     }
   }
@@ -74,44 +68,44 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
   output[0] = average;
 }
 
-bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
-                                                           ReadBufferOperation *readOperation,
-                                                           rcti *output)
+bool KeyingBlurOperation::determine_depending_area_of_interest(rcti *input,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  if (this->m_axis == BLUR_AXIS_X) {
-    newInput.xmin = input->xmin - this->m_size;
-    newInput.ymin = input->ymin;
-    newInput.xmax = input->xmax + this->m_size;
-    newInput.ymax = input->ymax;
+  if (axis_ == BLUR_AXIS_X) {
+    new_input.xmin = input->xmin - size_;
+    new_input.ymin = input->ymin;
+    new_input.xmax = input->xmax + size_;
+    new_input.ymax = input->ymax;
   }
   else {
-    newInput.xmin = input->xmin;
-    newInput.ymin = input->ymin - this->m_size;
-    newInput.xmax = input->xmax;
-    newInput.ymax = input->ymax + this->m_size;
+    new_input.xmin = input->xmin;
+    new_input.ymin = input->ymin - size_;
+    new_input.xmax = input->xmax;
+    new_input.ymax = input->ymax + size_;
   }
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void KeyingBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
                                                const rcti &output_area,
                                                rcti &r_input_area)
 {
-  switch (m_axis) {
+  switch (axis_) {
     case BLUR_AXIS_X:
-      r_input_area.xmin = output_area.xmin - m_size;
+      r_input_area.xmin = output_area.xmin - size_;
       r_input_area.ymin = output_area.ymin;
-      r_input_area.xmax = output_area.xmax + m_size;
+      r_input_area.xmax = output_area.xmax + size_;
       r_input_area.ymax = output_area.ymax;
       break;
     case BLUR_AXIS_Y:
       r_input_area.xmin = output_area.xmin;
-      r_input_area.ymin = output_area.ymin - m_size;
+      r_input_area.ymin = output_area.ymin - size_;
       r_input_area.xmax = output_area.xmax;
-      r_input_area.ymax = output_area.ymax + m_size;
+      r_input_area.ymax = output_area.ymax + size_;
       break;
     default:
       BLI_assert_msg(0, "Unknown axis");
@@ -129,23 +123,23 @@ void KeyingBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
   int coord_max;
   int elem_stride;
   std::function<int()> get_current_coord;
-  switch (m_axis) {
+  switch (axis_) {
     case BLUR_AXIS_X:
       get_current_coord = [&] { return it.x; };
-      coord_max = this->getWidth();
+      coord_max = this->get_width();
       elem_stride = input->elem_stride;
       break;
     case BLUR_AXIS_Y:
       get_current_coord = [&] { return it.y; };
-      coord_max = this->getHeight();
+      coord_max = this->get_height();
       elem_stride = input->row_stride;
       break;
   }
 
   for (; !it.is_end(); ++it) {
     const int coord = get_current_coord();
-    const int start_coord = MAX2(0, coord - m_size + 1);
-    const int end_coord = MIN2(coord_max, coord + m_size);
+    const int start_coord = MAX2(0, coord - size_ + 1);
+    const int end_coord = MIN2(coord_max, coord + size_);
     const int count = end_coord - start_coord;
 
     float sum = 0.0f;

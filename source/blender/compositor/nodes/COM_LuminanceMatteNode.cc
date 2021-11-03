@@ -17,41 +17,39 @@
  */
 
 #include "COM_LuminanceMatteNode.h"
-#include "BKE_node.h"
-#include "COM_ConvertOperation.h"
 #include "COM_LuminanceMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 
-LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)
+LuminanceMatteNode::LuminanceMatteNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void LuminanceMatteNode::convertToOperations(NodeConverter &converter,
-                                             const CompositorContext & /*context*/) const
+void LuminanceMatteNode::convert_to_operations(NodeConverter &converter,
+                                               const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = getbNode();
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
-  NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+  bNode *editorsnode = get_bnode();
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
+  NodeOutput *output_socket_matte = this->get_output_socket(1);
 
-  LuminanceMatteOperation *operationSet = new LuminanceMatteOperation();
-  operationSet->setSettings((NodeChroma *)editorsnode->storage);
-  converter.addOperation(operationSet);
+  LuminanceMatteOperation *operation_set = new LuminanceMatteOperation();
+  operation_set->set_settings((NodeChroma *)editorsnode->storage);
+  converter.add_operation(operation_set);
 
-  converter.mapInputSocket(inputSocket, operationSet->getInputSocket(0));
-  converter.mapOutputSocket(outputSocketMatte, operationSet->getOutputSocket(0));
+  converter.map_input_socket(input_socket, operation_set->get_input_socket(0));
+  converter.map_output_socket(output_socket_matte, operation_set->get_output_socket(0));
 
   SetAlphaMultiplyOperation *operation = new SetAlphaMultiplyOperation();
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-  converter.addLink(operationSet->getOutputSocket(), operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
+  converter.map_input_socket(input_socket, operation->get_input_socket(0));
+  converter.add_link(operation_set->get_output_socket(), operation->get_input_socket(1));
+  converter.map_output_socket(output_socket_image, operation->get_output_socket());
 
-  converter.addPreview(operation->getOutputSocket());
+  converter.add_preview(operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

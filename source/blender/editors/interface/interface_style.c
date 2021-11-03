@@ -312,11 +312,8 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     const float decent = BLF_descender(fs->uifont_id);
     const float margin = height / 4.0f;
 
-    /* backdrop */
-    const float color[4] = {col_bg[0], col_bg[1], col_bg[2], 0.5f};
-
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(
+    UI_draw_roundbox_4fv(
         &(const rctf){
             .xmin = x - margin,
             .xmax = x + width + margin,
@@ -325,7 +322,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
         },
         true,
         margin,
-        color);
+        col_bg);
   }
 
   BLF_position(fs->uifont_id, x, y, 0.0f);
@@ -377,6 +374,37 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 {
   UI_fontstyle_set(fs);
   return (int)BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+}
+
+/**
+ * Return the width of `str` with the spacing & kerning of `fs` with `aspect`
+ * (representing #uiBlock.aspect) applied.
+ *
+ * When calculating text width, the UI layout logic calculate widths without scale,
+ * only applying scale when drawing. This causes problems for fonts since kerning at
+ * smaller sizes often makes them wider than a scaled down version of the larger text.
+ * Resolve this by calculating the text at the on-screen size,
+ * returning the result scaled back to 1:1. See T92361.
+ */
+int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
+                                                const char *str,
+                                                const float aspect)
+{
+  uiFontStyle fs_buf;
+  if (aspect != 1.0f) {
+    fs_buf = *fs;
+    ui_fontscale(&fs_buf.points, aspect);
+    fs = &fs_buf;
+  }
+
+  int width = UI_fontstyle_string_width(fs, str);
+
+  if (aspect != 1.0f) {
+    /* While in most cases rounding up isn't important, it can make a difference
+     * with small fonts (3px or less), zooming out in the node-editor for e.g. */
+    width = (int)ceilf(width * aspect);
+  }
+  return width;
 }
 
 int UI_fontstyle_height_max(const uiFontStyle *fs)

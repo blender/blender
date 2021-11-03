@@ -100,14 +100,6 @@ class PREFERENCES_OT_copy_prev(Operator):
         version_new = ((version[0] * 100) + version[1])
         version_old = ((version[0] * 100) + version[1]) - 1
 
-        # Special case, remove when the version is > 3.0.
-        if version_new == 300:
-            version_new = 294
-            version_old = 293
-        else:
-            print("TODO: remove exception!")
-        # End special case.
-
         # Ensure we only try to copy files from a point release.
         # The check below ensures the second numbers match.
         while (version_new % 100) // 10 == (version_old % 100) // 10:
@@ -268,7 +260,7 @@ class PREFERENCES_OT_keyconfig_export(Operator):
     )
     filepath: StringProperty(
         subtype='FILE_PATH',
-        default="keymap.py",
+        default="",
     )
     filter_folder: BoolProperty(
         name="Filter folders",
@@ -307,7 +299,13 @@ class PREFERENCES_OT_keyconfig_export(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
+        import os
         wm = context.window_manager
+        if not self.filepath:
+            self.filepath = os.path.join(
+                os.path.expanduser("~"),
+                bpy.path.display_name_to_filepath(wm.keyconfigs.active.name) + ".py",
+            )
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

@@ -32,6 +32,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.h"
+#include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -166,7 +167,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
   scroll = view2d_scroll_mapped(v2d->scroll);
 
-  /* scrollers are based off regionsize
+  /* Scrollers are based off region-size:
    * - they can only be on one to two edges of the region they define
    * - if they overlap, they must not occupy the corners (which are reserved for other widgets)
    */
@@ -866,6 +867,11 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
 
 /* ------------------ */
 
+bool UI_view2d_area_supports_sync(ScrArea *area)
+{
+  return ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP, SPACE_GRAPH);
+}
+
 /* Called by menus to activate it, or by view2d operators
  * to make sure 'related' views stay in synchrony */
 void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
@@ -903,6 +909,9 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
+      if (!UI_view2d_area_supports_sync(area_iter)) {
+        continue;
+      }
       LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
         /* don't operate on self */
         if (v2dcur != &region->v2d) {
@@ -1283,6 +1292,114 @@ void UI_view2d_multi_grid_draw(
   immUnbindProgram();
 }
 
+static void grid_axis_start_and_count(
+    const float step, const float min, const float max, float *r_start, int *r_count)
+{
+  *r_start = min;
+  if (*r_start < 0.0f) {
+    *r_start += -(float)fmod(min, step);
+  }
+  else {
+    *r_start += step - (float)fabs(fmod(min, step));
+  }
+
+  if (*r_start > max) {
+    *r_count = 0;
+  }
+  else {
+    *r_count = (max - *r_start) / step + 1;
+  }
+}
+
+typedef struct DotGridLevelInfo {
+  /* The factor applied to the #min_step argument. This could be easily computed in runtime,
+   * but seeing it together with the other values is helpful. */
+  float step_factor;
+  /* The normalized zoom level at which the grid level starts to fade in.
+   * At lower zoom levels, the points will not be visible and the level will be skipped. */
+  float fade_in_start_zoom;
+  /* The normalized zoom level at which the grid finishes fading in.
+   * At higher zoom levels, the points will be opaque. */
+  float fade_in_end_zoom;
+} DotGridLevelInfo;
+
+static const DotGridLevelInfo level_info[9] = {
+    {6.4f, -0.1f, 0.01f},
+    {3.2f, 0.0f, 0.025f},
+    {1.6f, 0.025f, 0.15f},
+    {0.8f, 0.05f, 0.2f},
+    {0.4f, 0.1f, 0.25f},
+    {0.2f, 0.125f, 0.3f},
+    {0.1f, 0.25f, 0.5f},
+    {0.05f, 0.7f, 0.9f},
+    {0.025f, 0.6f, 0.9f},
+};
+
+/**
+ * Draw a multi-level grid of dots, with a dynamic number of levels based on the fading.
+ *
+ * \param grid_color_id: The theme color used for the points. Faded dynamically based on zoom.
+ * \param min_step: The base size of the grid. At different zoom levels, the visible grid may have
+ * a larger step size.
+ * \param grid_levels: The maximum grid depth. Larger grid levels will subdivide the grid more.
+ */
+void UI_view2d_dot_grid_draw(const View2D *v2d,
+                             const int grid_color_id,
+                             const float min_step,
+                             const int grid_levels)
+{
+  BLI_assert(grid_levels > 0 && grid_levels < 10);
+  const float zoom_x = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+  const float zoom_normalized = (zoom_x - v2d->minzoom) / (v2d->maxzoom - v2d->minzoom);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  GPU_point_size(3.0f * UI_DPI_FAC);
+
+  float color[4];
+  UI_GetThemeColor3fv(grid_color_id, color);
+
+  for (int level = 0; level < grid_levels; level++) {
+    const DotGridLevelInfo *info = &level_info[level];
+    const float step = min_step * info->step_factor * U.widget_unit;
+
+    const float alpha_factor = (zoom_normalized - info->fade_in_start_zoom) /
+                               (info->fade_in_end_zoom - info->fade_in_start_zoom);
+    color[3] = clamp_f(BLI_easing_cubic_ease_in_out(alpha_factor, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f);
+    if (color[3] == 0.0f) {
+      break;
+    }
+
+    int count_x;
+    float start_x;
+    grid_axis_start_and_count(step, v2d->cur.xmin, v2d->cur.xmax, &start_x, &count_x);
+    int count_y;
+    float start_y;
+    grid_axis_start_and_count(step, v2d->cur.ymin, v2d->cur.ymax, &start_y, &count_y);
+    if (count_x == 0 || count_y == 0) {
+      continue;
+    }
+
+    immBegin(GPU_PRIM_POINTS, count_x * count_y);
+
+    /* Theoretically drawing on top of lower grid levels could be avoided, but it would also
+     * increase the complexity of this loop, which isn't worth the time at the moment. */
+    for (int i_y = 0; i_y < count_y; i_y++) {
+      const float y = start_y + step * i_y;
+      for (int i_x = 0; i_x < count_x; i_x++) {
+        const float x = start_x + step * i_x;
+        immAttr4fv(color_id, color);
+        immVertex2f(pos, x, y);
+      }
+    }
+
+    immEnd();
+  }
+
+  immUnbindProgram();
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1916,8 +2033,10 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
  * - 'v' = in vertical scroller.
  * - 0 = not in scroller.
  */
-char UI_view2d_mouse_in_scrollers_ex(
-    const ARegion *region, const View2D *v2d, int x, int y, int *r_scroll)
+char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
+                                     const View2D *v2d,
+                                     const int xy[2],
+                                     int *r_scroll)
 {
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   *r_scroll = scroll;
@@ -1925,8 +2044,8 @@ char UI_view2d_mouse_in_scrollers_ex(
   if (scroll) {
     /* Move to region-coordinates. */
     const int co[2] = {
-        x - region->winrct.xmin,
-        y - region->winrct.ymin,
+        xy[0] - region->winrct.xmin,
+        xy[1] - region->winrct.ymin,
     };
     if (scroll & V2D_SCROLL_HORIZONTAL) {
       if (IN_2D_HORIZ_SCROLL(v2d, co)) {
@@ -1970,10 +2089,10 @@ char UI_view2d_rect_in_scrollers_ex(const ARegion *region,
   return 0;
 }
 
-char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, int x, int y)
+char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, const int xy[2])
 {
   int scroll_dummy = 0;
-  return UI_view2d_mouse_in_scrollers_ex(region, v2d, x, y, &scroll_dummy);
+  return UI_view2d_mouse_in_scrollers_ex(region, v2d, xy, &scroll_dummy);
 }
 
 char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const rcti *rect)

@@ -27,11 +27,13 @@ namespace blender::nodes {
 
 static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry 1");
-  b.add_input<decl::Geometry>("Geometry 2").multi_input();
-  b.add_input<decl::Bool>("Self Intersection");
-  b.add_input<decl::Bool>("Hole Tolerant");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Mesh 1"))
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>(N_("Mesh 2")).multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Self Intersection"));
+  b.add_input<decl::Bool>(N_("Hole Tolerant"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -51,12 +53,12 @@ static void geo_node_boolean_update(bNodeTree *UNUSED(ntree), bNode *node)
     case GEO_NODE_BOOLEAN_UNION:
       nodeSetSocketAvailability(geometry_1_socket, false);
       nodeSetSocketAvailability(geometry_2_socket, true);
-      node_sock_label(geometry_2_socket, N_("Geometry"));
+      node_sock_label(geometry_2_socket, N_("Mesh"));
       break;
     case GEO_NODE_BOOLEAN_DIFFERENCE:
       nodeSetSocketAvailability(geometry_1_socket, true);
       nodeSetSocketAvailability(geometry_2_socket, true);
-      node_sock_label(geometry_2_socket, N_("Geometry 2"));
+      node_sock_label(geometry_2_socket, N_("Mesh 2"));
       break;
   }
 }
@@ -82,11 +84,10 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
 
   GeometrySet set_a;
   if (operation == GEO_NODE_BOOLEAN_DIFFERENCE) {
-    set_a = params.extract_input<GeometrySet>("Geometry 1");
+    set_a = params.extract_input<GeometrySet>("Mesh 1");
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */
-    set_a = geometry_set_realize_instances(set_a);
     const Mesh *mesh_in_a = set_a.get_mesh_for_read();
     if (mesh_in_a != nullptr) {
       meshes.append(mesh_in_a);
@@ -97,7 +98,7 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
   /* The instance transform matrices are owned by the instance group, so we have to
    * keep all of them around for use during the boolean operation. */
   Vector<bke::GeometryInstanceGroup> set_groups;
-  Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Geometry 2");
+  Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Mesh 2");
   for (const GeometrySet &geometry_set : geometry_sets) {
     bke::geometry_set_gather_instances(geometry_set, set_groups);
   }
@@ -115,7 +116,7 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
   Mesh *result = blender::meshintersect::direct_mesh_boolean(
       meshes, transforms, float4x4::identity(), {}, use_self, hole_tolerant, operation);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(result));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(result));
 }
 
 }  // namespace blender::nodes
@@ -124,7 +125,7 @@ void register_node_type_geo_boolean()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_BOOLEAN, "Boolean", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_BOOLEAN, "Mesh Boolean", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_boolean_declare;
   ntype.draw_buttons = blender::nodes::geo_node_boolean_layout;
   ntype.updatefunc = blender::nodes::geo_node_boolean_update;

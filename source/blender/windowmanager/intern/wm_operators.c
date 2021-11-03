@@ -423,7 +423,9 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
+static const char *wm_context_member_from_ptr(const bContext *C,
+                                              const PointerRNA *ptr,
+                                              bool *r_is_id)
 {
   const char *member_id = NULL;
   bool is_id = false;
@@ -541,50 +543,52 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       case ID_SCR: {
         CTX_TEST_PTR_ID(C, "screen", ptr->owner_id);
 
-        SpaceLink *space_data = CTX_wm_space_data(C);
-
-        TEST_PTR_DATA_TYPE("space_data", RNA_Space, ptr, space_data);
         TEST_PTR_DATA_TYPE("area", RNA_Area, ptr, CTX_wm_area(C));
         TEST_PTR_DATA_TYPE("region", RNA_Region, ptr, CTX_wm_region(C));
 
-        switch (space_data->spacetype) {
-          case SPACE_VIEW3D: {
-            const View3D *v3d = (View3D *)space_data;
-            const View3DShading *shading = &v3d->shading;
+        SpaceLink *space_data = CTX_wm_space_data(C);
+        if (space_data != NULL) {
+          TEST_PTR_DATA_TYPE("space_data", RNA_Space, ptr, space_data);
 
-            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
-            TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
-            break;
-          }
-          case SPACE_GRAPH: {
-            const SpaceGraph *sipo = (SpaceGraph *)space_data;
-            const bDopeSheet *ads = sipo->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
-          }
-          case SPACE_FILE: {
-            const SpaceFile *sfile = (SpaceFile *)space_data;
-            const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-            TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
-            break;
-          }
-          case SPACE_IMAGE: {
-            const SpaceImage *sima = (SpaceImage *)space_data;
-            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
-            TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
-            break;
-          }
-          case SPACE_NLA: {
-            const SpaceNla *snla = (SpaceNla *)space_data;
-            const bDopeSheet *ads = snla->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
-          }
-          case SPACE_ACTION: {
-            const SpaceAction *sact = (SpaceAction *)space_data;
-            const bDopeSheet *ads = &sact->ads;
-            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
-            break;
+          switch (space_data->spacetype) {
+            case SPACE_VIEW3D: {
+              const View3D *v3d = (View3D *)space_data;
+              const View3DShading *shading = &v3d->shading;
+
+              TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
+              TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
+              break;
+            }
+            case SPACE_GRAPH: {
+              const SpaceGraph *sipo = (SpaceGraph *)space_data;
+              const bDopeSheet *ads = sipo->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
+            case SPACE_FILE: {
+              const SpaceFile *sfile = (SpaceFile *)space_data;
+              const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+              TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
+              break;
+            }
+            case SPACE_IMAGE: {
+              const SpaceImage *sima = (SpaceImage *)space_data;
+              TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
+              TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
+              break;
+            }
+            case SPACE_NLA: {
+              const SpaceNla *snla = (SpaceNla *)space_data;
+              const bDopeSheet *ads = snla->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
+            case SPACE_ACTION: {
+              const SpaceAction *sact = (SpaceAction *)space_data;
+              const bDopeSheet *ads = &sact->ads;
+              TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
+              break;
+            }
           }
         }
 
@@ -607,7 +611,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-char *WM_context_path_resolve_property_full(bContext *C,
+char *WM_context_path_resolve_property_full(const bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             int index)
@@ -2270,11 +2274,8 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
 
-  rc->initial_mouse[0] = event->x;
-  rc->initial_mouse[1] = event->y;
-
-  rc->initial_co[0] = event->x;
-  rc->initial_co[1] = event->y;
+  copy_v2_v2_int(rc->initial_mouse, event->xy);
+  copy_v2_v2_int(rc->initial_co, event->xy);
 
   switch (rc->subtype) {
     case PROP_NONE:
@@ -2950,14 +2951,12 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            const float position[2] = {event->x, event->y};
-
             /* calculate the initial angle here first */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
             delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
 
             /* precision angle gets calculated from dial and gets added later */
-            angle_precision = -0.1f * BLI_dial_angle(rc->dial, position);
+            angle_precision = -0.1f * BLI_dial_angle(rc->dial, (float[2]){UNPACK2(event->xy)});
           }
           else {
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2970,7 +2969,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 
             dist = len_v2(delta);
 
-            delta[0] = event->x - rc->slow_mouse[0];
+            delta[0] = event->xy[0] - rc->slow_mouse[0];
 
             if (rc->zoom_prop) {
               delta[0] /= zoom[0];
@@ -2980,8 +2979,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          delta[0] = rc->initial_mouse[0] - event->x;
-          delta[1] = rc->initial_mouse[1] - event->y;
+          delta[0] = (float)(rc->initial_mouse[0] - event->xy[0]);
+          delta[1] = (float)(rc->initial_mouse[1] - event->xy[1]);
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];
@@ -3048,8 +3047,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     case EVT_LEFTSHIFTKEY:
     case EVT_RIGHTSHIFTKEY: {
       if (event->val == KM_PRESS) {
-        rc->slow_mouse[0] = event->x;
-        rc->slow_mouse[1] = event->y;
+        rc->slow_mouse[0] = event->xy[0];
+        rc->slow_mouse[1] = event->xy[1];
         rc->slow_mode = true;
         if (rc->subtype == PROP_ANGLE) {
           const float initial_position[2] = {UNPACK2(rc->initial_mouse)};
@@ -3760,87 +3759,6 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
 
 /** \} */
 
-#ifdef WITH_XR_OPENXR
-
-static void wm_xr_session_update_screen(Main *bmain, const wmXrData *xr_data)
-{
-  const bool session_exists = WM_xr_session_exists(xr_data);
-
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, slink, &area->spacedata) {
-        if (slink->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)slink;
-
-          if (v3d->flag & V3D_XR_SESSION_MIRROR) {
-            ED_view3d_xr_mirror_update(area, v3d, session_exists);
-          }
-
-          if (session_exists) {
-            wmWindowManager *wm = bmain->wm.first;
-            const Scene *scene = WM_windows_scene_get_from_screen(wm, screen);
-
-            ED_view3d_xr_shading_update(wm, v3d, scene);
-          }
-          /* Ensure no 3D View is tagged as session root. */
-          else {
-            v3d->runtime.flag &= ~V3D_RUNTIME_XR_SESSION_ROOT;
-          }
-        }
-      }
-    }
-  }
-
-  WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
-}
-
-static void wm_xr_session_update_screen_on_exit_cb(const wmXrData *xr_data)
-{
-  /* Just use G_MAIN here, storing main isn't reliable enough on file read or exit. */
-  wm_xr_session_update_screen(G_MAIN, xr_data);
-}
-
-static int wm_xr_session_toggle_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = CTX_wm_window(C);
-  View3D *v3d = CTX_wm_view3d(C);
-
-  /* Lazy-create xr context - tries to dynlink to the runtime, reading active_runtime.json. */
-  if (wm_xr_init(wm) == false) {
-    return OPERATOR_CANCELLED;
-  }
-
-  v3d->runtime.flag |= V3D_RUNTIME_XR_SESSION_ROOT;
-  wm_xr_session_toggle(wm, win, wm_xr_session_update_screen_on_exit_cb);
-  wm_xr_session_update_screen(bmain, &wm->xr);
-
-  WM_event_add_notifier(C, NC_WM | ND_XR_DATA_CHANGED, NULL);
-
-  return OPERATOR_FINISHED;
-}
-
-static void WM_OT_xr_session_toggle(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Toggle VR Session";
-  ot->idname = "WM_OT_xr_session_toggle";
-  ot->description =
-      "Open a view for use with virtual reality headsets, or close it if already "
-      "opened";
-
-  /* callbacks */
-  ot->exec = wm_xr_session_toggle_exec;
-  ot->poll = ED_operator_view3d_active;
-
-  /* XXX INTERNAL just to hide it from the search menu by default, an Add-on will expose it in the
-   * UI instead. Not meant as a permanent solution. */
-  ot->flag = OPTYPE_INTERNAL;
-}
-
-#endif /* WITH_XR_OPENXR */
-
 /* -------------------------------------------------------------------- */
 /** \name Operator Registration & Keymaps
  * \{ */
@@ -3882,15 +3800,16 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(WM_OT_call_panel);
   WM_operatortype_append(WM_OT_radial_control);
   WM_operatortype_append(WM_OT_stereo3d_set);
-#ifdef WITH_XR_OPENXR
-  WM_operatortype_append(WM_OT_xr_session_toggle);
-#endif
 #if defined(WIN32)
   WM_operatortype_append(WM_OT_console_toggle);
 #endif
   WM_operatortype_append(WM_OT_previews_ensure);
   WM_operatortype_append(WM_OT_previews_clear);
   WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
+
+#ifdef WITH_XR_OPENXR
+  wm_xr_operatortypes_register();
+#endif
 
   /* gizmos */
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_select);

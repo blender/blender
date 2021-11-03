@@ -17,18 +17,15 @@
  */
 
 #include "COM_MemoryProxy.h"
-
 #include "COM_MemoryBuffer.h"
-
-#include "BLI_rect.h"
 
 namespace blender::compositor {
 
 MemoryProxy::MemoryProxy(DataType datatype)
 {
-  this->m_writeBufferOperation = nullptr;
-  this->m_executor = nullptr;
-  this->m_datatype = datatype;
+  write_buffer_operation_ = nullptr;
+  executor_ = nullptr;
+  datatype_ = datatype;
 }
 
 void MemoryProxy::allocate(unsigned int width, unsigned int height)
@@ -39,14 +36,14 @@ void MemoryProxy::allocate(unsigned int width, unsigned int height)
   result.ymin = 0;
   result.ymax = height;
 
-  this->m_buffer = new MemoryBuffer(this, result, MemoryBufferState::Default);
+  buffer_ = new MemoryBuffer(this, result, MemoryBufferState::Default);
 }
 
 void MemoryProxy::free()
 {
-  if (this->m_buffer) {
-    delete this->m_buffer;
-    this->m_buffer = nullptr;
+  if (buffer_) {
+    delete buffer_;
+    buffer_ = nullptr;
   }
 }
 

@@ -25,14 +25,32 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_bezier_segment_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Resolution").default_value(16).min(1).max(256).subtype(PROP_UNSIGNED);
-  b.add_input<decl::Vector>("Start").default_value({-1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("Start Handle")
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(16)
+      .min(1)
+      .max(256)
+      .subtype(PROP_UNSIGNED)
+      .description(N_("The number of evaluated points on the curve"));
+  b.add_input<decl::Vector>(N_("Start"))
+      .default_value({-1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the start control point of the curve"));
+  b.add_input<decl::Vector>(N_("Start Handle"))
       .default_value({-0.5f, 0.5f, 0.0f})
-      .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End Handle").subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>("End").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Curve");
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("Position of the start handle used to define the shape of the curve. In Offset mode, "
+             "relative to Start point"));
+  b.add_input<decl::Vector>(N_("End Handle"))
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("Position of the end handle used to define the shape of the curve. In Offset mode, "
+             "relative to End point"));
+  b.add_input<decl::Vector>(N_("End"))
+      .default_value({1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the end control point of the curve"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_primitive_bezier_segment_layout(uiLayout *layout,

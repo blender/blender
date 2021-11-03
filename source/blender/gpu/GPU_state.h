@@ -42,7 +42,7 @@ typedef enum eGPUBarrier {
   GPU_BARRIER_SHADER_STORAGE = (1 << 2),
 } eGPUBarrier;
 
-ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_TEXTURE_FETCH)
+ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_SHADER_STORAGE)
 
 /**
  * Defines the fixed pipeline blending equation.

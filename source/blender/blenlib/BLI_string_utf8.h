@@ -64,7 +64,6 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
 const char *BLI_str_find_next_char_utf8(const char *p, const char *str_end)
     ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1, 2);
 
-/* wchar_t functions, copied from blenders own font.c originally */
 size_t BLI_wstrlen_utf8(const wchar_t *src) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;

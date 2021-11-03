@@ -123,6 +123,7 @@ void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy)
 
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);
+bool UI_view2d_area_supports_sync(struct ScrArea *area);
 void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D *v2dcur, int flag);
 
 /* Perform all required updates after `v2d->cur` as been modified.
@@ -146,6 +147,10 @@ void UI_view2d_view_restore(const struct bContext *C);
 /* grid drawing */
 void UI_view2d_multi_grid_draw(
     const struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
+void UI_view2d_dot_grid_draw(const struct View2D *v2d,
+                             int grid_color_id,
+                             float step,
+                             int grid_levels);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
@@ -248,19 +253,20 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
-char UI_view2d_mouse_in_scrollers_ex(
-    const struct ARegion *region, const struct View2D *v2d, int x, int y, int *r_scroll);
+char UI_view2d_mouse_in_scrollers_ex(const struct ARegion *region,
+                                     const struct View2D *v2d,
+                                     const int xy[2],
+                                     int *r_scroll) ATTR_NONNULL(1, 2, 3, 4);
 char UI_view2d_mouse_in_scrollers(const struct ARegion *region,
                                   const struct View2D *v2d,
-                                  int x,
-                                  int y);
+                                  const int xy[2]) ATTR_NONNULL(1, 2, 3);
 char UI_view2d_rect_in_scrollers_ex(const struct ARegion *region,
                                     const struct View2D *v2d,
                                     const struct rcti *rect,
-                                    int *r_scroll);
+                                    int *r_scroll) ATTR_NONNULL(1, 2, 3);
 char UI_view2d_rect_in_scrollers(const struct ARegion *region,
                                  const struct View2D *v2d,
-                                 const struct rcti *rect);
+                                 const struct rcti *rect) ATTR_NONNULL(1, 2, 3);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d,
@@ -309,6 +315,9 @@ typedef struct View2DEdgePanData {
   /** View2d we're operating in. */
   struct View2D *v2d;
 
+  /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
+   * outside). */
+  bool enabled;
   /** Inside distance in UI units from the edge of the region within which to start panning. */
   float inside_pad;
   /** Outside distance in UI units from the edge of the region at which to stop panning. */
@@ -353,7 +362,8 @@ void UI_view2d_edge_pan_init(struct bContext *C,
 void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
 
 /* Apply transform to view (i.e. adjust 'cur' rect). */
-void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, int x, int y);
+void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, const int xy[2])
+    ATTR_NONNULL(1, 2, 3);
 
 /* Apply transform to view using mouse events. */
 void UI_view2d_edge_pan_apply_event(struct bContext *C,

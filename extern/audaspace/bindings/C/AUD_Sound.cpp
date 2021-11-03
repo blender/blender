@@ -94,6 +94,40 @@ AUD_API int AUD_Sound_getLength(AUD_Sound* sound)
 	return (*sound)->createReader()->getLength();
 }
 
+AUD_API int AUD_Sound_getFileStreams(AUD_Sound* sound, AUD_StreamInfo **stream_infos)
+{
+	assert(sound);
+
+	std::shared_ptr<File> file = std::dynamic_pointer_cast<File>(*sound);
+
+	if(file)
+	{
+		try
+		{
+			auto streams = file->queryStreams();
+
+			size_t size = sizeof(AUD_StreamInfo) * streams.size();
+
+			if(!size)
+			{
+				*stream_infos = nullptr;
+				return 0;
+			}
+
+			*stream_infos = reinterpret_cast<AUD_StreamInfo*>(std::malloc(size));
+			std::memcpy(*stream_infos, streams.data(), size);
+
+			return streams.size();
+		}
+		catch(Exception&)
+		{
+		}
+	}
+
+	*stream_infos = nullptr;
+	return 0;
+}
+
 AUD_API sample_t* AUD_Sound_data(AUD_Sound* sound, int* length, AUD_Specs* specs)
 {
 	assert(sound);
@@ -252,6 +286,12 @@ AUD_API AUD_Sound* AUD_Sound_bufferFile(unsigned char* buffer, int size)
 	return new AUD_Sound(new File(buffer, size));
 }
 
+AUD_API AUD_Sound* AUD_Sound_bufferFileStream(unsigned char* buffer, int size, int stream)
+{
+	assert(buffer);
+	return new AUD_Sound(new File(buffer, size, stream));
+}
+
 AUD_API AUD_Sound* AUD_Sound_cache(AUD_Sound* sound)
 {
 	assert(sound);
@@ -270,6 +310,12 @@ AUD_API AUD_Sound* AUD_Sound_file(const char* filename)
 {
 	assert(filename);
 	return new AUD_Sound(new File(filename));
+}
+
+AUD_API AUD_Sound* AUD_Sound_fileStream(const char* filename, int stream)
+{
+	assert(filename);
+	return new AUD_Sound(new File(filename, stream));
 }
 
 AUD_API AUD_Sound* AUD_Sound_sawtooth(float frequency, AUD_SampleRate rate)

@@ -644,7 +644,7 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
     ikscene->baseFrame = iTaSC::F_identity;
   }
   next.setValue(&rootmat[0][0]);
-  /* if there is a polar target (only during solving otherwise we don't have end efffector) */
+  /* If there is a polar target (only during solving otherwise we don't have end effector). */
   if (ikscene->polarConstraint && timestamp.update) {
     /* compute additional rotation of base frame so that armature follows the polar target */
     float imat[4][4];    /* IK tree base inverse matrix */

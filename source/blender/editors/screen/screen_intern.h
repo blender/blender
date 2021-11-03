@@ -62,7 +62,7 @@ typedef enum eScreenAxis {
 #define AREAJOINTOLERANCEY (HEADERY * U.dpi_fac)
 
 /* Expanded interaction influence of area borders. */
-#define BORDERPADDING (U.dpi_fac + U.pixelsize)
+#define BORDERPADDING ((2.0f * U.dpi_fac) + U.pixelsize)
 
 /* area.c */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
@@ -94,6 +94,7 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b);
 void area_getoffsets(
     ScrArea *sa_a, ScrArea *sa_b, const eScreenDir dir, int *r_offset1, int *r_offset2);
 bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area);
+void screen_area_spacelink_add(struct Scene *scene, ScrArea *area, eSpace_Type space_type);
 struct AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
 /* screen_geometry.c */

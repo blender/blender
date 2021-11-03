@@ -122,6 +122,8 @@ void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChil
                                                       struct Object *ob_parent_recurse,
                                                       int mode);
 
+void ED_object_xform_array_m4(struct Object **objects, uint objects_len, const float matrix[4][4]);
+
 /* object_ops.c */
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
@@ -202,7 +204,7 @@ void ED_object_parent(struct Object *ob,
                       const char *substr);
 char *ED_object_ot_drop_named_material_tooltip(struct bContext *C,
                                                struct PointerRNA *properties,
-                                               const struct wmEvent *event);
+                                               const int mval[2]);
 
 /* bitflags for enter/exit editmode */
 enum {
@@ -339,7 +341,16 @@ typedef enum eObjectPathCalcRange {
 
 void ED_objects_recalculate_paths(struct bContext *C,
                                   struct Scene *scene,
-                                  eObjectPathCalcRange range);
+                                  eObjectPathCalcRange range,
+                                  struct ListBase *ld_objects);
+
+void ED_objects_recalculate_paths_selected(struct bContext *C,
+                                           struct Scene *scene,
+                                           eObjectPathCalcRange range);
+
+void ED_objects_recalculate_paths_visible(struct bContext *C,
+                                          struct Scene *scene,
+                                          eObjectPathCalcRange range);
 
 /* constraints */
 struct ListBase *ED_object_constraint_active_list(struct Object *ob);

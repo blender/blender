@@ -4,6 +4,7 @@
 import api
 import argparse
 import fnmatch
+import glob
 import pathlib
 import shutil
 import sys
@@ -228,6 +229,9 @@ def cmd_reset(env: api.TestEnvironment, argv: List):
 
         config.queue.write()
 
+        if args.test == '*':
+            shutil.rmtree(config.logs_dir)
+
 def cmd_run(env: api.TestEnvironment, argv: List, update_only: bool):
     # Run tests.
     parser = argparse.ArgumentParser()
@@ -274,7 +278,17 @@ def cmd_graph(argv: List):
     parser.add_argument('-o', '--output', type=str, required=True)
     args = parser.parse_args(argv)
 
-    graph = api.TestGraph([pathlib.Path(path) for path in args.json_file])
+    # For directories, use all json files in the directory.
+    json_files = []
+    for path in args.json_file:
+        path = pathlib.Path(path)
+        if path.is_dir():
+            for filepath in glob.iglob(str(path / '*.json')):
+                json_files.append(pathlib.Path(filepath))
+        else:
+            json_files.append(path)
+
+    graph = api.TestGraph(json_files)
     graph.write(pathlib.Path(args.output))
 
 def main():

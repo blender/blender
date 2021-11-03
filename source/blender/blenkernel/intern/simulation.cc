@@ -103,7 +103,8 @@ static void simulation_foreach_id(ID *id, LibraryForeachIDData *data)
   Simulation *simulation = (Simulation *)id;
   if (simulation->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-    BKE_library_foreach_ID_embedded(data, (ID **)&simulation->nodetree);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&simulation->nodetree));
   }
 }
 
@@ -152,7 +153,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* name */ "Simulation",
     /* name_plural */ "simulations",
     /* translation_context */ BLT_I18NCONTEXT_ID_SIMULATION,
-    /* flags */ 0,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* init_data */ simulation_init_data,
     /* copy_data */ simulation_copy_data,

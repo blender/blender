@@ -18,36 +18,35 @@
 
 #include "COM_MapRangeNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MapRangeOperation.h"
 
 namespace blender::compositor {
 
-MapRangeNode::MapRangeNode(bNode *editorNode) : Node(editorNode)
+MapRangeNode::MapRangeNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void MapRangeNode::convertToOperations(NodeConverter &converter,
-                                       const CompositorContext & /*context*/) const
+void MapRangeNode::convert_to_operations(NodeConverter &converter,
+                                         const CompositorContext & /*context*/) const
 {
-  NodeInput *valueSocket = this->getInputSocket(0);
-  NodeInput *sourceMinSocket = this->getInputSocket(1);
-  NodeInput *sourceMaxSocket = this->getInputSocket(2);
-  NodeInput *destMinSocket = this->getInputSocket(3);
-  NodeInput *destMaxSocket = this->getInputSocket(4);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *value_socket = this->get_input_socket(0);
+  NodeInput *source_min_socket = this->get_input_socket(1);
+  NodeInput *source_max_socket = this->get_input_socket(2);
+  NodeInput *dest_min_socket = this->get_input_socket(3);
+  NodeInput *dest_max_socket = this->get_input_socket(4);
+  NodeOutput *output_socket = this->get_output_socket(0);
 
   MapRangeOperation *operation = new MapRangeOperation();
-  operation->setUseClamp(this->getbNode()->custom1);
-  converter.addOperation(operation);
+  operation->set_use_clamp(this->get_bnode()->custom1);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(valueSocket, operation->getInputSocket(0));
-  converter.mapInputSocket(sourceMinSocket, operation->getInputSocket(1));
-  converter.mapInputSocket(sourceMaxSocket, operation->getInputSocket(2));
-  converter.mapInputSocket(destMinSocket, operation->getInputSocket(3));
-  converter.mapInputSocket(destMaxSocket, operation->getInputSocket(4));
-  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.map_input_socket(value_socket, operation->get_input_socket(0));
+  converter.map_input_socket(source_min_socket, operation->get_input_socket(1));
+  converter.map_input_socket(source_max_socket, operation->get_input_socket(2));
+  converter.map_input_socket(dest_min_socket, operation->get_input_socket(3));
+  converter.map_input_socket(dest_max_socket, operation->get_input_socket(4));
+  converter.map_output_socket(output_socket, operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

@@ -32,6 +32,7 @@
 #include "NOD_geometry.h"
 #include "NOD_geometry_exec.hh"
 #include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 #include "node_util.h"
 
@@ -50,10 +51,14 @@ void update_attribute_input_socket_availabilities(bNode &node,
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
                                                   const AttributeDomain domain);
 
-void transform_mesh(Mesh *mesh,
+void transform_mesh(Mesh &mesh,
                     const float3 translation,
                     const float3 rotation,
                     const float3 scale);
+
+void transform_geometry_set(GeometrySet &geometry,
+                            const float4x4 &transform,
+                            const Depsgraph &depsgraph);
 
 Mesh *create_line_mesh(const float3 start, const float3 delta, const int count);
 
@@ -65,7 +70,9 @@ Mesh *create_grid_mesh(const int verts_x,
 Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
-                                   const int verts_num,
+                                   const int circle_segments,
+                                   const int side_segments,
+                                   const int fill_segments,
                                    const GeometryNodeMeshCircleFillType fill_type);
 
 Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
@@ -77,6 +84,17 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
                                          GeometryComponent &result_component,
                                          Span<bool> masks,
                                          const bool invert);
+/**
+ * Returns the parts of the geometry that are on the selection for the given domain. If the domain
+ * is not applicable for the component, e.g. face domain for point cloud, nothing happens to that
+ * component. If no component can work with the domain, then `error_message` is set to true.
+ */
+void separate_geometry(GeometrySet &geometry_set,
+                       const AttributeDomain domain,
+                       const GeometryNodeDeleteGeometryMode mode,
+                       const Field<bool> &selection_field,
+                       const bool invert,
+                       bool &r_is_error);
 
 struct CurveToPointsResults {
   int result_size;

@@ -333,7 +333,10 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
   bool use_fallback_keymap = false;
 
   if (tref->idname_fallback[0] || tref->runtime->keymap_fallback[0]) {
-    if (tref_rt->gizmo_group[0]) {
+    if (tref_rt->flag & TOOLREF_FLAG_FALLBACK_KEYMAP) {
+      use_fallback_keymap = true;
+    }
+    else if (tref_rt->gizmo_group[0]) {
       wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
       if (gzgt) {
         if (gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
@@ -576,25 +579,29 @@ void WM_toolsystem_refresh_screen_area(WorkSpace *workspace, ViewLayer *view_lay
   }
 }
 
+void WM_toolsystem_refresh_screen_window(wmWindow *win)
+{
+  WorkSpace *workspace = WM_window_get_active_workspace(win);
+  bool space_type_has_tools[SPACE_TYPE_LAST + 1] = {0};
+  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+    space_type_has_tools[tref->space_type] = true;
+  }
+  bScreen *screen = WM_window_get_active_screen(win);
+  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    area->runtime.tool = NULL;
+    area->runtime.is_tool_set = true;
+    if (space_type_has_tools[area->spacetype]) {
+      WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
+    }
+  }
+}
+
 void WM_toolsystem_refresh_screen_all(Main *bmain)
 {
   /* Update all ScrArea's tools */
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      WorkSpace *workspace = WM_window_get_active_workspace(win);
-      bool space_type_has_tools[SPACE_TYPE_LAST + 1] = {0};
-      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-        space_type_has_tools[tref->space_type] = true;
-      }
-      bScreen *screen = WM_window_get_active_screen(win);
-      ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        area->runtime.tool = NULL;
-        area->runtime.is_tool_set = true;
-        if (space_type_has_tools[area->spacetype]) {
-          WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
-        }
-      }
     }
   }
 }

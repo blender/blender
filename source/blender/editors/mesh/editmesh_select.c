@@ -884,9 +884,8 @@ static bool unified_findnearest(ViewContext *vc,
                                 BMFace **r_efa)
 {
   BMEditMesh *em = vc->em;
-  static short mval_prev[2] = {-1, -1};
-  /* only cycle while the mouse remains still */
-  const bool use_cycle = ((mval_prev[0] == vc->mval[0]) && (mval_prev[1] == vc->mval[1]));
+
+  const bool use_cycle = !WM_cursor_test_motion_and_update(vc->mval);
   const float dist_init = ED_view3d_select_dist_px();
   /* since edges select lines, we give dots advantage of ~20 pix */
   const float dist_margin = (dist_init / 2);
@@ -987,9 +986,6 @@ static bool unified_findnearest(ViewContext *vc,
       hit.f.ele = hit.f_zbuf.ele;
     }
   }
-
-  mval_prev[0] = vc->mval[0];
-  mval_prev[1] = vc->mval[1];
 
   /* Only one element type will be non-null. */
   BLI_assert(((hit.v.ele != NULL) + (hit.e.ele != NULL) + (hit.f.ele != NULL)) <= 1);

@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup blenkernel
+ * \ingroup bke
  * \brief API for Blender-side Rigid Body stuff
  */
 

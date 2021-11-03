@@ -17,35 +17,34 @@
  */
 
 #include "COM_ColorSpillNode.h"
-#include "BKE_node.h"
 #include "COM_ColorSpillOperation.h"
 
 namespace blender::compositor {
 
-ColorSpillNode::ColorSpillNode(bNode *editorNode) : Node(editorNode)
+ColorSpillNode::ColorSpillNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ColorSpillNode::convertToOperations(NodeConverter &converter,
-                                         const CompositorContext & /*context*/) const
+void ColorSpillNode::convert_to_operations(NodeConverter &converter,
+                                           const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = getbNode();
+  bNode *editorsnode = get_bnode();
 
-  NodeInput *inputSocketImage = this->getInputSocket(0);
-  NodeInput *inputSocketFac = this->getInputSocket(1);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
+  NodeInput *input_socket_image = this->get_input_socket(0);
+  NodeInput *input_socket_fac = this->get_input_socket(1);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
 
   ColorSpillOperation *operation;
   operation = new ColorSpillOperation();
-  operation->setSettings((NodeColorspill *)editorsnode->storage);
-  operation->setSpillChannel(editorsnode->custom1 - 1); /* Channel for spilling */
-  operation->setSpillMethod(editorsnode->custom2);      /* Channel method */
-  converter.addOperation(operation);
+  operation->set_settings((NodeColorspill *)editorsnode->storage);
+  operation->set_spill_channel(editorsnode->custom1 - 1); /* Channel for spilling */
+  operation->set_spill_method(editorsnode->custom2);      /* Channel method */
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));
-  converter.mapInputSocket(inputSocketFac, operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
+  converter.map_input_socket(input_socket_image, operation->get_input_socket(0));
+  converter.map_input_socket(input_socket_fac, operation->get_input_socket(1));
+  converter.map_output_socket(output_socket_image, operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

@@ -121,8 +121,8 @@ int BKE_packedfile_seek(struct PackedFile *pf, int offset, int whence);
 void BKE_packedfile_rewind(struct PackedFile *pf);
 int BKE_packedfile_read(struct PackedFile *pf, void *data, int size);
 
-/* ID should be not NULL, return 1 if there's a packed file */
-bool BKE_packedfile_id_check(struct ID *id);
+/* ID should be not NULL, return true if there's a packed file */
+bool BKE_packedfile_id_check(const struct ID *id);
 /* ID should be not NULL, throws error when ID is Library */
 void BKE_packedfile_id_unpack(struct Main *bmain,
                               struct ID *id,

@@ -19,32 +19,31 @@
 #include "COM_DisplaceNode.h"
 #include "COM_DisplaceOperation.h"
 #include "COM_DisplaceSimpleOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 
-DisplaceNode::DisplaceNode(bNode *editorNode) : Node(editorNode)
+DisplaceNode::DisplaceNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void DisplaceNode::convertToOperations(NodeConverter &converter,
-                                       const CompositorContext &context) const
+void DisplaceNode::convert_to_operations(NodeConverter &converter,
+                                         const CompositorContext &context) const
 {
   NodeOperation *operation;
-  if (context.getQuality() == eCompositorQuality::Low) {
+  if (context.get_quality() == eCompositorQuality::Low) {
     operation = new DisplaceSimpleOperation();
   }
   else {
     operation = new DisplaceOperation();
   }
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-  converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-  converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+  converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+  converter.map_input_socket(get_input_socket(3), operation->get_input_socket(3));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

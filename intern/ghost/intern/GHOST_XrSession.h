@@ -90,6 +90,12 @@ class GHOST_XrSession {
   uint32_t getActionCount(const char *action_set_name);
   void getActionCustomdataArray(const char *action_set_name, void **r_customdata_array);
 
+  /** Controller model functions. */
+  bool loadControllerModel(const char *subaction_path);
+  void unloadControllerModel(const char *subaction_path);
+  bool updateControllerModelComponents(const char *subaction_path);
+  bool getControllerModelData(const char *subaction_path, GHOST_XrControllerModelData &r_data);
+
  private:
   /** Pointer back to context managing this session. Would be nice to avoid, but needed to access
    * custom callbacks set before session start. */

@@ -1479,7 +1479,7 @@ static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
     ndx[j] = tri[0][i];
     /* When the triangle edge cuts across our quad-to-be,
      * throw in the second triangle's vertex */
-    if ((tri[0][i] == e->v1 || tri[0][i] == e->v2) &&
+    if ((ELEM(tri[0][i], e->v1, e->v2)) &&
         (tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2)) {
       j++;
       ndx[j] = opp;

@@ -233,8 +233,8 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
        * This could optionally do a partial merge, where some faces are joined. */
 
       /* Prevent these faces from being removed. */
-      for (i = 0; i < faces_len; i++) {
-        BMO_face_flag_disable(bm, faces[i], FACE_ORIG);
+      for (int j = 0; j < faces_len; j++) {
+        BMO_face_flag_disable(bm, faces[j], FACE_ORIG);
       }
     }
   }

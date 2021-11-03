@@ -17,25 +17,24 @@
  */
 
 #include "COM_PosterizeNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_PosterizeOperation.h"
 
 namespace blender::compositor {
 
-PosterizeNode::PosterizeNode(bNode *editorNode) : Node(editorNode)
+PosterizeNode::PosterizeNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void PosterizeNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext & /*context*/) const
+void PosterizeNode::convert_to_operations(NodeConverter &converter,
+                                          const CompositorContext & /*context*/) const
 {
   PosterizeOperation *operation = new PosterizeOperation();
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

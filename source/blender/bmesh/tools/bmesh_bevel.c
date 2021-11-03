@@ -111,7 +111,7 @@ typedef struct EdgeHalf {
   bool is_bev;
   /** Is e->v2 the vertex at this end? */
   bool is_rev;
-  /** Is e a seam for custom loopdata (e.g., UVs)? */
+  /** Is e a seam for custom loop-data (e.g., UV's). */
   bool is_seam;
   /** Used during the custom profile orientation pass. */
   bool visited_rpo;
@@ -3048,7 +3048,9 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(bp, e, e2, bv->v, e->fnext, true, co, eip);
+        /* Since all edges between e and e2 are in the same plane, it is OK
+         * to treat this like the case where there are no edges between. */
+        offset_meet(bp, e, e2, bv->v, e->fnext, false, co, NULL);
       }
     }
 
@@ -3582,7 +3584,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
       }
 
       /* Residue np + 2*i (if cycle) else np - 1 + 2*i:
-       * right offset for parm i matches its spec; weighted. */
+       * right offset for parameter i matches its spec; weighted. */
       int row = iscycle ? np + 2 * i : np - 1 + 2 * i;
       EIG_linear_solver_matrix_add(solver, row, i, weight);
       EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * eright->offset_r);
@@ -3595,7 +3597,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 #endif
 
       /* Residue np + 2*i + 1 (if cycle) else np - 1 + 2*i + 1:
-       * left offset for parm i matches its spec; weighted. */
+       * left offset for parameter i matches its spec; weighted. */
       row = row + 1;
       EIG_linear_solver_matrix_add(
           solver, row, (i == np - 1) ? 0 : i + 1, weight * v->adjchain->sinratio);
@@ -4689,7 +4691,7 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
            * vertices to snap to the midline on the pipe, not just to one plane or the other. */
           bool even = (ns % 2) == 0;
           bool midline = even && k == half_ns &&
-                         ((i == 0 && j == half_ns) || (i == ipipe1 || i == ipipe2));
+                         ((i == 0 && j == half_ns) || (ELEM(i, ipipe1, ipipe2)));
           snap_to_pipe_profile(vpipe, midline, mesh_vert(vm, i, j, k)->co);
         }
       }
@@ -5215,7 +5217,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
   for (int i = 0; i < n_bndv; i++) {
     for (int j = 0; j <= ns2; j++) {
       for (int k = 0; k <= ns; k++) {
-        if (j == 0 && (k == 0 || k == ns)) {
+        if (j == 0 && (ELEM(k, 0, ns))) {
           continue; /* Boundary corners already made. */
         }
         if (!is_canon(vm, i, j, k)) {
@@ -5792,7 +5794,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 
   /* Make sure the pipe case ADJ mesh is used for both the "Grid Fill" (ADJ) and cutoff options. */
   BoundVert *vpipe = NULL;
-  if ((vm->count == 3 || vm->count == 4) && bp->seg > 1) {
+  if (ELEM(vm->count, 3, 4) && bp->seg > 1) {
     /* Result is passed to bevel_build_rings to avoid overhead. */
     vpipe = pipe_test(bv);
     if (vpipe) {

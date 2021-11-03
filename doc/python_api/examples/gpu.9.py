@@ -32,7 +32,7 @@ def draw():
         context.region,
         view_matrix,
         projection_matrix,
-        True)
+        do_color_management=True)
 
     gpu.state.depth_mask_set(False)
     draw_texture_2d(offscreen.texture_color, (10, 10), WIDTH, HEIGHT)

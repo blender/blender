@@ -17,7 +17,6 @@
  */
 
 #include "COM_GlareFogGlowOperation.h"
-#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -28,7 +27,7 @@ namespace blender::compositor {
 using fREAL = float;
 
 /* Returns next highest power of 2 of x, as well its log2 in L2. */
-static unsigned int nextPow2(unsigned int x, unsigned int *L2)
+static unsigned int next_pow2(unsigned int x, unsigned int *L2)
 {
   unsigned int pw, x_notpow2 = x & (x - 1);
   *L2 = 0;
@@ -263,24 +262,24 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   int x, y, ch;
   int xbl, ybl, nxb, nyb, xbsz, ybsz;
   bool in2done = false;
-  const unsigned int kernelWidth = in2->getWidth();
-  const unsigned int kernelHeight = in2->getHeight();
-  const unsigned int imageWidth = in1->getWidth();
-  const unsigned int imageHeight = in1->getHeight();
-  float *kernelBuffer = in2->getBuffer();
-  float *imageBuffer = in1->getBuffer();
+  const unsigned int kernel_width = in2->get_width();
+  const unsigned int kernel_height = in2->get_height();
+  const unsigned int image_width = in1->get_width();
+  const unsigned int image_height = in1->get_height();
+  float *kernel_buffer = in2->get_buffer();
+  float *image_buffer = in1->get_buffer();
 
   MemoryBuffer *rdst = new MemoryBuffer(DataType::Color, in1->get_rect());
-  memset(rdst->getBuffer(),
+  memset(rdst->get_buffer(),
          0,
-         rdst->getWidth() * rdst->getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
+         rdst->get_width() * rdst->get_height() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
 
   /* Convolution result width & height. */
-  w2 = 2 * kernelWidth - 1;
-  h2 = 2 * kernelHeight - 1;
+  w2 = 2 * kernel_width - 1;
+  h2 = 2 * kernel_height - 1;
   /* FFT pow2 required size & log2. */
-  w2 = nextPow2(w2, &log2_w);
-  h2 = nextPow2(h2, &log2_h);
+  w2 = next_pow2(w2, &log2_w);
+  h2 = next_pow2(h2, &log2_h);
 
   /* Allocate space. */
   data1 = (fREAL *)MEM_callocN(3 * w2 * h2 * sizeof(fREAL), "convolve_fast FHT data1");
@@ -288,9 +287,9 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 
   /* Normalize convolutor. */
   wt[0] = wt[1] = wt[2] = 0.0f;
-  for (y = 0; y < kernelHeight; y++) {
-    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
-    for (x = 0; x < kernelWidth; x++) {
+  for (y = 0; y < kernel_height; y++) {
+    colp = (fRGB *)&kernel_buffer[y * kernel_width * COM_DATA_TYPE_COLOR_CHANNELS];
+    for (x = 0; x < kernel_width; x++) {
       add_v3_v3(wt, colp[x]);
     }
   }
@@ -303,9 +302,9 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   if (wt[2] != 0.0f) {
     wt[2] = 1.0f / wt[2];
   }
-  for (y = 0; y < kernelHeight; y++) {
-    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
-    for (x = 0; x < kernelWidth; x++) {
+  for (y = 0; y < kernel_height; y++) {
+    colp = (fRGB *)&kernel_buffer[y * kernel_width * COM_DATA_TYPE_COLOR_CHANNELS];
+    for (x = 0; x < kernel_width; x++) {
       mul_v3_v3(colp[x], wt);
     }
   }
@@ -314,16 +313,16 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
    * only need to calc data1 once. */
 
   /* Block add-overlap. */
-  hw = kernelWidth >> 1;
-  hh = kernelHeight >> 1;
-  xbsz = (w2 + 1) - kernelWidth;
-  ybsz = (h2 + 1) - kernelHeight;
-  nxb = imageWidth / xbsz;
-  if (imageWidth % xbsz) {
+  hw = kernel_width >> 1;
+  hh = kernel_height >> 1;
+  xbsz = (w2 + 1) - kernel_width;
+  ybsz = (h2 + 1) - kernel_height;
+  nxb = image_width / xbsz;
+  if (image_width % xbsz) {
     nxb++;
   }
-  nyb = imageHeight / ybsz;
-  if (imageHeight % ybsz) {
+  nyb = image_height / ybsz;
+  if (image_height % ybsz) {
     nyb++;
   }
   for (ybl = 0; ybl < nyb; ybl++) {
@@ -336,10 +335,10 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         /* Only need to calc fht data from in2 once, can re-use for every block. */
         if (!in2done) {
           /* in2, channel ch -> data1 */
-          for (y = 0; y < kernelHeight; y++) {
+          for (y = 0; y < kernel_height; y++) {
             fp = &data1ch[y * w2];
-            colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
-            for (x = 0; x < kernelWidth; x++) {
+            colp = (fRGB *)&kernel_buffer[y * kernel_width * COM_DATA_TYPE_COLOR_CHANNELS];
+            for (x = 0; x < kernel_width; x++) {
               fp[x] = colp[x][ch];
             }
           }
@@ -349,14 +348,14 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         memset(data2, 0, w2 * h2 * sizeof(fREAL));
         for (y = 0; y < ybsz; y++) {
           int yy = ybl * ybsz + y;
-          if (yy >= imageHeight) {
+          if (yy >= image_height) {
             continue;
           }
           fp = &data2[y * w2];
-          colp = (fRGB *)&imageBuffer[yy * imageWidth * COM_DATA_TYPE_COLOR_CHANNELS];
+          colp = (fRGB *)&image_buffer[yy * image_width * COM_DATA_TYPE_COLOR_CHANNELS];
           for (x = 0; x < xbsz; x++) {
             int xx = xbl * xbsz + x;
-            if (xx >= imageWidth) {
+            if (xx >= image_width) {
               continue;
             }
             fp[x] = colp[xx][ch];
@@ -366,9 +365,9 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         /* Forward FHT
          * zero pad data start is different for each == height+1. */
         if (!in2done) {
-          FHT2D(data1ch, log2_w, log2_h, kernelHeight + 1, 0);
+          FHT2D(data1ch, log2_w, log2_h, kernel_height + 1, 0);
         }
-        FHT2D(data2, log2_w, log2_h, kernelHeight + 1, 0);
+        FHT2D(data2, log2_w, log2_h, kernel_height + 1, 0);
 
         /* FHT2D transposed data, row/col now swapped
          * convolve & inverse FHT. */
@@ -379,14 +378,14 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         /* Overlap-add result. */
         for (y = 0; y < (int)h2; y++) {
           const int yy = ybl * ybsz + y - hh;
-          if ((yy < 0) || (yy >= imageHeight)) {
+          if ((yy < 0) || (yy >= image_height)) {
             continue;
           }
           fp = &data2[y * w2];
-          colp = (fRGB *)&rdst->getBuffer()[yy * imageWidth * COM_DATA_TYPE_COLOR_CHANNELS];
+          colp = (fRGB *)&rdst->get_buffer()[yy * image_width * COM_DATA_TYPE_COLOR_CHANNELS];
           for (x = 0; x < (int)w2; x++) {
             const int xx = xbl * xbsz + x - hw;
-            if ((xx < 0) || (xx >= imageWidth)) {
+            if ((xx < 0) || (xx >= image_width)) {
               continue;
             }
             colp[xx][ch] += fp[x];
@@ -400,14 +399,14 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   MEM_freeN(data2);
   MEM_freeN(data1);
   memcpy(dst,
-         rdst->getBuffer(),
-         sizeof(float) * imageWidth * imageHeight * COM_DATA_TYPE_COLOR_CHANNELS);
+         rdst->get_buffer(),
+         sizeof(float) * image_width * image_height * COM_DATA_TYPE_COLOR_CHANNELS);
   delete (rdst);
 }
 
-void GlareFogGlowOperation::generateGlare(float *data,
-                                          MemoryBuffer *inputTile,
-                                          NodeGlare *settings)
+void GlareFogGlowOperation::generate_glare(float *data,
+                                           MemoryBuffer *input_tile,
+                                           NodeGlare *settings)
 {
   int x, y;
   float scale, u, v, r, w, d;
@@ -418,9 +417,9 @@ void GlareFogGlowOperation::generateGlare(float *data,
 
   /* Temp. src image
    * make the convolution kernel. */
-  rcti kernelRect;
-  BLI_rcti_init(&kernelRect, 0, sz, 0, sz);
-  ckrn = new MemoryBuffer(DataType::Color, kernelRect);
+  rcti kernel_rect;
+  BLI_rcti_init(&kernel_rect, 0, sz, 0, sz);
+  ckrn = new MemoryBuffer(DataType::Color, kernel_rect);
 
   scale = 0.25f * sqrtf((float)(sz * sz));
 
@@ -438,11 +437,11 @@ void GlareFogGlowOperation::generateGlare(float *data,
        * actually, Hanning window is ok, `cos^2` for some reason is slower. */
       w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
       mul_v3_fl(fcol, w);
-      ckrn->writePixel(x, y, fcol);
+      ckrn->write_pixel(x, y, fcol);
     }
   }
 
-  convolve(data, inputTile, ckrn);
+  convolve(data, input_tile, ckrn);
   delete ckrn;
 }
 

@@ -116,7 +116,7 @@ extern const char ui_radial_dir_to_numpad[8];
 extern const short ui_radial_dir_to_angle[8];
 
 /* internal panel drawing defines */
-#define PNL_HEADER (UI_UNIT_Y * 1.2) /* 24 default */
+#define PNL_HEADER (UI_UNIT_Y * 1.25) /* 24 default */
 
 /* bit button defines */
 /* Bit operations */
@@ -360,6 +360,14 @@ typedef struct uiButDatasetRow {
   int indentation;
 } uiButDatasetRow;
 
+/** Derived struct for #UI_BTYPE_TREEROW. */
+typedef struct uiButTreeRow {
+  uiBut but;
+
+  uiTreeViewItemHandle *tree_item;
+  int indentation;
+} uiButTreeRow;
+
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
   uiBut but;
@@ -399,6 +407,7 @@ typedef struct uiButExtraOpIcon {
   struct wmOperatorCallParams *optype_params;
 
   bool highlighted;
+  bool disabled;
 } uiButExtraOpIcon;
 
 typedef struct ColorPicker {
@@ -487,6 +496,11 @@ struct uiBlock {
   struct uiLayout *curlayout;
 
   ListBase contexts;
+
+  /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
+   * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
+   * state that is persistent over redraws (e.g. collapsed tree-view items). */
+  ListBase views;
 
   char name[UI_MAX_NAME_STR];
 
@@ -666,6 +680,7 @@ extern bool ui_but_string_eval_number(struct bContext *C,
 extern int ui_but_string_get_max_length(uiBut *but);
 /* Clear & exit the active button's string. */
 extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) ATTR_NONNULL();
+extern void ui_but_set_string_interactive(struct bContext *C, uiBut *but, const char *value);
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 
 void ui_def_but_icon(uiBut *but, const int icon, const int flag);
@@ -681,6 +696,9 @@ void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
 bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+bool ui_but_context_poll_operator_ex(struct bContext *C,
+                                     const uiBut *but,
+                                     const struct wmOperatorCallParams *optype_params);
 
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
@@ -813,7 +831,7 @@ struct ARegion *ui_searchbox_create_menu(struct bContext *C,
                                          struct ARegion *butregion,
                                          uiButSearch *search_but);
 
-bool ui_searchbox_inside(struct ARegion *region, int x, int y);
+bool ui_searchbox_inside(struct ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
 int ui_searchbox_find_index(struct ARegion *region, const char *name);
 void ui_searchbox_update(struct bContext *C, struct ARegion *region, uiBut *but, const bool reset);
 int ui_searchbox_autocomplete(struct bContext *C, struct ARegion *region, uiBut *but, char *str);
@@ -1014,9 +1032,7 @@ enum {
 struct GPUBatch *ui_batch_roundbox_widget_get(void);
 struct GPUBatch *ui_batch_roundbox_shadow_get(void);
 
-void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4]);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
-void ui_draw_box_opaque(rcti *rect, int roundboxalign);
 void ui_draw_popover_back(struct ARegion *region,
                           struct uiStyle *style,
                           uiBlock *block,
@@ -1094,6 +1110,7 @@ void ui_resources_free(void);
 
 /* interface_layout.c */
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
+void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,
@@ -1145,35 +1162,36 @@ bool ui_but_contains_rect(const uiBut *but, const rctf *rect);
 bool ui_but_contains_point_px_icon(const uiBut *but,
                                    struct ARegion *region,
                                    const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_contains_point_px(const uiBut *but, const struct ARegion *region, int x, int y)
-    ATTR_WARN_UNUSED_RESULT;
+bool ui_but_contains_point_px(const uiBut *but, const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 uiBut *ui_list_find_mouse_over(const struct ARegion *region,
                                const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_list_find_from_row(const struct ARegion *region,
                              const uiBut *row_but) ATTR_WARN_UNUSED_RESULT;
-uiBut *ui_list_row_find_mouse_over(const struct ARegion *region,
-                                   int x,
-                                   int y) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_list_row_find_mouse_over(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    const int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2);
+uiBut *ui_tree_row_find_active(const struct ARegion *region);
 
 typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
-                                 const int x,
-                                 const int y,
+                                 const int xy[2],
                                  const bool labeledit,
                                  const uiButFindPollFn find_poll,
-                                 const void *find_custom_data) ATTR_WARN_UNUSED_RESULT;
+                                 const void *find_custom_data)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_but_find_mouse_over(const struct ARegion *region,
                               const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_but_find_rect_over(const struct ARegion *region,
                              const rcti *rect_px) ATTR_WARN_UNUSED_RESULT;
 
-uiBut *ui_list_find_mouse_over_ex(const struct ARegion *region,
-                                  int x,
-                                  int y) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_list_find_mouse_over_ex(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
@@ -1193,10 +1211,8 @@ bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
-uiBlock *ui_block_find_mouse_over_ex(const struct ARegion *region,
-                                     const int x,
-                                     const int y,
-                                     bool only_clip);
+uiBlock *ui_block_find_mouse_over_ex(const struct ARegion *region, const int xy[2], bool only_clip)
+    ATTR_NONNULL(1, 2);
 uiBlock *ui_block_find_mouse_over(const struct ARegion *region,
                                   const struct wmEvent *event,
                                   bool only_clip);
@@ -1205,12 +1221,12 @@ uiBut *ui_region_find_first_but_test_flag(struct ARegion *region,
                                           int flag_include,
                                           int flag_exclude);
 uiBut *ui_region_find_active_but(struct ARegion *region) ATTR_WARN_UNUSED_RESULT;
-bool ui_region_contains_point_px(const struct ARegion *region,
-                                 int x,
-                                 int y) ATTR_WARN_UNUSED_RESULT;
+bool ui_region_contains_point_px(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 bool ui_region_contains_rect_px(const struct ARegion *region, const rcti *rect_px);
 
-struct ARegion *ui_screen_region_find_mouse_over_ex(struct bScreen *screen, int x, int y);
+struct ARegion *ui_screen_region_find_mouse_over_ex(struct bScreen *screen, const int xy[2])
+    ATTR_NONNULL(1, 2);
 struct ARegion *ui_screen_region_find_mouse_over(struct bScreen *screen,
                                                  const struct wmEvent *event);
 
@@ -1273,6 +1289,13 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
+
+/* interface_view.cc */
+void ui_block_free_views(struct uiBlock *block);
+uiTreeViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                           const uiTreeViewHandle *new_view);
+uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
+                                                      const uiTreeViewItemHandle *new_item_handle);
 
 #ifdef __cplusplus
 }

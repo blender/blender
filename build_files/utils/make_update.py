@@ -200,15 +200,20 @@ def submodules_update(args, release_version, branch):
             if msg:
                 skip_msg += submodule_path + " skipped: " + msg + "\n"
             else:
-                if make_utils.git_branch(args.git_command) != submodule_branch:
-                    call([args.git_command, "fetch", "origin"])
-                    call([args.git_command, "checkout", submodule_branch])
-                call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
-                # If we cannot find the specified branch for this submodule, fallback to default one (aka master).
-                if make_utils.git_branch(args.git_command) != submodule_branch:
-                    call([args.git_command, "fetch", "origin"])
-                    call([args.git_command, "checkout", submodule_branch_fallback])
-                    call([args.git_command, "pull", "--rebase", "origin", submodule_branch_fallback])
+                # Find a matching branch that exists.
+                call([args.git_command, "fetch", "origin"])
+                if make_utils.git_branch_exists(args.git_command, submodule_branch):
+                    pass
+                elif make_utils.git_branch_exists(args.git_command, submodule_branch_fallback):
+                    submodule_branch = submodule_branch_fallback
+                else:
+                    submodule_branch = None
+
+                # Switch to branch and pull.
+                if submodule_branch:
+                    if make_utils.git_branch(args.git_command) != submodule_branch:
+                        call([args.git_command, "checkout", submodule_branch])
+                    call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
         finally:
             os.chdir(cwd)
 

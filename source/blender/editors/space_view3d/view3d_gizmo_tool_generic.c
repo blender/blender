@@ -140,12 +140,9 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
 
   ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts->workspace_tool_type != SCE_WORKSPACE_TOOL_FALLBACK) {
-    gzgroup->use_fallback_keymap = false;
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     return;
   }
-
-  gzgroup->use_fallback_keymap = true;
 
   /* skip, we don't draw anything anyway */
   {

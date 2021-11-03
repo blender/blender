@@ -120,15 +120,9 @@ void GPENCIL_engine_init(void *ved)
   bool use_scene_world = false;
 
   if (v3d) {
-    use_scene_lights = ((v3d->shading.type == OB_MATERIAL) &&
-                        (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
-                       ((v3d->shading.type == OB_RENDER) &&
-                        (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
+    use_scene_lights = V3D_USES_SCENE_LIGHTS(v3d);
 
-    use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
-                       (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                      ((v3d->shading.type == OB_RENDER) &&
-                       (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+    use_scene_world = V3D_USES_SCENE_WORLD(v3d);
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If Vertex Paint mode, use always Vertex mode. */

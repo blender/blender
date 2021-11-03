@@ -30,8 +30,8 @@ namespace blender::nodes {
 
 static void geo_node_material_selection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Material>("Material").hide_label(true);
-  b.add_output<decl::Bool>("Selection");
+  b.add_input<decl::Material>(N_("Material")).hide_label(true);
+  b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
 static void select_mesh_by_material(const Mesh &mesh,
@@ -59,8 +59,9 @@ class MaterialSelectionFieldInput final : public fn::FieldInput {
 
  public:
   MaterialSelectionFieldInput(Material *material)
-      : fn::FieldInput(CPPType::get<bool>(), "Material Selection"), material_(material)
+      : fn::FieldInput(CPPType::get<bool>(), "Material Selection node"), material_(material)
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
@@ -100,13 +101,16 @@ class MaterialSelectionFieldInput final : public fn::FieldInput {
 
   uint64_t hash() const override
   {
-    /* Some random constant hash. */
-    return 91619626;
+    return get_default_hash(material_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const MaterialSelectionFieldInput *>(&other) != nullptr;
+    if (const MaterialSelectionFieldInput *other_material_selection =
+            dynamic_cast<const MaterialSelectionFieldInput *>(&other)) {
+      return material_ == other_material_selection->material_;
+    }
+    return false;
   }
 };
 

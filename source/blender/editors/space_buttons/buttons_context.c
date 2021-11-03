@@ -242,55 +242,55 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   PointerRNA *ptr = &path->ptr[path->len - 1];
 
   /* if we already have a data, we're done */
-  if (RNA_struct_is_a(ptr->type, &RNA_Mesh) && (type == -1 || type == OB_MESH)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Mesh) && (ELEM(type, -1, OB_MESH))) {
     return true;
   }
   if (RNA_struct_is_a(ptr->type, &RNA_Curve) &&
       (type == -1 || ELEM(type, OB_CURVE, OB_SURF, OB_FONT))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (type == -1 || type == OB_ARMATURE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (ELEM(type, -1, OB_ARMATURE))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (type == -1 || type == OB_MBALL)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (ELEM(type, -1, OB_MBALL))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (ELEM(type, -1, OB_LATTICE))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (ELEM(type, -1, OB_CAMERA))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Light) && (type == -1 || type == OB_LAMP)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Light) && (ELEM(type, -1, OB_LAMP))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (ELEM(type, -1, OB_SPEAKER))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (type == -1 || type == OB_LIGHTPROBE)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (ELEM(type, -1, OB_LIGHTPROBE))) {
     return true;
   }
-  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (type == -1 || type == OB_GPENCIL)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (ELEM(type, -1, OB_GPENCIL))) {
     return true;
   }
 #ifdef WITH_HAIR_NODES
-  if (RNA_struct_is_a(ptr->type, &RNA_Hair) && (type == -1 || type == OB_HAIR)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Hair) && (ELEM(type, -1, OB_HAIR))) {
     return true;
   }
 #endif
 #ifdef WITH_POINT_CLOUD
-  if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (type == -1 || type == OB_POINTCLOUD)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_PointCloud) && (ELEM(type, -1, OB_POINTCLOUD))) {
     return true;
   }
 #endif
-  if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (type == -1 || type == OB_VOLUME)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Volume) && (ELEM(type, -1, OB_VOLUME))) {
     return true;
   }
   /* try to get an object in the path, no pinning supported here */
   if (buttons_context_path_object(path)) {
     Object *ob = path->ptr[path->len - 1].data;
 
-    if (ob && (type == -1 || type == ob->type)) {
+    if (ob && (ELEM(type, -1, ob->type))) {
       RNA_id_pointer_create(ob->data, &path->ptr[path->len]);
       path->len++;
 

@@ -1043,8 +1043,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
-    /* Note that, due to the code setting cd_dirty_vert a few lines above,
-     * do_side_normals is always false. - Sybren */
+    /* NOTE(@sybren): due to the code setting cd_dirty_vert a few lines above,
+     * do_side_normals is always false. */
     const bool do_side_normals = !(result->runtime.cd_dirty_vert & CD_MASK_NORMAL);
     /* annoying to allocate these since we only need the edge verts, */
     float(*edge_vert_nos)[3] = do_side_normals ?

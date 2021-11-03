@@ -52,6 +52,7 @@ struct RegionView3D;
 struct RenderEngineType;
 struct Scene;
 struct ScrArea;
+struct SnapObjectContext;
 struct View3D;
 struct ViewContext;
 struct ViewLayer;
@@ -227,6 +228,83 @@ typedef enum {
 #define V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT \
   (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
    V3D_PROJ_TEST_CLIP_WIN)
+
+/* view3d_snap.c */
+bool ED_view3d_snap_selected_to_location(struct bContext *C,
+                                         const float snap_target_global[3],
+                                         const int pivot_point);
+
+/* view3d_cursor_snap.c */
+#define USE_SNAP_DETECT_FROM_KEYMAP_HACK
+typedef enum {
+  V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE = 1 << 0,
+  V3D_SNAPCURSOR_OCCLUSION_ALWAYS_TRUE = 1 << 1,
+  V3D_SNAPCURSOR_OCCLUSION_ALWAYS_FALSE = 1 << 2, /* TODO. */
+  V3D_SNAPCURSOR_SNAP_ONLY_ACTIVE = 1 << 3,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 4,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 5,
+} eV3DSnapCursor;
+
+typedef enum {
+  V3D_PLACE_DEPTH_SURFACE = 0,
+  V3D_PLACE_DEPTH_CURSOR_PLANE = 1,
+  V3D_PLACE_DEPTH_CURSOR_VIEW = 2,
+} eV3DPlaceDepth;
+
+typedef enum {
+  V3D_PLACE_ORIENT_SURFACE = 0,
+  V3D_PLACE_ORIENT_DEFAULT = 1,
+} eV3DPlaceOrient;
+
+typedef struct V3DSnapCursorData {
+  short snap_elem;
+  float loc[3];
+  float nor[3];
+  float obmat[4][4];
+  int elem_index[3];
+  float plane_omat[3][3];
+  bool is_snap_invert;
+
+  /** Enabled when snap is activated, even if it didn't find anything. */
+  bool is_enabled;
+} V3DSnapCursorData;
+
+typedef struct V3DSnapCursorState {
+  /* Setup. */
+  eV3DSnapCursor flag;
+  eV3DPlaceDepth plane_depth;
+  eV3DPlaceOrient plane_orient;
+  uchar color_line[4];
+  uchar color_point[4];
+  uchar color_box[4];
+  struct ARegion *region; /* Forces the cursor to be drawn only in this specific region. */
+  float *prevpoint;
+  float box_dimensions[3];
+  short snap_elem_force; /* If zero, use scene settings. */
+  short plane_axis;
+  bool use_plane_axis_auto;
+  bool draw_point;
+  bool draw_plane;
+  bool draw_box;
+} V3DSnapCursorState;
+
+void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
+V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void);
+V3DSnapCursorState *ED_view3d_cursor_snap_active(void);
+void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state);
+void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3]);
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
+                                                  const struct bContext *C,
+                                                  const int x,
+                                                  const int y);
+struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
+void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
+                                     const float loc_prev[3],
+                                     const float loc_curr[3],
+                                     const float normal[3],
+                                     const uchar color_line[4],
+                                     const uchar color_point[4],
+                                     const short snap_elem_type);
 
 /* view3d_iterators.c */
 
@@ -531,12 +609,8 @@ bool ED_view3d_autodist_simple(struct ARegion *region,
                                float mouse_worldloc[3],
                                int margin,
                                const float *force_depth);
-bool ED_view3d_autodist_depth(struct ARegion *region, const int mval[2], int margin, float *depth);
-bool ED_view3d_autodist_depth_seg(struct ARegion *region,
-                                  const int mval_sta[2],
-                                  const int mval_end[2],
-                                  int margin,
-                                  float *depth);
+bool ED_view3d_depth_read_cached_seg(
+    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
 /* select */
 #define MAXPICKELEMS 2500

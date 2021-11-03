@@ -22,35 +22,35 @@ namespace blender::compositor {
 
 ExposureOperation::ExposureOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void ExposureOperation::initExecution()
+void ExposureOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputExposureProgram = this->getInputSocketReader(1);
+  input_program_ = this->get_input_socket_reader(0);
+  input_exposure_program_ = this->get_input_socket_reader(1);
 }
 
-void ExposureOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void ExposureOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue[4];
-  float inputExposure[4];
-  this->m_inputProgram->readSampled(inputValue, x, y, sampler);
-  this->m_inputExposureProgram->readSampled(inputExposure, x, y, sampler);
-  const float exposure = pow(2, inputExposure[0]);
+  float input_value[4];
+  float input_exposure[4];
+  input_program_->read_sampled(input_value, x, y, sampler);
+  input_exposure_program_->read_sampled(input_exposure, x, y, sampler);
+  const float exposure = pow(2, input_exposure[0]);
 
-  output[0] = inputValue[0] * exposure;
-  output[1] = inputValue[1] * exposure;
-  output[2] = inputValue[2] * exposure;
+  output[0] = input_value[0] * exposure;
+  output[1] = input_value[1] * exposure;
+  output[2] = input_value[2] * exposure;
 
-  output[3] = inputValue[3];
+  output[3] = input_value[3];
 }
 
 void ExposureOperation::update_memory_buffer_row(PixelCursor &p)
@@ -66,10 +66,10 @@ void ExposureOperation::update_memory_buffer_row(PixelCursor &p)
   }
 }
 
-void ExposureOperation::deinitExecution()
+void ExposureOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputExposureProgram = nullptr;
+  input_program_ = nullptr;
+  input_exposure_program_ = nullptr;
 }
 
 }  // namespace blender::compositor

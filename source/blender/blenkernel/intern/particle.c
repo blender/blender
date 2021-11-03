@@ -173,28 +173,29 @@ static void particle_settings_free_data(ID *id)
 static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   ParticleSettings *psett = (ParticleSettings *)id;
-  BKE_LIB_FOREACHID_PROCESS(data, psett->instance_collection, IDWALK_CB_USER);
-  BKE_LIB_FOREACHID_PROCESS(data, psett->instance_object, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, psett->bb_ob, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, psett->collision_group, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->instance_collection, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->instance_object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->bb_ob, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->collision_group, IDWALK_CB_NOP);
 
   for (int i = 0; i < MAX_MTEX; i++) {
     if (psett->mtex[i]) {
-      BKE_texture_mtex_foreach_id(data, psett->mtex[i]);
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                              BKE_texture_mtex_foreach_id(data, psett->mtex[i]));
     }
   }
 
   if (psett->effector_weights) {
-    BKE_LIB_FOREACHID_PROCESS(data, psett->effector_weights->group, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->effector_weights->group, IDWALK_CB_NOP);
   }
 
   if (psett->pd) {
-    BKE_LIB_FOREACHID_PROCESS(data, psett->pd->tex, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, psett->pd->f_source, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->pd->tex, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->pd->f_source, IDWALK_CB_NOP);
   }
   if (psett->pd2) {
-    BKE_LIB_FOREACHID_PROCESS(data, psett->pd2->tex, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, psett->pd2->f_source, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->pd2->tex, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->pd2->f_source, IDWALK_CB_NOP);
   }
 
   if (psett->boids) {
@@ -202,18 +203,18 @@ static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
       LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
         if (rule->type == eBoidRuleType_Avoid) {
           BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-          BKE_LIB_FOREACHID_PROCESS(data, gabr->ob, IDWALK_CB_NOP);
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gabr->ob, IDWALK_CB_NOP);
         }
         else if (rule->type == eBoidRuleType_FollowLeader) {
           BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-          BKE_LIB_FOREACHID_PROCESS(data, flbr->ob, IDWALK_CB_NOP);
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, flbr->ob, IDWALK_CB_NOP);
         }
       }
     }
   }
 
   LISTBASE_FOREACH (ParticleDupliWeight *, dw, &psett->instance_weights) {
-    BKE_LIB_FOREACHID_PROCESS(data, dw->ob, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, dw->ob, IDWALK_CB_NOP);
   }
 }
 
@@ -4619,11 +4620,11 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       pind.cache = cached ? psys->pointcache : NULL;
       pind.epoint = NULL;
       pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-      /* pind.dm disabled in editmode means we don't get effectors taken into
-       * account when subdividing for instance */
+      /* `pind.dm` disabled in edit-mode means we don't get effectors taken into
+       * account when subdividing for instance. */
       pind.mesh = psys_in_edit_mode(sim->depsgraph, psys) ?
                       NULL :
-                      psys->hair_out_mesh; /* XXX Sybren EEK */
+                      psys->hair_out_mesh; /* XXX(@sybren) EEK. */
       init_particle_interpolation(sim->ob, psys, pa, &pind);
       do_particle_interpolation(psys, p, pa, t, &pind, state);
 

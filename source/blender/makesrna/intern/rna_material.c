@@ -604,8 +604,10 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f), 10, 3);
-  RNA_def_property_ui_text(
-      prop, "Rotation", "Additional rotation applied to dots and square strokes");
+  RNA_def_property_ui_text(prop,
+                           "Rotation",
+                           "Additional rotation applied to dots and square texture of strokes. "
+                           "Only applies in texture shading mode");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* pass index for future compositing and editing tools */

@@ -18,9 +18,13 @@
 
 #pragma once
 
-#include "COM_WorkPackage.h"
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
 
 namespace blender::compositor {
+
+struct WorkPackage;
 
 /**
  * \brief Abstract class for device implementations to be used by the Compositor.

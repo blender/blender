@@ -18,7 +18,7 @@
 
 namespace blender::nodes {
 
-NodeMultiFunctions::NodeMultiFunctions(const DerivedNodeTree &tree, ResourceScope &resource_scope)
+NodeMultiFunctions::NodeMultiFunctions(const DerivedNodeTree &tree)
 {
   for (const NodeTreeRef *tree_ref : tree.used_node_tree_refs()) {
     bNodeTree *btree = tree_ref->btree();
@@ -27,11 +27,10 @@ NodeMultiFunctions::NodeMultiFunctions(const DerivedNodeTree &tree, ResourceScop
       if (bnode->typeinfo->build_multi_function == nullptr) {
         continue;
       }
-      NodeMultiFunctionBuilder builder{resource_scope, *bnode, *btree};
+      NodeMultiFunctionBuilder builder{*bnode, *btree};
       bnode->typeinfo->build_multi_function(builder);
-      const MultiFunction *fn = builder.built_fn_;
-      if (fn != nullptr) {
-        map_.add_new(bnode, fn);
+      if (builder.built_fn_ != nullptr) {
+        map_.add_new(bnode, {builder.built_fn_, std::move(builder.owned_built_fn_)});
       }
     }
   }

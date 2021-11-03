@@ -63,6 +63,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_action.h"
@@ -1466,7 +1467,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 }
 
 /* ObData Geometry Evaluation */
-// XXX: what happens if the datablock is shared!
+/* XXX: what happens if the datablock is shared! */
 void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_object_visible)
 {
   OperationNode *op_node;
@@ -1764,6 +1765,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     else if (id_type == ID_MC) {
       build_movieclip((MovieClip *)id);
     }
+    else if (id_type == ID_VF) {
+      build_vfont((VFont *)id);
+    }
     else if (ELEM(bnode->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
@@ -1780,7 +1784,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     build_idproperties(socket->prop);
   }
 
-  // TODO: link from nodetree to owner_component?
+  /* TODO: link from nodetree to owner_component? */
 }
 
 /* Recursively build graph for material */
@@ -2013,6 +2017,17 @@ void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
                      [scene_cow, simulation_cow](::Depsgraph *depsgraph) {
                        BKE_simulation_data_update(depsgraph, scene_cow, simulation_cow);
                      });
+}
+
+void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
+{
+  if (built_map_.checkIsBuiltAndTag(vfont)) {
+    return;
+  }
+  build_parameters(&vfont->id);
+  build_idproperties(vfont->id.properties);
+  add_operation_node(
+      &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
 static bool seq_node_build_cb(Sequence *seq, void *user_data)

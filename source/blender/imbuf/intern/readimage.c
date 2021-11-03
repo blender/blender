@@ -126,7 +126,7 @@ ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
   }
 
   if ((flags & IB_test) == 0) {
-    fprintf(stderr, "%s: unknown fileformat (%s)\n", __func__, descr);
+    fprintf(stderr, "%s: unknown file-format (%s)\n", __func__, descr);
   }
 
   return NULL;

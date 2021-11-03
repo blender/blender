@@ -17,48 +17,47 @@
  */
 
 #include "COM_LensDistortionNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ScreenLensDistortionOperation.h"
 
 namespace blender::compositor {
 
-LensDistortionNode::LensDistortionNode(bNode *editorNode) : Node(editorNode)
+LensDistortionNode::LensDistortionNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void LensDistortionNode::convertToOperations(NodeConverter &converter,
-                                             const CompositorContext & /*context*/) const
+void LensDistortionNode::convert_to_operations(NodeConverter &converter,
+                                               const CompositorContext & /*context*/) const
 {
-  bNode *editorNode = this->getbNode();
-  NodeLensDist *data = (NodeLensDist *)editorNode->storage;
+  bNode *editor_node = this->get_bnode();
+  NodeLensDist *data = (NodeLensDist *)editor_node->storage;
   if (data->proj) {
     ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();
-    converter.addOperation(operation);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(1));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(1));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
   }
   else {
     ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
-    operation->setFit(data->fit);
-    operation->setJitter(data->jit);
+    operation->set_fit(data->fit);
+    operation->set_jitter(data->jit);
 
-    if (!getInputSocket(1)->isLinked()) {
-      operation->setDistortion(getInputSocket(1)->getEditorValueFloat());
+    if (!get_input_socket(1)->is_linked()) {
+      operation->set_distortion(get_input_socket(1)->get_editor_value_float());
     }
-    if (!getInputSocket(2)->isLinked()) {
-      operation->setDispersion(getInputSocket(2)->getEditorValueFloat());
+    if (!get_input_socket(2)->is_linked()) {
+      operation->set_dispersion(get_input_socket(2)->get_editor_value_float());
     }
 
-    converter.addOperation(operation);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
   }
 }
 

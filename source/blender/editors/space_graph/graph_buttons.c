@@ -593,17 +593,17 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   else {
     if ((fcu->bezt == NULL) && (fcu->modifiers.first)) {
       /* modifiers only - so no keyframes to be active */
-      uiItemL(layout, IFACE_("F-Curve only has F-Modifiers"), ICON_NONE);
-      uiItemL(layout, IFACE_("See Modifiers panel below"), ICON_INFO);
+      uiItemL(layout, TIP_("F-Curve only has F-Modifiers"), ICON_NONE);
+      uiItemL(layout, TIP_("See Modifiers panel below"), ICON_INFO);
     }
     else if (fcu->fpt) {
       /* samples only */
       uiItemL(layout,
-              IFACE_("F-Curve doesn't have any keyframes as it only contains sampled points"),
+              TIP_("F-Curve doesn't have any keyframes as it only contains sampled points"),
               ICON_NONE);
     }
     else {
-      uiItemL(layout, IFACE_("No active keyframe on F-Curve"), ICON_NONE);
+      uiItemL(layout, TIP_("No active keyframe on F-Curve"), ICON_NONE);
     }
   }
 
@@ -688,28 +688,30 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void *U
   DriverVar *dvar = (DriverVar *)dvar_v;
 
   if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
-    uiItemL(layout, "It cannot be left blank", ICON_ERROR);
+    uiItemL(layout, TIP_("It cannot be left blank"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
-    uiItemL(layout, "It cannot start with a number", ICON_ERROR);
+    uiItemL(layout, TIP_("It cannot start with a number"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_CHAR) {
     uiItemL(layout,
-            "It cannot start with a special character,"
-            " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '",
+            TIP_("It cannot start with a special character,"
+                 " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '"),
             ICON_NONE);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
-    uiItemL(layout, "It cannot contain spaces (e.g. 'a space')", ICON_ERROR);
+    uiItemL(layout, TIP_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_DOT) {
-    uiItemL(layout, "It cannot contain dots (e.g. 'a.dot')", ICON_ERROR);
+    uiItemL(layout, TIP_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPECIAL) {
-    uiItemL(layout, "It cannot contain special (non-alphabetical/numeric) characters", ICON_ERROR);
+    uiItemL(layout,
+            TIP_("It cannot contain special (non-alphabetical/numeric) characters"),
+            ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
-    uiItemL(layout, "It cannot be a reserved keyword in Python", ICON_INFO);
+    uiItemL(layout, TIP_("It cannot be a reserved keyword in Python"), ICON_INFO);
   }
 
   UI_popup_menu_end(C, pup);

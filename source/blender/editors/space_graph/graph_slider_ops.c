@@ -48,37 +48,10 @@
 
 #include "graph_intern.h"
 
-/* ******************** GRAPH SLIDER OPERATORS ************************* */
-/* This file contains a collection of operators to modify keyframes in the graph editor. All
- * operators are modal and use a slider that allows the user to define a percentage to modify the
- * operator. */
-
-/* ******************** Decimate Keyframes Operator ************************* */
-
-static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float error_sq_max)
-{
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
-
-  /* Filter data. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-
-  /* Loop through filtered data and clean curves. */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    if (!decimate_fcurve(ale, remove_ratio, error_sq_max)) {
-      /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
-    }
-
-    ale->update |= ANIM_UPDATE_DEFAULT;
-  }
-
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
-}
+/* Used to obtain a list of animation channels for the operators to work on. */
+#define OPERATOR_DATA_FILTER \
+  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
+   ANIMFILTER_NODUPLIS)
 
 /* ------------------- */
 
@@ -110,20 +83,88 @@ typedef enum tDecimModes {
   DECIM_ERROR,
 } tDecimModes;
 
+/* ******************** GRAPH SLIDER OPERATORS ************************* */
+/* This file contains a collection of operators to modify keyframes in the graph editor. All
+ * operators are modal and use a slider that allows the user to define a percentage to modify the
+ * operator. */
+
+/* ******************** Utility Functions ************************* */
+
+/* Construct a list with the original bezt arrays so we can restore them during modal operation.
+ * The data is stored on the struct that is passed.*/
+static void store_original_bezt_arrays(tDecimateGraphOp *dgo)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimContext *ac = &dgo->ac;
+  bAnimListElem *ale;
+
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+
+  /* Loop through filtered data and copy the curves. */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+
+    if (fcu->bezt == NULL) {
+      /* This curve is baked, skip it. */
+      continue;
+    }
+
+    const int arr_size = sizeof(BezTriple) * fcu->totvert;
+
+    tBeztCopyData *copy = MEM_mallocN(sizeof(tBeztCopyData), "bezts_copy");
+    BezTriple *bezts_copy = MEM_mallocN(arr_size, "bezts_copy_array");
+
+    copy->tot_vert = fcu->totvert;
+    memcpy(bezts_copy, fcu->bezt, arr_size);
+
+    copy->bezt = bezts_copy;
+
+    LinkData *link = NULL;
+
+    link = MEM_callocN(sizeof(LinkData), "Bezt Link");
+    link->data = copy;
+
+    BLI_addtail(&dgo->bezt_arr_list, link);
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+}
+
+/* ******************** Decimate Keyframes Operator ************************* */
+
+static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float error_sq_max)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+
+  /* Filter data. */
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+
+  /* Loop through filtered data and clean curves. */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    if (!decimate_fcurve(ale, remove_ratio, error_sq_max)) {
+      /* The selection contains unsupported keyframe types! */
+      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
 /* Overwrite the current bezts arrays with the original data. */
 static void decimate_reset_bezts(tDecimateGraphOp *dgo)
 {
   ListBase anim_data = {NULL, NULL};
   LinkData *link_bezt;
   bAnimListElem *ale;
-  int filter;
 
   bAnimContext *ac = &dgo->ac;
 
   /* Filter data. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
 
   /* Loop through filtered data and reset bezts. */
   for (ale = anim_data.first, link_bezt = dgo->bezt_arr_list.first; ale; ale = ale->next) {
@@ -229,55 +270,13 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
   dgo->area = CTX_wm_area(C);
   dgo->region = CTX_wm_region(C);
 
+  store_original_bezt_arrays(dgo);
+
   dgo->slider = ED_slider_create(C);
   ED_slider_init(dgo->slider, event);
   ED_slider_allow_overshoot_set(dgo->slider, false);
 
   decimate_draw_status(C, dgo);
-
-  /* Construct a list with the original bezt arrays so we can restore them during modal operation.
-   */
-  {
-    ListBase anim_data = {NULL, NULL};
-    bAnimContext *ac = &dgo->ac;
-    bAnimListElem *ale;
-
-    int filter;
-
-    /* Filter data. */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
-              ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
-    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-
-    /* Loop through filtered data and copy the curves. */
-    for (ale = anim_data.first; ale; ale = ale->next) {
-      FCurve *fcu = (FCurve *)ale->key_data;
-
-      if (fcu->bezt == NULL) {
-        /* This curve is baked, skip it. */
-        continue;
-      }
-
-      const int arr_size = sizeof(BezTriple) * fcu->totvert;
-
-      tBeztCopyData *copy = MEM_mallocN(sizeof(tBeztCopyData), "bezts_copy");
-      BezTriple *bezts_copy = MEM_mallocN(arr_size, "bezts_copy_array");
-
-      copy->tot_vert = fcu->totvert;
-      memcpy(bezts_copy, fcu->bezt, arr_size);
-
-      copy->bezt = bezts_copy;
-
-      LinkData *link = NULL;
-
-      link = MEM_callocN(sizeof(LinkData), "Bezt Link");
-      link->data = copy;
-
-      BLI_addtail(&dgo->bezt_arr_list, link);
-    }
-
-    ANIM_animdata_freelist(&anim_data);
-  }
 
   if (dgo->bezt_arr_list.first == NULL) {
     WM_report(RPT_WARNING,

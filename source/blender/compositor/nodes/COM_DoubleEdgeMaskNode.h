@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class DoubleEdgeMaskNode : public Node {
  public:
-  DoubleEdgeMaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  DoubleEdgeMaskNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

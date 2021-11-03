@@ -1042,7 +1042,6 @@ typedef struct EEVEE_PrivateData {
   int aov_hash;
   int num_aovs_used;
   struct CryptomatteSession *cryptomatte_session;
-  bool cryptomatte_accurate_mode;
   EEVEE_CryptomatteSample *cryptomatte_accum_buffer;
   float *cryptomatte_download_buffer;
 

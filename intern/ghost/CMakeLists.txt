@@ -473,6 +473,7 @@ if(WITH_XR_OPENXR)
     intern/GHOST_Xr.cpp
     intern/GHOST_XrAction.cpp
     intern/GHOST_XrContext.cpp
+    intern/GHOST_XrControllerModel.cpp
     intern/GHOST_XrEvent.cpp
     intern/GHOST_XrGraphicsBinding.cpp
     intern/GHOST_XrSession.cpp
@@ -482,13 +483,19 @@ if(WITH_XR_OPENXR)
     intern/GHOST_IXrGraphicsBinding.h
     intern/GHOST_XrAction.h
     intern/GHOST_XrContext.h
+    intern/GHOST_XrControllerModel.h
     intern/GHOST_XrException.h
     intern/GHOST_XrSession.h
     intern/GHOST_XrSwapchain.h
     intern/GHOST_Xr_intern.h
     intern/GHOST_Xr_openxr_includes.h
   )
+  list(APPEND INC
+    ../../extern/json/include
+    ../../extern/tinygltf
+  )
   list(APPEND INC_SYS
+    ${EIGEN3_INCLUDE_DIRS}
     ${XR_OPENXR_SDK_INCLUDE_DIR}
   )
   list(APPEND LIB

@@ -293,8 +293,8 @@ class BMeshFairingContext : public FairingContext {
     }
 
     bmloop_.reserve(bm->totloop);
-    vlmap_ = (MeshElemMap *)MEM_calloc_arrayN(sizeof(MeshElemMap), bm->totvert, "bmesh loop map");
-    vlmap_mem_ = (int *)MEM_malloc_arrayN(sizeof(int), bm->totloop, "bmesh loop map mempool");
+    vlmap_ = (MeshElemMap *)MEM_calloc_arrayN(bm->totvert, sizeof(MeshElemMap), "bmesh loop map");
+    vlmap_mem_ = (int *)MEM_malloc_arrayN(bm->totloop, sizeof(int), "bmesh loop map mempool");
 
     BMVert *v;
     BMLoop *l;

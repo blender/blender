@@ -17,7 +17,9 @@
  */
 
 #include "COM_OpenCLDevice.h"
-#include "COM_WorkScheduler.h"
+
+#include "COM_ExecutionGroup.h"
+#include "COM_ReadBufferOperation.h"
 
 namespace blender::compositor {
 
@@ -38,68 +40,69 @@ const cl_image_format IMAGE_FORMAT_VALUE = {
 OpenCLDevice::OpenCLDevice(cl_context context,
                            cl_device_id device,
                            cl_program program,
-                           cl_int vendorId)
+                           cl_int vendor_id)
 {
-  this->m_device = device;
-  this->m_context = context;
-  this->m_program = program;
-  this->m_queue = nullptr;
-  this->m_vendorID = vendorId;
+  device_ = device;
+  context_ = context;
+  program_ = program;
+  queue_ = nullptr;
+  vendor_id_ = vendor_id;
 
   cl_int error;
-  this->m_queue = clCreateCommandQueue(this->m_context, this->m_device, 0, &error);
+  queue_ = clCreateCommandQueue(context_, device_, 0, &error);
 }
 
 OpenCLDevice::OpenCLDevice(OpenCLDevice &&other) noexcept
-    : m_context(other.m_context),
-      m_device(other.m_device),
-      m_program(other.m_program),
-      m_queue(other.m_queue),
-      m_vendorID(other.m_vendorID)
+    : context_(other.context_),
+      device_(other.device_),
+      program_(other.program_),
+      queue_(other.queue_),
+      vendor_id_(other.vendor_id_)
 {
-  other.m_queue = nullptr;
+  other.queue_ = nullptr;
 }
 
 OpenCLDevice::~OpenCLDevice()
 {
-  if (this->m_queue) {
-    clReleaseCommandQueue(this->m_queue);
+  if (queue_) {
+    clReleaseCommandQueue(queue_);
   }
 }
 
 void OpenCLDevice::execute(WorkPackage *work_package)
 {
-  const unsigned int chunkNumber = work_package->chunk_number;
-  ExecutionGroup *executionGroup = work_package->execution_group;
+  const unsigned int chunk_number = work_package->chunk_number;
+  ExecutionGroup *execution_group = work_package->execution_group;
 
-  MemoryBuffer **inputBuffers = executionGroup->getInputBuffersOpenCL(chunkNumber);
-  MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(work_package->rect);
+  MemoryBuffer **input_buffers = execution_group->get_input_buffers_opencl(chunk_number);
+  MemoryBuffer *output_buffer = execution_group->allocate_output_buffer(work_package->rect);
 
-  executionGroup->getOutputOperation()->executeOpenCLRegion(
-      this, &work_package->rect, chunkNumber, inputBuffers, outputBuffer);
+  execution_group->get_output_operation()->execute_opencl_region(
+      this, &work_package->rect, chunk_number, input_buffers, output_buffer);
 
-  delete outputBuffer;
+  delete output_buffer;
 
-  executionGroup->finalizeChunkExecution(chunkNumber, inputBuffers);
+  execution_group->finalize_chunk_execution(chunk_number, input_buffers);
 }
-cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
-                                                               int parameterIndex,
-                                                               int offsetIndex,
-                                                               std::list<cl_mem> *cleanup,
-                                                               MemoryBuffer **inputMemoryBuffers,
-                                                               SocketReader *reader)
+cl_mem OpenCLDevice::COM_cl_attach_memory_buffer_to_kernel_parameter(
+    cl_kernel kernel,
+    int parameter_index,
+    int offset_index,
+    std::list<cl_mem> *cleanup,
+    MemoryBuffer **input_memory_buffers,
+    SocketReader *reader)
 {
-  return COM_clAttachMemoryBufferToKernelParameter(kernel,
-                                                   parameterIndex,
-                                                   offsetIndex,
-                                                   cleanup,
-                                                   inputMemoryBuffers,
-                                                   (ReadBufferOperation *)reader);
+  return COM_cl_attach_memory_buffer_to_kernel_parameter(kernel,
+                                                         parameter_index,
+                                                         offset_index,
+                                                         cleanup,
+                                                         input_memory_buffers,
+                                                         (ReadBufferOperation *)reader);
 }
 
-const cl_image_format *OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBuffer)
+const cl_image_format *OpenCLDevice::determine_image_format(MemoryBuffer *memory_buffer)
 {
-  switch (memoryBuffer->get_num_channels()) {
+  switch (memory_buffer->get_num_channels()) {
     case 1:
       return &IMAGE_FORMAT_VALUE;
       break;
@@ -116,166 +119,164 @@ const cl_image_format *OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBu
   return &IMAGE_FORMAT_COLOR;
 }
 
-cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
-                                                               int parameterIndex,
-                                                               int offsetIndex,
-                                                               std::list<cl_mem> *cleanup,
-                                                               MemoryBuffer **inputMemoryBuffers,
-                                                               ReadBufferOperation *reader)
+cl_mem OpenCLDevice::COM_cl_attach_memory_buffer_to_kernel_parameter(
+    cl_kernel kernel,
+    int parameter_index,
+    int offset_index,
+    std::list<cl_mem> *cleanup,
+    MemoryBuffer **input_memory_buffers,
+    ReadBufferOperation *reader)
 {
   cl_int error;
 
-  MemoryBuffer *result = reader->getInputMemoryBuffer(inputMemoryBuffers);
+  MemoryBuffer *result = reader->get_input_memory_buffer(input_memory_buffers);
 
-  const cl_image_format *imageFormat = determineImageFormat(result);
+  const cl_image_format *image_format = determine_image_format(result);
 
-  cl_mem clBuffer = clCreateImage2D(this->m_context,
-                                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                    imageFormat,
-                                    result->getWidth(),
-                                    result->getHeight(),
-                                    0,
-                                    result->getBuffer(),
-                                    &error);
+  cl_mem cl_buffer = clCreateImage2D(context_,
+                                     CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                     image_format,
+                                     result->get_width(),
+                                     result->get_height(),
+                                     0,
+                                     result->get_buffer(),
+                                     &error);
 
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
   if (error == CL_SUCCESS) {
-    cleanup->push_back(clBuffer);
+    cleanup->push_back(cl_buffer);
   }
 
-  error = clSetKernelArg(kernel, parameterIndex, sizeof(cl_mem), &clBuffer);
+  error = clSetKernelArg(kernel, parameter_index, sizeof(cl_mem), &cl_buffer);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 
-  COM_clAttachMemoryBufferOffsetToKernelParameter(kernel, offsetIndex, result);
-  return clBuffer;
+  COM_cl_attach_memory_buffer_offset_to_kernel_parameter(kernel, offset_index, result);
+  return cl_buffer;
 }
 
-void OpenCLDevice::COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel,
-                                                                   int offsetIndex,
-                                                                   MemoryBuffer *memoryBuffer)
+void OpenCLDevice::COM_cl_attach_memory_buffer_offset_to_kernel_parameter(
+    cl_kernel kernel, int offset_index, MemoryBuffer *memory_buffer)
 {
-  if (offsetIndex != -1) {
+  if (offset_index != -1) {
     cl_int error;
-    const rcti &rect = memoryBuffer->get_rect();
+    const rcti &rect = memory_buffer->get_rect();
     cl_int2 offset = {{rect.xmin, rect.ymin}};
 
-    error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
+    error = clSetKernelArg(kernel, offset_index, sizeof(cl_int2), &offset);
     if (error != CL_SUCCESS) {
       printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
     }
   }
 }
 
-void OpenCLDevice::COM_clAttachSizeToKernelParameter(cl_kernel kernel,
-                                                     int offsetIndex,
-                                                     NodeOperation *operation)
+void OpenCLDevice::COM_cl_attach_size_to_kernel_parameter(cl_kernel kernel,
+                                                          int offset_index,
+                                                          NodeOperation *operation)
 {
-  if (offsetIndex != -1) {
+  if (offset_index != -1) {
     cl_int error;
-    cl_int2 offset = {{(cl_int)operation->getWidth(), (cl_int)operation->getHeight()}};
+    cl_int2 offset = {{(cl_int)operation->get_width(), (cl_int)operation->get_height()}};
 
-    error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
+    error = clSetKernelArg(kernel, offset_index, sizeof(cl_int2), &offset);
     if (error != CL_SUCCESS) {
       printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
     }
   }
 }
 
-void OpenCLDevice::COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel,
-                                                                   int parameterIndex,
-                                                                   cl_mem clOutputMemoryBuffer)
+void OpenCLDevice::COM_cl_attach_output_memory_buffer_to_kernel_parameter(
+    cl_kernel kernel, int parameter_index, cl_mem cl_output_memory_buffer)
 {
   cl_int error;
-  error = clSetKernelArg(kernel, parameterIndex, sizeof(cl_mem), &clOutputMemoryBuffer);
+  error = clSetKernelArg(kernel, parameter_index, sizeof(cl_mem), &cl_output_memory_buffer);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 }
 
-void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemoryBuffer)
+void OpenCLDevice::COM_cl_enqueue_range(cl_kernel kernel, MemoryBuffer *output_memory_buffer)
 {
   cl_int error;
   const size_t size[] = {
-      (size_t)outputMemoryBuffer->getWidth(),
-      (size_t)outputMemoryBuffer->getHeight(),
+      (size_t)output_memory_buffer->get_width(),
+      (size_t)output_memory_buffer->get_height(),
   };
 
-  error = clEnqueueNDRangeKernel(
-      this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+  error = clEnqueueNDRangeKernel(queue_, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 }
 
-void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
-                                      MemoryBuffer *outputMemoryBuffer,
-                                      int offsetIndex,
-                                      NodeOperation *operation)
+void OpenCLDevice::COM_cl_enqueue_range(cl_kernel kernel,
+                                        MemoryBuffer *output_memory_buffer,
+                                        int offset_index,
+                                        NodeOperation *operation)
 {
   cl_int error;
-  const int width = outputMemoryBuffer->getWidth();
-  const int height = outputMemoryBuffer->getHeight();
+  const int width = output_memory_buffer->get_width();
+  const int height = output_memory_buffer->get_height();
   int offsetx;
   int offsety;
-  int localSize = 1024;
+  int local_size = 1024;
   size_t size[2];
   cl_int2 offset;
 
-  if (this->m_vendorID == NVIDIA) {
-    localSize = 32;
+  if (vendor_id_ == NVIDIA) {
+    local_size = 32;
   }
 
   bool breaked = false;
-  for (offsety = 0; offsety < height && (!breaked); offsety += localSize) {
+  for (offsety = 0; offsety < height && (!breaked); offsety += local_size) {
     offset.s[1] = offsety;
-    if (offsety + localSize < height) {
-      size[1] = localSize;
+    if (offsety + local_size < height) {
+      size[1] = local_size;
     }
     else {
       size[1] = height - offsety;
     }
 
-    for (offsetx = 0; offsetx < width && (!breaked); offsetx += localSize) {
-      if (offsetx + localSize < width) {
-        size[0] = localSize;
+    for (offsetx = 0; offsetx < width && (!breaked); offsetx += local_size) {
+      if (offsetx + local_size < width) {
+        size[0] = local_size;
       }
       else {
         size[0] = width - offsetx;
       }
       offset.s[0] = offsetx;
 
-      error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
+      error = clSetKernelArg(kernel, offset_index, sizeof(cl_int2), &offset);
       if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
       error = clEnqueueNDRangeKernel(
-          this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+          queue_, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
       if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
-      clFlush(this->m_queue);
-      if (operation->isBraked()) {
+      clFlush(queue_);
+      if (operation->is_braked()) {
         breaked = false;
       }
     }
   }
 }
 
-cl_kernel OpenCLDevice::COM_clCreateKernel(const char *kernelname,
-                                           std::list<cl_kernel> *clKernelsToCleanUp)
+cl_kernel OpenCLDevice::COM_cl_create_kernel(const char *kernelname,
+                                             std::list<cl_kernel> *cl_kernels_to_clean_up)
 {
   cl_int error;
-  cl_kernel kernel = clCreateKernel(this->m_program, kernelname, &error);
+  cl_kernel kernel = clCreateKernel(program_, kernelname, &error);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
   else {
-    if (clKernelsToCleanUp) {
-      clKernelsToCleanUp->push_back(kernel);
+    if (cl_kernels_to_clean_up) {
+      cl_kernels_to_clean_up->push_back(kernel);
     }
   }
   return kernel;

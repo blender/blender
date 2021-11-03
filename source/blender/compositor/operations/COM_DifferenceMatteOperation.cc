@@ -17,50 +17,49 @@
  */
 
 #include "COM_DifferenceMatteOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
 DifferenceMatteOperation::DifferenceMatteOperation()
 {
-  addInputSocket(DataType::Color);
-  addInputSocket(DataType::Color);
-  addOutputSocket(DataType::Value);
+  add_input_socket(DataType::Color);
+  add_input_socket(DataType::Color);
+  add_output_socket(DataType::Value);
 
-  this->m_inputImage1Program = nullptr;
-  this->m_inputImage2Program = nullptr;
-  flags.can_be_constant = true;
+  input_image1_program_ = nullptr;
+  input_image2_program_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void DifferenceMatteOperation::initExecution()
+void DifferenceMatteOperation::init_execution()
 {
-  this->m_inputImage1Program = this->getInputSocketReader(0);
-  this->m_inputImage2Program = this->getInputSocketReader(1);
+  input_image1_program_ = this->get_input_socket_reader(0);
+  input_image2_program_ = this->get_input_socket_reader(1);
 }
-void DifferenceMatteOperation::deinitExecution()
+void DifferenceMatteOperation::deinit_execution()
 {
-  this->m_inputImage1Program = nullptr;
-  this->m_inputImage2Program = nullptr;
+  input_image1_program_ = nullptr;
+  input_image2_program_ = nullptr;
 }
 
-void DifferenceMatteOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void DifferenceMatteOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inColor1[4];
-  float inColor2[4];
+  float in_color1[4];
+  float in_color2[4];
 
-  const float tolerance = this->m_settings->t1;
-  const float falloff = this->m_settings->t2;
+  const float tolerance = settings_->t1;
+  const float falloff = settings_->t2;
   float difference;
   float alpha;
 
-  this->m_inputImage1Program->readSampled(inColor1, x, y, sampler);
-  this->m_inputImage2Program->readSampled(inColor2, x, y, sampler);
+  input_image1_program_->read_sampled(in_color1, x, y, sampler);
+  input_image2_program_->read_sampled(in_color2, x, y, sampler);
 
-  difference = (fabsf(inColor2[0] - inColor1[0]) + fabsf(inColor2[1] - inColor1[1]) +
-                fabsf(inColor2[2] - inColor1[2]));
+  difference = (fabsf(in_color2[0] - in_color1[0]) + fabsf(in_color2[1] - in_color1[1]) +
+                fabsf(in_color2[2] - in_color1[2]));
 
   /* average together the distances */
   difference = difference / 3.0f;
@@ -74,16 +73,16 @@ void DifferenceMatteOperation::executePixelSampled(float output[4],
     difference = difference - tolerance;
     alpha = difference / falloff;
     /* Only change if more transparent than before. */
-    if (alpha < inColor1[3]) {
+    if (alpha < in_color1[3]) {
       output[0] = alpha;
     }
     else { /* leave as before */
-      output[0] = inColor1[3];
+      output[0] = in_color1[3];
     }
   }
   else {
     /* foreground object */
-    output[0] = inColor1[3];
+    output[0] = in_color1[3];
   }
 }
 
@@ -101,8 +100,8 @@ void DifferenceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output
     /* Average together the distances. */
     difference = difference / 3.0f;
 
-    const float tolerance = m_settings->t1;
-    const float falloff = m_settings->t2;
+    const float tolerance = settings_->t1;
+    const float falloff = settings_->t2;
 
     /* Make 100% transparent. */
     if (difference <= tolerance) {

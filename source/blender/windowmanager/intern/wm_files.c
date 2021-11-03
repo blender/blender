@@ -75,6 +75,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
+#include "BKE_asset_library.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
@@ -105,6 +106,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
+#include "ED_asset.h"
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
 #include "ED_image.h"
@@ -168,9 +170,13 @@ void WM_file_tag_modified(void)
   }
 }
 
-bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm)
+/**
+ * Check if there is data that would be lost when closing the current file without saving.
+ */
+bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
-  return !wm->file_saved || ED_image_should_save_modified(bmain);
+  return !wm->file_saved || ED_image_should_save_modified(bmain) ||
+         BKE_asset_library_has_any_unsaved_catalogs();
 }
 
 /** \} */
@@ -203,6 +209,16 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
+    }
+
+    /* NOTE(@campbellbarton): Clear the message bus so it's always cleared on file load.
+     * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI & #wm_close_and_free).
+     * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
+     * which can re-register subscribers on file-load. To support this use case,
+     * it's best to have predictable behavior - always clear. */
+    if (wm->message_bus != NULL) {
+      WM_msgbus_destroy(wm->message_bus);
+      wm->message_bus = NULL;
     }
   }
 
@@ -516,7 +532,7 @@ static int wm_read_exotic(const char *name)
   /* check for compressed .blend */
   FileReader *compressed_file = NULL;
   if (BLI_file_magic_is_gzip(header)) {
-    /* In earlier versions of Blender (before 3.0), compressed files used Gzip instead of Zstd.
+    /* In earlier versions of Blender (before 3.0), compressed files used `Gzip` instead of `Zstd`.
      * While these files will no longer be written, there still needs to be reading support. */
     compressed_file = BLI_filereader_new_gzip(rawfile);
   }
@@ -753,6 +769,18 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
       WM_toolsystem_init(C);
     }
   }
+
+  /* Keep last. */
+  if (use_data) {
+    if (!G.background) {
+      /* Special case, when calling indirectly (from a Python script for example),
+       * the event loop wont run again to set the active window.
+       * Set the window here to allow scripts to continue running other operations, see: T92464. */
+      if (wm->op_undo_depth > 0) {
+        CTX_wm_window_set(C, wm->windows.first);
+      }
+    }
+  }
 }
 
 /** \} */
@@ -855,6 +883,28 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 bf_reports->resynced_lib_overrides_libraries_count,
                 duration_lib_override_recursive_resync_minutes,
                 duration_lib_override_recursive_resync_seconds);
+  }
+
+  if (bf_reports->count.linked_proxies != 0 ||
+      bf_reports->count.proxies_to_lib_overrides_success != 0 ||
+      bf_reports->count.proxies_to_lib_overrides_failures != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_WARNING,
+                "Proxies are deprecated (%d proxies were automatically converted to library "
+                "overrides, %d proxies could not be converted and %d linked proxies were kept "
+                "untouched). If you need to keep proxies for the time being, please disable the "
+                "`Proxy to Override Auto Conversion` in Experimental user preferences",
+                bf_reports->count.proxies_to_lib_overrides_success,
+                bf_reports->count.proxies_to_lib_overrides_failures,
+                bf_reports->count.linked_proxies);
+  }
+
+  if (bf_reports->count.vse_strips_skipped != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_ERROR,
+                "%d sequence strips were not read because they were in a channel larger than %d",
+                bf_reports->count.vse_strips_skipped,
+                MAXSEQ);
   }
 
   BLI_linklist_free(bf_reports->resynced_lib_overrides_libraries, NULL);
@@ -1606,6 +1656,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
     if (area) {
       v3d = area->spacedata.first;
+      region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     }
   }
 
@@ -1749,6 +1800,7 @@ static bool wm_file_write(bContext *C,
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
@@ -2066,6 +2118,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* check current window and close it if temp */
   if (win && WM_window_is_temp_screen(win)) {
@@ -2101,7 +2154,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   printf("ok\n");
-
+  BKE_report(op->reports, RPT_INFO, "Startup file saved");
   G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
@@ -3566,6 +3619,14 @@ static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *p
 
 static const char *close_file_dialog_name = "file_close_popup";
 
+static void save_catalogs_when_file_is_closed_set_fn(bContext *UNUSED(C),
+                                                     void *arg1,
+                                                     void *UNUSED(arg2))
+{
+  char *save_catalogs_when_file_is_closed = arg1;
+  ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
+}
+
 static uiBlock *block_create__close_file_dialog(struct bContext *C,
                                                 struct ARegion *region,
                                                 void *arg1)
@@ -3622,11 +3683,17 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     MEM_freeN(message);
   }
 
+  /* Used to determine if extra separators are needed. */
+  bool has_extra_checkboxes = false;
+
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
     BLI_snprintf(message, sizeof(message), "Save %u modified image(s)", modified_images_count);
-    uiItemS(layout);
+    /* Only the first checkbox should get extra separation. */
+    if (!has_extra_checkboxes) {
+      uiItemS(layout);
+    }
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
                  1,
@@ -3642,11 +3709,41 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
                  0,
                  0,
                  "");
+    has_extra_checkboxes = true;
+  }
+
+  if (BKE_asset_library_has_any_unsaved_catalogs()) {
+    static char save_catalogs_when_file_is_closed;
+
+    save_catalogs_when_file_is_closed = ED_asset_catalogs_get_save_catalogs_when_file_is_saved();
+
+    /* Only the first checkbox should get extra separation. */
+    if (!has_extra_checkboxes) {
+      uiItemS(layout);
+    }
+    uiBut *but = uiDefButBitC(block,
+                              UI_BTYPE_CHECKBOX,
+                              1,
+                              0,
+                              "Save modified asset catalogs",
+                              0,
+                              0,
+                              0,
+                              UI_UNIT_Y,
+                              &save_catalogs_when_file_is_closed,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+    UI_but_func_set(
+        but, save_catalogs_when_file_is_closed_set_fn, &save_catalogs_when_file_is_closed, NULL);
+    has_extra_checkboxes = true;
   }
 
   BKE_reports_clear(&reports);
 
-  uiItemS_ex(layout, modified_images_count > 0 ? 2.0f : 4.0f);
+  uiItemS_ex(layout, has_extra_checkboxes ? 2.0f : 4.0f);
 
   /* Buttons. */
 #ifdef _WIN32
@@ -3727,7 +3824,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmGenericCallbackFn post_action_fn)
 {
   if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
+      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C))) {
     wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);

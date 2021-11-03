@@ -17,11 +17,7 @@
  */
 
 #include "COM_GaussianYBlurOperation.h"
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
-#include "MEM_guardedalloc.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 
@@ -29,85 +25,85 @@ GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDi
 {
 }
 
-void *GaussianYBlurOperation::initializeTileData(rcti * /*rect*/)
+void *GaussianYBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  lockMutex();
-  if (!this->m_sizeavailable) {
-    updateGauss();
+  lock_mutex();
+  if (!sizeavailable_) {
+    update_gauss();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
-  unlockMutex();
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
+  unlock_mutex();
   return buffer;
 }
 
-void GaussianYBlurOperation::initExecution()
+void GaussianYBlurOperation::init_execution()
 {
-  GaussianBlurBaseOperation::initExecution();
+  GaussianBlurBaseOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 
-  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
-    float rad = max_ff(m_size * m_data.sizey, 0.0f);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+  if (sizeavailable_ && execution_model_ == eExecutionModel::Tiled) {
+    float rad = max_ff(size_ * data_.sizey, 0.0f);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
 #ifdef BLI_HAVE_SSE2
-    this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
+    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
 }
 
-void GaussianYBlurOperation::updateGauss()
+void GaussianYBlurOperation::update_gauss()
 {
-  if (this->m_gausstab == nullptr) {
-    updateSize();
-    float rad = max_ff(m_size * m_data.sizey, 0.0f);
+  if (gausstab_ == nullptr) {
+    update_size();
+    float rad = max_ff(size_ * data_.sizey, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    this->m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
 #ifdef BLI_HAVE_SSE2
-    this->m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(this->m_gausstab, m_filtersize);
+    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
 }
 
-void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void GaussianYBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float multiplier_accum = 0.0f;
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  const rcti &input_rect = inputBuffer->get_rect();
-  float *buffer = inputBuffer->getBuffer();
-  int bufferwidth = inputBuffer->getWidth();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  const rcti &input_rect = input_buffer->get_rect();
+  float *buffer = input_buffer->get_buffer();
+  int bufferwidth = input_buffer->get_width();
   int bufferstartx = input_rect.xmin;
   int bufferstarty = input_rect.ymin;
 
   int xmin = max_ii(x, input_rect.xmin);
-  int ymin = max_ii(y - m_filtersize, input_rect.ymin);
-  int ymax = min_ii(y + m_filtersize + 1, input_rect.ymax);
+  int ymin = max_ii(y - filtersize_, input_rect.ymin);
+  int ymax = min_ii(y + filtersize_ + 1, input_rect.ymax);
 
   int index;
-  int step = getStep();
-  const int bufferIndexx = ((xmin - bufferstartx) * 4);
+  int step = get_step();
+  const int buffer_indexx = ((xmin - bufferstartx) * 4);
 
 #ifdef BLI_HAVE_SSE2
   __m128 accum_r = _mm_load_ps(color_accum);
   for (int ny = ymin; ny < ymax; ny += step) {
-    index = (ny - y) + this->m_filtersize;
-    int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
-    const float multiplier = this->m_gausstab[index];
+    index = (ny - y) + filtersize_;
+    int bufferindex = buffer_indexx + ((ny - bufferstarty) * 4 * bufferwidth);
+    const float multiplier = gausstab_[index];
     __m128 reg_a = _mm_load_ps(&buffer[bufferindex]);
-    reg_a = _mm_mul_ps(reg_a, this->m_gausstab_sse[index]);
+    reg_a = _mm_mul_ps(reg_a, gausstab_sse_[index]);
     accum_r = _mm_add_ps(accum_r, reg_a);
     multiplier_accum += multiplier;
   }
   _mm_store_ps(color_accum, accum_r);
 #else
   for (int ny = ymin; ny < ymax; ny += step) {
-    index = (ny - y) + this->m_filtersize;
-    int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
-    const float multiplier = this->m_gausstab[index];
+    index = (ny - y) + filtersize_;
+    int bufferindex = buffer_indexx + ((ny - bufferstarty) * 4 * bufferwidth);
+    const float multiplier = gausstab_[index];
     madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
     multiplier_accum += multiplier;
   }
@@ -115,91 +111,90 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
   mul_v4_v4fl(output, color_accum, 1.0f / multiplier_accum);
 }
 
-void GaussianYBlurOperation::executeOpenCL(OpenCLDevice *device,
-                                           MemoryBuffer *outputMemoryBuffer,
-                                           cl_mem clOutputBuffer,
-                                           MemoryBuffer **inputMemoryBuffers,
-                                           std::list<cl_mem> *clMemToCleanUp,
-                                           std::list<cl_kernel> * /*clKernelsToCleanUp*/)
+void GaussianYBlurOperation::execute_opencl(OpenCLDevice *device,
+                                            MemoryBuffer *output_memory_buffer,
+                                            cl_mem cl_output_buffer,
+                                            MemoryBuffer **input_memory_buffers,
+                                            std::list<cl_mem> *cl_mem_to_clean_up,
+                                            std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
 {
-  cl_kernel gaussianYBlurOperationKernel = device->COM_clCreateKernel(
-      "gaussianYBlurOperationKernel", nullptr);
-  cl_int filter_size = this->m_filtersize;
+  cl_kernel gaussian_yblur_operation_kernel = device->COM_cl_create_kernel(
+      "gaussian_yblur_operation_kernel", nullptr);
+  cl_int filter_size = filtersize_;
 
-  cl_mem gausstab = clCreateBuffer(device->getContext(),
+  cl_mem gausstab = clCreateBuffer(device->get_context(),
                                    CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
-                                   sizeof(float) * (this->m_filtersize * 2 + 1),
-                                   this->m_gausstab,
+                                   sizeof(float) * (filtersize_ * 2 + 1),
+                                   gausstab_,
                                    nullptr);
 
-  device->COM_clAttachMemoryBufferToKernelParameter(gaussianYBlurOperationKernel,
-                                                    0,
-                                                    1,
-                                                    clMemToCleanUp,
-                                                    inputMemoryBuffers,
-                                                    this->m_inputProgram);
-  device->COM_clAttachOutputMemoryBufferToKernelParameter(
-      gaussianYBlurOperationKernel, 2, clOutputBuffer);
-  device->COM_clAttachMemoryBufferOffsetToKernelParameter(
-      gaussianYBlurOperationKernel, 3, outputMemoryBuffer);
-  clSetKernelArg(gaussianYBlurOperationKernel, 4, sizeof(cl_int), &filter_size);
-  device->COM_clAttachSizeToKernelParameter(gaussianYBlurOperationKernel, 5, this);
-  clSetKernelArg(gaussianYBlurOperationKernel, 6, sizeof(cl_mem), &gausstab);
+  device->COM_cl_attach_memory_buffer_to_kernel_parameter(gaussian_yblur_operation_kernel,
+                                                          0,
+                                                          1,
+                                                          cl_mem_to_clean_up,
+                                                          input_memory_buffers,
+                                                          input_program_);
+  device->COM_cl_attach_output_memory_buffer_to_kernel_parameter(
+      gaussian_yblur_operation_kernel, 2, cl_output_buffer);
+  device->COM_cl_attach_memory_buffer_offset_to_kernel_parameter(
+      gaussian_yblur_operation_kernel, 3, output_memory_buffer);
+  clSetKernelArg(gaussian_yblur_operation_kernel, 4, sizeof(cl_int), &filter_size);
+  device->COM_cl_attach_size_to_kernel_parameter(gaussian_yblur_operation_kernel, 5, this);
+  clSetKernelArg(gaussian_yblur_operation_kernel, 6, sizeof(cl_mem), &gausstab);
 
-  device->COM_clEnqueueRange(gaussianYBlurOperationKernel, outputMemoryBuffer, 7, this);
+  device->COM_cl_enqueue_range(gaussian_yblur_operation_kernel, output_memory_buffer, 7, this);
 
   clReleaseMemObject(gausstab);
 }
 
-void GaussianYBlurOperation::deinitExecution()
+void GaussianYBlurOperation::deinit_execution()
 {
-  GaussianBlurBaseOperation::deinitExecution();
+  GaussianBlurBaseOperation::deinit_execution();
 
-  if (this->m_gausstab) {
-    MEM_freeN(this->m_gausstab);
-    this->m_gausstab = nullptr;
+  if (gausstab_) {
+    MEM_freeN(gausstab_);
+    gausstab_ = nullptr;
   }
 #ifdef BLI_HAVE_SSE2
-  if (this->m_gausstab_sse) {
-    MEM_freeN(this->m_gausstab_sse);
-    this->m_gausstab_sse = nullptr;
+  if (gausstab_sse_) {
+    MEM_freeN(gausstab_sse_);
+    gausstab_sse_ = nullptr;
   }
 #endif
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input,
-                                                              ReadBufferOperation *readOperation,
-                                                              rcti *output)
+bool GaussianYBlurOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  if (!m_sizeavailable) {
-    rcti sizeInput;
-    sizeInput.xmin = 0;
-    sizeInput.ymin = 0;
-    sizeInput.xmax = 5;
-    sizeInput.ymax = 5;
-    NodeOperation *operation = this->getInputOperation(1);
-    if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
+  if (!sizeavailable_) {
+    rcti size_input;
+    size_input.xmin = 0;
+    size_input.ymin = 0;
+    size_input.xmax = 5;
+    size_input.ymax = 5;
+    NodeOperation *operation = this->get_input_operation(1);
+    if (operation->determine_depending_area_of_interest(&size_input, read_operation, output)) {
       return true;
     }
   }
   {
-    if (this->m_sizeavailable && this->m_gausstab != nullptr) {
-      newInput.xmax = input->xmax;
-      newInput.xmin = input->xmin;
-      newInput.ymax = input->ymax + this->m_filtersize + 1;
-      newInput.ymin = input->ymin - this->m_filtersize - 1;
+    if (sizeavailable_ && gausstab_ != nullptr) {
+      new_input.xmax = input->xmax;
+      new_input.xmin = input->xmin;
+      new_input.ymax = input->ymax + filtersize_ + 1;
+      new_input.ymin = input->ymin - filtersize_ - 1;
     }
     else {
-      newInput.xmax = this->getWidth();
-      newInput.xmin = 0;
-      newInput.ymax = this->getHeight();
-      newInput.ymin = 0;
+      new_input.xmax = this->get_width();
+      new_input.xmin = 0;
+      new_input.ymax = this->get_height();
+      new_input.ymin = 0;
     }
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
   }
 }
 

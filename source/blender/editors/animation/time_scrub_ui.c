@@ -91,8 +91,7 @@ static void draw_current_frame(const Scene *scene,
                                bool display_seconds,
                                const View2D *v2d,
                                const rcti *scrub_region_rect,
-                               int current_frame,
-                               bool draw_line)
+                               int current_frame)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   int frame_x = UI_view2d_view_to_region_x(v2d, current_frame);
@@ -102,25 +101,36 @@ static void draw_current_frame(const Scene *scene,
   float text_width = UI_fontstyle_string_width(fstyle, frame_str);
   float box_width = MAX2(text_width + 8 * UI_DPI_FAC, 24 * UI_DPI_FAC);
   float box_padding = 3 * UI_DPI_FAC;
+  const int line_outline = max_ii(1, round_fl_to_int(1 * UI_DPI_FAC));
 
   float bg_color[4];
   UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
 
-  if (draw_line) {
-    /* Draw vertical line to from the bottom of the current frame box to the bottom of the screen.
-     */
-    const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_ctime_get(scene));
-    GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformThemeColor(TH_CFRAME);
-    immRectf(pos,
-             subframe_x - U.pixelsize,
-             scrub_region_rect->ymax - box_padding,
-             subframe_x + U.pixelsize,
-             0.0f);
-    immUnbindProgram();
-  }
+  /* Draw vertical line from the bottom of the current frame box to the bottom of the screen. */
+  const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_ctime_get(scene));
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  /* Outline. */
+  immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
+  immRectf(pos,
+           subframe_x - (line_outline + U.pixelsize),
+           scrub_region_rect->ymax - box_padding,
+           subframe_x + (line_outline + U.pixelsize),
+           0.0f);
+
+  /* Line. */
+  immUniformThemeColor(TH_CFRAME);
+  immRectf(pos,
+           subframe_x - U.pixelsize,
+           scrub_region_rect->ymax - box_padding,
+           subframe_x + U.pixelsize,
+           0.0f);
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
@@ -152,8 +162,7 @@ static void draw_current_frame(const Scene *scene,
 
 void ED_time_scrub_draw_current_frame(const ARegion *region,
                                       const Scene *scene,
-                                      bool display_seconds,
-                                      bool draw_line)
+                                      bool display_seconds)
 {
   const View2D *v2d = &region->v2d;
   GPU_matrix_push_projection();
@@ -162,7 +171,7 @@ void ED_time_scrub_draw_current_frame(const ARegion *region,
   rcti scrub_region_rect;
   get_time_scrub_region_rect(region, &scrub_region_rect);
 
-  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra, draw_line);
+  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra);
   GPU_matrix_pop_projection();
 }
 
@@ -199,7 +208,7 @@ bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
 {
   rcti rect = region->winrct;
   rect.ymin = rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
-  return BLI_rcti_isect_pt(&rect, event->x, event->y);
+  return BLI_rcti_isect_pt_v(&rect, event->xy);
 }
 
 void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet)

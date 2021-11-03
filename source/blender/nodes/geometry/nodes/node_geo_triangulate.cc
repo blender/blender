@@ -31,9 +31,9 @@ namespace blender::nodes {
 
 static void geo_node_triangulate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Minimum Vertices").default_value(4).min(4).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>(N_("Minimum Vertices")).default_value(4).min(4).max(10000);
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_triangulate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -50,7 +50,7 @@ static void geo_triangulate_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void geo_node_triangulate_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
   const int min_vertices = std::max(params.extract_input<int>("Minimum Vertices"), 4);
 
   GeometryNodeTriangulateQuads quad_method = static_cast<GeometryNodeTriangulateQuads>(
@@ -58,16 +58,16 @@ static void geo_node_triangulate_exec(GeoNodeExecParams params)
   GeometryNodeTriangulateNGons ngon_method = static_cast<GeometryNodeTriangulateNGons>(
       params.node().custom2);
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    /* #triangulate_mesh might modify the input mesh currently. */
+    Mesh *mesh_in = geometry_set.get_mesh_for_write();
+    if (mesh_in != nullptr) {
+      Mesh *mesh_out = triangulate_mesh(mesh_in, quad_method, ngon_method, min_vertices, 0);
+      geometry_set.replace_mesh(mesh_out);
+    }
+  });
 
-  /* #triangulate_mesh might modify the input mesh currently. */
-  Mesh *mesh_in = geometry_set.get_mesh_for_write();
-  if (mesh_in != nullptr) {
-    Mesh *mesh_out = triangulate_mesh(mesh_in, quad_method, ngon_method, min_vertices, 0);
-    geometry_set.replace_mesh(mesh_out);
-  }
-
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Mesh", std::move(geometry_set));
 }
 }  // namespace blender::nodes
 

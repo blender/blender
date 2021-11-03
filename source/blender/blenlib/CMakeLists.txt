@@ -27,12 +27,12 @@ set(INC
   ../../../intern/guardedalloc
   ../../../intern/numaapi/include
   ../../../extern/wcwidth
+  ../../../extern/json/include
 )
 
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
-  ${FREETYPE_INCLUDE_DIRS}
   ${GMP_INCLUDE_DIRS}
 )
 
@@ -81,7 +81,6 @@ set(SRC
   intern/filereader_memory.c
   intern/filereader_zstd.c
   intern/fnmatch.c
-  intern/freetypefont.c
   intern/gsqueue.c
   intern/hash_md5.c
   intern/hash_mm2a.c
@@ -124,9 +123,11 @@ set(SRC
   intern/quadric.c
   intern/rand.cc
   intern/rct.c
+  intern/resource_scope.cc
   intern/scanfill.c
   intern/scanfill_utils.c
   intern/session_uuid.c
+  intern/serialize.cc
   intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
@@ -283,6 +284,7 @@ set(SRC
   BLI_session_uuid.h
   BLI_set.hh
   BLI_set_slots.hh
+  BLI_serialize.hh
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
@@ -317,7 +319,6 @@ set(SRC
   BLI_vector_adaptor.hh
   BLI_vector_set.hh
   BLI_vector_set_slots.hh
-  BLI_vfontdata.h
   BLI_virtual_array.hh
   BLI_virtual_vector_array.hh
   BLI_voronoi_2d.h
@@ -333,7 +334,6 @@ set(LIB
   bf_intern_numaapi
   extern_wcwidth
 
-  ${FREETYPE_LIBRARY}
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -367,6 +367,10 @@ if(WITH_GMP)
 endif()
 
 if(WIN32)
+  if (WITH_BLENDER_THUMBNAILER)
+    # Needed for querying the thumbnailer .dll in winstuff.c
+    add_definitions(-DWITH_BLENDER_THUMBNAILER)
+  endif()
   list(APPEND INC
     ../../../intern/utfconv
   )
@@ -451,6 +455,7 @@ if(WITH_GTESTS)
     tests/BLI_span_test.cc
     tests/BLI_stack_cxx_test.cc
     tests/BLI_stack_test.cc
+    tests/BLI_serialize_test.cc
     tests/BLI_string_ref_test.cc
     tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc

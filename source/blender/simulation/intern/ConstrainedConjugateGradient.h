@@ -164,13 +164,13 @@ struct traits<
  * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
  *
  * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient
- * algorithm. The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or
+ * algorithm. The sparse matrix A must be self-adjoint. The vectors x and b can be either dense or
  * sparse.
  *
  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
  *               or Upper. Default is Lower.
- * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
+ * \tparam _Preconditioner the type of the pre-conditioner. Default is #DiagonalPreconditioner
  *
  * The maximal number of iterations and tolerance value can be controlled via the
  * setMaxIterations() and setTolerance() methods. The defaults are the size of the problem for the

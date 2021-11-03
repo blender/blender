@@ -33,8 +33,8 @@ namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").multi_input();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent *> src_components)
@@ -209,7 +209,7 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
                                                                                ignored_attributes);
 
-  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 
@@ -270,17 +270,16 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
     }
 
     Span<float4x4> src_transforms = src_component->instance_transforms();
-    Span<int> src_ids = src_component->instance_ids();
     Span<int> src_reference_handles = src_component->instance_reference_handles();
 
     for (const int i : src_transforms.index_range()) {
       const int src_handle = src_reference_handles[i];
       const int dst_handle = handle_map[src_handle];
       const float4x4 &transform = src_transforms[i];
-      const int id = src_ids[i];
-      dst_component.add_instance(dst_handle, transform, id);
+      dst_component.add_instance(dst_handle, transform);
     }
   }
+  join_attributes(to_base_components(src_components), dst_component, {"position"});
 }
 
 static void join_components(Span<const VolumeComponent *> src_components, GeometrySet &result)
@@ -358,6 +357,24 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
 }
 
 /**
+ * Curve point domain attributes must be in the same order on every spline. The order might have
+ * been different on separate instances, so ensure that all splines have the same order. Note that
+ * because #Map is used, the order is not necessarily consistent every time, but it is the same for
+ * every spline, and that's what matters.
+ */
+static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeMetaData> &info,
+                                        MutableSpan<SplinePtr> splines)
+{
+  Vector<AttributeIDRef> new_order;
+  for (const AttributeIDRef attribute_id : info.keys()) {
+    new_order.append(attribute_id);
+  }
+  for (SplinePtr &spline : splines) {
+    spline->attributes.reorder(new_order);
+  }
+}
+
+/**
  * Fill data for an attribute on the new curve based on all source curves.
  */
 static void ensure_spline_attribute(const AttributeIDRef &attribute_id,
@@ -399,7 +416,7 @@ static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &
                                   Span<CurveComponent *> src_components,
                                   CurveEval &result)
 {
-  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData meta_data = item.value;
 
@@ -410,6 +427,8 @@ static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &
       ensure_control_point_attribute(attribute_id, meta_data.data_type, src_components, result);
     }
   }
+
+  sort_curve_point_attributes(info, result.splines());
 }
 
 static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, GeometrySet &result)
@@ -437,7 +456,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   /* Retrieve attribute info before moving the splines out of the input components. */
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(
       {(const GeometryComponent **)src_components.data(), src_components.size()},
-      {"position", "radius", "tilt", "cyclic", "resolution"});
+      {"position", "radius", "tilt", "handle_left", "handle_right", "cyclic", "resolution"});
 
   CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
   CurveEval *dst_curve = new CurveEval();
@@ -450,6 +469,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   dst_curve->attributes.reallocate(dst_curve->splines().size());
 
   join_curve_attributes(info, src_components, *dst_curve);
+  dst_curve->assert_valid_point_attributes();
 
   dst_component.replace(dst_curve);
 }

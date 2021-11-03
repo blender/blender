@@ -312,7 +312,6 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
   float fx, fy;
 
   if (ibuf == NULL) {
-    IMB_freeImBuf(ibuf);
     info->draw = 0;
     return;
   }
@@ -387,13 +386,19 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 static void ed_imbuf_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ScrArea *sa = CTX_wm_area(C);
-
-  if (sa && sa->spacetype == SPACE_IMAGE) {
-    image_sample_apply(C, op, event);
+  if (sa == NULL) {
+    return;
   }
 
-  if (sa && sa->spacetype == SPACE_SEQ) {
-    sequencer_sample_apply(C, op, event);
+  switch (sa->spacetype) {
+    case SPACE_IMAGE: {
+      image_sample_apply(C, op, event);
+      break;
+    }
+    case SPACE_SEQ: {
+      sequencer_sample_apply(C, op, event);
+      break;
+    }
   }
 }
 
@@ -446,7 +451,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       rctf sample_rect_fl;
       BLI_rctf_init_pt_radius(
           &sample_rect_fl,
-          (float[2]){event->x - region->winrct.xmin, event->y - region->winrct.ymin},
+          (float[2]){event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin},
           (float)(info->sample_size / 2.0f) * sima->zoom);
 
       GPU_logic_op_xor_set(true);
@@ -477,31 +482,35 @@ void ED_imbuf_sample_exit(bContext *C, wmOperator *op)
 int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  ImageSampleInfo *info;
+  ScrArea *sa = CTX_wm_area(C);
+  if (sa) {
+    switch (sa->spacetype) {
+      case SPACE_IMAGE: {
+        SpaceImage *sima = sa->spacedata.first;
+        if (region->regiontype == RGN_TYPE_WINDOW) {
+          if (ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
+            return OPERATOR_PASS_THROUGH;
+          }
+        }
+        if (!ED_space_image_has_buffer(sima)) {
+          return OPERATOR_CANCELLED;
+        }
+        break;
+      }
+      case SPACE_SEQ: {
+        /* Sequencer checks could be added. */
+        break;
+      }
+    }
+  }
 
-  info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
+  ImageSampleInfo *info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 
   info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
       region->type, ED_imbuf_sample_draw, info, REGION_DRAW_POST_PIXEL);
   info->sample_size = RNA_int_get(op->ptr, "size");
   op->customdata = info;
-
-  ScrArea *sa = CTX_wm_area(C);
-
-  if (sa && sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = CTX_wm_space_image(C);
-
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      if (event->mval[1] <= 16 && ED_space_image_show_cache(sima)) {
-        return OPERATOR_PASS_THROUGH;
-      }
-    }
-
-    if (!ED_space_image_has_buffer(sima)) {
-      return OPERATOR_CANCELLED;
-    }
-  }
 
   ed_imbuf_sample_apply(C, op, event);
 
@@ -535,37 +544,42 @@ void ED_imbuf_sample_cancel(bContext *C, wmOperator *op)
 
 bool ED_imbuf_sample_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-
-  if (sa && sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima == NULL) {
-      return false;
-    }
-
-    Object *obedit = CTX_data_edit_object(C);
-    if (obedit) {
-      /* Disable when UV editing so it doesn't swallow all click events
-       * (use for setting cursor). */
-      if (ED_space_image_show_uvedit(sima, obedit)) {
-        return false;
-      }
-    }
-    else if (sima->mode != SI_MODE_VIEW) {
-      return false;
-    }
-
-    return true;
+  ScrArea *area = CTX_wm_area(C);
+  if (area == NULL) {
+    return false;
   }
 
-  if (sa && sa->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = CTX_wm_space_seq(C);
-
-    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
-      return false;
+  switch (area->spacetype) {
+    case SPACE_IMAGE: {
+      SpaceImage *sima = area->spacedata.first;
+      Object *obedit = CTX_data_edit_object(C);
+      if (obedit) {
+        /* Disable when UV editing so it doesn't swallow all click events
+         * (use for setting cursor). */
+        if (ED_space_image_show_uvedit(sima, obedit)) {
+          return false;
+        }
+      }
+      else if (sima->mode != SI_MODE_VIEW) {
+        return false;
+      }
+      return true;
     }
+    case SPACE_SEQ: {
+      SpaceSeq *sseq = area->spacedata.first;
 
-    return sseq && SEQ_editing_get(CTX_data_scene(C)) != NULL;
+      if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+        return false;
+      }
+      if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+        return false;
+      }
+      ARegion *region = CTX_wm_region(C);
+      if (!(region && (region->regiontype == RGN_TYPE_PREVIEW))) {
+        return false;
+      }
+      return true;
+    }
   }
 
   return false;

@@ -24,10 +24,8 @@
 #include "BKE_scene.h"
 
 #include "COM_ExecutionSystem.h"
-#include "COM_MovieDistortionOperation.h"
 #include "COM_WorkScheduler.h"
 #include "COM_compositor.h"
-#include "clew.h"
 
 static struct {
   bool is_initialized = false;
@@ -66,9 +64,9 @@ void COM_execute(RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
                  int rendering,
-                 const ColorManagedViewSettings *viewSettings,
-                 const ColorManagedDisplaySettings *displaySettings,
-                 const char *viewName)
+                 const ColorManagedViewSettings *view_settings,
+                 const ColorManagedDisplaySettings *display_settings,
+                 const char *view_name)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
@@ -97,8 +95,14 @@ void COM_execute(RenderData *render_data,
   /* Execute. */
   const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
-    blender::compositor::ExecutionSystem fast_pass(
-        render_data, scene, node_tree, rendering, true, viewSettings, displaySettings, viewName);
+    blender::compositor::ExecutionSystem fast_pass(render_data,
+                                                   scene,
+                                                   node_tree,
+                                                   rendering,
+                                                   true,
+                                                   view_settings,
+                                                   display_settings,
+                                                   view_name);
     fast_pass.execute();
 
     if (node_tree->test_break(node_tree->tbh)) {
@@ -108,7 +112,7 @@ void COM_execute(RenderData *render_data,
   }
 
   blender::compositor::ExecutionSystem system(
-      render_data, scene, node_tree, rendering, false, viewSettings, displaySettings, viewName);
+      render_data, scene, node_tree, rendering, false, view_settings, display_settings, view_name);
   system.execute();
 
   BLI_mutex_unlock(&g_compositor.mutex);

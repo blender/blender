@@ -29,10 +29,32 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Vertices").default_value(32).min(3).max(4096);
-  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Depth").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Int>(N_("Vertices"))
+      .default_value(32)
+      .min(3)
+      .max(512)
+      .description(N_("The number of vertices on the top and bottom circles"));
+  b.add_input<decl::Int>(N_("Side Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("The number of rectangular segments along each side"));
+  b.add_input<decl::Int>(N_("Fill Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("The number of concentric rings used to fill the round faces"));
+  b.add_input<decl::Float>(N_("Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("The radius of the cylinder"));
+  b.add_input<decl::Float>(N_("Depth"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("The height of the cylinder"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,
@@ -54,6 +76,19 @@ static void geo_node_mesh_primitive_cylinder_init(bNodeTree *UNUSED(ntree), bNod
   node->storage = node_storage;
 }
 
+static void geo_node_mesh_primitive_cylinder_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *rings_socket = vertices_socket->next;
+  bNodeSocket *fill_subdiv_socket = rings_socket->next;
+
+  const NodeGeometryMeshCone &storage = *(const NodeGeometryMeshCone *)node->storage;
+  const GeometryNodeMeshCircleFillType fill_type =
+      static_cast<const GeometryNodeMeshCircleFillType>(storage.fill_type);
+  const bool has_fill = fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
+  nodeSetSocketAvailability(fill_subdiv_socket, has_fill);
+}
+
 static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
@@ -64,17 +99,33 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 
   const float radius = params.extract_input<float>("Radius");
   const float depth = params.extract_input<float>("Depth");
-  const int verts_num = params.extract_input<int>("Vertices");
-  if (verts_num < 3) {
+  const int circle_segments = params.extract_input<int>("Vertices");
+  if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
+    return;
+  }
+
+  const int side_segments = params.extract_input<int>("Side Segments");
+  if (side_segments < 1) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
+    params.set_output("Mesh", GeometrySet());
+    return;
+  }
+
+  const bool no_fill = fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE;
+  const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
+  if (fill_segments < 1) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   /* The cylinder is a special case of the cone mesh where the top and bottom radius are equal. */
-  Mesh *mesh = create_cylinder_or_cone_mesh(radius, radius, depth, verts_num, fill_type);
+  Mesh *mesh = create_cylinder_or_cone_mesh(
+      radius, radius, depth, circle_segments, side_segments, fill_segments, fill_type);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes
@@ -84,6 +135,7 @@ void register_node_type_geo_mesh_primitive_cylinder()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY, 0);
   node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_cylinder_init);
+  node_type_update(&ntype, blender::nodes::geo_node_mesh_primitive_cylinder_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshCylinder", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = blender::nodes::geo_node_mesh_primitive_cylinder_declare;

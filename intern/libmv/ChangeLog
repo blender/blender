@@ -1,520 +1,556 @@
-commit efd7a93317e0278b99e66785f667823e451daef1
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue May 9 10:16:42 2017 +0200
+commit f701b2b9fbc641b3252b3513239eeb14477ed5e1
+Author: Lazydodo <github@lazydodo.com>
+Date:   Wed Aug 21 10:38:33 2019 -0600
 
-    Fix strict compiler warnings, unused variables
-
-commit 8efd47e13dfdd3f7209bc96f26d0b13127dd6376
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 14 10:44:57 2016 +0100
-
-    Fix T50243: libmv_panography_test is broken
+    Cleanup: Fix build error with MSVC
     
-    There was fully wrong logic in comparison: was actually accessing memory
-    past the array boundary. Run test manually and the figure seems correct
-    to me now.
+    Previously eigens internal include order somehow implicitly provided
+    M_PI and friends. The recent eigen version bump broke this implicit
+    behaviour, better to be explicit that we need the math defines for MSVC.
+
+commit 5b2892f5a3cb6a7a2300f1c32e93d90e22302286
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Mar 15 14:58:13 2021 +0100
+
+    Cleanup: Spelling in Libmv comments
+
+commit 54cdd2fe5cad29df83cb4d3c3ef1e02e06b022a7
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Thu Oct 21 12:09:30 2021 +0200
+
+    Ensure clang-format is disabled for 3rd party libraries
+
+commit 517d51654d6a4cf790a340b657cc0f7dc00f3158
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Tue Jul 13 21:58:45 2021 +1000
+
+    Fix x/y mismatch in retract region tracker
     
-    Spotted by @LazyDodo, thanks!
-
-commit 6dfb9cd1bd14669d84be789000ce234747fb00ff
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jul 14 11:49:38 2016 +0200
-
-    Fix some strict compiler warnings
+    Correct X/Y mismatch in RetrackRegionTracker.
     
-    One of them was a real bug!
-
-commit f61adaecf7b29ebe6677be0e1c825f0a8d475e4b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 31 11:22:34 2017 +0200
-
-    Enable explicit schur complement for BA step
-    
-    This is something we do in Blender and only reason it was not
-    enabled for standalone Libmv is because we did not have fresh
-    enough version of Ceres bundled.
-
-commit fc5d3a1d4880c6658aff693c1c1e8c10c96ce1a7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Nov 2 15:32:11 2016 +0100
-
-    Update tests to make tests pass after recent Ceres update
-    
-    Just a precision issue, difference is around 1e-7. Should be fine to
-    simply update expected value.
-
-commit e1ac9f6124110c1a90d8e417bea47acfcbdcca42
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 31 10:54:48 2017 +0200
-
-    Update Ceres to latest release 1.12.0
-
-commit ac1571352b4962f110929b963f8616d7310ceea5
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Apr 7 17:10:44 2017 +0200
-
-    Fix crash of keyframe selection on 32bit linux
-
-commit 5f8df3da965686df39a6ae5c9f17482075017bf4
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Jan 19 14:00:53 2016 +0500
-
-    Solve some strict warnings in tests
-
-commit 8ea3a5d752a9ce3337ab7643897472a4d33747f1
-Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
-Date:   Sat Feb 18 23:52:31 2017 +0100
-
-    Fix a few compiler warnings with macOS / clang.
-
-commit ffbe81461770e70736e80b8cab8e6eb1f8b27160
-Author: Mike Erwin <significant.bit@gmail.com>
-Date:   Wed May 31 10:43:08 2017 +0200
-
-    Fix comparison of identicals
-    
-    Some of these check that dimensions match before running code that
-    assumes they do match.
-    
-    Found with PVS-Studio T48917.
-
-commit 206c01999cde16c1c6c43a8e13ffa86020821d98
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 31 10:39:16 2017 +0200
-
-    Add basic track masking API in place
-    
-    This brings back ability to mask non-interesting parts of
-    specific track (the feature got lost with new auto-track API).
-    
-    Added it back by extending frame accessor class. This isn't really
-    a frame thing, but we don't have other type of accessor here.
-    
-    Surely, we can use old-style API here and pass mask via region
-    tracker options for this particular case, but then it becomes much
-    less obvious how real auto-tracker will access this mask with old
-    style API.
-    
-    So seems we do need an accessor for such data, just matter of
-    finding better place than frame accessor.
-
-commit faa069cb826892780356477cc10602390fecf06b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 31 10:36:26 2017 +0200
-
-    Tests: Tweak epsilon to avoid what looks a false-positive failure
-
-commit 7c84e45c1d330871477ba3516f57178e5b9d101f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed May 31 10:15:43 2017 +0200
-
-    CMake: Fix mistake in closing branch
-
-commit cb769a0d319a8c95948153d78a4c3378a0142ece
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Jul 21 12:52:33 2016 +0200
-
-    Set of fixes for MSVC215
-    
-    - Move GLOG/GFLAGS defines to a more global scope,
-      this way ANY of our own libraries will use proper
-      declspec.
-    
-    - Compile png/zlib/openexif on Windows as well since
-      those are required for a correct linking.
-
-commit bb95c8654fd2cea72d66ed04cd825cc3712ea804
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Jul 20 18:14:46 2016 +0200
-
-    Disable unexisting Ceres option
-    
-    Explicit Schur complement requires having
-    newer Ceres than we currently have bundled.
-
-commit a2e12c959ef32cc9382244d1581992c2f7aa9c09
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Jul 20 18:04:57 2016 +0200
-
-    Various fixes for MSVC
-    
-    - Update Eigen to 3.2.7 since this brings crucial
-      fixes for MSVC 2015.
-    
-    - Switch to STATIC build by default.
-    
-      There are issues building current sources as dynamic
-      libraries with MSVC2015 and additionally building
-      dynamic Ceres is not recommended anyway, so let's
-      not do this for the time being.
-    
-    If anyone finds a way to make this all working --
-    it'llsurely be a welcome addition.
-
-commit 7a676106720fb126a27ff010abdd8bb65d7e0d9a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Jan 4 18:30:12 2016 +0500
-
-    Fix strict compiler warnings
-
-commit d3537e3709fe11f42312e82cb1c9837c9e742385
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sun Jan 3 14:17:10 2016 +0500
-
-    GLog/GFlags: Reduce difference between upstream and bundled versions
-    
-    Several things here:
-    
-    - Re-bundled sources using own fork with pull-requests applied on the sources.
-    
-    - Got rid of changes around include "config.h", it was needed by Blender to
-      make it's include directories configuration to work. This could be addressed
-      differently from Blender side.
-    
-    - Moved some customization to defines set by CMakeLists.
-
-commit 1ec37bba2cfbbf0d6568429fa3035ee2164c23e6
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Jan 2 12:42:55 2016 +0500
-
-    GFlags linking errors fix for MSVC
-
-commit df7642b270e8e43685e9ffb404b59d7b226a9f60
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 31 17:56:12 2015 +0500
-
-    Alternative fix for missing prototype for a couple of functions
-
-commit 08f685797b7d776cdaa579136c82b15ddc6ffb30
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 31 17:33:05 2015 +0500
-
-    Update GFlags to the latest upstream version
-    
-    Makes it easier to synchronize some compiler/warning fixes.
-
-commit e0ef5b09203e3906a555e6c2010f25cb667da9cd
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 31 16:15:59 2015 +0500
-
-    GLog: Solve some compilation warnings
-    
-    Those are actually sent to a pull-request, see
-    
-      https://github.com/google/glog/pull/81
-
-commit 2072b213d4d3a55d099a063ed1e7331cc773454e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Dec 31 16:13:53 2015 +0500
-
-    Add Martijn Berger to the AUTHORS file
-
-commit 4dd0770d98d67896e4f936356e281f63d927410e
-Author: Martijn Berger <martijn.berger@gmail.com>
-Date:   Thu Dec 31 16:13:08 2015 +0500
-
-    Fix compilation error of Glog and Gflags with MSVC2015
-
-commit 2712f42be2ad79e7d3a6c9905f6d8d1e3b7133ac
-Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
-Date:   Thu Dec 31 14:00:58 2015 +0500
-
-    Fix OS X (with 10.11 SDK) glog build errors due to using deprecated code.
-    
-    Some values are now restored to the ones from before the upgrade today.
-
-commit d249280fdf7c937fd6ebbc465508843a70aafd4c
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 30 16:59:28 2015 +0500
-
-    Tweaks to Glog to support building on all platforms
-    
-    This makes it possible to compile Libmv on all platforms,
-    amount of hacks is lower, which could bring some warnings
-    up, but those are better be addressed via upstream which
-    is now rather active.
-
-commit 86c57750ddb857643fb5dd2c83b4953da83dd57d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 30 16:15:47 2015 +0500
-
-    Enable explicit Schur complement matrix by default
-    
-    Gives up to 2x speed up of camera solving process in average scene.
-    In the really huge one it might be slower, but that we need to investigate.
-
-commit d6c52a70b5a0664b7c74bda68f59a895fe8aa235
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 30 16:13:03 2015 +0500
-
-    Fix one frame memory leak when tracking last frame
-
-commit 6e2ac41d25d5923b2a62c96d27d919a36eff9b48
-Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
-Date:   Wed Dec 30 16:11:24 2015 +0500
-
-    Motion tracking not workig with Xcode 7 on OS X.
-    
-    Caused by use of the uninitialized shape_ variable in Resize().
-
-commit fc72ae06fb4ae559ac37d14d1b34d6669505cc86
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 30 15:56:40 2015 +0500
-
-    Update GLog to latest upstream
-    
-    Should fix issues building with MSVC2015.
-
-commit d4b2d15bd3d195074b074331354de96a1b51042f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 30 16:01:10 2015 +0500
-
-    Fix wrong README file reference
-
-commit 2b4aa0b7720cae9a408284834559bea9960157ee
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 11 02:16:53 2015 -0700
-
-    Make README more informative for GitHub viewers
-    
-    Reviewers: sergey
+    NOTE: This isn't used at the moment.
     
     Reviewed By: sergey
     
-    Differential Revision: https://developer.blender.org/D1295
+    Ref D11895
 
-commit 514e4491aea655d20be047ed87f002fb7854d5c9
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon May 11 01:54:09 2015 -0700
+commit cfcfc803cf599c3bd7bbfa3bac7d5e9c8bca284b
+Author: Jesse Yurkovich <jesse.y@gmail.com>
+Date:   Mon Jul 12 21:01:18 2021 -0700
 
-    Simplify the modal solver Ceres cost function
+    Cleanup: Use correct _WIN32/64 defines for MSVC
     
-    Fix test by flipping the quaternion.
+    Docs: https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
     
-    Reviewers: sergey
+    Differential Revision: https://developer.blender.org/D11460
+
+commit ad8dfd41958b0e4cb90c7c4e5cc20f93c0832e73
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Thu Jun 24 15:56:58 2021 +1000
+
+    Cleanup: comment blocks, trailing space in comments
+
+commit 9a6cc5daa6c38f33ce2385fe489c07d97586d452
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Sun Jun 13 15:11:40 2021 +1000
+
+    Fix new[]/delete[] mismatch
+
+commit 5591d12928df74ed3517b5e61eeda0b64e6ade4f
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Mar 22 15:16:07 2021 +0100
+
+    Fix T86591: Tracking backwards is slower
     
-    Reviewed By: sergey
+    The root of the issue was caused by the PredictMarkerPosition()
+    always returning false when tracking backwards. This was making
+    it so tracker always had to run brute initialization, which is
+    an expensive operation.
     
-    Projects: #libmv
+    From own timing here:
     
-    Differential Revision: https://developer.blender.org/D756
-
-commit e55fafd31f7d53d42af7c6b7df2eebe3c2568da9
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 31 19:05:51 2014 +0500
-
-    Synchronize MSVC compilation fixes from Blender
-
-commit 7d6020d2ec42c6cb2749bc891186b4880d26d40b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Dec 31 15:32:07 2014 +0500
-
-    Update GLog to latest upstream revision 143
+    - Tracking forward takes 0.667637 seconds
+    - Tracking backward used to take 2.591856 seconds
+    - Tracking backward now takes 0.827724 seconds
     
-    Mainly to solve compilation error with demangle.cc.
+    This is a very nice speedup, although the tracking backwards is
+    still somewhat slower. Will be investigated further as part of
+    a regular development.
 
-commit 5dc746700eaf85cb674f0fb73ff3c1b49a7f6315
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Dec 12 14:59:55 2014 +0500
+commit ad9546d2319b0db3e1ccc41c4f84899729d1ad1e
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Mar 15 15:48:15 2021 +0100
 
-    Update GFlags to latest release 2.1.1
+    Fix T86262: Tracking backwards fails after gap in track
     
-    Main purpose of this (andsome of upcoming) update is to check if the
-    upstream sources are useable without any modifications for us. And if
-    not, then we'll need to consider moving some changes into upstream.
-    
-    This commit contains an one-to-one copy of the upstream GFlags library
-    and also changes namespace usage since it's changed in the upstream.
+    The issue was caused by a prediction algorithm detecting tracking the
+    wrong way. Solved by passing tracking direction explicitly, so that
+    prediction will always happen correctly regardless of the state of the
+    Tracks context.
 
-commit 6fe6d75f7e90e161b44643b953f058a3829a5247
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Nov 1 02:53:36 2014 +0500
+commit 0773a8d6dfe1bf997b8e42d61d136a65b67fde88
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Thu Oct 21 11:18:10 2021 +0200
 
-    Libmv: Code cleanup, mixed class/struct in declaration/definition
+    Cleanup: clang-format
+    
+    Is based on Google style which was used in the Libmv project before,
+    but is now consistently applied for the sources of the library itself
+    and to C-API. With some time C-API will likely be removed, and it
+    makes it easier to make it follow Libmv style, hence the diversion
+    from Blender's style.
+    
+    There are quite some exceptions (clang-format off) in the code around
+    Eigen matrix initialization. It is rather annoying, and there could be
+    some neat way to make initialization readable without such exception.
+    
+    Could be some places where loss of readability in matrix initialization
+    got lost as the change is quite big. If this has happened it is easier
+    to address readability once actually working on the code.
+    
+    This change allowed to spot some missing header guards, so that's nice.
+    
+    Doing it in bundled version, as the upstream library needs to have some
+    of the recent development ported over from bundle to upstream.
+    
+    There should be no functional changes.
 
-commit d2a5f7953812d2d09765431b59c6c4ac72faf35b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Oct 30 23:13:53 2014 +0500
+commit c4de0ccd5aede3bb90ac6ad1039a83c2260fbefd
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Feb 23 16:43:01 2021 +0100
 
-    Libmv: Support disabled color channels in tracking settings
+    Avoid use of LOG(INFO) in solver
     
-    This was never ported to a new tracking pipeline and now it's done using
-    FrameAccessor::Transform routines. Quite striaghtforward, but i've changed
-    order of grayscale conversion in blender side with call of transform callback.
-    
-    This way it's much easier to perform rescaling in libmv side.
+    Usage of LOG(INFO) actually went against own guidelines in the
+    logging.h: the INFO is for messages which are to be printed
+    regardless of debug/verbosity settings.
 
-commit d976e034cdf74b34860e0632d7b29713f47c5756
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Aug 23 00:38:01 2014 -0700
+commit 94d925131b08e23cea7fdf735923e24b78a8c7fd
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Fri Feb 5 16:23:34 2021 +1100
 
-    Minor keyframe selection cleanups
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D757
+    Cleanup: correct spelling in comments
 
-commit bc99ca55dadfca89fde0f93764397c2fe028943d
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Aug 23 01:55:32 2014 +0600
+commit db0c8dbea19d684899dffcb46a2e79c12dc91e6b
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Dec 1 14:52:08 2020 +0100
 
-    implement backward prediction
+    Tweak default logging verbosity level
     
-    The title actually says it all, just extend current implementation
-    of PredictMarkerPosition() to cases when tracking happens in the reverse
-    order (from the end frame to start).
+    Log to verbosity level 1 rather than INFO severity.
     
-    it's still doesn't solve all the ambiguity happening in the function
-    in cases when one tracks the feature and then re-tracks it in order
-    to refine the sliding. This is considered a separate TODO for now and
-    will likely be solved by passing tracking direction to the prediction
+    Avoids a lot of overhead coming from construction of the INFO stream
+    and improves performance and threadability of code which uses logging.
+    
+    This makes tracking of 250 frames of a track of default settings to
+    drop down from 0.6sec to 0.4sec.
+
+commit 8f2c13edf0d3b0c8a2ad90d6ae13f11aed457709
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Dec 1 14:46:35 2020 +0100
+
+    Cleanup, remove unused logging macros
+    
+    Unused and was not entirely happy with such short abbreviations.
+
+commit 1dc2ab9847ce6cc84ab6c8e3e8613687480d735d
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Fri Nov 27 15:58:55 2020 +0100
+
+    Add threading primitives
+    
+    Allows to use mutex, scoped_lock, and conditional_variable from within
+    the libmv namespace.
+    
+    Implementation is coming from C++11. Other configurations are easy to
+    implement, but currently C++11 is the way to go.
+
+commit 6531b66fd3bf4b5ee112b904b390d164a03628c5
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Fri Nov 27 15:43:44 2020 +0100
+
+    Add build configuration header
+    
+    Allows to easily access build platform information, such as bitness,
+    compiler, supported C++ version and so on.
+
+commit 632c356375e4ac07da43b346384fdf67e7916426
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Fri Nov 6 14:35:38 2020 +1100
+
+    Cleanup: doxygen comments
+
+commit c9479472ce8d63b1d6e4c9c1b072b975479cd4c0
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Fri Nov 6 11:25:27 2020 +1100
+
+    Cleanup: follow our code style for float literals
+
+commit 6455055b265cddbf604523653b01c9d7adbc23d5
+Author: Ivan Perevala <ivpe>
+Date:   Thu Oct 29 10:19:06 2020 +0100
+
+    Fix clang inconsistent-missing-override warnings.
+    
+    Reviewed By: sergey, ankitm
+    
+    Differential Revision: https://developer.blender.org/D9377
+
+commit 020fc13a5336c872c3251e45d28cc02584094f33
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Wed Oct 21 10:53:13 2020 +0200
+
+    Simplify configuration of intrinsics to refine
+    
+    Previously, only predefined and limited set of intrinsics combinations
+    could have been refined. This was caused by a bundle adjustment library
+    used in the early days of the solver.
+    
+    Now it is possible to fully customize which intrinsics are to be refined
+    during camera solving. Internally solver supports per-parameter settings
+    but in the interface they are grouped as following:
+    
+    * Focal length
+    * Optical center
+    * Radial distortion coefficients (which includes k1, k2, k3, k4)
+    * Tangential distortion coefficients (which includes p1, p2)
+    
+    Differential Revision: https://developer.blender.org/D9294
+
+commit 5ef3c2c41854a2e634ba692e9b63194aa74b928d
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Wed Oct 21 10:48:13 2020 +0200
+
+    Fix typo in packed intrinsics
+    
+    Was using doing an implicit cast of floating point value to boolean.
+    Was not noticed before because the boolean value was never never used.
+
+commit 648388878525aa585bdbbed2e457186b6483bd5e
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Oct 13 11:34:05 2020 +0200
+
+    Refactor camera intrinsics parameter block
+    
+    Use the newly introduced packed intrinsics, which allows to remove
+    code which was initializing parameters block based on distortion
+    model type.
+    
+    Now such initialization is done by a particular implementation of
+    a distortion model.
+    
+    Differential Revision: https://developer.blender.org/D9192
+
+commit 60780e30a8aec37f53d4e952375ffc8d720341c6
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Oct 13 11:32:35 2020 +0200
+
+    Add generic class for packed intrinsics
+    
+    This is a common class which can be used in all sort of minimization
+    problems which needs camera intrinsics as a parameter block.
+    
+    Currently unused, but will replace a lot of hard-coded logic in the
+    bundle adjustment code.
+
+commit 409924c76be27fec3b619d79379df76cb8de6a9a
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Tue Oct 13 11:25:34 2020 +0200
+
+    Add array<type, size> to libmv namespace
+
+commit 6411c7fed3c30dce05b9b2df239b7f4cf91cdecd
+Author: Sebastian Parborg <darkdefende@gmail.com>
+Date:   Tue Oct 20 14:45:54 2020 +0200
+
+    Fix test on windows
+    
+    There is no point in testing std::vector capacity as it can differ
+    between std implementations.
+
+commit 242d31ff4ed78a6f36ac29f139b03abc4f32f4f5
+Author: Harley Acheson <harley.acheson@gmail.com>
+Date:   Mon Oct 19 08:51:50 2020 -0700
+
+    Spelling: Miscellaneous
+    
+    Corrects 34 miscellaneous misspelled words.
+    
+    Differential Revision: https://developer.blender.org/D9248
+    
+    Reviewed by Campbell Barton
+
+commit 91cd0310d6762fdcc7253303bec7f0453cf1f18f
+Author: Harley Acheson <harley.acheson@gmail.com>
+Date:   Mon Oct 19 08:12:33 2020 -0700
+
+    Spelling: It's Versus Its
+    
+    Corrects incorrect usage of contraction for 'it is', when possessive 'its' was required.
+    
+    Differential Revision: https://developer.blender.org/D9250
+    
+    Reviewed by Campbell Barton
+
+commit 788ed5fa8ace0df951fe8f03e6510187ed694044
+Author: Sebastian Parborg <darkdefende@gmail.com>
+Date:   Mon Oct 19 13:03:06 2020 +0200
+
+    Fix alignment issues when compiling with AVX support
+    
+    There would be eigen alignment issues with the custom libmv vector
+    class when compiling with AVX optimizations. This would lead to
+    segfaults.
+    
+    Simply use the std::vector base class as suggested by the old TODO in
+    the class header.
+    
+    Reviewed By: Sergey
+    
+    Differential Revision: http://developer.blender.org/D8968
+
+commit 21a114476eaafec4b25c0ea19eaccdd9e870160d
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Oct 12 14:59:18 2020 +0200
+
+    Remove array access from camera intrinsics
+    
+    That was a suboptimal decision from back in the days, which ended up
+    being problematic. It is no longer used, so remove it from API making
+    it so new code does not depend on this weak concept.
+
+commit b6a579fd88de5e13c812310a0416e698648578c4
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Oct 12 12:17:55 2020 +0200
+
+    Fix wrong packing order of intrinsics for BA step
+    
+    The order got broken when Brown distortion model has been added.
+    Made it so the indexing of parameters is strictly defined in the
+    parameter block, matching how parameters are used in the cost
     function.
     
-    Reviewers: keir
+    There is some duplication going on accessing parameters. This can
+    be refactored in the future, by either moving common parts packing
+    and cost function to an utility function in bundle.cc.
+    Alternatively, can introduce a public PackedIntrinsics class which
+    will contain a continuous block of parameters, and each of the
+    camera models will have API to be initialized from packed form and
+    to create this packed form.
     
-    Reviewed By: keir
+    The benefit of this approach over alternative solutions previously
+    made in the master branch or suggested in D9116 is that the specific
+    implementation of BA does not dictate the way how public classes need
+    to be organized. It is API which needs to define how implementation
+    goes, not the other way around.
     
-    Differential Revision: https://developer.blender.org/D663
+    Thanks Bastien and Ivan for the investigation!
 
-commit 5b87682d98df65ade02638bc6482d824cf0dd0b3
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Aug 21 22:45:22 2014 -0700
+commit 595d4a45db2f1d68bc6091b6fad3580411a10e40
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Oct 12 10:46:31 2020 +0200
 
-    Make libmv compile on Ubuntu 14.04
+    Fix memory leak in modal solver
     
-    Reviewers: fsiddi
+    The leak was happening when problem did not have any parameters blocks
+    defined. This happens, for example, if there are no 3D points at all,
+    or when all markers are set to 0 weight.
     
-    Reviewed By: fsiddi
-    
-    Subscribers: sergey
-    
-    Differential Revision: https://developer.blender.org/D755
+    Was noticeable in libmv_modal_solver_test when building with LSAN
+    enabled.
 
-commit 0a81db623c458e0384b4f7060d1bcff8993fb469
+commit b6ecdc497c00e5f9a0a6dffe1c27051c8df8482a
+Author: Sergey Sharybin <sergey@blender.org>
+Date:   Mon Oct 12 10:44:57 2020 +0200
+
+    Cleanup, spelling in function name
+    
+    Is a local function, not affecting API.
+
+commit 2a712777076c076fcf8aae9b9657089d81fd129f
+Author: Ivan Perevala <ivpe>
+Date:   Wed Sep 30 15:12:14 2020 +0200
+
+    Implement Brown-Conrady distortion model
+    
+    Implemented Brown-Conrady lens distortion model with 4 radial and
+    2 tangential coefficients to improve compatibility with other software,
+    such as Agisoft Photoscan/Metashapes, 3DF Zephir, RealityCapture,
+    Bentley ContextCapture, Alisevision Meshroom(opensource).
+    
+    Also older programs: Bundler, CPMVS.
+    In general terms, most photogrammetric software.
+    
+    The new model is available under the distortion model menu in Lens
+    settings.
+    
+    For tests and demos check the original patch.
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D9037
+
+commit e4e2b8c382f9bb2490318cd621a438ccb4dd7327
+Author: Ivan <vanyOk>
+Date:   Mon Sep 28 09:57:03 2020 +0200
+
+    Fix NukeCameraIntrinsics copy constructor
+    
+    Copy the appropriate parameter
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D9014
+
+commit 1e5deb138ad1ef79204b118f4dc741f96bd0e650
+Author: Johan Walles <walles>
+Date:   Tue Jul 7 11:09:31 2020 +0200
+
+    Add units to motion tracking solve errors
+    
+    The unit being "pixels".
+    
+    Before this change the solve errors were unitless in the UI.
+    
+    With this change in place, the UI is now clear on that the unit of the
+    reprojection errors is pixels (px).
+    
+    Differential Revision: https://developer.blender.org/D8000
+
+commit a8a5a701f2839a97af51825d98726e7eb7e6eb1d
+Author: Campbell Barton <ideasman42@gmail.com>
+Date:   Wed Jul 1 13:12:24 2020 +1000
+
+    Cleanup: spelling
+
+commit fd83866975d5d8163d9bb71d645239562cb329b5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Jul 23 00:42:00 2014 +0600
+Date:   Thu Jun 18 10:12:01 2020 +0200
 
-    Fix wrong residual blocks counter
+    Update Ceres to the latest upstream version
     
-    This happened in cases when having zero-weighted tracks
-    and could lead to some assert failures on marking parameter
-    block constant.
+    Using latest master because of various compilation error fixes.
+    
+    Brings a lot of recent development. From most interesting parts:
+    
+    - New threading model.
+    - Tiny solver.
+    - Compatibility with C++17.
 
-commit 2824dbac54cacf74828678be7a5c9fd960ce83e2
+commit 307e9a945a320a1b7d9af210c2da1cfbb6439ec5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Jul 18 12:52:03 2014 +0600
+Date:   Fri May 15 14:54:30 2020 +0200
 
-    Fix search area sliding issue
+    Fix crash solving when having negative frames
     
-    The only way to do this is to store search region in floats
-    and round when we need to sample it. Otherwise you'll always
-    have sliding effect caused by rounding the issues, especially
-    when doing incremental offset (thing which happens in the
-    prediction code).
+    Don't use linear array with frame as an index since it has the
+    following disadvantages:
     
-    Pretty much straightforward change apart from stuff to be kept
-    in mind: offset calculation int should happen relative to the
-    rounded search region. This is because tracker works in the space
-    of the search window image which get's rounded on the frame access,
+    - Requires every application to take care of frame remapping, which
+      could be way more annoying than it sounds.
     
-    This makes API a bit creepy because frame accessor uses the same
-    Region struct as the search window in Marker and ideally we would
-    need to have either IntRegion or Region<int> in order to make
-    Libmv fully track on what's getting rounded and when.
+    - Inefficient from memory point of view when solving part of a footage
+      which is closer to the end of frame range.
     
-    Reviewers: keir
+    Using map technically is slower from performance point of view, but
+    could not feel any difference as the actual computation is way more
+    complex than access of camera on individual frames.
     
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D616
+    Solves crash aspect of T72009
 
-commit 04862c479332308be47a0f27361402444ace8880
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 9 23:00:03 2014 +0200
+commit 730eec3e0a382b23648d9000e07218519e1223d1
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 15 11:08:18 2020 +0200
 
-    Start the automatic 2D tracking code
-    
-    This starts the 2D automatic tracking code. It is totally unfinished.
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D523
+    Add map utility
 
-commit be679f67d807a2139c1f7d7e2ca45141940b30d5
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 9 14:36:04 2014 +0200
+commit 0d3f5d94474553c51a1e5d830521fca4ee82aa54
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 15 11:05:07 2020 +0200
 
-    Also shift the search window
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D520
+    Cleanup, spelling
 
-commit 66b8f5eef2633ebcde32a388fc14c60171011821
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 9 13:06:28 2014 +0200
+commit d26503ab5a9d2faef0f388695d6bb1c46ffff4eb
+Author: Aaron Carlisle <carlisle.b3d@gmail.com>
+Date:   Thu May 7 23:42:22 2020 -0400
 
-    Change the search region to absolute frame coordinates
-    
-    Smarter Eigen usage
-    
-    Better error logging
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D519
+    Cleanup: Doxygen: fix markup warnings for links
 
-commit a08193319ae409fad8f08887eae1f79f02e91eaa
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri May 9 12:02:47 2014 +0200
+commit 9e8e94e8281abb6edb5e81afe4365743994800d2
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 20 17:33:03 2020 +0200
 
-    First cut at predictive tracing
+    Implement Nuke/Natron distortion model
     
-    This adds a Kalman filter-based approach to predict where a marker
-    will go in the next frame to track. Hopefully this will make the
-    tracker work faster by avoiding lengthy searches. This code
-    compiles, but is otherwise untested, and likely does not work.
+    Neither Nuke nor Natron support OpenCV's radial distortion model
+    which makes it impossible to have any kind of interoperability.
     
-    Fix else branch
+    The new model is available under the distortion model menu in Lens
+    settings.
     
-    Add some tests
-    
-    Update patch coordinates as well (and test)
-    
-    Reviewers: sergey
-    
-    Reviewed By: sergey
-    
-    Differential Revision: https://developer.blender.org/D518
+    Differential Revision: https://developer.blender.org/D7484
 
-commit 607ffb2f62b56e34a841abbb952d83e19cd1e23c
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 8 16:05:28 2014 +0200
+commit 1dc83e7545fc832180322f492245933fb343f158
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 21 16:41:23 2020 +0200
 
-    Add constructor to AutoTrack
-
-commit c39e20a0c27da3733804c3848454b5d4c4f0e66b
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 8 16:04:20 2014 +0200
-
-    Fix GetMarker compilation issue
-
-commit 8dd93e431b6e44439c803bfd26ec2669b656177e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu May 8 15:50:26 2014 +0200
-
-    Expose GetMarker() in AutoTrack
+    Cleanup, naming
     
-    Reviewers: sergey
+    Initial bundle adjustment only supported OpenCV's radial distortion
+    model, so the cost functor was called after it.
     
-    Reviewed By: sergey
+    Nowadays it supports more than this single model, so naming was a bit
+    wrong and misleading.
+
+commit b6df71dd5e5a49b3459c522c10ae98e8795e69b5
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Apr 21 12:25:45 2020 +0200
+
+    Cleanup, spelling and naming in bundle adjustment
     
-    Differential Revision: https://developer.blender.org/D516
+    Just more things which were discovered to be annoying on unclear when
+    adding more features to this code.
+
+commit a4bbe3a10a5b6b23acd261b1e6c772a6f6672c00
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 20 17:26:45 2020 +0200
+
+    Cleanup, spelling in comment
+
+commit 4219e9d22bad012e9e64b83a5e26d1d4eff3fcc6
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 20 12:44:07 2020 +0200
+
+    De-duplicate creation of residual block
+    
+    Allows to centralize logic which is needed to check which cost functor
+    to use for the specific intrinsics.
+
+commit 9637ebc18b2bac794c8f11b1c2c092a3a9c3e6d2
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 20 11:41:01 2020 +0200
+
+    Cleanup reprojection cost function
+    
+    Make it smaller and more clear how and what it operates on.
+
+commit 1efc975a5457cfee6baf41df67afb3e43834d57f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Apr 20 11:19:47 2020 +0200
+
+    Pass entire camera intrinsics to reprojection error functor
+    
+    Currently no functional changes, but allows to have access to some
+    invariant settings of camera intrinsics such as image dimensions.
+
+commit 0f54f2b305f59fc99764b9c85fe28f35f10faa86
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 17 17:34:19 2020 +0200
+
+    Cleanup, rephrase comment
+
+commit 229912b0e1746145c4ab710f8609ce90f690a8e2
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 17 17:29:04 2020 +0200
+
+    Cleanup, fix indentation

@@ -488,14 +488,14 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
  */
 void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
 {
-  BKE_LIB_FOREACHID_PROCESS(data, strip->act, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (FCurve *, fcu, &strip->fcurves) {
-    BKE_fcurve_foreach_id(fcu, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
   LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
-    BKE_nla_strip_foreach_id(substrip, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_nla_strip_foreach_id(substrip, data));
   }
 }
 
@@ -1484,7 +1484,7 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 }
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
-// TODO: make this an api method if necessary, but need to add prefix first
+/* TODO: make this an api method if necessary, but need to add prefix first */
 static bool nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 {
   NlaTrack *nlt;

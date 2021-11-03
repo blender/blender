@@ -22,12 +22,14 @@
  * The FileManager class.
  */
 
+#include "FileInfo.h"
 #include "respec/Specification.h"
 #include "IWriter.h"
 
 #include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -66,18 +68,36 @@ public:
 	/**
 	 * Creates a file reader for the given filename if a registed IFileInput is able to read it.
 	 * @param filename The path to the file.
+	 * @param stream The index of the audio stream within the file if it contains multiple audio streams.
 	 * @return The reader created.
 	 * @exception Exception If no file input can read the file an exception is thrown.
 	 */
-	static std::shared_ptr<IReader> createReader(std::string filename);
+	static std::shared_ptr<IReader> createReader(std::string filename, int stream = 0);
 
 	/**
 	 * Creates a file reader for the given buffer if a registed IFileInput is able to read it.
 	 * @param buffer The buffer to read the file from.
+	 * @param stream The index of the audio stream within the file if it contains multiple audio streams.
 	 * @return The reader created.
 	 * @exception Exception If no file input can read the file an exception is thrown.
 	 */
-	static std::shared_ptr<IReader> createReader(std::shared_ptr<Buffer> buffer);
+	static std::shared_ptr<IReader> createReader(std::shared_ptr<Buffer> buffer, int stream = 0);
+
+	/**
+	 * Queries the streams of a sound file.
+	 * \param filename Path to the file to be read.
+	 * \return A vector with as many streams as there are in the file.
+	 * \exception Exception Thrown if the file specified cannot be read.
+	 */
+	static std::vector<StreamInfo> queryStreams(std::string filename);
+
+	/**
+	 * Queries the streams of a sound file.
+	 * \param buffer The in-memory file buffer.
+	 * \return A vector with as many streams as there are in the file.
+	 * \exception Exception Thrown if the file specified cannot be read.
+	 */
+	static std::vector<StreamInfo> queryStreams(std::shared_ptr<Buffer> buffer);
 
 	/**
 	 * Creates a file writer that writes a sound to the given file path.

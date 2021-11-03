@@ -17,6 +17,16 @@ def _run(args):
     scene.render.image_settings.file_format = 'PNG'
     scene.cycles.device = 'CPU' if device_type == 'CPU' else 'GPU'
 
+    if scene.cycles.use_adaptive_sampling:
+        # Render samples specified in file, no other way to measure
+        # adaptive sampling performance reliably.
+        scene.cycles.time_limit = 0.0
+    else:
+        # Render for fixed amount of time so it's adaptive to the
+        # machine and devices.
+        scene.cycles.samples = 16384
+        scene.cycles.time_limit = 10.0
+
     if scene.cycles.device == 'GPU':
         # Enable specified GPU in preferences.
         prefs = bpy.context.preferences
@@ -62,12 +72,14 @@ class CyclesTest(api.Test):
                 'device_index': device_index,
                 'render_filepath': str(env.log_file.parent / (env.log_file.stem + '.png'))}
 
-        _, lines = env.run_in_blender(_run, args, ['--debug-cycles', '--verbose', '1', self.filepath])
+        _, lines = env.run_in_blender(_run, args, ['--debug-cycles', '--verbose', '2', self.filepath])
 
         # Parse render time from output
         prefix_time = "Render time (without synchronization): "
         prefix_memory = "Peak: "
+        prefix_time_per_sample = "Average time per sample: "
         time = None
+        time_per_sample = None
         memory = None
         for line in lines:
             line = line.strip()
@@ -75,11 +87,19 @@ class CyclesTest(api.Test):
             if offset != -1:
                 time = line[offset + len(prefix_time):]
                 time = float(time)
+            offset = line.find(prefix_time_per_sample)
+            if offset != -1:
+                time_per_sample = line[offset + len(prefix_time_per_sample):]
+                time_per_sample = time_per_sample.split()[0]
+                time_per_sample = float(time_per_sample)
             offset = line.find(prefix_memory)
             if offset != -1:
                 memory = line[offset + len(prefix_memory):]
                 memory = memory.split()[0].replace(',', '')
                 memory = float(memory)
+
+        if time_per_sample:
+            time = time_per_sample
 
         if not (time and memory):
             raise Exception("Error parsing render time output")
@@ -88,5 +108,5 @@ class CyclesTest(api.Test):
 
 
 def generate(env):
-    filepaths = env.find_blend_files('cycles-x/*')
+    filepaths = env.find_blend_files('cycles/*')
     return [CyclesTest(filepath) for filepath in filepaths]

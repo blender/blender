@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef __BSDF_OREN_NAYAR_H__
-#define __BSDF_OREN_NAYAR_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
-typedef ccl_addr_space struct OrenNayarBsdf {
+typedef struct OrenNayarBsdf {
   SHADER_CLOSURE_BASE;
 
   float roughness;
@@ -29,12 +28,12 @@ typedef ccl_addr_space struct OrenNayarBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(OrenNayarBsdf), "OrenNayarBsdf is too large!");
 
-ccl_device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc,
+ccl_device float3 bsdf_oren_nayar_get_intensity(ccl_private const ShaderClosure *sc,
                                                 float3 n,
                                                 float3 v,
                                                 float3 l)
 {
-  const OrenNayarBsdf *bsdf = (const OrenNayarBsdf *)sc;
+  ccl_private const OrenNayarBsdf *bsdf = (ccl_private const OrenNayarBsdf *)sc;
   float nl = max(dot(n, l), 0.0f);
   float nv = max(dot(n, v), 0.0f);
   float t = dot(l, v) - nl * nv;
@@ -45,13 +44,13 @@ ccl_device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc,
   return make_float3(is, is, is);
 }
 
-ccl_device int bsdf_oren_nayar_setup(OrenNayarBsdf *bsdf)
+ccl_device int bsdf_oren_nayar_setup(ccl_private OrenNayarBsdf *bsdf)
 {
   float sigma = bsdf->roughness;
 
   bsdf->type = CLOSURE_BSDF_OREN_NAYAR_ID;
 
-  sigma = saturate(sigma);
+  sigma = saturatef(sigma);
 
   float div = 1.0f / (M_PI_F + ((3.0f * M_PI_F - 4.0f) / 6.0f) * sigma);
 
@@ -61,20 +60,12 @@ ccl_device int bsdf_oren_nayar_setup(OrenNayarBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device bool bsdf_oren_nayar_merge(const ShaderClosure *a, const ShaderClosure *b)
-{
-  const OrenNayarBsdf *bsdf_a = (const OrenNayarBsdf *)a;
-  const OrenNayarBsdf *bsdf_b = (const OrenNayarBsdf *)b;
-
-  return (isequal_float3(bsdf_a->N, bsdf_b->N)) && (bsdf_a->roughness == bsdf_b->roughness);
-}
-
-ccl_device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc,
+ccl_device float3 bsdf_oren_nayar_eval_reflect(ccl_private const ShaderClosure *sc,
                                                const float3 I,
                                                const float3 omega_in,
-                                               float *pdf)
+                                               ccl_private float *pdf)
 {
-  const OrenNayarBsdf *bsdf = (const OrenNayarBsdf *)sc;
+  ccl_private const OrenNayarBsdf *bsdf = (ccl_private const OrenNayarBsdf *)sc;
   if (dot(bsdf->N, omega_in) > 0.0f) {
     *pdf = 0.5f * M_1_PI_F;
     return bsdf_oren_nayar_get_intensity(sc, bsdf->N, I, omega_in);
@@ -85,28 +76,28 @@ ccl_device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc,
   }
 }
 
-ccl_device float3 bsdf_oren_nayar_eval_transmit(const ShaderClosure *sc,
+ccl_device float3 bsdf_oren_nayar_eval_transmit(ccl_private const ShaderClosure *sc,
                                                 const float3 I,
                                                 const float3 omega_in,
-                                                float *pdf)
+                                                ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc,
+ccl_device int bsdf_oren_nayar_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
                                       float3 dIdx,
                                       float3 dIdy,
                                       float randu,
                                       float randv,
-                                      float3 *eval,
-                                      float3 *omega_in,
-                                      float3 *domega_in_dx,
-                                      float3 *domega_in_dy,
-                                      float *pdf)
+                                      ccl_private float3 *eval,
+                                      ccl_private float3 *omega_in,
+                                      ccl_private float3 *domega_in_dx,
+                                      ccl_private float3 *domega_in_dy,
+                                      ccl_private float *pdf)
 {
-  const OrenNayarBsdf *bsdf = (const OrenNayarBsdf *)sc;
+  ccl_private const OrenNayarBsdf *bsdf = (ccl_private const OrenNayarBsdf *)sc;
   sample_uniform_hemisphere(bsdf->N, randu, randv, omega_in, pdf);
 
   if (dot(Ng, *omega_in) > 0.0f) {
@@ -127,5 +118,3 @@ ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_OREN_NAYAR_H__ */

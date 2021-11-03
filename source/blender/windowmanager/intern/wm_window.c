@@ -49,6 +49,7 @@
 #include "BKE_icons.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -368,7 +369,8 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
   CTX_wm_window_set(C, win);
 
   if (U.uiflag & USER_SAVE_PROMPT) {
-    if (wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C)) && !G.background) {
+    if (wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)) &&
+        !G.background) {
       wm_window_raise(win);
       wm_confirm_quit(C);
     }
@@ -520,7 +522,7 @@ void WM_window_set_dpi(const wmWindow *win)
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_cursor_position_get(win, &win->eventstate->x, &win->eventstate->y);
+  wm_cursor_position_get(win, &win->eventstate->xy[0], &win->eventstate->xy[1]);
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -772,7 +774,7 @@ wmWindow *WM_window_open(bContext *C,
                          bool toplevel,
                          bool dialog,
                          bool temp,
-                         WindowAlignment alignment)
+                         eWindowAlignment alignment)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -852,7 +854,8 @@ wmWindow *WM_window_open(bContext *C,
   /* Set scene and view layer to match original window. */
   STRNCPY(win->view_layer_name, view_layer->name);
   if (WM_window_get_active_scene(win) != scene) {
-    ED_screen_scene_change(C, win, scene);
+    /* No need to refresh the tool-system as the window has not yet finished being setup. */
+    ED_screen_scene_change(C, win, scene, false);
   }
 
   screen->temp = temp;
@@ -913,7 +916,7 @@ int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
+int wm_window_new_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
@@ -930,16 +933,23 @@ int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
                             false,
                             WIN_ALIGN_PARENT_CENTER) != NULL);
 
-  return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  if (!ok) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to create window");
+    return OPERATOR_CANCELLED;
+  }
+  return OPERATOR_FINISHED;
 }
 
-int wm_window_new_main_exec(bContext *C, wmOperator *UNUSED(op))
+int wm_window_new_main_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
 
   bool ok = (wm_window_copy_test(C, win_src, true, false) != NULL);
-
-  return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  if (!ok) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to create window");
+    return OPERATOR_CANCELLED;
+  }
+  return OPERATOR_FINISHED;
 }
 
 /* fullscreen operator callback */
@@ -989,8 +999,8 @@ void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
 void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
-    *r_x = win->eventstate->x;
-    *r_y = win->eventstate->y;
+    *r_x = win->eventstate->xy[0];
+    *r_y = win->eventstate->xy[1];
     return;
   }
   GHOST_GetCursorPosition(g_system, r_x, r_y);
@@ -1265,8 +1275,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wmEvent event;
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
-        event.prevx = event.x;
-        event.prevy = event.y;
+        copy_v2_v2_int(event.prev_xy, event.xy);
         event.is_repeat = false;
 
         wm_event_add(win, &event);
@@ -1397,8 +1406,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* activate region */
         event.type = MOUSEMOVE;
-        event.prevx = event.x;
-        event.prevy = event.y;
+        copy_v2_v2_int(event.prev_xy, event.xy);
         event.is_repeat = false;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
@@ -1413,7 +1421,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.val = KM_RELEASE;
         event.custom = EVT_DATA_DRAGDROP;
         event.customdata = &wm->drags;
-        event.customdatafree = 1;
+        event.customdata_free = true;
 
         wm_event_add(win, &event);
 
@@ -2098,11 +2106,11 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
     wm_cursor_position_to_ghost(win, &x, &y);
     GHOST_SetCursorPosition(g_system, x, y);
 
-    win->eventstate->prevx = oldx;
-    win->eventstate->prevy = oldy;
+    win->eventstate->prev_xy[0] = oldx;
+    win->eventstate->prev_xy[1] = oldy;
 
-    win->eventstate->x = oldx;
-    win->eventstate->y = oldy;
+    win->eventstate->xy[0] = oldx;
+    win->eventstate->xy[1] = oldy;
   }
 }
 
@@ -2264,13 +2272,13 @@ void WM_window_set_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *
 
   /* Set scene in parent and its child windows. */
   if (win_parent->scene != scene) {
-    ED_screen_scene_change(C, win_parent, scene);
+    ED_screen_scene_change(C, win_parent, scene, true);
     changed = true;
   }
 
   LISTBASE_FOREACH (wmWindow *, win_child, &wm->windows) {
     if (win_child->parent == win_parent && win_child->scene != scene) {
-      ED_screen_scene_change(C, win_child, scene);
+      ED_screen_scene_change(C, win_child, scene, true);
       changed = true;
     }
   }
@@ -2426,10 +2434,15 @@ void wm_window_IME_end(wmWindow *win)
 
 void *WM_opengl_context_create(void)
 {
-  /* On Windows there is a problem creating contexts that share lists
-   * from one context that is current in another thread.
-   * So we should call this function only on the main thread.
-   */
+  /* On Windows there is a problem creating contexts that share resources (almost any object,
+   * including legacy display lists, but also textures) with a context which is current in another
+   * thread. This is a documented and behavior of both `::wglCreateContextAttribsARB()` and
+   * `::wglShareLists()`.
+   *
+   * Other platforms might successfully share resources from context which is active somewhere
+   * else, but to keep our code behave the same on all platform we expect contexts to only be
+   * created from the main thread. */
+
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 

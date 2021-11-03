@@ -228,7 +228,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
    * Used to find #TransData from the index returned by #BLI_kdtree_find_nearest. */
   TransData **td_table = MEM_mallocN(sizeof(*td_table) * td_table_len, __func__);
 
-  /* Create and fill kd-tree of selected's positions - in global or proj_vec space. */
+  /* Create and fill KD-tree of selected's positions - in global or proj_vec space. */
   KDTree_3d *td_tree = BLI_kdtree_3d_new(td_table_len);
 
   int td_table_index = 0;
@@ -945,6 +945,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
       break;
     case TC_ARMATURE_VERTS:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_CURVE_VERTS:
     case TC_GPENCIL:
@@ -955,6 +956,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_OBJECT_TEXSPACE:
     case TC_PAINT_CURVE_VERTS:
     case TC_PARTICLE_VERTS:
+    case TC_SEQ_IMAGE_DATA:
     case TC_NONE:
     default:
       break;
@@ -963,6 +965,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 int special_transform_moving(TransInfo *t)
 {
+  if (t->options & CTX_CURSOR) {
+    return G_TRANSFORM_CURSOR;
+  }
   if (t->spacetype == SPACE_SEQ) {
     return G_TRANSFORM_SEQ;
   }
@@ -1036,12 +1041,14 @@ static void init_proportional_edit(TransInfo *t)
     case TC_POSE: /* Disable PET, its not usable in pose mode yet T32444. */
     case TC_ARMATURE_VERTS:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_NLA_DATA:
     case TC_OBJECT_TEXSPACE:
     case TC_PAINT_CURVE_VERTS:
     case TC_SCULPT:
     case TC_SEQ_DATA:
+    case TC_SEQ_IMAGE_DATA:
     case TC_TRACKING_DATA:
     case TC_NONE:
     default:
@@ -1110,6 +1117,7 @@ static void init_TransDataContainers(TransInfo *t,
     case TC_ACTION_DATA:
     case TC_GRAPH_EDIT_DATA:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_MASKING_DATA:
     case TC_NLA_DATA:
@@ -1120,6 +1128,7 @@ static void init_TransDataContainers(TransInfo *t,
     case TC_PARTICLE_VERTS:
     case TC_SCULPT:
     case TC_SEQ_DATA:
+    case TC_SEQ_IMAGE_DATA:
     case TC_TRACKING_DATA:
     case TC_NONE:
     default:
@@ -1204,6 +1213,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
     case TC_NODE_DATA:
     case TC_PAINT_CURVE_VERTS:
     case TC_SEQ_DATA:
+    case TC_SEQ_IMAGE_DATA:
     case TC_TRACKING_DATA:
       return T_POINTS | T_2D_EDIT;
     case TC_ARMATURE_VERTS:
@@ -1219,6 +1229,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
     case TC_MESH_UV:
       return T_EDIT | T_POINTS | T_2D_EDIT;
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
       return T_2D_EDIT;
     case TC_PARTICLE_VERTS:
       return T_POINTS;
@@ -1244,6 +1255,9 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
   if (t->options & CTX_CURSOR) {
     if (t->spacetype == SPACE_IMAGE) {
       convert_type = TC_CURSOR_IMAGE;
+    }
+    else if (t->spacetype == SPACE_SEQ) {
+      convert_type = TC_CURSOR_SEQUENCER;
     }
     else {
       convert_type = TC_CURSOR_VIEW3D;
@@ -1282,7 +1296,12 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
     convert_type = TC_NLA_DATA;
   }
   else if (t->spacetype == SPACE_SEQ) {
-    convert_type = TC_SEQ_DATA;
+    if (t->options & CTX_SEQUENCER_IMAGE) {
+      convert_type = TC_SEQ_IMAGE_DATA;
+    }
+    else {
+      convert_type = TC_SEQ_DATA;
+    }
   }
   else if (t->spacetype == SPACE_GRAPH) {
     convert_type = TC_GRAPH_EDIT_DATA;
@@ -1387,6 +1406,9 @@ void createTransData(bContext *C, TransInfo *t)
     case TC_CURSOR_IMAGE:
       createTransCursor_image(t);
       break;
+    case TC_CURSOR_SEQUENCER:
+      createTransCursor_sequencer(t);
+      break;
     case TC_CURSOR_VIEW3D:
       createTransCursor_view3d(t);
       break;
@@ -1469,6 +1491,10 @@ void createTransData(bContext *C, TransInfo *t)
     case TC_SEQ_DATA:
       t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transform. */
       createTransSeqData(t);
+      break;
+    case TC_SEQ_IMAGE_DATA:
+      t->obedit_type = -1;
+      createTransSeqImageData(t);
       break;
     case TC_TRACKING_DATA:
       createTransTrackingData(C, t);
@@ -1701,8 +1727,11 @@ void recalcData(TransInfo *t)
     case TC_CURSOR_IMAGE:
       recalcData_cursor_image(t);
       break;
+    case TC_CURSOR_SEQUENCER:
+      recalcData_cursor_sequencer(t);
+      break;
     case TC_CURSOR_VIEW3D:
-      recalcData_cursor(t);
+      recalcData_cursor_view3d(t);
       break;
     case TC_GRAPH_EDIT_DATA:
       recalcData_graphedit(t);
@@ -1745,6 +1774,9 @@ void recalcData(TransInfo *t)
       break;
     case TC_SEQ_DATA:
       recalcData_sequencer(t);
+      break;
+    case TC_SEQ_IMAGE_DATA:
+      recalcData_sequencer_image(t);
       break;
     case TC_TRACKING_DATA:
       recalcData_tracking(t);

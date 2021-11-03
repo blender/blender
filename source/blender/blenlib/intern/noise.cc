@@ -46,12 +46,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 
 #include "BLI_float2.hh"
 #include "BLI_float3.hh"
 #include "BLI_float4.hh"
+#include "BLI_math_base_safe.h"
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
 
@@ -109,7 +111,7 @@ BLI_INLINE void hash_bit_final(uint32_t &a, uint32_t &b, uint32_t &c)
   c -= hash_bit_rotate(b, 24);
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx)
+uint32_t hash(uint32_t kx)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (1 << 2) + 13;
@@ -120,7 +122,7 @@ BLI_INLINE uint32_t hash(uint32_t kx)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky)
+uint32_t hash(uint32_t kx, uint32_t ky)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (2 << 2) + 13;
@@ -132,7 +134,7 @@ BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
+uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (3 << 2) + 13;
@@ -145,7 +147,7 @@ BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (4 << 2) + 13;
@@ -161,30 +163,6 @@ BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
   return c;
 }
 
-/* Hashing a number of uint32_t into a float in the range [0, 1]. */
-
-BLI_INLINE float hash_to_float(uint32_t kx)
-{
-  return static_cast<float>(hash(kx)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky)
-{
-  return static_cast<float>(hash(kx, ky)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
-{
-  return static_cast<float>(hash(kx, ky, kz)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
-{
-  return static_cast<float>(hash(kx, ky, kz, kw)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-/* Hashing a number of floats into a float in the range [0, 1]. */
-
 BLI_INLINE uint32_t float_as_uint(float f)
 {
   union {
@@ -195,25 +173,114 @@ BLI_INLINE uint32_t float_as_uint(float f)
   return u.i;
 }
 
-BLI_INLINE float hash_to_float(float k)
+uint32_t hash_float(float kx)
 {
-  return hash_to_float(float_as_uint(k));
+  return hash(float_as_uint(kx));
 }
 
-BLI_INLINE float hash_to_float(float2 k)
+uint32_t hash_float(float2 k)
 {
-  return hash_to_float(float_as_uint(k.x), float_as_uint(k.y));
+  return hash(float_as_uint(k.x), float_as_uint(k.y));
 }
 
-BLI_INLINE float hash_to_float(float3 k)
+uint32_t hash_float(float3 k)
 {
-  return hash_to_float(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z));
+  return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z));
 }
 
-BLI_INLINE float hash_to_float(float4 k)
+uint32_t hash_float(float4 k)
 {
-  return hash_to_float(
-      float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
+  return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
+}
+
+/* Hashing a number of uint32_t into a float in the range [0, 1]. */
+
+BLI_INLINE float uint_to_float_01(uint32_t k)
+{
+  return static_cast<float>(k) / static_cast<float>(0xFFFFFFFFu);
+}
+
+float hash_to_float(uint32_t kx)
+{
+  return uint_to_float_01(hash(kx));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky)
+{
+  return uint_to_float_01(hash(kx, ky));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
+{
+  return uint_to_float_01(hash(kx, ky, kz));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+{
+  return uint_to_float_01(hash(kx, ky, kz, kw));
+}
+
+/* Hashing a number of floats into a float in the range [0, 1]. */
+
+float hash_float_to_float(float k)
+{
+  return uint_to_float_01(hash_float(k));
+}
+
+float hash_float_to_float(float2 k)
+{
+  return uint_to_float_01(hash_float(k));
+}
+
+float hash_float_to_float(float3 k)
+{
+  return uint_to_float_01(hash_float(k));
+}
+
+float hash_float_to_float(float4 k)
+{
+  return uint_to_float_01(hash_float(k));
+}
+
+float2 hash_float_to_float2(float2 k)
+{
+  return float2(hash_float_to_float(k), hash_float_to_float(float3(k.x, k.y, 1.0)));
+}
+
+float3 hash_float_to_float3(float k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float2(k, 1.0)),
+                hash_float_to_float(float2(k, 2.0)));
+}
+
+float3 hash_float_to_float3(float2 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float3(k.x, k.y, 1.0)),
+                hash_float_to_float(float3(k.x, k.y, 2.0)));
+}
+
+float3 hash_float_to_float3(float3 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float4(k.x, k.y, k.z, 1.0)),
+                hash_float_to_float(float4(k.x, k.y, k.z, 2.0)));
+}
+
+float3 hash_float_to_float3(float4 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float4(k.z, k.x, k.w, k.y)),
+                hash_float_to_float(float4(k.w, k.z, k.y, k.x)));
+}
+
+float4 hash_float_to_float4(float4 k)
+{
+  return float4(hash_float_to_float(k),
+                hash_float_to_float(float4(k.w, k.x, k.y, k.z)),
+                hash_float_to_float(float4(k.z, k.w, k.x, k.y)),
+                hash_float_to_float(float4(k.y, k.z, k.w, k.x)));
 }
 
 /* ------------
@@ -343,7 +410,7 @@ BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z)
 {
   uint32_t h = hash & 15u;
   float u = h < 8u ? x : y;
-  float vt = ((h == 12u) || (h == 14u)) ? x : z;
+  float vt = ELEM(h, 12u, 14u) ? x : z;
   float v = h < 4u ? y : vt;
   return negate_if(u, h & 1u) + negate_if(v, h & 2u);
 }
@@ -515,7 +582,7 @@ template<typename T> float perlin_fractal_template(T position, float octaves, fl
   float amp = 1.0f;
   float maxamp = 0.0f;
   float sum = 0.0f;
-  octaves = CLAMPIS(octaves, 0.0f, 16.0f);
+  octaves = CLAMPIS(octaves, 0.0f, 15.0f);
   int n = static_cast<int>(octaves);
   for (int i = 0; i <= n; i++) {
     float t = perlin(fscale * position);
@@ -565,28 +632,28 @@ float perlin_fractal(float4 position, float octaves, float roughness)
 
 BLI_INLINE float random_float_offset(float seed)
 {
-  return 100.0f + hash_to_float(seed) * 100.0f;
+  return 100.0f + hash_float_to_float(seed) * 100.0f;
 }
 
 BLI_INLINE float2 random_float2_offset(float seed)
 {
-  return float2(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f);
+  return float2(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f);
 }
 
 BLI_INLINE float3 random_float3_offset(float seed)
 {
-  return float3(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 2.0f)) * 100.0f);
+  return float3(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 2.0f)) * 100.0f);
 }
 
 BLI_INLINE float4 random_float4_offset(float seed)
 {
-  return float4(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 2.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 3.0f)) * 100.0f);
+  return float4(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 2.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 3.0f)) * 100.0f);
 }
 
 /* Perlin noises to be added to the position to distort other noises. */
@@ -688,6 +755,1765 @@ float3 perlin_float3_fractal_distorted(float4 position,
   return float3(perlin_fractal(position, octaves, roughness),
                 perlin_fractal(position + random_float4_offset(4.0f), octaves, roughness),
                 perlin_fractal(position + random_float4_offset(5.0f), octaves, roughness));
+}
+
+/* --------------
+ * Musgrave Noise
+ * --------------
+ */
+
+/* 1D Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+float musgrave_fBm(const float co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
+{
+  float p = co;
+  float value = 0.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value += perlin_signed(p) * pwr;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * perlin_signed(p) * pwr;
+  }
+
+  return value;
+}
+
+/* 1D Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+float musgrave_multi_fractal(const float co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves_unclamped)
+{
+  float p = co;
+  float value = 1.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value *= (pwr * perlin_signed(p) + 1.0f);
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * perlin_signed(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+/* 1D Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hetero_terrain(const float co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves_unclamped,
+                              const float offset)
+{
+  float p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + perlin_signed(p);
+  p *= lacunarity;
+
+  for (int i = 1; i < (int)octaves; i++) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+/* 1D Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hybrid_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float value = perlin_signed(p) + offset;
+  float weight = gain * value;
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (perlin_signed(p) + offset) * pwr;
+    pwr *= pwHL;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * ((perlin_signed(p) + offset) * pwr);
+  }
+
+  return value;
+}
+
+/* 1D Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_ridged_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float signal = offset - fabsf(perlin_signed(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    p *= lacunarity;
+    weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+    signal = offset - fabsf(perlin_signed(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= pwHL;
+  }
+
+  return value;
+}
+
+/* 2D Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+float musgrave_fBm(const float2 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
+{
+  float2 p = co;
+  float value = 0.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value += perlin_signed(p) * pwr;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * perlin_signed(p) * pwr;
+  }
+
+  return value;
+}
+
+/* 2D Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+float musgrave_multi_fractal(const float2 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves_unclamped)
+{
+  float2 p = co;
+  float value = 1.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value *= (pwr * perlin_signed(p) + 1.0f);
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * perlin_signed(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+/* 2D Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hetero_terrain(const float2 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves_unclamped,
+                              const float offset)
+{
+  float2 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + perlin_signed(p);
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+/* 2D Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hybrid_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float2 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float value = perlin_signed(p) + offset;
+  float weight = gain * value;
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (perlin_signed(p) + offset) * pwr;
+    pwr *= pwHL;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * ((perlin_signed(p) + offset) * pwr);
+  }
+
+  return value;
+}
+
+/* 2D Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_ridged_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float2 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float signal = offset - fabsf(perlin_signed(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    p *= lacunarity;
+    weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+    signal = offset - fabsf(perlin_signed(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= pwHL;
+  }
+
+  return value;
+}
+
+/* 3D Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+float musgrave_fBm(const float3 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
+{
+  float3 p = co;
+  float value = 0.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value += perlin_signed(p) * pwr;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * perlin_signed(p) * pwr;
+  }
+
+  return value;
+}
+
+/* 3D Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+float musgrave_multi_fractal(const float3 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves_unclamped)
+{
+  float3 p = co;
+  float value = 1.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value *= (pwr * perlin_signed(p) + 1.0f);
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * perlin_signed(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+/* 3D Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hetero_terrain(const float3 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves_unclamped,
+                              const float offset)
+{
+  float3 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + perlin_signed(p);
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+/* 3D Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hybrid_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float3 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float value = perlin_signed(p) + offset;
+  float weight = gain * value;
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (perlin_signed(p) + offset) * pwr;
+    pwr *= pwHL;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * ((perlin_signed(p) + offset) * pwr);
+  }
+
+  return value;
+}
+
+/* 3D Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_ridged_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float3 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float signal = offset - fabsf(perlin_signed(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    p *= lacunarity;
+    weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+    signal = offset - fabsf(perlin_signed(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= pwHL;
+  }
+
+  return value;
+}
+
+/* 4D Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+float musgrave_fBm(const float4 co,
+                   const float H,
+                   const float lacunarity,
+                   const float octaves_unclamped)
+{
+  float4 p = co;
+  float value = 0.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value += perlin_signed(p) * pwr;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * perlin_signed(p) * pwr;
+  }
+
+  return value;
+}
+
+/* 4D Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+float musgrave_multi_fractal(const float4 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves_unclamped)
+{
+  float4 p = co;
+  float value = 1.0f;
+  float pwr = 1.0f;
+  const float pwHL = powf(lacunarity, -H);
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 0; i < (int)octaves; i++) {
+    value *= (pwr * perlin_signed(p) + 1.0f);
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value *= (rmd * pwr * perlin_signed(p) + 1.0f); /* correct? */
+  }
+
+  return value;
+}
+
+/* 4D Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hetero_terrain(const float4 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves_unclamped,
+                              const float offset)
+{
+  float4 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  /* first unscaled octave of function; later octaves are scaled */
+  float value = offset + perlin_signed(p);
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += increment;
+    pwr *= pwHL;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    float increment = (perlin_signed(p) + offset) * pwr * value;
+    value += rmd * increment;
+  }
+
+  return value;
+}
+
+/* 4D Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_hybrid_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float4 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float value = perlin_signed(p) + offset;
+  float weight = gain * value;
+  p *= lacunarity;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+    if (weight > 1.0f) {
+      weight = 1.0f;
+    }
+
+    float signal = (perlin_signed(p) + offset) * pwr;
+    pwr *= pwHL;
+    value += weight * signal;
+    weight *= gain * signal;
+    p *= lacunarity;
+  }
+
+  const float rmd = octaves - floorf(octaves);
+  if (rmd != 0.0f) {
+    value += rmd * ((perlin_signed(p) + offset) * pwr);
+  }
+
+  return value;
+}
+
+/* 4D Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float musgrave_ridged_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves_unclamped,
+                                    const float offset,
+                                    const float gain)
+{
+  float4 p = co;
+  const float pwHL = powf(lacunarity, -H);
+  float pwr = pwHL;
+
+  float signal = offset - fabsf(perlin_signed(p));
+  signal *= signal;
+  float value = signal;
+  float weight = 1.0f;
+
+  const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
+
+  for (int i = 1; i < (int)octaves; i++) {
+    p *= lacunarity;
+    weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+    signal = offset - fabsf(perlin_signed(p));
+    signal *= signal;
+    signal *= weight;
+    value += signal * pwr;
+    pwr *= pwHL;
+  }
+
+  return value;
+}
+
+/*
+ * Voronoi: Ported from Cycles code.
+ *
+ * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
+ *
+ * Smooth Voronoi:
+ *
+ * - https://wiki.blender.org/wiki/User:OmarSquircleArt/GSoC2019/Documentation/Smooth_Voronoi
+ *
+ * Distance To Edge based on:
+ *
+ * - https://www.iquilezles.org/www/articles/voronoilines/voronoilines.htm
+ * - https://www.shadertoy.com/view/ldl3W8
+ *
+ * With optimization to change -2..2 scan window to -1..1 for better performance,
+ * as explained in https://www.shadertoy.com/view/llG3zy.
+ */
+
+/* **** 1D Voronoi **** */
+
+/* Ensure to align with DNA. */
+enum {
+  NOISE_SHD_VORONOI_EUCLIDEAN = 0,
+  NOISE_SHD_VORONOI_MANHATTAN = 1,
+  NOISE_SHD_VORONOI_CHEBYCHEV = 2,
+  NOISE_SHD_VORONOI_MINKOWSKI = 3,
+};
+
+BLI_INLINE float voronoi_distance(const float a, const float b)
+{
+  return fabsf(b - a);
+}
+
+void voronoi_f1(
+    const float w, const float randomness, float *r_distance, float3 *r_color, float *r_w)
+{
+  const float cellPosition = floorf(w);
+  const float localPosition = w - cellPosition;
+
+  float minDistance = 8.0f;
+  float targetOffset = 0.0f;
+  float targetPosition = 0.0f;
+  for (int i = -1; i <= 1; i++) {
+    const float cellOffset = i;
+    const float pointPosition = cellOffset +
+                                hash_float_to_float(cellPosition + cellOffset) * randomness;
+    const float distanceToPoint = voronoi_distance(pointPosition, localPosition);
+    if (distanceToPoint < minDistance) {
+      targetOffset = cellOffset;
+      minDistance = distanceToPoint;
+      targetPosition = pointPosition;
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_w != nullptr) {
+    *r_w = targetPosition + cellPosition;
+  }
+}
+
+void voronoi_smooth_f1(const float w,
+                       const float smoothness,
+                       const float randomness,
+                       float *r_distance,
+                       float3 *r_color,
+                       float *r_w)
+{
+  const float cellPosition = floorf(w);
+  const float localPosition = w - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
+
+  float smoothDistance = 8.0f;
+  float smoothPosition = 0.0f;
+  float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
+  for (int i = -2; i <= 2; i++) {
+    const float cellOffset = i;
+    const float pointPosition = cellOffset +
+                                hash_float_to_float(cellPosition + cellOffset) * randomness;
+    const float distanceToPoint = voronoi_distance(pointPosition, localPosition);
+    const float h = smoothstep(
+        0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
+    float correctionFactor = smoothness * h * (1.0f - h);
+    smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
+    if (r_color != nullptr || r_w != nullptr) {
+      correctionFactor /= 1.0f + 3.0f * smoothness;
+      if (r_color != nullptr) {
+        const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+        smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+      }
+      if (r_w != nullptr) {
+        smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_w != nullptr) {
+    *r_w = cellPosition + smoothPosition;
+  }
+}
+
+void voronoi_f2(
+    const float w, const float randomness, float *r_distance, float3 *r_color, float *r_w)
+{
+  const float cellPosition = floorf(w);
+  const float localPosition = w - cellPosition;
+
+  float distanceF1 = 8.0f;
+  float distanceF2 = 8.0f;
+  float offsetF1 = 0.0f;
+  float positionF1 = 0.0f;
+  float offsetF2 = 0.0f;
+  float positionF2 = 0.0f;
+  for (int i = -1; i <= 1; i++) {
+    const float cellOffset = i;
+    const float pointPosition = cellOffset +
+                                hash_float_to_float(cellPosition + cellOffset) * randomness;
+    const float distanceToPoint = voronoi_distance(pointPosition, localPosition);
+    if (distanceToPoint < distanceF1) {
+      distanceF2 = distanceF1;
+      distanceF1 = distanceToPoint;
+      offsetF2 = offsetF1;
+      offsetF1 = cellOffset;
+      positionF2 = positionF1;
+      positionF1 = pointPosition;
+    }
+    else if (distanceToPoint < distanceF2) {
+      distanceF2 = distanceToPoint;
+      offsetF2 = cellOffset;
+      positionF2 = pointPosition;
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_w != nullptr) {
+    *r_w = positionF2 + cellPosition;
+  }
+}
+
+void voronoi_distance_to_edge(const float w, const float randomness, float *r_distance)
+{
+  const float cellPosition = floorf(w);
+  const float localPosition = w - cellPosition;
+
+  const float midPointPosition = hash_float_to_float(cellPosition) * randomness;
+  const float leftPointPosition = -1.0f + hash_float_to_float(cellPosition - 1.0f) * randomness;
+  const float rightPointPosition = 1.0f + hash_float_to_float(cellPosition + 1.0f) * randomness;
+  const float distanceToMidLeft = fabsf((midPointPosition + leftPointPosition) / 2.0f -
+                                        localPosition);
+  const float distanceToMidRight = fabsf((midPointPosition + rightPointPosition) / 2.0f -
+                                         localPosition);
+
+  *r_distance = std::min(distanceToMidLeft, distanceToMidRight);
+}
+
+void voronoi_n_sphere_radius(const float w, const float randomness, float *r_radius)
+{
+  const float cellPosition = floorf(w);
+  const float localPosition = w - cellPosition;
+
+  float closestPoint = 0.0f;
+  float closestPointOffset = 0.0f;
+  float minDistance = 8.0f;
+  for (int i = -1; i <= 1; i++) {
+    const float cellOffset = i;
+    const float pointPosition = cellOffset +
+                                hash_float_to_float(cellPosition + cellOffset) * randomness;
+    const float distanceToPoint = fabsf(pointPosition - localPosition);
+    if (distanceToPoint < minDistance) {
+      minDistance = distanceToPoint;
+      closestPoint = pointPosition;
+      closestPointOffset = cellOffset;
+    }
+  }
+
+  minDistance = 8.0f;
+  float closestPointToClosestPoint = 0.0f;
+  for (int i = -1; i <= 1; i++) {
+    if (i == 0) {
+      continue;
+    }
+    const float cellOffset = i + closestPointOffset;
+    const float pointPosition = cellOffset +
+                                hash_float_to_float(cellPosition + cellOffset) * randomness;
+    const float distanceToPoint = fabsf(closestPoint - pointPosition);
+    if (distanceToPoint < minDistance) {
+      minDistance = distanceToPoint;
+      closestPointToClosestPoint = pointPosition;
+    }
+  }
+  *r_radius = fabsf(closestPointToClosestPoint - closestPoint) / 2.0f;
+}
+
+/* **** 2D Voronoi **** */
+
+static float voronoi_distance(const float2 a,
+                              const float2 b,
+                              const int metric,
+                              const float exponent)
+{
+  switch (metric) {
+    case NOISE_SHD_VORONOI_EUCLIDEAN:
+      return float2::distance(a, b);
+    case NOISE_SHD_VORONOI_MANHATTAN:
+      return fabsf(a.x - b.x) + fabsf(a.y - b.y);
+    case NOISE_SHD_VORONOI_CHEBYCHEV:
+      return std::max(fabsf(a.x - b.x), fabsf(a.y - b.y));
+    case NOISE_SHD_VORONOI_MINKOWSKI:
+      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent),
+                  1.0f / exponent);
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+  return 0.0f;
+}
+
+void voronoi_f1(const float2 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float2 *r_position)
+{
+  const float2 cellPosition = float2::floor(coord);
+  const float2 localPosition = coord - cellPosition;
+
+  float minDistance = 8.0f;
+  float2 targetOffset = float2(0.0f, 0.0f);
+  float2 targetPosition = float2(0.0f, 0.0f);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 pointPosition = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness;
+      float distanceToPoint = voronoi_distance(pointPosition, localPosition, metric, exponent);
+      if (distanceToPoint < minDistance) {
+        targetOffset = cellOffset;
+        minDistance = distanceToPoint;
+        targetPosition = pointPosition;
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
+}
+
+void voronoi_smooth_f1(const float2 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float2 *r_position)
+{
+  const float2 cellPosition = float2::floor(coord);
+  const float2 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
+
+  float smoothDistance = 8.0f;
+  float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
+  float2 smoothPosition = float2(0.0f, 0.0f);
+  for (int j = -2; j <= 2; j++) {
+    for (int i = -2; i <= 2; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 pointPosition = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness;
+      const float distanceToPoint = voronoi_distance(
+          pointPosition, localPosition, metric, exponent);
+      const float h = smoothstep(
+          0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
+      float correctionFactor = smoothness * h * (1.0f - h);
+      smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
+      if (r_color != nullptr || r_position != nullptr) {
+        correctionFactor /= 1.0f + 3.0f * smoothness;
+        if (r_color != nullptr) {
+          const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+          smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+        }
+        if (r_position != nullptr) {
+          smoothPosition = float2::interpolate(smoothPosition, pointPosition, h) -
+                           correctionFactor;
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
+}
+
+void voronoi_f2(const float2 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float2 *r_position)
+{
+  const float2 cellPosition = float2::floor(coord);
+  const float2 localPosition = coord - cellPosition;
+
+  float distanceF1 = 8.0f;
+  float distanceF2 = 8.0f;
+  float2 offsetF1 = float2(0.0f, 0.0f);
+  float2 positionF1 = float2(0.0f, 0.0f);
+  float2 offsetF2 = float2(0.0f, 0.0f);
+  float2 positionF2 = float2(0.0f, 0.0f);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 pointPosition = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness;
+      const float distanceToPoint = voronoi_distance(
+          pointPosition, localPosition, metric, exponent);
+      if (distanceToPoint < distanceF1) {
+        distanceF2 = distanceF1;
+        distanceF1 = distanceToPoint;
+        offsetF2 = offsetF1;
+        offsetF1 = cellOffset;
+        positionF2 = positionF1;
+        positionF1 = pointPosition;
+      }
+      else if (distanceToPoint < distanceF2) {
+        distanceF2 = distanceToPoint;
+        offsetF2 = cellOffset;
+        positionF2 = pointPosition;
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
+}
+
+void voronoi_distance_to_edge(const float2 coord, const float randomness, float *r_distance)
+{
+  const float2 cellPosition = float2::floor(coord);
+  const float2 localPosition = coord - cellPosition;
+
+  float2 vectorToClosest = float2(0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 vectorToPoint = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness -
+                                   localPosition;
+      const float distanceToPoint = dot_v2v2(vectorToPoint, vectorToPoint);
+      if (distanceToPoint < minDistance) {
+        minDistance = distanceToPoint;
+        vectorToClosest = vectorToPoint;
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 vectorToPoint = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness -
+                                   localPosition;
+      const float2 perpendicularToEdge = vectorToPoint - vectorToClosest;
+      if (dot_v2v2(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+        const float distanceToEdge = dot_v2v2((vectorToClosest + vectorToPoint) / 2.0f,
+                                              perpendicularToEdge.normalized());
+        minDistance = std::min(minDistance, distanceToEdge);
+      }
+    }
+  }
+  *r_distance = minDistance;
+}
+
+void voronoi_n_sphere_radius(const float2 coord, const float randomness, float *r_radius)
+{
+  const float2 cellPosition = float2::floor(coord);
+  const float2 localPosition = coord - cellPosition;
+
+  float2 closestPoint = float2(0.0f, 0.0f);
+  float2 closestPointOffset = float2(0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      const float2 cellOffset = float2(i, j);
+      const float2 pointPosition = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness;
+      const float distanceToPoint = float2::distance(pointPosition, localPosition);
+      if (distanceToPoint < minDistance) {
+        minDistance = distanceToPoint;
+        closestPoint = pointPosition;
+        closestPointOffset = cellOffset;
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  float2 closestPointToClosestPoint = float2(0.0f, 0.0f);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      if (i == 0 && j == 0) {
+        continue;
+      }
+      const float2 cellOffset = float2(i, j) + closestPointOffset;
+      const float2 pointPosition = cellOffset +
+                                   hash_float_to_float2(cellPosition + cellOffset) * randomness;
+      const float distanceToPoint = float2::distance(closestPoint, pointPosition);
+      if (distanceToPoint < minDistance) {
+        minDistance = distanceToPoint;
+        closestPointToClosestPoint = pointPosition;
+      }
+    }
+  }
+  *r_radius = float2::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
+}
+
+/* **** 3D Voronoi **** */
+
+static float voronoi_distance(const float3 a,
+                              const float3 b,
+                              const int metric,
+                              const float exponent)
+{
+  switch (metric) {
+    case NOISE_SHD_VORONOI_EUCLIDEAN:
+      return float3::distance(a, b);
+    case NOISE_SHD_VORONOI_MANHATTAN:
+      return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z);
+    case NOISE_SHD_VORONOI_CHEBYCHEV:
+      return std::max(fabsf(a.x - b.x), std::max(fabsf(a.y - b.y), fabsf(a.z - b.z)));
+    case NOISE_SHD_VORONOI_MINKOWSKI:
+      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent) +
+                      powf(fabsf(a.z - b.z), exponent),
+                  1.0f / exponent);
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+  return 0.0f;
+}
+
+void voronoi_f1(const float3 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float3 *r_position)
+{
+  const float3 cellPosition = float3::floor(coord);
+  const float3 localPosition = coord - cellPosition;
+
+  float minDistance = 8.0f;
+  float3 targetOffset = float3(0.0f, 0.0f, 0.0f);
+  float3 targetPosition = float3(0.0f, 0.0f, 0.0f);
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 pointPosition = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness;
+        const float distanceToPoint = voronoi_distance(
+            pointPosition, localPosition, metric, exponent);
+        if (distanceToPoint < minDistance) {
+          targetOffset = cellOffset;
+          minDistance = distanceToPoint;
+          targetPosition = pointPosition;
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
+}
+
+void voronoi_smooth_f1(const float3 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float3 *r_position)
+{
+  const float3 cellPosition = float3::floor(coord);
+  const float3 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
+
+  float smoothDistance = 8.0f;
+  float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
+  float3 smoothPosition = float3(0.0f, 0.0f, 0.0f);
+  for (int k = -2; k <= 2; k++) {
+    for (int j = -2; j <= 2; j++) {
+      for (int i = -2; i <= 2; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 pointPosition = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness;
+        const float distanceToPoint = voronoi_distance(
+            pointPosition, localPosition, metric, exponent);
+        const float h = smoothstep(
+            0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
+        float correctionFactor = smoothness * h * (1.0f - h);
+        smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
+        if (r_color != nullptr || r_position != nullptr) {
+          correctionFactor /= 1.0f + 3.0f * smoothness;
+          if (r_color != nullptr) {
+            const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+            smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+          }
+          if (r_position != nullptr) {
+            smoothPosition = float3::interpolate(smoothPosition, pointPosition, h) -
+                             correctionFactor;
+          }
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
+}
+
+void voronoi_f2(const float3 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float3 *r_position)
+{
+  const float3 cellPosition = float3::floor(coord);
+  const float3 localPosition = coord - cellPosition;
+
+  float distanceF1 = 8.0f;
+  float distanceF2 = 8.0f;
+  float3 offsetF1 = float3(0.0f, 0.0f, 0.0f);
+  float3 positionF1 = float3(0.0f, 0.0f, 0.0f);
+  float3 offsetF2 = float3(0.0f, 0.0f, 0.0f);
+  float3 positionF2 = float3(0.0f, 0.0f, 0.0f);
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 pointPosition = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness;
+        const float distanceToPoint = voronoi_distance(
+            pointPosition, localPosition, metric, exponent);
+        if (distanceToPoint < distanceF1) {
+          distanceF2 = distanceF1;
+          distanceF1 = distanceToPoint;
+          offsetF2 = offsetF1;
+          offsetF1 = cellOffset;
+          positionF2 = positionF1;
+          positionF1 = pointPosition;
+        }
+        else if (distanceToPoint < distanceF2) {
+          distanceF2 = distanceToPoint;
+          offsetF2 = cellOffset;
+          positionF2 = pointPosition;
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
+}
+
+void voronoi_distance_to_edge(const float3 coord, const float randomness, float *r_distance)
+{
+  const float3 cellPosition = float3::floor(coord);
+  const float3 localPosition = coord - cellPosition;
+
+  float3 vectorToClosest = float3(0.0f, 0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 vectorToPoint = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness -
+                                     localPosition;
+        const float distanceToPoint = dot_v3v3(vectorToPoint, vectorToPoint);
+        if (distanceToPoint < minDistance) {
+          minDistance = distanceToPoint;
+          vectorToClosest = vectorToPoint;
+        }
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 vectorToPoint = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness -
+                                     localPosition;
+        const float3 perpendicularToEdge = vectorToPoint - vectorToClosest;
+        if (dot_v3v3(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+          const float distanceToEdge = dot_v3v3((vectorToClosest + vectorToPoint) / 2.0f,
+                                                perpendicularToEdge.normalized());
+          minDistance = std::min(minDistance, distanceToEdge);
+        }
+      }
+    }
+  }
+  *r_distance = minDistance;
+}
+
+void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *r_radius)
+{
+  const float3 cellPosition = float3::floor(coord);
+  const float3 localPosition = coord - cellPosition;
+
+  float3 closestPoint = float3(0.0f, 0.0f, 0.0f);
+  float3 closestPointOffset = float3(0.0f, 0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        const float3 cellOffset = float3(i, j, k);
+        const float3 pointPosition = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness;
+        const float distanceToPoint = float3::distance(pointPosition, localPosition);
+        if (distanceToPoint < minDistance) {
+          minDistance = distanceToPoint;
+          closestPoint = pointPosition;
+          closestPointOffset = cellOffset;
+        }
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  float3 closestPointToClosestPoint = float3(0.0f, 0.0f, 0.0f);
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        if (i == 0 && j == 0 && k == 0) {
+          continue;
+        }
+        const float3 cellOffset = float3(i, j, k) + closestPointOffset;
+        const float3 pointPosition = cellOffset +
+                                     hash_float_to_float3(cellPosition + cellOffset) * randomness;
+        const float distanceToPoint = float3::distance(closestPoint, pointPosition);
+        if (distanceToPoint < minDistance) {
+          minDistance = distanceToPoint;
+          closestPointToClosestPoint = pointPosition;
+        }
+      }
+    }
+  }
+  *r_radius = float3::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
+}
+
+/* **** 4D Voronoi **** */
+
+static float voronoi_distance(const float4 a,
+                              const float4 b,
+                              const int metric,
+                              const float exponent)
+{
+  switch (metric) {
+    case NOISE_SHD_VORONOI_EUCLIDEAN:
+      return float4::distance(a, b);
+    case NOISE_SHD_VORONOI_MANHATTAN:
+      return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z) + fabsf(a.w - b.w);
+    case NOISE_SHD_VORONOI_CHEBYCHEV:
+      return std::max(fabsf(a.x - b.x),
+                      std::max(fabsf(a.y - b.y), std::max(fabsf(a.z - b.z), fabsf(a.w - b.w))));
+    case NOISE_SHD_VORONOI_MINKOWSKI:
+      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent) +
+                      powf(fabsf(a.z - b.z), exponent) + powf(fabsf(a.w - b.w), exponent),
+                  1.0f / exponent);
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+  return 0.0f;
+}
+
+void voronoi_f1(const float4 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float4 *r_position)
+{
+  const float4 cellPosition = float4::floor(coord);
+  const float4 localPosition = coord - cellPosition;
+
+  float minDistance = 8.0f;
+  float4 targetOffset = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 targetPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 pointPosition = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness;
+          const float distanceToPoint = voronoi_distance(
+              pointPosition, localPosition, metric, exponent);
+          if (distanceToPoint < minDistance) {
+            targetOffset = cellOffset;
+            minDistance = distanceToPoint;
+            targetPosition = pointPosition;
+          }
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = minDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + targetOffset);
+  }
+  if (r_position != nullptr) {
+    *r_position = targetPosition + cellPosition;
+  }
+}
+
+void voronoi_smooth_f1(const float4 coord,
+                       const float smoothness,
+                       const float exponent,
+                       const float randomness,
+                       const int metric,
+                       float *r_distance,
+                       float3 *r_color,
+                       float4 *r_position)
+{
+  const float4 cellPosition = float4::floor(coord);
+  const float4 localPosition = coord - cellPosition;
+  const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
+
+  float smoothDistance = 8.0f;
+  float3 smoothColor = float3(0.0f, 0.0f, 0.0f);
+  float4 smoothPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  for (int u = -2; u <= 2; u++) {
+    for (int k = -2; k <= 2; k++) {
+      for (int j = -2; j <= 2; j++) {
+        for (int i = -2; i <= 2; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 pointPosition = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness;
+          const float distanceToPoint = voronoi_distance(
+              pointPosition, localPosition, metric, exponent);
+          const float h = smoothstep(
+              0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / smoothness_clamped);
+          float correctionFactor = smoothness * h * (1.0f - h);
+          smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
+          if (r_color != nullptr || r_position != nullptr) {
+            correctionFactor /= 1.0f + 3.0f * smoothness;
+            if (r_color != nullptr) {
+              const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
+              smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
+            }
+            if (r_position != nullptr) {
+              smoothPosition = float4::interpolate(smoothPosition, pointPosition, h) -
+                               correctionFactor;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = smoothDistance;
+  }
+  if (r_color != nullptr) {
+    *r_color = smoothColor;
+  }
+  if (r_position != nullptr) {
+    *r_position = cellPosition + smoothPosition;
+  }
+}
+
+void voronoi_f2(const float4 coord,
+                const float exponent,
+                const float randomness,
+                const int metric,
+                float *r_distance,
+                float3 *r_color,
+                float4 *r_position)
+{
+  const float4 cellPosition = float4::floor(coord);
+  const float4 localPosition = coord - cellPosition;
+
+  float distanceF1 = 8.0f;
+  float distanceF2 = 8.0f;
+  float4 offsetF1 = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 positionF1 = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 offsetF2 = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 positionF2 = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 pointPosition = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness;
+          const float distanceToPoint = voronoi_distance(
+              pointPosition, localPosition, metric, exponent);
+          if (distanceToPoint < distanceF1) {
+            distanceF2 = distanceF1;
+            distanceF1 = distanceToPoint;
+            offsetF2 = offsetF1;
+            offsetF1 = cellOffset;
+            positionF2 = positionF1;
+            positionF1 = pointPosition;
+          }
+          else if (distanceToPoint < distanceF2) {
+            distanceF2 = distanceToPoint;
+            offsetF2 = cellOffset;
+            positionF2 = pointPosition;
+          }
+        }
+      }
+    }
+  }
+  if (r_distance != nullptr) {
+    *r_distance = distanceF2;
+  }
+  if (r_color != nullptr) {
+    *r_color = hash_float_to_float3(cellPosition + offsetF2);
+  }
+  if (r_position != nullptr) {
+    *r_position = positionF2 + cellPosition;
+  }
+}
+
+void voronoi_distance_to_edge(const float4 coord, const float randomness, float *r_distance)
+{
+  const float4 cellPosition = float4::floor(coord);
+  const float4 localPosition = coord - cellPosition;
+
+  float4 vectorToClosest = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 vectorToPoint = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness -
+                                       localPosition;
+          const float distanceToPoint = dot_v4v4(vectorToPoint, vectorToPoint);
+          if (distanceToPoint < minDistance) {
+            minDistance = distanceToPoint;
+            vectorToClosest = vectorToPoint;
+          }
+        }
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 vectorToPoint = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness -
+                                       localPosition;
+          const float4 perpendicularToEdge = vectorToPoint - vectorToClosest;
+          if (dot_v4v4(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+            const float distanceToEdge = dot_v4v4((vectorToClosest + vectorToPoint) / 2.0f,
+                                                  float4::normalize(perpendicularToEdge));
+            minDistance = std::min(minDistance, distanceToEdge);
+          }
+        }
+      }
+    }
+  }
+  *r_distance = minDistance;
+}
+
+void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *r_radius)
+{
+  const float4 cellPosition = float4::floor(coord);
+  const float4 localPosition = coord - cellPosition;
+
+  float4 closestPoint = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 closestPointOffset = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float minDistance = 8.0f;
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          const float4 cellOffset = float4(i, j, k, u);
+          const float4 pointPosition = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness;
+          const float distanceToPoint = float4::distance(pointPosition, localPosition);
+          if (distanceToPoint < minDistance) {
+            minDistance = distanceToPoint;
+            closestPoint = pointPosition;
+            closestPointOffset = cellOffset;
+          }
+        }
+      }
+    }
+  }
+
+  minDistance = 8.0f;
+  float4 closestPointToClosestPoint = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  for (int u = -1; u <= 1; u++) {
+    for (int k = -1; k <= 1; k++) {
+      for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+          if (i == 0 && j == 0 && k == 0 && u == 0) {
+            continue;
+          }
+          const float4 cellOffset = float4(i, j, k, u) + closestPointOffset;
+          const float4 pointPosition = cellOffset +
+                                       hash_float_to_float4(cellPosition + cellOffset) *
+                                           randomness;
+          const float distanceToPoint = float4::distance(closestPoint, pointPosition);
+          if (distanceToPoint < minDistance) {
+            minDistance = distanceToPoint;
+            closestPointToClosestPoint = pointPosition;
+          }
+        }
+      }
+    }
+  }
+  *r_radius = float4::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
 
 }  // namespace blender::noise

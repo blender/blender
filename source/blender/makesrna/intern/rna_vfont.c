@@ -30,7 +30,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_font.h"
+#  include "BKE_vfont.h"
 #  include "DNA_object_types.h"
 
 #  include "DEG_depsgraph.h"

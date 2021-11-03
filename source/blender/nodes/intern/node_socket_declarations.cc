@@ -15,6 +15,7 @@
  */
 
 #include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 #include "BKE_node.h"
 
@@ -30,9 +31,9 @@ static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subty
   socket.typeinfo = socktype;
 }
 
-/* --------------------------------------------------------------------
- * Float.
- */
+/* -------------------------------------------------------------------- */
+/** \name #Float
+ * \{ */
 
 bNodeSocket &Float::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -83,9 +84,11 @@ bNodeSocket &Float::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Int.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Int
+ * \{ */
 
 bNodeSocket &Int::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -136,9 +139,11 @@ bNodeSocket &Int::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &so
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Vector.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Vector
+ * \{ */
 
 bNodeSocket &Vector::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -181,9 +186,11 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Bool.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Bool
+ * \{ */
 
 bNodeSocket &Bool::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -206,9 +213,11 @@ bool Bool::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * Color.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Color
+ * \{ */
 
 bNodeSocket &Color::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -236,14 +245,17 @@ bool Color::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * String.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #String
+ * \{ */
 
 bNodeSocket &String::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
   bNodeSocket &socket = *nodeAddStaticSocket(
       &ntree, &node, in_out, SOCK_STRING, PROP_NONE, identifier_.c_str(), name_.c_str());
+  STRNCPY(((bNodeSocketValueString *)socket.default_value)->value, default_value_.c_str());
   this->set_common_flags(socket);
   return socket;
 }
@@ -259,9 +271,11 @@ bool String::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * IDSocketDeclaration.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #IDSocketDeclaration
+ * \{ */
 
 bNodeSocket &IDSocketDeclaration::build(bNodeTree &ntree,
                                         bNode &node,
@@ -295,9 +309,11 @@ bNodeSocket &IDSocketDeclaration::update_or_build(bNodeTree &ntree,
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Geometry.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Geometry
+ * \{ */
 
 bNodeSocket &Geometry::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -317,5 +333,47 @@ bool Geometry::matches(const bNodeSocket &socket) const
   }
   return true;
 }
+
+Span<GeometryComponentType> Geometry::supported_types() const
+{
+  return supported_types_;
+}
+
+bool Geometry::only_realized_data() const
+{
+  return only_realized_data_;
+}
+
+bool Geometry::only_instances() const
+{
+  return only_instances_;
+}
+
+GeometryBuilder &GeometryBuilder::supported_type(GeometryComponentType supported_type)
+{
+  decl_->supported_types_ = {supported_type};
+  return *this;
+}
+
+GeometryBuilder &GeometryBuilder::supported_type(
+    blender::Vector<GeometryComponentType> supported_types)
+{
+  decl_->supported_types_ = std::move(supported_types);
+  return *this;
+}
+
+GeometryBuilder &GeometryBuilder::only_realized_data(bool value)
+{
+  decl_->only_realized_data_ = value;
+  return *this;
+}
+
+GeometryBuilder &GeometryBuilder::only_instances(bool value)
+{
+  decl_->only_instances_ = value;
+  return *this;
+}
+
+/** \} */
 
 }  // namespace blender::nodes::decl

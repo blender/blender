@@ -16,15 +16,14 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <cstdio>
-#include <list>
+#include "COM_WorkScheduler.h"
 
 #include "COM_CPUDevice.h"
+#include "COM_CompositorContext.h"
+#include "COM_ExecutionGroup.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
-#include "COM_WorkScheduler.h"
 #include "COM_WriteBufferOperation.h"
-#include "COM_compositor.h"
 
 #include "clew.h"
 
@@ -33,7 +32,6 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
-#include "PIL_time.h"
 
 #include "BKE_global.h"
 
@@ -106,10 +104,10 @@ static struct {
 /** \name OpenCL Scheduling
  * \{ */
 
-static void CL_CALLBACK clContextError(const char *errinfo,
-                                       const void * /*private_info*/,
-                                       size_t /*cb*/,
-                                       void * /*user_data*/)
+static void CL_CALLBACK cl_context_error(const char *errinfo,
+                                         const void * /*private_info*/,
+                                         size_t /*cb*/,
+                                         void * /*user_data*/)
 {
   printf("OPENCL error: %s\n", errinfo);
 }
@@ -128,7 +126,7 @@ static void *thread_execute_gpu(void *data)
 
 static void opencl_start(const CompositorContext &context)
 {
-  if (context.getHasActiveOpenCLDevices()) {
+  if (context.get_has_active_opencl_devices()) {
     g_work_scheduler.opencl.queue = BLI_thread_queue_init();
     BLI_threadpool_init(&g_work_scheduler.opencl.threads,
                         thread_execute_gpu,
@@ -188,35 +186,35 @@ static void opencl_initialize(const bool use_opencl)
     }
 
     if (clCreateContextFromType) {
-      cl_uint numberOfPlatforms = 0;
+      cl_uint number_of_platforms = 0;
       cl_int error;
-      error = clGetPlatformIDs(0, nullptr, &numberOfPlatforms);
+      error = clGetPlatformIDs(0, nullptr, &number_of_platforms);
       if (error == -1001) {
       } /* GPU not supported */
       else if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
       if (G.f & G_DEBUG) {
-        printf("%u number of platforms\n", numberOfPlatforms);
+        printf("%u number of platforms\n", number_of_platforms);
       }
       cl_platform_id *platforms = (cl_platform_id *)MEM_mallocN(
-          sizeof(cl_platform_id) * numberOfPlatforms, __func__);
-      error = clGetPlatformIDs(numberOfPlatforms, platforms, nullptr);
-      unsigned int indexPlatform;
-      for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
-        cl_platform_id platform = platforms[indexPlatform];
-        cl_uint numberOfDevices = 0;
-        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, nullptr, &numberOfDevices);
-        if (numberOfDevices <= 0) {
+          sizeof(cl_platform_id) * number_of_platforms, __func__);
+      error = clGetPlatformIDs(number_of_platforms, platforms, nullptr);
+      unsigned int index_platform;
+      for (index_platform = 0; index_platform < number_of_platforms; index_platform++) {
+        cl_platform_id platform = platforms[index_platform];
+        cl_uint number_of_devices = 0;
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, nullptr, &number_of_devices);
+        if (number_of_devices <= 0) {
           continue;
         }
 
         cl_device_id *cldevices = (cl_device_id *)MEM_mallocN(
-            sizeof(cl_device_id) * numberOfDevices, __func__);
-        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, nullptr);
+            sizeof(cl_device_id) * number_of_devices, __func__);
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, number_of_devices, cldevices, nullptr);
 
         g_work_scheduler.opencl.context = clCreateContext(
-            nullptr, numberOfDevices, cldevices, clContextError, nullptr, &error);
+            nullptr, number_of_devices, cldevices, cl_context_error, nullptr, &error);
         if (error != CL_SUCCESS) {
           printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
         }
@@ -224,7 +222,7 @@ static void opencl_initialize(const bool use_opencl)
         g_work_scheduler.opencl.program = clCreateProgramWithSource(
             g_work_scheduler.opencl.context, 1, cl_str, nullptr, &error);
         error = clBuildProgram(g_work_scheduler.opencl.program,
-                               numberOfDevices,
+                               number_of_devices,
                                cldevices,
                                nullptr,
                                nullptr,
@@ -257,9 +255,9 @@ static void opencl_initialize(const bool use_opencl)
           MEM_freeN(build_log);
         }
         else {
-          unsigned int indexDevices;
-          for (indexDevices = 0; indexDevices < numberOfDevices; indexDevices++) {
-            cl_device_id device = cldevices[indexDevices];
+          unsigned int index_devices;
+          for (index_devices = 0; index_devices < number_of_devices; index_devices++) {
+            cl_device_id device = cldevices[index_devices];
             cl_int vendorID = 0;
             cl_int error2 = clGetDeviceInfo(
                 device, CL_DEVICE_VENDOR_ID, sizeof(cl_int), &vendorID, nullptr);

@@ -21,18 +21,18 @@ set(INC_SYS
 )
 
 set(SRC
-  subd_dice.cpp
-  subd_patch.cpp
-  subd_split.cpp
-  subd_patch_table.cpp
+  dice.cpp
+  patch.cpp
+  split.cpp
+  patch_table.cpp
 )
 
 set(SRC_HEADERS
-  subd_dice.h
-  subd_patch.h
-  subd_patch_table.h
-  subd_split.h
-  subd_subpatch.h
+  dice.h
+  patch.h
+  patch_table.h
+  split.h
+  subpatch.h
 )
 
 set(LIB

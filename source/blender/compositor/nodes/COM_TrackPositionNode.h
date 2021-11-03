@@ -29,9 +29,9 @@ namespace blender::compositor {
  */
 class TrackPositionNode : public Node {
  public:
-  TrackPositionNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  TrackPositionNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -27,9 +27,9 @@ class NonHashedOperation : public NodeOperation {
   NonHashedOperation(int id)
   {
     set_id(id);
-    addOutputSocket(DataType::Value);
-    setWidth(2);
-    setHeight(3);
+    add_output_socket(DataType::Value);
+    set_width(2);
+    set_height(3);
   }
 };
 
@@ -40,9 +40,9 @@ class NonHashedConstantOperation : public ConstantOperation {
   NonHashedConstantOperation(int id)
   {
     set_id(id);
-    addOutputSocket(DataType::Value);
-    setWidth(2);
-    setHeight(3);
+    add_output_socket(DataType::Value);
+    set_width(2);
+    set_height(3);
     constant_ = 1.0f;
   }
 
@@ -65,14 +65,14 @@ class HashedOperation : public NodeOperation {
  public:
   HashedOperation(NodeOperation &input, int width, int height)
   {
-    addInputSocket(DataType::Value);
-    addOutputSocket(DataType::Color);
-    setWidth(width);
-    setHeight(height);
+    add_input_socket(DataType::Value);
+    add_output_socket(DataType::Color);
+    set_width(width);
+    set_height(height);
     param1 = 2;
     param2 = 7.0f;
 
-    getInputSocket(0)->setLink(input.getOutputSocket());
+    get_input_socket(0)->set_link(input.get_output_socket());
   }
 
   void set_param1(int value)

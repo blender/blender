@@ -1856,6 +1856,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
+    /* 51: CD_HAIRLENGTH */
+    {sizeof(float), "float", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1912,6 +1914,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropFloat3",
     "CDPropFloat2",
     "CDPropBoolean",
+    "CDHairLength",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
@@ -2591,6 +2594,11 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
   for (; index > 0 && data->layers[index - 1].type > type; index--) {
     data->layers[index] = data->layers[index - 1];
   }
+
+  /* Clear remaining data on the layer. The original data on the layer has been moved to another
+   * index. Without this, it can happen that information from the previous layer at that index
+   * leaks into the new layer. */
+  memset(data->layers + index, 0, sizeof(CustomDataLayer));
 
   data->layers[index].type = type;
   data->layers[index].flag = flag;

@@ -311,7 +311,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   else if (mode == SCULPT_PIVOT_POSITION_ACTIVE_VERTEX) {
     copy_v3_v3(ss->pivot_pos, SCULPT_active_vertex_co_get(ss));
   }
-  /* Pivot to raycast surface. */
+  /* Pivot to ray-cast surface. */
   else if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
     float stroke_location[3];
     float mouse[2];

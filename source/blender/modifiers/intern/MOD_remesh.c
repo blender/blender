@@ -273,7 +273,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 
 #else  /* WITH_MOD_REMESH */
-  uiItemL(layout, IFACE_("Built without Remesh modifier"), ICON_NONE);
+  uiItemL(layout, TIP_("Built without Remesh modifier"), ICON_NONE);
 #endif /* WITH_MOD_REMESH */
 }
 

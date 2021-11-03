@@ -16,7 +16,7 @@
 
 #include "testing/testing.h"
 
-#include "util/util_path.h"
+#include "util/path.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,53 +17,52 @@
  */
 
 #include "COM_ChromaMatteNode.h"
-#include "BKE_node.h"
 #include "COM_ChromaMatteOperation.h"
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 
-ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
+ChromaMatteNode::ChromaMatteNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ChromaMatteNode::convertToOperations(NodeConverter &converter,
-                                          const CompositorContext & /*context*/) const
+void ChromaMatteNode::convert_to_operations(NodeConverter &converter,
+                                            const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = getbNode();
+  bNode *editorsnode = get_bnode();
 
-  NodeInput *inputSocketImage = this->getInputSocket(0);
-  NodeInput *inputSocketKey = this->getInputSocket(1);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
-  NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+  NodeInput *input_socket_image = this->get_input_socket(0);
+  NodeInput *input_socket_key = this->get_input_socket(1);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
+  NodeOutput *output_socket_matte = this->get_output_socket(1);
 
   ConvertRGBToYCCOperation *operationRGBToYCC_Image = new ConvertRGBToYCCOperation();
   ConvertRGBToYCCOperation *operationRGBToYCC_Key = new ConvertRGBToYCCOperation();
-  operationRGBToYCC_Image->setMode(BLI_YCC_ITU_BT709);
-  operationRGBToYCC_Key->setMode(BLI_YCC_ITU_BT709);
-  converter.addOperation(operationRGBToYCC_Image);
-  converter.addOperation(operationRGBToYCC_Key);
+  operationRGBToYCC_Image->set_mode(BLI_YCC_ITU_BT709);
+  operationRGBToYCC_Key->set_mode(BLI_YCC_ITU_BT709);
+  converter.add_operation(operationRGBToYCC_Image);
+  converter.add_operation(operationRGBToYCC_Key);
 
   ChromaMatteOperation *operation = new ChromaMatteOperation();
-  operation->setSettings((NodeChroma *)editorsnode->storage);
-  converter.addOperation(operation);
+  operation->set_settings((NodeChroma *)editorsnode->storage);
+  converter.add_operation(operation);
 
-  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
-  converter.addOperation(operationAlpha);
+  SetAlphaMultiplyOperation *operation_alpha = new SetAlphaMultiplyOperation();
+  converter.add_operation(operation_alpha);
 
-  converter.mapInputSocket(inputSocketImage, operationRGBToYCC_Image->getInputSocket(0));
-  converter.mapInputSocket(inputSocketKey, operationRGBToYCC_Key->getInputSocket(0));
-  converter.addLink(operationRGBToYCC_Image->getOutputSocket(), operation->getInputSocket(0));
-  converter.addLink(operationRGBToYCC_Key->getOutputSocket(), operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket());
+  converter.map_input_socket(input_socket_image, operationRGBToYCC_Image->get_input_socket(0));
+  converter.map_input_socket(input_socket_key, operationRGBToYCC_Key->get_input_socket(0));
+  converter.add_link(operationRGBToYCC_Image->get_output_socket(), operation->get_input_socket(0));
+  converter.add_link(operationRGBToYCC_Key->get_output_socket(), operation->get_input_socket(1));
+  converter.map_output_socket(output_socket_matte, operation->get_output_socket());
 
-  converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
-  converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
-  converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+  converter.map_input_socket(input_socket_image, operation_alpha->get_input_socket(0));
+  converter.add_link(operation->get_output_socket(), operation_alpha->get_input_socket(1));
+  converter.map_output_socket(output_socket_image, operation_alpha->get_output_socket());
 
-  converter.addPreview(operationAlpha->getOutputSocket());
+  converter.add_preview(operation_alpha->get_output_socket());
 }
 
 }  // namespace blender::compositor

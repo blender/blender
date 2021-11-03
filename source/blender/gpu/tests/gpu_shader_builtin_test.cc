@@ -32,7 +32,7 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
   test_compile_builtin_shader(GPU_SHADER_TEXT, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_KEYFRAME_DIAMOND, GPU_SHADER_CFG_DEFAULT);
+  test_compile_builtin_shader(GPU_SHADER_KEYFRAME_SHAPE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_FLAT_COLOR, GPU_SHADER_CFG_DEFAULT);

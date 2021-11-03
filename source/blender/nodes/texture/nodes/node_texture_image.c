@@ -101,7 +101,6 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
   node->storage = iuser;
   iuser->sfra = 1;
-  iuser->ok = 1;
   iuser->flag |= IMA_ANIM_ALWAYS;
 }
 

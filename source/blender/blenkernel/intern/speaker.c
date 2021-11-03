@@ -50,7 +50,7 @@ static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Speaker *speaker = (Speaker *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, speaker->sound, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, speaker->sound, IDWALK_CB_USER);
 }
 
 static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -98,7 +98,7 @@ IDTypeInfo IDType_ID_SPK = {
     .name = "Speaker",
     .name_plural = "speakers",
     .translation_context = BLT_I18NCONTEXT_ID_SPEAKER,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = speaker_init_data,
     .copy_data = NULL,

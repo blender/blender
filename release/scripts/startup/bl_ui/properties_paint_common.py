@@ -1151,7 +1151,8 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
             if len(txt_ma) > maxw:
                 txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
 
-    sub = row.row()
+    sub = row.row(align=True)
+    sub.enabled = not gp_settings.use_material_pin
     sub.ui_units_x = 8
     sub.popover(
         panel="TOPBAR_PT_gpencil_materials",

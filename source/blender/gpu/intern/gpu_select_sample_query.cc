@@ -20,8 +20,8 @@
 /** \file
  * \ingroup gpu
  *
- * Interface for accessing gpu-related methods for selection. The semantics will be
- * similar to glRenderMode(GL_SELECT) since the goal is to maintain compatibility.
+ * Interface for accessing GPU-related methods for selection. The semantics will be
+ * similar to `glRenderMode(GL_SELECT)` since the goal is to maintain compatibility.
  */
 
 #include <cstdlib>

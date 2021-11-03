@@ -279,7 +279,7 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Flags",                        len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Font",                         len)) { i = len;
-  /* Filetypes */
+  /* File-types. */
   } else if (STR_LITERAL_STARTSWITH(string, "df3",                          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "exr",                          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "gif",                          len)) { i = len;
@@ -292,7 +292,7 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "sys",                          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "tga",                          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "tiff",                         len)) { i = len;
-  /* Encodings */
+  /* Encodings. */
   } else if (STR_LITERAL_STARTSWITH(string, "ascii",                        len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "utf8",                         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "uint8",                        len)) { i = len;
@@ -448,7 +448,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         *fmt = FMT_TYPE_STRING;
       }
-      /* Whitespace (all ws. has been converted to spaces) */
+      /* White-space (all ws. has been converted to spaces). */
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }

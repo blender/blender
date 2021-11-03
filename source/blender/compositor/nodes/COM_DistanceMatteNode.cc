@@ -17,85 +17,84 @@
  */
 
 #include "COM_DistanceMatteNode.h"
-#include "BKE_node.h"
 #include "COM_ConvertOperation.h"
-#include "COM_DistanceRGBMatteOperation.h"
 #include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 
-DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
+DistanceMatteNode::DistanceMatteNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void DistanceMatteNode::convertToOperations(NodeConverter &converter,
-                                            const CompositorContext & /*context*/) const
+void DistanceMatteNode::convert_to_operations(NodeConverter &converter,
+                                              const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = getbNode();
+  bNode *editorsnode = get_bnode();
   NodeChroma *storage = (NodeChroma *)editorsnode->storage;
 
-  NodeInput *inputSocketImage = this->getInputSocket(0);
-  NodeInput *inputSocketKey = this->getInputSocket(1);
-  NodeOutput *outputSocketImage = this->getOutputSocket(0);
-  NodeOutput *outputSocketMatte = this->getOutputSocket(1);
+  NodeInput *input_socket_image = this->get_input_socket(0);
+  NodeInput *input_socket_key = this->get_input_socket(1);
+  NodeOutput *output_socket_image = this->get_output_socket(0);
+  NodeOutput *output_socket_matte = this->get_output_socket(1);
 
-  SetAlphaMultiplyOperation *operationAlpha = new SetAlphaMultiplyOperation();
-  converter.addOperation(operationAlpha);
+  SetAlphaMultiplyOperation *operation_alpha = new SetAlphaMultiplyOperation();
+  converter.add_operation(operation_alpha);
 
   /* work in RGB color space */
   NodeOperation *operation;
   if (storage->channel == 1) {
     DistanceRGBMatteOperation *matte = new DistanceRGBMatteOperation();
-    matte->setSettings(storage);
-    converter.addOperation(matte);
+    matte->set_settings(storage);
+    converter.add_operation(matte);
 
-    converter.mapInputSocket(inputSocketImage, matte->getInputSocket(0));
-    converter.mapInputSocket(inputSocketImage, operationAlpha->getInputSocket(0));
+    converter.map_input_socket(input_socket_image, matte->get_input_socket(0));
+    converter.map_input_socket(input_socket_image, operation_alpha->get_input_socket(0));
 
-    converter.mapInputSocket(inputSocketKey, matte->getInputSocket(1));
+    converter.map_input_socket(input_socket_key, matte->get_input_socket(1));
 
     operation = matte;
   }
   /* work in YCbCr color space */
   else {
     DistanceYCCMatteOperation *matte = new DistanceYCCMatteOperation();
-    matte->setSettings(storage);
-    converter.addOperation(matte);
+    matte->set_settings(storage);
+    converter.add_operation(matte);
 
-    ConvertRGBToYCCOperation *operationYCCImage = new ConvertRGBToYCCOperation();
-    ConvertRGBToYCCOperation *operationYCCMatte = new ConvertRGBToYCCOperation();
-    operationYCCImage->setMode(BLI_YCC_ITU_BT709);
-    operationYCCMatte->setMode(BLI_YCC_ITU_BT709);
-    converter.addOperation(operationYCCImage);
-    converter.addOperation(operationYCCMatte);
+    ConvertRGBToYCCOperation *operation_yccimage = new ConvertRGBToYCCOperation();
+    ConvertRGBToYCCOperation *operation_yccmatte = new ConvertRGBToYCCOperation();
+    operation_yccimage->set_mode(BLI_YCC_ITU_BT709);
+    operation_yccmatte->set_mode(BLI_YCC_ITU_BT709);
+    converter.add_operation(operation_yccimage);
+    converter.add_operation(operation_yccmatte);
 
-    converter.mapInputSocket(inputSocketImage, operationYCCImage->getInputSocket(0));
-    converter.addLink(operationYCCImage->getOutputSocket(), matte->getInputSocket(0));
-    converter.addLink(operationYCCImage->getOutputSocket(), operationAlpha->getInputSocket(0));
+    converter.map_input_socket(input_socket_image, operation_yccimage->get_input_socket(0));
+    converter.add_link(operation_yccimage->get_output_socket(), matte->get_input_socket(0));
+    converter.add_link(operation_yccimage->get_output_socket(),
+                       operation_alpha->get_input_socket(0));
 
-    converter.mapInputSocket(inputSocketKey, operationYCCMatte->getInputSocket(0));
-    converter.addLink(operationYCCMatte->getOutputSocket(), matte->getInputSocket(1));
+    converter.map_input_socket(input_socket_key, operation_yccmatte->get_input_socket(0));
+    converter.add_link(operation_yccmatte->get_output_socket(), matte->get_input_socket(1));
 
     operation = matte;
   }
 
-  converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
-  converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
+  converter.map_output_socket(output_socket_matte, operation->get_output_socket(0));
+  converter.add_link(operation->get_output_socket(), operation_alpha->get_input_socket(1));
 
   if (storage->channel != 1) {
     ConvertYCCToRGBOperation *inv_convert = new ConvertYCCToRGBOperation();
-    inv_convert->setMode(BLI_YCC_ITU_BT709);
+    inv_convert->set_mode(BLI_YCC_ITU_BT709);
 
-    converter.addOperation(inv_convert);
-    converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));
-    converter.mapOutputSocket(outputSocketImage, inv_convert->getOutputSocket());
-    converter.addPreview(inv_convert->getOutputSocket());
+    converter.add_operation(inv_convert);
+    converter.add_link(operation_alpha->get_output_socket(0), inv_convert->get_input_socket(0));
+    converter.map_output_socket(output_socket_image, inv_convert->get_output_socket());
+    converter.add_preview(inv_convert->get_output_socket());
   }
   else {
-    converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
-    converter.addPreview(operationAlpha->getOutputSocket());
+    converter.map_output_socket(output_socket_image, operation_alpha->get_output_socket());
+    converter.add_preview(operation_alpha->get_output_socket());
   }
 }
 

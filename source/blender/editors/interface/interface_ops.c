@@ -849,6 +849,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
   else if (RNA_struct_is_a(ptr->type, &RNA_NlaStrip)) {
     *r_lb = CTX_data_collection_get(C, "selected_nla_strips");
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_MovieTrackingTrack)) {
+    *r_lb = CTX_data_collection_get(C, "selected_movieclip_tracks");
+  }
   else if (RNA_struct_is_a(ptr->type, &RNA_Constraint) &&
            (path_from_bone = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone)) !=
                NULL) {
@@ -1381,16 +1384,7 @@ static int editsource_text_edit(bContext *C,
 
   /* naughty!, find text area to set, not good behavior
    * but since this is a developer tool lets allow it - campbell */
-  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
-  if (area) {
-    SpaceText *st = area->spacedata.first;
-    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-    st->text = text;
-    if (region) {
-      ED_text_scroll_to_cursor(st, region, true);
-    }
-  }
-  else {
+  if (!ED_text_activate_in_screen(C, text)) {
     BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
   }
 
@@ -1692,7 +1686,8 @@ static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   bScreen *screen = CTX_wm_screen(C);
   const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
   ARegion *region_prev = CTX_wm_region(C);
-  ARegion *region = screen ? BKE_screen_find_region_xy(screen, RGN_TYPE_ANY, event->x, event->y) :
+  ARegion *region = screen ? BKE_screen_find_region_xy(
+                                 screen, RGN_TYPE_ANY, event->xy[0], event->xy[1]) :
                              NULL;
 
   if (region == NULL) {
@@ -1869,6 +1864,39 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Drop Name Operator
+ * \{ */
+
+static int drop_name_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  uiBut *but = UI_but_active_drop_name_button(C);
+  char *str = RNA_string_get_alloc(op->ptr, "string", NULL, 0, NULL);
+
+  if (str) {
+    ui_but_set_string_interactive(C, but, str);
+    MEM_freeN(str);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_drop_name(wmOperatorType *ot)
+{
+  ot->name = "Drop Name";
+  ot->idname = "UI_OT_drop_name";
+  ot->description = "Drop name to button";
+
+  ot->poll = ED_operator_regionactive;
+  ot->invoke = drop_name_invoke;
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(
+      ot->srna, "string", NULL, 0, "String", "The string value to drop into the button");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name UI List Search Operator
  * \{ */
 
@@ -1927,6 +1955,93 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI Tree-View Drop Operator
+ * \{ */
+
+static bool ui_tree_view_drop_poll(bContext *C)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  const ARegion *region = CTX_wm_region(C);
+  const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
+      region, win->eventstate->xy);
+
+  return hovered_tree_item != NULL;
+}
+
+static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+  if (event->custom != EVT_DATA_DRAGDROP) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  const ARegion *region = CTX_wm_region(C);
+  uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region, event->xy);
+
+  if (!UI_tree_view_item_drop_handle(hovered_tree_item, event->customdata)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_tree_view_drop(wmOperatorType *ot)
+{
+  ot->name = "Tree View drop";
+  ot->idname = "UI_OT_tree_view_drop";
+  ot->description = "Drag and drop items onto a tree item";
+
+  ot->invoke = ui_tree_view_drop_invoke;
+  ot->poll = ui_tree_view_drop_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI Tree-View Item Rename Operator
+ *
+ * General purpose renaming operator for tree-views. Thanks to this, to add a rename button to
+ * context menus for example, tree-view API users don't have to implement own renaming operators
+ * with the same logic as they already have for their #ui::AbstractTreeViewItem::rename() override.
+ *
+ * \{ */
+
+static bool ui_tree_view_item_rename_poll(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  const uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
+  return active_item != NULL && UI_tree_view_item_can_rename(active_item);
+}
+
+static int ui_tree_view_item_rename_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ARegion *region = CTX_wm_region(C);
+  uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
+
+  UI_tree_view_item_begin_rename(active_item);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_tree_view_item_rename(wmOperatorType *ot)
+{
+  ot->name = "Rename Tree-View Item";
+  ot->idname = "UI_OT_tree_view_item_rename";
+  ot->description = "Rename the active item in the tree";
+
+  ot->exec = ui_tree_view_item_rename_exec;
+  ot->poll = ui_tree_view_item_rename_poll;
+  /* Could get a custom tooltip via the `get_description()` callback and another overridable
+   * function of the tree-view. */
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator & Keymap Registration
  * \{ */
 
@@ -1943,6 +2058,7 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_copy_to_selected_button);
   WM_operatortype_append(UI_OT_jump_to_target_button);
   WM_operatortype_append(UI_OT_drop_color);
+  WM_operatortype_append(UI_OT_drop_name);
 #ifdef WITH_PYTHON
   WM_operatortype_append(UI_OT_editsource);
   WM_operatortype_append(UI_OT_edittranslation_init);
@@ -1952,6 +2068,9 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_button_string_clear);
 
   WM_operatortype_append(UI_OT_list_start_filter);
+
+  WM_operatortype_append(UI_OT_tree_view_drop);
+  WM_operatortype_append(UI_OT_tree_view_item_rename);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);

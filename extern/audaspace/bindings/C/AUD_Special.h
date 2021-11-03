@@ -37,7 +37,7 @@ extern AUD_API float* AUD_readSoundBuffer(const char* filename, float low, float
 								  float attack, float release, float threshold,
 								  int accumulate, int additive, int square,
 								  float sthreshold, double samplerate,
-								  int* length);
+								  int* length, int stream);
 
 /**
  * Pauses a playing sound after a specific amount of time.

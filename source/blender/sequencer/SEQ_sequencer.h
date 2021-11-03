@@ -64,6 +64,7 @@ short SEQ_tool_settings_snap_flag_get(struct Scene *scene);
 short SEQ_tool_settings_snap_mode_get(struct Scene *scene);
 int SEQ_tool_settings_snap_distance_get(struct Scene *scene);
 eSeqOverlapMode SEQ_tool_settings_overlap_mode_get(struct Scene *scene);
+int SEQ_tool_settings_pivot_point_get(struct Scene *scene);
 struct SequencerToolSettings *SEQ_tool_settings_copy(struct SequencerToolSettings *tool_settings);
 struct Editing *SEQ_editing_get(const struct Scene *scene);
 struct Editing *SEQ_editing_ensure(struct Scene *scene);
@@ -88,6 +89,7 @@ void SEQ_sequence_base_dupli_recursive(const struct Scene *scene_src,
                                        const struct ListBase *seqbase,
                                        int dupe_flag,
                                        const int flag);
+bool SEQ_valid_strip_channel(struct Sequence *seq);
 
 /* Read and Write functions for .blend file data */
 void SEQ_blend_write(struct BlendWriter *writer, struct ListBase *seqbase);

@@ -23,10 +23,8 @@
  * \brief Struct muncher for making SDNA.
  *
  * \section aboutmakesdnac About makesdna tool
- * Originally by Ton, some mods by Frank, and some cleaning and
- * extension by Nzc.
  *
- * Makesdna creates a .c file with a long string of numbers that
+ * `makesdna` creates a .c file with a long string of numbers that
  * encode the Blender file format. It is fast, because it is basically
  * a binary dump. There are some details to mind when reconstructing
  * the file (endianness and byte-alignment).
@@ -36,9 +34,9 @@
  * how much memory (on disk or in ram) is needed to store that struct,
  * and the offsets for reaching a particular one.
  *
- * There is a facility to get verbose output from sdna. Search for
- * \ref debugSDNA. This int can be set to 0 (no output) to some int. Higher
- * numbers give more output.
+ * There is a facility to get verbose output from `sdna`. Search for
+ * \ref debugSDNA. This int can be set to 0 (no output) to some int.
+ * Higher numbers give more output.
  */
 
 #define DNA_DEPRECATED_ALLOW
@@ -1134,7 +1132,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
              * to the struct to resolve the problem. */
             if ((size_64 % max_align_64 == 0) && (size_32 % max_align_32 == 4)) {
               fprintf(stderr,
-                      "Sizeerror in 32 bit struct: %s (add paddding pointer)\n",
+                      "Sizeerror in 32 bit struct: %s (add padding pointer)\n",
                       types[structtype]);
             }
             else {

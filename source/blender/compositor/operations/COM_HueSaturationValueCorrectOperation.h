@@ -26,9 +26,9 @@ namespace blender::compositor {
 class HueSaturationValueCorrectOperation : public CurveBaseOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputProgram;
+  SocketReader *input_program_;
 
  public:
   HueSaturationValueCorrectOperation();
@@ -36,17 +36,17 @@ class HueSaturationValueCorrectOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

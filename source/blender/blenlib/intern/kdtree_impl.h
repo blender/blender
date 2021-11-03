@@ -190,7 +190,7 @@ static uint kdtree_balance(KDTreeNode *nodes, uint nodes_len, uint axis, const u
     }
   }
 
-  /* set node and sort subnodes */
+  /* Set node and sort sub-nodes. */
   node = &nodes[median];
   node->d = axis;
   axis = (axis + 1) % KD_DIMS;

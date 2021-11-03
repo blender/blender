@@ -23,9 +23,9 @@ namespace blender::compositor {
 GaussianAlphaBlurBaseOperation::GaussianAlphaBlurBaseOperation(eDimension dim)
     : BlurBaseOperation(DataType::Value)
 {
-  this->m_gausstab = nullptr;
-  this->m_filtersize = 0;
-  this->m_falloff = -1; /* Intentionally invalid, so we can detect uninitialized values. */
+  gausstab_ = nullptr;
+  filtersize_ = 0;
+  falloff_ = -1; /* Intentionally invalid, so we can detect uninitialized values. */
   dimension_ = dim;
 }
 
@@ -33,33 +33,33 @@ void GaussianAlphaBlurBaseOperation::init_data()
 {
   BlurBaseOperation::init_data();
   if (execution_model_ == eExecutionModel::FullFrame) {
-    rad_ = max_ff(m_size * this->get_blur_size(dimension_), 0.0f);
+    rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
     rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
-    m_filtersize = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
+    filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
   }
 }
 
-void GaussianAlphaBlurBaseOperation::initExecution()
+void GaussianAlphaBlurBaseOperation::init_execution()
 {
-  BlurBaseOperation::initExecution();
+  BlurBaseOperation::init_execution();
   if (execution_model_ == eExecutionModel::FullFrame) {
-    m_gausstab = BlurBaseOperation::make_gausstab(rad_, m_filtersize);
-    m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad_, m_filtersize, m_falloff);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
+    distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad_, filtersize_, falloff_);
   }
 }
 
-void GaussianAlphaBlurBaseOperation::deinitExecution()
+void GaussianAlphaBlurBaseOperation::deinit_execution()
 {
-  BlurBaseOperation::deinitExecution();
+  BlurBaseOperation::deinit_execution();
 
-  if (this->m_gausstab) {
-    MEM_freeN(this->m_gausstab);
-    this->m_gausstab = nullptr;
+  if (gausstab_) {
+    MEM_freeN(gausstab_);
+    gausstab_ = nullptr;
   }
 
-  if (this->m_distbuf_inv) {
-    MEM_freeN(this->m_distbuf_inv);
-    this->m_distbuf_inv = nullptr;
+  if (distbuf_inv_) {
+    MEM_freeN(distbuf_inv_);
+    distbuf_inv_ = nullptr;
   }
 }
 
@@ -75,12 +75,12 @@ void GaussianAlphaBlurBaseOperation::get_area_of_interest(const int input_idx,
   r_input_area = output_area;
   switch (dimension_) {
     case eDimension::X:
-      r_input_area.xmin = output_area.xmin - m_filtersize - 1;
-      r_input_area.xmax = output_area.xmax + m_filtersize + 1;
+      r_input_area.xmin = output_area.xmin - filtersize_ - 1;
+      r_input_area.xmax = output_area.xmax + filtersize_ + 1;
       break;
     case eDimension::Y:
-      r_input_area.ymin = output_area.ymin - m_filtersize - 1;
-      r_input_area.ymax = output_area.ymax + m_filtersize + 1;
+      r_input_area.ymin = output_area.ymin - filtersize_ - 1;
+      r_input_area.ymax = output_area.ymax + filtersize_ + 1;
       break;
   }
 }
@@ -119,8 +119,8 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
 
   for (; !it.is_end(); ++it) {
     const int coord = get_current_coord();
-    const int coord_min = max_ii(coord - m_filtersize, min_input_coord);
-    const int coord_max = min_ii(coord + m_filtersize + 1, max_input_coord);
+    const int coord_min = max_ii(coord - filtersize_, min_input_coord);
+    const int coord_max = min_ii(coord + filtersize_ + 1, max_input_coord);
 
     /* *** This is the main part which is different to #GaussianBlurBaseOperation.  *** */
     /* Gauss. */
@@ -128,27 +128,27 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
     float multiplier_accum = 0.0f;
 
     /* Dilate. */
-    const bool do_invert = m_do_subtract;
+    const bool do_invert = do_subtract_;
     /* Init with the current color to avoid unneeded lookups. */
     float value_max = finv_test(*it.in(0), do_invert);
     float distfacinv_max = 1.0f; /* 0 to 1 */
 
-    const int step = QualityStepHelper::getStep();
+    const int step = QualityStepHelper::get_step();
     const float *in = it.in(0) + ((intptr_t)coord_min - coord) * elem_stride;
     const int in_stride = elem_stride * step;
-    int index = (coord_min - coord) + m_filtersize;
+    int index = (coord_min - coord) + filtersize_;
     const int index_end = index + (coord_max - coord_min);
     for (; index < index_end; in += in_stride, index += step) {
       float value = finv_test(*in, do_invert);
 
       /* Gauss. */
-      float multiplier = m_gausstab[index];
+      float multiplier = gausstab_[index];
       alpha_accum += value * multiplier;
       multiplier_accum += multiplier;
 
       /* Dilate - find most extreme color. */
       if (value > value_max) {
-        multiplier = m_distbuf_inv[index];
+        multiplier = distbuf_inv_[index];
         value *= multiplier;
         if (value > value_max) {
           value_max = value;

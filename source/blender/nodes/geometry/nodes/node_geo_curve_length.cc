@@ -21,14 +21,13 @@ namespace blender::nodes {
 
 static void geo_node_curve_length_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_output<decl::Float>("Length");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_output<decl::Float>(N_("Length"));
 }
 
 static void geo_node_curve_length_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
-  curve_set = bke::geometry_set_realize_instances(curve_set);
   if (!curve_set.has_curve()) {
     params.set_output("Length", 0.0f);
     return;

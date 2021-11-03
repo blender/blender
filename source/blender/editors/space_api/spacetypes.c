@@ -177,6 +177,7 @@ void ED_spacemacros_init(void)
   ED_operatormacros_gpencil();
 
   /* Register dropboxes (can use macros). */
+  ED_dropboxes_ui();
   const ListBase *spacetypes = BKE_spacetypes_list();
   LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
     if (type->dropboxes) {
@@ -263,9 +264,9 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
   }
 }
 
-void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
+static void ed_region_draw_cb_draw(const bContext *C, ARegion *region, ARegionType *art, int type)
 {
-  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &region->type->drawcalls) {
+  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
 
@@ -273,6 +274,16 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
       GPU_bgl_end();
     }
   }
+}
+
+void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
+{
+  ed_region_draw_cb_draw(C, region, region->type, type);
+}
+
+void ED_region_surface_draw_cb_draw(ARegionType *art, int type)
+{
+  ed_region_draw_cb_draw(NULL, NULL, art, type);
 }
 
 void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*free)(void *))

@@ -294,7 +294,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
       break;
     }
     for (x = 0; x < width; x++) {
-      /* convert to ldr */
+      /* Convert to LDR. */
       RGBE2FLOAT(sline[x], fcol);
       *rect_float++ = fcol[RED];
       *rect_float++ = fcol[GRN];
@@ -328,7 +328,7 @@ static int fwritecolrs(
 
   rgbe_scan = (RGBE *)MEM_mallocN(sizeof(RGBE) * width, "radhdr_write_tmpscan");
 
-  /* convert scanline */
+  /* Convert scan-line. */
   for (size_t i = 0, j = 0; i < width; i++) {
     if (fpscan) {
       fcol[RED] = fpscan[j];

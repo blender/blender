@@ -126,9 +126,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
           structname = RNA_struct_ui_name(ptr.type);
         }
 
-        /* For the VSE, a strip's 'Transform' or 'Crop' is a nested (under Sequence) struct, but
-         * displaying the struct name alone is no meaningful information (and also cannot be
-         * filtered well), same for modifiers. So display strip name alongside as well. */
+        /* For the sequencer, a strip's 'Transform' or 'Crop' is a nested (under Sequence)
+         * struct, but displaying the struct name alone is no meaningful information
+         * (and also cannot be filtered well), same for modifiers.
+         * So display strip name alongside as well. */
         if (GS(ptr.owner_id->name) == ID_SCE) {
           char stripname[256];
           if (BLI_str_quoted_substr(
@@ -142,6 +143,22 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
               structname = structname_all;
               free_structname = 1;
             }
+          }
+        }
+        /* For node sockets, it is useful to include the node name as well (multiple similar nodes
+         * are not distinguishable otherwise). Unfortunately, the node label cannot be retrieved
+         * from the rna path, for this to work access to the underlying node is needed (but finding
+         * the node iterates all nodes & sockets which would result in bad performance in some
+         * circumstances). */
+        if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+          char nodename[256];
+          if (BLI_str_quoted_substr(fcu->rna_path, "nodes[", nodename, sizeof(nodename))) {
+            const char *structname_all = BLI_sprintfN("%s : %s", nodename, structname);
+            if (free_structname) {
+              MEM_freeN((void *)structname);
+            }
+            structname = structname_all;
+            free_structname = 1;
           }
         }
       }

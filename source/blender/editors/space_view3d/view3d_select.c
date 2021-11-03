@@ -2047,19 +2047,16 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
                                                     bool enumerate,
                                                     bool *r_do_nearest)
 {
-  static int last_mval[2] = {-100, -100};
   bool do_nearest = false;
   View3D *v3d = vc->v3d;
 
   /* define if we use solid nearest select or not */
   if (use_cycle) {
+    /* Update the coordinates (even if the return value isn't used). */
+    const bool has_motion = WM_cursor_test_motion_and_update(mval);
     if (!XRAY_ACTIVE(v3d)) {
-      do_nearest = true;
-      if (len_manhattan_v2v2_int(mval, last_mval) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
-        do_nearest = false;
-      }
+      do_nearest = has_motion;
     }
-    copy_v2_v2_int(last_mval, mval);
   }
   else {
     if (!XRAY_ACTIVE(v3d)) {
@@ -2082,7 +2079,7 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 /**
  * \param has_bones: When true, skip non-bone hits, also allow bases to be used
  * that are visible but not select-able,
- * since you may be in pose mode with an unselect-able object.
+ * since you may be in pose mode with an un-selectable object.
  *
  * \return the active base or NULL.
  */
@@ -2813,7 +2810,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  return view3d_select_exec(C, op);
+  const int retval = view3d_select_exec(C, op);
+
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)

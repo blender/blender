@@ -46,6 +46,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
@@ -62,7 +63,6 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
@@ -73,7 +73,9 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -164,15 +166,14 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Material *material = (Material *)id;
   /* Nodetrees **are owned by IDs**, treat them as mere sub-data and not real ID! */
-  if (!BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree)) {
-    return;
-  }
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data, BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree));
   if (material->texpaintslot != NULL) {
-    BKE_LIB_FOREACHID_PROCESS(data, material->texpaintslot->ima, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->texpaintslot->ima, IDWALK_CB_NOP);
   }
   if (material->gp_style != NULL) {
-    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->sima, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->ima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
   }
 }
 
@@ -259,7 +260,7 @@ IDTypeInfo IDType_ID_MA = {
     .name = "Material",
     .name_plural = "materials",
     .translation_context = BLT_I18NCONTEXT_ID_MATERIAL,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = material_init_data,
     .copy_data = material_copy_data,
@@ -462,21 +463,33 @@ static void material_data_index_remove_id(ID *id, short index)
   }
 }
 
-bool BKE_object_material_slot_used(ID *id, short actcol)
+bool BKE_object_material_slot_used(Object *object, short actcol)
 {
-  /* ensure we don't try get materials from non-obdata */
-  BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+  if (!BKE_object_supports_material_slots(object)) {
+    return false;
+  }
 
-  switch (GS(id->name)) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+    if (psys->part->omat == actcol) {
+      return true;
+    }
+  }
+
+  ID *ob_data = object->data;
+  if (ob_data == NULL || !OB_DATA_SUPPORT_ID(GS(ob_data->name))) {
+    return false;
+  }
+
+  switch (GS(ob_data->name)) {
     case ID_ME:
-      return BKE_mesh_material_index_used((Mesh *)id, actcol - 1);
+      return BKE_mesh_material_index_used((Mesh *)ob_data, actcol - 1);
     case ID_CU:
-      return BKE_curve_material_index_used((Curve *)id, actcol - 1);
+      return BKE_curve_material_index_used((Curve *)ob_data, actcol - 1);
     case ID_MB:
-      /* meta-elems don't have materials atm */
+      /* Meta-elements don't support materials at the moment. */
       return false;
     case ID_GD:
-      return BKE_gpencil_material_index_used((bGPdata *)id, actcol - 1);
+      return BKE_gpencil_material_index_used((bGPdata *)ob_data, actcol - 1);
     default:
       return false;
   }
@@ -886,7 +899,17 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
     return;
   }
 
-  BKE_object_material_resize(bmain, ob, *totcol, false);
+  if ((ob->id.tag & LIB_TAG_MISSING) == 0 && (id->tag & LIB_TAG_MISSING) != 0) {
+    /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
+     * use object's material slots amount as reference.
+     * This avoids loosing materials in a local object when its linked obdata gets missing.
+     * See T92780. */
+    BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
+  }
+  else {
+    /* Normal case: the use the obdata amount of materials slots to update the object's one. */
+    BKE_object_material_resize(bmain, ob, *totcol, false);
+  }
 }
 
 void BKE_objects_materials_test_all(Main *bmain, ID *id)

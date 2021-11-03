@@ -19,6 +19,7 @@
 #include "NOD_node_tree_ref.hh"
 
 #include "BLI_dot_export.hh"
+#include "BLI_stack.hh"
 
 namespace blender::nodes {
 
@@ -471,6 +472,155 @@ bool NodeTreeRef::has_undefined_nodes_or_sockets() const
     }
   }
   return false;
+}
+
+bool NodeRef::any_input_is_directly_linked() const
+{
+  for (const SocketRef *socket : inputs_) {
+    if (!socket->directly_linked_sockets().is_empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool NodeRef::any_output_is_directly_linked() const
+{
+  for (const SocketRef *socket : outputs_) {
+    if (!socket->directly_linked_sockets().is_empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool NodeRef::any_socket_is_directly_linked(eNodeSocketInOut in_out) const
+{
+  if (in_out == SOCK_IN) {
+    return this->any_input_is_directly_linked();
+  }
+  return this->any_output_is_directly_linked();
+}
+
+struct ToposortNodeState {
+  bool is_done = false;
+  bool is_in_stack = false;
+};
+
+static void toposort_from_start_node(const NodeTreeRef::ToposortDirection direction,
+                                     const NodeRef &start_node,
+                                     MutableSpan<ToposortNodeState> node_states,
+                                     NodeTreeRef::ToposortResult &result)
+{
+  struct Item {
+    const NodeRef *node;
+    /* Index of the next socket that is checked in the depth-first search. */
+    int socket_index = 0;
+    /* Link index in the next socket that is checked in the depth-first search. */
+    int link_index = 0;
+  };
+
+  /* Do a depth-first search to sort nodes topologically. */
+  Stack<Item, 64> nodes_to_check;
+  nodes_to_check.push({&start_node});
+  while (!nodes_to_check.is_empty()) {
+    Item &item = nodes_to_check.peek();
+    const NodeRef &node = *item.node;
+    const Span<const SocketRef *> sockets = node.sockets(
+        direction == NodeTreeRef::ToposortDirection::LeftToRight ? SOCK_IN : SOCK_OUT);
+
+    while (true) {
+      if (item.socket_index == sockets.size()) {
+        /* All sockets have already been visited. */
+        break;
+      }
+      const SocketRef &socket = *sockets[item.socket_index];
+      const Span<const SocketRef *> linked_sockets = socket.directly_linked_sockets();
+      if (item.link_index == linked_sockets.size()) {
+        /* All links connected to this socket have already been visited. */
+        item.socket_index++;
+        item.link_index = 0;
+        continue;
+      }
+      const SocketRef &linked_socket = *linked_sockets[item.link_index];
+      const NodeRef &linked_node = linked_socket.node();
+      ToposortNodeState &linked_node_state = node_states[linked_node.id()];
+      if (linked_node_state.is_done) {
+        /* The linked node has already been visited. */
+        item.link_index++;
+        continue;
+      }
+      if (linked_node_state.is_in_stack) {
+        result.has_cycle = true;
+      }
+      else {
+        nodes_to_check.push({&linked_node});
+        linked_node_state.is_in_stack = true;
+      }
+      break;
+    }
+
+    /* If no other element has been pushed, the current node can be pushed to the sorted list. */
+    if (&item == &nodes_to_check.peek()) {
+      ToposortNodeState &node_state = node_states[node.id()];
+      node_state.is_done = true;
+      node_state.is_in_stack = false;
+      result.sorted_nodes.append(&node);
+      nodes_to_check.pop();
+    }
+  }
+}
+
+/**
+ * Sort nodes topologically from left to right or right to left.
+ * In the future the result if this could be cached on #NodeTreeRef.
+ */
+NodeTreeRef::ToposortResult NodeTreeRef::toposort(const ToposortDirection direction) const
+{
+  ToposortResult result;
+  result.sorted_nodes.reserve(nodes_by_id_.size());
+
+  Array<ToposortNodeState> node_states(nodes_by_id_.size());
+
+  for (const NodeRef *node : nodes_by_id_) {
+    if (node_states[node->id()].is_done) {
+      /* Ignore nodes that are done already. */
+      continue;
+    }
+    if (node->any_socket_is_directly_linked(
+            direction == ToposortDirection::LeftToRight ? SOCK_OUT : SOCK_IN)) {
+      /* Ignore non-start nodes. */
+      continue;
+    }
+
+    toposort_from_start_node(direction, *node, node_states, result);
+  }
+
+  /* Check if the loop above forgot some nodes because there is a cycle. */
+  if (result.sorted_nodes.size() < nodes_by_id_.size()) {
+    result.has_cycle = true;
+    for (const NodeRef *node : nodes_by_id_) {
+      if (node_states[node->id()].is_done) {
+        /* Ignore nodes that are done already. */
+        continue;
+      }
+      /* Start toposort at this node which is somewhere in the middle of a loop. */
+      toposort_from_start_node(direction, *node, node_states, result);
+    }
+  }
+
+  BLI_assert(result.sorted_nodes.size() == nodes_by_id_.size());
+  return result;
+}
+
+const NodeRef *NodeTreeRef::find_node(const bNode &bnode) const
+{
+  for (const NodeRef *node : this->nodes_by_type(bnode.typeinfo)) {
+    if (node->bnode_ == &bnode) {
+      return node;
+    }
+  }
+  return nullptr;
 }
 
 std::string NodeTreeRef::to_dot() const

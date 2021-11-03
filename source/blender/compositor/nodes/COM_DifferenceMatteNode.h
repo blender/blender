@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class DifferenceMatteNode : public Node {
  public:
-  DifferenceMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  DifferenceMatteNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

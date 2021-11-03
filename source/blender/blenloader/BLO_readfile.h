@@ -32,11 +32,13 @@ extern "C" {
 
 struct BHead;
 struct BlendThumbnail;
+struct Collection;
 struct FileData;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
+struct Object;
 struct ReportList;
 struct Scene;
 struct UserDef;
@@ -111,8 +113,18 @@ typedef struct BlendFileReadReport {
     /* Some sub-categories of the above `missing_linked_id` counter. */
     int missing_obdata;
     int missing_obproxies;
+
     /* Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
+
+    /* Number of (non-converted) linked proxies. */
+    int linked_proxies;
+    /* Number of proxies converted to library overrides. */
+    int proxies_to_lib_overrides_success;
+    /* Number of proxies that failed to convert to library overrides. */
+    int proxies_to_lib_overrides_failures;
+    /* Number of sequencer strips that were not read because were in non-supported channels. */
+    int vse_strips_skipped;
   } count;
 
   /* Number of libraries which had overrides that needed to be resynced, and a single linked list
@@ -153,10 +165,10 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 /** \name BLO Blend File Handle API
  * \{ */
 
-struct BLODataBlockInfo {
+typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
-};
+} BLODataBlockInfo;
 
 BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct BlendFileReadReport *reports);
 BlendHandle *BLO_blendhandle_from_memory(const void *mem,
@@ -168,9 +180,8 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
 
                                                      const bool use_assets_only,
                                                      int *r_tot_names);
-struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
-                                                    int ofblocktype,
-                                                    int *r_tot_info_items);
+struct LinkNode * /*BLODataBlockInfo */ BLO_blendhandle_get_datablock_info(
+    BlendHandle *bh, int ofblocktype, const bool use_assets_only, int *r_tot_info_items);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
 struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
                                                         int ofblocktype,
@@ -209,6 +220,20 @@ typedef enum eBLOLibLinkFlags {
    * don't need to remember to set this flag.
    */
   BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
+  /** Set fake user on appended IDs. */
+  BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
+  /** Append (make local) also indirect dependencies of appended IDs coming from other libraries.
+   * NOTE: All IDs (including indirectly linked ones) coming from the same initial library are
+   * always made local. */
+  BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
+  /** Try to re-use previously appended matching ID on new append. */
+  BLO_LIBLINK_APPEND_LOCAL_ID_REUSE = 1 << 21,
+  /** Clear the asset data. */
+  BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR = 1 << 22,
+  /** Instantiate object data IDs (i.e. create objects for them if needed). */
+  BLO_LIBLINK_OBDATA_INSTANCE = 1 << 24,
+  /** Instantiate collections as empties, instead of linking them into current view layer. */
+  BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 25,
 } eBLOLibLinkFlags;
 
 /**
@@ -311,6 +336,14 @@ void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
 
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
+
+void BLO_object_instantiate_object_base_instance_init(struct Main *bmain,
+                                                      struct Collection *collection,
+                                                      struct Object *ob,
+                                                      struct ViewLayer *view_layer,
+                                                      const struct View3D *v3d,
+                                                      const int flag,
+                                                      bool set_active);
 
 /* datafiles (generated theme) */
 extern const struct bTheme U_theme_default;

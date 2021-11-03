@@ -42,11 +42,11 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_font.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -2155,8 +2155,8 @@ void FONT_OT_open(wmOperatorType *ot)
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
+                                 FILE_IMGDISPLAY,
+                                 FILE_SORT_ALPHA);
 }
 
 /** \} */

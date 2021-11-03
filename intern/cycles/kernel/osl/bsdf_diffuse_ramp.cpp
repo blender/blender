@@ -34,12 +34,11 @@
 
 #include <OSL/genclosure.h>
 
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/osl/osl_closures.h"
+#include "kernel/device/cpu/compat.h"
+#include "kernel/osl/closures.h"
 
 // clang-format off
-#include "kernel/kernel_types.h"
-#include "kernel/kernel_montecarlo.h"
+#include "kernel/types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 // clang-format on
@@ -53,7 +52,7 @@ class DiffuseRampClosure : public CBSDFClosure {
   DiffuseRampBsdf params;
   Color3 colors[8];
 
-  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
     DiffuseRampBsdf *bsdf = (DiffuseRampBsdf *)bsdf_alloc_osl(
         sd, sizeof(DiffuseRampBsdf), weight, &params);

@@ -23,7 +23,7 @@
  * \todo Save floats as 16 bits per channel, currently readonly.
  */
 
-#include "png.h"
+#include <png.h>
 
 #include "BLI_fileops.h"
 #include "BLI_math.h"
@@ -153,7 +153,7 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
     chanel_colormanage_cb = channel_colormanage_noop;
   }
   else {
-    /* standard linear-to-srgb conversion if float buffer wasn't managed */
+    /* Standard linear-to-SRGB conversion if float buffer wasn't managed. */
     chanel_colormanage_cb = linearrgb_to_srgb;
   }
 

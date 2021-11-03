@@ -17,101 +17,98 @@
  */
 
 #include "COM_ColorSpillOperation.h"
-#include "BLI_math.h"
 #define AVG(a, b) ((a + b) / 2)
 
 namespace blender::compositor {
 
 ColorSpillOperation::ColorSpillOperation()
 {
-  addInputSocket(DataType::Color);
-  addInputSocket(DataType::Value);
-  addOutputSocket(DataType::Color);
+  add_input_socket(DataType::Color);
+  add_input_socket(DataType::Value);
+  add_output_socket(DataType::Color);
 
-  this->m_inputImageReader = nullptr;
-  this->m_inputFacReader = nullptr;
-  this->m_spillChannel = 1; /* GREEN */
-  this->m_spillMethod = 0;
-  flags.can_be_constant = true;
+  input_image_reader_ = nullptr;
+  input_fac_reader_ = nullptr;
+  spill_channel_ = 1; /* GREEN */
+  spill_method_ = 0;
+  flags_.can_be_constant = true;
 }
 
-void ColorSpillOperation::initExecution()
+void ColorSpillOperation::init_execution()
 {
-  this->m_inputImageReader = this->getInputSocketReader(0);
-  this->m_inputFacReader = this->getInputSocketReader(1);
-  if (this->m_spillChannel == 0) {
-    this->m_rmut = -1.0f;
-    this->m_gmut = 1.0f;
-    this->m_bmut = 1.0f;
-    this->m_channel2 = 1;
-    this->m_channel3 = 2;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 1.0f;
-      this->m_settings->uspillg = 0.0f;
-      this->m_settings->uspillb = 0.0f;
+  input_image_reader_ = this->get_input_socket_reader(0);
+  input_fac_reader_ = this->get_input_socket_reader(1);
+  if (spill_channel_ == 0) {
+    rmut_ = -1.0f;
+    gmut_ = 1.0f;
+    bmut_ = 1.0f;
+    channel2_ = 1;
+    channel3_ = 2;
+    if (settings_->unspill == 0) {
+      settings_->uspillr = 1.0f;
+      settings_->uspillg = 0.0f;
+      settings_->uspillb = 0.0f;
     }
   }
-  else if (this->m_spillChannel == 1) {
-    this->m_rmut = 1.0f;
-    this->m_gmut = -1.0f;
-    this->m_bmut = 1.0f;
-    this->m_channel2 = 0;
-    this->m_channel3 = 2;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 0.0f;
-      this->m_settings->uspillg = 1.0f;
-      this->m_settings->uspillb = 0.0f;
+  else if (spill_channel_ == 1) {
+    rmut_ = 1.0f;
+    gmut_ = -1.0f;
+    bmut_ = 1.0f;
+    channel2_ = 0;
+    channel3_ = 2;
+    if (settings_->unspill == 0) {
+      settings_->uspillr = 0.0f;
+      settings_->uspillg = 1.0f;
+      settings_->uspillb = 0.0f;
     }
   }
   else {
-    this->m_rmut = 1.0f;
-    this->m_gmut = 1.0f;
-    this->m_bmut = -1.0f;
+    rmut_ = 1.0f;
+    gmut_ = 1.0f;
+    bmut_ = -1.0f;
 
-    this->m_channel2 = 0;
-    this->m_channel3 = 1;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 0.0f;
-      this->m_settings->uspillg = 0.0f;
-      this->m_settings->uspillb = 1.0f;
+    channel2_ = 0;
+    channel3_ = 1;
+    if (settings_->unspill == 0) {
+      settings_->uspillr = 0.0f;
+      settings_->uspillg = 0.0f;
+      settings_->uspillb = 1.0f;
     }
   }
 }
 
-void ColorSpillOperation::deinitExecution()
+void ColorSpillOperation::deinit_execution()
 {
-  this->m_inputImageReader = nullptr;
-  this->m_inputFacReader = nullptr;
+  input_image_reader_ = nullptr;
+  input_fac_reader_ = nullptr;
 }
 
-void ColorSpillOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+void ColorSpillOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
   float fac[4];
   float input[4];
-  this->m_inputFacReader->readSampled(fac, x, y, sampler);
-  this->m_inputImageReader->readSampled(input, x, y, sampler);
+  input_fac_reader_->read_sampled(fac, x, y, sampler);
+  input_image_reader_->read_sampled(input, x, y, sampler);
   float rfac = MIN2(1.0f, fac[0]);
   float map;
 
-  switch (this->m_spillMethod) {
+  switch (spill_method_) {
     case 0: /* simple */
-      map = rfac * (input[this->m_spillChannel] -
-                    (this->m_settings->limscale * input[this->m_settings->limchan]));
+      map = rfac * (input[spill_channel_] - (settings_->limscale * input[settings_->limchan]));
       break;
     default: /* average */
-      map = rfac *
-            (input[this->m_spillChannel] -
-             (this->m_settings->limscale * AVG(input[this->m_channel2], input[this->m_channel3])));
+      map = rfac * (input[spill_channel_] -
+                    (settings_->limscale * AVG(input[channel2_], input[channel3_])));
       break;
   }
 
   if (map > 0.0f) {
-    output[0] = input[0] + this->m_rmut * (this->m_settings->uspillr * map);
-    output[1] = input[1] + this->m_gmut * (this->m_settings->uspillg * map);
-    output[2] = input[2] + this->m_bmut * (this->m_settings->uspillb * map);
+    output[0] = input[0] + rmut_ * (settings_->uspillr * map);
+    output[1] = input[1] + gmut_ * (settings_->uspillg * map);
+    output[2] = input[2] + bmut_ * (settings_->uspillb * map);
     output[3] = input[3];
   }
   else {
@@ -128,21 +125,20 @@ void ColorSpillOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float factor = MIN2(1.0f, *it.in(1));
 
     float map;
-    switch (m_spillMethod) {
+    switch (spill_method_) {
       case 0: /* simple */
-        map = factor *
-              (color[m_spillChannel] - (m_settings->limscale * color[m_settings->limchan]));
+        map = factor * (color[spill_channel_] - (settings_->limscale * color[settings_->limchan]));
         break;
       default: /* average */
-        map = factor * (color[m_spillChannel] -
-                        (m_settings->limscale * AVG(color[m_channel2], color[m_channel3])));
+        map = factor * (color[spill_channel_] -
+                        (settings_->limscale * AVG(color[channel2_], color[channel3_])));
         break;
     }
 
     if (map > 0.0f) {
-      it.out[0] = color[0] + m_rmut * (m_settings->uspillr * map);
-      it.out[1] = color[1] + m_gmut * (m_settings->uspillg * map);
-      it.out[2] = color[2] + m_bmut * (m_settings->uspillb * map);
+      it.out[0] = color[0] + rmut_ * (settings_->uspillr * map);
+      it.out[1] = color[1] + gmut_ * (settings_->uspillg * map);
+      it.out[2] = color[2] + bmut_ * (settings_->uspillb * map);
       it.out[3] = color[3];
     }
     else {

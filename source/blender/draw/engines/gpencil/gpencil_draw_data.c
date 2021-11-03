@@ -59,7 +59,6 @@ static struct GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_
   struct GPUTexture *gpu_tex = NULL;
   void *lock;
 
-  iuser.ok = true;
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
   if (ibuf != NULL && ibuf->rect != NULL) {

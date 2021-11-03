@@ -97,6 +97,7 @@ void BKE_anonymous_attribute_id_decrement_weak(const AnonymousAttributeID *anony
 {
   const int new_refcount = anonymous_id->refcount_tot.fetch_sub(1) - 1;
   if (new_refcount == 0) {
+    BLI_assert(anonymous_id->refcount_strong == 0);
     delete anonymous_id;
   }
 }

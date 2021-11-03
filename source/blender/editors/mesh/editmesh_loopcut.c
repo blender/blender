@@ -598,13 +598,13 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       case MOUSEPAN:
         if (event->alt == 0) {
-          cuts += 0.02f * (event->y - event->prevy);
+          cuts += 0.02f * (event->xy[1] - event->prev_xy[1]);
           if (cuts < 1 && lcd->cuts >= 1) {
             cuts = 1;
           }
         }
         else {
-          smoothness += 0.002f * (event->y - event->prevy);
+          smoothness += 0.002f * (event->xy[1] - event->prev_xy[1]);
         }
         handled = true;
         break;

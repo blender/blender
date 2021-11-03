@@ -605,34 +605,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
      *
      * To play safe we move all the inputs beyond 18 to their rightful new place.
      * In case users are doing unexpected things with not-really supported keyframeable channels.
-     *
-     * The for loop for the input ids is at the top level otherwise we lose the animation
-     * keyframe data.
      */
-    for (int input_id = 21; input_id >= 18; input_id--) {
-      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-        if (ntree->type == NTREE_SHADER) {
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type != SH_NODE_BSDF_PRINCIPLED) {
-              continue;
-            }
-
-            const size_t node_name_length = strlen(node->name);
-            const size_t node_name_escaped_max_length = (node_name_length * 2);
-            char *node_name_escaped = MEM_mallocN(node_name_escaped_max_length + 1,
-                                                  "escaped name");
-            BLI_str_escape(node_name_escaped, node->name, node_name_escaped_max_length);
-            char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
-
-            BKE_animdata_fix_paths_rename_all_ex(
-                bmain, id, rna_path_prefix, NULL, NULL, input_id, input_id + 1, false);
-            MEM_freeN(rna_path_prefix);
-            MEM_freeN(node_name_escaped);
-          }
-        }
-      }
-      FOREACH_NODETREE_END;
-    }
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 18, 1, 22);
   }
 
   /* Convert all Multires displacement to Catmull-Clark subdivision limit surface. */
@@ -1461,7 +1435,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           view_layer->cryptomatte_levels = 6;
-          view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
         }
       }
     }
@@ -1529,8 +1502,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
-            sseq->flag |= (SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_SOURCE |
-                           SEQ_SHOW_STRIP_DURATION);
+            sseq->flag |= (SEQ_SHOW_OVERLAY | SEQ_TIMELINE_SHOW_STRIP_NAME |
+                           SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_DURATION);
           }
         }
       }
@@ -1541,7 +1514,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
-          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
+          STRNCPY(node->idname, "GeometryLegacyNodeAttributeRandomize");
         }
       }
     }
@@ -1651,8 +1624,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_BOOLEAN, "Geometry A", "Geometry 1");
-        version_node_socket_name(ntree, GEO_NODE_BOOLEAN, "Geometry B", "Geometry 2");
+        version_node_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry A", "Geometry 1");
+        version_node_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry B", "Geometry 2");
       }
     }
     FOREACH_NODETREE_END;
@@ -1986,7 +1959,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_VOLUME_TO_MESH, "Grid", "Density");
+        version_node_socket_name(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "Grid", "Density");
       }
     }
     FOREACH_NODETREE_END;

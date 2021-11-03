@@ -247,13 +247,13 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
     coords[vertex_idx].setValue(orco_yup[0], orco_yup[1], orco_yup[2]);
   }
 
-  if (!config.abc_ocro.valid()) {
+  if (!config.abc_orco.valid()) {
     /* Create the Alembic property and keep a reference so future frames can reuse it. */
-    config.abc_ocro = OV3fGeomParam(prop, propNameOriginalCoordinates, false, kVertexScope, 1);
+    config.abc_orco = OV3fGeomParam(prop, propNameOriginalCoordinates, false, kVertexScope, 1);
   }
 
   OV3fGeomParam::Sample sample(coords, kVertexScope);
-  config.abc_ocro.set(sample);
+  config.abc_orco.set(sample);
 }
 
 void write_custom_data(const OCompoundProperty &prop,

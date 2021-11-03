@@ -115,6 +115,7 @@ typedef enum {
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
   UI_WTYPE_DATASETROW,
+  UI_WTYPE_TREEROW,
 } uiWidgetTypeEnum;
 
 /* Button state argument shares bits with 'uiBut.flag'.
@@ -517,7 +518,7 @@ GPUBatch *ui_batch_roundbox_shadow_get(void)
 /** \name Draw Triangle Arrow
  * \{ */
 
-void UI_draw_anti_tria(
+static void draw_anti_tria(
     float x1, float y1, float x2, float y2, float x3, float y3, const float color[4])
 {
   const float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};
@@ -558,64 +559,29 @@ void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
   const float f7 = 0.25 * U.widget_unit;
 
   if (dir == 'h') {
-    UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
+    draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
   }
   else if (dir == 't') {
-    UI_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
+    draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
   }
   else { /* 'v' = vertical, down. */
-    UI_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
+    draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
   }
 }
 
 /* triangle 'icon' inside rect */
-void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
+static void draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
 {
   if (dir == 'h') {
     const float half = 0.5f * BLI_rctf_size_y(rect);
-    UI_draw_anti_tria(
+    draw_anti_tria(
         rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half, color);
   }
   else {
     const float half = 0.5f * BLI_rctf_size_x(rect);
-    UI_draw_anti_tria(
+    draw_anti_tria(
         rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin, color);
   }
-}
-
-void UI_draw_anti_fan(float tri_array[][2], uint length, const float color[4])
-{
-  float draw_color[4];
-
-  copy_v4_v4(draw_color, color);
-  draw_color[3] *= 2.0f / WIDGET_AA_JITTER;
-
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  immUniformColor4fv(draw_color);
-
-  /* for each AA step */
-  for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-    immBegin(GPU_PRIM_TRI_FAN, length);
-    immVertex2f(pos, tri_array[0][0], tri_array[0][1]);
-    immVertex2f(pos, tri_array[1][0], tri_array[1][1]);
-
-    /* We jitter only the middle of the fan, the extremes are pinned. */
-    for (int i = 2; i < length - 1; i++) {
-      immVertex2f(pos, tri_array[i][0] + jit[j][0], tri_array[i][1] + jit[j][1]);
-    }
-
-    immVertex2f(pos, tri_array[length - 1][0], tri_array[length - 1][1]);
-    immEnd();
-  }
-
-  immUnbindProgram();
-
-  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void widget_init(uiWidgetBase *wtb)
@@ -1493,7 +1459,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
   GPU_blend(GPU_BLEND_ALPHA);
   UI_widgetbase_draw_cache_flush();
   GPU_blend(GPU_BLEND_NONE);
-  ui_draw_anti_tria_rect(&tria_rect, 'h', col);
+  draw_anti_tria_rect(&tria_rect, 'h', col);
 }
 
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
@@ -2262,7 +2228,10 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
 
     temp.xmin = temp.xmax - icon_size;
 
-    if (!op_icon->highlighted) {
+    if (op_icon->disabled) {
+      alpha_this *= 0.4f;
+    }
+    else if (!op_icon->highlighted) {
       alpha_this *= 0.75f;
     }
 
@@ -3679,10 +3648,9 @@ static void widget_progressbar(
   widgetbase_draw(&wtb_bar, wcol);
 }
 
-static void widget_datasetrow(
-    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
+static void widget_treerow_exec(
+    uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign), int indentation)
 {
-  uiButDatasetRow *but_componentrow = (uiButDatasetRow *)but;
   uiWidgetBase wtb;
   widget_init(&wtb);
 
@@ -3695,16 +3663,30 @@ static void widget_datasetrow(
     widgetbase_draw(&wtb, wcol);
   }
 
-  BLI_rcti_resize(rect,
-                  BLI_rcti_size_x(rect) - UI_UNIT_X * but_componentrow->indentation,
-                  BLI_rcti_size_y(rect));
-  BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * but_componentrow->indentation, 0);
+  BLI_rcti_resize(rect, BLI_rcti_size_x(rect) - UI_UNIT_X * indentation, BLI_rcti_size_y(rect));
+  BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * indentation, 0);
+}
+
+static void widget_treerow(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+  uiButTreeRow *tree_row = (uiButTreeRow *)but;
+  BLI_assert(but->type == UI_BTYPE_TREEROW);
+  widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation);
+}
+
+static void widget_datasetrow(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+  uiButDatasetRow *dataset_row = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+  widget_treerow_exec(wcol, rect, state, roundboxalign, dataset_row->indentation);
 }
 
 static void widget_nodesocket(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
-  const int radi = 5;
+  const int radi = 0.25f * BLI_rcti_size_y(rect);
 
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -4035,9 +4017,15 @@ static void widget_menu_itembut(uiWidgetColors *wcol,
   uiWidgetBase wtb;
   widget_init(&wtb);
 
-  /* not rounded, no outline */
+  /* Padding on the sides. */
+  const float padding = 0.125f * BLI_rcti_size_y(rect);
+  rect->xmin += padding;
+  rect->xmax -= padding;
+
+  /* No outline. */
   wtb.draw_outline = false;
-  round_box_edges(&wtb, 0, rect, 0.0f);
+  const float rad = wcol->roundness * BLI_rcti_size_y(rect);
+  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 
   widgetbase_draw(&wtb, wcol);
 }
@@ -4492,6 +4480,10 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_datasetrow;
       break;
 
+    case UI_WTYPE_TREEROW:
+      wt.custom = widget_treerow;
+      break;
+
     case UI_WTYPE_NODESOCKET:
       wt.custom = widget_nodesocket;
       break;
@@ -4605,6 +4597,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     switch (but->type) {
       case UI_BTYPE_LABEL:
         wt = widget_type(UI_WTYPE_ICON_LABEL);
+        if (!(but->flag & UI_HAS_ICON)) {
+          but->drawflag |= UI_BUT_NO_TEXT_PADDING;
+        }
         break;
       default:
         wt = widget_type(UI_WTYPE_ICON);
@@ -4804,9 +4799,6 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         break;
 
       case UI_BTYPE_CURVE:
-        /* do not draw right to edge of rect */
-        rect->xmin += (0.2f * UI_UNIT_X);
-        rect->xmax -= (0.2f * UI_UNIT_X);
         ui_draw_but_CURVE(region, but, &tui->wcol_regular, rect);
         break;
 
@@ -4821,6 +4813,11 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
 
       case UI_BTYPE_DATASETROW:
         wt = widget_type(UI_WTYPE_DATASETROW);
+        fstyle = &style->widgetlabel;
+        break;
+
+      case UI_BTYPE_TREEROW:
+        wt = widget_type(UI_WTYPE_TREEROW);
         fstyle = &style->widgetlabel;
         break;
 
@@ -4955,30 +4952,6 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
   }
 
   ui_draw_clip_tri(block, rect, wt);
-}
-
-/**
- * Uses the widget base drawing and colors from the box widget, but ensures an opaque
- * inner color.
- */
-void ui_draw_box_opaque(rcti *rect, int roundboxalign)
-{
-  uiWidgetType *wt = widget_type(UI_WTYPE_BOX);
-
-  /* Alpha blend with the region's background color to force an opaque background. */
-  uiWidgetColors *wcol = &wt->wcol;
-  wt->state(wt, 0, 0, UI_EMBOSS_UNDEFINED);
-  float background[4];
-  UI_GetThemeColor4fv(TH_BACK, background);
-  float new_inner[4];
-  rgba_uchar_to_float(new_inner, wcol->inner);
-  new_inner[0] = (new_inner[0] * new_inner[3]) + (background[0] * (1.0f - new_inner[3]));
-  new_inner[1] = (new_inner[1] * new_inner[3]) + (background[1] * (1.0f - new_inner[3]));
-  new_inner[2] = (new_inner[2] * new_inner[3]) + (background[2] * (1.0f - new_inner[3]));
-  new_inner[3] = 1.0f;
-  rgba_float_to_uchar(wcol->inner, new_inner);
-
-  wt->custom(NULL, wcol, rect, 0, roundboxalign);
 }
 
 /**
@@ -5348,7 +5321,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         }
       }
       else {
-        BLI_assert_msg(0, "Unknwon menu item separator type");
+        BLI_assert_msg(0, "Unknown menu item separator type");
       }
     }
   }

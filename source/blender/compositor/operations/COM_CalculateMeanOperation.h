@@ -39,11 +39,11 @@ class CalculateMeanOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the reader
    */
-  SocketReader *m_imageReader;
+  SocketReader *image_reader_;
 
-  bool m_iscalculated;
-  float m_result;
-  int m_setting;
+  bool iscalculated_;
+  float result_;
+  int setting_;
   std::function<float(const float *elem)> setting_func_;
 
  public:
@@ -52,24 +52,24 @@ class CalculateMeanOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void setSetting(int setting);
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void set_setting(int setting);
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 
@@ -82,7 +82,7 @@ class CalculateMeanOperation : public MultiThreadedOperation {
                                             Span<MemoryBuffer *> inputs) override;
 
  protected:
-  void calculateMean(MemoryBuffer *tile);
+  void calculate_mean(MemoryBuffer *tile);
   float calc_mean(const MemoryBuffer *input);
 
  private:

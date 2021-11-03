@@ -959,7 +959,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
    * store spare */
 
   /* ensure at least 1 area shows result */
-  area = render_view_open(C, event->x, event->y, op->reports);
+  area = render_view_open(C, event->xy[0], event->xy[1], op->reports);
 
   /* job custom data */
   rj = MEM_callocN(sizeof(RenderJob), "render job");
@@ -976,7 +976,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->anim = is_animation;
   rj->write_still = is_write_still && !is_animation;
   rj->iuser.scene = scene;
-  rj->iuser.ok = 1;
   rj->reports = op->reports;
   rj->orig_layer = 0;
   rj->last_layer = 0;

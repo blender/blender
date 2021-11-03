@@ -20,9 +20,9 @@ namespace blender::nodes {
 
 static void geo_node_attribute_remove_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute").multi_input();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute")).multi_input();
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void remove_attribute(GeometryComponent &component,
@@ -47,8 +47,6 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Vector<std::string> attribute_names = params.extract_multi_input<std::string>("Attribute");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
   if (geometry_set.has<MeshComponent>()) {
     remove_attribute(
         geometry_set.get_component_for_write<MeshComponent>(), params, attribute_names);
@@ -60,6 +58,10 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
   if (geometry_set.has<CurveComponent>()) {
     remove_attribute(
         geometry_set.get_component_for_write<CurveComponent>(), params, attribute_names);
+  }
+  if (geometry_set.has<InstancesComponent>()) {
+    remove_attribute(
+        geometry_set.get_component_for_write<InstancesComponent>(), params, attribute_names);
   }
 
   params.set_output("Geometry", geometry_set);

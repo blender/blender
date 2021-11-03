@@ -24,6 +24,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_color.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -107,8 +109,13 @@ static void eyedropper_draw_cursor_text_ex(const int x, const int y, const char 
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
-  const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+  /* Use the theme settings from tooltips. */
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
+
+  float col_fg[4], col_bg[4];
+  rgba_uchar_to_float(col_fg, wcol->text);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y + U.widget_unit, name, col_fg, col_bg);
 }
@@ -119,8 +126,8 @@ void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const cha
     return;
   }
 
-  const int x = window->eventstate->x;
-  const int y = window->eventstate->y;
+  const int x = window->eventstate->xy[0];
+  const int y = window->eventstate->xy[1];
 
   eyedropper_draw_cursor_text_ex(x, y, name);
 }
@@ -146,8 +153,8 @@ void eyedropper_draw_cursor_text_region(const int x, const int y, const char *na
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
-  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->x, event->y);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy[0], event->xy[1]);
 
   uiBut *but = ui_but_find_mouse_over(region, event);
 

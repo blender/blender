@@ -316,6 +316,9 @@ class BezierSpline final : public Spline {
   void translate(const blender::float3 &translation) override;
   void transform(const blender::float4x4 &matrix) override;
 
+  void set_handle_position_right(const int index, const blender::float3 &value);
+  void set_handle_position_left(const int index, const blender::float3 &value);
+
   bool point_is_sharp(const int index) const;
 
   void mark_cache_invalid() final;
@@ -565,6 +568,9 @@ struct CurveEval {
 
   blender::Array<int> control_point_offsets() const;
   blender::Array<int> evaluated_point_offsets() const;
+  blender::Array<float> accumulated_spline_lengths() const;
+
+  void mark_cache_invalid();
 
   void assert_valid_point_attributes() const;
 };

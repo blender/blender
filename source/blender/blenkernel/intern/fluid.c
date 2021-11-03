@@ -2676,7 +2676,7 @@ static void update_flowsflags(FluidDomainSettings *fds, Object **flowobjs, int n
       }
       /* Activate color field if flows add smoke with varying colors. */
       if (ffs->density != 0.0 &&
-          (ffs->type == FLUID_FLOW_TYPE_SMOKE || ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE)) {
+          ELEM(ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_SMOKEFIRE)) {
         if (!(active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET)) {
           copy_v3_v3(fds->active_color, ffs->color);
           active_fields |= FLUID_DOMAIN_ACTIVE_COLOR_SET;
@@ -5094,7 +5094,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
 
     /* pointcache options */
     BKE_ptcache_free_list(&(tfds->ptcaches[0]));
-    if (flag & LIB_ID_CREATE_NO_MAIN) {
+    if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
       /* Share the cache with the original object's modifier. */
       tfmd->modifier.flag |= eModifierFlag_SharedCaches;
       tfds->point_cache[0] = fds->point_cache[0];

@@ -18,10 +18,10 @@
 #ifndef __BVH_H__
 #define __BVH_H__
 
-#include "bvh/bvh_params.h"
-#include "util/util_array.h"
-#include "util/util_types.h"
-#include "util/util_vector.h"
+#include "bvh/params.h"
+#include "util/array.h"
+#include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -50,13 +50,9 @@ struct PackedBVH {
   array<int4> leaf_nodes;
   /* object index to BVH node index mapping for instances */
   array<int> object_node;
-  /* Mapping from primitive index to index in triangle array. */
-  array<uint> prim_tri_index;
-  /* Continuous storage of triangle vertices. */
-  array<float4> prim_tri_verts;
   /* primitive type - triangle or strand */
   array<int> prim_type;
-  /* visibility visibilitys for primitives */
+  /* Visibility visibilities for primitives. */
   array<uint> prim_visibility;
   /* mapping from BVH primitive index to true primitive index, as primitives
    * may be duplicated due to spatial splits. -1 for instances. */

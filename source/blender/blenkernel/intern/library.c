@@ -57,7 +57,7 @@ static void library_free_data(ID *id)
 static void library_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Library *lib = (Library *)id;
-  BKE_LIB_FOREACHID_PROCESS(data, lib->parent, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lib->parent, IDWALK_CB_NEVER_SELF);
 }
 
 IDTypeInfo IDType_ID_LI = {

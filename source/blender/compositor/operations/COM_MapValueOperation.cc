@@ -22,25 +22,25 @@ namespace blender::compositor {
 
 MapValueOperation::MapValueOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->m_inputOperation = nullptr;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void MapValueOperation::initExecution()
+void MapValueOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void MapValueOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MapValueOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
   float src[4];
-  this->m_inputOperation->readSampled(src, x, y, sampler);
-  TexMapping *texmap = this->m_settings;
+  input_operation_->read_sampled(src, x, y, sampler);
+  TexMapping *texmap = settings_;
   float value = (src[0] + texmap->loc[0]) * texmap->size[0];
   if (texmap->flag & TEXMAP_CLIP_MIN) {
     if (value < texmap->min[0]) {
@@ -56,9 +56,9 @@ void MapValueOperation::executePixelSampled(float output[4],
   output[0] = value;
 }
 
-void MapValueOperation::deinitExecution()
+void MapValueOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
 void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -67,7 +67,7 @@ void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float input = *it.in(0);
-    TexMapping *texmap = this->m_settings;
+    TexMapping *texmap = settings_;
     float value = (input + texmap->loc[0]) * texmap->size[0];
     if (texmap->flag & TEXMAP_CLIP_MIN) {
       if (value < texmap->min[0]) {

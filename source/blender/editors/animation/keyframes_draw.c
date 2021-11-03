@@ -30,7 +30,6 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_task.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
@@ -146,31 +145,31 @@ void draw_keyframe_shape(float x,
     /* Handle type to outline shape. */
     switch (handle_type) {
       case KEYFRAME_HANDLE_AUTO_CLAMP:
-        flags = 0x2;
+        flags = GPU_KEYFRAME_SHAPE_CIRCLE;
         break; /* circle */
       case KEYFRAME_HANDLE_AUTO:
-        flags = 0x12;
+        flags = GPU_KEYFRAME_SHAPE_CIRCLE | GPU_KEYFRAME_SHAPE_INNER_DOT;
         break; /* circle with dot */
       case KEYFRAME_HANDLE_VECTOR:
-        flags = 0xC;
+        flags = GPU_KEYFRAME_SHAPE_SQUARE;
         break; /* square */
       case KEYFRAME_HANDLE_ALIGNED:
-        flags = 0x5;
+        flags = GPU_KEYFRAME_SHAPE_DIAMOND | GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL;
         break; /* clipped diamond */
 
       case KEYFRAME_HANDLE_FREE:
       default:
-        flags = 1; /* diamond */
+        flags = GPU_KEYFRAME_SHAPE_DIAMOND; /* diamond */
     }
 
     /* Extreme type to arrow-like shading. */
     if (extreme_type & KEYFRAME_EXTREME_MAX) {
-      flags |= 0x100;
+      flags |= GPU_KEYFRAME_SHAPE_ARROW_END_MAX;
     }
     if (extreme_type & KEYFRAME_EXTREME_MIN) {
-      flags |= 0x200;
+      flags |= GPU_KEYFRAME_SHAPE_ARROW_END_MIN;
     }
-    if (extreme_type & KEYFRAME_EXTREME_MIXED) {
+    if (extreme_type & GPU_KEYFRAME_SHAPE_ARROW_END_MIXED) {
       flags |= 0x400;
     }
   }
@@ -505,25 +504,12 @@ AnimKeylistDrawList *ED_keylist_draw_list_create(void)
   return MEM_callocN(sizeof(AnimKeylistDrawList), __func__);
 }
 
-static void ED_keylist_draw_list_elem_build_task(void *__restrict UNUSED(userdata),
-                                                 void *item,
-                                                 int UNUSED(index),
-                                                 const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  AnimKeylistDrawListElem *elem = item;
-  ED_keylist_draw_list_elem_build_keylist(elem);
-  ED_keylist_draw_list_elem_prepare_for_drawing(elem);
-}
-
 static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
 {
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  /* Create a task per item, a single item is complex enough to deserve its own task. */
-  settings.min_iter_per_thread = 1;
-
-  BLI_task_parallel_listbase(
-      &draw_list->channels, NULL, ED_keylist_draw_list_elem_build_task, &settings);
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_draw_list_elem_build_keylist(elem);
+    ED_keylist_draw_list_elem_prepare_for_drawing(elem);
+  }
 }
 
 static void ED_keylist_draw_list_draw_blocks(AnimKeylistDrawList *draw_list, View2D *v2d)
@@ -584,7 +570,7 @@ static void ED_keylist_draw_list_draw_keys(AnimKeylistDrawList *draw_list, View2
   sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPU_program_point_size(true);
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 1.0f);
   immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
   immBegin(GPU_PRIM_POINTS, visible_key_len);

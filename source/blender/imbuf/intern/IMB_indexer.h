@@ -33,7 +33,7 @@
  * a) different time-codes within one file (like DTS/PTS, Time-code-Track,
  *    "implicit" time-codes within DV-files and HDV-files etc.)
  * b) seeking difficulties within FFMPEG for files with timestamp holes
- * c) broken files that miss several frames / have varying framerates
+ * c) broken files that miss several frames / have varying frame-rates
  * d) use proxies accordingly
  *
  * ... we need index files, that provide us with

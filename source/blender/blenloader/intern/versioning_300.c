@@ -47,6 +47,7 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_collection.h"
 #include "BKE_deform.h"
@@ -55,6 +56,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 
 #include "RNA_access.h"
@@ -64,6 +66,7 @@
 #include "MEM_guardedalloc.h"
 #include "readfile.h"
 
+#include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 
 #include "RNA_access.h"
@@ -109,7 +112,8 @@ static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
   if (default_value != NULL) {
     if (default_value->type == IDP_ARRAY) {
       if (default_value->subtype == IDP_INT) {
-        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
+        ui_data->default_array = MEM_malloc_arrayN(default_value->len, sizeof(int), __func__);
+        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(int) * default_value->len);
         ui_data->default_array_len = default_value->len;
       }
     }
@@ -151,9 +155,18 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
   if (default_value != NULL) {
     if (default_value->type == IDP_ARRAY) {
-      if (ELEM(default_value->subtype, IDP_FLOAT, IDP_DOUBLE)) {
-        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
-        ui_data->default_array_len = default_value->len;
+      const int array_len = default_value->len;
+      ui_data->default_array_len = array_len;
+      if (default_value->subtype == IDP_FLOAT) {
+        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
+        const float *old_default_array = IDP_Array(default_value);
+        for (int i = 0; i < ui_data->default_array_len; i++) {
+          ui_data->default_array[i] = (double)old_default_array[i];
+        }
+      }
+      else if (default_value->subtype == IDP_DOUBLE) {
+        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
+        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(double) * array_len);
       }
     }
     else if (ELEM(default_value->type, IDP_DOUBLE, IDP_FLOAT)) {
@@ -365,6 +378,7 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
         /* Clear the list in case the it was already assigned from another object. */
         BLI_freelistN(new_defbase);
         *new_defbase = object->defbase;
+        BKE_object_defgroup_active_index_set(object, object->actdef);
       }
     }
   }
@@ -438,6 +452,143 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
+static bool do_versions_sequencer_color_tags(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->color_tag = SEQUENCE_COLOR_NONE;
+  return true;
+}
+
+static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void *UNUSED(user_data))
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    if (smd->type == seqModifierType_ColorBalance) {
+      StripColorBalance *cb = &((ColorBalanceModifierData *)smd)->color_balance;
+      cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
+      for (int i = 0; i < 3; i++) {
+        copy_v3_fl(cb->slope, 1.0f);
+        copy_v3_fl(cb->offset, 1.0f);
+        copy_v3_fl(cb->power, 1.0f);
+      }
+    }
+  }
+  return true;
+}
+
+static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tosock == in_socket) {
+      return link;
+    }
+  }
+  return NULL;
+}
+
+static void add_realize_instances_before_socket(bNodeTree *ntree,
+                                                bNode *node,
+                                                bNodeSocket *geometry_socket)
+{
+  BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
+  bNodeLink *link = find_connected_link(ntree, geometry_socket);
+  if (link == NULL) {
+    return;
+  }
+
+  /* If the realize instances node is already before this socket, no need to continue. */
+  if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
+    return;
+  }
+
+  bNode *realize_node = nodeAddStaticNode(NULL, ntree, GEO_NODE_REALIZE_INSTANCES);
+  realize_node->parent = node->parent;
+  realize_node->locx = node->locx - 100;
+  realize_node->locy = node->locy;
+  nodeAddLink(ntree, link->fromnode, link->fromsock, realize_node, realize_node->inputs.first);
+  link->fromnode = realize_node;
+  link->fromsock = realize_node->outputs.first;
+}
+
+/**
+ * If a node used to realize instances implicitly and will no longer do so in 3.0, add a "Realize
+ * Instances" node in front of it to avoid changing behavior. Don't do this if the node will be
+ * replaced anyway though.
+ */
+static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+    if (ELEM(node->type,
+             GEO_NODE_CAPTURE_ATTRIBUTE,
+             GEO_NODE_SEPARATE_COMPONENTS,
+             GEO_NODE_CONVEX_HULL,
+             GEO_NODE_CURVE_LENGTH,
+             GEO_NODE_MESH_BOOLEAN,
+             GEO_NODE_FILLET_CURVE,
+             GEO_NODE_RESAMPLE_CURVE,
+             GEO_NODE_CURVE_TO_MESH,
+             GEO_NODE_TRIM_CURVE,
+             GEO_NODE_REPLACE_MATERIAL,
+             GEO_NODE_SUBDIVIDE_MESH,
+             GEO_NODE_ATTRIBUTE_REMOVE,
+             GEO_NODE_TRIANGULATE)) {
+      bNodeSocket *geometry_socket = node->inputs.first;
+      add_realize_instances_before_socket(ntree, node, geometry_socket);
+    }
+    /* Also realize instances for the profile input of the curve to mesh node. */
+    if (node->type == GEO_NODE_CURVE_TO_MESH) {
+      bNodeSocket *profile_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+      add_realize_instances_before_socket(ntree, node, profile_socket);
+    }
+  }
+}
+
+/**
+ * The geometry nodes modifier used to realize instances for the next modifier implicitly. Now it
+ * is done with the realize instances node. It also used to convert meshes to point clouds
+ * automatically, which is also now done with a specific node.
+ */
+static bNodeTree *add_realize_node_tree(Main *bmain)
+{
+  bNodeTree *node_tree = ntreeAddTree(bmain, "Realize Instances 2.93 Legacy", "GeometryNodeTree");
+
+  ntreeAddSocketInterface(node_tree, SOCK_IN, "NodeSocketGeometry", "Geometry");
+  ntreeAddSocketInterface(node_tree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
+
+  bNode *group_input = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_INPUT);
+  group_input->locx = -400.0f;
+  bNode *group_output = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_OUTPUT);
+  group_output->locx = 500.0f;
+  group_output->flag |= NODE_DO_OUTPUT;
+
+  bNode *join = nodeAddStaticNode(NULL, node_tree, GEO_NODE_JOIN_GEOMETRY);
+  join->locx = group_output->locx - 175.0f;
+  join->locy = group_output->locy;
+  bNode *conv = nodeAddStaticNode(NULL, node_tree, GEO_NODE_POINTS_TO_VERTICES);
+  conv->locx = join->locx - 175.0f;
+  conv->locy = join->locy - 70.0;
+  bNode *separate = nodeAddStaticNode(NULL, node_tree, GEO_NODE_SEPARATE_COMPONENTS);
+  separate->locx = join->locx - 350.0f;
+  separate->locy = join->locy + 50.0f;
+  bNode *realize = nodeAddStaticNode(NULL, node_tree, GEO_NODE_REALIZE_INSTANCES);
+  realize->locx = separate->locx - 200.0f;
+  realize->locy = join->locy;
+
+  nodeAddLink(node_tree, group_input, group_input->outputs.first, realize, realize->inputs.first);
+  nodeAddLink(node_tree, realize, realize->outputs.first, separate, separate->inputs.first);
+  nodeAddLink(node_tree, conv, conv->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 3), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 1), conv, conv->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 2), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, separate->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, join, join->outputs.first, group_output, group_output->inputs.first);
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    nodeSetSelected(node, false);
+  }
+
+  ntreeUpdateTree(bmain, node_tree);
+  return node_tree;
+}
+
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -494,6 +645,128 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      ImagePaintSettings *imapaint = &tool_settings->imapaint;
+      if (imapaint->canvas != NULL &&
+          ELEM(imapaint->canvas->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->canvas = NULL;
+      }
+      if (imapaint->stencil != NULL &&
+          ELEM(imapaint->stencil->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->stencil = NULL;
+      }
+      if (imapaint->clone != NULL &&
+          ELEM(imapaint->clone->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->clone = NULL;
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->clone.image != NULL &&
+          ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        brush->clone.image = NULL;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 28)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_add_realize_instance_nodes(ntree);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 30)) {
+    do_versions_idproperty_ui_data(bmain);
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 32)) {
+    /* Update Switch Node Non-Fields switch input to Switch_001. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+        if (link->tonode->type == GEO_NODE_SWITCH) {
+          if (STREQ(link->tosock->identifier, "Switch")) {
+            bNode *to_node = link->tonode;
+
+            uint8_t mode = ((NodeSwitch *)to_node->storage)->input_type;
+            if (ELEM(mode,
+                     SOCK_GEOMETRY,
+                     SOCK_OBJECT,
+                     SOCK_COLLECTION,
+                     SOCK_TEXTURE,
+                     SOCK_MATERIAL)) {
+              link->tosock = link->tosock->next;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
+    /* This was missing from #move_vertex_group_names_to_object_data. */
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+        /* This uses the fact that the active vertex group index starts counting at 1. */
+        if (BKE_object_defgroup_active_index_get(object) == 0) {
+          BKE_object_defgroup_active_index_set(object, object->actdef);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 35)) {
+    /* Add a new modifier to realize instances from previous modifiers.
+     * Previously that was done automatically by geometry nodes. */
+    bNodeTree *realize_instances_node_tree = NULL;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH_MUTABLE (ModifierData *, md, &ob->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        if (md->next == NULL) {
+          break;
+        }
+        if (md->next->type == eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        if (nmd->node_group == NULL) {
+          continue;
+        }
+
+        NodesModifierData *new_nmd = (NodesModifierData *)BKE_modifier_new(eModifierType_Nodes);
+        STRNCPY(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
+        BKE_modifier_unique_name(&ob->modifiers, &new_nmd->modifier);
+        BLI_insertlinkafter(&ob->modifiers, md, new_nmd);
+        if (realize_instances_node_tree == NULL) {
+          realize_instances_node_tree = add_realize_node_tree(bmain);
+        }
+        new_nmd->node_group = realize_instances_node_tree;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_BOUNDING_BOX) {
+            bNodeSocket *geometry_socket = node->inputs.first;
+            add_realize_instances_before_socket(ntree, node, geometry_socket);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -506,7 +779,8 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-    do_versions_idproperty_ui_data(bmain);
+
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
   }
 }
 
@@ -645,12 +919,10 @@ static bool geometry_node_is_293_legacy(const short node_type)
   switch (node_type) {
     /* Not legacy: No attribute inputs or outputs. */
     case GEO_NODE_TRIANGULATE:
-    case GEO_NODE_EDGE_SPLIT:
     case GEO_NODE_TRANSFORM:
-    case GEO_NODE_BOOLEAN:
-    case GEO_NODE_SUBDIVISION_SURFACE:
+    case GEO_NODE_MESH_BOOLEAN:
     case GEO_NODE_IS_VIEWPORT:
-    case GEO_NODE_MESH_SUBDIVIDE:
+    case GEO_NODE_SUBDIVIDE_MESH:
     case GEO_NODE_MESH_PRIMITIVE_CUBE:
     case GEO_NODE_MESH_PRIMITIVE_CIRCLE:
     case GEO_NODE_MESH_PRIMITIVE_UV_SPHERE:
@@ -660,9 +932,9 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_MESH_PRIMITIVE_LINE:
     case GEO_NODE_MESH_PRIMITIVE_GRID:
     case GEO_NODE_BOUNDING_BOX:
-    case GEO_NODE_CURVE_RESAMPLE:
+    case GEO_NODE_RESAMPLE_CURVE:
     case GEO_NODE_INPUT_MATERIAL:
-    case GEO_NODE_MATERIAL_REPLACE:
+    case GEO_NODE_REPLACE_MATERIAL:
     case GEO_NODE_CURVE_LENGTH:
     case GEO_NODE_CONVEX_HULL:
     case GEO_NODE_SEPARATE_COMPONENTS:
@@ -674,8 +946,8 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_VIEWER:
     case GEO_NODE_CURVE_PRIMITIVE_LINE:
     case GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL:
-    case GEO_NODE_CURVE_FILL:
-    case GEO_NODE_CURVE_TRIM:
+    case GEO_NODE_FILL_CURVE:
+    case GEO_NODE_TRIM_CURVE:
     case GEO_NODE_CURVE_TO_MESH:
       return false;
 
@@ -684,7 +956,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_SET_POSITION:
     case GEO_NODE_INPUT_INDEX:
     case GEO_NODE_INPUT_NORMAL:
-    case GEO_NODE_ATTRIBUTE_CAPTURE:
+    case GEO_NODE_CAPTURE_ATTRIBUTE:
       return false;
 
     /* Maybe legacy: Might need special attribute handling, depending on design. */
@@ -695,15 +967,15 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_COLLECTION_INFO:
       return false;
 
-    /* Maybe legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
-    case GEO_NODE_CURVE_ENDPOINTS:
-    case GEO_NODE_CURVE_TO_POINTS:
+    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
+     * generate a mesh for all grids in the volume. */
+    case GEO_NODE_LEGACY_VOLUME_TO_MESH:
       return false;
 
-    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to generate
-     * a mesh for all grids in the volume. */
-    case GEO_NODE_VOLUME_TO_MESH:
-      return false;
+    /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
+    case GEO_NODE_LEGACY_CURVE_ENDPOINTS:
+    case GEO_NODE_LEGACY_CURVE_TO_POINTS:
+      return true;
 
     /* Legacy: Attribute operation completely replaced by field nodes. */
     case GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE:
@@ -716,10 +988,10 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR:
     case GEO_NODE_LEGACY_POINT_SCALE:
     case GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE:
-    case GEO_NODE_ATTRIBUTE_VECTOR_ROTATE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_ROTATE:
     case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP:
     case GEO_NODE_LEGACY_ATTRIBUTE_MAP_RANGE:
-    case GEO_NODE_LECAGY_ATTRIBUTE_CLAMP:
+    case GEO_NODE_LEGACY_ATTRIBUTE_CLAMP:
     case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH:
     case GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ:
     case GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ:
@@ -741,15 +1013,17 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_LEGACY_CURVE_SET_HANDLES:
       return true;
 
-    /* Legacy: More complex attribute inputs or outputs. */
-    case GEO_NODE_LEGACY_DELETE_GEOMETRY:    /* Needs field input, domain drop-down. */
-    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:    /* Needs field count input. */
-    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:   /* Needs field radius input. */
-    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL: /* Output anonymous attribute. */
-    case GEO_NODE_LEGACY_POINT_TRANSLATE:    /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_INSTANCE:     /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:   /* Needs field input, remove max for random mode. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:  /* Attribute Capture, Store Attribute. */
+      /* Legacy: More complex attribute inputs or outputs. */
+    case GEO_NODE_LEGACY_SUBDIVISION_SURFACE: /* Used "crease" attribute. */
+    case GEO_NODE_LEGACY_EDGE_SPLIT:          /* Needs selection input version. */
+    case GEO_NODE_LEGACY_DELETE_GEOMETRY:     /* Needs field input, domain drop-down. */
+    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:     /* Needs field count input. */
+    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:    /* Needs field radius input. */
+    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL:  /* Output anonymous attribute. */
+    case GEO_NODE_LEGACY_POINT_TRANSLATE:     /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_INSTANCE:      /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:    /* Needs field input, remove max for random mode. */
+    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:   /* Attribute Capture, Store Attribute. */
       return true;
   }
   return false;
@@ -772,6 +1046,227 @@ static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
                    "GeometryNodeLegacy%s",
                    temp_idname + strlen("GeometryNode"));
     }
+  }
+}
+
+static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
+{
+  StripTransform *transform = seq->strip->transform;
+  if (seq->strip->transform != NULL) {
+    transform->origin[0] = transform->origin[1] = 0.5f;
+  }
+  return true;
+}
+
+static void do_version_subsurface_methods(bNode *node)
+{
+  if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
+    if (!ELEM(node->custom1, SHD_SUBSURFACE_BURLEY, SHD_SUBSURFACE_RANDOM_WALK)) {
+      node->custom1 = SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS;
+    }
+  }
+  else if (node->type == SH_NODE_BSDF_PRINCIPLED) {
+    if (!ELEM(node->custom2, SHD_SUBSURFACE_BURLEY, SHD_SUBSURFACE_RANDOM_WALK)) {
+      node->custom2 = SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS;
+    }
+  }
+}
+
+static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
+{
+  /* Before versioning the properties, make sure it hasn't been done already. */
+  LISTBASE_FOREACH (const IDProperty *, property, &nmd->settings.properties->data.group) {
+    if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {
+      return;
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (IDProperty *, property, &nmd->settings.properties->data.group) {
+    if (!ELEM(property->type, IDP_FLOAT, IDP_INT, IDP_ARRAY)) {
+      continue;
+    }
+
+    if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {
+      continue;
+    }
+
+    char use_attribute_prop_name[MAX_IDPROP_NAME];
+    BLI_snprintf(use_attribute_prop_name,
+                 sizeof(use_attribute_prop_name),
+                 "%s%s",
+                 property->name,
+                 "_use_attribute");
+
+    IDPropertyTemplate idprop = {0};
+    IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
+    IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
+
+    char attribute_name_prop_name[MAX_IDPROP_NAME];
+    BLI_snprintf(attribute_name_prop_name,
+                 sizeof(attribute_name_prop_name),
+                 "%s%s",
+                 property->name,
+                 "_attribute_name");
+
+    IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
+    IDP_AddToGroup(nmd->settings.properties, attribute_prop);
+  }
+}
+
+/* Copy of the function before the fixes. */
+static void legacy_vec_roll_to_mat3_normalized(const float nor[3],
+                                               const float roll,
+                                               float r_mat[3][3])
+{
+  const float SAFE_THRESHOLD = 1.0e-5f;     /* theta above this value has good enough precision. */
+  const float CRITICAL_THRESHOLD = 1.0e-9f; /* above this is safe under certain conditions. */
+  const float THRESHOLD_SQUARED = CRITICAL_THRESHOLD * CRITICAL_THRESHOLD;
+
+  const float x = nor[0];
+  const float y = nor[1];
+  const float z = nor[2];
+
+  const float theta = 1.0f + y;          /* remapping Y from [-1,+1] to [0,2]. */
+  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations.*/
+  float rMatrix[3][3], bMatrix[3][3];
+
+  BLI_ASSERT_UNIT_V3(nor);
+
+  /* When theta is close to zero (nor is aligned close to negative Y Axis),
+   * we have to check we do have non-null X/Z components as well.
+   * Also, due to float precision errors, nor can be (0.0, -0.99999994, 0.0) which results
+   * in theta being close to zero. This will cause problems when theta is used as divisor.
+   */
+  if (theta > SAFE_THRESHOLD || (theta > CRITICAL_THRESHOLD && theta_alt > THRESHOLD_SQUARED)) {
+    /* nor is *not* aligned to negative Y-axis (0,-1,0). */
+
+    bMatrix[0][1] = -x;
+    bMatrix[1][0] = x;
+    bMatrix[1][1] = y;
+    bMatrix[1][2] = z;
+    bMatrix[2][1] = -z;
+
+    if (theta > SAFE_THRESHOLD) {
+      /* nor differs significantly from negative Y axis (0,-1,0): apply the general case. */
+      bMatrix[0][0] = 1 - x * x / theta;
+      bMatrix[2][2] = 1 - z * z / theta;
+      bMatrix[2][0] = bMatrix[0][2] = -x * z / theta;
+    }
+    else {
+      /* nor is close to negative Y axis (0,-1,0): apply the special case. */
+      bMatrix[0][0] = (x + z) * (x - z) / -theta_alt;
+      bMatrix[2][2] = -bMatrix[0][0];
+      bMatrix[2][0] = bMatrix[0][2] = 2.0f * x * z / theta_alt;
+    }
+  }
+  else {
+    /* nor is very close to negative Y axis (0,-1,0): use simple symmetry by Z axis. */
+    unit_m3(bMatrix);
+    bMatrix[0][0] = bMatrix[1][1] = -1.0;
+  }
+
+  /* Make Roll matrix */
+  axis_angle_normalized_to_mat3(rMatrix, nor, roll);
+
+  /* Combine and output result */
+  mul_m3_m3m3(r_mat, rMatrix, bMatrix);
+}
+
+static void correct_bone_roll_value(const float head[3],
+                                    const float tail[3],
+                                    const float check_x_axis[3],
+                                    const float check_y_axis[3],
+                                    float *r_roll)
+{
+  const float SAFE_THRESHOLD = 1.0e-5f;
+  float vec[3], bone_mat[3][3], vec2[3];
+
+  /* Compute the Y axis vector. */
+  sub_v3_v3v3(vec, tail, head);
+  normalize_v3(vec);
+
+  /* Only correct when in the danger zone. */
+  if (1.0f + vec[1] < SAFE_THRESHOLD * 2 && (vec[0] || vec[2])) {
+    /* Use the armature matrix to double-check if adjustment is needed.
+     * This should minimize issues if the file is bounced back and forth between
+     * 2.92 and 2.91, provided Edit Mode isn't entered on the armature in 2.91. */
+    vec_roll_to_mat3(vec, *r_roll, bone_mat);
+
+    UNUSED_VARS_NDEBUG(check_y_axis);
+    BLI_assert(dot_v3v3(bone_mat[1], check_y_axis) > 0.999f);
+
+    if (dot_v3v3(bone_mat[0], check_x_axis) < 0.999f) {
+      /* Recompute roll using legacy code to interpret the old value. */
+      legacy_vec_roll_to_mat3_normalized(vec, *r_roll, bone_mat);
+      mat3_to_vec_roll(bone_mat, vec2, r_roll);
+      BLI_assert(compare_v3v3(vec, vec2, 0.001f));
+    }
+  }
+}
+
+/* Update the armature Bone roll fields for bones very close to -Y direction. */
+static void do_version_bones_roll(ListBase *lb)
+{
+  LISTBASE_FOREACH (Bone *, bone, lb) {
+    /* Parent-relative orientation (used for posing). */
+    correct_bone_roll_value(
+        bone->head, bone->tail, bone->bone_mat[0], bone->bone_mat[1], &bone->roll);
+
+    /* Absolute orientation (used for Edit mode). */
+    correct_bone_roll_value(
+        bone->arm_head, bone->arm_tail, bone->arm_mat[0], bone->arm_mat[1], &bone->arm_roll);
+
+    do_version_bones_roll(&bone->childbase);
+  }
+}
+
+static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
+{
+  /* Add the new Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    if (BLI_listbase_count(&node->inputs) < 4) {
+      /* The offset socket didn't exist in the file yet. */
+      return;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    if (old_offset_socket->type == SOCK_VECTOR) {
+      /* Versioning happened already. */
+      return;
+    }
+    /* Change identifier of old socket, so that the there is no name collision. */
+    STRNCPY(old_offset_socket->identifier, "Offset_old");
+    nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_VECTOR, PROP_TRANSLATION, "Offset", "Offset");
+  }
+
+  /* Relink links that were connected to Position while Offset was enabled. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tonode->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    if (!STREQ(link->tosock->identifier, "Position")) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&link->tonode->inputs, 3);
+    /* This assumes that the offset is not linked to something else. That seems to be a reasonable
+     * assumption, because the node is probably only ever used in one or the other mode. */
+    const bool offset_enabled =
+        ((bNodeSocketValueBoolean *)old_offset_socket->default_value)->value;
+    if (offset_enabled) {
+      /* Relink to new offset socket. */
+      link->tosock = old_offset_socket->next;
+    }
+  }
+
+  /* Remove old Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    nodeRemoveSocket(ntree, node, old_offset_socket);
   }
 }
 
@@ -854,7 +1349,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "int", "import_type")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "short", "import_type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -988,7 +1483,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_MESH_SUBDIVIDE) {
+          if (node->type == GEO_NODE_SUBDIVIDE_MESH) {
             strcpy(node->idname, "GeometryNodeMeshSubdivide");
           }
         }
@@ -1026,6 +1521,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               for (unsigned int i = 0; i < smd->num_bind_verts; i++) {
                 smd->verts[i].vertex_idx = i;
               }
+            }
+          }
+        }
+        if (ob->type == OB_GPENCIL) {
+          LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+            if (md->type == eGpencilModifierType_Lineart) {
+              LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
+              lmd->flags |= LRT_GPENCIL_USE_CACHE;
+              lmd->chain_smooth_tolerance = 0.2f;
             }
           }
         }
@@ -1076,7 +1580,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
-            sseq->flag |= SEQ_SHOW_GRID;
+            sseq->flag |= SEQ_TIMELINE_SHOW_GRID;
           }
         }
       }
@@ -1159,7 +1663,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_SUBDIVISION_SURFACE) {
+          if (node->type == GEO_NODE_LEGACY_SUBDIVISION_SURFACE) {
             if (node->storage == NULL) {
               NodeGeometrySubdivisionSurface *data = MEM_callocN(
                   sizeof(NodeGeometrySubdivisionSurface), __func__);
@@ -1230,11 +1734,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_change_legacy_names(ntree);
-      }
-    }
     if (!DNA_struct_elem_find(
             fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -1263,18 +1762,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 23)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1287,5 +1776,400 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            int seq_show_safe_margins = (sseq->flag & SEQ_PREVIEW_SHOW_SAFE_MARGINS);
+            int seq_show_gpencil = (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL);
+            int seq_show_fcurves = (sseq->flag & SEQ_TIMELINE_SHOW_FCURVES);
+            int seq_show_safe_center = (sseq->flag & SEQ_PREVIEW_SHOW_SAFE_CENTER);
+            int seq_show_metadata = (sseq->flag & SEQ_PREVIEW_SHOW_METADATA);
+            int seq_show_strip_name = (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_NAME);
+            int seq_show_strip_source = (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE);
+            int seq_show_strip_duration = (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_DURATION);
+            int seq_show_grid = (sseq->flag & SEQ_TIMELINE_SHOW_GRID);
+            int show_strip_offset = (sseq->draw_flag & SEQ_TIMELINE_SHOW_STRIP_OFFSETS);
+            sseq->preview_overlay.flag = (seq_show_safe_margins | seq_show_gpencil |
+                                          seq_show_safe_center | seq_show_metadata);
+            sseq->timeline_overlay.flag = (seq_show_fcurves | seq_show_strip_name |
+                                           seq_show_strip_source | seq_show_strip_duration |
+                                           seq_show_grid | show_strip_offset);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      sequencer_tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
+
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_origin_set, NULL);
+      }
+    }
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.min[1] = 4.0f;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 25)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          do_version_subsurface_methods(node);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    enum {
+      R_EXR_TILE_FILE = (1 << 10),
+      R_FULL_SAMPLE = (1 << 15),
+    };
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.scemode &= ~(R_EXR_TILE_FILE | R_FULL_SAMPLE);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Nodes) {
+          version_geometry_nodes_add_attribute_input_settings((NodesModifierData *)md);
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_FILE: {
+              SpaceFile *sfile = (SpaceFile *)sl;
+              if (sfile->params) {
+                sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
+                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PARAMS_FLAG_UNUSED_4);
+              }
+
+              /* New default import type: Append with reuse. */
+              if (sfile->asset_params) {
+                sfile->asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
+              }
+              break;
+            }
+            default:
+              break;
+          }
+        }
+      }
+    }
+
+    /* Deprecate the random float node in favor of the random value node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != FN_NODE_LEGACY_RANDOM_FLOAT) {
+          continue;
+        }
+        if (strstr(node->idname, "Legacy")) {
+          /* Make sure we haven't changed this idname already. */
+          continue;
+        }
+
+        char temp_idname[sizeof(node->idname)];
+        BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
+
+        BLI_snprintf(node->idname,
+                     sizeof(node->idname),
+                     "FunctionNodeLegacy%s",
+                     temp_idname + strlen("FunctionNode"));
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 29)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                     &sl->regionbase;
+              LISTBASE_FOREACH (ARegion *, region, regionbase) {
+                if (region->regiontype == RGN_TYPE_WINDOW) {
+                  region->v2d.max[1] = MAXSEQ;
+                }
+              }
+              break;
+            }
+            case SPACE_IMAGE: {
+              SpaceImage *sima = (SpaceImage *)sl;
+              sima->custom_grid_subdiv = 10;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_change_legacy_names(ntree);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 31)) {
+    /* Swap header with the tool header so the regular header is always on the edge. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *region_tool = NULL, *region_head = NULL;
+          int region_tool_index = -1, region_head_index = -1, i;
+          LISTBASE_FOREACH_INDEX (ARegion *, region, regionbase, i) {
+            if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
+              region_tool = region;
+              region_tool_index = i;
+            }
+            else if (region->regiontype == RGN_TYPE_HEADER) {
+              region_head = region;
+              region_head_index = i;
+            }
+          }
+          if ((region_tool && region_head) && (region_head_index > region_tool_index)) {
+            BLI_listbase_swaplinks(regionbase, region_tool, region_head);
+          }
+        }
+      }
+    }
+
+    /* Set strip color tags to SEQUENCE_COLOR_NONE. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, NULL);
+      }
+    }
+
+    /* Show sequencer color tags by default. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+          }
+        }
+      }
+    }
+
+    /* Set defaults for new color balance modifier parameters. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_balance_sop, NULL);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              enum { SEQ_DRAW_SEQUENCE = 0 };
+              if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
+                sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+              }
+              break;
+            }
+            case SPACE_TEXT: {
+              SpaceText *st = (SpaceText *)sl;
+              st->flags &= ~ST_FLAG_UNUSED_4;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 36)) {
+    /* Update the `idnames` for renamed geometry and function nodes. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, FN_NODE_COMPARE_FLOATS, "FunctionNodeCompareFloats");
+      version_node_id(ntree, GEO_NODE_CAPTURE_ATTRIBUTE, "GeometryNodeCaptureAttribute");
+      version_node_id(ntree, GEO_NODE_MESH_BOOLEAN, "GeometryNodeMeshBoolean");
+      version_node_id(ntree, GEO_NODE_FILL_CURVE, "GeometryNodeFillCurve");
+      version_node_id(ntree, GEO_NODE_FILLET_CURVE, "GeometryNodeFilletCurve");
+      version_node_id(ntree, GEO_NODE_REVERSE_CURVE, "GeometryNodeReverseCurve");
+      version_node_id(ntree, GEO_NODE_SAMPLE_CURVE, "GeometryNodeSampleCurve");
+      version_node_id(ntree, GEO_NODE_RESAMPLE_CURVE, "GeometryNodeResampleCurve");
+      version_node_id(ntree, GEO_NODE_SUBDIVIDE_CURVE, "GeometryNodeSubdivideCurve");
+      version_node_id(ntree, GEO_NODE_TRIM_CURVE, "GeometryNodeTrimCurve");
+      version_node_id(ntree, GEO_NODE_REPLACE_MATERIAL, "GeometryNodeReplaceMaterial");
+      version_node_id(ntree, GEO_NODE_SUBDIVIDE_MESH, "GeometryNodeSubdivideMesh");
+      version_node_id(ntree, GEO_NODE_SET_MATERIAL, "GeometryNodeSetMaterial");
+      version_node_id(ntree, GEO_NODE_SPLIT_EDGES, "GeometryNodeSplitEdges");
+    }
+
+    /* Update bone roll after a fix to vec_roll_to_mat3_normalized. */
+    LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+      do_version_bones_roll(&arm->bonebase);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    /* Node Editor: toggle overlays on. */
+    if (!DNA_struct_find(fd->filesdna, "SpaceNodeOverlay")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_NODE) {
+              SpaceNode *snode = (SpaceNode *)space;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
+              snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 38)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_FILE) {
+            SpaceFile *sfile = (SpaceFile *)space;
+            FileAssetSelectParams *asset_params = sfile->asset_params;
+            if (asset_params) {
+              asset_params->base_params.filter_id = FILTER_ID_ALL;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      wm->xr.session_settings.base_scale = 1.0f;
+      wm->xr.session_settings.draw_flags |= (V3D_OFSDRAW_SHOW_SELECTION |
+                                             V3D_OFSDRAW_XR_SHOW_CONTROLLERS |
+                                             V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 40)) {
+    /* Update the `idnames` for renamed geometry and function nodes. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
+      version_geometry_nodes_set_position_node_offset(ntree);
+      version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
+    }
+
+    /* Add storage to viewer node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_VIEWER) {
+          if (node->storage == NULL) {
+            NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(
+                sizeof(NodeGeometryViewer), __func__);
+            data->data_type = CD_PROP_FLOAT;
+            node->storage = data;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_input_socket_name(
+            ntree, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, "Geometry", "Mesh");
+        version_node_input_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Points");
+        version_node_output_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Volume");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVISION_SURFACE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_RESAMPLE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_RADIUS, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_TILT, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_HANDLES, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_TRANSLATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_ROTATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_SCALE_INSTANCES, "Geometry", "Instances");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry", "Mesh");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 1", "Mesh 1");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 2", "Mesh 2");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_MESH, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_TRIANGULATE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CONE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CUBE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_GRID, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_LINE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_SET_POINT_RADIUS, "Geometry", "Points");
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

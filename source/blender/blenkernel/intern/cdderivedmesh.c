@@ -103,24 +103,6 @@ static int cdDM_getNumPolys(DerivedMesh *dm)
   return dm->numPolyData;
 }
 
-static void cdDM_getVert(DerivedMesh *dm, int index, MVert *r_vert)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  *r_vert = cddm->mvert[index];
-}
-
-static void cdDM_getEdge(DerivedMesh *dm, int index, MEdge *r_edge)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  *r_edge = cddm->medge[index];
-}
-
-static void cdDM_getTessFace(DerivedMesh *dm, int index, MFace *r_face)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  *r_face = cddm->mface[index];
-}
-
 static void cdDM_copyVertArray(DerivedMesh *dm, MVert *r_vert)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
@@ -230,10 +212,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
   dm->getNumTessFaces = cdDM_getNumTessFaces;
   dm->getNumLoops = cdDM_getNumLoops;
   dm->getNumPolys = cdDM_getNumPolys;
-
-  dm->getVert = cdDM_getVert;
-  dm->getEdge = cdDM_getEdge;
-  dm->getTessFace = cdDM_getTessFace;
 
   dm->copyVertArray = cdDM_copyVertArray;
   dm->copyEdgeArray = cdDM_copyEdgeArray;

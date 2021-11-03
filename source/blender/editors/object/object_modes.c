@@ -497,51 +497,8 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
   return mode_transfered;
 }
 
-static int object_transfer_mode_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  switch (event->type) {
-    case LEFTMOUSE:
-      if (event->val == KM_PRESS) {
-        WM_cursor_modal_restore(CTX_wm_window(C));
-        ED_workspace_status_text(C, NULL);
-
-        /* This ensures that the click was done in an viewport region. */
-        bScreen *screen = CTX_wm_screen(C);
-        ARegion *region = BKE_screen_find_main_region_at_xy(
-            screen, SPACE_VIEW3D, event->x, event->y);
-        if (!region) {
-          return OPERATOR_CANCELLED;
-        }
-
-        const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
-        Base *base_dst = ED_view3d_give_base_under_cursor(C, mval);
-        const bool mode_transfered = object_transfer_mode_to_base(C, op, base_dst);
-        if (!mode_transfered) {
-          return OPERATOR_CANCELLED;
-        }
-
-        return OPERATOR_FINISHED;
-      }
-      break;
-    case RIGHTMOUSE: {
-      WM_cursor_modal_restore(CTX_wm_window(C));
-      ED_workspace_status_text(C, NULL);
-      return OPERATOR_CANCELLED;
-    }
-  }
-  return OPERATOR_RUNNING_MODAL;
-}
-
 static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const bool use_eyedropper = RNA_boolean_get(op->ptr, "use_eyedropper");
-  if (use_eyedropper) {
-    ED_workspace_status_text(C, TIP_("Click in the viewport to select an object"));
-    WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
-    WM_event_add_modal_handler(C, op);
-    return OPERATOR_RUNNING_MODAL;
-  }
-
   Object *ob_src = CTX_data_active_object(C);
   const eObjectMode src_mode = (eObjectMode)ob_src->mode;
 
@@ -569,17 +526,12 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = object_transfer_mode_invoke;
-  ot->modal = object_transfer_mode_modal;
   ot->poll = object_transfer_mode_poll;
 
   /* Undo push is handled by the operator. */
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
-  RNA_def_boolean(ot->srna,
-                  "use_eyedropper",
-                  false,
-                  "Use Eyedropper",
-                  "Pick the object to switch to using an eyedropper");
+  ot->cursor_pending = WM_CURSOR_EYEDROPPER;
 
   RNA_def_boolean(ot->srna,
                   "use_flash_on_transfer",

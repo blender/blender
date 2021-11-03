@@ -27,7 +27,6 @@
 
 #include "BKE_preferences.h"
 
-#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "UI_resources.h"
@@ -55,7 +54,6 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
     return ASSET_LIBRARY_CUSTOM + library->custom_library_index;
   }
 
-  BLI_assert_unreachable();
   return ASSET_LIBRARY_LOCAL;
 }
 
@@ -80,14 +78,16 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 
   /* Note that there is no check if the path exists here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
-  const bool is_valid = (user_library->name[0] && user_library->path[0]);
   if (!user_library) {
     library.type = ASSET_LIBRARY_LOCAL;
     library.custom_library_index = -1;
   }
-  else if (user_library && is_valid) {
-    library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
-    library.type = ASSET_LIBRARY_CUSTOM;
+  else {
+    const bool is_valid = (user_library->name[0] && user_library->path[0]);
+    if (is_valid) {
+      library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
+      library.type = ASSET_LIBRARY_CUSTOM;
+    }
   }
   return library;
 }
@@ -115,10 +115,12 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf()
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
+  /* Add predefined items. */
+  RNA_enum_items_add(&item, &totitem, predefined_items);
+
   /* Add separator if needed. */
   if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    const EnumPropertyItem sepr = {0, "", 0, "Custom", nullptr};
-    RNA_enum_item_add(&item, &totitem, &sepr);
+    RNA_enum_item_add_separator(&item, &totitem);
   }
 
   int i = 0;
@@ -142,14 +144,6 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf()
         enum_value, user_library->name, ICON_NONE, user_library->name, user_library->path};
     RNA_enum_item_add(&item, &totitem, &tmp);
   }
-
-  if (totitem) {
-    const EnumPropertyItem sepr = {0, "", 0, "Built-in", nullptr};
-    RNA_enum_item_add(&item, &totitem, &sepr);
-  }
-
-  /* Add predefined items. */
-  RNA_enum_items_add(&item, &totitem, predefined_items);
 
   RNA_enum_item_end(&item, &totitem);
   return item;

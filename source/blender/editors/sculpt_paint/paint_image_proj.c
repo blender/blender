@@ -1659,7 +1659,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
 
     if (other_tpage && (ibuf_other = BKE_image_acquire_ibuf(other_tpage, NULL, NULL))) {
       const MLoopTri *lt_other = &ps->mlooptri_eval[tri_index];
-      const float *lt_other_tri_uv[3] = {PS_LOOPTRI_AS_UV_3(ps->poly_to_loop_uv, lt_other)};
+      const float *lt_other_tri_uv[3] = {ps->mloopuv_stencil_eval[lt_other->tri[0]].uv,
+                                         ps->mloopuv_stencil_eval[lt_other->tri[1]].uv,
+                                         ps->mloopuv_stencil_eval[lt_other->tri[2]].uv};
 
       /* #BKE_image_acquire_ibuf - TODO: this may be slow. */
       uchar rgba_ub[4];
@@ -5260,7 +5262,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
             color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
 
             if (is_floatbuf) {
-              /* convert to premultipied */
+              /* Convert to premutliplied. */
               mul_v3_fl(color_f, color_f[3]);
               IMB_blend_color_float(
                   projPixel->pixel.f_pt, projPixel->origColor.f_pt, color_f, ps->blend);

@@ -979,7 +979,7 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * to 3D coordinates.
  *
  * \param point2D: The screen-space 2D point data to convert.
- * \param depth: Depth array (via #ED_view3d_autodist_depth()).
+ * \param depth: Depth array (via #ED_view3d_depth_read_cached()).
  * \param r_out: The resulting 2D point data.
  */
 void gpencil_stroke_convertcoords_tpoint(Scene *scene,
@@ -1292,6 +1292,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
           depsgraph, region, v3d, xy, &ray_start[0], &ray_normal[0], true);
       if (ED_transform_snap_object_project_ray(sctx,
                                                depsgraph,
+                                               v3d,
                                                &(const struct SnapObjectParams){
                                                    .snap_select = SNAP_ALL,
                                                },

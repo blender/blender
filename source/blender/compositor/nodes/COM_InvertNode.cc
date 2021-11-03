@@ -18,28 +18,27 @@
 
 #include "COM_InvertNode.h"
 #include "BKE_node.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_InvertOperation.h"
 
 namespace blender::compositor {
 
-InvertNode::InvertNode(bNode *editorNode) : Node(editorNode)
+InvertNode::InvertNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void InvertNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext & /*context*/) const
+void InvertNode::convert_to_operations(NodeConverter &converter,
+                                       const CompositorContext & /*context*/) const
 {
   InvertOperation *operation = new InvertOperation();
-  bNode *node = this->getbNode();
-  operation->setColor(node->custom1 & CMP_CHAN_RGB);
-  operation->setAlpha(node->custom1 & CMP_CHAN_A);
-  converter.addOperation(operation);
+  bNode *node = this->get_bnode();
+  operation->set_color(node->custom1 & CMP_CHAN_RGB);
+  operation->set_alpha(node->custom1 & CMP_CHAN_A);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

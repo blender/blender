@@ -15,8 +15,8 @@
  */
 
 #include "testing/testing.h"
-#include "util/util_system.h"
-#include "util/util_types.h"
+#include "util/system.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

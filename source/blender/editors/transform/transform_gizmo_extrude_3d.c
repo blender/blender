@@ -381,11 +381,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
     WM_gizmo_set_flag(ggd->invoke_view, WM_GIZMO_HIDDEN, false);
-    gzgroup->use_fallback_keymap = true;
   }
   else {
     WM_gizmo_set_flag(ggd->invoke_view, WM_GIZMO_HIDDEN, true);
-    gzgroup->use_fallback_keymap = false;
   }
 }
 

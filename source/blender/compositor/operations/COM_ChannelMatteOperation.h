@@ -28,16 +28,16 @@ namespace blender::compositor {
  */
 class ChannelMatteOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputImageProgram;
+  SocketReader *input_image_program_;
 
-  /* int m_color_space; */ /* node->custom1 */ /* UNUSED */ /* TODO ? */
-  int m_matte_channel;                                      /* node->custom2 */
-  int m_limit_method;                                       /* node->algorithm */
-  int m_limit_channel;                                      /* node->channel */
-  float m_limit_max;                                        /* node->storage->t1 */
-  float m_limit_min;                                        /* node->storage->t2 */
+  /* int color_space_; */ /* node->custom1 */ /* UNUSED */ /* TODO ? */
+  int matte_channel_;                                      /* node->custom2 */
+  int limit_method_;                                       /* node->algorithm */
+  int limit_channel_;                                      /* node->channel */
+  float limit_max_;                                        /* node->storage->t1 */
+  float limit_min_;                                        /* node->storage->t2 */
 
-  float m_limit_range;
+  float limit_range_;
 
   /** ids to use for the operations (max and simple)
    * alpha = in[ids[0]] - MAX2(in[ids[1]], in[ids[2]])
@@ -47,7 +47,7 @@ class ChannelMatteOperation : public MultiThreadedOperation {
    * ids[2] = ids[1]
    * alpha = in[ids[0]] - MAX2(in[ids[1]], in[ids[2]])
    */
-  int m_ids[3];
+  int ids_[3];
 
  public:
   /**
@@ -58,18 +58,18 @@ class ChannelMatteOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setSettings(NodeChroma *nodeChroma, const int custom2)
+  void set_settings(NodeChroma *node_chroma, const int custom2)
   {
-    this->m_limit_max = nodeChroma->t1;
-    this->m_limit_min = nodeChroma->t2;
-    this->m_limit_method = nodeChroma->algorithm;
-    this->m_limit_channel = nodeChroma->channel;
-    this->m_matte_channel = custom2;
+    limit_max_ = node_chroma->t1;
+    limit_min_ = node_chroma->t2;
+    limit_method_ = node_chroma->algorithm;
+    limit_channel_ = node_chroma->channel;
+    matte_channel_ = custom2;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

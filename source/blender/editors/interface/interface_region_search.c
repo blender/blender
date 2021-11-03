@@ -290,11 +290,11 @@ int ui_searchbox_find_index(ARegion *region, const char *name)
 }
 
 /* x and y in screen-coords. */
-bool ui_searchbox_inside(ARegion *region, int x, int y)
+bool ui_searchbox_inside(ARegion *region, const int xy[2])
 {
   uiSearchboxData *data = region->regiondata;
 
-  return BLI_rcti_isect_pt(&data->bbox, x - region->winrct.xmin, y - region->winrct.ymin);
+  return BLI_rcti_isect_pt(&data->bbox, xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin);
 }
 
 /* string validated to be of correct length (but->hardmax) */
@@ -316,7 +316,11 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
 
     const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
 
-    BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
+    /* Search button with dynamic string properties may have their own method of applying
+     * the search results, so only copy the result if there is a proper space for it. */
+    if (but->hardmax != 0) {
+      BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
+    }
 
     search_but->item_active = data->items.pointers[data->active];
 
@@ -400,8 +404,9 @@ bool ui_searchbox_event(
              * (a little confusing if this isn't the case, although it does work). */
             rcti rect;
             ui_searchbox_butrect(&rect, data, data->active);
-            if (BLI_rcti_isect_pt(
-                    &rect, event->x - region->winrct.xmin, event->y - region->winrct.ymin)) {
+            if (BLI_rcti_isect_pt(&rect,
+                                  event->xy[0] - region->winrct.xmin,
+                                  event->xy[1] - region->winrct.ymin)) {
 
               void *active = data->items.pointers[data->active];
               if (search_but->item_context_menu_fn(C, search_but->arg, active, event)) {
@@ -415,14 +420,14 @@ bool ui_searchbox_event(
     case MOUSEMOVE: {
       bool is_inside = false;
 
-      if (BLI_rcti_isect_pt(&region->winrct, event->x, event->y)) {
+      if (BLI_rcti_isect_pt(&region->winrct, event->xy[0], event->xy[1])) {
         rcti rect;
         int a;
 
         for (a = 0; a < data->items.totitem; a++) {
           ui_searchbox_butrect(&rect, data, a);
           if (BLI_rcti_isect_pt(
-                  &rect, event->x - region->winrct.xmin, event->y - region->winrct.ymin)) {
+                  &rect, event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin)) {
             is_inside = true;
             if (data->active != a) {
               data->active = a;
@@ -877,7 +882,8 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   else {
     data->items.maxitem = SEARCH_ITEMS;
   }
-  data->items.maxstrlen = but->hardmax;
+  /* In case the button's string is dynamic, make sure there are buffers available. */
+  data->items.maxstrlen = but->hardmax == 0 ? UI_MAX_NAME_STR : but->hardmax;
   data->items.totitem = 0;
   data->items.names = MEM_callocN(data->items.maxitem * sizeof(void *), "search names");
   data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
@@ -885,7 +891,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   data->items.states = MEM_callocN(data->items.maxitem * sizeof(int), "search flags");
   data->items.name_prefix_offsets = NULL; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
-    data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
+    data->items.names[i] = MEM_callocN(data->items.maxstrlen + 1, "search pointers");
   }
 
   return region;

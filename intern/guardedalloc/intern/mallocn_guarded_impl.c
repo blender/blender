@@ -89,7 +89,7 @@ typedef struct localListBase {
   void *first, *last;
 } localListBase;
 
-/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
+/* NOTE(@hos): keep this struct aligned (e.g., IRIX/GCC). */
 typedef struct MemHead {
   int tag1;
   size_t len;
@@ -98,9 +98,8 @@ typedef struct MemHead {
   const char *nextname;
   int tag2;
   short pad1;
-  short alignment; /* if non-zero aligned alloc was used
-                    * and alignment is stored here.
-                    */
+  /* if non-zero aligned allocation was used and alignment is stored here. */
+  short alignment;
 #ifdef DEBUG_MEMCOUNTER
   int _count;
 #endif

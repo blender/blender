@@ -176,10 +176,10 @@ static void mesh_free_data(ID *id)
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Mesh *mesh = (Mesh *)id;
-  BKE_LIB_FOREACHID_PROCESS(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
-  BKE_LIB_FOREACHID_PROCESS(data, mesh->key, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->key, IDWALK_CB_USER);
   for (int i = 0; i < mesh->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, mesh->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->mat[i], IDWALK_CB_USER);
   }
 }
 
@@ -360,7 +360,7 @@ IDTypeInfo IDType_ID_ME = {
     .name = "Mesh",
     .name_plural = "meshes",
     .translation_context = BLT_I18NCONTEXT_ID_MESH,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = mesh_init_data,
     .copy_data = mesh_copy_data,

@@ -131,7 +131,8 @@ static void world_foreach_id(ID *id, LibraryForeachIDData *data)
 
   if (world->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-    BKE_library_foreach_ID_embedded(data, (ID **)&world->nodetree);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data, BKE_library_foreach_ID_embedded(data, (ID **)&world->nodetree));
   }
 }
 
@@ -190,7 +191,7 @@ IDTypeInfo IDType_ID_WO = {
     .name = "World",
     .name_plural = "worlds",
     .translation_context = BLT_I18NCONTEXT_ID_WORLD,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = world_init_data,
     .copy_data = world_copy_data,

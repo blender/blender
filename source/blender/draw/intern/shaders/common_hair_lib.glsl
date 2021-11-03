@@ -210,6 +210,12 @@ void hair_get_pos_tan_binor_time(bool is_persp,
   }
 }
 
+float hair_get_customdata_float(const samplerBuffer cd_buf)
+{
+  int id = hair_get_strand_id();
+  return texelFetch(cd_buf, id).r;
+}
+
 vec2 hair_get_customdata_vec2(const samplerBuffer cd_buf)
 {
   int id = hair_get_strand_id();

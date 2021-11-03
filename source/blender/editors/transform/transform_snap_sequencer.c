@@ -220,13 +220,13 @@ static void seq_snap_target_points_build(const TransInfo *t,
       int content_end = max_ii(seq->startdisp, seq->start + seq->len);
       /* Effects and single image strips produce incorrect content length. Skip these strips. */
       if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->len == 1) {
-        if (seq->anim_startofs == 0 && seq->startstill == 0) {
-          content_start = seq->startdisp;
-        }
-        if (seq->anim_endofs == 0 && seq->endstill == 0) {
-          content_end = seq->enddisp;
-        }
+        content_start = seq->startdisp;
+        content_end = seq->enddisp;
       }
+
+      CLAMP(content_start, seq->startdisp, seq->enddisp);
+      CLAMP(content_end, seq->startdisp, seq->enddisp);
+
       snap_data->target_snap_points[i] = content_start;
       snap_data->target_snap_points[i + 1] = content_end;
       i += 2;
@@ -254,6 +254,10 @@ static int seq_snap_threshold_get_frame_distance(const TransInfo *t)
 
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 {
+  if (t->data_type == TC_SEQ_IMAGE_DATA) {
+    return NULL;
+  }
+
   TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
 

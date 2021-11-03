@@ -54,6 +54,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
 #include "BKE_gpencil.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -156,12 +157,12 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (area->spacetype == SPACE_SEQ) {
       SpaceSeq *seq = area->spacedata.first;
-      seq->flag |= SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES | SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY |
-                   SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_DURATION |
-                   SEQ_SHOW_GRID;
-
+      seq->flag |= SEQ_SHOW_MARKERS | SEQ_ZOOM_TO_FIT | SEQ_USE_PROXIES | SEQ_SHOW_OVERLAY;
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
-      seq->flag |= SEQ_USE_PROXIES;
+      seq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_NAME |
+                                    SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
+                                    SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+      seq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
     }
     else if (area->spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */
@@ -207,7 +208,8 @@ static void blo_update_defaults_screen(bScreen *screen,
 
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
-          if ((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) {
+          if (((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) ||
+              sl->spacetype == SPACE_SEQ) {
             region->flag |= RGN_FLAG_HIDDEN;
           }
           else {
@@ -292,7 +294,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Rename render layers. */
-  BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
+  BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "ViewLayer");
 
   /* Disable Z pass by default. */
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -356,6 +358,12 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Make sure that the curve profile is initialized */
   if (ts->custom_bevel_profile_preset == NULL) {
     ts->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
+  }
+
+  /* Clear ID properties so Cycles gets defaults. */
+  IDProperty *idprop = IDP_GetProperties(&scene->id, false);
+  if (idprop) {
+    IDP_ClearProperty(idprop);
   }
 }
 
@@ -583,6 +591,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
           roughness_data->value = 0.4f;
+          node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
+          nodeUpdate(ma->nodetree, node);
+        }
+        else if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
+          node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
+          nodeUpdate(ma->nodetree, node);
         }
       }
     }

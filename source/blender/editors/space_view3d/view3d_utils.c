@@ -1094,17 +1094,10 @@ bool ED_view3d_autodist_simple(ARegion *region,
   return ED_view3d_unproject_v3(region, centx, centy, depth, mouse_worldloc);
 }
 
-bool ED_view3d_autodist_depth(ARegion *region, const int mval[2], int margin, float *depth)
-{
-  *depth = view_autodist_depth_margin(region, mval, margin);
-
-  return (*depth != FLT_MAX);
-}
-
 static bool depth_segment_cb(int x, int y, void *userData)
 {
   struct {
-    ARegion *region;
+    const ViewDepths *vd;
     int margin;
     float depth;
   } *data = userData;
@@ -1114,27 +1107,25 @@ static bool depth_segment_cb(int x, int y, void *userData)
   mval[0] = x;
   mval[1] = y;
 
-  depth = view_autodist_depth_margin(data->region, mval, data->margin);
-
-  if (depth != FLT_MAX) {
+  if (ED_view3d_depth_read_cached(data->vd, mval, data->margin, &depth)) {
     data->depth = depth;
     return false;
   }
   return true;
 }
 
-bool ED_view3d_autodist_depth_seg(
-    ARegion *region, const int mval_sta[2], const int mval_end[2], int margin, float *depth)
+bool ED_view3d_depth_read_cached_seg(
+    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth)
 {
   struct {
-    ARegion *region;
+    const ViewDepths *vd;
     int margin;
     float depth;
   } data = {NULL};
   int p1[2];
   int p2[2];
 
-  data.region = region;
+  data.vd = vd;
   data.margin = margin;
   data.depth = FLT_MAX;
 
@@ -1691,6 +1682,8 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
     return true;
   }
 
+  /* GPencil and Anotations also need the returned depth value to be high so that it is invalid. */
+  *r_depth = FLT_MAX;
   return false;
 }
 

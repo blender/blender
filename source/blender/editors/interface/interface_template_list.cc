@@ -31,6 +31,7 @@
 
 #include "BLT_translation.h"
 
+#include "ED_asset.h"
 #include "ED_screen.h"
 
 #include "MEM_guardedalloc.h"
@@ -216,7 +217,18 @@ static void uilist_filter_items_default(struct uiList *ui_list,
     RNA_PROP_BEGIN (dataptr, itemptr, prop) {
       bool do_order = false;
 
-      char *namebuf = RNA_struct_name_get_alloc(&itemptr, nullptr, 0, nullptr);
+      char *namebuf;
+      if (RNA_struct_is_a(itemptr.type, &RNA_AssetHandle)) {
+        /* XXX The AssetHandle design is hacky and meant to be temporary. It can't have a proper
+         * name property, so for now this hardcoded exception is needed. */
+        AssetHandle *asset_handle = (AssetHandle *)itemptr.data;
+        const char *asset_name = ED_asset_handle_get_name(asset_handle);
+        namebuf = BLI_strdup(asset_name);
+      }
+      else {
+        namebuf = RNA_struct_name_get_alloc(&itemptr, nullptr, 0, nullptr);
+      }
+
       const char *name = namebuf ? namebuf : "";
 
       if (filter[0]) {

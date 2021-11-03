@@ -127,10 +127,10 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
   return OPERATOR_RUNNING_MODAL;
 }
 
-static short wm_link_append_flag(wmOperator *op)
+static int wm_link_append_flag(wmOperator *op)
 {
   PropertyRNA *prop;
-  short flag = 0;
+  int flag = 0;
 
   if (RNA_boolean_get(op->ptr, "autoselect")) {
     flag |= FILE_AUTOSELECT;
@@ -147,17 +147,20 @@ static short wm_link_append_flag(wmOperator *op)
   }
   else {
     if (RNA_boolean_get(op->ptr, "use_recursive")) {
-      flag |= FILE_APPEND_RECURSIVE;
+      flag |= BLO_LIBLINK_APPEND_RECURSIVE;
     }
     if (RNA_boolean_get(op->ptr, "set_fake")) {
-      flag |= FILE_APPEND_SET_FAKEUSER;
+      flag |= BLO_LIBLINK_APPEND_SET_FAKEUSER;
+    }
+    if (RNA_boolean_get(op->ptr, "do_reuse_local_id")) {
+      flag |= BLO_LIBLINK_APPEND_LOCAL_ID_REUSE;
     }
   }
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
-    flag |= FILE_COLLECTION_INSTANCE;
+    flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
   }
   if (RNA_boolean_get(op->ptr, "instance_object_data")) {
-    flag |= FILE_OBDATA_INSTANCE;
+    flag |= BLO_LIBLINK_OBDATA_INSTANCE;
   }
 
   return flag;
@@ -174,6 +177,7 @@ typedef struct WMLinkAppendDataItem {
   char append_tag;
 
   ID *new_id;
+  Library *source_library;
   void *customdata;
 } WMLinkAppendDataItem;
 
@@ -189,6 +193,9 @@ typedef struct WMLinkAppendData {
 
   /** Allows to easily find an existing items from an ID pointer. Used by append code. */
   GHash *new_id_to_item;
+
+  /** Runtime info used by append code to manage re-use of already appended matching IDs. */
+  GHash *library_weak_reference_mapping;
 
   /* Internal 'private' data */
   MemArena *memarena;
@@ -229,6 +236,8 @@ static void wm_link_append_data_free(WMLinkAppendData *lapp_data)
   if (lapp_data->new_id_to_item != NULL) {
     BLI_ghash_free(lapp_data->new_id_to_item, NULL, NULL);
   }
+
+  BLI_assert(lapp_data->library_weak_reference_mapping == NULL);
 
   BLI_memarena_free(lapp_data->memarena);
 }
@@ -303,31 +312,6 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
   return false;
 }
 
-/**
- * Shared operations to perform on the object's base after adding it to the scene.
- */
-static void wm_append_loose_data_instantiate_object_base_instance_init(
-    Object *ob, bool set_selected, bool set_active, ViewLayer *view_layer, const View3D *v3d)
-{
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-  if (v3d != NULL) {
-    base->local_view_bits |= v3d->local_view_uuid;
-  }
-
-  if (set_selected) {
-    if (base->flag & BASE_SELECTABLE) {
-      base->flag |= BASE_SELECTED;
-    }
-  }
-
-  if (set_active) {
-    view_layer->basact = base;
-  }
-
-  BKE_scene_object_base_flag_sync_from_base(base);
-}
-
 static ID *wm_append_loose_data_instantiate_process_check(WMLinkAppendDataItem *item)
 {
   /* We consider that if we either kept it linked, or re-used already local data, instantiation
@@ -391,9 +375,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
   LinkNode *itemlink;
   Collection *active_collection = NULL;
-  const bool do_obdata = (lapp_data->flag & FILE_OBDATA_INSTANCE) != 0;
+  const bool do_obdata = (lapp_data->flag & BLO_LIBLINK_OBDATA_INSTANCE) != 0;
 
-  const bool object_set_selected = (lapp_data->flag & FILE_AUTOSELECT) != 0;
   /* Do NOT make base active here! screws up GUI stuff,
    * if you want it do it at the editor level. */
   const bool object_set_active = false;
@@ -453,7 +436,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
      * children.
      */
     Collection *collection = (Collection *)id;
-    bool do_add_collection = false;
+    /* We always add collections directly selected by the user. */
+    bool do_add_collection = (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0;
     LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
       Object *ob = coll_ob->ob;
       if (!object_in_any_scene(bmain, ob)) {
@@ -467,21 +451,19 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
       /* In case user requested instantiation of collections as empties, we do so for the one they
        * explicitly selected (originally directly linked IDs). */
-      if ((lapp_data->flag & FILE_COLLECTION_INSTANCE) != 0 &&
+      if ((lapp_data->flag & BLO_LIBLINK_COLLECTION_INSTANCE) != 0 &&
           (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0) {
         /* BKE_object_add(...) messes with the selection. */
         Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
         ob->type = OB_EMPTY;
         ob->empty_drawsize = U.collection_instance_empty_size;
 
-        BKE_collection_object_add(bmain, active_collection, ob);
-
         const bool set_selected = (lapp_data->flag & FILE_AUTOSELECT) != 0;
         /* TODO: why is it OK to make this active here but not in other situations?
          * See other callers of #object_base_instance_init */
         const bool set_active = set_selected;
-        wm_append_loose_data_instantiate_object_base_instance_init(
-            ob, set_selected, set_active, view_layer, v3d);
+        BLO_object_instantiate_object_base_instance_init(
+            bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, set_active);
 
         /* Assign the collection. */
         ob->instance_collection = collection;
@@ -528,10 +510,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     CLAMP_MIN(ob->id.us, 0);
     ob->mode = OB_MODE_OBJECT;
 
-    BKE_collection_object_add(bmain, active_collection, ob);
-
-    wm_append_loose_data_instantiate_object_base_instance_init(
-        ob, object_set_selected, object_set_active, view_layer, v3d);
+    BLO_object_instantiate_object_base_instance_init(
+        bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, object_set_active);
   }
 
   if (!do_obdata) {
@@ -562,12 +542,22 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     id_us_plus(id);
     BKE_object_materials_test(bmain, ob, ob->data);
 
-    BKE_collection_object_add(bmain, active_collection, ob);
-
-    wm_append_loose_data_instantiate_object_base_instance_init(
-        ob, object_set_selected, object_set_active, view_layer, v3d);
+    BLO_object_instantiate_object_base_instance_init(
+        bmain, active_collection, ob, view_layer, v3d, lapp_data->flag, object_set_active);
 
     copy_v3_v3(ob->loc, scene->cursor.location);
+
+    id->tag &= ~LIB_TAG_DOIT;
+  }
+
+  /* Finally, add rigid body objects and constraints to current RB world(s). */
+  for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
+    WMLinkAppendDataItem *item = itemlink->link;
+    ID *id = wm_append_loose_data_instantiate_process_check(item);
+    if (id == NULL || GS(id->name) != ID_OB) {
+      continue;
+    }
+    BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
   }
 }
 
@@ -575,7 +565,10 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
 static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK)) {
+  /* NOTE: It is important to also skip liboverride references here, as those should never be made
+   * local. */
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK |
+                          IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
     return IDWALK_RET_NOP;
   }
 
@@ -587,6 +580,23 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
   }
 
   if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
+    /* While we do not want to add non-linkable ID (shape keys...) to the list of linked items,
+     * unfortunately they can use fully linkable valid IDs too, like actions. Those need to be
+     * processed, so we need to recursively deal with them here. */
+    /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
+     * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
+     * shapekey referencing the shapekey itself). */
+    if (id != cb_data->id_self) {
+      BKE_library_foreach_ID_link(
+          cb_data->bmain, id, foreach_libblock_append_callback, data, IDWALK_NOP);
+    }
+    return IDWALK_RET_NOP;
+  }
+
+  const bool do_recursive = (data->lapp_data->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
+  if (!do_recursive && cb_data->id_owner->lib != id->lib) {
+    /* When `do_recursive` is false, we only make local IDs from same library(-ies) as the
+     * initially directly linked ones. */
     return IDWALK_RET_NOP;
   }
 
@@ -594,7 +604,8 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
   if (item == NULL) {
     item = wm_link_append_data_item_add(data->lapp_data, id->name, GS(id->name), NULL);
     item->new_id = id;
-    /* Since we did not have an item for that ID yet, we now user did not selected it explicitly,
+    item->source_library = id->lib;
+    /* Since we did not have an item for that ID yet, we know user did not selected it explicitly,
      * it was rather linked indirectly. This info is important for instantiation of collections. */
     item->append_tag |= WM_APPEND_TAG_INDIRECT;
     BLI_ghash_insert(data->lapp_data->new_id_to_item, id, item);
@@ -621,12 +632,19 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 {
   BLI_assert((lapp_data->flag & FILE_LINK) == 0);
 
-  const bool do_recursive = (lapp_data->flag & FILE_APPEND_RECURSIVE) != 0;
-  const bool set_fakeuser = (lapp_data->flag & FILE_APPEND_SET_FAKEUSER) != 0;
+  const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
+  const bool do_reuse_local_id = (lapp_data->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
+
+  const int make_local_common_flags = LIB_ID_MAKELOCAL_FULL_LIBRARY |
+                                      ((lapp_data->flag & BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) !=
+                                               0 ?
+                                           LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
+                                           0);
 
   LinkNode *itemlink;
 
-  /* Generate a mapping between newly linked IDs and their items. */
+  /* Generate a mapping between newly linked IDs and their items, and tag linked IDs used as
+   * liboverride references as already existing. */
   lapp_data->new_id_to_item = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
     WMLinkAppendDataItem *item = itemlink->link;
@@ -635,7 +653,16 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       continue;
     }
     BLI_ghash_insert(lapp_data->new_id_to_item, id, item);
+
+    /* This ensures that if a liboverride reference is also linked/used by some other appended
+     * data, it gets a local copy instead of being made directly local, so that the liboverride
+     * references remain valid (i.e. linked data). */
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      id->override_library->reference->tag |= LIB_TAG_PRE_EXISTING;
+    }
   }
+
+  lapp_data->library_weak_reference_mapping = BKE_main_library_weak_reference_create(bmain);
 
   /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
    * dependencies), this list will grow and we will process those IDs later, leading to a flatten
@@ -648,9 +675,16 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
     BLI_assert(item->customdata == NULL);
 
-    /* Clear tag previously used to mark IDs needing post-processing (instantiation of loose
-     * objects etc.). */
-    id->tag &= ~LIB_TAG_DOIT;
+    /* In Append case linked IDs should never be marked as needing post-processing (instantiation
+     * of loose objects etc.). */
+    BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
+
+    ID *existing_local_id = BKE_idtype_idcode_append_is_reusable(GS(id->name)) ?
+                                BKE_main_library_weak_reference_search_item(
+                                    lapp_data->library_weak_reference_mapping,
+                                    id->lib->filepath,
+                                    id->name) :
+                                NULL;
 
     if (item->append_action != WM_APPEND_ACT_UNSET) {
       /* Already set, pass. */
@@ -659,24 +693,37 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       CLOG_INFO(&LOG, 3, "Appended ID '%s' is proxified, keeping it linked...", id->name);
       item->append_action = WM_APPEND_ACT_KEEP_LINKED;
     }
+    else if (do_reuse_local_id && existing_local_id != NULL) {
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it...", id->name);
+      item->append_action = WM_APPEND_ACT_REUSE_LOCAL;
+      item->customdata = existing_local_id;
+    }
     else if (id->tag & LIB_TAG_PRE_EXISTING) {
       CLOG_INFO(&LOG, 3, "Appended ID '%s' was already linked, need to copy it...", id->name);
       item->append_action = WM_APPEND_ACT_COPY_LOCAL;
     }
     else {
-      /* In future we could search for already existing matching local ID etc. */
       CLOG_INFO(&LOG, 3, "Appended ID '%s' will be made local...", id->name);
       item->append_action = WM_APPEND_ACT_MAKE_LOCAL;
     }
 
     /* Only check dependencies if we are not keeping linked data, nor re-using existing local data.
      */
-    if (do_recursive &&
-        !ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
+    if (!ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
       WMLinkAppendDataCallBack cb_data = {
           .lapp_data = lapp_data, .item = item, .reports = reports};
       BKE_library_foreach_ID_link(
           bmain, id, foreach_libblock_append_callback, &cb_data, IDWALK_NOP);
+    }
+
+    /* If we found a matching existing local id but are not re-using it, we need to properly clear
+     * its weak reference to linked data. */
+    if (existing_local_id != NULL &&
+        !ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
+      BKE_main_library_weak_reference_remove_item(lapp_data->library_weak_reference_mapping,
+                                                  id->lib->filepath,
+                                                  id->name,
+                                                  existing_local_id);
     }
   }
 
@@ -689,17 +736,20 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
 
     ID *local_appended_new_id = NULL;
+    char lib_filepath[FILE_MAX];
+    BLI_strncpy(lib_filepath, id->lib->filepath, sizeof(lib_filepath));
+    char lib_id_name[MAX_ID_NAME];
+    BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
+
     switch (item->append_action) {
-      case WM_APPEND_ACT_COPY_LOCAL: {
-        BKE_lib_id_make_local(
-            bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
+      case WM_APPEND_ACT_COPY_LOCAL:
+        BKE_lib_id_make_local(bmain, id, make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_COPY);
         local_appended_new_id = id->newid;
         break;
-      }
       case WM_APPEND_ACT_MAKE_LOCAL:
         BKE_lib_id_make_local(bmain,
                               id,
-                              LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_LOCAL |
+                              make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
         BLI_assert(id->newid == NULL);
         local_appended_new_id = id;
@@ -721,9 +771,13 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
 
     if (local_appended_new_id != NULL) {
-      if (GS(local_appended_new_id->name) == ID_OB) {
-        BKE_rigidbody_ensure_local_object(bmain, (Object *)local_appended_new_id);
+      if (BKE_idtype_idcode_append_is_reusable(GS(local_appended_new_id->name))) {
+        BKE_main_library_weak_reference_add_item(lapp_data->library_weak_reference_mapping,
+                                                 lib_filepath,
+                                                 lib_id_name,
+                                                 local_appended_new_id);
       }
+
       if (set_fakeuser) {
         if (!ELEM(GS(local_appended_new_id->name), ID_OB, ID_GR)) {
           /* Do not set fake user on objects nor collections (instancing). */
@@ -732,6 +786,9 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       }
     }
   }
+
+  BKE_main_library_weak_reference_destroy(lapp_data->library_weak_reference_mapping);
+  lapp_data->library_weak_reference_mapping = NULL;
 
   /* Remap IDs as needed. */
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
@@ -745,7 +802,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     if (id == NULL) {
       continue;
     }
-    if (item->append_action == WM_APPEND_ACT_COPY_LOCAL) {
+    if (ELEM(item->append_action, WM_APPEND_ACT_COPY_LOCAL, WM_APPEND_ACT_REUSE_LOCAL)) {
       BLI_assert(ID_IS_LINKED(id));
       id = id->newid;
       if (id == NULL) {
@@ -755,8 +812,29 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
     BLI_assert(!ID_IS_LINKED(id));
 
-    BKE_libblock_relink_to_newid_new(bmain, id);
+    BKE_libblock_relink_to_newid(bmain, id, 0);
   }
+
+  /* Remove linked IDs when a local existing data has been reused instead. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
+    WMLinkAppendDataItem *item = itemlink->link;
+
+    if (item->append_action != WM_APPEND_ACT_REUSE_LOCAL) {
+      continue;
+    }
+
+    ID *id = item->new_id;
+    if (id == NULL) {
+      continue;
+    }
+    BLI_assert(ID_IS_LINKED(id));
+    BLI_assert(id->newid != NULL);
+
+    id->tag |= LIB_TAG_DOIT;
+    item->new_id = id->newid;
+  }
+  BKE_id_multi_tagged_delete(bmain);
 
   /* Instantiate newly created (duplicated) IDs as needed. */
   wm_append_loose_data_instantiate(lapp_data, bmain, scene, view_layer, v3d);
@@ -911,6 +989,7 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
          * This avoids trying to link same item with other libraries to come. */
         BLI_bitmap_set_all(item->libraries, false, lapp_data->num_libraries);
         item->new_id = new_id;
+        item->source_library = new_id->lib;
       }
     }
 
@@ -1009,7 +1088,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  short flag = wm_link_append_flag(op);
+  int flag = wm_link_append_flag(op);
   const bool do_append = (flag & FILE_LINK) == 0;
 
   /* sanity checks for flag */
@@ -1018,11 +1097,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
                 RPT_WARNING,
                 "Scene '%s' is linked, instantiation of objects is disabled",
                 scene->id.name + 2);
-    flag &= ~(FILE_COLLECTION_INSTANCE | FILE_OBDATA_INSTANCE);
+    flag &= ~(BLO_LIBLINK_COLLECTION_INSTANCE | BLO_LIBLINK_OBDATA_INSTANCE);
     scene = NULL;
   }
-
-  /* We need to add nothing from #eBLOLibLinkFlags to flag here. */
 
   /* from here down, no error returns */
 
@@ -1153,14 +1230,25 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
   prop = RNA_def_boolean(
       ot->srna, "link", is_link, "Link", "Link the objects or data-blocks rather than appending");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "do_reuse_local_id",
+      false,
+      "Re-Use Local Data",
+      "Try to re-use previously matching appended data-blocks instead of appending a new copy");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
   prop = RNA_def_boolean(ot->srna, "autoselect", true, "Select", "Select new objects");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_boolean(ot->srna,
                          "active_collection",
                          true,
                          "Active Collection",
                          "Put new objects on the active collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_boolean(
       ot->srna,
       "instance_collections",
@@ -1251,13 +1339,14 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
                                             const char *filepath,
                                             const short id_code,
                                             const char *id_name,
-                                            const bool do_append)
+                                            const int flag)
 {
+  const bool do_append = (flag & FILE_LINK) == 0;
   /* Tag everything so we can make local only the new datablock. */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* Define working data, with just the one item we want to link. */
-  WMLinkAppendData *lapp_data = wm_link_append_data_new(do_append ? FILE_APPEND_RECURSIVE : 0);
+  WMLinkAppendData *lapp_data = wm_link_append_data_new(flag);
 
   wm_link_append_data_library_add(lapp_data, filepath);
   WMLinkAppendDataItem *item = wm_link_append_data_item_add(lapp_data, id_name, id_code, NULL);
@@ -1266,12 +1355,12 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   /* Link datablock. */
   wm_link_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
 
-  /* Get linked datablock and free working data. */
-  ID *id = item->new_id;
-
   if (do_append) {
     wm_append_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
   }
+
+  /* Get linked datablock and free working data. */
+  ID *id = item->new_id;
 
   wm_link_append_data_free(lapp_data);
 
@@ -1290,10 +1379,12 @@ ID *WM_file_link_datablock(Main *bmain,
                            View3D *v3d,
                            const char *filepath,
                            const short id_code,
-                           const char *id_name)
+                           const char *id_name,
+                           int flag)
 {
+  flag |= FILE_LINK;
   return wm_file_link_append_datablock_ex(
-      bmain, scene, view_layer, v3d, filepath, id_code, id_name, false);
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, flag);
 }
 
 /*
@@ -1306,10 +1397,12 @@ ID *WM_file_append_datablock(Main *bmain,
                              View3D *v3d,
                              const char *filepath,
                              const short id_code,
-                             const char *id_name)
+                             const char *id_name,
+                             int flag)
 {
+  BLI_assert((flag & FILE_LINK) == 0);
   ID *id = wm_file_link_append_datablock_ex(
-      bmain, scene, view_layer, v3d, filepath, id_code, id_name, true);
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, flag);
 
   return id;
 }

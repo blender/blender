@@ -19,15 +19,15 @@
 
 #include "device/device.h"
 
-#include "render/graph.h"
-#include "render/nodes.h"
-#include "render/scene.h"
+#include "scene/scene.h"
+#include "scene/shader_graph.h"
+#include "scene/shader_nodes.h"
 
-#include "util/util_array.h"
-#include "util/util_logging.h"
-#include "util/util_stats.h"
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/array.h"
+#include "util/log.h"
+#include "util/stats.h"
+#include "util/string.h"
+#include "util/vector.h"
 
 using testing::_;
 using testing::AnyNumber;
@@ -179,9 +179,9 @@ class RenderGraph : public testing::Test {
   virtual void SetUp()
   {
     util_logging_start();
-    util_logging_verbosity_set(1);
+    util_logging_verbosity_set(3);
 
-    device_cpu = Device::create(device_info, stats, profiler, true);
+    device_cpu = Device::create(device_info, stats, profiler);
     scene = new Scene(scene_params, device_cpu);
   }
 

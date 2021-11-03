@@ -88,7 +88,7 @@ struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data,
-                                     double *r_video_start_offset);
+                                     double *r_start_offset);
 struct Sequence *SEQ_add_scene_strip(struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data);

@@ -120,19 +120,16 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_LOCAL;
     asset_params->asset_library_ref.custom_library_index = -1;
-    asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
+    asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
   }
 
   FileSelectParams *base_params = &asset_params->base_params;
   base_params->file[0] = '\0';
   base_params->filter_glob[0] = '\0';
-  /* TODO: this way of using filters to form categories is notably slower than specifying a
-   * "group" to read. That's because all types are read and filtering is applied afterwards. Would
-   * be nice if we could lazy-read individual groups. */
   base_params->flag |= U_default.file_space_data.flag | FILE_ASSETS_ONLY | FILE_FILTER;
   base_params->flag &= ~FILE_DIRSEL_ONLY;
   base_params->filter |= FILE_TYPE_BLENDERLIB;
-  base_params->filter_id = FILTER_ID_OB | FILTER_ID_GR;
+  base_params->filter_id = FILTER_ID_ALL;
   base_params->display = FILE_IMGDISPLAY;
   base_params->sort = FILE_SORT_ALPHA;
   /* Asset libraries include all sub-directories, so enable maximal recursion. */
@@ -440,7 +437,8 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
       break;
   }
-  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
+  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET :
+                                                               FILE_ASSET_LIBRARY;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)
@@ -461,6 +459,15 @@ bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
 }
 
+struct AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile)
+{
+  if (!ED_fileselect_is_asset_browser(sfile) || !sfile->files) {
+    return NULL;
+  }
+
+  return filelist_asset_library(sfile->files);
+}
+
 struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
 {
   if (!ED_fileselect_is_asset_browser(sfile)) {
@@ -474,6 +481,18 @@ struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
   }
 
   return filelist_file_get_id(file);
+}
+
+void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID catalog_id)
+{
+  if (!ED_fileselect_is_asset_browser(sfile)) {
+    return;
+  }
+
+  FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params->catalog_id = catalog_id;
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
 }
 
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
@@ -507,18 +526,55 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
     const FileDirEntry *file = filelist_file_ex(files, file_index, false);
 
     if (filelist_file_get_id(file) != asset_id) {
-      filelist_entry_select_set(files, file, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
       continue;
     }
 
     params->active_file = file_index;
     filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
-
-    /* Keep looping to deselect the other files. */
+    break;
   }
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
   WM_main_add_notifier(NC_ASSET | NA_SELECTED, NULL);
+}
+
+static void on_reload_select_by_relpath(SpaceFile *sfile, onReloadFnData custom_data)
+{
+  const char *relative_path = custom_data;
+  ED_fileselect_activate_by_relpath(sfile, relative_path);
+}
+
+void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_path)
+{
+  /* If there are filelist operations running now ("pending" true) or soon ("force reset" true),
+   * there is a fair chance that the to-be-activated file at relative_path will only be present
+   * after these operations have completed. Defer activation until then. */
+  struct FileList *files = sfile->files;
+  if (files == NULL || filelist_pending(files) || filelist_needs_force_reset(files)) {
+    /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
+     * up in another call to this function, and then it's a const char* again. */
+    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
+    return;
+  }
+
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  const int num_files_filtered = filelist_files_ensure(files);
+
+  for (int file_index = 0; file_index < num_files_filtered; ++file_index) {
+    const FileDirEntry *file = filelist_file(files, file_index);
+
+    if (STREQ(file->relpath, relative_path)) {
+      params->active_file = file_index;
+      filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+    }
+  }
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+}
+
+void ED_fileselect_deselect_all(SpaceFile *sfile)
+{
+  file_select_deselect_all(sfile, FILE_SEL_SELECTED);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 }
 
 /* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
@@ -935,6 +991,8 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  /* Request a slightly more compact layout for asset browsing. */
+  const bool compact = ED_fileselect_is_asset_browser(sfile);
   FileLayout *layout = NULL;
   View2D *v2d = &region->v2d;
   int numfiles;
@@ -954,12 +1012,13 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   layout->textheight = textheight;
 
   if (params->display == FILE_IMGDISPLAY) {
+    const float pad_fac = compact ? 0.15f : 0.3f;
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
-    layout->tile_border_x = 0.3f * UI_UNIT_X;
-    layout->tile_border_y = 0.3f * UI_UNIT_X;
-    layout->prv_border_x = 0.3f * UI_UNIT_X;
-    layout->prv_border_y = 0.3f * UI_UNIT_Y;
+    layout->tile_border_x = pad_fac * UI_UNIT_X;
+    layout->tile_border_y = pad_fac * UI_UNIT_X;
+    layout->prv_border_x = pad_fac * UI_UNIT_X;
+    layout->prv_border_y = pad_fac * UI_UNIT_Y;
     layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
     layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
     layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
@@ -1271,7 +1330,7 @@ void file_params_rename_end(wmWindowManager *wm,
   /* Ensure smooth-scroll timer is active, even if not needed, because that way rename state is
    * handled properly. */
   file_params_invoke_rename_postscroll(wm, win, sfile);
-  /* Also always activate the rename file, even if renaming was cancelled. */
+  /* Also always activate the rename file, even if renaming was canceled. */
   file_params_renamefile_activate(sfile, params);
 }
 

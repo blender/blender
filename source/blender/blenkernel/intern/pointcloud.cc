@@ -105,7 +105,7 @@ static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   PointCloud *pointcloud = (PointCloud *)id;
   for (int i = 0; i < pointcloud->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, pointcloud->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, pointcloud->mat[i], IDWALK_CB_USER);
   }
 }
 
@@ -174,7 +174,7 @@ IDTypeInfo IDType_ID_PT = {
     /* name */ "PointCloud",
     /* name_plural */ "pointclouds",
     /* translation_context */ BLT_I18NCONTEXT_ID_POINTCLOUD,
-    /* flags */ 0,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* init_data */ pointcloud_init_data,
     /* copy_data */ pointcloud_copy_data,

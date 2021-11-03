@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 /* Keep for 'Camera' versioning. */
-/** Properties for dof effect. */
+/** Properties for DOF effect. */
 typedef struct GPUDOFSettings {
   /** Focal distance for depth of field. */
   float focus_distance;

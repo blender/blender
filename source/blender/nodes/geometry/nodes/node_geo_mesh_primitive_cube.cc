@@ -26,11 +26,27 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cube_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>("Size").default_value(float3(1)).min(0.0f).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Int>("Vertices X").default_value(2).min(2).max(1000);
-  b.add_input<decl::Int>("Vertices Y").default_value(2).min(2).max(1000);
-  b.add_input<decl::Int>("Vertices Z").default_value(2).min(2).max(1000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Vector>(N_("Size"))
+      .default_value(float3(1))
+      .min(0.0f)
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Side length along each axis"));
+  b.add_input<decl::Int>(N_("Vertices X"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the X side of the shape"));
+  b.add_input<decl::Int>(N_("Vertices Y"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the Y side of the shape"));
+  b.add_input<decl::Int>(N_("Vertices Z"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the Z side of the shape"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 struct CuboidConfig {
@@ -456,12 +472,12 @@ static Mesh *create_cube_mesh(const float3 size,
     }
     if (verts_y == 1) { /* XZ plane. */
       Mesh *mesh = create_grid_mesh(verts_x, verts_z, size.x, size.z);
-      transform_mesh(mesh, float3(0), float3(M_PI_2, 0.0f, 0.0f), float3(1));
+      transform_mesh(*mesh, float3(0), float3(M_PI_2, 0.0f, 0.0f), float3(1));
       return mesh;
     }
     /* YZ plane. */
     Mesh *mesh = create_grid_mesh(verts_z, verts_y, size.z, size.y);
-    transform_mesh(mesh, float3(0), float3(0.0f, M_PI_2, 0.0f), float3(1));
+    transform_mesh(*mesh, float3(0), float3(0.0f, M_PI_2, 0.0f), float3(1));
     return mesh;
   }
 
@@ -476,13 +492,13 @@ static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
   const int verts_z = params.extract_input<int>("Vertices Z");
   if (verts_x < 1 || verts_y < 1 || verts_z < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

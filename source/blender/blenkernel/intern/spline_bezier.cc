@@ -214,6 +214,11 @@ void BezierSpline::ensure_auto_handles() const
     return;
   }
 
+  if (this->size() == 1) {
+    auto_handles_dirty_ = false;
+    return;
+  }
+
   for (const int i : IndexRange(this->size())) {
     if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
       const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
@@ -284,14 +289,70 @@ void BezierSpline::transform(const blender::float4x4 &matrix)
   this->mark_cache_invalid();
 }
 
+static void set_handle_position(const float3 &position,
+                                const BezierSpline::HandleType type,
+                                const BezierSpline::HandleType type_other,
+                                const float3 &new_value,
+                                float3 &handle,
+                                float3 &handle_other)
+{
+  /* Don't bother when the handle positions are calculated automatically anyway. */
+  if (ELEM(type, BezierSpline::HandleType::Auto, BezierSpline::HandleType::Vector)) {
+    return;
+  }
+
+  handle = new_value;
+  if (type_other == BezierSpline::HandleType::Align) {
+    /* Keep track of the old length of the opposite handle. */
+    const float length = float3::distance(handle_other, position);
+    /* Set the other handle to directly opposite from the current handle. */
+    const float3 dir = (handle - position).normalized();
+    handle_other = position - dir * length;
+  }
+}
+
+/**
+ * Set positions for the right handle of the control point, ensuring that
+ * aligned handles stay aligned. Has no effect for auto and vector type handles.
+ */
+void BezierSpline::set_handle_position_right(const int index, const blender::float3 &value)
+{
+  set_handle_position(positions_[index],
+                      handle_types_right_[index],
+                      handle_types_left_[index],
+                      value,
+                      handle_positions_right_[index],
+                      handle_positions_left_[index]);
+}
+
+/**
+ * Set positions for the left handle of the control point, ensuring that
+ * aligned handles stay aligned. Has no effect for auto and vector type handles.
+ */
+void BezierSpline::set_handle_position_left(const int index, const blender::float3 &value)
+{
+  set_handle_position(positions_[index],
+                      handle_types_left_[index],
+                      handle_types_right_[index],
+                      value,
+                      handle_positions_left_[index],
+                      handle_positions_right_[index]);
+}
+
 bool BezierSpline::point_is_sharp(const int index) const
 {
   return ELEM(handle_types_left_[index], HandleType::Vector, HandleType::Free) ||
          ELEM(handle_types_right_[index], HandleType::Vector, HandleType::Free);
 }
 
+/**
+ * \warning This functional assumes that the spline has more than one point.
+ */
 bool BezierSpline::segment_is_vector(const int index) const
 {
+  /* Two control points are necessary to form a segment, that should be checked by the caller. */
+  BLI_assert(this->size() > 1);
+
   if (index == this->size() - 1) {
     if (is_cyclic_) {
       return handle_types_right_.last() == HandleType::Vector &&
@@ -452,13 +513,18 @@ Span<int> BezierSpline::control_point_offsets() const
   offset_cache_.resize(size + 1);
 
   MutableSpan<int> offsets = offset_cache_;
-
-  int offset = 0;
-  for (const int i : IndexRange(size)) {
-    offsets[i] = offset;
-    offset += this->segment_is_vector(i) ? 1 : resolution_;
+  if (size == 1) {
+    offsets.first() = 0;
+    offsets.last() = 1;
   }
-  offsets.last() = offset;
+  else {
+    int offset = 0;
+    for (const int i : IndexRange(size)) {
+      offsets[i] = offset;
+      offset += this->segment_is_vector(i) ? 1 : resolution_;
+    }
+    offsets.last() = offset;
+  }
 
   offset_cache_dirty_ = false;
   return offsets;
@@ -545,13 +611,21 @@ Span<float3> BezierSpline::evaluated_positions() const
     return evaluated_position_cache_;
   }
 
-  this->ensure_auto_handles();
-
   const int size = this->size();
   const int eval_size = this->evaluated_points_size();
   evaluated_position_cache_.resize(eval_size);
 
   MutableSpan<float3> positions = evaluated_position_cache_;
+
+  if (size == 1) {
+    /* Use a special case for single point splines to avoid checking in #evaluate_segment. */
+    BLI_assert(eval_size == 1);
+    positions.first() = positions_.first();
+    position_cache_dirty_ = false;
+    return positions;
+  }
+
+  this->ensure_auto_handles();
 
   Span<int> offsets = this->control_point_offsets();
 

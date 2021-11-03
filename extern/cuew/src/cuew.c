@@ -736,6 +736,7 @@ const char *cuewErrorString(CUresult result) {
     case CUDA_ERROR_INVALID_GRAPHICS_CONTEXT: return "Invalid graphics context";
     case CUDA_ERROR_NVLINK_UNCORRECTABLE: return "Nvlink uncorrectable";
     case CUDA_ERROR_JIT_COMPILER_NOT_FOUND: return "Jit compiler not found";
+    case CUDA_ERROR_UNSUPPORTED_PTX_VERSION: return "Unsupported PTX version";
     case CUDA_ERROR_INVALID_SOURCE: return "Invalid source";
     case CUDA_ERROR_FILE_NOT_FOUND: return "File not found";
     case CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND: return "Link to a shared object failed to resolve";

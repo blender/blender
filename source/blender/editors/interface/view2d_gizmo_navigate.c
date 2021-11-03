@@ -127,10 +127,23 @@ struct NavigateWidgetGroup {
   int region_size[2];
 };
 
-static bool WIDGETGROUP_navigate_poll(const bContext *UNUSED(C), wmGizmoGroupType *UNUSED(gzgt))
+static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
   if ((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) {
     return false;
+  }
+  ScrArea *area = CTX_wm_area(C);
+  if (area == NULL) {
+    return false;
+  }
+  switch (area->spacetype) {
+    case SPACE_SEQ: {
+      const SpaceSeq *sseq = area->spacedata.first;
+      if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_NAVIGATE)) {
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }

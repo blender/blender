@@ -17,76 +17,72 @@
  */
 
 #include "COM_RenderLayersNode.h"
-#include "COM_RenderLayersProg.h"
-#include "COM_RotateOperation.h"
-#include "COM_ScaleOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
-#include "COM_TranslateOperation.h"
 
 namespace blender::compositor {
 
-RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
+RenderLayersNode::RenderLayersNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void RenderLayersNode::testSocketLink(NodeConverter &converter,
-                                      const CompositorContext &context,
-                                      NodeOutput *output,
-                                      RenderLayersProg *operation,
-                                      Scene *scene,
-                                      int layerId,
-                                      bool is_preview) const
+void RenderLayersNode::test_socket_link(NodeConverter &converter,
+                                        const CompositorContext &context,
+                                        NodeOutput *output,
+                                        RenderLayersProg *operation,
+                                        Scene *scene,
+                                        int layer_id,
+                                        bool is_preview) const
 {
-  operation->setScene(scene);
-  operation->setLayerId(layerId);
-  operation->setRenderData(context.getRenderData());
-  operation->setViewName(context.getViewName());
+  operation->set_scene(scene);
+  operation->set_layer_id(layer_id);
+  operation->set_render_data(context.get_render_data());
+  operation->set_view_name(context.get_view_name());
 
-  converter.mapOutputSocket(output, operation->getOutputSocket());
-  converter.addOperation(operation);
+  converter.map_output_socket(output, operation->get_output_socket());
+  converter.add_operation(operation);
 
   if (is_preview) { /* only for image socket */
-    converter.addPreview(operation->getOutputSocket());
+    converter.add_preview(operation->get_output_socket());
   }
 }
 
-void RenderLayersNode::testRenderLink(NodeConverter &converter,
-                                      const CompositorContext &context,
-                                      Render *re) const
+void RenderLayersNode::test_render_link(NodeConverter &converter,
+                                        const CompositorContext &context,
+                                        Render *re) const
 {
-  Scene *scene = (Scene *)this->getbNode()->id;
-  const short layerId = this->getbNode()->custom1;
+  Scene *scene = (Scene *)this->get_bnode()->id;
+  const short layer_id = this->get_bnode()->custom1;
   RenderResult *rr = RE_AcquireResultRead(re);
   if (rr == nullptr) {
-    missingRenderLink(converter);
+    missing_render_link(converter);
     return;
   }
-  ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, layerId);
+  ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, layer_id);
   if (view_layer == nullptr) {
-    missingRenderLink(converter);
+    missing_render_link(converter);
     return;
   }
   RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
   if (rl == nullptr) {
-    missingRenderLink(converter);
+    missing_render_link(converter);
     return;
   }
 
-  for (NodeOutput *output : getOutputSockets()) {
-    NodeImageLayer *storage = (NodeImageLayer *)output->getbNodeSocket()->storage;
+  for (NodeOutput *output : get_output_sockets()) {
+    NodeImageLayer *storage = (NodeImageLayer *)output->get_bnode_socket()->storage;
     RenderPass *rpass = (RenderPass *)BLI_findstring(
         &rl->passes, storage->pass_name, offsetof(RenderPass, name));
     if (rpass == nullptr) {
-      missingSocketLink(converter, output);
+      missing_socket_link(converter, output);
       continue;
     }
     RenderLayersProg *operation;
     bool is_preview;
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED) &&
-        STREQ(output->getbNodeSocket()->name, "Alpha")) {
+        STREQ(output->get_bnode_socket()->name, "Alpha")) {
       operation = new RenderLayersAlphaProg(rpass->name, DataType::Value, rpass->channels);
       is_preview = false;
     }
@@ -112,33 +108,33 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
           break;
       }
       operation = new RenderLayersProg(rpass->name, type, rpass->channels);
-      is_preview = STREQ(output->getbNodeSocket()->name, "Image");
+      is_preview = STREQ(output->get_bnode_socket()->name, "Image");
     }
-    testSocketLink(converter, context, output, operation, scene, layerId, is_preview);
+    test_socket_link(converter, context, output, operation, scene, layer_id, is_preview);
   }
 }
 
-void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *output) const
+void RenderLayersNode::missing_socket_link(NodeConverter &converter, NodeOutput *output) const
 {
   NodeOperation *operation;
-  switch (output->getDataType()) {
+  switch (output->get_data_type()) {
     case DataType::Color: {
       const float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
       SetColorOperation *color_operation = new SetColorOperation();
-      color_operation->setChannels(color);
+      color_operation->set_channels(color);
       operation = color_operation;
       break;
     }
     case DataType::Vector: {
       const float vector[3] = {0.0f, 0.0f, 0.0f};
       SetVectorOperation *vector_operation = new SetVectorOperation();
-      vector_operation->setVector(vector);
+      vector_operation->set_vector(vector);
       operation = vector_operation;
       break;
     }
     case DataType::Value: {
       SetValueOperation *value_operation = new SetValueOperation();
-      value_operation->setValue(0.0f);
+      value_operation->set_value(0.0f);
       operation = value_operation;
       break;
     }
@@ -148,29 +144,29 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *o
     }
   }
 
-  converter.mapOutputSocket(output, operation->getOutputSocket());
-  converter.addOperation(operation);
+  converter.map_output_socket(output, operation->get_output_socket());
+  converter.add_operation(operation);
 }
 
-void RenderLayersNode::missingRenderLink(NodeConverter &converter) const
+void RenderLayersNode::missing_render_link(NodeConverter &converter) const
 {
-  for (NodeOutput *output : outputs) {
-    missingSocketLink(converter, output);
+  for (NodeOutput *output : outputs_) {
+    missing_socket_link(converter, output);
   }
 }
 
-void RenderLayersNode::convertToOperations(NodeConverter &converter,
-                                           const CompositorContext &context) const
+void RenderLayersNode::convert_to_operations(NodeConverter &converter,
+                                             const CompositorContext &context) const
 {
-  Scene *scene = (Scene *)this->getbNode()->id;
+  Scene *scene = (Scene *)this->get_bnode()->id;
   Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
 
   if (re != nullptr) {
-    testRenderLink(converter, context, re);
+    test_render_link(converter, context, re);
     RE_ReleaseResult(re);
   }
   else {
-    missingRenderLink(converter);
+    missing_render_link(converter);
   }
 }
 

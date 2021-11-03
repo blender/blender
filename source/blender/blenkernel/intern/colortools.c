@@ -1212,6 +1212,20 @@ void BKE_curvemapping_init(CurveMapping *cumap)
   }
 }
 
+void BKE_curvemapping_table_F(const CurveMapping *cumap, float **array, int *size)
+{
+  int a;
+
+  *size = CM_TABLE + 1;
+  *array = MEM_callocN(sizeof(float) * (*size) * 4, "CurveMapping");
+
+  for (a = 0; a < *size; a++) {
+    if (cumap->cm[0].table) {
+      (*array)[a * 4 + 0] = cumap->cm[0].table[a].y;
+    }
+  }
+}
+
 void BKE_curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size)
 {
   int a;

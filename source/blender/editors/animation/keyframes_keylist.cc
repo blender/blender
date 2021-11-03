@@ -564,9 +564,9 @@ static void nupdate_ak_masklayshape(ActKeyColumn *ak, void *data)
 using KeylistCreateColumnFunction = std::function<ActKeyColumn *(void *userdata)>;
 using KeylistUpdateColumnFunction = std::function<void(ActKeyColumn *, void *)>;
 
-/* `ED_keylist_find_neighbour_front_to_back` is called before the runtime can be initialized so we
+/* `ED_keylist_find_neighbor_front_to_back` is called before the runtime can be initialized so we
  * cannot use bin searching. */
-static ActKeyColumn *ED_keylist_find_neighbour_front_to_back(ActKeyColumn *cursor, float cfra)
+static ActKeyColumn *ED_keylist_find_neighbor_front_to_back(ActKeyColumn *cursor, float cfra)
 {
   while (cursor->next && cursor->next->cfra <= cfra) {
     cursor = cursor->next;
@@ -574,9 +574,9 @@ static ActKeyColumn *ED_keylist_find_neighbour_front_to_back(ActKeyColumn *curso
   return cursor;
 }
 
-/* `ED_keylist_find_neighbour_back_to_front` is called before the runtime can be initialized so we
+/* `ED_keylist_find_neighbor_back_to_front` is called before the runtime can be initialized so we
  * cannot use bin searching. */
-static ActKeyColumn *ED_keylist_find_neighbour_back_to_front(ActKeyColumn *cursor, float cfra)
+static ActKeyColumn *ED_keylist_find_neighbor_back_to_front(ActKeyColumn *cursor, float cfra)
 {
   while (cursor->prev && cursor->prev->cfra >= cfra) {
     cursor = cursor->prev;
@@ -585,14 +585,14 @@ static ActKeyColumn *ED_keylist_find_neighbour_back_to_front(ActKeyColumn *curso
 }
 
 /*
- * `ED_keylist_find_exact_or_neighbour_column` is called before the runtime can be initialized so
+ * `ED_keylist_find_exact_or_neighbor_column` is called before the runtime can be initialized so
  * we cannot use bin searching.
  *
  * This function is called to add or update columns in the keylist.
  * Typically columns are sorted by frame number so keeping track of the last_accessed_column
  * reduces searching.
  */
-static ActKeyColumn *ED_keylist_find_exact_or_neighbour_column(AnimKeylist *keylist, float cfra)
+static ActKeyColumn *ED_keylist_find_exact_or_neighbor_column(AnimKeylist *keylist, float cfra)
 {
   BLI_assert(!keylist->is_runtime_initialized);
   if (ED_keylist_is_empty(keylist)) {
@@ -604,10 +604,10 @@ static ActKeyColumn *ED_keylist_find_exact_or_neighbour_column(AnimKeylist *keyl
   if (!is_cfra_eq(cursor->cfra, cfra)) {
     const bool walking_direction_front_to_back = cursor->cfra <= cfra;
     if (walking_direction_front_to_back) {
-      cursor = ED_keylist_find_neighbour_front_to_back(cursor, cfra);
+      cursor = ED_keylist_find_neighbor_front_to_back(cursor, cfra);
     }
     else {
-      cursor = ED_keylist_find_neighbour_back_to_front(cursor, cfra);
+      cursor = ED_keylist_find_neighbor_back_to_front(cursor, cfra);
     }
   }
 
@@ -633,7 +633,7 @@ static void ED_keylist_add_or_update_column(AnimKeylist *keylist,
     return;
   }
 
-  ActKeyColumn *nearest = ED_keylist_find_exact_or_neighbour_column(keylist, cfra);
+  ActKeyColumn *nearest = ED_keylist_find_exact_or_neighbor_column(keylist, cfra);
   if (is_cfra_eq(nearest->cfra, cfra)) {
     update_func(nearest, userdata);
   }
@@ -774,7 +774,7 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, co
       if (is_cfra_lt(bezt[1].vec[1][0], bezt[0].vec[1][0])) {
         /* Backtrack to find the right location. */
         if (is_cfra_lt(bezt[1].vec[1][0], col->cfra)) {
-          ActKeyColumn *newcol = ED_keylist_find_exact_or_neighbour_column(keylist, col->cfra);
+          ActKeyColumn *newcol = ED_keylist_find_exact_or_neighbor_column(keylist, col->cfra);
 
           BLI_assert(newcol);
           BLI_assert(newcol->cfra == col->cfra);

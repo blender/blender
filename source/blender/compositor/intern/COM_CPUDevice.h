@@ -39,11 +39,11 @@ class CPUDevice : public Device {
 
   int thread_id()
   {
-    return m_thread_id;
+    return thread_id_;
   }
 
  protected:
-  int m_thread_id;
+  int thread_id_;
 };
 
 }  // namespace blender::compositor
