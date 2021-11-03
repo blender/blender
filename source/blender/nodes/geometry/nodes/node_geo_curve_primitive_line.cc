@@ -25,10 +25,21 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Start")).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>(N_("End")).default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>(N_("Direction")).default_value({0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Length")).default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>(N_("Start"))
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the first control point"));
+  b.add_input<decl::Vector>(N_("End"))
+      .default_value({0.0f, 0.0f, 1.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the second control point"));
+  b.add_input<decl::Vector>(N_("Direction"))
+      .default_value({0.0f, 0.0f, 1.0f})
+      .description(
+          N_("Direction the line is going in. The length of this vector does not matter"));
+  b.add_input<decl::Float>(N_("Length"))
+      .default_value(1.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Distance between the two points"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 

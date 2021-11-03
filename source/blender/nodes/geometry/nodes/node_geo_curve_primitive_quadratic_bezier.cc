@@ -25,14 +25,20 @@ static void geo_node_curve_primitive_quadratic_bezier_declare(NodeDeclarationBui
       .default_value(16)
       .min(3)
       .max(256)
-      .subtype(PROP_UNSIGNED);
+      .subtype(PROP_UNSIGNED)
+      .description(N_("The number of edges on the curve"));
   b.add_input<decl::Vector>(N_("Start"))
       .default_value({-1.0f, 0.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the first control point"));
   b.add_input<decl::Vector>(N_("Middle"))
       .default_value({0.0f, 2.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>(N_("End")).default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the middle control point"));
+  b.add_input<decl::Vector>(N_("End"))
+      .default_value({1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Position of the last control point"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 

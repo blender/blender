@@ -29,15 +29,35 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cone_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertices")).default_value(32).min(3).max(512);
-  b.add_input<decl::Int>(N_("Side Segments")).default_value(1).min(1).max(512);
-  b.add_input<decl::Int>(N_("Fill Segments")).default_value(1).min(1).max(512);
-  b.add_input<decl::Float>(N_("Radius Top")).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Vertices"))
+      .default_value(32)
+      .min(3)
+      .max(512)
+      .description(N_("Number of points on the circle at the top and bottom"));
+  b.add_input<decl::Int>(N_("Side Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("The number of edges running vertically along the side of the cone"));
+  b.add_input<decl::Int>(N_("Fill Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("Number of concentric rings used to fill the round face"));
+  b.add_input<decl::Float>(N_("Radius Top"))
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Radius of the top circle of the cone"));
   b.add_input<decl::Float>(N_("Radius Bottom"))
       .default_value(1.0f)
       .min(0.0f)
-      .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Depth")).default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+      .subtype(PROP_DISTANCE)
+      .description(N_("Radius of the bottom circle of the cone"));
+  b.add_input<decl::Float>(N_("Depth"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Height of the generated cone"));
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 

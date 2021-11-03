@@ -29,9 +29,21 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Segments")).default_value(32).min(3).max(1024);
-  b.add_input<decl::Int>(N_("Rings")).default_value(16).min(2).max(1024);
-  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Segments"))
+      .default_value(32)
+      .min(3)
+      .max(1024)
+      .description(N_("Horizontal resolution of the sphere"));
+  b.add_input<decl::Int>(N_("Rings"))
+      .default_value(16)
+      .min(2)
+      .max(1024)
+      .description(N_("The number of horizontal rings"));
+  b.add_input<decl::Float>(N_("Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Distance from the generated points to the origin"));
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 

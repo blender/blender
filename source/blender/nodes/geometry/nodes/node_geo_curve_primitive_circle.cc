@@ -25,17 +25,34 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_circle_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Resolution")).default_value(32).min(3).max(512);
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(32)
+      .min(3)
+      .max(512)
+      .description(N_("Number of points on the circle"));
   b.add_input<decl::Vector>(N_("Point 1"))
       .default_value({-1.0f, 0.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
   b.add_input<decl::Vector>(N_("Point 2"))
       .default_value({0.0f, 1.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
   b.add_input<decl::Vector>(N_("Point 3"))
       .default_value({1.0f, 0.0f, 0.0f})
-      .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+      .subtype(PROP_TRANSLATION)
+      .description(
+          N_("One of the three points on the circle. The point order determines the circle's "
+             "direction"));
+  b.add_input<decl::Float>(N_("Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Distance of the points from the origin"));
   b.add_output<decl::Geometry>(N_("Curve"));
   b.add_output<decl::Vector>(N_("Center"));
 }

@@ -29,8 +29,15 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_circle_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertices")).default_value(32).min(3);
-  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Vertices"))
+      .default_value(32)
+      .min(3)
+      .description(N_("Number of vertices on the circle"));
+  b.add_input<decl::Float>(N_("Radius"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Distance of the vertices from the origin"));
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 

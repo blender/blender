@@ -29,10 +29,26 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Size X")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Size Y")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Int>(N_("Vertices X")).default_value(3).min(2).max(1000);
-  b.add_input<decl::Int>(N_("Vertices Y")).default_value(3).min(2).max(1000);
+  b.add_input<decl::Float>(N_("Size X"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Side length of the plane in the X direction"));
+  b.add_input<decl::Float>(N_("Size Y"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Side length of the plane in the Y direction"));
+  b.add_input<decl::Int>(N_("Vertices X"))
+      .default_value(3)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices in the X direction"));
+  b.add_input<decl::Int>(N_("Vertices Y"))
+      .default_value(3)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices in the Y direction"));
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
