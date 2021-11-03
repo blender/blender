@@ -43,22 +43,30 @@ class WM_OT_previews_batch_generate(Operator):
     files: CollectionProperty(
         type=OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'},
+        name="",
+        description="Collection of file paths with common `directory` root",
     )
 
     directory: StringProperty(
         maxlen=1024,
         subtype='FILE_PATH',
         options={'HIDDEN', 'SKIP_SAVE'},
+        name="",
+        description="Root path of all files listed in `files` collection",
     )
 
     # Show only images/videos, and directories!
     filter_blender: BoolProperty(
         default=True,
         options={'HIDDEN', 'SKIP_SAVE'},
+        name="",
+        description="Show Blender files in the File Browser",
     )
     filter_folder: BoolProperty(
         default=True,
         options={'HIDDEN', 'SKIP_SAVE'},
+        name="",
+        description="Show folders in the File Browser",
     )
 
     # -----------
