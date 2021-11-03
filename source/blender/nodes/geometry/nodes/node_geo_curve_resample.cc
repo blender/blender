@@ -41,6 +41,7 @@ static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
       .min(0.001f)
       .supports_field()
       .subtype(PROP_DISTANCE);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field();
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
@@ -74,6 +75,7 @@ struct SampleModeParam {
   GeometryNodeCurveResampleMode mode;
   std::optional<Field<float>> length;
   std::optional<Field<int>> count;
+  Field<bool> selection;
 };
 
 static SplinePtr resample_spline(const Spline &src, const int count)
@@ -183,42 +185,64 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
   if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.count);
+    evaluator.add(mode_param.selection);
     evaluator.evaluate();
     const VArray<int> &cuts = evaluator.get_evaluated<int>(0);
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(1);
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         BLI_assert(mode_param.count);
-        output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        if (selections[i]) {
+          output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
     fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.length);
+    evaluator.add(mode_param.selection);
     evaluator.evaluate();
     const VArray<float> &lengths = evaluator.get_evaluated<float>(0);
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(1);
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        /* Don't allow asymptotic count increase for low resolution values. */
-        const float divide_length = std::max(lengths[i], 0.0001f);
-        const float spline_length = input_splines[i]->length();
-        const int count = std::max(int(spline_length / divide_length) + 1, 1);
-        output_splines[i] = resample_spline(*input_splines[i], count);
+        if (selections[i]) {
+          /* Don't allow asymptotic count increase for low resolution values. */
+          const float divide_length = std::max(lengths[i], 0.0001f);
+          const float spline_length = input_splines[i]->length();
+          const int count = std::max(int(spline_length / divide_length) + 1, 1);
+          output_splines[i] = resample_spline(*input_splines[i], count);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_EVALUATED) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
+    evaluator.add(mode_param.selection);
+    evaluator.evaluate();
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(0);
+
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        if (selections[i]) {
+          output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
-
   output_curve->attributes = input_curve->attributes;
-
   return output_curve;
 }
 
@@ -244,6 +268,8 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
 
   SampleModeParam mode_param;
   mode_param.mode = mode;
+  mode_param.selection = params.extract_input<Field<bool>>("Selection");
+
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     Field<int> count = params.extract_input<Field<int>>("Count");
     if (count < 1) {
