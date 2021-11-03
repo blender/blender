@@ -73,8 +73,6 @@ static void extract_vcol_init(const MeshRenderData *mr,
       AttributeDomain domain = step ? ATTR_DOMAIN_CORNER : ATTR_DOMAIN_POINT;
 
       for (int j = 0; j < count; j++) {
-        int idx = CustomData_get_layer_index_n(cdata, type, j);
-
         char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
         const char *layer_name = CustomData_get_layer_name(cdata, type, j);
         GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);

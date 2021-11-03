@@ -254,7 +254,7 @@ void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
               MLoopCol *col = ss->mcol + li;
 
               linearrgb_to_srgb_v3_v3(temp, color);
-              temp[4] = color[4];
+              temp[3] = color[3];
 
               rgba_float_to_uchar((char *)col, temp);
             }
@@ -270,7 +270,7 @@ void SCULPT_vertex_color_set(SculptSession *ss, int index, float color[4])
           float temp[4];
 
           linearrgb_to_srgb_v3_v3(temp, color);
-          temp[4] = color[4];
+          temp[3] = color[3];
 
           rgba_float_to_uchar((char *)col, temp);
         }
