@@ -138,7 +138,7 @@ class Value {
 
  public:
   virtual ~Value() = default;
-  const eValueType type() const
+  eValueType type() const
   {
     return type_;
   }
