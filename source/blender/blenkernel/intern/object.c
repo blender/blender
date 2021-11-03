@@ -869,6 +869,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Object *ob = (Object *)id;
 
+  Main *bmain = BLO_read_lib_get_main(reader);
   BlendFileReadReport *reports = BLO_read_lib_reports(reader);
 
   /* XXX deprecated - old animation system <<< */
@@ -965,12 +966,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   /* When the object is local and the data is library its possible
    * the material list size gets out of sync. T22663. */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
-    const short *totcol_data = BKE_object_material_len_p(ob);
-    /* Only expand so as not to lose any object materials that might be set. */
-    if (totcol_data && (*totcol_data > ob->totcol)) {
-      // printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data);
-      BKE_object_material_resize(BLO_read_lib_get_main(reader), ob, *totcol_data, false);
-    }
+    BKE_object_materials_test(bmain, ob, ob->data);
   }
 
   BLO_read_id_address(reader, ob->id.lib, &ob->gpd);
