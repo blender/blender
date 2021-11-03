@@ -2015,25 +2015,27 @@ static void node_draw_hidden(const bContext *C,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformThemeColorShadeAlpha(TH_TEXT, -40, -180);
-  float dx = 10.0f;
+  float dx = 0.5f * U.widget_unit;
+  const float dx2 = 0.15f * U.widget_unit * snode->runtime->aspect;
+  const float dy = 0.2f * U.widget_unit;
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx, centy - dy);
+  immVertex2f(pos, rct->xmax - dx, centy + dy);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy - dy);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy + dy);
   immEnd();
 
   immUniformThemeColorShadeAlpha(TH_TEXT, 0, -180);
   dx -= snode->runtime->aspect;
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx, centy - dy);
+  immVertex2f(pos, rct->xmax - dx, centy + dy);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy - dy);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy + dy);
   immEnd();
 
   immUnbindProgram();
