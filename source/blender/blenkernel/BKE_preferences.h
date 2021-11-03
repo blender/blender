@@ -29,8 +29,8 @@ extern "C" {
 struct UserDef;
 struct bUserAssetLibrary;
 
-/** Name of the asset library added by default. */
-#define BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME DATA_("User Library")
+/** Name of the asset library added by default. Needs translation with `DATA_()` still. */
+#define BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME N_("User Library")
 
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
