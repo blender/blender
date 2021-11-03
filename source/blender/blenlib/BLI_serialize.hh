@@ -103,11 +103,11 @@ using IntValue = PrimitiveValue<int64_t, eValueType::Int>;
 using DoubleValue = PrimitiveValue<double, eValueType::Double>;
 using BooleanValue = PrimitiveValue<bool, eValueType::Boolean>;
 
-template<typename Container, typename ContainerItem, eValueType V> class ContainerValue;
+template<typename Container, eValueType V, typename ContainerItem = typename Container::value_type>
+class ContainerValue;
 /* ArrayValue stores its items as shared pointer as it shares data with a lookup table that can
  * be created by calling `create_lookup`. */
-using ArrayValue =
-    ContainerValue<Vector<std::shared_ptr<Value>>, std::shared_ptr<Value>, eValueType::Array>;
+using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Array>;
 
 /**
  * Class containing a (de)serializable value.
@@ -234,11 +234,11 @@ template<
     /** The container type where the elements are stored in. */
     typename Container,
 
-    /** Type of the data inside the container. */
-    typename ContainerItem,
-
     /** ValueType representing the value (object/array). */
-    eValueType V>
+    eValueType V,
+
+    /** Type of the data inside the container. */
+    typename ContainerItem>
 class ContainerValue : public Value {
  public:
   using Items = Container;
@@ -275,8 +275,7 @@ using ObjectElementType = std::pair<std::string, std::shared_ptr<Value>>;
  * Object is a key-value container where the key must be a std::string.
  * Internally it is stored in a blender::Vector to ensure the order of keys.
  */
-class ObjectValue
-    : public ContainerValue<Vector<ObjectElementType>, ObjectElementType, eValueType::Object> {
+class ObjectValue : public ContainerValue<Vector<ObjectElementType>, eValueType::Object> {
  public:
   using LookupValue = std::shared_ptr<Value>;
   using Lookup = Map<std::string, LookupValue>;
