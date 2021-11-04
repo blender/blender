@@ -83,6 +83,10 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
 
   Ray volume_ray ccl_optional_struct_init;
   integrator_state_read_ray(kg, state, &volume_ray);
+
+  /* Trace ray in random direction. Any direction works, Z up is a guess to get the
+   * fewest hits. */
+  volume_ray.D = make_float3(0.0f, 0.0f, 1.0f);
   volume_ray.t = FLT_MAX;
 
   const uint visibility = (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_ALL_VISIBILITY);
@@ -147,7 +151,7 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
   int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
   int step = 0;
 
-  while (stack_index < volume_stack_size - 1 && enclosed_index < volume_stack_size - 1 &&
+  while (stack_index < volume_stack_size - 1 && enclosed_index < MAX_VOLUME_STACK_SIZE - 1 &&
          step < 2 * volume_stack_size) {
     Intersection isect;
     if (!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
