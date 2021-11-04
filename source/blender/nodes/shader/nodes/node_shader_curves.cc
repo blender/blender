@@ -357,7 +357,7 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Value")).default_value(1.0f);
+  b.add_input<decl::Float>(N_("Value")).default_value(1.0f).is_default_link_socket();
   b.add_output<decl::Float>(N_("Value"));
 };
 
