@@ -39,12 +39,12 @@ static bool ui_tree_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *eve
     return false;
   }
 
-  if (drag->free_disabled_info) {
-    MEM_SAFE_FREE(drag->disabled_info);
+  if (drag->drop_state.free_disabled_info) {
+    MEM_SAFE_FREE(drag->drop_state.disabled_info);
   }
 
-  drag->free_disabled_info = false;
-  return UI_tree_view_item_can_drop(hovered_tree_item, drag, &drag->disabled_info);
+  drag->drop_state.free_disabled_info = false;
+  return UI_tree_view_item_can_drop(hovered_tree_item, drag, &drag->drop_state.disabled_info);
 }
 
 static char *ui_tree_view_drop_tooltip(bContext *C,
