@@ -56,7 +56,7 @@
 /* ------------------- */
 
 /* This data type is only used for modal operation. */
-typedef struct tDecimateGraphOp {
+typedef struct tGraphSliderOp {
   bAnimContext ac;
   Scene *scene;
   ScrArea *area;
@@ -71,7 +71,7 @@ typedef struct tDecimateGraphOp {
   struct tSlider *slider;
 
   NumInput num;
-} tDecimateGraphOp;
+} tGraphSliderOp;
 
 typedef struct tBeztCopyData {
   int tot_vert;
@@ -92,10 +92,10 @@ typedef enum tDecimModes {
 
 /* Construct a list with the original bezt arrays so we can restore them during modal operation.
  * The data is stored on the struct that is passed.*/
-static void store_original_bezt_arrays(tDecimateGraphOp *dgo)
+static void store_original_bezt_arrays(tGraphSliderOp *gso)
 {
   ListBase anim_data = {NULL, NULL};
-  bAnimContext *ac = &dgo->ac;
+  bAnimContext *ac = &gso->ac;
   bAnimListElem *ale;
 
   ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
@@ -124,7 +124,7 @@ static void store_original_bezt_arrays(tDecimateGraphOp *dgo)
     link = MEM_callocN(sizeof(LinkData), "Bezt Link");
     link->data = copy;
 
-    BLI_addtail(&dgo->bezt_arr_list, link);
+    BLI_addtail(&gso->bezt_arr_list, link);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -155,19 +155,19 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
 }
 
 /* Overwrite the current bezts arrays with the original data. */
-static void decimate_reset_bezts(tDecimateGraphOp *dgo)
+static void reset_bezts(tGraphSliderOp *gso)
 {
   ListBase anim_data = {NULL, NULL};
   LinkData *link_bezt;
   bAnimListElem *ale;
 
-  bAnimContext *ac = &dgo->ac;
+  bAnimContext *ac = &gso->ac;
 
   /* Filter data. */
   ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
 
   /* Loop through filtered data and reset bezts. */
-  for (ale = anim_data.first, link_bezt = dgo->bezt_arr_list.first; ale; ale = ale->next) {
+  for (ale = anim_data.first, link_bezt = gso->bezt_arr_list.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
 
     if (fcu->bezt == NULL) {
@@ -194,27 +194,27 @@ static void decimate_reset_bezts(tDecimateGraphOp *dgo)
 
 static void decimate_exit(bContext *C, wmOperator *op)
 {
-  tDecimateGraphOp *dgo = op->customdata;
+  tGraphSliderOp *gso = op->customdata;
   wmWindow *win = CTX_wm_window(C);
 
   /* If data exists, clear its data and exit. */
-  if (dgo == NULL) {
+  if (gso == NULL) {
     return;
   }
 
-  ScrArea *area = dgo->area;
+  ScrArea *area = gso->area;
   LinkData *link;
 
-  ED_slider_destroy(C, dgo->slider);
+  ED_slider_destroy(C, gso->slider);
 
-  for (link = dgo->bezt_arr_list.first; link != NULL; link = link->next) {
+  for (link = gso->bezt_arr_list.first; link != NULL; link = link->next) {
     tBeztCopyData *copy = link->data;
     MEM_freeN(copy->bezt);
     MEM_freeN(link->data);
   }
 
-  BLI_freelistN(&dgo->bezt_arr_list);
-  MEM_freeN(dgo);
+  BLI_freelistN(&gso->bezt_arr_list);
+  MEM_freeN(gso);
 
   /* Return to normal cursor and header status. */
   WM_cursor_modal_restore(win);
@@ -225,20 +225,20 @@ static void decimate_exit(bContext *C, wmOperator *op)
 }
 
 /* Draw a percentage indicator in workspace footer. */
-static void decimate_draw_status(bContext *C, tDecimateGraphOp *dgo)
+static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 {
   char status_str[UI_MAX_DRAW_STR];
   char mode_str[32];
   char slider_string[UI_MAX_DRAW_STR];
 
-  ED_slider_status_string_get(dgo->slider, slider_string, UI_MAX_DRAW_STR);
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
   strcpy(mode_str, TIP_("Decimate Keyframes"));
 
-  if (hasNumInput(&dgo->num)) {
+  if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&dgo->num, str_ofs, &dgo->scene->unit);
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
 
     BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
   }
@@ -251,34 +251,34 @@ static void decimate_draw_status(bContext *C, tDecimateGraphOp *dgo)
 
 static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tDecimateGraphOp *dgo;
+  tGraphSliderOp *gso;
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
 
   /* Init slide-op data. */
-  dgo = op->customdata = MEM_callocN(sizeof(tDecimateGraphOp), "tDecimateGraphOp");
+  gso = op->customdata = MEM_callocN(sizeof(tGraphSliderOp), "tGraphSliderOp");
 
   /* Get editor data. */
-  if (ANIM_animdata_get_context(C, &dgo->ac) == 0) {
+  if (ANIM_animdata_get_context(C, &gso->ac) == 0) {
     decimate_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  dgo->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
+  gso->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
 
-  dgo->scene = CTX_data_scene(C);
-  dgo->area = CTX_wm_area(C);
-  dgo->region = CTX_wm_region(C);
+  gso->scene = CTX_data_scene(C);
+  gso->area = CTX_wm_area(C);
+  gso->region = CTX_wm_region(C);
 
-  store_original_bezt_arrays(dgo);
+  store_original_bezt_arrays(gso);
 
-  dgo->slider = ED_slider_create(C);
-  ED_slider_init(dgo->slider, event);
-  ED_slider_allow_overshoot_set(dgo->slider, false);
+  gso->slider = ED_slider_create(C);
+  ED_slider_init(gso->slider, event);
+  ED_slider_allow_overshoot_set(gso->slider, false);
 
-  decimate_draw_status(C, dgo);
+  decimate_draw_status(C, gso);
 
-  if (dgo->bezt_arr_list.first == NULL) {
+  if (gso->bezt_arr_list.first == NULL) {
     WM_report(RPT_WARNING,
               "Fcurve Decimate: Can't decimate baked channels. Unbake them and try again.");
     decimate_exit(C, op);
@@ -293,19 +293,19 @@ static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
 {
   /* Perform decimate updates - in response to some user action
    * (e.g. pressing a key or moving the mouse). */
-  tDecimateGraphOp *dgo = op->customdata;
+  tGraphSliderOp *gso = op->customdata;
 
-  decimate_draw_status(C, dgo);
+  decimate_draw_status(C, gso);
 
   /* Reset keyframe data (so we get back to the original state). */
-  decimate_reset_bezts(dgo);
+  reset_bezts(gso);
 
   /* Apply... */
-  float remove_ratio = ED_slider_factor_get(dgo->slider);
-  RNA_property_float_set(op->ptr, dgo->percentage_prop, remove_ratio);
+  float remove_ratio = ED_slider_factor_get(gso->slider);
+  RNA_property_float_set(op->ptr, gso->percentage_prop, remove_ratio);
   /* We don't want to limit the decimation to a certain error margin. */
   const float error_sq_max = FLT_MAX;
-  decimate_graph_keys(&dgo->ac, remove_ratio, error_sq_max);
+  decimate_graph_keys(&gso->ac, remove_ratio, error_sq_max);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
@@ -315,11 +315,11 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
    * and finicky to control with this modal mouse grab method. Therefore, it is expected that the
    * error margin mode is not adjusted by the modal operator but instead tweaked via the redo
    * panel. */
-  tDecimateGraphOp *dgo = op->customdata;
+  tGraphSliderOp *gso = op->customdata;
 
-  const bool has_numinput = hasNumInput(&dgo->num);
+  const bool has_numinput = hasNumInput(&gso->num);
 
-  ED_slider_modal(dgo->slider, event);
+  ED_slider_modal(gso->slider, event);
 
   switch (event->type) {
     case LEFTMOUSE: /* Confirm */
@@ -336,7 +336,7 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
     case EVT_ESCKEY: /* Cancel */
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
-        decimate_reset_bezts(dgo);
+        reset_bezts(gso);
 
         WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 
@@ -357,18 +357,18 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
       break;
     }
     default: {
-      if ((event->val == KM_PRESS) && handleNumInput(C, &dgo->num, event)) {
+      if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
         float value;
-        float percentage = RNA_property_float_get(op->ptr, dgo->percentage_prop);
+        float percentage = RNA_property_float_get(op->ptr, gso->percentage_prop);
 
         /* Grab percentage from numeric input, and store this new value for redo
          * NOTE: users see ints, while internally we use a 0-1 float.
          */
         value = percentage * 100.0f;
-        applyNumInput(&dgo->num, &value);
+        applyNumInput(&gso->num, &value);
 
         percentage = value / 100.0f;
-        RNA_property_float_set(op->ptr, dgo->percentage_prop, percentage);
+        RNA_property_float_set(op->ptr, gso->percentage_prop, percentage);
 
         /* Update decimate output to reflect the new values. */
         graphkeys_decimate_modal_update(C, op);
