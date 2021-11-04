@@ -54,26 +54,11 @@ def update_factory_startup_grease_pencils():
         gpd.onion_keyframe_type = 'ALL'
 
 
-def update_factory_startup_theme():
-    # To prevent saving over the current theme Preferences,
-    # store the current state of use_preferences_save to use later.
-    preferences = bpy.context.preferences
-    save_preferences_state = preferences.use_preferences_save
-
-    # Turn use_preferences_save off and set header background alpha.
-    preferences.use_preferences_save = False
-    preferences.themes['Default'].view_3d.space.header[3] = 0.8
-
-    # Restore the original use_preferences_save status.
-    preferences.use_preferences_save = save_preferences_state
-
-
 @persistent
 def load_handler(_):
     update_factory_startup_screens()
     update_factory_startup_scenes()
     update_factory_startup_grease_pencils()
-    update_factory_startup_theme()
 
 
 def register():
