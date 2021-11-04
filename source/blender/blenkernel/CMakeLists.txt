@@ -226,7 +226,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
-  intern/object.c
+  intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
   intern/object_facemap.c
