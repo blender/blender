@@ -53,7 +53,10 @@
   (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
    ANIMFILTER_NODUPLIS)
 
-/* ------------------- */
+/* ******************** GRAPH SLIDER OPERATORS ************************* */
+/* This file contains a collection of operators to modify keyframes in the graph editor. All
+ * operators are modal and use a slider that allows the user to define a percentage to modify the
+ * operator. */
 
 /* This data type is only used for modal operation. */
 typedef struct tGraphSliderOp {
@@ -77,16 +80,6 @@ typedef struct tBeztCopyData {
   int tot_vert;
   BezTriple *bezt;
 } tBeztCopyData;
-
-typedef enum tDecimModes {
-  DECIM_RATIO = 1,
-  DECIM_ERROR,
-} tDecimModes;
-
-/* ******************** GRAPH SLIDER OPERATORS ************************* */
-/* This file contains a collection of operators to modify keyframes in the graph editor. All
- * operators are modal and use a slider that allows the user to define a percentage to modify the
- * operator. */
 
 /* ******************** Utility Functions ************************* */
 
@@ -130,30 +123,6 @@ static void store_original_bezt_arrays(tGraphSliderOp *gso)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ******************** Decimate Keyframes Operator ************************* */
-
-static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float error_sq_max)
-{
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-
-  /* Filter data. */
-  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
-
-  /* Loop through filtered data and clean curves. */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    if (!decimate_fcurve(ale, remove_ratio, error_sq_max)) {
-      /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
-    }
-
-    ale->update |= ANIM_UPDATE_DEFAULT;
-  }
-
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
-}
-
 /* Overwrite the current bezts arrays with the original data. */
 static void reset_bezts(tGraphSliderOp *gso)
 {
@@ -189,6 +158,35 @@ static void reset_bezts(tGraphSliderOp *gso)
     link_bezt = link_bezt->next;
   }
 
+  ANIM_animdata_freelist(&anim_data);
+}
+
+/* ******************** Decimate Keyframes Operator ************************* */
+
+typedef enum tDecimModes {
+  DECIM_RATIO = 1,
+  DECIM_ERROR,
+} tDecimModes;
+
+static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float error_sq_max)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+
+  /* Filter data. */
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+
+  /* Loop through filtered data and clean curves. */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    if (!decimate_fcurve(ale, remove_ratio, error_sq_max)) {
+      /* The selection contains unsupported keyframe types! */
+      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 }
 
