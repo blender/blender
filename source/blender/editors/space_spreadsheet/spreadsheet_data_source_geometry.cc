@@ -565,6 +565,8 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
         },
         5.0f);
   }
+#else
+  UNUSED_VARS(column_id);
 #endif
 
   return {};
