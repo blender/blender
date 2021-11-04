@@ -247,7 +247,7 @@ string HIPDevice::compile_kernel(const uint kernel_features,
   hipGetDeviceProperties(&props, hipDevId);
 
   /* gcnArchName can contain tokens after the arch name with features, ie.
-    "gfx1010:sramecc-:xnack-" so we tokenize it to get ther first part. */
+    "gfx1010:sramecc-:xnack-" so we tokenize it to get the first part. */
   char *arch = strtok(props.gcnArchName, ":");
   if (arch == NULL) {
     arch = props.gcnArchName;
