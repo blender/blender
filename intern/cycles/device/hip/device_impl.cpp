@@ -146,12 +146,18 @@ HIPDevice::~HIPDevice()
 
 bool HIPDevice::support_device(const uint /*kernel_features*/)
 {
-  int major, minor;
-  hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
-  hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
+  if (hipSupportsDevice(hipDevId)) {
+    return true;
+  }
+  else {
+    /* We only support Navi and above. */
+    hipDeviceProp_t props;
+    hipGetDeviceProperties(&props, hipDevId);
 
-  // TODO : (Arya) What versions do we plan to support?
-  return true;
+    set_error(string_printf("HIP backend requires AMD RDNA2 graphics card or up, but found %s.",
+                            props.name));
+    return false;
+  }
 }
 
 bool HIPDevice::check_peer_access(Device *peer_device)
@@ -240,34 +246,21 @@ string HIPDevice::compile_kernel(const uint kernel_features,
   hipDeviceProp_t props;
   hipGetDeviceProperties(&props, hipDevId);
 
+  /* gcnArchName can contain tokens after the arch name with features, ie.
+    "gfx1010:sramecc-:xnack-" so we tokenize it to get the first part. */
+  char *arch = strtok(props.gcnArchName, ":");
+  if (arch == NULL) {
+    arch = props.gcnArchName;
+  }
+
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
-      const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, props.gcnArchName));
+      const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, arch));
       VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
       if (path_exists(fatbin)) {
         VLOG(1) << "Using precompiled kernel.";
         return fatbin;
-      }
-    }
-
-    /* The driver can JIT-compile PTX generated for older generations, so find the closest one. */
-    int ptx_major = major, ptx_minor = minor;
-    while (ptx_major >= 3) {
-      const string ptx = path_get(
-          string_printf("lib/%s_compute_%d%d.ptx", name, ptx_major, ptx_minor));
-      VLOG(1) << "Testing for pre-compiled kernel " << ptx << ".";
-      if (path_exists(ptx)) {
-        VLOG(1) << "Using precompiled kernel.";
-        return ptx;
-      }
-
-      if (ptx_minor > 0) {
-        ptx_minor--;
-      }
-      else {
-        ptx_major--;
-        ptx_minor = 9;
       }
     }
   }
@@ -292,12 +285,10 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 #  ifdef _DEBUG
   options.append(" -save-temps");
 #  endif
-  options.append(" --amdgpu-target=").append(props.gcnArchName);
+  options.append(" --amdgpu-target=").append(arch);
 
   const string include_path = source_path;
-  const char *const kernel_arch = props.gcnArchName;
-  const string fatbin_file = string_printf(
-      "cycles_%s_%s_%s", name, kernel_arch, kernel_md5.c_str());
+  const string fatbin_file = string_printf("cycles_%s_%s_%s", name, arch, kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
   VLOG(1) << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
@@ -406,8 +397,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
     return false;
 
   /* check if GPU is supported */
-  if (!support_device(kernel_features))
+  if (!support_device(kernel_features)) {
     return false;
+  }
 
   /* get kernel */
   const char *kernel_name = "kernel";

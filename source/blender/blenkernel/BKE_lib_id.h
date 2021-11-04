@@ -46,6 +46,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -178,6 +179,8 @@ typedef enum eLibIDDuplicateFlags {
    * sub-IDs (dependencies), check for linked vs. locale data, etc. */
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 } eLibIDDuplicateFlags;
+
+ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
 
 /* lib_remap.c (keep here since they're general functions) */
 /**
