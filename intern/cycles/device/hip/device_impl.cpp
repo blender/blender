@@ -146,12 +146,18 @@ HIPDevice::~HIPDevice()
 
 bool HIPDevice::support_device(const uint /*kernel_features*/)
 {
-  int major, minor;
-  hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
-  hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
+  if (hipSupportsDevice(hipDevId)) {
+    return true;
+  }
+  else {
+    /* We only support Navi and above. */
+    hipDeviceProp_t props;
+    hipGetDeviceProperties(&props, hipDevId);
 
-  // TODO : (Arya) What versions do we plan to support?
-  return true;
+    set_error(string_printf("HIP backend requires AMD RDNA2 graphics card or up, but found %s.",
+                            props.name));
+    return false;
+  }
 }
 
 bool HIPDevice::check_peer_access(Device *peer_device)
@@ -391,8 +397,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
     return false;
 
   /* check if GPU is supported */
-  if (!support_device(kernel_features))
+  if (!support_device(kernel_features)) {
     return false;
+  }
 
   /* get kernel */
   const char *kernel_name = "kernel";

@@ -131,9 +131,9 @@ void device_hip_info(vector<DeviceInfo> &devices)
       continue;
     }
 
-    int major;
-    hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, num);
-    // TODO : (Arya) What is the last major version we are supporting?
+    if (!hipSupportsDevice(num)) {
+      continue;
+    }
 
     DeviceInfo info;
 
@@ -141,7 +141,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
-    info.has_half_images = (major >= 3);
+    info.has_half_images = true;
     info.has_nanovdb = true;
     info.denoisers = 0;
 

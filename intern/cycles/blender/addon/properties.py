@@ -1419,9 +1419,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
             elif device_type == 'HIP':
                 import sys
-                col.label(text="Requires discrete AMD GPU with ??? architecture", icon='BLANK1')
-                if sys.platform[:3] == "win":
-                    col.label(text="and AMD driver version ??? or newer", icon='BLANK1')
+                col.label(text="Requires discrete AMD GPU with RDNA2 architecture", icon='BLANK1')
+                # TODO: provide driver version info.
+                #if sys.platform[:3] == "win":
+                #    col.label(text="and AMD driver version ??? or newer", icon='BLANK1')
             return
 
         for device in devices:
