@@ -370,7 +370,7 @@ class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
         assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
 
 
-class TestBlendLibLibraryReloadRelocate(TestBlendLibLinkHelper):
+class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
 
     def __init__(self, args):
         self.args = args
@@ -398,6 +398,13 @@ class TestBlendLibLibraryReloadRelocate(TestBlendLibLinkHelper):
         print(orig_data)
         print(reload_data)
         assert(orig_data == reload_data)
+
+
+
+class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
 
     def test_link_relocate(self):
         output_dir = self.args.output_dir
@@ -432,7 +439,8 @@ TESTS = (
     TestBlendLibLinkSaveLoadBasic,
     TestBlendLibAppendBasic,
     TestBlendLibAppendReuseID,
-    TestBlendLibLibraryReloadRelocate,
+    TestBlendLibLibraryReload,
+    TestBlendLibLibraryRelocate,
 )
 
 
