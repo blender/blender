@@ -159,11 +159,10 @@
 static CLG_LogRef LOG = {"bke.object"};
 
 /**
- * Vertex parent modifies original BMesh which is not safe for threading.
+ * NOTE(@sergey): Vertex parent modifies original #BMesh which is not safe for threading.
  * Ideally such a modification should be handled as a separate DAG update
- * callback for mesh datablock, but for until it is actually supported use
+ * callback for mesh data-block, but for until it is actually supported use
  * simpler solution with a mutex lock.
- *                                               - sergey -
  */
 #define VPARENT_THREADING_HACK
 
@@ -1766,24 +1765,24 @@ static void object_update_from_subsurf_ccg(Object *object)
   /* NOTE: we need to reshape into an original mesh from main database,
    * allowing:
    *
-   *  - Update copies of that mesh at any moment.
-   *  - Save the file without doing extra reshape.
-   *  - All the users of the mesh have updated displacement.
+   * - Update copies of that mesh at any moment.
+   * - Save the file without doing extra reshape.
+   * - All the users of the mesh have updated displacement.
    *
    * However, the tricky part here is that we only know about sculpted
    * state of a mesh on an object level, and object is being updated after
-   * mesh datablock is updated. This forces us to:
+   * mesh data-block is updated. This forces us to:
    *
-   *  - Update mesh datablock from object evaluation, which is technically
-   *    forbidden, but there is no other place for this yet.
-   *  - Reshape to the original mesh from main database, and then copy updated
-   *    layer to copy of that mesh (since copy of the mesh has decoupled
-   *    custom data layers).
+   * - Update mesh data-block from object evaluation, which is technically
+   *   forbidden, but there is no other place for this yet.
+   * - Reshape to the original mesh from main database, and then copy updated
+   *   layer to copy of that mesh (since copy of the mesh has decoupled
+   *   custom data layers).
    *
    * All this is defeating all the designs we need to follow to allow safe
    * threaded evaluation, but this is as good as we can make it within the
    * current sculpt/evaluated mesh design. This is also how we've survived
-   * with old DerivedMesh based solutions. So, while this is all wrong and
+   * with old #DerivedMesh based solutions. So, while this is all wrong and
    * needs reconsideration, doesn't seem to be a big stopper for real
    * production artists.
    */
@@ -1794,7 +1793,7 @@ static void object_update_from_subsurf_ccg(Object *object)
    * it is orig as in what was in object_eval->data before evaluating
    * modifier stack.
    *
-   * mesh_cow is a copy-on-written version od object_orig->data.
+   * mesh_cow is a copy-on-written version of `object_orig->data`.
    */
   Mesh *mesh_cow = (Mesh *)object->runtime.data_orig;
   copy_ccg_data(mesh_cow, mesh_orig, CD_MDISPS);
@@ -1822,7 +1821,7 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
   object_eval->runtime.data_eval = data_eval;
   object_eval->runtime.is_data_eval_owned = is_owned;
 
-  /* Overwrite data of evaluated object, if the datablock types match. */
+  /* Overwrite data of evaluated object, if the data-block types match. */
   ID *data = (ID *)object_eval->data;
   if (GS(data->name) == GS(data_eval->name)) {
     /* NOTE: we are not supposed to invoke evaluation for original objects,
@@ -1864,8 +1863,8 @@ void BKE_object_free_derived_caches(Object *ob)
     ob->runtime.mesh_deform_eval = nullptr;
   }
 
-  /* Restore initial pointer for copy-on-write datablocks, object->data
-   * might be pointing to an evaluated datablock data was just freed above. */
+  /* Restore initial pointer for copy-on-write data-blocks, object->data
+   * might be pointing to an evaluated data-block data was just freed above. */
   if (ob->runtime.data_orig != nullptr) {
     ob->data = ob->runtime.data_orig;
   }
@@ -2364,13 +2363,13 @@ Object *BKE_object_add_from(
 }
 
 /**
- * Add a new object, but assign the given datablock as the ob->data
+ * Add a new object, but assign the given data-block as the `ob->data`
  * for the newly created object.
  *
- * \param data: The datablock to assign as ob->data for the new object.
- *             This is assumed to be of the correct type.
- * \param do_id_user: If true, id_us_plus() will be called on data when
- *                 assigning it to the object.
+ * \param data: The data-block to assign as `ob->data` for the new object.
+ * This is assumed to be of the correct type.
+ * \param do_id_user: If true, #id_us_plus() will be called on data when
+ * assigning it to the object.
  */
 Object *BKE_object_add_for_data(
     Main *bmain, ViewLayer *view_layer, int type, const char *name, ID *data, bool do_id_user)
@@ -5399,7 +5398,7 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
 }
 
 /**
- * Return a KDTree_3d from the deformed object (in worldspace)
+ * Return a KDTree_3d from the deformed object (in world-space).
  *
  * \note Only mesh objects currently support deforming, others are TODO.
  *

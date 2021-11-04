@@ -1318,10 +1318,9 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 }
 
 /**
- * Draw info beside axes in bottom left-corner:
+ * Draw info beside axes in top-left corner:
  * frame-number, collection, object name, bone name (if available), marker name (if available).
  */
-
 static void draw_selected_name(
     Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
@@ -1344,14 +1343,13 @@ static void draw_selected_name(
                  (ob == NULL) ? "" : " |");
   }
 
-  /*
-   * info can contain:
-   * - a frame (7 + 2)
-   * - a collection name (MAX_NAME + 3)
-   * - 3 object names (MAX_NAME)
-   * - 2 BREAD_CRUMB_SEPARATORs (6)
-   * - a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1) - translated, so give some room!
-   * - a marker name (MAX_NAME + 3)
+  /* Info can contain:
+   * - A frame `(7 + 2)`.
+   * - A collection name `(MAX_NAME + 3)`.
+   * - 3 object names `(MAX_NAME)`.
+   * - 2 BREAD_CRUMB_SEPARATOR(s) `(6)`.
+   * - A SHAPE_KEY_PINNED marker and a trailing '\0' `(9+1)` - translated, so give some room!
+   * - A marker name `(MAX_NAME + 3)`.
    */
 
   /* get name of marker on current frame (if available) */
