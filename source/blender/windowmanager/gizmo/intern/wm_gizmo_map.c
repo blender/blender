@@ -743,14 +743,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     }
 
     if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
-      eWM_GizmoFlagMapDrawStep step;
-      if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
-        step = WM_GIZMOMAP_DRAWSTEP_3D;
-      }
-      else {
-        step = WM_GIZMOMAP_DRAWSTEP_2D;
-      }
-
+      const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(gzgroup);
       if (do_step[step]) {
         if (gzmap->update_flag[step] & GIZMOMAP_IS_REFRESH_CALLBACK) {
           WM_gizmo_group_refresh(C, gzgroup);
@@ -1050,6 +1043,8 @@ wmGizmo *wm_gizmomap_highlight_get(wmGizmoMap *gzmap)
 void wm_gizmomap_modal_set(
     wmGizmoMap *gzmap, bContext *C, wmGizmo *gz, const wmEvent *event, bool enable)
 {
+  bool do_refresh = false;
+
   if (enable) {
     BLI_assert(gzmap->gzmap_context.modal == NULL);
     wmWindow *win = CTX_wm_window(C);
@@ -1068,6 +1063,9 @@ void wm_gizmomap_modal_set(
       }
     }
 
+    if (gzmap->gzmap_context.modal != gz) {
+      do_refresh = true;
+    }
     gz->state |= WM_GIZMO_STATE_MODAL;
     gzmap->gzmap_context.modal = gz;
 
@@ -1092,7 +1090,6 @@ void wm_gizmomap_modal_set(
         gz->state &= ~WM_GIZMO_STATE_MODAL;
         MEM_SAFE_FREE(gz->interaction_data);
       }
-      return;
     }
   }
   else {
@@ -1102,6 +1099,10 @@ void wm_gizmomap_modal_set(
     if (gz) {
       gz->state &= ~WM_GIZMO_STATE_MODAL;
       MEM_SAFE_FREE(gz->interaction_data);
+    }
+
+    if (gzmap->gzmap_context.modal != NULL) {
+      do_refresh = true;
     }
     gzmap->gzmap_context.modal = NULL;
 
@@ -1123,6 +1124,12 @@ void wm_gizmomap_modal_set(
     }
 
     gzmap->gzmap_context.event_xy[0] = INT_MAX;
+  }
+
+  if (do_refresh) {
+    const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(
+        gz->parent_gzgroup);
+    gzmap->update_flag[step] |= GIZMOMAP_IS_REFRESH_CALLBACK;
   }
 }
 
