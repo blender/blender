@@ -424,7 +424,7 @@ class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
 
         lib_path, lib_ext = os.path.splitext(output_lib_path)
         new_lib_path = lib_path + "_relocate" + lib_ext
-        os.rename(output_lib_path, new_lib_path)
+        os.replace(output_lib_path, new_lib_path)
 
         bpy.ops.wm.lib_relocate(library=bpy.data.objects[0].name, directory="", filename=new_lib_path)
 
