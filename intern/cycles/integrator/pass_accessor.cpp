@@ -138,10 +138,6 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
     return false;
   }
 
-  if (pass_access_info_.offset == PASS_UNUSED) {
-    return false;
-  }
-
   const PassType type = pass_access_info_.type;
   const PassMode mode = pass_access_info_.mode;
   const PassInfo pass_info = Pass::get_info(type, pass_access_info_.include_albedo);
