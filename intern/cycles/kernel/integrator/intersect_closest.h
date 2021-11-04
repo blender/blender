@@ -63,6 +63,7 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
    * perform MIS as part of indirect rays. */
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const float probability = path_state_continuation_probability(kg, state, path_flag);
+  INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = probability;
 
   if (probability != 1.0f) {
     const float terminate = path_state_rng_1D(kg, &rng_state, PRNG_TERMINATE);

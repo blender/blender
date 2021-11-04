@@ -941,7 +941,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const float probability = (path_flag & PATH_RAY_TERMINATE_IN_NEXT_VOLUME) ?
                                 0.0f :
-                                path_state_continuation_probability(kg, state, path_flag);
+                                INTEGRATOR_STATE(state, path, continuation_probability);
   if (probability == 0.0f) {
     return VOLUME_PATH_MISSED;
   }
