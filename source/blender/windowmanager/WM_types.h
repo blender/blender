@@ -1030,6 +1030,27 @@ typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       const int xy[2],
                                       struct wmDropBox *drop);
 
+typedef struct wmDragActiveDropState {
+  /** Informs which dropbox is activated with the drag item.
+   * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
+   * triggered.
+   */
+  struct wmDropBox *active_dropbox;
+
+  /** If `active_dropbox` is set, the area it successfully polled in. To restore the context of it
+   * as needed. */
+  struct ScrArea *area_from;
+  /** If `active_dropbox` is set, the region it successfully polled in. To restore the context of
+   * it as needed. */
+  struct ARegion *region_from;
+
+  /** Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
+   * operator poll fails. Typically the message the operator set with
+   * CTX_wm_operator_poll_msg_set(). */
+  const char *disabled_info;
+  bool free_disabled_info;
+} wmDragActiveDropState;
+
 typedef struct wmDrag {
   struct wmDrag *next, *prev;
 
@@ -1045,15 +1066,7 @@ typedef struct wmDrag {
   float scale;
   int sx, sy;
 
-  /** Informs which dropbox is activated with the drag item.
-   * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
-   * triggered.
-   */
-  struct wmDropBox *active_dropbox;
-  /* Text to show when the operator poll fails. Typically the message the
-   * operator set with CTX_wm_operator_poll_msg_set(). */
-  const char *disabled_info;
-  bool free_disabled_info;
+  wmDragActiveDropState drop_state;
 
   unsigned int flags;
 
