@@ -1079,6 +1079,10 @@ typedef struct wmDrag {
 /**
  * Dropboxes are like keymaps, part of the screen/area/region definition.
  * Allocation and free is on startup and exit.
+ *
+ * The operator is polled and invoked with the current context (#WM_OP_INVOKE_DEFAULT), there is no
+ * way to override that (by design, since dropboxes should act on the exact mouse position). So the
+ * drop-boxes are supposed to check the required area and region context in their poll.
  */
 typedef struct wmDropBox {
   struct wmDropBox *next, *prev;
@@ -1120,10 +1124,6 @@ typedef struct wmDropBox {
   struct IDProperty *properties;
   /** RNA pointer to access properties. */
   struct PointerRNA *ptr;
-
-  /** Default invoke. */
-  short opcontext;
-
 } wmDropBox;
 
 /**

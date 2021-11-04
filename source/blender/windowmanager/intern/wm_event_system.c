@@ -3063,8 +3063,9 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
                   BLI_addtail(&single_lb, drag);
                   event->customdata = &single_lb;
 
+                  const int opcontext = wm_drop_operator_context_get(drop);
                   int op_retval = wm_operator_call_internal(
-                      C, drop->ot, drop->ptr, NULL, drop->opcontext, false, event);
+                      C, drop->ot, drop->ptr, NULL, opcontext, false, event);
                   OPERATOR_RETVAL_CHECK(op_retval);
 
                   if ((op_retval & OPERATOR_CANCELLED) && drop->cancel) {

@@ -122,7 +122,6 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
   drop->cancel = cancel;
   drop->tooltip = tooltip;
   drop->ot = WM_operatortype_find(idname, 0);
-  drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
   if (drop->ot == NULL) {
     MEM_freeN(drop);
@@ -324,7 +323,8 @@ static wmDropBox *dropbox_active(bContext *C,
             continue;
           }
 
-          if (WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+          const int opcontext = wm_drop_operator_context_get(drop);
+          if (WM_operator_poll_context(C, drop->ot, opcontext)) {
             return drop;
           }
 
@@ -392,10 +392,11 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
+  const int opcontext = wm_drop_operator_context_get(drop);
   /* Optionally copy drag information to operator properties. Don't call it if the
    * operator fails anyway, it might do more than just set properties (e.g.
    * typically import an asset). */
-  if (drop->copy && WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+  if (drop->copy && WM_operator_poll_context(C, drop->ot, opcontext)) {
     drop->copy(drag, drop);
   }
 
@@ -421,6 +422,16 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   if (!BLI_listbase_is_empty(&wm->drags)) {
     WM_cursor_modal_set(CTX_wm_window(C), any_active ? WM_CURSOR_DEFAULT : WM_CURSOR_STOP);
   }
+}
+
+/**
+ * The operator of a dropbox should always be executed in the context determined by the mouse
+ * coordinates. The dropbox poll should check the context area and region as needed.
+ * So this always returns #WM_OP_INVOKE_DEFAULT.
+ */
+int wm_drop_operator_context_get(const wmDropBox *UNUSED(drop))
+{
+  return WM_OP_INVOKE_DEFAULT;
 }
 
 /* ************** IDs ***************** */

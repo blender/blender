@@ -853,7 +853,6 @@ static void view3d_dropboxes(void)
   drop->draw = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
-  drop->opcontext = WM_OP_EXEC_DEFAULT; /* Not really needed. */
 
   drop = WM_dropbox_add(lb,
                         "OBJECT_OT_transform_to_mouse",
@@ -865,7 +864,6 @@ static void view3d_dropboxes(void)
   drop->draw = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
-  drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
   WM_dropbox_add(lb,
                  "OBJECT_OT_drop_named_material",

@@ -175,6 +175,7 @@ void wm_dropbox_free(void);
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win);
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop);
 void wm_drags_check_ops(bContext *C, const wmEvent *event);
+int wm_drop_operator_context_get(const wmDropBox *drop);
 void wm_drags_draw(bContext *C, wmWindow *win);
 
 #ifdef __cplusplus
