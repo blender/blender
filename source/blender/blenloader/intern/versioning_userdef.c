@@ -27,8 +27,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
@@ -50,6 +48,16 @@
 #include "readfile.h" /* Own include. */
 
 #include "wm_event_types.h"
+
+/* Don't use translation strings in versioning!
+ * These depend on the preferences already being read.
+ * If this is important we can set the translations as part of versioning preferences,
+ * however that should only be done if there are important use-cases. */
+#if 0
+#  include "BLT_translation.h"
+#else
+#  define N_(msgid) msgid
+#endif
 
 /* For versioning we only ever want to manipulate preferences passed in. */
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
