@@ -52,6 +52,8 @@
 
 #include "BLO_readfile.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -354,7 +356,8 @@ static void wm_append_loose_data_instantiate_ensure_active_collection(
       *r_active_collection = lc->collection;
     }
     else {
-      *r_active_collection = BKE_collection_add(bmain, scene->master_collection, NULL);
+      *r_active_collection = BKE_collection_add(
+          bmain, scene->master_collection, DATA_("Appended Data"));
     }
   }
 }
@@ -438,11 +441,13 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     Collection *collection = (Collection *)id;
     /* We always add collections directly selected by the user. */
     bool do_add_collection = (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0;
-    LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-      Object *ob = coll_ob->ob;
-      if (!object_in_any_scene(bmain, ob)) {
-        do_add_collection = true;
-        break;
+    if (!do_add_collection) {
+      LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
+        Object *ob = coll_ob->ob;
+        if (!object_in_any_scene(bmain, ob)) {
+          do_add_collection = true;
+          break;
+        }
       }
     }
     if (do_add_collection) {
