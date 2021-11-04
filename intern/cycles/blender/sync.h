@@ -225,6 +225,8 @@ class BlenderSync {
   set<Geometry *> geometry_synced;
   set<Geometry *> geometry_motion_synced;
   set<Geometry *> geometry_motion_attribute_synced;
+  /** Remember which geometries come from which objects to be able to sync them after changes. */
+  map<void *, set<BL::ID>> instance_geometries_by_object;
   set<float> motion_times;
   void *world_map;
   bool world_recalc;
