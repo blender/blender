@@ -4591,6 +4591,15 @@ static OutputFieldDependency get_interface_output_field_dependency(const NodeRef
   return socket_decl.output_field_dependency();
 }
 
+static FieldInferencingInterface get_dummy_field_inferencing_interface(const NodeRef &node)
+{
+  FieldInferencingInterface inferencing_interface;
+  inferencing_interface.inputs.append_n_times(InputSocketFieldType::None, node.inputs().size());
+  inferencing_interface.outputs.append_n_times(OutputFieldDependency::ForDataSource(),
+                                               node.outputs().size());
+  return inferencing_interface;
+}
+
 /**
  * Retrieves information about how the node interacts with fields.
  * In the future, this information can be stored in the node declaration. This would allow this
@@ -4603,6 +4612,10 @@ static FieldInferencingInterface get_node_field_inferencing_interface(const Node
     bNodeTree *group = (bNodeTree *)node.bnode()->id;
     if (group == nullptr) {
       return FieldInferencingInterface();
+    }
+    if (!ntreeIsRegistered(group)) {
+      /* This can happen when there is a linked node group that was not found (see T92799). */
+      return get_dummy_field_inferencing_interface(node);
     }
     if (group->field_inferencing_interface == nullptr) {
       /* Update group recursively. */

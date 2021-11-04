@@ -183,6 +183,15 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
               (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE)) {
             BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
             geometry_map.set_recalc(key);
+
+            /* Sync all contained geometry instances as well when the object changed.. */
+            map<void *, set<BL::ID>>::const_iterator instance_geometries =
+                instance_geometries_by_object.find(b_ob.ptr.data);
+            if (instance_geometries != instance_geometries_by_object.end()) {
+              for (BL::ID geometry : instance_geometries->second) {
+                geometry_map.set_recalc(geometry);
+              }
+            }
           }
 
           if (updated_geometry) {
