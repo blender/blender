@@ -2526,7 +2526,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
-  if ((state & UI_BUT_LIST_ITEM) && !(state & UI_STATE_TEXT_INPUT)) {
+  if (state & UI_BUT_LIST_ITEM) {
     /* Override default widget's colors. */
     bTheme *btheme = UI_GetTheme();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
