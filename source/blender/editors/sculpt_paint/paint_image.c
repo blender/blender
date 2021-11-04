@@ -765,7 +765,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)

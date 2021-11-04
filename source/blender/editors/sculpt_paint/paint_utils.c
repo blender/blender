@@ -210,7 +210,7 @@ void paint_get_tex_pixel_col(const MTex *mtex,
   clamp_v4(rgba, 0.0f, 1.0f);
 }
 
-void paint_stroke_operator_properties(wmOperatorType *ot)
+void paint_stroke_operator_properties(wmOperatorType *ot, bool mode_skip_save)
 {
   static const EnumPropertyItem stroke_mode_items[] = {
       {BRUSH_STROKE_NORMAL, "NORMAL", 0, "Regular", "Apply brush normally"},
@@ -232,12 +232,18 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  RNA_def_enum(ot->srna,
-               "mode",
-               stroke_mode_items,
-               BRUSH_STROKE_NORMAL,
-               "Stroke Mode",
-               "Action taken when a paint stroke is made");
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      stroke_mode_items,
+                      BRUSH_STROKE_NORMAL,
+                      "Stroke Mode",
+                      "Action taken when a paint stroke is made");
+
+  if (mode_skip_save) {
+    /* probably a good idea to enable this for all paint modes, since otherwise
+       keymaps can do weird things if a user forgets to explicitly set this prop - joeedh */
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 }
 
 /* 3D Paint */

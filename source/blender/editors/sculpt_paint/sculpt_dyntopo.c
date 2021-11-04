@@ -592,9 +592,6 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
   int cd_node_layer_index, cd_face_node_layer_index;
 
-  int cd_origco_index, cd_origno_index, cd_origvcol_index = -1;
-  bool have_vcol = CustomData_has_layer(&ss->bm->vdata, CD_PROP_COLOR);
-
   BMCustomLayerReq vlayers[] = {
       {CD_PAINT_MASK, NULL, 0},
       {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
@@ -658,7 +655,6 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
   CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
   CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int types[4] = {BM_VERT, BM_EDGE, BM_LOOP, BM_FACE};
   int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX |
                 CD_MASK_ORIGSPACE | CD_MASK_MFACE;
 
@@ -1095,7 +1091,6 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
 {
-  Mesh *me = ob->data;
   SculptSession *ss = ob->sculpt;
 
   enum eDynTopoWarnFlag flag = 0;
@@ -1742,12 +1737,9 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
   // const Brush *brush = data->brush;
   // const float *offset = data->offset;
 
-  PBVHVertexIter vd;
-
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   PBVHNode *node = data->nodes[n];
   TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
@@ -1757,9 +1749,6 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
   if (cd_uv < 0) {
     return;  // no uv layers
   }
-
-  float bstrength = ss->cache->bstrength;
-  const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
   BKE_pbvh_node_mark_update_color(node);
 
@@ -1867,7 +1856,6 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   float offset[3];
-  const float bstrength = ss->cache->bstrength;
 
   if (!ss->bm || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     // dyntopo only

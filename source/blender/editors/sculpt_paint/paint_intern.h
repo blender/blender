@@ -376,7 +376,7 @@ void paint_get_tex_pixel_col(const struct MTex *mtex,
 void paint_sample_color(
     struct bContext *C, struct ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
-void paint_stroke_operator_properties(struct wmOperatorType *ot);
+void paint_stroke_operator_properties(struct wmOperatorType *ot, bool mode_skip_save);
 
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
 void BRUSH_OT_curve_preset_load(struct wmOperatorType *ot);

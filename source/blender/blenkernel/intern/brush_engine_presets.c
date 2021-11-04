@@ -1149,6 +1149,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(autofset_spacing);
   ADDCH(autofset_use_spacing);
 
+  ADDCH(deform_target);
+
   switch (tool) {
     case SCULPT_TOOL_CLAY:
       if (set_mappings) {
@@ -1224,7 +1226,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(boundary_offset);
       ADDCH(boundary_deform_type);
       ADDCH(boundary_falloff_type);
-      ADDCH(deform_target);
       break;
     case SCULPT_TOOL_CREASE:
       ADDCH(crease_pinch_factor);

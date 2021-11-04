@@ -280,10 +280,12 @@ typedef enum SculptCornerType {
   SCULPT_CORNER_SHARP = 1 << 3
 } SculptCornerType;
 
+int SCULPT_get_tool(const SculptSession *ss, const struct Brush *br);
+
 /* Sculpt API to get brush channel data
-  If ss->cache exists then ss->cache->channels_final
-  will be used, otherwise brush and tool settings channels
-  will be used (taking inheritence into account).
+If ss->cache exists then ss->cache->channels_final
+will be used, otherwise brush and tool settings channels
+will be used (taking inheritence into account).
 */
 
 float SCULPT_get_float_intern(const SculptSession *ss,
@@ -1420,6 +1422,10 @@ typedef struct StrokeCache {
   float speed_avg[SCULPT_SPEED_MA_SIZE];  // moving average for speed
   int speed_avg_cur;
   double last_speed_time;
+
+  // if nonzero, override brush sculpt tool
+  int tool_override;
+  BrushChannelSet *tool_override_channels;
 } StrokeCache;
 
 /* Sculpt Filters */

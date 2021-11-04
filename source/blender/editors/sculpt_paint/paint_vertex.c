@@ -2591,7 +2591,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 /** \} */
@@ -3532,7 +3532,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 /** \} */
