@@ -533,9 +533,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
 
   /* handle case where editstr is equal to one of items */
   if (reset && data->active == -1) {
-    int a;
-
-    for (a = 0; a < data->items.totitem; a++) {
+    for (int a = 0; a < data->items.totitem; a++) {
       const char *name = data->items.names[a] +
                          /* Never include the prefix in the button. */
                          (data->items.name_prefix_offsets ? data->items.name_prefix_offsets[a] :
@@ -577,7 +575,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   return match;
 }
 
-static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
+static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
 {
   uiSearchboxData *data = region->regiondata;
 
@@ -591,11 +589,10 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
   /* draw text */
   if (data->items.totitem) {
     rcti rect;
-    int a;
 
     if (data->preview) {
       /* draw items */
-      for (a = 0; a < data->items.totitem; a++) {
+      for (int a = 0; a < data->items.totitem; a++) {
         const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
 
         /* ensure icon is up-to-date */
@@ -629,7 +626,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
     else {
       const int search_sep_len = data->sep_string ? strlen(data->sep_string) : 0;
       /* draw items */
-      for (a = 0; a < data->items.totitem; a++) {
+      for (int a = 0; a < data->items.totitem; a++) {
         const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
         char *name = data->items.names[a];
         int icon = data->items.icons[a];
@@ -706,13 +703,12 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
   }
 }
 
-static void ui_searchbox_region_free_cb(ARegion *region)
+static void ui_searchbox_region_free_fn(ARegion *region)
 {
   uiSearchboxData *data = region->regiondata;
-  int a;
 
   /* free search data */
-  for (a = 0; a < data->items.maxitem; a++) {
+  for (int a = 0; a < data->items.maxitem; a++) {
     MEM_freeN(data->items.names[a]);
   }
   MEM_freeN(data->items.names);
@@ -744,8 +740,8 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
 
   static ARegionType type;
   memset(&type, 0, sizeof(ARegionType));
-  type.draw = ui_searchbox_region_draw_cb;
-  type.free = ui_searchbox_region_free_cb;
+  type.draw = ui_searchbox_region_draw_fn;
+  type.free = ui_searchbox_region_free_fn;
   type.regionid = RGN_TYPE_TEMPORARY;
   region->type = &type;
 
@@ -910,10 +906,9 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearc
  */
 static void str_tolower_titlecaps_ascii(char *str, const size_t len)
 {
-  size_t i;
   bool prev_delim = true;
 
-  for (i = 0; (i < len) && str[i]; i++) {
+  for (size_t i = 0; (i < len) && str[i]; i++) {
     if (str[i] >= 'A' && str[i] <= 'Z') {
       if (prev_delim == false) {
         str[i] += 'a' - 'A';
@@ -941,10 +936,9 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
   /* draw text */
   if (data->items.totitem) {
     rcti rect;
-    int a;
 
     /* draw items */
-    for (a = 0; a < data->items.totitem; a++) {
+    for (int a = 0; a < data->items.totitem; a++) {
       rcti rect_pre, rect_post;
       ui_searchbox_butrect(&rect, data, a);
 
@@ -1043,8 +1037,6 @@ ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiButSearch *
 void ui_but_search_refresh(uiButSearch *search_but)
 {
   uiBut *but = &search_but->but;
-  uiSearchItems *items;
-  int x1;
 
   /* possibly very large lists (such as ID datablocks) only
    * only validate string RNA buts (not pointers) */
@@ -1052,14 +1044,14 @@ void ui_but_search_refresh(uiButSearch *search_but)
     return;
   }
 
-  items = MEM_callocN(sizeof(uiSearchItems), "search items");
+  uiSearchItems *items = MEM_callocN(sizeof(uiSearchItems), "search items");
 
   /* setup search struct */
   items->maxitem = 10;
   items->maxstrlen = 256;
   items->names = MEM_callocN(items->maxitem * sizeof(void *), "search names");
-  for (x1 = 0; x1 < items->maxitem; x1++) {
-    items->names[x1] = MEM_callocN(but->hardmax + 1, "search names");
+  for (int i = 0; i < items->maxitem; i++) {
+    items->names[i] = MEM_callocN(but->hardmax + 1, "search names");
   }
 
   ui_searchbox_update_fn(but->block->evil_C, search_but, but->drawstr, items);
@@ -1076,8 +1068,8 @@ void ui_but_search_refresh(uiButSearch *search_but)
     }
   }
 
-  for (x1 = 0; x1 < items->maxitem; x1++) {
-    MEM_freeN(items->names[x1]);
+  for (int i = 0; i < items->maxitem; i++) {
+    MEM_freeN(items->names[i]);
   }
   MEM_freeN(items->names);
   MEM_freeN(items);
