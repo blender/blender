@@ -17,7 +17,7 @@
  */
 
 /** \file
- * \ingroup draw_editors
+ * \ingroup draw_engine
  */
 
 #pragma once
