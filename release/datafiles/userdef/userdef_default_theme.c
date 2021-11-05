@@ -612,7 +612,7 @@ const bTheme U_theme_default = {
     .nla_sound_sel = RGBA(0x1f7a7aff),
   },
   .space_sequencer = {
-    .back = RGBA(0x30303000),
+    .back = RGBA(0x18181800),
     .title = RGBA(0xeeeeeeff),
     .text = RGBA(0xa6a6a6ff),
     .text_hi = RGBA(0xffffffff),
@@ -635,7 +635,7 @@ const bTheme U_theme_default = {
       .sub_back = RGBA(0x0000001f),
     },
     .shade1 = RGBA(0xa0a0a000),
-    .grid = RGBA(0x181818ff),
+    .grid = RGBA(0x303030ff),
     .vertex_select = RGBA(0xff8500ff),
     .bone_pose = RGBA(0x50c8ff50),
     .cframe = RGBA(0x4772b3ff),
