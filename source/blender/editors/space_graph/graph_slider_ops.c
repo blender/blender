@@ -17,6 +17,16 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup spgraph
+ *
+ * Graph Slider Operators
+ *
+ * This file contains a collection of operators to modify keyframes in the graph editor.
+ * All operators are modal and use a slider that allows the user to define a percentage
+ * to modify the operator.
+ */
+
 #include <float.h>
 #include <string.h>
 
@@ -48,15 +58,14 @@
 
 #include "graph_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Struct & Defines
+ * \{ */
+
 /* Used to obtain a list of animation channels for the operators to work on. */
 #define OPERATOR_DATA_FILTER \
   (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
    ANIMFILTER_NODUPLIS)
-
-/* ******************** GRAPH SLIDER OPERATORS ************************* */
-/* This file contains a collection of operators to modify keyframes in the graph editor. All
- * operators are modal and use a slider that allows the user to define a percentage to modify the
- * operator. */
 
 /* This data type is only used for modal operation. */
 typedef struct tGraphSliderOp {
@@ -81,7 +90,11 @@ typedef struct tBeztCopyData {
   BezTriple *bezt;
 } tBeztCopyData;
 
-/* ******************** Utility Functions ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
 
 /* Construct a list with the original bezt arrays so we can restore them during modal operation.
  * The data is stored on the struct that is passed.*/
@@ -161,7 +174,11 @@ static void reset_bezts(tGraphSliderOp *gso)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ******************** Decimate Keyframes Operator ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Decimate Keyframes Operator
+ * \{ */
 
 typedef enum tDecimModes {
   DECIM_RATIO = 1,
@@ -517,3 +534,5 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
                 0.0f,
                 10.0f);
 }
+
+/** \} */
