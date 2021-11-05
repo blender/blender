@@ -5829,7 +5829,7 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
   ob->type = BKE_object_obdata_to_type(new_data);
   ob->data = (void *)new_data;
   ob->runtime.geometry_set_eval = nullptr;
-  ob->runtime.data_eval = nullptr;
+  ob->runtime.data_eval = new_data;
   if (ob->runtime.bb != nullptr) {
     ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
   }
