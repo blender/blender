@@ -832,16 +832,21 @@ static bool get_object_attribute(const OSLGlobals::Attribute &attr,
 {
   if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
       attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
-    return set_attribute_float3(*(float3 *)attr.value.data(), type, derivatives, val);
+    const float *data = (const float *)attr.value.data();
+    return set_attribute_float3(make_float3(data[0], data[1], data[2]), type, derivatives, val);
   }
   else if (attr.type == TypeFloat2) {
-    return set_attribute_float2(*(float2 *)attr.value.data(), type, derivatives, val);
+    const float *data = (const float *)attr.value.data();
+    return set_attribute_float2(make_float2(data[0], data[1]), type, derivatives, val);
   }
   else if (attr.type == TypeDesc::TypeFloat) {
-    return set_attribute_float(*(float *)attr.value.data(), type, derivatives, val);
+    const float *data = (const float *)attr.value.data();
+    return set_attribute_float(data[0], type, derivatives, val);
   }
   else if (attr.type == TypeRGBA || attr.type == TypeDesc::TypeFloat4) {
-    return set_attribute_float4(*(float4 *)attr.value.data(), type, derivatives, val);
+    const float *data = (const float *)attr.value.data();
+    return set_attribute_float4(
+        make_float4(data[0], data[1], data[2], data[3]), type, derivatives, val);
   }
   else if (attr.type == type) {
     size_t datasize = attr.value.datasize();

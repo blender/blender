@@ -353,8 +353,8 @@ ccl_device bool light_sample_from_distant_ray(KernelGlobals kg,
   /* compute pdf */
   float invarea = klight->distant.invarea;
   ls->pdf = invarea / (costheta * costheta * costheta);
-  ls->pdf *= kernel_data.integrator.pdf_lights;
   ls->eval_fac = ls->pdf;
+  ls->pdf *= kernel_data.integrator.pdf_lights;
 
   return true;
 }
