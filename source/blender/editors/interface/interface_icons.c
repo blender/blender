@@ -259,31 +259,6 @@ static void viconutil_set_point(int pt[2], int x, int y)
   pt[1] = y;
 }
 
-static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float alpha)
-{
-  int pts[3][2];
-  const int cx = x + w / 2 - 4;
-  const int cy = y + w / 2;
-  const int d = w / 5, d2 = w / 7;
-
-  viconutil_set_point(pts[0], cx - d2, cy + d);
-  viconutil_set_point(pts[1], cx - d2, cy - d);
-  viconutil_set_point(pts[2], cx + d2, cy);
-
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformColor4f(0.2f, 0.2f, 0.2f, alpha);
-
-  immBegin(GPU_PRIM_TRIS, 3);
-  immVertex2iv(pos, pts[0]);
-  immVertex2iv(pos, pts[1]);
-  immVertex2iv(pos, pts[2]);
-  immEnd();
-
-  immUnbindProgram();
-}
-
 static void vicon_keytype_draw_wrapper(
     int x, int y, int w, int h, float alpha, short key_type, short handle_type)
 {
@@ -981,8 +956,6 @@ static void init_internal_icons(void)
                         icontype.theme_color);
     }
   }
-
-  def_internal_vicon(ICON_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
 
   def_internal_vicon(ICON_KEYTYPE_KEYFRAME_VEC, vicon_keytype_keyframe_draw);
   def_internal_vicon(ICON_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);

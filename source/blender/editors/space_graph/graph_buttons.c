@@ -942,7 +942,7 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   uiItemL(row, id->name + 2, icon);
 
   /* -> user friendly 'name' for F-Curve/driver target */
-  uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
+  uiItemL(row, "", ICON_RIGHTARROW);
   uiItemL(row, name, ICON_RNA);
 }
 
