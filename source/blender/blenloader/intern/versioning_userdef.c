@@ -325,6 +325,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
+  if (!USER_VERSION_ATLEAST(300, 41)) {
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
