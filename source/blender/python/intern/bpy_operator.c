@@ -166,7 +166,6 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   PyObject *kw = NULL;           /* optional args */
   PyObject *context_dict = NULL; /* optional args */
 
-  /* note that context is an int, python does the conversion in this case */
   wmOperatorCallContext context = WM_OP_EXEC_DEFAULT;
   int is_undo = false;
 
