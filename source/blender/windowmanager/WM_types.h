@@ -211,7 +211,7 @@ enum {
  * Context to call operator in for #WM_operator_name_call.
  * rna_ui.c contains EnumPropertyItem's of these, keep in sync.
  */
-enum {
+typedef enum wmOperatorCallContext {
   /* if there's invoke, call it, otherwise exec */
   WM_OP_INVOKE_DEFAULT,
   WM_OP_INVOKE_REGION_WIN,
@@ -226,9 +226,11 @@ enum {
   WM_OP_EXEC_REGION_PREVIEW,
   WM_OP_EXEC_AREA,
   WM_OP_EXEC_SCREEN,
-};
+} wmOperatorCallContext;
 
-#define WM_OP_CONTEXT_HAS_AREA(type) (!ELEM(type, WM_OP_INVOKE_SCREEN, WM_OP_EXEC_SCREEN))
+#define WM_OP_CONTEXT_HAS_AREA(type) \
+  (CHECK_TYPE_INLINE(type, wmOperatorCallContext), \
+   !ELEM(type, WM_OP_INVOKE_SCREEN, WM_OP_EXEC_SCREEN))
 #define WM_OP_CONTEXT_HAS_REGION(type) \
   (WM_OP_CONTEXT_HAS_AREA(type) && !ELEM(type, WM_OP_INVOKE_AREA, WM_OP_EXEC_AREA))
 
@@ -923,7 +925,7 @@ typedef struct wmOperatorType {
 typedef struct wmOperatorCallParams {
   struct wmOperatorType *optype;
   struct PointerRNA *opptr;
-  short opcontext;
+  wmOperatorCallContext opcontext;
 } wmOperatorCallParams;
 
 #ifdef WITH_INPUT_IME

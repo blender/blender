@@ -37,6 +37,7 @@ set(INC
   ../imbuf
   ../makesdna
   ../makesrna
+  ../windowmanager
 
   ../editors/include
 

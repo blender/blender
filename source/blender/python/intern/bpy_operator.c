@@ -81,7 +81,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
   const char *context_str = NULL;
   PyObject *ret;
 
-  int context = WM_OP_EXEC_DEFAULT;
+  wmOperatorCallContext context = WM_OP_EXEC_DEFAULT;
 
   /* XXX TODO: work out a better solution for passing on context,
    * could make a tuple from self and pack the name and Context into it. */
@@ -167,7 +167,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   PyObject *context_dict = NULL; /* optional args */
 
   /* note that context is an int, python does the conversion in this case */
-  int context = WM_OP_EXEC_DEFAULT;
+  wmOperatorCallContext context = WM_OP_EXEC_DEFAULT;
   int is_undo = false;
 
   /* XXX TODO: work out a better solution for passing on context,

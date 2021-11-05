@@ -492,7 +492,7 @@ typedef struct uiAfterFunc {
 
   wmOperator *popup_op;
   wmOperatorType *optype;
-  int opcontext;
+  wmOperatorCallContext opcontext;
   PointerRNA *opptr;
 
   PointerRNA rnapoin;
@@ -775,7 +775,7 @@ static uiAfterFunc *ui_afterfunc_new(void)
  */
 static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
                                                 PointerRNA **properties,
-                                                int opcontext,
+                                                wmOperatorCallContext opcontext,
                                                 const uiBut *context_but)
 {
   uiAfterFunc *after = ui_afterfunc_new();
@@ -796,7 +796,7 @@ static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
   }
 }
 
-void ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext)
+void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wmOperatorCallContext opcontext)
 {
   ui_handle_afterfunc_add_operator_ex(ot, NULL, opcontext, NULL);
 }

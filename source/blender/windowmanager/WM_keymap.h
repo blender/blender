@@ -26,6 +26,7 @@
 /* dna-savable wmStructs here */
 #include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
+#include "WM_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -169,14 +170,14 @@ int WM_keymap_item_raw_to_string(const short shift,
                                  const int result_len);
 wmKeyMapItem *WM_key_event_operator(const struct bContext *C,
                                     const char *opname,
-                                    int opcontext,
+                                    wmOperatorCallContext opcontext,
                                     struct IDProperty *properties,
                                     const short include_mask,
                                     const short exclude_mask,
                                     struct wmKeyMap **r_keymap);
 char *WM_key_event_operator_string(const struct bContext *C,
                                    const char *opname,
-                                   int opcontext,
+                                   wmOperatorCallContext opcontext,
                                    struct IDProperty *properties,
                                    const bool is_strict,
                                    char *result,

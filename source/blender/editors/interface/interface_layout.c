@@ -82,7 +82,7 @@ typedef struct uiLayoutRoot {
   struct uiLayoutRoot *next, *prev;
 
   int type;
-  int opcontext;
+  wmOperatorCallContext opcontext;
 
   int emw, emh;
   int padding;
@@ -1218,7 +1218,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  const char *name,
                                  int icon,
                                  IDProperty *properties,
-                                 int context,
+                                 wmOperatorCallContext context,
                                  int flag,
                                  PointerRNA *r_opptr)
 {
@@ -1350,7 +1350,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      const char *name,
                      int icon,
                      IDProperty *properties,
-                     int context,
+                     wmOperatorCallContext context,
                      int flag,
                      PointerRNA *r_opptr)
 {
@@ -1362,7 +1362,7 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              const char *name,
                              int icon,
                              IDProperty *properties,
-                             int context,
+                             wmOperatorCallContext context,
                              int flag,
                              const char *menu_id,
                              PointerRNA *r_opptr)
@@ -1376,7 +1376,7 @@ void uiItemFullO(uiLayout *layout,
                  const char *name,
                  int icon,
                  IDProperty *properties,
-                 int context,
+                 wmOperatorCallContext context,
                  int flag,
                  PointerRNA *r_opptr)
 {
@@ -1474,7 +1474,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             PointerRNA ptr,
                             PropertyRNA *prop,
                             IDProperty *properties,
-                            int context,
+                            wmOperatorCallContext context,
                             int flag,
                             const EnumPropertyItem *item_array,
                             int totitem)
@@ -1623,7 +1623,7 @@ void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,
                       IDProperty *properties,
-                      int context,
+                      wmOperatorCallContext context,
                       int flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
@@ -3433,7 +3433,7 @@ void uiItemMenuFN(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc
 }
 
 typedef struct MenuItemLevel {
-  int opcontext;
+  wmOperatorCallContext opcontext;
   /* don't use pointers to the strings because python can dynamically
    * allocate strings and free before the menu draws, see T27304. */
   char opname[OP_MAX_TYPENAME];
@@ -5672,7 +5672,7 @@ bool uiLayoutGetFixedSize(uiLayout *layout)
   return (layout->item.flag & UI_ITEM_FIXED_SIZE) != 0;
 }
 
-void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext)
+void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext)
 {
   layout->root->opcontext = opcontext;
 }

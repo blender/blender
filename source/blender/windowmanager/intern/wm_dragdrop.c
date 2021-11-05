@@ -323,7 +323,7 @@ static wmDropBox *dropbox_active(bContext *C,
             continue;
           }
 
-          const int opcontext = wm_drop_operator_context_get(drop);
+          const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
           if (WM_operator_poll_context(C, drop->ot, opcontext)) {
             return drop;
           }
@@ -392,7 +392,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  const int opcontext = wm_drop_operator_context_get(drop);
+  const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
   /* Optionally copy drag information to operator properties. Don't call it if the
    * operator fails anyway, it might do more than just set properties (e.g.
    * typically import an asset). */
@@ -429,7 +429,7 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
  * coordinates. The dropbox poll should check the context area and region as needed.
  * So this always returns #WM_OP_INVOKE_DEFAULT.
  */
-int wm_drop_operator_context_get(const wmDropBox *UNUSED(drop))
+wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox *UNUSED(drop))
 {
   return WM_OP_INVOKE_DEFAULT;
 }

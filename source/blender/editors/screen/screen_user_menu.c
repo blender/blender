@@ -111,7 +111,7 @@ bUserMenu *ED_screen_user_menu_ensure(bContext *C)
 bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
-                                                         short opcontext)
+                                                         wmOperatorCallContext opcontext)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
@@ -160,7 +160,7 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
                                            const char *ui_name,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
-                                           short opcontext)
+                                           wmOperatorCallContext opcontext)
 {
   bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_OPERATOR);

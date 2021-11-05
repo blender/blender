@@ -1064,7 +1064,7 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op)
 }
 
 /* invoke callback, uses enum property named "type" */
-int WM_menu_invoke_ex(bContext *C, wmOperator *op, int opcontext)
+int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opcontext)
 {
   PropertyRNA *prop = op->type->prop;
 
@@ -1216,7 +1216,7 @@ int WM_operator_confirm_message_ex(bContext *C,
                                    const char *title,
                                    const int icon,
                                    const char *message,
-                                   const short opcontext)
+                                   const wmOperatorCallContext opcontext)
 {
   IDProperty *properties = op->ptr->data;
 

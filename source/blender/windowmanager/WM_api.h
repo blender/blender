@@ -413,7 +413,7 @@ int WM_generic_select_invoke(struct bContext *C,
                              const struct wmEvent *event);
 void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op);
 int WM_operator_smooth_viewtx_get(const struct wmOperator *op);
-int WM_menu_invoke_ex(struct bContext *C, struct wmOperator *op, int opcontext);
+int WM_menu_invoke_ex(struct bContext *C, struct wmOperator *op, wmOperatorCallContext opcontext);
 int WM_menu_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 void WM_menu_name_call(struct bContext *C, const char *menu_name, short context);
 int WM_enum_search_invoke_previews(struct bContext *C,
@@ -451,7 +451,7 @@ int WM_operator_confirm_message_ex(struct bContext *C,
                                    const char *title,
                                    const int icon,
                                    const char *message,
-                                   const short opcontext);
+                                   const wmOperatorCallContext opcontext);
 int WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
 
 /* operator api */
@@ -472,26 +472,26 @@ bool WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
 bool WM_operator_is_repeat(const struct bContext *C, const struct wmOperator *op);
 int WM_operator_name_call_ptr(struct bContext *C,
                               struct wmOperatorType *ot,
-                              short context,
+                              wmOperatorCallContext context,
                               struct PointerRNA *properties);
 int WM_operator_name_call(struct bContext *C,
                           const char *opstring,
-                          short context,
+                          wmOperatorCallContext context,
                           struct PointerRNA *properties);
 int WM_operator_name_call_with_properties(struct bContext *C,
                                           const char *opstring,
-                                          short context,
+                                          wmOperatorCallContext context,
                                           struct IDProperty *properties);
 int WM_operator_call_py(struct bContext *C,
                         struct wmOperatorType *ot,
-                        short context,
+                        wmOperatorCallContext context,
                         struct PointerRNA *properties,
                         struct ReportList *reports,
                         const bool is_undo);
 
 void WM_operator_name_call_ptr_with_depends_on_cursor(struct bContext *C,
                                                       wmOperatorType *ot,
-                                                      short opcontext,
+                                                      wmOperatorCallContext opcontext,
                                                       PointerRNA *properties,
                                                       const char *drawstr);
 
