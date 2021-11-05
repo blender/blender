@@ -58,9 +58,8 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const int vert_offset,
                                       const int edge_offset)
 {
-  Span<float3> positions = spline.evaluated_positions();
-
-  for (const int i : IndexRange(positions.size() - 1)) {
+  const int eval_size = spline.evaluated_points_size();
+  for (const int i : IndexRange(eval_size - 1)) {
     MEdge &edge = r_edges[edge_offset + i];
     edge.v1 = vert_offset + i;
     edge.v2 = vert_offset + i + 1;
@@ -70,13 +69,21 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
   if (spline.is_cyclic() && spline.evaluated_edges_size() > 1) {
     MEdge &edge = r_edges[edge_offset + spline.evaluated_edges_size() - 1];
     edge.v1 = vert_offset;
-    edge.v2 = vert_offset + positions.size() - 1;
+    edge.v2 = vert_offset + eval_size - 1;
     edge.flag = ME_LOOSEEDGE;
   }
 
-  for (const int i : positions.index_range()) {
+  Span<float3> positions = spline.evaluated_positions();
+  Span<float3> tangents = spline.evaluated_tangents();
+  Span<float3> normals = spline.evaluated_normals();
+  GVArray_Typed<float> radii = spline.interpolate_to_evaluated(spline.radii());
+  for (const int i : IndexRange(eval_size)) {
+    float4x4 point_matrix = float4x4::from_normalized_axis_data(
+        positions[i], normals[i], tangents[i]);
+    point_matrix.apply_scale(radii[i]);
+
     MVert &vert = r_verts[vert_offset + i];
-    copy_v3_v3(vert.co, positions[i] + profile_vert);
+    copy_v3_v3(vert.co, point_matrix * profile_vert);
   }
 }
 
