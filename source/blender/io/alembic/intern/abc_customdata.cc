@@ -176,29 +176,23 @@ static void write_uv(const OCompoundProperty &prop,
                                UInt32ArraySample(&indices.front(), indices.size()),
                                kFacevaryingScope);
   param.set(sample);
+  param.setTimeSampling(config.timesample_index);
 
   config.abc_uv_maps[uv_map_name] = param;
 }
 
-/* Convention to write Vertex Colors:
- * - C3fGeomParam/C4fGeomParam on the arbGeomParam
- * - set scope as vertex varying
- */
-static void write_mcol(const OCompoundProperty &prop,
-                       const CDStreamConfig &config,
-                       void *data,
-                       const char *name)
+static void get_cols(const CDStreamConfig &config,
+                     std::vector<Imath::C4f> &buffer,
+                     std::vector<uint32_t> &uvidx,
+                     void *cd_data)
 {
   const float cscale = 1.0f / 255.0f;
   MPoly *polys = config.mpoly;
   MLoop *mloops = config.mloop;
-  MCol *cfaces = static_cast<MCol *>(data);
-
-  std::vector<Imath::C4f> buffer;
-  std::vector<uint32_t> indices;
+  MCol *cfaces = static_cast<MCol *>(cd_data);
 
   buffer.reserve(config.totvert);
-  indices.reserve(config.totvert);
+  uvidx.reserve(config.totvert);
 
   Imath::C4f col;
 
@@ -217,17 +211,44 @@ static void write_mcol(const OCompoundProperty &prop,
       col[3] = cface->b * cscale;
 
       buffer.push_back(col);
-      indices.push_back(buffer.size() - 1);
+      uvidx.push_back(buffer.size() - 1);
     }
   }
+}
 
-  OC4fGeomParam param(prop, name, true, kFacevaryingScope, 1);
+/* Convention to write Vertex Colors:
+ * - C3fGeomParam/C4fGeomParam on the arbGeomParam
+ * - set scope as vertex varying
+ */
+static void write_mcol(const OCompoundProperty &prop,
+                       CDStreamConfig &config,
+                       void *data,
+                       const char *name)
+{
+  std::vector<uint32_t> indices;
+  std::vector<Imath::C4f> buffer;
+
+  get_cols(config, buffer, indices, data);
+
+  if (indices.empty() || buffer.empty()) {
+    return;
+  }
+
+  std::string vcol_name(name);
+  OC4fGeomParam param = config.abc_vertex_colors[vcol_name];
+
+  if (!param.valid()) {
+    param = OC4fGeomParam(prop, name, true, kFacevaryingScope, 1);
+  }
 
   OC4fGeomParam::Sample sample(C4fArraySample(&buffer.front(), buffer.size()),
                                UInt32ArraySample(&indices.front(), indices.size()),
                                kVertexScope);
 
   param.set(sample);
+  param.setTimeSampling(config.timesample_index);
+
+  config.abc_vertex_colors[vcol_name] = param;
 }
 
 void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config)

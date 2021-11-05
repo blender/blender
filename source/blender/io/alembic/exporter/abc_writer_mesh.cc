@@ -190,6 +190,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
   m_custom_data_config.totvert = mesh->totvert;
+  m_custom_data_config.timesample_index = timesample_index_;
 
   try {
     if (is_subd_) {
@@ -351,7 +352,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, struct Mesh *mesh, Sc
 
 void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
 {
-  if (frame_has_been_written_ || !args_.export_params->vcolors) {
+  if (!args_.export_params->vcolors) {
     return;
   }
 
