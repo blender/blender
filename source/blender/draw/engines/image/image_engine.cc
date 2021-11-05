@@ -78,8 +78,6 @@ class ImageEngine {
 
   virtual ~ImageEngine() = default;
 
- private:
- public:
   void cache_init()
   {
     IMAGE_StorageList *stl = vedata->stl;
