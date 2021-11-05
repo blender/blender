@@ -1437,20 +1437,13 @@ static int separate_exec(bContext *C, wmOperator *op)
 
     /* Some curves changed, but some curves failed: don't explain why it failed. */
     if (status.changed) {
-      BKE_reportf(op->reports,
-                  RPT_INFO,
-                  tot_errors == 1 ? "%d curve could not be separated" :
-                                    "%d curves could not be separated",
-                  tot_errors);
+      BKE_reportf(op->reports, RPT_INFO, "%d curve(s) could not be separated", tot_errors);
       return OPERATOR_FINISHED;
     }
 
     /* All curves failed: If there is more than one error give a generic error report. */
     if (((status.error_vertex_keys ? 1 : 0) + (status.error_generic ? 1 : 0)) > 1) {
-      BKE_report(op->reports,
-                 RPT_ERROR,
-                 tot_errors == 1 ? "Could not separate selected curves" :
-                                   "Could not separate selected curve");
+      BKE_report(op->reports, RPT_ERROR, "Could not separate selected curve(s)");
     }
 
     /* All curves failed due to the same error. */
@@ -4708,11 +4701,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
   if (tot_errors > 0) {
     /* Some curves changed, but some curves failed: don't explain why it failed. */
     if (status.changed) {
-      BKE_reportf(op->reports,
-                  RPT_INFO,
-                  tot_errors == 1 ? "%d curve could not make segments" :
-                                    "%d curves could not make segments",
-                  tot_errors);
+      BKE_reportf(op->reports, RPT_INFO, "%d curves could not make segments", tot_errors);
       return OPERATOR_FINISHED;
     }
 
