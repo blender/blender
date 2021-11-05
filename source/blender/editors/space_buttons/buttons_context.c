@@ -1225,7 +1225,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
     /* Add > triangle. */
     if (!first) {
-      uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
+      uiItemL(row, "", ICON_RIGHTARROW);
     }
 
     if (ptr->data == NULL) {
