@@ -163,7 +163,7 @@ void BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_
 struct ID *BKE_libblock_find_name(struct Main *bmain,
                                   const short type,
                                   const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
+struct ID *BKE_libblock_find_session_uuid(struct Main *bmain, short type, uint32_t session_uuid);
 /**
  * Duplicate (a.k.a. deep copy) common processing options.
  * See also eDupli_ID_Flags for options controlling what kind of IDs to duplicate.
