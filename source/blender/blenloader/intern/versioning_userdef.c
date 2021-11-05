@@ -700,8 +700,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 38)) {
-
-    /* (keep this block even if it becomes empty). */
     copy_v4_fl4(userdef->light_param[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
     copy_v4_fl4(userdef->light_param[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
     copy_v4_fl4(userdef->light_param[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
@@ -734,8 +732,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
-    /* (keep this block even if it becomes empty). */
-
     if (userdef->pie_tap_timeout == 0) {
       userdef->pie_tap_timeout = 20;
     }
@@ -792,7 +788,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 62)) {
-    /* (keep this block even if it becomes empty). */
     if (userdef->vbotimeout == 0) {
       userdef->vbocollectrate = 60;
       userdef->vbotimeout = 120;
