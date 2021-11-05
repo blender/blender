@@ -96,6 +96,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_geometry_set.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
@@ -4578,8 +4579,28 @@ bool BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc
 /** Get evaluated mesh for given object. */
 Mesh *BKE_object_get_evaluated_mesh(const Object *object)
 {
+  /* First attempt to retrieve the evaluated mesh from the evaluated geometry set. Most
+   * object types either store it there or add a reference to it if it's owned elsewhere. */
+  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
+  if (geometry_set_eval) {
+    /* Some areas expect to be able to modify the evaluated mesh. Theoretically this should be
+     * avoided, or at least protected with a lock, so a const mesh could be returned from this
+     * function. */
+    Mesh *mesh = geometry_set_eval->get_mesh_for_write();
+    if (mesh) {
+      return mesh;
+    }
+  }
+
+  /* Some object types do not yet add the evaluated mesh to an evaluated geometry set, if they do
+   * not support evaluating to multiple data types. Eventually this should be removed, when all
+   * object types use #geometry_set_eval. */
   ID *data_eval = object->runtime.data_eval;
-  return (data_eval && GS(data_eval->name) == ID_ME) ? (Mesh *)data_eval : nullptr;
+  if (data_eval && GS(data_eval->name) == ID_ME) {
+    return reinterpret_cast<Mesh *>(data_eval);
+  }
+
+  return nullptr;
 }
 
 /**

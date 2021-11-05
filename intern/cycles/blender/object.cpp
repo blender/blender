@@ -76,18 +76,15 @@ bool BlenderSync::object_is_geometry(BL::Object &b_ob)
     /* Will be exported attached to mesh. */
     return true;
   }
-  else if (type == BL::Object::type_CURVE) {
-    /* Skip exporting curves without faces, overhead can be
-     * significant if there are many for path animation. */
-    BL::Curve b_curve(b_ob_data);
 
-    return (b_curve.bevel_object() || b_curve.extrude() != 0.0f || b_curve.bevel_depth() != 0.0f ||
-            b_curve.dimensions() == BL::Curve::dimensions_2D || b_ob.modifiers.length());
+  /* Other object types that are not meshes but evaluate to meshes are presented to render engines
+   * as separate instance objects. Metaballs and surface objects have not been affected by that
+   * change yet. */
+  if (type == BL::Object::type_SURFACE || type == BL::Object::type_META) {
+    return true;
   }
-  else {
-    return (b_ob_data.is_a(&RNA_Mesh) || b_ob_data.is_a(&RNA_Curve) ||
-            b_ob_data.is_a(&RNA_MetaBall));
-  }
+
+  return b_ob_data.is_a(&RNA_Mesh);
 }
 
 bool BlenderSync::object_is_light(BL::Object &b_ob)
