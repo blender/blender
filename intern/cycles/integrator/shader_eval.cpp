@@ -96,7 +96,7 @@ bool ShaderEval::eval_cpu(Device *device,
   device->get_cpu_kernel_thread_globals(kernel_thread_globals);
 
   /* Find required kernel function. */
-  const CPUKernels &kernels = *(device->get_cpu_kernels());
+  const CPUKernels &kernels = Device::get_cpu_kernels();
 
   /* Simple parallel_for over all work items. */
   KernelShaderEvalInput *input_data = input.data();

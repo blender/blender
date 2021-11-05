@@ -58,7 +58,7 @@ PathTraceWorkCPU::PathTraceWorkCPU(Device *device,
                                    DeviceScene *device_scene,
                                    bool *cancel_requested_flag)
     : PathTraceWork(device, film, device_scene, cancel_requested_flag),
-      kernels_(*(device->get_cpu_kernels()))
+      kernels_(Device::get_cpu_kernels())
 {
   DCHECK_EQ(device->info.type, DEVICE_CPU);
 }
