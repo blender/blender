@@ -1375,6 +1375,20 @@ ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *nam
   return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
+struct ID *BKE_libblock_find_session_uuid(Main *bmain,
+                                          const short type,
+                                          const uint32_t session_uuid)
+{
+  ListBase *lb = which_libbase(bmain, type);
+  BLI_assert(lb != NULL);
+  LISTBASE_FOREACH (ID *, id, lb) {
+    if (id->session_uuid == session_uuid) {
+      return id;
+    }
+  }
+  return NULL;
+}
+
 /**
  * Sort given \a id into given \a lb list, using case-insensitive comparison of the id names.
  *

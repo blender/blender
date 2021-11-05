@@ -55,6 +55,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -86,6 +87,7 @@
 #include "MOD_nodes_evaluator.hh"
 #include "MOD_ui_common.h"
 
+#include "ED_object.h"
 #include "ED_spreadsheet.h"
 #include "ED_undo.h"
 
@@ -1122,25 +1124,45 @@ static void modifyGeometrySet(ModifierData *md,
 }
 
 struct AttributeSearchData {
-  const geo_log::ModifierLog &modifier_log;
-  IDProperty &name_property;
+  uint32_t object_session_uid;
+  char modifier_name[MAX_NAME];
+  char socket_identifier[MAX_NAME];
   bool is_output;
 };
-
 /* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
 BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
 
-static void attribute_search_update_fn(const bContext *UNUSED(C),
-                                       void *arg,
-                                       const char *str,
-                                       uiSearchItems *items,
-                                       const bool is_first)
+static NodesModifierData *get_modifier_data(Main &bmain, const AttributeSearchData &data)
 {
-  AttributeSearchData *data = static_cast<AttributeSearchData *>(arg);
+  const Object *object = (Object *)BKE_libblock_find_session_uuid(
+      &bmain, ID_OB, data.object_session_uid);
+  if (object == nullptr) {
+    return nullptr;
+  }
+  ModifierData *md = BKE_modifiers_findby_name(object, data.modifier_name);
+  if (md == nullptr) {
+    return nullptr;
+  }
+  BLI_assert(md->type == eModifierType_Nodes);
+  return reinterpret_cast<NodesModifierData *>(md);
+}
 
-  const geo_log::GeometryValueLog *geometry_log = data->is_output ?
-                                                      data->modifier_log.output_geometry_log() :
-                                                      data->modifier_log.input_geometry_log();
+static void attribute_search_update_fn(
+    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+{
+  AttributeSearchData &data = *static_cast<AttributeSearchData *>(arg);
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), data);
+  if (nmd == nullptr) {
+    return;
+  }
+  const geo_log::ModifierLog *modifier_log = static_cast<const geo_log::ModifierLog *>(
+      nmd->runtime_eval_log);
+  if (modifier_log == nullptr) {
+    return;
+  }
+  const geo_log::GeometryValueLog *geometry_log = data.is_output ?
+                                                      modifier_log->output_geometry_log() :
+                                                      modifier_log->input_geometry_log();
   if (geometry_log == nullptr) {
     return;
   }
@@ -1153,7 +1175,7 @@ static void attribute_search_update_fn(const bContext *UNUSED(C),
     info_ptrs[i] = &infos[i];
   }
   blender::ui::attribute_search_add_items(
-      str, data->is_output, info_ptrs.as_span(), items, is_first);
+      str, data.is_output, info_ptrs.as_span(), items, is_first);
 }
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
@@ -1163,15 +1185,21 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   }
   AttributeSearchData &data = *static_cast<AttributeSearchData *>(data_v);
   const GeometryAttributeInfo &item = *static_cast<const GeometryAttributeInfo *>(item_v);
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), data);
+  if (nmd == nullptr) {
+    return;
+  }
 
-  IDProperty &name_property = data.name_property;
-  BLI_assert(name_property.type == IDP_STRING);
+  const std::string attribute_prop_name = data.socket_identifier + attribute_name_suffix;
+  IDProperty &name_property = *IDP_GetPropertyFromGroup(nmd->settings.properties,
+                                                        attribute_prop_name.c_str());
   IDP_AssignString(&name_property, item.name.c_str(), 0);
 
   ED_undo_push(C, "Assign Attribute Name");
 }
 
-static void add_attribute_search_button(uiLayout *layout,
+static void add_attribute_search_button(const bContext &C,
+                                        uiLayout *layout,
                                         const NodesModifierData &nmd,
                                         PointerRNA *md_ptr,
                                         const StringRefNull rna_path_attribute_name,
@@ -1203,16 +1231,17 @@ static void add_attribute_search_button(uiLayout *layout,
                                  0.0f,
                                  "");
 
-  const std::string use_attribute_prop_name = socket.identifier + attribute_name_suffix;
-  IDProperty *property = IDP_GetPropertyFromGroup(nmd.settings.properties,
-                                                  use_attribute_prop_name.c_str());
-  BLI_assert(property != nullptr);
-  if (property == nullptr) {
+  const Object *object = ED_object_context(&C);
+  BLI_assert(object != nullptr);
+  if (object == nullptr) {
     return;
   }
 
-  AttributeSearchData *data = OBJECT_GUARDED_NEW(AttributeSearchData,
-                                                 {*log, *property, is_output});
+  AttributeSearchData *data = OBJECT_GUARDED_NEW(AttributeSearchData);
+  data->object_session_uid = object->id.session_uuid;
+  STRNCPY(data->modifier_name, nmd.modifier.name);
+  STRNCPY(data->socket_identifier, socket.identifier);
+  data->is_output = is_output;
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
@@ -1226,7 +1255,8 @@ static void add_attribute_search_button(uiLayout *layout,
                          nullptr);
 }
 
-static void add_attribute_search_or_value_buttons(uiLayout *layout,
+static void add_attribute_search_or_value_buttons(const bContext &C,
+                                                  uiLayout *layout,
                                                   const NodesModifierData &nmd,
                                                   PointerRNA *md_ptr,
                                                   const bNodeSocket &socket)
@@ -1260,7 +1290,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 
   const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
   if (use_attribute) {
-    add_attribute_search_button(row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    add_attribute_search_button(C, row, nmd, md_ptr, rna_path_attribute_name, socket, false);
     uiItemL(row, "", ICON_BLANK1);
   }
   else {
@@ -1272,7 +1302,8 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
  * the node socket identifier for the property names, since they are unique, but also having
  * the correct label displayed in the UI. */
-static void draw_property_for_socket(uiLayout *layout,
+static void draw_property_for_socket(const bContext &C,
+                                     uiLayout *layout,
                                      NodesModifierData *nmd,
                                      PointerRNA *bmain_ptr,
                                      PointerRNA *md_ptr,
@@ -1327,7 +1358,7 @@ static void draw_property_for_socket(uiLayout *layout,
     }
     default: {
       if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
-        add_attribute_search_or_value_buttons(layout, *nmd, md_ptr, socket);
+        add_attribute_search_or_value_buttons(C, layout, *nmd, md_ptr, socket);
       }
       else {
         uiLayout *row = uiLayoutRow(layout, false);
@@ -1338,7 +1369,8 @@ static void draw_property_for_socket(uiLayout *layout,
   }
 }
 
-static void draw_property_for_output_socket(uiLayout *layout,
+static void draw_property_for_output_socket(const bContext &C,
+                                            uiLayout *layout,
                                             const NodesModifierData &nmd,
                                             PointerRNA *md_ptr,
                                             const bNodeSocket &socket)
@@ -1354,7 +1386,7 @@ static void draw_property_for_output_socket(uiLayout *layout,
   uiItemL(name_row, socket.name, ICON_NONE);
 
   uiLayout *row = uiLayoutRow(split, true);
-  add_attribute_search_button(row, nmd, md_ptr, rna_path_attribute_name, socket, true);
+  add_attribute_search_button(C, row, nmd, md_ptr, rna_path_attribute_name, socket, true);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
@@ -1387,7 +1419,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     int socket_index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &nmd->node_group->inputs, socket_index) {
-      draw_property_for_socket(layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
+      draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
     }
   }
 
@@ -1418,7 +1450,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void output_attribute_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void output_attribute_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -1433,7 +1465,7 @@ static void output_attribute_panel_draw(const bContext *UNUSED(C), Panel *panel)
     LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
       if (socket_type_has_attribute_toggle(*socket)) {
         has_output_attribute = true;
-        draw_property_for_output_socket(layout, *nmd, ptr, *socket);
+        draw_property_for_output_socket(*C, layout, *nmd, ptr, *socket);
       }
     }
   }
