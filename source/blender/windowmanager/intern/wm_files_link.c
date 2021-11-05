@@ -259,7 +259,7 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(WMLinkAppendData *lapp
                                                           const short idcode,
                                                           void *customdata)
 {
-  WMLinkAppendDataItem *item = BLI_memarena_alloc(lapp_data->memarena, sizeof(*item));
+  WMLinkAppendDataItem *item = BLI_memarena_calloc(lapp_data->memarena, sizeof(*item));
   size_t len = strlen(idname) + 1;
 
   item->name = BLI_memarena_alloc(lapp_data->memarena, len);
