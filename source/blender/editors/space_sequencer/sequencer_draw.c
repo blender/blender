@@ -2782,6 +2782,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
   ANIM_draw_previewrange(C, v2d, 1);
 
+  if ((sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
+    WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  }
+
   /* Draw registered callbacks. */
   GPU_framebuffer_bind(framebuffer_overlay);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);

@@ -997,7 +997,9 @@ void ED_spacetype_sequencer(void)
   art->draw_overlay = sequencer_main_region_draw_overlay;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
-  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
+  /* NOTE: inclusion of #ED_KEYMAP_GIZMO is currenlty for scripts and isn't used by default. */
+  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
+                    ED_KEYMAP_ANIMATION;
   BLI_addhead(&st->regiontypes, art);
 
   /* Preview. */
