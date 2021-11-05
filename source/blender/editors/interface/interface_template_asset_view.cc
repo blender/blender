@@ -178,7 +178,7 @@ static void asset_view_template_refresh_asset_collection(
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(&asset_library_ref, [&](AssetHandle asset) {
+  ED_assetlist_iterate(asset_library_ref, [&](AssetHandle asset) {
     if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
       /* Don't do anything else, but return true to continue iterating. */
       return true;

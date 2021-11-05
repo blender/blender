@@ -456,9 +456,9 @@ bool ED_assetlist_storage_has_list_for_library(const AssetLibraryReference *libr
   return AssetListStorage::lookup_list(*library_reference) != nullptr;
 }
 
-void ED_assetlist_iterate(const AssetLibraryReference *library_reference, AssetListIterFn fn)
+void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  AssetList *list = AssetListStorage::lookup_list(library_reference);
   if (list) {
     list->iterate(fn);
   }
