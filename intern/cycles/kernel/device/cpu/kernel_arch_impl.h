@@ -47,8 +47,8 @@
 #    include "kernel/integrator/megakernel.h"
 
 #    include "kernel/film/adaptive_sampling.h"
-#    include "kernel/film/read.h"
 #    include "kernel/film/id_passes.h"
+#    include "kernel/film/read.h"
 
 #    include "kernel/bake/bake.h"
 
@@ -231,6 +231,85 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *
   kernel_cryptomatte_post(kg, render_buffer, pixel_index);
 #endif
 }
+
+/* --------------------------------------------------------------------
+ * Film Convert.
+ */
+
+#ifdef KERNEL_STUB
+
+#  define KERNEL_FILM_CONVERT_FUNCTION(name, is_float) \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_##name)(const KernelFilmConvert *kfilm_convert, \
+                                                        const float *buffer, \
+                                                        float *pixel, \
+                                                        const int width, \
+                                                        const int buffer_stride, \
+                                                        const int pixel_stride) \
+    { \
+      STUB_ASSERT(KERNEL_ARCH, film_convert_##name); \
+    } \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_half_rgba_##name)( \
+        const KernelFilmConvert *kfilm_convert, \
+        const float *buffer, \
+        half4 *pixel, \
+        const int width, \
+        const int buffer_stride) \
+    { \
+      STUB_ASSERT(KERNEL_ARCH, film_convert_##name); \
+    }
+
+#else
+
+#  define KERNEL_FILM_CONVERT_FUNCTION(name, is_float) \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_##name)(const KernelFilmConvert *kfilm_convert, \
+                                                        const float *buffer, \
+                                                        float *pixel, \
+                                                        const int width, \
+                                                        const int buffer_stride, \
+                                                        const int pixel_stride) \
+    { \
+      for (int i = 0; i < width; i++, buffer += buffer_stride, pixel += pixel_stride) { \
+        film_get_pass_pixel_##name(kfilm_convert, buffer, pixel); \
+      } \
+    } \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_half_rgba_##name)( \
+        const KernelFilmConvert *kfilm_convert, \
+        const float *buffer, \
+        half4 *pixel, \
+        const int width, \
+        const int buffer_stride) \
+    { \
+      for (int i = 0; i < width; i++, buffer += buffer_stride, pixel++) { \
+        float pixel_rgba[4] = {0.0f, 0.0f, 0.0f, 1.0f}; \
+        film_get_pass_pixel_##name(kfilm_convert, buffer, pixel_rgba); \
+        if (is_float) { \
+          pixel_rgba[1] = pixel_rgba[0]; \
+          pixel_rgba[2] = pixel_rgba[0]; \
+        } \
+        film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel_rgba); \
+        *pixel = float4_to_half4_display( \
+            make_float4(pixel_rgba[0], pixel_rgba[1], pixel_rgba[2], pixel_rgba[3])); \
+      } \
+    }
+
+#endif
+
+KERNEL_FILM_CONVERT_FUNCTION(depth, true)
+KERNEL_FILM_CONVERT_FUNCTION(mist, true)
+KERNEL_FILM_CONVERT_FUNCTION(sample_count, true)
+KERNEL_FILM_CONVERT_FUNCTION(float, true)
+
+KERNEL_FILM_CONVERT_FUNCTION(light_path, false)
+KERNEL_FILM_CONVERT_FUNCTION(float3, false)
+
+KERNEL_FILM_CONVERT_FUNCTION(motion, false)
+KERNEL_FILM_CONVERT_FUNCTION(cryptomatte, false)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher, false)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher_matte_with_shadow, false)
+KERNEL_FILM_CONVERT_FUNCTION(combined, false)
+KERNEL_FILM_CONVERT_FUNCTION(float4, false)
+
+#undef KERNEL_FILM_CONVERT_FUNCTION
 
 #undef KERNEL_INVOKE
 #undef DEFINE_INTEGRATOR_KERNEL

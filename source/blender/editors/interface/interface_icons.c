@@ -1503,7 +1503,8 @@ static void icon_draw_rect(float x,
   int draw_w = w;
   int draw_h = h;
   int draw_x = x;
-  int draw_y = y;
+  /* We need to round y, to avoid the icon jittering in some cases. */
+  int draw_y = round_fl_to_int(y);
 
   /* sanity check */
   if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {

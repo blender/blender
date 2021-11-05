@@ -1407,8 +1407,8 @@ static void widget_draw_icon(
 
     /* force positions to integers, for zoom levels near 1. draws icons crisp. */
     if (aspect > 0.95f && aspect < 1.05f) {
-      xs = (int)(xs + 0.1f);
-      ys = (int)(ys + 0.1f);
+      xs = roundf(xs);
+      ys = roundf(ys);
     }
 
     /* Get theme color. */
