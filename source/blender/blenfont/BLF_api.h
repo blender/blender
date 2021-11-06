@@ -43,6 +43,8 @@ void BLF_exit(void);
 
 void BLF_cache_clear(void);
 
+void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void));
+
 /* Loads a font, or returns an already loaded font and increments its reference count. */
 int BLF_load(const char *name) ATTR_NONNULL();
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
@@ -250,6 +252,7 @@ void BLF_thumb_preview(const char *filename,
 
 /* blf_default.c */
 void BLF_default_dpi(int dpi);
+void BLF_default_size(int size);
 void BLF_default_set(int fontid);
 int BLF_default(void); /* get default font ID so we can pass it to other functions */
 /* Draw the string using the default font, size and dpi. */

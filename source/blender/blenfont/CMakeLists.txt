@@ -23,12 +23,10 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blentranslation
-  ../editors/include
   ../gpu
   ../imbuf
   ../makesdna
   ../makesrna
-  ../windowmanager
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
 )
