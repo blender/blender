@@ -46,6 +46,7 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
+struct PreviewImage;
 
 #define NODE_MAXSTR 64
 
@@ -561,6 +562,9 @@ typedef struct bNodeTree {
   int (*test_break)(void *);
   void (*update_draw)(void *);
   void *tbh, *prh, *sdh, *udh;
+
+  /** Image representing what the node group does. */
+  struct PreviewImage *preview;
 } bNodeTree;
 
 /* ntree->type, index */
