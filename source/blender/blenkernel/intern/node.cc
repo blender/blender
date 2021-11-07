@@ -251,7 +251,7 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
-    ntree_dst->preview = NULL;
+    ntree_dst->preview = nullptr;
   }
   else {
     BKE_previewimg_id_copy(&ntree_dst->id, &ntree_src->id);
