@@ -778,10 +778,13 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
   };
 
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
-  if (state->region && (state->region != region)) {
-    /* Some gizmos are still available even when the region is not available.
-     * We need to disable the cursor in these cases. */
-    return false;
+  if (state->gzgrp_type) {
+    /* Check the respective gizmo group is in the region. */
+    wmGizmoMap *gzmap = region->gizmo_map;
+    if (WM_gizmomap_group_find_ptr(gzmap, state->gzgrp_type) == NULL) {
+      /* Wrong viewport. */
+      return false;
+    }
   }
 
   return true;
