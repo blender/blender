@@ -136,6 +136,10 @@ void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
     return;
   }
 
+  if (strlen(usd_export_context_.export_params.root_prim_path) != 0) {
+    skel_path = std::string(usd_export_context_.export_params.root_prim_path) + skel_path;
+  }
+
   usd_skel_api.CreateSkeletonRel().SetTargets(pxr::SdfPathVector({pxr::SdfPath(skel_path)}));
 
   if (pxr::UsdAttribute geom_bind_attr = usd_skel_api.CreateGeomBindTransformAttr()) {
@@ -186,7 +190,7 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
 
   std::vector<int> group_to_bone_idx;
 
-  for (bDeformGroup *def = (bDeformGroup *)ob->defbase.first; def; def = def->next) {
+  for (const bDeformGroup *def = (const bDeformGroup *)mesh->vertex_group_names.first; def; def = def->next) {
 
     int bone_idx = -1;
     /* For now, n-squared search is acceptable. */

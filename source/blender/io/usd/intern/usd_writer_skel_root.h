@@ -34,6 +34,10 @@ class USDSkelRootWriter : public USDTransformWriter {
  protected:
   /* Override to create UsdSkelRoot prim. */
   pxr::UsdGeomXformable create_xformable() const override;
+
+  /* Rturns true if the prim to be created is
+   * already unde a USD SkeRoot. */
+  bool is_under_skel_root() const;
 };
 
 }  // namespace blender::io::usd
