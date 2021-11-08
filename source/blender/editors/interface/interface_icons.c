@@ -1482,6 +1482,78 @@ PreviewImage *UI_icon_to_preview(int icon_id)
   return NULL;
 }
 
+/**
+ * Version of #icon_draw_rect() that uses the GPU for scaling. This is only used for
+ * #ICON_TYPE_IMBUF because it's a backported fix for performance issues, see T92922. Only
+ * File/Asset Browser use #ICON_TYPE_IMBUF right now, which makes implications more predictable.
+ *
+ * TODO(Julian): This code is mostly duplicated. #icon_draw_rect() should be ported to use the GPU
+ *               instead (D13144).
+ */
+static void icon_draw_rect_fast(float x,
+                                float y,
+                                int w,
+                                int h,
+                                float UNUSED(aspect),
+                                int rw,
+                                int rh,
+                                uint *rect,
+                                float alpha,
+                                const float desaturate)
+{
+  int draw_w = w;
+  int draw_h = h;
+  int draw_x = x;
+  /* We need to round y, to avoid the icon jittering in some cases. */
+  int draw_y = round_fl_to_int(y);
+
+  /* sanity check */
+  if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
+    printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
+    BLI_assert_msg(0, "invalid icon size");
+    return;
+  }
+  /* modulate color */
+  const float col[4] = {alpha, alpha, alpha, alpha};
+
+  float scale_x = 1.0f;
+  float scale_y = 1.0f;
+  /* rect contains image in 'rendersize', we only scale if needed */
+  if (rw != w || rh != h) {
+    /* preserve aspect ratio and center */
+    if (rw > rh) {
+      draw_w = w;
+      draw_h = (int)(((float)rh / (float)rw) * (float)w);
+      draw_y += (h - draw_h) / 2;
+    }
+    else if (rw < rh) {
+      draw_w = (int)(((float)rw / (float)rh) * (float)h);
+      draw_h = h;
+      draw_x += (w - draw_w) / 2;
+    }
+    scale_x = draw_w / (float)rw;
+    scale_y = draw_h / (float)rh;
+    /* If the image is squared, the `draw_*` initialization values are good. */
+  }
+
+  /* draw */
+  eGPUBuiltinShader shader;
+  if (desaturate != 0.0f) {
+    shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
+  }
+  else {
+    shader = GPU_SHADER_2D_IMAGE_COLOR;
+  }
+  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
+
+  if (shader == GPU_SHADER_2D_IMAGE_DESATURATE_COLOR) {
+    immUniform1f("factor", desaturate);
+  }
+
+  immDrawPixelsTexScaled(
+      &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
+}
+
 static void icon_draw_rect(float x,
                            float y,
                            int w,
@@ -1806,7 +1878,9 @@ static void icon_draw_size(float x,
     ImBuf *ibuf = icon->obj;
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    icon_draw_rect(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
+    /* These icons are only used by the File/Asset Browser currently. Without this `_fast()`
+     * version, there may be performance issues, see T92922. */
+    icon_draw_rect_fast(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {
