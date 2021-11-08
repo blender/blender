@@ -60,7 +60,11 @@ else()
   # -----------------------------------------------------------------------------
   # Build `blender-thumbnailer` executable
 
-  add_executable(blender-thumbnailer ${SRC} src/blender_thumbnailer.cc)
+  set(SRC_CMD
+    src/blender_thumbnailer.cc
+  )
+
+  add_executable(blender-thumbnailer ${SRC} ${SRC_CMD})
   target_link_libraries(blender-thumbnailer bf_blenlib)
   target_link_libraries(blender-thumbnailer ${PTHREADS_LIBRARIES})
 endif()
