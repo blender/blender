@@ -55,7 +55,27 @@
 #include "BLI_math_vector.h"
 #include "BLI_strict_flags.h"
 
-/* Find a glyph cache that matches a size, dpi, styles. */
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+/**
+ * Convert a floating point value to a FreeType 16.16 fixed point value.
+ */
+static FT_Fixed to_16dot16(double val)
+{
+  return (FT_Fixed)(lround(val * 65536.0));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Glyph Cache
+ * \{ */
+
+/**
+ * Find a glyph cache that matches a size, DPI & styles.
+ */
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
@@ -69,7 +89,9 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned i
   return NULL;
 }
 
-/* Create a new glyph cache for the current size, dpi, styles. */
+/**
+ * Create a new glyph cache for the current size, DPI & styles.
+ */
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
@@ -136,7 +158,11 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
   MEM_freeN(gc);
 }
 
-/* Try to find a glyph in cache, return NULL if not found. */
+/**
+ * Try to find a glyph in cache.
+ *
+ * \return NULL if not found.
+ */
 static GlyphBLF *blf_glyph_cache_find_glyph(GlyphCacheBLF *gc, uint charcode)
 {
   if (charcode < GLYPH_ASCII_TABLE_SIZE) {
@@ -153,7 +179,9 @@ static GlyphBLF *blf_glyph_cache_find_glyph(GlyphCacheBLF *gc, uint charcode)
   return NULL;
 }
 
-/* Add a rendered glyph to a cache. */
+/**
+ * Add a rendered glyph to a cache.
+ */
 static GlyphBLF *blf_glyph_cache_add_glyph(
     FontBLF *font, GlyphCacheBLF *gc, FT_GlyphSlot glyph, uint charcode, FT_UInt glyph_index)
 {
@@ -196,8 +224,10 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
   return g;
 }
 
-/* Return a glyph index from a charcode. Not found returns zero, which is a valid
- * printable character (.notdef or "tofu"). Font is allowed to change here. */
+/**
+ * Return a glyph index from `charcode`. Not found returns zero, which is a valid
+ * printable character (`.notdef` or `tofu`). Font is allowed to change here.
+ */
 static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode)
 {
   FT_UInt glyph_index = FT_Get_Char_Index((*font)->face, charcode);
@@ -205,7 +235,9 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
   return glyph_index;
 }
 
-/* Load a glyph into the glyph slot of a font's face object. */
+/**
+ * Load a glyph into the glyph slot of a font's face object.
+ */
 static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
 {
   int load_flags;
@@ -237,7 +269,9 @@ static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
   return NULL;
 }
 
-/* Convert a glyph from outlines to a bitmap that we can display. */
+/**
+ * Convert a glyph from outlines to a bitmap that we can display.
+ */
 static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
 {
   int render_mode;
@@ -259,7 +293,7 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
 
   if (font->flags & BLF_MONOCHROME) {
     /* Convert result from 1 bit per pixel to 8 bit per pixel */
-    /* Accum errors for later, fine if not interested beyond "ok vs any error" */
+    /* Accumulate errors for later, fine if not interested beyond "ok vs any error" */
     FT_Bitmap_New(&tempbitmap);
 
     /* Does Blender use Pitch 1 always? It works so far */
@@ -275,13 +309,17 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
   return true;
 }
 
-/* Convert a floating point value to a FreeType 16.16 fixed point value. */
-static FT_Fixed to_16dot16(double val)
-{
-  return (FT_Fixed)(lround(val * 65536.0));
-}
+/** \} */
 
-/* Glyph weight by factor. -1 (min stroke width) <= 0 (normal) => 1 (max boldness). */
+/* -------------------------------------------------------------------- */
+/** \name Glyph Transformations
+ * \{ */
+
+/**
+ * Adjust the glyphs weight by a factor.
+ *
+ * \param factor: -1 (min stroke width) <= 0 (normal) => 1 (max boldness).
+ */
 static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
@@ -304,8 +342,13 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
   return false;
 }
 
-/* Glyph oblique by factor. -1 (max negative) <= 0 (no slant) => 1 (max positive).
- * Note that left-leaning italics are possibile in some RTL writing systems. */
+/**
+ * Adjust the glyphs slant by a factor (making it oblique).
+ *
+ * \param factor: -1 (max negative) <= 0 (no slant) => 1 (max positive).
+ *
+ * \note that left-leaning italics are possible in some RTL writing systems.
+ */
 static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
@@ -316,7 +359,11 @@ static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
   return false;
 }
 
-/* Glyph width by factor. -1 (min width) <= 0 (normal) => 1 (max width). */
+/**
+ * Adjust the glyph width by factor.
+ *
+ * \param factor: -1 (min width) <= 0 (normal) => 1 (max width).
+ */
 static bool UNUSED_FUNCTION(blf_glyph_transform_width)(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
@@ -329,7 +376,9 @@ static bool UNUSED_FUNCTION(blf_glyph_transform_width)(FT_GlyphSlot glyph, float
   return false;
 }
 
-/* Transform glyph to fit nicely within a fixed column width. */
+/**
+ * Transform glyph to fit nicely within a fixed column width.
+ */
 static bool UNUSED_FUNCTION(blf_glyph_transform_monospace)(FT_GlyphSlot glyph, int width)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
@@ -353,7 +402,15 @@ static bool UNUSED_FUNCTION(blf_glyph_transform_monospace)(FT_GlyphSlot glyph, i
   return false;
 }
 
-/* Create and return a fully-rendered bitmap glyph. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Glyph Access (Ensure/Free)
+ * \{ */
+
+/**
+ * Create and return a fully-rendered bitmap glyph.
+ */
 static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
                                      FontBLF *glyph_font,
                                      FT_UInt glyph_index)
@@ -375,7 +432,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   if ((settings_font->flags & BLF_ITALIC) != 0) {
     /* 37.5% of maximum rightward slant results in 6 degree slope, matching italic
-     * version (DejaVuSans-Oblique.ttf) of our current font. But a nice median when
+     * version (`DejaVuSans-Oblique.ttf`) of our current font. But a nice median when
      * checking others. Worth reevaluating if we change default font. We could also
      * narrow the glyph slightly as most italics do, but this one does not. */
     blf_glyph_transform_slant(glyph, 0.375f);
@@ -383,7 +440,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   if ((settings_font->flags & BLF_BOLD) != 0) {
     /* 70% of maximum weight results in the same amount of boldness and horizontal
-     * expansion as the bold version (DejaVuSans-Bold.ttf) of our default font.
+     * expansion as the bold version (`DejaVuSans-Bold.ttf`) of our default font.
      * Worth reevaluating if we change default font. */
     blf_glyph_transform_weight(glyph, 0.7f, glyph->face->face_flags & FT_FACE_FLAG_FIXED_WIDTH);
   }
@@ -394,7 +451,9 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   return NULL;
 }
 
-/* Create (or load from cache) a fully-rendered bitmap glyph. */
+/**
+ * Create (or load from cache) a fully-rendered bitmap glyph.
+ */
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode);
@@ -430,6 +489,42 @@ void blf_glyph_free(GlyphBLF *g)
   }
   MEM_freeN(g);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Glyph Bounds Calculation
+ * \{ */
+
+static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
+{
+  rect->xmin = floorf(x + (float)g->pos[0]);
+  rect->xmax = rect->xmin + (float)g->dims[0];
+  rect->ymin = floorf(y + (float)g->pos[1]);
+  rect->ymax = rect->ymin - (float)g->dims[1];
+}
+
+static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
+{
+  /* Intentionally check with `g->advance`, because this is the
+   * width used by BLF_width. This allows that the text slightly
+   * overlaps the clipping border to achieve better alignment. */
+  rect->xmin = floorf(x);
+  rect->xmax = rect->xmin + MIN2(g->advance, (float)g->dims[0]);
+  rect->ymin = floorf(y);
+  rect->ymax = rect->ymin - (float)g->dims[1];
+}
+
+static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
+{
+  blf_glyph_calc_rect(rect, g, x + (float)font->shadow_x, y + (float)font->shadow_y);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Glyph Drawing
+ * \{ */
 
 static void blf_texture_draw(const unsigned char color[4],
                              const int glyph_size[2],
@@ -487,30 +582,6 @@ static void blf_texture3_draw(const unsigned char color_in[4],
   glyph_size_flag[1] = glyph_size[1];
 
   blf_texture_draw(color_in, glyph_size_flag, offset, x1, y1, x2, y2);
-}
-
-static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
-{
-  rect->xmin = floorf(x + (float)g->pos[0]);
-  rect->xmax = rect->xmin + (float)g->dims[0];
-  rect->ymin = floorf(y + (float)g->pos[1]);
-  rect->ymax = rect->ymin - (float)g->dims[1];
-}
-
-static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
-{
-  /* Intentionally check with g->advance, because this is the
-   * width used by BLF_width. This allows that the text slightly
-   * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = floorf(x);
-  rect->xmax = rect->xmin + MIN2(g->advance, (float)g->dims[0]);
-  rect->ymin = floorf(y);
-  rect->ymax = rect->ymin - (float)g->dims[1];
-}
-
-static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
-{
-  blf_glyph_calc_rect(rect, g, x + (float)font->shadow_x, y + (float)font->shadow_y);
 }
 
 void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, float y)
@@ -620,3 +691,5 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, floa
   blf_texture_draw(font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 #endif
 }
+
+/** \} */
