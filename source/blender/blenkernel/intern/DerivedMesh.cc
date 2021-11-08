@@ -1896,9 +1896,9 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   const bool is_mesh_eval_owned = (mesh_eval != mesh->runtime.mesh_eval);
   BKE_object_eval_assign_data(ob, &mesh_eval->id, is_mesh_eval_owned);
 
-  /* Add the final mesh as read-only non-owning component to the geometry set. */
+  /* Add the final mesh as a non-owning component to the geometry set. */
   MeshComponent &mesh_component = geometry_set_eval->get_component_for_write<MeshComponent>();
-  mesh_component.replace(mesh_eval, GeometryOwnershipType::ReadOnly);
+  mesh_component.replace(mesh_eval, GeometryOwnershipType::Editable);
   ob->runtime.geometry_set_eval = geometry_set_eval;
 
   ob->runtime.mesh_deform_eval = mesh_deform_eval;

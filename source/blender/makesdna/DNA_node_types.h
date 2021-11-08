@@ -46,6 +46,7 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
+struct PreviewImage;
 
 #define NODE_MAXSTR 64
 
@@ -79,6 +80,19 @@ typedef struct bNodeStack {
 #define NS_CR_FIT_HEIGHT 3
 #define NS_CR_FIT 4
 #define NS_CR_STRETCH 5
+
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::nodes {
+class NodeDeclaration;
+class SocketDeclaration;
+}  // namespace blender::nodes
+using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
+using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
+#else
+typedef struct NodeDeclarationHandle NodeDeclarationHandle;
+typedef struct SocketDeclarationHandle SocketDeclarationHandle;
+#endif
 
 typedef struct bNodeSocket {
   struct bNodeSocket *next, *prev, *new_sock;
@@ -152,6 +166,12 @@ typedef struct bNodeSocket {
    * kept for forward compatibility */
   /** Custom data for inputs, only UI writes in this. */
   bNodeStack ns DNA_DEPRECATED;
+
+  /**
+   * References a socket declaration that is owned by `node->declaration`. This is only runtime
+   * data. It has to be updated when the node declaration changes.
+   */
+  const SocketDeclarationHandle *declaration;
 } bNodeSocket;
 
 /* sock->type */
@@ -218,16 +238,6 @@ typedef enum eNodeSocketFlag {
    */
   SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
-
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-namespace blender::nodes {
-class NodeDeclaration;
-}
-using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
-#else
-typedef struct NodeDeclarationHandle NodeDeclarationHandle;
-#endif
 
 /* TODO: Limit data in bNode to what we want to see saved. */
 typedef struct bNode {
@@ -561,10 +571,15 @@ typedef struct bNodeTree {
   int (*test_break)(void *);
   void (*update_draw)(void *);
   void *tbh, *prh, *sdh, *udh;
+
+  /** Image representing what the node group does. */
+  struct PreviewImage *preview;
 } bNodeTree;
 
 /* ntree->type, index */
-#define NTREE_CUSTOM -1 /* for dynamically registered custom types */
+
+#define NTREE_UNDEFINED -2 /* Represents #NodeTreeTypeUndefined type. */
+#define NTREE_CUSTOM -1    /* for dynamically registered custom types */
 #define NTREE_SHADER 0
 #define NTREE_COMPOSIT 1
 #define NTREE_TEXTURE 2

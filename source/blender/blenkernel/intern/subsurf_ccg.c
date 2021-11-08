@@ -2020,7 +2020,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
               &dm->loopData, &ccgdm->dm.loopData, loopidx, w2, NULL, numVerts, loopindex2);
           loopindex2++;
 
-          /* Copy over poly data, e.g. mtexpoly. */
+          /* Copy over poly data, e.g. #CD_FACEMAP. */
           CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
           /* Set original index data. */

@@ -326,8 +326,8 @@ ccl_device_inline void integrator_shadow_state_move(KernelGlobals kg,
 
 /* NOTE: Leaves kernel scheduling information untouched. Use INIT semantic for one of the paths
  * after this function. */
-ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
-                                                             IntegratorState state)
+ccl_device_inline IntegratorState integrator_state_shadow_catcher_split(KernelGlobals kg,
+                                                                        IntegratorState state)
 {
 #if defined(__KERNEL_GPU__)
   ConstIntegratorState to_state = atomic_fetch_and_add_uint32(
@@ -337,14 +337,14 @@ ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
 #else
   IntegratorStateCPU *ccl_restrict to_state = state + 1;
 
-  /* Only copy the required subset, since shadow intersections are big and irrelevant here. */
+  /* Only copy the required subset for performance. */
   to_state->path = state->path;
   to_state->ray = state->ray;
   to_state->isect = state->isect;
   integrator_state_copy_volume_stack(kg, to_state, state);
 #endif
 
-  INTEGRATOR_STATE_WRITE(to_state, path, flag) |= PATH_RAY_SHADOW_CATCHER_PASS;
+  return to_state;
 }
 
 #ifdef __KERNEL_CPU__

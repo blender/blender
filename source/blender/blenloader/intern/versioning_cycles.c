@@ -1635,6 +1635,8 @@ void do_versions_after_linking_cycles(Main *bmain)
         flag |= OB_HIDE_CAMERA | OB_SHADOW_CATCHER;
       }
 
+      /* Clear unused bits from old version, and add new flags. */
+      object->visibility_flag &= (OB_HIDE_VIEWPORT | OB_HIDE_SELECT | OB_HIDE_RENDER);
       object->visibility_flag |= flag;
     }
   }

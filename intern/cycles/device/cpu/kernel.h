@@ -17,11 +17,13 @@
 #pragma once
 
 #include "device/cpu/kernel_function.h"
+#include "util/half.h"
 #include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
 struct KernelGlobalsCPU;
+struct KernelFilmConvert;
 struct IntegratorStateCPU;
 struct TileInfo;
 
@@ -101,6 +103,41 @@ class CPUKernels {
       const KernelGlobalsCPU *kg, ccl_global float *render_buffer, int pixel_index)>;
 
   CryptomattePostprocessFunction cryptomatte_postprocess;
+
+  /* Film Convert. */
+  using FilmConvertFunction = CPUKernelFunction<void (*)(const KernelFilmConvert *kfilm_convert,
+                                                         const float *buffer,
+                                                         float *pixel,
+                                                         const int width,
+                                                         const int buffer_stride,
+                                                         const int pixel_stride)>;
+  using FilmConvertHalfRGBAFunction =
+      CPUKernelFunction<void (*)(const KernelFilmConvert *kfilm_convert,
+                                 const float *buffer,
+                                 half4 *pixel,
+                                 const int width,
+                                 const int buffer_stride)>;
+
+#define KERNEL_FILM_CONVERT_FUNCTION(name) \
+  FilmConvertFunction film_convert_##name; \
+  FilmConvertHalfRGBAFunction film_convert_half_rgba_##name;
+
+  KERNEL_FILM_CONVERT_FUNCTION(depth)
+  KERNEL_FILM_CONVERT_FUNCTION(mist)
+  KERNEL_FILM_CONVERT_FUNCTION(sample_count)
+  KERNEL_FILM_CONVERT_FUNCTION(float)
+
+  KERNEL_FILM_CONVERT_FUNCTION(light_path)
+  KERNEL_FILM_CONVERT_FUNCTION(float3)
+
+  KERNEL_FILM_CONVERT_FUNCTION(motion)
+  KERNEL_FILM_CONVERT_FUNCTION(cryptomatte)
+  KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher)
+  KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher_matte_with_shadow)
+  KERNEL_FILM_CONVERT_FUNCTION(combined)
+  KERNEL_FILM_CONVERT_FUNCTION(float4)
+
+#undef KERNEL_FILM_CONVERT_FUNCTION
 
   CPUKernels();
 };

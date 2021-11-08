@@ -32,6 +32,7 @@
 struct ARegion;
 struct GHOST_TabletData;
 struct ScrArea;
+enum wmOperatorCallContext;
 
 #ifdef WITH_XR_OPENXR
 struct wmXrActionData;
@@ -175,6 +176,7 @@ void wm_dropbox_free(void);
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win);
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop);
 void wm_drags_check_ops(bContext *C, const wmEvent *event);
+wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox *drop);
 void wm_drags_draw(bContext *C, wmWindow *win);
 
 #ifdef __cplusplus

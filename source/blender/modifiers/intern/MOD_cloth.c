@@ -201,13 +201,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
     tclmd->point_cache = clmd->point_cache;
   }
   else {
-    tclmd->point_cache = BKE_ptcache_add(&tclmd->ptcaches);
-    if (clmd->point_cache != NULL) {
-      tclmd->point_cache->step = clmd->point_cache->step;
-      tclmd->point_cache->startframe = clmd->point_cache->startframe;
-      tclmd->point_cache->endframe = clmd->point_cache->endframe;
-      tclmd->point_cache->flag |= (clmd->point_cache->flag & PTCACHE_FLAGS_COPY);
-    }
+    const int clmd_point_cache_index = BLI_findindex(&clmd->ptcaches, clmd->point_cache);
+    BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches, flag);
+    tclmd->point_cache = BLI_findlink(&tclmd->ptcaches, clmd_point_cache_index);
   }
 
   tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);

@@ -108,7 +108,7 @@ static int wm_operator_call_internal(bContext *C,
                                      wmOperatorType *ot,
                                      PointerRNA *properties,
                                      ReportList *reports,
-                                     const short context,
+                                     const wmOperatorCallContext context,
                                      const bool poll_only,
                                      wmEvent *event);
 
@@ -1460,7 +1460,7 @@ static int wm_operator_call_internal(bContext *C,
                                      wmOperatorType *ot,
                                      PointerRNA *properties,
                                      ReportList *reports,
-                                     const short context,
+                                     const wmOperatorCallContext context,
                                      const bool poll_only,
                                      wmEvent *event)
 {
@@ -1595,13 +1595,16 @@ static int wm_operator_call_internal(bContext *C,
 /* Invokes operator in context. */
 int WM_operator_name_call_ptr(bContext *C,
                               wmOperatorType *ot,
-                              short context,
+                              wmOperatorCallContext context,
                               PointerRNA *properties)
 {
   BLI_assert(ot == WM_operatortype_find(ot->idname, true));
   return wm_operator_call_internal(C, ot, properties, NULL, context, false, NULL);
 }
-int WM_operator_name_call(bContext *C, const char *opstring, short context, PointerRNA *properties)
+int WM_operator_name_call(bContext *C,
+                          const char *opstring,
+                          wmOperatorCallContext context,
+                          PointerRNA *properties)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, 0);
   if (ot) {
@@ -1613,7 +1616,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
 
 int WM_operator_name_call_with_properties(struct bContext *C,
                                           const char *opstring,
-                                          short context,
+                                          wmOperatorCallContext context,
                                           struct IDProperty *properties)
 {
   PointerRNA props_ptr;
@@ -1644,7 +1647,7 @@ void WM_menu_name_call(bContext *C, const char *menu_name, short context)
  */
 int WM_operator_call_py(bContext *C,
                         wmOperatorType *ot,
-                        short context,
+                        wmOperatorCallContext context,
                         PointerRNA *properties,
                         ReportList *reports,
                         const bool is_undo)
@@ -1768,8 +1771,11 @@ static int ui_handler_wait_for_input(bContext *C, const wmEvent *event, void *us
   return WM_UI_HANDLER_CONTINUE;
 }
 
-void WM_operator_name_call_ptr_with_depends_on_cursor(
-    bContext *C, wmOperatorType *ot, short opcontext, PointerRNA *properties, const char *drawstr)
+void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
+                                                      wmOperatorType *ot,
+                                                      wmOperatorCallContext opcontext,
+                                                      PointerRNA *properties,
+                                                      const char *drawstr)
 {
   int flag = ot->flag;
 
@@ -3063,8 +3069,9 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
                   BLI_addtail(&single_lb, drag);
                   event->customdata = &single_lb;
 
+                  const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
                   int op_retval = wm_operator_call_internal(
-                      C, drop->ot, drop->ptr, NULL, drop->opcontext, false, event);
+                      C, drop->ot, drop->ptr, NULL, opcontext, false, event);
                   OPERATOR_RETVAL_CHECK(op_retval);
 
                   if ((op_retval & OPERATOR_CANCELLED) && drop->cancel) {

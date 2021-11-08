@@ -489,6 +489,9 @@ if(WITH_XR_OPENXR)
     intern/GHOST_XrSwapchain.h
     intern/GHOST_Xr_intern.h
     intern/GHOST_Xr_openxr_includes.h
+
+    # Header only library.
+    ../../extern/tinygltf/tiny_gltf.h
   )
   list(APPEND INC
     ../../extern/json/include

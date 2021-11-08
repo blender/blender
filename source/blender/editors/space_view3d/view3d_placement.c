@@ -1515,11 +1515,11 @@ static void preview_plane_free_fn(void *customdata)
   ED_view3d_cursor_snap_deactive(snap_state);
 }
 
-static void WIDGETGROUP_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
   if (snap_state) {
-    snap_state->region = CTX_wm_region(C);
+    snap_state->gzgrp_type = gzgroup->type;
     snap_state->draw_plane = true;
 
     gzgroup->customdata = snap_state;

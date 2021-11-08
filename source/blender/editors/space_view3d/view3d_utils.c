@@ -1682,7 +1682,8 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
     return true;
   }
 
-  /* GPencil and Anotations also need the returned depth value to be high so that it is invalid. */
+  /* Grease-pencil and annotations also need the returned depth value to be high
+   * so the caller can detect it's invalid. */
   *r_depth = FLT_MAX;
   return false;
 }

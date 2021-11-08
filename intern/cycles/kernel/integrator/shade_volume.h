@@ -941,7 +941,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const float probability = (path_flag & PATH_RAY_TERMINATE_IN_NEXT_VOLUME) ?
                                 0.0f :
-                                path_state_continuation_probability(kg, state, path_flag);
+                                INTEGRATOR_STATE(state, path, continuation_probability);
   if (probability == 0.0f) {
     return VOLUME_PATH_MISSED;
   }
@@ -1023,25 +1023,9 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   }
   else {
     /* Continue to background, light or surface. */
-    if (isect.prim == PRIM_NONE) {
-      INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
-                           DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
-      return;
-    }
-    else if (isect.type & PRIMITIVE_LAMP) {
-      INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
-                           DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
-      return;
-    }
-    else {
-      /* Hit a surface, continue with surface kernel unless terminated. */
-      const int shader = intersection_get_shader(kg, &isect);
-      const int flags = kernel_tex_fetch(__shaders, shader).flags;
-
-      integrator_intersect_shader_next_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
-          kg, state, &isect, shader, flags);
-      return;
-    }
+    integrator_intersect_next_kernel_after_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
+        kg, state, &isect);
+    return;
   }
 #endif /* __VOLUME__ */
 }

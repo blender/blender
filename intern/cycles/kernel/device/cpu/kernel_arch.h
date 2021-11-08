@@ -52,6 +52,37 @@ KERNEL_INTEGRATOR_SHADE_FUNCTION(megakernel);
 #undef KERNEL_INTEGRATOR_INIT_FUNCTION
 #undef KERNEL_INTEGRATOR_SHADE_FUNCTION
 
+#define KERNEL_FILM_CONVERT_FUNCTION(name) \
+  void KERNEL_FUNCTION_FULL_NAME(film_convert_##name)(const KernelFilmConvert *kfilm_convert, \
+                                                      const float *buffer, \
+                                                      float *pixel, \
+                                                      const int width, \
+                                                      const int buffer_stride, \
+                                                      const int pixel_stride); \
+  void KERNEL_FUNCTION_FULL_NAME(film_convert_half_rgba_##name)( \
+      const KernelFilmConvert *kfilm_convert, \
+      const float *buffer, \
+      half4 *pixel, \
+      const int width, \
+      const int buffer_stride);
+
+KERNEL_FILM_CONVERT_FUNCTION(depth)
+KERNEL_FILM_CONVERT_FUNCTION(mist)
+KERNEL_FILM_CONVERT_FUNCTION(sample_count)
+KERNEL_FILM_CONVERT_FUNCTION(float)
+
+KERNEL_FILM_CONVERT_FUNCTION(light_path)
+KERNEL_FILM_CONVERT_FUNCTION(float3)
+
+KERNEL_FILM_CONVERT_FUNCTION(motion)
+KERNEL_FILM_CONVERT_FUNCTION(cryptomatte)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher_matte_with_shadow)
+KERNEL_FILM_CONVERT_FUNCTION(combined)
+KERNEL_FILM_CONVERT_FUNCTION(float4)
+
+#undef KERNEL_FILM_CONVERT_FUNCTION
+
 /* --------------------------------------------------------------------
  * Shader evaluation.
  */

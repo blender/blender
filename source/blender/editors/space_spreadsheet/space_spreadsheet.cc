@@ -319,6 +319,8 @@ static float get_default_column_width(const ColumnValues &values)
       return 4.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_INSTANCES:
       return 8.0f;
+    case SPREADSHEET_VALUE_TYPE_STRING:
+      return 5.0f;
   }
   return float_width;
 }

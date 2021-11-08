@@ -31,6 +31,8 @@
 
 #include "DNA_object_enums.h"
 
+#include "WM_types.h"
+
 #include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus
@@ -380,7 +382,7 @@ struct bUserMenu *ED_screen_user_menu_ensure(struct bContext *C);
 struct bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(struct ListBase *lb,
                                                                 const struct wmOperatorType *ot,
                                                                 struct IDProperty *prop,
-                                                                short opcontext);
+                                                                wmOperatorCallContext opcontext);
 struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *lb,
                                                               const struct MenuType *mt);
 struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(struct ListBase *lb,
@@ -392,7 +394,7 @@ void ED_screen_user_menu_item_add_operator(struct ListBase *lb,
                                            const char *ui_name,
                                            const struct wmOperatorType *ot,
                                            const struct IDProperty *prop,
-                                           short opcontext);
+                                           wmOperatorCallContext opcontext);
 void ED_screen_user_menu_item_add_menu(struct ListBase *lb,
                                        const char *ui_name,
                                        const struct MenuType *mt);
@@ -439,6 +441,7 @@ bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_re
 bool ED_region_panel_category_gutter_isect_xy(const ARegion *region, const int event_xy[2]);
 
 bool ED_region_contains_xy(const struct ARegion *region, const int event_xy[2]);
+ARegion *ED_area_find_region_xy_visual(const ScrArea *area, int regiontype, const int event_xy[2]);
 
 /* interface_region_hud.c */
 struct ARegionType *ED_area_type_hud(int space_type);

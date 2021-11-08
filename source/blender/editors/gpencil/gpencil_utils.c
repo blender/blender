@@ -3415,3 +3415,71 @@ void ED_gpencil_stroke_close_by_distance(bGPDstroke *gps, const float threshold)
     BKE_gpencil_stroke_close(gps);
   }
 }
+
+/* Merge two layers. */
+void ED_gpencil_layer_merge(bGPdata *gpd,
+                            bGPDlayer *gpl_src,
+                            bGPDlayer *gpl_dst,
+                            const bool reverse)
+{
+  /* Collect frames of gpl_dst in hash table to avoid O(n^2) lookups. */
+  GHash *gh_frames_dst = BLI_ghash_int_new_ex(__func__, 64);
+  LISTBASE_FOREACH (bGPDframe *, gpf_dst, &gpl_dst->frames) {
+    BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_dst->framenum), gpf_dst);
+  }
+
+  /* Read all frames from merge layer and add any missing in destination layer,
+   * copying all previous strokes to keep the image equals.
+   * Need to do it in a separated loop to avoid strokes accumulation. */
+  LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
+    /* Try to find frame in destination layer hash table. */
+    bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
+    if (!gpf_dst) {
+      gpf_dst = BKE_gpencil_layer_frame_get(gpl_dst, gpf_src->framenum, GP_GETFRAME_ADD_COPY);
+      /* Use same frame type. */
+      gpf_dst->key_type = gpf_src->key_type;
+      BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum), gpf_dst);
+    }
+  }
+
+  /* Read all frames from merge layer and add strokes. */
+  LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
+    /* Try to find frame in destination layer hash table. */
+    bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
+    /* Add to tail all strokes. */
+    if (gpf_dst) {
+      if (reverse) {
+        BLI_movelisttolist_reverse(&gpf_dst->strokes, &gpf_src->strokes);
+      }
+      else {
+        BLI_movelisttolist(&gpf_dst->strokes, &gpf_src->strokes);
+      }
+    }
+  }
+
+  /* Add Masks to destination layer. */
+  LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_src->mask_layers) {
+    /* Don't add merged layers or missing layer names. */
+    if (!BKE_gpencil_layer_named_get(gpd, mask->name) || STREQ(mask->name, gpl_src->info) ||
+        STREQ(mask->name, gpl_dst->info)) {
+      continue;
+    }
+    if (!BKE_gpencil_layer_mask_named_get(gpl_dst, mask->name)) {
+      bGPDlayer_Mask *mask_new = MEM_dupallocN(mask);
+      BLI_addtail(&gpl_dst->mask_layers, mask_new);
+      gpl_dst->act_mask++;
+    }
+  }
+
+  /* Set destination layer as active. */
+  BKE_gpencil_layer_active_set(gpd, gpl_dst);
+
+  /* Now delete merged layer. */
+  BKE_gpencil_layer_delete(gpd, gpl_src);
+  BLI_ghash_free(gh_frames_dst, NULL, NULL);
+
+  /* Reorder masking. */
+  if (gpl_dst->mask_layers.first) {
+    BKE_gpencil_layer_mask_sort(gpd, gpl_dst);
+  }
+}

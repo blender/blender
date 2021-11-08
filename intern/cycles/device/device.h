@@ -178,7 +178,7 @@ class Device {
    * These may not be used on GPU or multi-devices. */
 
   /* Get CPU kernel functions for native instruction set. */
-  virtual const CPUKernels *get_cpu_kernels() const;
+  static const CPUKernels &get_cpu_kernels();
   /* Get kernel globals to pass to kernels. */
   virtual void get_cpu_kernel_thread_globals(
       vector<CPUKernelThreadGlobals> & /*kernel_thread_globals*/);

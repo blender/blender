@@ -479,7 +479,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     if (!(path_flag & PATH_RAY_SUBSURFACE)) {
       const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
                                     0.0f :
-                                    path_state_continuation_probability(kg, state, path_flag);
+                                    INTEGRATOR_STATE(state, path, continuation_probability);
       if (probability == 0.0f) {
         return false;
       }

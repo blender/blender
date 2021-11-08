@@ -12753,6 +12753,11 @@ static void rna_def_nodetree(BlenderRNA *brna)
   PropertyRNA *parm;
 
   static const EnumPropertyItem static_type_items[] = {
+      {NTREE_UNDEFINED,
+       "UNDEFINED",
+       ICON_QUESTION,
+       "Undefined",
+       "Undefined type of nodes (can happen e.g. when a linked node tree goes missing)"},
       {NTREE_SHADER, "SHADER", ICON_MATERIAL, "Shader", "Shader nodes"},
       {NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
       {NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},

@@ -46,8 +46,9 @@
 
 #include "graph_intern.h" /* own include */
 
-/* ************************************************************** */
-/* Set Up Drivers Editor */
+/* -------------------------------------------------------------------- */
+/** \name Set Up Drivers Editor
+ * \{ */
 
 /* Set up UI configuration for Drivers Editor */
 /* NOTE: Currently called from window-manager
@@ -89,8 +90,11 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
   }
 }
 
-/* ************************************************************** */
-/* Active F-Curve */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Active F-Curve
+ * \{ */
 
 /**
  * Find 'active' F-Curve.
@@ -124,8 +128,11 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
   return NULL;
 }
 
-/* ************************************************************** */
-/* Operator Polling Callbacks */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Polling Callbacks
+ * \{ */
 
 /* Check if there are any visible keyframes (for selection tools) */
 bool graphop_visible_keyframes_poll(bContext *C)
@@ -321,4 +328,4 @@ bool graphop_selected_fcurve_poll(bContext *C)
   return true;
 }
 
-/* ************************************************************** */
+/** \} */

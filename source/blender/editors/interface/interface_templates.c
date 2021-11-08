@@ -1741,7 +1741,7 @@ static void template_search_add_button_name(uiBlock *block,
 
 static void template_search_add_button_operator(uiBlock *block,
                                                 const char *const operator_name,
-                                                const int opcontext,
+                                                const wmOperatorCallContext opcontext,
                                                 const int icon,
                                                 const bool editable)
 {

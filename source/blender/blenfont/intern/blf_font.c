@@ -50,8 +50,6 @@
 
 #include "BLF_api.h"
 
-#include "UI_interface.h"
-
 #include "GPU_batch.h"
 #include "GPU_matrix.h"
 
@@ -71,6 +69,9 @@ BatchBLF g_batch;
 static FT_Library ft_lib;
 static SpinLock ft_lib_mutex;
 static SpinLock blf_glyph_cache_mutex;
+
+/* May be set to #UI_widgetbase_draw_cache_flush. */
+static void (*blf_draw_cache_flush)(void) = NULL;
 
 /* -------------------------------------------------------------------- */
 /** \name FreeType Utilities (Internal)
@@ -255,10 +256,10 @@ void blf_batch_draw(void)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-#ifndef BLF_STANDALONE
   /* We need to flush widget base first to ensure correct ordering. */
-  UI_widgetbase_draw_cache_flush();
-#endif
+  if (blf_draw_cache_flush != NULL) {
+    blf_draw_cache_flush();
+  }
 
   GPUTexture *texture = blf_batch_cache_texture_load();
   GPU_vertbuf_data_len_set(g_batch.verts, g_batch.glyph_len);
@@ -1165,6 +1166,14 @@ void blf_font_exit(void)
   BLI_spin_end(&ft_lib_mutex);
   BLI_spin_end(&blf_glyph_cache_mutex);
   blf_batch_draw_exit();
+}
+
+/**
+ * Optional cache flushing function, called before #blf_batch_draw.
+ */
+void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void))
+{
+  blf_draw_cache_flush = cache_flush_fn;
 }
 
 /** \} */

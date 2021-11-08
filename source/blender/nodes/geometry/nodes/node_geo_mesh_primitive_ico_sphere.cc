@@ -45,9 +45,10 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
 {
   const float4x4 transform = float4x4::identity();
 
-  const BMeshCreateParams bmcp = {true};
+  BMeshCreateParams bmesh_create_params{};
+  bmesh_create_params.use_toolflags = true;
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
   BM_data_layer_add_named(bm, &bm->ldata, CD_MLOOPUV, nullptr);
 
   BMO_op_callf(bm,

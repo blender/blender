@@ -51,6 +51,7 @@
 #include "BLO_readfile.h"
 
 #include "ED_asset.h"
+#include "ED_screen.h"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -121,7 +122,6 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
   drop->cancel = cancel;
   drop->tooltip = tooltip;
   drop->ot = WM_operatortype_find(idname, 0);
-  drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
   if (drop->ot == NULL) {
     MEM_freeN(drop);
@@ -217,7 +217,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 {
   bool any_active = false;
   LISTBASE_FOREACH (const wmDrag *, drag, &wm->drags) {
-    if (drag->active_dropbox) {
+    if (drag->drop_state.active_dropbox) {
       any_active = true;
       break;
     }
@@ -260,14 +260,14 @@ void WM_drag_data_free(int dragtype, void *poin)
 
 void WM_drag_free(wmDrag *drag)
 {
-  if (drag->active_dropbox && drag->active_dropbox->draw_deactivate) {
-    drag->active_dropbox->draw_deactivate(drag->active_dropbox, drag);
+  if (drag->drop_state.active_dropbox && drag->drop_state.active_dropbox->draw_deactivate) {
+    drag->drop_state.active_dropbox->draw_deactivate(drag->drop_state.active_dropbox, drag);
   }
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
   }
-  if (drag->free_disabled_info) {
-    MEM_SAFE_FREE(drag->disabled_info);
+  if (drag->drop_state.free_disabled_info) {
+    MEM_SAFE_FREE(drag->drop_state.disabled_info);
   }
   BLI_freelistN(&drag->ids);
   LISTBASE_FOREACH_MUTABLE (wmDragAssetListItem *, asset_item, &drag->asset_items) {
@@ -306,10 +306,10 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
-  if (drag->free_disabled_info) {
-    MEM_SAFE_FREE(drag->disabled_info);
+  if (drag->drop_state.free_disabled_info) {
+    MEM_SAFE_FREE(drag->drop_state.disabled_info);
   }
-  drag->disabled_info = NULL;
+  drag->drop_state.disabled_info = NULL;
 
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
@@ -323,7 +323,8 @@ static wmDropBox *dropbox_active(bContext *C,
             continue;
           }
 
-          if (WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+          const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
+          if (WM_operator_poll_context(C, drop->ot, opcontext)) {
             return drop;
           }
 
@@ -332,8 +333,8 @@ static wmDropBox *dropbox_active(bContext *C,
           bool free_disabled_info = false;
           const char *disabled_hint = CTX_wm_operator_poll_msg_get(C, &free_disabled_info);
           if (disabled_hint) {
-            drag->disabled_info = disabled_hint;
-            drag->free_disabled_info = free_disabled_info;
+            drag->drop_state.disabled_info = disabled_hint;
+            drag->drop_state.free_disabled_info = free_disabled_info;
           }
         }
       }
@@ -373,7 +374,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
     return;
   }
 
-  wmDropBox *drop_prev = drag->active_dropbox;
+  wmDropBox *drop_prev = drag->drop_state.active_dropbox;
   wmDropBox *drop = wm_dropbox_active(C, drag, event);
   if (drop != drop_prev) {
     if (drop_prev && drop_prev->draw_deactivate) {
@@ -383,16 +384,19 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
     if (drop && drop->draw_activate) {
       drop->draw_activate(drop, drag);
     }
-    drag->active_dropbox = drop;
+    drag->drop_state.active_dropbox = drop;
+    drag->drop_state.area_from = drop ? CTX_wm_area(C) : NULL;
+    drag->drop_state.region_from = drop ? CTX_wm_region(C) : NULL;
   }
 }
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
+  const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
   /* Optionally copy drag information to operator properties. Don't call it if the
    * operator fails anyway, it might do more than just set properties (e.g.
    * typically import an asset). */
-  if (drop->copy && WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
+  if (drop->copy && WM_operator_poll_context(C, drop->ot, opcontext)) {
     drop->copy(drag, drop);
   }
 
@@ -408,7 +412,7 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
     wm_drop_update_active(C, drag, event);
 
-    if (drag->active_dropbox) {
+    if (drag->drop_state.active_dropbox) {
       any_active = true;
     }
   }
@@ -418,6 +422,16 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   if (!BLI_listbase_is_empty(&wm->drags)) {
     WM_cursor_modal_set(CTX_wm_window(C), any_active ? WM_CURSOR_DEFAULT : WM_CURSOR_STOP);
   }
+}
+
+/**
+ * The operator of a dropbox should always be executed in the context determined by the mouse
+ * coordinates. The dropbox poll should check the context area and region as needed.
+ * So this always returns #WM_OP_INVOKE_DEFAULT.
+ */
+wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox *UNUSED(drop))
+{
+  return WM_OP_INVOKE_DEFAULT;
 }
 
 /* ************** IDs ***************** */
@@ -820,11 +834,13 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int padding = 4 * UI_DPI_FAC;
 
   char *tooltip = NULL;
-  if (drag->active_dropbox) {
-    tooltip = dropbox_tooltip(C, drag, xy, drag->active_dropbox);
+  if (drag->drop_state.active_dropbox) {
+    tooltip = dropbox_tooltip(C, drag, xy, drag->drop_state.active_dropbox);
   }
 
-  if (!tooltip && !drag->disabled_info) {
+  const bool has_disabled_info = drag->drop_state.disabled_info &&
+                                 drag->drop_state.disabled_info[0];
+  if (!tooltip && !has_disabled_info) {
     return;
   }
 
@@ -855,8 +871,8 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     wm_drop_operator_draw(tooltip, x, y);
     MEM_freeN(tooltip);
   }
-  else if (drag->disabled_info) {
-    wm_drop_redalert_draw(drag->disabled_info, x, y);
+  else if (has_disabled_info) {
+    wm_drop_redalert_draw(drag->drop_state.disabled_info, x, y);
   }
 }
 
@@ -901,22 +917,32 @@ void wm_drags_draw(bContext *C, wmWindow *win)
   }
 
   bScreen *screen = CTX_wm_screen(C);
+  /* To start with, use the area and region under the mouse cursor, just like event handling. The
+   * operator context may still override it. */
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, UNPACK2(xy));
-  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, UNPACK2(xy));
-  if (region) {
-    BLI_assert(!CTX_wm_area(C) && !CTX_wm_region(C));
-    CTX_wm_area_set(C, area);
-    CTX_wm_region_set(C, region);
-  }
+  ARegion *region = ED_area_find_region_xy_visual(area, RGN_TYPE_ANY, xy);
+  /* Will be overridden and unset eventually. */
+  BLI_assert(!CTX_wm_area(C) && !CTX_wm_region(C));
 
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Should we support multi-line drag draws? Maybe not, more types mixed won't work well. */
   GPU_blend(GPU_BLEND_ALPHA);
   LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
-    if (drag->active_dropbox && drag->active_dropbox->draw) {
-      drag->active_dropbox->draw(C, win, drag, xy);
-      continue;
+    if (drag->drop_state.active_dropbox) {
+      CTX_wm_area_set(C, drag->drop_state.area_from);
+      CTX_wm_region_set(C, drag->drop_state.region_from);
+
+      /* Drawing should be allowed to assume the context from handling and polling (that's why we
+       * restore it above). */
+      if (drag->drop_state.active_dropbox->draw) {
+        drag->drop_state.active_dropbox->draw(C, win, drag, xy);
+        continue;
+      }
+    }
+    else if (region) {
+      CTX_wm_area_set(C, area);
+      CTX_wm_region_set(C, region);
     }
 
     wm_drag_draw_default(C, win, drag, xy);

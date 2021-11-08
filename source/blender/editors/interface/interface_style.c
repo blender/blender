@@ -419,7 +419,7 @@ int UI_fontstyle_height_max(const uiFontStyle *fs)
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {
-  uiStyle *style = U.uistyles.first;
+  const uiStyle *style = U.uistyles.first;
 
   /* recover from uninitialized dpi */
   if (U.dpi == 0) {
@@ -490,8 +490,12 @@ void uiStyleInit(void)
   }
 
   if (style == NULL) {
-    ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
+    style = ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
   }
+
+  BLF_cache_flush_set_fn(UI_widgetbase_draw_cache_flush);
+
+  BLF_default_size(style->widgetlabel.points);
 
   /* XXX, this should be moved into a style,
    * but for now best only load the monospaced font once. */

@@ -192,7 +192,7 @@ set(SRC
   intern/material.c
   intern/mball.c
   intern/mball_tessellate.c
-  intern/mesh.c
+  intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_convert.cc
   intern/mesh_evaluate.cc
@@ -226,7 +226,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
-  intern/object.c
+  intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
   intern/object_facemap.c

@@ -366,7 +366,7 @@ static PyObject *bpy_prop_deferred_call(BPy_PropDeferred *UNUSED(self),
 
 /**
  * Expose the function in case scripts need to introspect this information
- * (not currently used by Blender it's self).
+ * (not currently used by Blender itself).
  */
 static PyObject *bpy_prop_deferred_function_get(BPy_PropDeferred *self, void *UNUSED(closure))
 {
@@ -377,7 +377,7 @@ static PyObject *bpy_prop_deferred_function_get(BPy_PropDeferred *self, void *UN
 
 /**
  * Expose keywords in case scripts need to introspect this information
- * (not currently used by Blender it's self).
+ * (not currently used by Blender itself).
  */
 static PyObject *bpy_prop_deferred_keywords_get(BPy_PropDeferred *self, void *UNUSED(closure))
 {

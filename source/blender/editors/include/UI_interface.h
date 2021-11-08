@@ -27,6 +27,7 @@
 #include "BLI_sys_types.h" /* size_t */
 #include "BLI_utildefines.h"
 #include "UI_interface_icons.h"
+#include "WM_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -691,7 +692,7 @@ void UI_popup_block_ex(struct bContext *C,
 void uiPupBlockOperator(struct bContext *C,
                         uiBlockCreateFunc func,
                         struct wmOperator *op,
-                        int opcontext);
+                        wmOperatorCallContext opcontext);
 #endif
 
 void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *block);
@@ -1002,7 +1003,7 @@ uiBut *uiDefButR_prop(uiBlock *block,
 uiBut *uiDefButO(uiBlock *block,
                  int type,
                  const char *opname,
-                 int opcontext,
+                 wmOperatorCallContext opcontext,
                  const char *str,
                  int x,
                  int y,
@@ -1012,7 +1013,7 @@ uiBut *uiDefButO(uiBlock *block,
 uiBut *uiDefButO_ptr(uiBlock *block,
                      int type,
                      struct wmOperatorType *ot,
-                     int opcontext,
+                     wmOperatorCallContext opcontext,
                      const char *str,
                      int x,
                      int y,
@@ -1185,7 +1186,7 @@ uiBut *uiDefIconButR_prop(uiBlock *block,
 uiBut *uiDefIconButO(uiBlock *block,
                      int type,
                      const char *opname,
-                     int opcontext,
+                     wmOperatorCallContext opcontext,
                      int icon,
                      int x,
                      int y,
@@ -1195,7 +1196,7 @@ uiBut *uiDefIconButO(uiBlock *block,
 uiBut *uiDefIconButO_ptr(uiBlock *block,
                          int type,
                          struct wmOperatorType *ot,
-                         int opcontext,
+                         wmOperatorCallContext opcontext,
                          int icon,
                          int x,
                          int y,
@@ -1381,7 +1382,7 @@ uiBut *uiDefIconTextButR_prop(uiBlock *block,
 uiBut *uiDefIconTextButO(uiBlock *block,
                          int type,
                          const char *opname,
-                         int opcontext,
+                         wmOperatorCallContext opcontext,
                          int icon,
                          const char *str,
                          int x,
@@ -1392,7 +1393,7 @@ uiBut *uiDefIconTextButO(uiBlock *block,
 uiBut *uiDefIconTextButO_ptr(uiBlock *block,
                              int type,
                              struct wmOperatorType *ot,
-                             int opcontext,
+                             wmOperatorCallContext opcontext,
                              int icon,
                              const char *str,
                              int x,
@@ -1723,7 +1724,7 @@ void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, const v
 
 struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                                   const char *opname,
-                                                  short opcontext,
+                                                  wmOperatorCallContext opcontext,
                                                   int icon);
 struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
 struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
@@ -1963,7 +1964,7 @@ void UI_paneltype_draw(struct bContext *C, struct PanelType *pt, struct uiLayout
 /* Only for convenience. */
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
 
-void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
+void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext);
 void uiLayoutSetActive(uiLayout *layout, bool active);
 void uiLayoutSetActiveDefault(uiLayout *layout, bool active_default);
 void uiLayoutSetActivateInit(uiLayout *layout, bool activate_init);
@@ -2391,7 +2392,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      const char *name,
                      int icon,
                      struct IDProperty *properties,
-                     int context,
+                     wmOperatorCallContext context,
                      int flag,
                      struct PointerRNA *r_opptr);
 void uiItemFullO(uiLayout *layout,
@@ -2399,7 +2400,7 @@ void uiItemFullO(uiLayout *layout,
                  const char *name,
                  int icon,
                  struct IDProperty *properties,
-                 int context,
+                 wmOperatorCallContext context,
                  int flag,
                  struct PointerRNA *r_opptr);
 void uiItemFullOMenuHold_ptr(uiLayout *layout,
@@ -2407,7 +2408,7 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              const char *name,
                              int icon,
                              struct IDProperty *properties,
-                             int context,
+                             wmOperatorCallContext context,
                              int flag,
                              const char *menu_id, /* extra menu arg. */
                              struct PointerRNA *r_opptr);
@@ -2487,14 +2488,14 @@ void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,
                       struct IDProperty *properties,
-                      int context,
+                      wmOperatorCallContext context,
                       int flag);
 void uiItemsFullEnumO_items(uiLayout *layout,
                             struct wmOperatorType *ot,
                             struct PointerRNA ptr,
                             struct PropertyRNA *prop,
                             struct IDProperty *properties,
-                            int context,
+                            wmOperatorCallContext context,
                             int flag,
                             const struct EnumPropertyItem *item_array,
                             int totitem);

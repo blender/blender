@@ -1407,8 +1407,8 @@ static void widget_draw_icon(
 
     /* force positions to integers, for zoom levels near 1. draws icons crisp. */
     if (aspect > 0.95f && aspect < 1.05f) {
-      xs = (int)(xs + 0.1f);
-      ys = (int)(ys + 0.1f);
+      xs = roundf(xs);
+      ys = roundf(ys);
     }
 
     /* Get theme color. */
@@ -2526,7 +2526,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
-  if ((state & UI_BUT_LIST_ITEM) && !(state & UI_STATE_TEXT_INPUT)) {
+  if (state & UI_BUT_LIST_ITEM) {
     /* Override default widget's colors. */
     bTheme *btheme = UI_GetTheme();
     wt->wcol_theme = &btheme->tui.wcol_list_item;

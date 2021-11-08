@@ -2581,7 +2581,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
-    # for reuse
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_transform = (
         _defs_image_uv_transform.translate,
         _defs_image_uv_transform.rotate,
@@ -2607,6 +2608,9 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match image spaces modes: 'context.space_data.mode'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
             # for all modes
@@ -2672,6 +2676,8 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_select = (
         (
             _defs_node_select.select,
@@ -2690,6 +2696,9 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys is always `None` since nodes don't use use modes to access different tools.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
             *_tools_select,
@@ -2728,7 +2737,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
-    # for reuse
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_transform = (
         _defs_transform.translate,
         _defs_transform.rotate,
@@ -2784,6 +2794,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         _defs_view3d_generic.ruler,
     )
 
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match object-modes from: 'context.mode'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
             # Don't use this! because of paint modes.
@@ -3089,6 +3102,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_select = (
         (
             _defs_sequencer_select.select,
@@ -3104,6 +3119,9 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match sequence editors view type: 'context.space_data.view_type'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
         ],

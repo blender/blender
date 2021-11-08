@@ -33,12 +33,13 @@ static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
 
 static Mesh *mesh_edge_split(const Mesh &mesh, const IndexMask selection)
 {
-  const BMeshCreateParams bmcp = {true};
+  BMeshCreateParams bmesh_create_params{};
+  bmesh_create_params.use_toolflags = true;
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  BMeshFromMeshParams params{};
-  BM_mesh_bm_from_me(bm, &mesh, &params);
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  BM_mesh_bm_from_me(bm, &mesh, &bmesh_from_mesh_params);
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
   for (const int i : selection) {

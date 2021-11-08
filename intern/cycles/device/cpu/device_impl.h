@@ -57,8 +57,6 @@ class CPUDevice : public Device {
   RTCDevice embree_device;
 #endif
 
-  CPUKernels kernels;
-
   CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_);
   ~CPUDevice();
 
@@ -90,7 +88,6 @@ class CPUDevice : public Device {
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
-  virtual const CPUKernels *get_cpu_kernels() const override;
   virtual void get_cpu_kernel_thread_globals(
       vector<CPUKernelThreadGlobals> &kernel_thread_globals) override;
   virtual void *get_cpu_osl_memory() override;

@@ -312,7 +312,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
     uiItemL(row, id->name + 2, RNA_struct_ui_icon(id_ptr.type)); /* id-block (src) */
-    uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);                  /* expander */
+    uiItemL(row, "", ICON_RIGHTARROW);                           /* expander */
     uiItemL(row, IFACE_("Animation Data"), ICON_ANIM_DATA);      /* animdata */
 
     uiItemS(layout);

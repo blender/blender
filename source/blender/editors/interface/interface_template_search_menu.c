@@ -115,7 +115,7 @@ struct MenuSearch_Item {
     struct {
       wmOperatorType *type;
       PointerRNA *opptr;
-      short opcontext;
+      wmOperatorCallContext opcontext;
       bContextStore *context;
     } op;
 

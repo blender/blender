@@ -2274,11 +2274,11 @@ static void draw_seq_backdrop(View2D *v2d)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* View backdrop. */
-  immUniformThemeColorShade(TH_BACK, -25);
+  immUniformThemeColor(TH_BACK);
   immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 
   /* Darker overlay over the view backdrop. */
-  immUniformThemeColorShade(TH_BACK, -20);
+  immUniformThemeColorShade(TH_BACK, -10);
   immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
 
   /* Alternating horizontal stripes. */
@@ -2295,19 +2295,6 @@ static void draw_seq_backdrop(View2D *v2d)
   }
 
   GPU_blend(GPU_BLEND_NONE);
-
-  /* Lines separating the horizontal bands. */
-  i = max_ii(1, ((int)v2d->cur.ymin) - 1);
-  int line_len = (int)v2d->cur.ymax - i + 1;
-  immUniformThemeColorShade(TH_GRID, 10);
-  immBegin(GPU_PRIM_LINES, line_len * 2);
-  while (line_len--) {
-    immVertex2f(pos, v2d->cur.xmax, i);
-    immVertex2f(pos, v2d->cur.xmin, i);
-    i++;
-  }
-  immEnd();
-
   immUnbindProgram();
 }
 
@@ -2413,7 +2400,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* Draw overlay outside of frame range. */
-  immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
+  immUniformThemeColorShadeAlpha(TH_BACK, -10, -100);
 
   if (frame_sta < frame_end) {
     immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)frame_sta, v2d->cur.ymax);
@@ -2781,6 +2768,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
   ANIM_draw_previewrange(C, v2d, 1);
+
+  if ((sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
+    WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  }
 
   /* Draw registered callbacks. */
   GPU_framebuffer_bind(framebuffer_overlay);

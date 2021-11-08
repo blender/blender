@@ -52,6 +52,8 @@
 
 #include "BLO_readfile.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -259,7 +261,7 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(WMLinkAppendData *lapp
                                                           const short idcode,
                                                           void *customdata)
 {
-  WMLinkAppendDataItem *item = BLI_memarena_alloc(lapp_data->memarena, sizeof(*item));
+  WMLinkAppendDataItem *item = BLI_memarena_calloc(lapp_data->memarena, sizeof(*item));
   size_t len = strlen(idname) + 1;
 
   item->name = BLI_memarena_alloc(lapp_data->memarena, len);
@@ -354,7 +356,8 @@ static void wm_append_loose_data_instantiate_ensure_active_collection(
       *r_active_collection = lc->collection;
     }
     else {
-      *r_active_collection = BKE_collection_add(bmain, scene->master_collection, NULL);
+      *r_active_collection = BKE_collection_add(
+          bmain, scene->master_collection, DATA_("Appended Data"));
     }
   }
 }
@@ -438,11 +441,13 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
     Collection *collection = (Collection *)id;
     /* We always add collections directly selected by the user. */
     bool do_add_collection = (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0;
-    LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-      Object *ob = coll_ob->ob;
-      if (!object_in_any_scene(bmain, ob)) {
-        do_add_collection = true;
-        break;
+    if (!do_add_collection) {
+      LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
+        Object *ob = coll_ob->ob;
+        if (!object_in_any_scene(bmain, ob)) {
+          do_add_collection = true;
+          break;
+        }
       }
     }
     if (do_add_collection) {

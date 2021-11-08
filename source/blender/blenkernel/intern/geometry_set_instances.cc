@@ -540,8 +540,11 @@ static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeKind>
                                         MutableSpan<SplinePtr> splines)
 {
   Vector<AttributeIDRef> new_order;
-  for (const AttributeIDRef attribute_id : info.keys()) {
-    new_order.append(attribute_id);
+  for (Map<AttributeIDRef, AttributeKind>::Item item : info.items()) {
+    if (item.value.domain == ATTR_DOMAIN_POINT) {
+      /* Only sort attributes stored on splines. */
+      new_order.append(item.key);
+    }
   }
   for (SplinePtr &spline : splines) {
     spline->attributes.reorder(new_order);

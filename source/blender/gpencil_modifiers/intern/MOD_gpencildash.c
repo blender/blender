@@ -170,6 +170,7 @@ static bool stroke_dash(const bGPDstroke *gps,
       stroke->points[is].z = p->z;
       stroke->points[is].pressure = p->pressure * ds->radius;
       stroke->points[is].strength = p->strength * ds->opacity;
+      copy_v4_v4(stroke->points[is].vert_color, p->vert_color);
     }
     BLI_addtail(r_strokes, stroke);
 

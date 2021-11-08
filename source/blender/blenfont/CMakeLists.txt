@@ -23,7 +23,6 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blentranslation
-  ../editors/include
   ../gpu
   ../imbuf
   ../makesdna

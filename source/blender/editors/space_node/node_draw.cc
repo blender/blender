@@ -1107,21 +1107,8 @@ static void node_socket_draw_nested(const bContext *C,
             C, *data->ntree, *data->node, *data->socket);
 
         std::stringstream output;
-        if (data->node->declaration != nullptr) {
-          ListBase *list;
-          Span<blender::nodes::SocketDeclarationPtr> decl_list;
-
-          if (data->socket->in_out == SOCK_IN) {
-            list = &data->node->inputs;
-            decl_list = data->node->declaration->inputs();
-          }
-          else {
-            list = &data->node->outputs;
-            decl_list = data->node->declaration->outputs();
-          }
-
-          const int socket_index = BLI_findindex(list, data->socket);
-          const blender::nodes::SocketDeclaration &socket_decl = *decl_list[socket_index];
+        if (data->socket->declaration != nullptr) {
+          const blender::nodes::SocketDeclaration &socket_decl = *data->socket->declaration;
           blender::StringRef description = socket_decl.description();
           if (!description.is_empty()) {
             output << TIP_(description.data()) << ".\n\n";
@@ -2015,25 +2002,27 @@ static void node_draw_hidden(const bContext *C,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformThemeColorShadeAlpha(TH_TEXT, -40, -180);
-  float dx = 10.0f;
+  float dx = 0.5f * U.widget_unit;
+  const float dx2 = 0.15f * U.widget_unit * snode->runtime->aspect;
+  const float dy = 0.2f * U.widget_unit;
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx, centy - dy);
+  immVertex2f(pos, rct->xmax - dx, centy + dy);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy - dy);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy + dy);
   immEnd();
 
   immUniformThemeColorShadeAlpha(TH_TEXT, 0, -180);
   dx -= snode->runtime->aspect;
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx, centy - dy);
+  immVertex2f(pos, rct->xmax - dx, centy + dy);
 
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy - 4.0f);
-  immVertex2f(pos, rct->xmax - dx - 3.0f * snode->runtime->aspect, centy + 4.0f);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy - dy);
+  immVertex2f(pos, rct->xmax - dx - dx2, centy + dy);
   immEnd();
 
   immUnbindProgram();

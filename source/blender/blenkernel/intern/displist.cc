@@ -1524,15 +1524,6 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
       cow_curve.curve_eval = curve_component.get_for_write();
       BKE_object_eval_assign_data(ob, &cow_curve.id, false);
     }
-    else if (geometry.has_mesh()) {
-      /* Most areas of Blender don't yet know how to look in #geometry_set_eval for evaluated mesh
-       * data, and look in #data_eval instead. When the object evaluates to a curve, that field
-       * must be used for the evaluated curve data, but otherwise we can use the field to store a
-       * pointer to the mesh, so more areas can retrieve the mesh. */
-      MeshComponent &mesh_component = geometry.get_component_for_write<MeshComponent>();
-      Mesh *mesh_eval = mesh_component.get_for_write();
-      BKE_object_eval_assign_data(ob, &mesh_eval->id, false);
-    }
 
     ob->runtime.geometry_set_eval = new GeometrySet(std::move(geometry));
   }

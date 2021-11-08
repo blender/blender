@@ -19,6 +19,8 @@
 
 /** \file
  * \ingroup spgraph
+ *
+ * Graph editor space & buttons.
  */
 
 #include <float.h>
@@ -66,11 +68,11 @@
 
 #include "graph_intern.h" /* own include */
 
-/* ******************* graph editor space & buttons ************** */
-
 #define B_REDR 1
 
-/* -------------- */
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
 
 static bool graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
 {
@@ -120,7 +122,11 @@ static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
   return graph_panel_context(C, NULL, NULL);
 }
 
-/* -------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Header
+ * \{ */
 
 static void graph_panel_cursor_header(const bContext *C, Panel *panel)
 {
@@ -174,7 +180,11 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   uiItemO(sub, IFACE_("Cursor Value to Selection"), ICON_NONE, "GRAPH_OT_snap_cursor_value");
 }
 
-/* ******************* active F-Curve ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Active F-Curve
+ * \{ */
 
 static void graph_panel_properties(const bContext *C, Panel *panel)
 {
@@ -243,7 +253,11 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   MEM_freeN(ale);
 }
 
-/* ******************* active Keyframe ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Active Keyframe
+ * \{ */
 
 /* get 'active' keyframe for panel editing */
 static bool get_active_fcurve_keyframe_edit(const FCurve *fcu,
@@ -610,7 +624,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   MEM_freeN(ale);
 }
 
-/* ******************* drivers ******************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drivers
+ * \{ */
 
 #define B_IPO_DEPCHANGE 10
 
@@ -924,7 +942,7 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   uiItemL(row, id->name + 2, icon);
 
   /* -> user friendly 'name' for F-Curve/driver target */
-  uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
+  uiItemL(row, "", ICON_RIGHTARROW);
   uiItemL(row, name, ICON_RNA);
 }
 
@@ -1320,8 +1338,13 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   uiItemO(layout, IFACE_("Show in Drivers Editor"), ICON_DRIVER, "SCREEN_OT_drivers_editor_show");
 }
 
-/* ******************* F-Modifiers ******************************** */
-/* All the drawing code is in editors/animation/fmodifier_ui.c */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Modifiers
+ *
+ * \note All the drawing code is in `editors/animation/fmodifier_ui.c`
+ * \{ */
 
 #define B_FMODIFIER_REDRAW 20
 /** The start of FModifier panels registered for the graph editor. */
@@ -1380,7 +1403,11 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
   MEM_freeN(ale);
 }
 
-/* ******************* general ******************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void graph_buttons_register(ARegionType *art)
 {
@@ -1456,3 +1483,5 @@ void graph_buttons_register(ARegionType *art)
   pt->draw_header = graph_panel_cursor_header;
   BLI_addtail(&art->paneltypes, pt);
 }
+
+/** \} */

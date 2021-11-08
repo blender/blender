@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "device/cpu/kernel.h"
+
 #include "integrator/pass_accessor.h"
 
 CCL_NAMESPACE_BEGIN
@@ -28,25 +30,19 @@ class PassAccessorCPU : public PassAccessor {
   using PassAccessor::PassAccessor;
 
  protected:
-  template<typename Processor>
-  inline void run_get_pass_kernel_processor(const RenderBuffers *render_buffers,
-                                            const BufferParams &buffer_params,
-                                            const Destination &destination,
-                                            const Processor &processor) const;
+  inline void run_get_pass_kernel_processor_float(
+      const KernelFilmConvert *kfilm_convert,
+      const RenderBuffers *render_buffers,
+      const BufferParams &buffer_params,
+      const Destination &destination,
+      const CPUKernels::FilmConvertFunction func) const;
 
-  template<typename Processor>
-  inline void run_get_pass_kernel_processor_float(const KernelFilmConvert *kfilm_convert,
-                                                  const RenderBuffers *render_buffers,
-                                                  const BufferParams &buffer_params,
-                                                  const Destination &destination,
-                                                  const Processor &processor) const;
-
-  template<typename Processor>
-  inline void run_get_pass_kernel_processor_half_rgba(const KernelFilmConvert *kfilm_convert,
-                                                      const RenderBuffers *render_buffers,
-                                                      const BufferParams &buffer_params,
-                                                      const Destination &destination,
-                                                      const Processor &processor) const;
+  inline void run_get_pass_kernel_processor_half_rgba(
+      const KernelFilmConvert *kfilm_convert,
+      const RenderBuffers *render_buffers,
+      const BufferParams &buffer_params,
+      const Destination &destination,
+      const CPUKernels::FilmConvertHalfRGBAFunction func) const;
 
 #define DECLARE_PASS_ACCESSOR(pass) \
   virtual void get_pass_##pass(const RenderBuffers *render_buffers, \

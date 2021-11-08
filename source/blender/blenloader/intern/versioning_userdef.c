@@ -27,8 +27,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
@@ -50,6 +48,16 @@
 #include "readfile.h" /* Own include. */
 
 #include "wm_event_types.h"
+
+/* Don't use translation strings in versioning!
+ * These depend on the preferences already being read.
+ * If this is important we can set the translations as part of versioning preferences,
+ * however that should only be done if there are important use-cases. */
+#if 0
+#  include "BLT_translation.h"
+#else
+#  define N_(msgid) msgid
+#endif
 
 /* For versioning we only ever want to manipulate preferences passed in. */
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
@@ -313,7 +321,16 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_node.grid_levels = 7;
   }
 
-  if (!USER_VERSION_ATLEAST(300, 40)) {
+  if (!USER_VERSION_ATLEAST(300, 41)) {
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
+  }
+
+  /* Again reset the theme, but only if stored with an early 3.1 alpha version. Some changes were
+   * done in the release branch and then merged into the 3.1 branch (master). So the previous reset
+   * wouldn't work for people who saved their preferences with a 3.1 build meanwhile. But we still
+   * don't want to reset theme changes stored in the eventual 3.0 release once opened in a 3.1
+   * build. */
+  if (userdef->versionfile > 300 && !USER_VERSION_ATLEAST(301, 1)) {
     memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
@@ -692,8 +709,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 38)) {
-
-    /* (keep this block even if it becomes empty). */
     copy_v4_fl4(userdef->light_param[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
     copy_v4_fl4(userdef->light_param[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
     copy_v4_fl4(userdef->light_param[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
@@ -726,8 +741,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
-    /* (keep this block even if it becomes empty). */
-
     if (userdef->pie_tap_timeout == 0) {
       userdef->pie_tap_timeout = 20;
     }
@@ -784,7 +797,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 62)) {
-    /* (keep this block even if it becomes empty). */
     if (userdef->vbotimeout == 0) {
       userdef->vbocollectrate = 60;
       userdef->vbotimeout = 120;

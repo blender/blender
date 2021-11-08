@@ -42,10 +42,13 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
   /* Store to avoid global fetches on every intersection step. */
   const uint volume_stack_size = kernel_data.volume_stack_size;
 
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, PATH_RAY_ALL_VISIBILITY);
+
 #ifdef __VOLUME_RECORD_ALL__
   Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
   uint num_hits = scene_intersect_volume_all(
-      kg, &volume_ray, hits, 2 * volume_stack_size, PATH_RAY_ALL_VISIBILITY);
+      kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
   if (num_hits > 0) {
     Intersection *isect = hits;
 
@@ -60,7 +63,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
   Intersection isect;
   int step = 0;
   while (step < 2 * volume_stack_size &&
-         scene_intersect_volume(kg, &volume_ray, &isect, PATH_RAY_ALL_VISIBILITY)) {
+         scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
     shader_setup_from_ray(kg, stack_sd, &volume_ray, &isect);
     volume_stack_enter_exit(kg, state, stack_sd);
 
@@ -74,7 +77,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
 #endif
 }
 
-ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorState state)
+ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState state)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_VOLUME_STACK);
 
@@ -83,16 +86,26 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
 
   Ray volume_ray ccl_optional_struct_init;
   integrator_state_read_ray(kg, state, &volume_ray);
+
+  /* Trace ray in random direction. Any direction works, Z up is a guess to get the
+   * fewest hits. */
+  volume_ray.D = make_float3(0.0f, 0.0f, 1.0f);
   volume_ray.t = FLT_MAX;
 
-  const uint visibility = (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_ALL_VISIBILITY);
   int stack_index = 0, enclosed_index = 0;
 
-  /* Write background shader. */
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, PATH_RAY_CAMERA);
+
+  /* Initialize volume stack with background volume For shadow catcher the
+   * background volume is always assumed to be CG. */
   if (kernel_data.background.volume_shader != SHADER_NONE) {
-    const VolumeStack new_entry = {OBJECT_NONE, kernel_data.background.volume_shader};
-    integrator_state_write_volume_stack(state, stack_index, new_entry);
-    stack_index++;
+    if (!(path_flag & PATH_RAY_SHADOW_CATCHER_PASS)) {
+      INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, stack_index, object) = OBJECT_NONE;
+      INTEGRATOR_STATE_ARRAY_WRITE(
+          state, volume_stack, stack_index, shader) = kernel_data.background.volume_shader;
+      stack_index++;
+    }
   }
 
   /* Store to avoid global fetches on every intersection step. */
@@ -147,7 +160,7 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
   int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
   int step = 0;
 
-  while (stack_index < volume_stack_size - 1 && enclosed_index < volume_stack_size - 1 &&
+  while (stack_index < volume_stack_size - 1 && enclosed_index < MAX_VOLUME_STACK_SIZE - 1 &&
          step < 2 * volume_stack_size) {
     Intersection isect;
     if (!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
@@ -198,9 +211,22 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
   /* Write terminator. */
   const VolumeStack new_entry = {OBJECT_NONE, SHADER_NONE};
   integrator_state_write_volume_stack(state, stack_index, new_entry);
+}
 
-  INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK,
-                       DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorState state)
+{
+  integrator_volume_stack_init(kg, state);
+
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) {
+    /* Volume stack re-init for shadow catcher, continue with shading of hit. */
+    integrator_intersect_next_kernel_after_shadow_catcher_volume<
+        DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK>(kg, state);
+  }
+  else {
+    /* Volume stack init for camera rays, continue with intersection of camera ray. */
+    INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK,
+                         DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+  }
 }
 
 CCL_NAMESPACE_END

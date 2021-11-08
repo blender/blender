@@ -444,14 +444,14 @@ void bc_triangulate_mesh(Mesh *me)
   /* XXX: The triangulation method selection could be offered in the UI. */
   int quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
 
-  const struct BMeshCreateParams bm_create_params = {0};
+  const BMeshCreateParams bm_create_params{};
   BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_create_params);
-  BMeshFromMeshParams bm_from_me_params = {0};
+  BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   BM_mesh_bm_from_me(bm, me, &bm_from_me_params);
   BM_mesh_triangulate(bm, quad_method, use_beauty, 4, tag_only, nullptr, nullptr, nullptr);
 
-  BMeshToMeshParams bm_to_me_params = {0};
+  BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = false;
   BM_mesh_bm_to_me(nullptr, bm, me, &bm_to_me_params);
   BM_mesh_free(bm);

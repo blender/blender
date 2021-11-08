@@ -68,7 +68,8 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
-  VLOG(1) << "Using " << kernels.integrator_init_from_camera.get_uarch_name() << " CPU kernels.";
+  VLOG(1) << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
+          << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
     info.cpu_threads = TaskScheduler::num_threads();
@@ -294,11 +295,6 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   else
 #endif
     Device::build_bvh(bvh, progress, refit);
-}
-
-const CPUKernels *CPUDevice::get_cpu_kernels() const
-{
-  return &kernels;
 }
 
 void CPUDevice::get_cpu_kernel_thread_globals(

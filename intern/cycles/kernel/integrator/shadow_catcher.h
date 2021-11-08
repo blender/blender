@@ -76,33 +76,6 @@ ccl_device_inline bool kernel_shadow_catcher_path_can_split(KernelGlobals kg,
   return (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND) != 0;
 }
 
-/* NOTE: Leaves kernel scheduling information untouched. Use INIT semantic for one of the paths
- * after this function. */
-ccl_device_inline bool kernel_shadow_catcher_split(KernelGlobals kg,
-                                                   IntegratorState state,
-                                                   const int object_flags)
-{
-#ifdef __SHADOW_CATCHER__
-
-  if (!kernel_shadow_catcher_is_path_split_bounce(kg, state, object_flags)) {
-    return false;
-  }
-
-  /* The split is to be done. Mark the current state as such, so that it stops contributing to the
-   * shadow catcher matte pass, but keeps contributing to the combined pass. */
-  INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_SHADOW_CATCHER_HIT;
-
-  /* Split new state from the current one. This new state will only track contribution of shadow
-   * catcher objects ignoring non-catcher objects. */
-  integrator_state_shadow_catcher_split(kg, state);
-
-  return true;
-#else
-  (void)object_flags;
-  return false;
-#endif
-}
-
 #ifdef __SHADOW_CATCHER__
 
 ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(const uint32_t path_flag)

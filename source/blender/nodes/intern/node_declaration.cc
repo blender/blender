@@ -20,16 +20,6 @@
 
 namespace blender::nodes {
 
-void NodeDeclaration::build(bNodeTree &ntree, bNode &node) const
-{
-  for (const SocketDeclarationPtr &decl : inputs_) {
-    decl->build(ntree, node, SOCK_IN);
-  }
-  for (const SocketDeclarationPtr &decl : outputs_) {
-    decl->build(ntree, node, SOCK_OUT);
-  }
-}
-
 bool NodeDeclaration::matches(const bNode &node) const
 {
   auto check_sockets = [&](ListBase sockets, Span<SocketDeclarationPtr> socket_decls) {

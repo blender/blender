@@ -254,7 +254,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
   if (node->flag & NODE_HIDDEN) {
     rctf totr = node->totr;
     /* right part of node */
-    totr.xmin = node->totr.xmax - 20.0f;
+    totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
