@@ -166,9 +166,10 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
     const int quad_method = args_.export_params->quad_method;
     const int ngon_method = args_.export_params->ngon_method;
 
-    struct BMeshCreateParams bmcp = {false};
-    struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
-    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+    BMeshCreateParams bmesh_create_params{};
+    BMeshFromMeshParams bmesh_from_mesh_params{};
+    bmesh_from_mesh_params.calc_face_normal = true;
+    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
     BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);
 

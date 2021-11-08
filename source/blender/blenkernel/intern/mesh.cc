@@ -1138,8 +1138,12 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
                          const bool add_key_index,
                          const struct BMeshCreateParams *params)
 {
-  struct BMeshFromMeshParams bmfmp = {false, add_key_index, true, ob->shapenr};
-  return BKE_mesh_to_bmesh_ex(me, params, &bmfmp);
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = false;
+  bmesh_from_mesh_params.add_key_index = add_key_index;
+  bmesh_from_mesh_params.use_shapekey = true;
+  bmesh_from_mesh_params.active_shapekey = ob->shapenr;
+  return BKE_mesh_to_bmesh_ex(me, params, &bmesh_from_mesh_params);
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
