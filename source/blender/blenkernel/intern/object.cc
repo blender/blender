@@ -1223,7 +1223,7 @@ static IDProperty *object_asset_dimensions_property(Object *ob)
     return nullptr;
   }
 
-  IDPropertyTemplate idprop = {0};
+  IDPropertyTemplate idprop{};
   idprop.array.len = ARRAY_SIZE(dimensions);
   idprop.array.type = IDP_FLOAT;
 
@@ -2635,7 +2635,7 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
   Object *ob_pose = BKE_object_pose_armature_get(ob_active);
   Object **objects = nullptr;
   if (ob_pose == ob_active) {
-    ObjectsInModeParams ob_params = {0};
+    ObjectsInModeParams ob_params{};
     ob_params.object_mode = OB_MODE_POSE;
     ob_params.no_dup_data = unique;
 
@@ -2682,7 +2682,7 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
   }
 
   if (base_active && (base_pose == base_active)) {
-    ObjectsInModeParams ob_params = {0};
+    ObjectsInModeParams ob_params{};
     ob_params.object_mode = OB_MODE_POSE;
     ob_params.no_dup_data = unique;
 
@@ -4304,7 +4304,7 @@ void BKE_object_foreach_display_point(Object *ob,
     }
   }
   else if (ob->type == OB_GPENCIL) {
-    GPencilStrokePointIterData iter_data = {nullptr};
+    GPencilStrokePointIterData iter_data{};
     iter_data.obmat = obmat;
     iter_data.point_func_cb = func_cb;
     iter_data.user_data = user_data;
