@@ -2254,7 +2254,7 @@ def main():
     # First monkey patch to load in fake members.
     setup_monkey_patch()
 
-    # Perform changes to Blender it's self.
+    # Perform changes to Blender itself.
     setup_data = setup_blender()
 
     # eventually, create the dirs

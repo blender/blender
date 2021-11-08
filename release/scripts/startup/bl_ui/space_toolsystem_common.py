@@ -106,7 +106,7 @@ ToolDef = namedtuple(
         #   Keep this functionality since it's likely useful for add-on key-maps.
         #
         # Warning: currently 'from_dict' this is a list of one item,
-        # so internally we can swap the key-map function for the key-map it's self.
+        # so internally we can swap the key-map function for the key-map itself.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
         # Optional data-block associated with this tool.

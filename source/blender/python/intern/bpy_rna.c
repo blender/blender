@@ -7693,7 +7693,7 @@ PyObject *BPY_rna_doc(void)
 
 /**
  * This could be a static variable as we only have one `bpy.types` module,
- * it just keeps the data isolated to store in the module it's self.
+ * it just keeps the data isolated to store in the module itself.
  *
  * This data doesn't change one initialized.
  */
