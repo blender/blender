@@ -94,6 +94,8 @@ struct ShaderParameters {
  */
 class AbstractSpaceAccessor {
  public:
+  virtual ~AbstractSpaceAccessor() = default;
+
   /**
    * Return the active image of the space.
    *
@@ -175,6 +177,7 @@ class AbstractSpaceAccessor {
  **/
 class AbstractDrawingMode {
  public:
+  virtual ~AbstractDrawingMode() = default;
   virtual void cache_init(IMAGE_Data *vedata) const = 0;
   virtual void cache_image(AbstractSpaceAccessor *space,
                            IMAGE_Data *vedata,
