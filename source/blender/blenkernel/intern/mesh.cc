@@ -832,12 +832,12 @@ bool BKE_mesh_clear_facemap_customdata(struct Mesh *me)
 }
 
 /**
- * This ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
- * mloopcol and mcol) have the same relative active/render/clone/mask indices.
+ * This ensures grouped custom-data (e.g. #CD_MLOOPUV and #CD_MTFACE, or
+ * #CD_MLOOPCOL and #CD_MCOL) have the same relative active/render/clone/mask indices.
  *
- * NOTE(campbell): that for undo mesh data we want to skip 'ensure_tess_cd' call since
- * we don't want to store memory for tessface when its only used for older
- * Versions of the mesh.
+ * NOTE(@campbellbarton): that for undo mesh data we want to skip 'ensure_tess_cd' call since
+ * we don't want to store memory for #MFace data when its only used for older
+ * versions of the mesh.
  */
 static void mesh_update_linked_customdata(Mesh *me, const bool do_ensure_tess_cd)
 {
