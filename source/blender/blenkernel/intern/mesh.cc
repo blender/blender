@@ -1896,8 +1896,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   bool free_polynors = false;
 
   /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-   * However, we obviously only use the autosmooth angle threshold
-   * only in case autosmooth is enabled. */
+   * However, we obviously only use the auto-smooth angle threshold
+   * only in case auto-smooth is enabled. */
   const bool use_split_normals = (r_lnors_spacearr != nullptr) ||
                                  ((mesh->flag & ME_AUTOSMOOTH) != 0);
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI;

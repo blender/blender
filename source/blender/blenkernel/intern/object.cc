@@ -5445,7 +5445,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
         MVert *mvert = me_eval->mvert;
         uint totvert = me_eval->totvert;
 
-        /* tree over-allocs in case where some verts have ORIGINDEX_NONE */
+        /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
         tree = BLI_kdtree_3d_new(totvert);
 

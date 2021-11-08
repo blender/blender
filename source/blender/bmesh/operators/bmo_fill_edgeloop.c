@@ -85,7 +85,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
   }
 
   if (ok) {
-    /* NOTE: in the case of multiple loops, this over-allocs (which is fine). */
+    /* NOTE: in the case of multiple loops, this over-allocates (which is fine). */
     BMVert **f_verts = MEM_mallocN(sizeof(*verts) * totv, __func__);
     BMIter eiter;
 
