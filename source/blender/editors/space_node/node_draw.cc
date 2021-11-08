@@ -1107,21 +1107,8 @@ static void node_socket_draw_nested(const bContext *C,
             C, *data->ntree, *data->node, *data->socket);
 
         std::stringstream output;
-        if (data->node->declaration != nullptr) {
-          ListBase *list;
-          Span<blender::nodes::SocketDeclarationPtr> decl_list;
-
-          if (data->socket->in_out == SOCK_IN) {
-            list = &data->node->inputs;
-            decl_list = data->node->declaration->inputs();
-          }
-          else {
-            list = &data->node->outputs;
-            decl_list = data->node->declaration->outputs();
-          }
-
-          const int socket_index = BLI_findindex(list, data->socket);
-          const blender::nodes::SocketDeclaration &socket_decl = *decl_list[socket_index];
+        if (data->socket->declaration != nullptr) {
+          const blender::nodes::SocketDeclaration &socket_decl = *data->socket->declaration;
           blender::StringRef description = socket_decl.description();
           if (!description.is_empty()) {
             output << TIP_(description.data()) << ".\n\n";

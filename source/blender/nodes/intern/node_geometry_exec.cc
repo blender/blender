@@ -39,8 +39,8 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
 void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
                                                  const GeometrySet &geometry_set) const
 {
-  const int input_index = provider_->dnode->input_by_identifier(identifier).index();
-  const SocketDeclaration &decl = *provider_->dnode->declaration()->inputs()[input_index];
+  const SocketDeclaration &decl =
+      *provider_->dnode->input_by_identifier(identifier).bsocket()->declaration;
   const decl::Geometry *geo_decl = dynamic_cast<const decl::Geometry *>(&decl);
   if (geo_decl == nullptr) {
     return;

@@ -228,7 +228,6 @@ class NodeDeclaration {
   friend NodeDeclarationBuilder;
 
  public:
-  void build(bNodeTree &ntree, bNode &node) const;
   bool matches(const bNode &node) const;
 
   Span<SocketDeclarationPtr> inputs() const;

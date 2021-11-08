@@ -681,6 +681,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   BLO_read_data_address(reader, &sock->default_value);
   sock->total_inputs = 0; /* Clear runtime data set before drawing. */
   sock->cache = nullptr;
+  sock->declaration = nullptr;
 }
 
 /* ntree itself has been read! */
@@ -1070,8 +1071,7 @@ IDTypeInfo IDType_ID_NT = {
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
   if (ntype->declare != nullptr) {
-    nodeDeclarationEnsure(ntree, node);
-    node->declaration->build(*ntree, *node);
+    node_verify_sockets(ntree, node, true);
     return;
   }
   bNodeSocketTemplate *sockdef;
@@ -4018,17 +4018,38 @@ int nodeSocketLinkLimit(const bNodeSocket *sock)
   return sock->limit;
 }
 
+static void update_socket_declarations(ListBase *sockets,
+                                       Span<blender::nodes::SocketDeclarationPtr> declarations)
+{
+  int index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
+    const SocketDeclaration &socket_decl = *declarations[index];
+    socket->declaration = &socket_decl;
+  }
+}
+
 /**
- * If the node implements a `declare` function, this function makes sure that `node->declaration`
- * is up to date.
+ * Update `socket->declaration` for all sockets in the node. This assumes that the node declaration
+ * and sockets are up to date already.
  */
-void nodeDeclarationEnsure(bNodeTree *UNUSED(ntree), bNode *node)
+void nodeSocketDeclarationsUpdate(bNode *node)
+{
+  BLI_assert(node->declaration != nullptr);
+  update_socket_declarations(&node->inputs, node->declaration->inputs());
+  update_socket_declarations(&node->outputs, node->declaration->outputs());
+}
+
+/**
+ * Just update `node->declaration` if necessary. This can also be called on nodes that may not be
+ * up to date (e.g. because the need versioning or are dynamic).
+ */
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *UNUSED(ntree), bNode *node)
 {
   if (node->declaration != nullptr) {
-    return;
+    return false;
   }
   if (node->typeinfo->declare == nullptr) {
-    return;
+    return false;
   }
   if (node->typeinfo->declaration_is_dynamic) {
     node->declaration = new blender::nodes::NodeDeclaration();
@@ -4040,6 +4061,20 @@ void nodeDeclarationEnsure(bNodeTree *UNUSED(ntree), bNode *node)
     BLI_assert(node->typeinfo->fixed_declaration != nullptr);
     node->declaration = node->typeinfo->fixed_declaration;
   }
+  return true;
+}
+
+/**
+ * If the node implements a `declare` function, this function makes sure that `node->declaration`
+ * is up to date. It is expected that the sockets of the node are up to date already.
+ */
+bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)
+{
+  if (nodeDeclarationEnsureOnOutdatedNode(ntree, node)) {
+    nodeSocketDeclarationsUpdate(node);
+    return true;
+  }
+  return false;
 }
 
 /* ************** Node Clipboard *********** */
