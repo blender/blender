@@ -253,12 +253,6 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 
 /* Utilities */
 
-static void viconutil_set_point(int pt[2], int x, int y)
-{
-  pt[0] = x;
-  pt[1] = y;
-}
-
 static void vicon_keytype_draw_wrapper(
     int x, int y, int w, int h, float alpha, short key_type, short handle_type)
 {
