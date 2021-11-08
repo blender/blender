@@ -1160,15 +1160,15 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
     ntree->typeinfo = typeinfo;
-
-    /* deprecated integer type */
-    ntree->type = typeinfo->type;
   }
   else {
     ntree->typeinfo = &NodeTreeTypeUndefined;
 
     ntree->init &= ~NTREE_TYPE_INIT;
   }
+
+  /* Deprecated integer type. */
+  ntree->type = ntree->typeinfo->type;
 }
 
 static void node_set_typeinfo(const struct bContext *C,
@@ -5533,6 +5533,7 @@ static void register_undefined_types()
    * they are just used as placeholders in case the actual types are not registered.
    */
 
+  NodeTreeTypeUndefined.type = NTREE_UNDEFINED;
   strcpy(NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
   strcpy(NodeTreeTypeUndefined.ui_name, N_("Undefined"));
   strcpy(NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));

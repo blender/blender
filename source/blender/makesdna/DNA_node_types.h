@@ -577,7 +577,9 @@ typedef struct bNodeTree {
 } bNodeTree;
 
 /* ntree->type, index */
-#define NTREE_CUSTOM -1 /* for dynamically registered custom types */
+
+#define NTREE_UNDEFINED -2 /* Represents #NodeTreeTypeUndefined type. */
+#define NTREE_CUSTOM -1    /* for dynamically registered custom types */
 #define NTREE_SHADER 0
 #define NTREE_COMPOSIT 1
 #define NTREE_TEXTURE 2
