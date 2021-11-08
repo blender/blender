@@ -496,7 +496,7 @@ class DisplayPanel(BrushPanel):
             icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',
         )
 
-        if mode in ['PAINT_2D', 'PAINT_TEXTURE', 'PAINT_VERTEX', 'SCULPT']:
+        if mode in {'PAINT_2D', 'PAINT_TEXTURE', 'PAINT_VERTEX', 'SCULPT'}:
             row = col.row(align=True)
             row.prop(brush, "texture_overlay_alpha", text="Texture Opacity")
             row.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
@@ -506,7 +506,7 @@ class DisplayPanel(BrushPanel):
                     icon='HIDE_OFF' if brush.use_primary_overlay else 'HIDE_ON',
                 )
 
-        if mode in ['PAINT_TEXTURE', 'PAINT_2D']:
+        if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             row = col.row(align=True)
             row.prop(brush, "mask_overlay_alpha", text="Mask Texture Opacity")
             row.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
