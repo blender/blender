@@ -935,6 +935,10 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
         }
       }
     }
+
+    /* Ensure test-motion values are never shared between regions. */
+    const bool use_cycle = !WM_cursor_test_motion_and_update((const int[2]){-1, -1});
+    UNUSED_VARS(use_cycle);
   }
 
   /* Cursors, for time being set always on edges,

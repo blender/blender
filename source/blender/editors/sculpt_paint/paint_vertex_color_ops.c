@@ -210,9 +210,6 @@ static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
   int(*scol)[4];
   bool has_shared = false;
 
-  /* if no mloopcol: do not do */
-  /* if mtexpoly: only the involved faces, otherwise all */
-
   if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) {
     return;
   }

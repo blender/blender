@@ -318,6 +318,9 @@ struct GeometrySet {
       bool include_instances,
       blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const;
 
+  blender::Vector<GeometryComponentType> gather_component_types(bool include_instances,
+                                                                bool ignore_empty) const;
+
   using ForeachSubGeometryCallback = blender::FunctionRef<void(GeometrySet &geometry_set)>;
 
   void modify_geometry_sets(ForeachSubGeometryCallback callback);
@@ -621,7 +624,9 @@ class InstancesComponent : public GeometryComponent {
   blender::Vector<blender::float4x4> instance_transforms_;
   /**
    * IDs of the instances. They are used for consistency over multiple frames for things like
-   * motion blur.
+   * motion blur. Proper stable ID data that actually helps when rendering can only be generated
+   * in some situations, so this vector is allowed to be empty, in which case the index of each
+   * instance will be used for the final ID.
    */
   blender::Vector<int> instance_ids_;
 
@@ -643,7 +648,7 @@ class InstancesComponent : public GeometryComponent {
   void resize(int capacity);
 
   int add_reference(const InstanceReference &reference);
-  void add_instance(int instance_handle, const blender::float4x4 &transform, const int id = -1);
+  void add_instance(int instance_handle, const blender::float4x4 &transform);
 
   blender::Span<InstanceReference> references() const;
   void remove_unused_references();
@@ -657,6 +662,9 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<blender::float4x4> instance_transforms() const;
   blender::MutableSpan<int> instance_ids();
   blender::Span<int> instance_ids() const;
+
+  blender::MutableSpan<int> instance_ids_ensure();
+  void instance_ids_clear();
 
   int instances_amount() const;
   int references_amount() const;
@@ -736,6 +744,7 @@ class AttributeFieldInput : public fn::FieldInput {
   AttributeFieldInput(std::string name, const CPPType &type)
       : fn::FieldInput(type, name), name_(std::move(name))
   {
+    category_ = Category::NamedAttribute;
   }
 
   template<typename T> static fn::Field<T> Create(std::string name)
@@ -764,9 +773,8 @@ class IDAttributeFieldInput : public fn::FieldInput {
  public:
   IDAttributeFieldInput() : fn::FieldInput(CPPType::get<int>())
   {
+    category_ = Category::Generated;
   }
-
-  static fn::Field<int> Create();
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
                                         IndexMask mask,
@@ -785,18 +793,25 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
    * automatically.
    */
   StrongAnonymousAttributeID anonymous_id_;
+  std::string producer_name_;
 
  public:
-  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id, const CPPType &type)
-      : fn::FieldInput(type, anonymous_id.debug_name()), anonymous_id_(std::move(anonymous_id))
+  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id,
+                               const CPPType &type,
+                               std::string producer_name)
+      : fn::FieldInput(type, anonymous_id.debug_name()),
+        anonymous_id_(std::move(anonymous_id)),
+        producer_name_(producer_name)
   {
+    category_ = Category::AnonymousAttribute;
   }
 
-  template<typename T> static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id)
+  template<typename T>
+  static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id, std::string producer_name)
   {
     const CPPType &type = CPPType::get<T>();
-    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(std::move(anonymous_id),
-                                                                      type);
+    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(
+        std::move(anonymous_id), type, std::move(producer_name));
     return fn::Field<T>{field_input};
   }
 

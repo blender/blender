@@ -836,7 +836,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   BKE_image_backup_render(oglrender->scene, oglrender->ima, true);
 
   oglrender->iuser.scene = scene;
-  oglrender->iuser.ok = 1;
 
   /* create render result */
   RE_InitState(oglrender->re, NULL, &scene->r, &scene->view_layers, NULL, sizex, sizey, NULL);

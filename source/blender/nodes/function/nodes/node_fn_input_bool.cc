@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void fn_node_input_bool_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Boolean");
+  b.add_output<decl::Bool>(N_("Boolean"));
 };
 
 static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

@@ -66,6 +66,7 @@ class SpellChecker:
         "ons",  # add-ons
         "pong",  # ping pong
         "resumable",
+        "runtimes",
         "scalable",
         "shadeless",
         "shouldn",  # shouldn't
@@ -75,6 +76,12 @@ class SpellChecker:
         "tangency",
         "vertices",
         "wasn",  # wasn't
+
+        # Brands etc.
+        "htc",
+        "huawei",
+        "vive",
+        "xbox",
 
         # Merged words
         "antialiasing", "antialias",
@@ -131,6 +138,7 @@ class SpellChecker:
         "forcefield", "forcefields",
         "fulldome", "fulldomes",
         "fullscreen",
+        "gamepad",
         "gridline", "gridlines",
         "hardlight",
         "hemi",
@@ -681,11 +689,13 @@ class SpellChecker:
         "ctrl",
         "cw", "ccw",
         "dev",
+        "dls",
         "djv",
         "dpi",
         "dvar",
         "dx",
         "eo",
+        "ewa",
         "fh",
         "fk",
         "fov",
@@ -725,6 +735,7 @@ class SpellChecker:
         "rhs",
         "rv",
         "sdl",
+        "sdls",
         "sl",
         "smpte",
         "ssao",
@@ -759,6 +770,7 @@ class SpellChecker:
         "svbvh",
 
         # Files types/formats
+        "aac",
         "avi",
         "attrac",
         "autocad",
@@ -781,6 +793,7 @@ class SpellChecker:
         "ico",
         "jpg", "jpeg", "jpegs",
         "json",
+        "lzw",
         "matroska",
         "mdd",
         "mkv",
@@ -790,6 +803,7 @@ class SpellChecker:
         "openjpeg",
         "osl",
         "oso",
+        "pcm",
         "piz",
         "png", "pngs",
         "po",

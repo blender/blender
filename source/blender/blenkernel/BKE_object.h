@@ -24,9 +24,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+#include "BKE_lib_id.h"
 #include "DNA_object_enums.h"
 #include "DNA_userdef_types.h"
-#include "BKE_lib_id.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,7 +77,7 @@ void BKE_object_modifier_gpencil_hook_reset(struct Object *ob,
                                             struct HookGpencilModifierData *hmd);
 bool BKE_object_modifier_gpencil_use_time(struct Object *ob, struct GpencilModifierData *md);
 
-bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
+bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *fx);
 
 bool BKE_object_supports_modifiers(const struct Object *ob);
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
@@ -91,7 +91,7 @@ bool BKE_object_copy_modifier(struct Main *bmain,
                               struct Object *ob_dst,
                               const struct Object *ob_src,
                               struct ModifierData *md);
-bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, struct GpencilModifierData *md);
+bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, struct GpencilModifierData *gmd_src);
 bool BKE_object_modifier_stack_copy(struct Object *ob_dst,
                                     const struct Object *ob_src,
                                     const bool do_copy_all,
@@ -156,8 +156,8 @@ bool BKE_object_obdata_is_libdata(const struct Object *ob);
 
 struct Object *BKE_object_duplicate(struct Main *bmain,
                                     struct Object *ob,
-                                    eDupli_ID_Flags dupflag,
-                                    const eLibIDDuplicateFlags duplicate_options);
+                                    uint dupflag,
+                                    uint duplicate_options);
 
 void BKE_object_obdata_size_init(struct Object *ob, const float size);
 

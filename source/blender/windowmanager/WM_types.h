@@ -119,6 +119,7 @@ struct wmWindowManager;
 
 #include "BLI_compiler_attrs.h"
 #include "DNA_listBase.h"
+#include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
 #include "RNA_types.h"
@@ -210,7 +211,7 @@ enum {
  * Context to call operator in for #WM_operator_name_call.
  * rna_ui.c contains EnumPropertyItem's of these, keep in sync.
  */
-enum {
+typedef enum wmOperatorCallContext {
   /* if there's invoke, call it, otherwise exec */
   WM_OP_INVOKE_DEFAULT,
   WM_OP_INVOKE_REGION_WIN,
@@ -225,9 +226,11 @@ enum {
   WM_OP_EXEC_REGION_PREVIEW,
   WM_OP_EXEC_AREA,
   WM_OP_EXEC_SCREEN,
-};
+} wmOperatorCallContext;
 
-#define WM_OP_CONTEXT_HAS_AREA(type) (!ELEM(type, WM_OP_INVOKE_SCREEN, WM_OP_EXEC_SCREEN))
+#define WM_OP_CONTEXT_HAS_AREA(type) \
+  (CHECK_TYPE_INLINE(type, wmOperatorCallContext), \
+   !ELEM(type, WM_OP_INVOKE_SCREEN, WM_OP_EXEC_SCREEN))
 #define WM_OP_CONTEXT_HAS_REGION(type) \
   (WM_OP_CONTEXT_HAS_AREA(type) && !ELEM(type, WM_OP_INVOKE_AREA, WM_OP_EXEC_AREA))
 
@@ -922,7 +925,7 @@ typedef struct wmOperatorType {
 typedef struct wmOperatorCallParams {
   struct wmOperatorType *optype;
   struct PointerRNA *opptr;
-  short opcontext;
+  wmOperatorCallContext opcontext;
 } wmOperatorCallParams;
 
 #ifdef WITH_INPUT_IME
@@ -967,6 +970,7 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 #define WM_DRAG_VALUE 6
 #define WM_DRAG_COLOR 7
 #define WM_DRAG_DATASTACK 8
+#define WM_DRAG_ASSET_CATALOG 9
 
 typedef enum wmDragFlags {
   WM_DRAG_NOP = 0,
@@ -989,6 +993,7 @@ typedef struct wmDragAsset {
   /* Always freed. */
   const char *path;
   int id_type;
+  struct AssetMetaData *metadata;
   int import_type; /* eFileAssetImportType */
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
@@ -998,6 +1003,10 @@ typedef struct wmDragAsset {
    * */
   struct bContext *evil_C;
 } wmDragAsset;
+
+typedef struct wmDragAssetCatalog {
+  bUUID drag_catalog_id;
+} wmDragAssetCatalog;
 
 /**
  * For some specific cases we support dragging multiple assets (#WM_DRAG_ASSET_LIST). There is no
@@ -1020,8 +1029,29 @@ typedef struct wmDragAssetListItem {
 
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDrag *,
-                                      const struct wmEvent *event,
+                                      const int xy[2],
                                       struct wmDropBox *drop);
+
+typedef struct wmDragActiveDropState {
+  /** Informs which dropbox is activated with the drag item.
+   * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
+   * triggered.
+   */
+  struct wmDropBox *active_dropbox;
+
+  /** If `active_dropbox` is set, the area it successfully polled in. To restore the context of it
+   * as needed. */
+  struct ScrArea *area_from;
+  /** If `active_dropbox` is set, the region it successfully polled in. To restore the context of
+   * it as needed. */
+  struct ARegion *region_from;
+
+  /** Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
+   * operator poll fails. Typically the message the operator set with
+   * CTX_wm_operator_poll_msg_set(). */
+  const char *disabled_info;
+  bool free_disabled_info;
+} wmDragActiveDropState;
 
 typedef struct wmDrag {
   struct wmDrag *next, *prev;
@@ -1038,8 +1068,8 @@ typedef struct wmDrag {
   float scale;
   int sx, sy;
 
-  /** If filled, draws operator tooltip/operator name. */
-  char tooltip[200];
+  wmDragActiveDropState drop_state;
+
   unsigned int flags;
 
   /** List of wmDragIDs, all are guaranteed to have the same ID type. */
@@ -1051,6 +1081,10 @@ typedef struct wmDrag {
 /**
  * Dropboxes are like keymaps, part of the screen/area/region definition.
  * Allocation and free is on startup and exit.
+ *
+ * The operator is polled and invoked with the current context (#WM_OP_INVOKE_DEFAULT), there is no
+ * way to override that (by design, since dropboxes should act on the exact mouse position). So the
+ * drop-boxes are supposed to check the required area and region context in their poll.
  */
 typedef struct wmDropBox {
   struct wmDropBox *next, *prev;
@@ -1067,6 +1101,18 @@ typedef struct wmDropBox {
    */
   void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *);
 
+  /** Override the default drawing function. */
+  void (*draw)(struct bContext *, struct wmWindow *, struct wmDrag *, const int *);
+
+  /** Called when pool returns true the first time. */
+  void (*draw_activate)(struct wmDropBox *, struct wmDrag *drag);
+
+  /** Called when pool returns false the first time or when the drag event ends. */
+  void (*draw_deactivate)(struct wmDropBox *, struct wmDrag *drag);
+
+  /** Custom data for drawing. */
+  void *draw_data;
+
   /** Custom tooltip shown during dragging. */
   WMDropboxTooltipFunc tooltip;
 
@@ -1080,10 +1126,6 @@ typedef struct wmDropBox {
   struct IDProperty *properties;
   /** RNA pointer to access properties. */
   struct PointerRNA *ptr;
-
-  /** Default invoke. */
-  short opcontext;
-
 } wmDropBox;
 
 /**

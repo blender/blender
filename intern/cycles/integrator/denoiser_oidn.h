@@ -17,8 +17,8 @@
 #pragma once
 
 #include "integrator/denoiser.h"
-#include "util/util_thread.h"
-#include "util/util_unique_ptr.h"
+#include "util/thread.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 

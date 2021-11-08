@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_asset_types.h"
@@ -29,10 +30,22 @@ extern "C" {
 #endif
 
 struct AssetLibraryReference;
+struct AssetMetaData;
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
+struct IDProperty;
 struct PreviewImage;
+
+typedef void (*PreSaveFn)(void *asset_ptr, struct AssetMetaData *asset_data);
+
+typedef struct AssetTypeInfo {
+  /**
+   * For local assets (assets in the current .blend file), a callback to execute before the file is
+   * saved.
+   */
+  PreSaveFn pre_save_fn;
+} AssetTypeInfo;
 
 struct AssetMetaData *BKE_asset_metadata_create(void);
 void BKE_asset_metadata_free(struct AssetMetaData **asset_data);
@@ -55,6 +68,10 @@ void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
                                        const char *catalog_simple_name);
 
 void BKE_asset_library_reference_init_default(struct AssetLibraryReference *library_ref);
+
+void BKE_asset_metadata_idprop_ensure(struct AssetMetaData *asset_data, struct IDProperty *prop);
+struct IDProperty *BKE_asset_metadata_idprop_find(const struct AssetMetaData *asset_data,
+                                                  const char *name) ATTR_WARN_UNUSED_RESULT;
 
 struct PreviewImage *BKE_asset_metadata_preview_get_from_id(const struct AssetMetaData *asset_data,
                                                             const struct ID *owner_id);

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "kernel/kernel_profiling.h"
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
+#include "kernel/util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -36,7 +36,7 @@ struct OSLShadingSystem;
 
 typedef struct KernelGlobalsCPU {
 #define KERNEL_TEX(type, name) texture<type> name;
-#include "kernel/kernel_textures.h"
+#include "kernel/textures.h"
 
   KernelData __data;
 

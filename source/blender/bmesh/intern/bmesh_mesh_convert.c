@@ -499,6 +499,9 @@ void BM_mesh_bm_from_me(Object *ob,
 
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
+  else {
+    BM_mesh_cd_flag_ensure(bm, NULL, me->cd_flag);
+  }
 
 #define IS_GARBAGE_ID(id) ((id) < 0 || (id) > id_garbage_threshold)
 

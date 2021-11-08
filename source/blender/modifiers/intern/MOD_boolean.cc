@@ -245,16 +245,17 @@ static BMesh *BMD_mesh_bm_create(
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_operand_ob);
 
-  BMeshCreateParams bmcp = {false};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BMeshCreateParams bmesh_create_params = {0};
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  BMeshFromMeshParams params{};
-  params.calc_face_normal = true;
-  params.active_shapekey = object->shapenr;
-  params.use_shapekey = true;
-  params.create_shapekey_layers = true,
+  BMeshFromMeshParams bmesh_from_mesh_params = {0};
 
-  BM_mesh_bm_from_me(object, bm, mesh_operand_ob, &params);
+  bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.active_shapekey = object->shapenr;
+  bmesh_from_mesh_params.use_shapekey = true;
+  bmesh_from_mesh_params.create_shapekey_layers = true,
+
+  BM_mesh_bm_from_me(object, bm, mesh_operand_ob, &bmesh_from_mesh_params);
 
   if (UNLIKELY(*r_is_flip)) {
     const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -265,7 +266,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(object, bm, mesh, &params);
+  BM_mesh_bm_from_me(object, bm, mesh, &bmesh_from_mesh_params);
 
   return bm;
 }
@@ -539,9 +540,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
           /* Needed for multiple objects to work. */
-          BMeshToMeshParams params{};
-          params.calc_object_remap = false;
-          BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, &params);
+          BMeshToMeshParams bmesh_to_mesh_params = {0};
+          bmesh_to_mesh_params.calc_object_remap = false;
+          BM_mesh_bm_to_me(nullptr, object, bm, mesh, &bmesh_to_mesh_params);
 
           result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
           BM_mesh_free(bm);

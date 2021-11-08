@@ -18,19 +18,13 @@
  * \ingroup edasset
  */
 
-#include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
-
 #include "ED_asset.h"
-#include "ED_asset_catalog.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
 
@@ -38,7 +32,6 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 using namespace blender;
 
@@ -427,7 +420,12 @@ static int asset_catalog_new_exec(bContext *C, wmOperator *op)
   struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
-  ED_asset_catalog_add(asset_library, "Catalog", parent_path);
+  blender::bke::AssetCatalog *new_catalog = ED_asset_catalog_add(
+      asset_library, "Catalog", parent_path);
+
+  if (sfile) {
+    ED_fileselect_activate_asset_catalog(sfile, new_catalog->catalog_id);
+  }
 
   MEM_freeN(parent_path);
 
@@ -554,7 +552,7 @@ static bool asset_catalog_redo_poll(bContext *C)
 static void ASSET_OT_catalog_redo(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "redo Catalog Edits";
+  ot->name = "Redo Catalog Edits";
   ot->description = "Redo the last undone edit to the asset catalogs";
   ot->idname = "ASSET_OT_catalog_redo";
 

@@ -346,7 +346,7 @@ bool BezierSpline::point_is_sharp(const int index) const
 }
 
 /**
- * \warning: This functiona assumes that the spline has more than one point.
+ * \warning This functional assumes that the spline has more than one point.
  */
 bool BezierSpline::segment_is_vector(const int index) const
 {

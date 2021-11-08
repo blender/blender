@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include "kernel/sample/lcg.h"
+#include "kernel/sample/mapping.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Most of the code is based on the supplemental implementations from
@@ -217,12 +220,12 @@ ccl_device_forceinline float mf_lambda(const float3 w, const float2 alpha)
 /* Height distribution CDF (based on page 4 of the supplemental implementation). */
 ccl_device_forceinline float mf_invC1(const float h)
 {
-  return 2.0f * saturate(h) - 1.0f;
+  return 2.0f * saturatef(h) - 1.0f;
 }
 
 ccl_device_forceinline float mf_C1(const float h)
 {
-  return saturate(0.5f * (h + 1.0f));
+  return saturatef(0.5f * (h + 1.0f));
 }
 
 /* Masking function (based on page 16 of the supplemental implementation). */
@@ -281,7 +284,7 @@ ccl_device_forceinline float mf_ggx_albedo(float r)
              0.027803f) *
                 r +
             0.00568739f;
-  return saturate(albedo);
+  return saturatef(albedo);
 }
 
 ccl_device_inline float mf_ggx_transmission_albedo(float a, float ior)
@@ -289,7 +292,7 @@ ccl_device_inline float mf_ggx_transmission_albedo(float a, float ior)
   if (ior < 1.0f) {
     ior = 1.0f / ior;
   }
-  a = saturate(a);
+  a = saturatef(a);
   ior = clamp(ior, 1.0f, 3.0f);
   float I_1 = 0.0476898f * expf(-0.978352f * (ior - 0.65657f) * (ior - 0.65657f)) -
               0.033756f * ior + 0.993261f;
@@ -299,7 +302,7 @@ ccl_device_inline float mf_ggx_transmission_albedo(float a, float ior)
   float R_2 = ((((5.3725f * a - 24.9307f) * a + 22.7437f) * a - 3.40751f) * a + 0.0986325f) * a +
               0.00493504f;
 
-  return saturate(1.0f + I_2 * R_2 * 0.0019127f - (1.0f - I_1) * (1.0f - R_1) * 9.3205f);
+  return saturatef(1.0f + I_2 * R_2 * 0.0019127f - (1.0f - I_1) * (1.0f - R_1) * 9.3205f);
 }
 
 ccl_device_forceinline float mf_ggx_pdf(const float3 wi, const float3 wo, const float alpha)

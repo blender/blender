@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_span.hh"
+
 #include "DNA_modifier_types.h"
 
 #ifdef WITH_OPENVDB
@@ -33,10 +35,40 @@ struct VolumeToMeshResolution {
 };
 
 #ifdef WITH_OPENVDB
+
+/**
+ * The result of converting a volume grid to mesh data, in the format used by the OpenVDB API.
+ */
+struct OpenVDBMeshData {
+  std::vector<openvdb::Vec3s> verts;
+  std::vector<openvdb::Vec3I> tris;
+  std::vector<openvdb::Vec4I> quads;
+  bool is_empty() const
+  {
+    return verts.empty();
+  }
+};
+
 struct Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                             const VolumeToMeshResolution &resolution,
                             const float threshold,
                             const float adaptivity);
+
+struct OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
+                                           const VolumeToMeshResolution &resolution,
+                                           const float threshold,
+                                           const float adaptivity);
+
+void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
+                                 const Span<openvdb::Vec3I> vdb_tris,
+                                 const Span<openvdb::Vec4I> vdb_quads,
+                                 const int vert_offset,
+                                 const int poly_offset,
+                                 const int loop_offset,
+                                 MutableSpan<MVert> verts,
+                                 MutableSpan<MPoly> polys,
+                                 MutableSpan<MLoop> loops);
+
 #endif
 
 }  // namespace blender::bke

@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include "kernel/sample/mapping.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __OSL__

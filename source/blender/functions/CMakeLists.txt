@@ -94,6 +94,8 @@ if(WITH_GTESTS)
     tests/FN_generic_vector_array_test.cc
     tests/FN_multi_function_procedure_test.cc
     tests/FN_multi_function_test.cc
+
+    tests/FN_multi_function_test_common.hh
   )
   set(TEST_LIB
     bf_functions

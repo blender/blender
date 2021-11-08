@@ -16,8 +16,8 @@
 
 #include "integrator/tile.h"
 
-#include "util/util_logging.h"
-#include "util/util_math.h"
+#include "util/log.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -48,7 +48,8 @@ ccl_device_inline uint round_up_to_power_of_two(uint x)
 
 TileSize tile_calculate_best_size(const int2 &image_size,
                                   const int num_samples,
-                                  const int max_num_path_states)
+                                  const int max_num_path_states,
+                                  const float scrambling_distance)
 {
   if (max_num_path_states == 1) {
     /* Simple case: avoid any calculation, which could cause rounding issues. */
@@ -71,17 +72,24 @@ TileSize tile_calculate_best_size(const int2 &image_size,
    *  - Keep values a power of two, for more integer fit into the maximum number of paths. */
 
   TileSize tile_size;
-
-  /* Calculate tile size as if it is the most possible one to fit an entire range of samples.
-   * The idea here is to keep tiles as small as possible, and keep device occupied by scheduling
-   * multiple tiles with the same coordinates rendering different samples. */
   const int num_path_states_per_sample = max_num_path_states / num_samples;
-  if (num_path_states_per_sample != 0) {
-    tile_size.width = round_down_to_power_of_two(lround(sqrt(num_path_states_per_sample)));
-    tile_size.height = tile_size.width;
+  if (scrambling_distance < 0.9f) {
+    /* Prefer large tiles for scrambling distance, bounded by max num path states. */
+    tile_size.width = min(image_size.x, max_num_path_states);
+    tile_size.height = min(image_size.y, max(max_num_path_states / tile_size.width, 1));
   }
   else {
-    tile_size.width = tile_size.height = 1;
+    /* Calculate tile size as if it is the most possible one to fit an entire range of samples.
+     * The idea here is to keep tiles as small as possible, and keep device occupied by scheduling
+     * multiple tiles with the same coordinates rendering different samples. */
+
+    if (num_path_states_per_sample != 0) {
+      tile_size.width = round_down_to_power_of_two(lround(sqrt(num_path_states_per_sample)));
+      tile_size.height = tile_size.width;
+    }
+    else {
+      tile_size.width = tile_size.height = 1;
+    }
   }
 
   if (num_samples == 1) {
@@ -93,7 +101,7 @@ TileSize tile_calculate_best_size(const int2 &image_size,
     tile_size.num_samples = min(round_up_to_power_of_two(lround(sqrt(num_samples / 2))),
                                 static_cast<uint>(num_samples));
 
-    const int tile_area = tile_size.width / tile_size.height;
+    const int tile_area = tile_size.width * tile_size.height;
     tile_size.num_samples = min(tile_size.num_samples, max_num_path_states / tile_area);
   }
 

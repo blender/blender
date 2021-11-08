@@ -518,7 +518,7 @@ GPUBatch *ui_batch_roundbox_shadow_get(void)
 /** \name Draw Triangle Arrow
  * \{ */
 
-void UI_draw_anti_tria(
+static void draw_anti_tria(
     float x1, float y1, float x2, float y2, float x3, float y3, const float color[4])
 {
   const float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};
@@ -559,64 +559,29 @@ void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
   const float f7 = 0.25 * U.widget_unit;
 
   if (dir == 'h') {
-    UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
+    draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
   }
   else if (dir == 't') {
-    UI_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
+    draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
   }
   else { /* 'v' = vertical, down. */
-    UI_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
+    draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
   }
 }
 
 /* triangle 'icon' inside rect */
-void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
+static void draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
 {
   if (dir == 'h') {
     const float half = 0.5f * BLI_rctf_size_y(rect);
-    UI_draw_anti_tria(
+    draw_anti_tria(
         rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half, color);
   }
   else {
     const float half = 0.5f * BLI_rctf_size_x(rect);
-    UI_draw_anti_tria(
+    draw_anti_tria(
         rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin, color);
   }
-}
-
-void UI_draw_anti_fan(float tri_array[][2], uint length, const float color[4])
-{
-  float draw_color[4];
-
-  copy_v4_v4(draw_color, color);
-  draw_color[3] *= 2.0f / WIDGET_AA_JITTER;
-
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  immUniformColor4fv(draw_color);
-
-  /* for each AA step */
-  for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-    immBegin(GPU_PRIM_TRI_FAN, length);
-    immVertex2f(pos, tri_array[0][0], tri_array[0][1]);
-    immVertex2f(pos, tri_array[1][0], tri_array[1][1]);
-
-    /* We jitter only the middle of the fan, the extremes are pinned. */
-    for (int i = 2; i < length - 1; i++) {
-      immVertex2f(pos, tri_array[i][0] + jit[j][0], tri_array[i][1] + jit[j][1]);
-    }
-
-    immVertex2f(pos, tri_array[length - 1][0], tri_array[length - 1][1]);
-    immEnd();
-  }
-
-  immUnbindProgram();
-
-  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void widget_init(uiWidgetBase *wtb)
@@ -1442,8 +1407,8 @@ static void widget_draw_icon(
 
     /* force positions to integers, for zoom levels near 1. draws icons crisp. */
     if (aspect > 0.95f && aspect < 1.05f) {
-      xs = (int)(xs + 0.1f);
-      ys = (int)(ys + 0.1f);
+      xs = roundf(xs);
+      ys = roundf(ys);
     }
 
     /* Get theme color. */
@@ -1494,7 +1459,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
   GPU_blend(GPU_BLEND_ALPHA);
   UI_widgetbase_draw_cache_flush();
   GPU_blend(GPU_BLEND_NONE);
-  ui_draw_anti_tria_rect(&tria_rect, 'h', col);
+  draw_anti_tria_rect(&tria_rect, 'h', col);
 }
 
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
@@ -2561,7 +2526,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
-  if ((state & UI_BUT_LIST_ITEM) && !(state & UI_STATE_TEXT_INPUT)) {
+  if (state & UI_BUT_LIST_ITEM) {
     /* Override default widget's colors. */
     bTheme *btheme = UI_GetTheme();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
@@ -3721,7 +3686,7 @@ static void widget_datasetrow(
 static void widget_nodesocket(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
-  const int radi = 5;
+  const int radi = 0.25f * BLI_rcti_size_y(rect);
 
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -4632,6 +4597,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     switch (but->type) {
       case UI_BTYPE_LABEL:
         wt = widget_type(UI_WTYPE_ICON_LABEL);
+        if (!(but->flag & UI_HAS_ICON)) {
+          but->drawflag |= UI_BUT_NO_TEXT_PADDING;
+        }
         break;
       default:
         wt = widget_type(UI_WTYPE_ICON);

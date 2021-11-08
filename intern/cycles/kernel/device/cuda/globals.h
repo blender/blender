@@ -18,10 +18,11 @@
 
 #pragma once
 
-#include "kernel/kernel_profiling.h"
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "kernel/integrator/integrator_state.h"
+#include "kernel/integrator/state.h"
+
+#include "kernel/util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -35,7 +36,7 @@ typedef ccl_global const KernelGlobalsGPU *ccl_restrict KernelGlobals;
 /* Global scene data and textures */
 __constant__ KernelData __data;
 #define KERNEL_TEX(type, name) const __constant__ __device__ type *name;
-#include "kernel/kernel_textures.h"
+#include "kernel/textures.h"
 
 /* Integrator state */
 __constant__ IntegratorStateGPU __integrator_state;

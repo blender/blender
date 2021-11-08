@@ -18,10 +18,10 @@
 #include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace.h"
 
-#include "render/buffers.h"
-#include "render/film.h"
-#include "render/pass.h"
-#include "render/scene.h"
+#include "scene/film.h"
+#include "scene/pass.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
 
 CCL_NAMESPACE_BEGIN
 

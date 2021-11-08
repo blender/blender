@@ -28,12 +28,12 @@ namespace blender::nodes {
 
 static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Object>("Object").hide_label();
-  b.add_input<decl::Collection>("Collection").hide_label();
-  b.add_input<decl::Geometry>("Instance Geometry");
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Object>(N_("Object")).hide_label();
+  b.add_input<decl::Collection>(N_("Collection")).hide_label();
+  b.add_input<decl::Geometry>(N_("Instance Geometry"));
+  b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -184,7 +184,7 @@ static void add_instances_from_component(InstancesComponent &instances,
   instances.resize(start_len + domain_size);
   MutableSpan<int> handles = instances.instance_reference_handles().slice(start_len, domain_size);
   MutableSpan<float4x4> transforms = instances.instance_transforms().slice(start_len, domain_size);
-  MutableSpan<int> instance_ids = instances.instance_ids().slice(start_len, domain_size);
+  MutableSpan<int> instance_ids = instances.instance_ids_ensure().slice(start_len, domain_size);
 
   /* Skip all of the randomness handling if there is only a single possible instance
    * (anything except for collection mode with "Whole Collection" turned off). */

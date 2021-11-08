@@ -31,10 +31,10 @@ namespace blender::nodes {
 static void fn_node_float_compare_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Epsilon").default_value(0.001f).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Bool>("Result");
+  b.add_input<decl::Float>(N_("A")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>(N_("B")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>(N_("Epsilon")).default_value(0.001f).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Bool>(N_("Result"));
 };
 
 static void geo_node_float_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

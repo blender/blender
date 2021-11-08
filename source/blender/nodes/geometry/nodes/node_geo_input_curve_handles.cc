@@ -20,8 +20,8 @@ namespace blender::nodes {
 
 static void geo_node_input_curve_handles_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Left").field_source();
-  b.add_output<decl::Vector>("Right").field_source();
+  b.add_output<decl::Vector>(N_("Left")).field_source();
+  b.add_output<decl::Vector>(N_("Right")).field_source();
 }
 
 static void geo_node_input_curve_handles_exec(GeoNodeExecParams params)

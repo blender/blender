@@ -126,16 +126,14 @@ class Node {
   }
 
   /**
-   * get the reference to a certain outputsocket
-   * \param index:
-   * the index of the needed outputsocket
+   * Get the reference to a certain output-socket.
+   * \param index: The index of the needed output-socket.
    */
   NodeOutput *get_output_socket(const unsigned int index = 0) const;
 
   /**
-   * get the reference to a certain inputsocket
-   * \param index:
-   * the index of the needed inputsocket
+   * get the reference to a certain input-socket.
+   * \param index: The index of the needed input-socket.
    */
   NodeInput *get_input_socket(const unsigned int index) const;
 

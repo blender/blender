@@ -323,8 +323,10 @@ static void rna_AttributeGroup_next_domain(ID *id,
                                            int(skip)(CollectionPropertyIterator *iter, void *data))
 {
   do {
-    CustomDataLayer *prev_layers = (CustomDataLayer *)iter->internal.array.endptr -
-                                   iter->internal.array.length;
+    CustomDataLayer *prev_layers = (iter->internal.array.endptr == NULL) ?
+                                       NULL :
+                                       (CustomDataLayer *)iter->internal.array.endptr -
+                                           iter->internal.array.length;
     CustomData *customdata = BKE_id_attributes_iterator_next_domain(id, prev_layers);
     if (customdata == NULL) {
       return;

@@ -22,9 +22,9 @@ namespace blender::nodes {
 
 static void geo_node_legacy_mesh_to_curve_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh");
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Mesh"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_legacy_mesh_to_curve_exec(GeoNodeExecParams params)

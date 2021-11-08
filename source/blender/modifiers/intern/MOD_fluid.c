@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -112,6 +113,31 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
+typedef struct FluidIsolationData {
+  Depsgraph *depsgraph;
+  Object *object;
+  Mesh *mesh;
+  FluidModifierData *fmd;
+
+  Mesh *result;
+} FluidIsolationData;
+
+#ifdef WITH_FLUID
+static void fluid_modifier_do_isolated(void *userdata)
+{
+  FluidIsolationData *isolation_data = (FluidIsolationData *)userdata;
+
+  Scene *scene = DEG_get_evaluated_scene(isolation_data->depsgraph);
+
+  Mesh *result = BKE_fluid_modifier_do(isolation_data->fmd,
+                                       isolation_data->depsgraph,
+                                       scene,
+                                       isolation_data->object,
+                                       isolation_data->mesh);
+  isolation_data->result = result ? result : isolation_data->mesh;
+}
+#endif /* WITH_FLUID */
+
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
 #ifndef WITH_FLUID
@@ -119,16 +145,24 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return me;
 #else
   FluidModifierData *fmd = (FluidModifierData *)md;
-  Mesh *result = NULL;
 
   if (ctx->flag & MOD_APPLY_ORCO) {
     return me;
   }
 
-  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  /* Isolate execution of Mantaflow when running from dependency graph. The reason for this is
+   * because Mantaflow uses TBB to parallel its own computation which without isolation will start
+   * stealing tasks from dependency graph. Stealing tasks from the dependency graph might cause
+   * a recursive lock when Python drivers are used (because Mantaflow is interfaced via Python as
+   * well. */
+  FluidIsolationData isolation_data;
+  isolation_data.depsgraph = ctx->depsgraph;
+  isolation_data.object = ctx->object;
+  isolation_data.mesh = me;
+  isolation_data.fmd = fmd;
+  BLI_task_isolate(fluid_modifier_do_isolated, &isolation_data);
 
-  result = BKE_fluid_modifier_do(fmd, ctx->depsgraph, scene, ctx->object, me);
-  return result ? result : me;
+  return isolation_data.result;
 #endif /* WITH_FLUID */
 }
 
@@ -213,7 +247,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemL(layout, IFACE_("Settings are inside the Physics tab"), ICON_NONE);
+  uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

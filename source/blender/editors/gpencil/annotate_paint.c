@@ -123,6 +123,8 @@ typedef struct tGPsdata {
   ARegion *region;
   /** needed for GP_STROKE_2DSPACE. */
   View2D *v2d;
+  /** For operations that require occlusion testing. */
+  ViewDepths *depths;
   /** for using the camera rect within the 3d view. */
   rctf *subrect;
   rctf subrect_data;
@@ -972,12 +974,13 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
       depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_used, "depth_points");
 
+      const ViewDepths *depths = p->depths;
       for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used; i++, ptc++, pt++) {
         round_v2i_v2fl(mval_i, &ptc->x);
 
-        if ((ED_view3d_autodist_depth(p->region, mval_i, depth_margin, depth_arr + i) == 0) &&
-            (i && (ED_view3d_autodist_depth_seg(
-                       p->region, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
+        if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
+            (i && (ED_view3d_depth_read_cached_seg(
+                       depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
           interp_depth = true;
         }
         else {
@@ -1086,7 +1089,10 @@ static bool annotation_stroke_eraser_is_occluded(tGPsdata *p,
     const int mval_i[2] = {x, y};
     float mval_3d[3];
 
-    if (ED_view3d_autodist_simple(p->region, mval_i, mval_3d, 0, NULL)) {
+    float p_depth;
+    if (ED_view3d_depth_read_cached(p->depths, mval_i, 0, &p_depth)) {
+      ED_view3d_depth_unproject_v3(p->region, mval_i, (double)p_depth, mval_3d);
+
       const float depth_mval = ED_view3d_calc_depth_for_comparison(rv3d, mval_3d);
       const float depth_pt = ED_view3d_calc_depth_for_comparison(rv3d, &pt->x);
 
@@ -1211,7 +1217,8 @@ static void annotation_stroke_doeraser(tGPsdata *p)
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
       View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
+      ED_view3d_depth_override(
+          p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, &p->depths);
     }
   }
 
@@ -1499,6 +1506,9 @@ static void annotation_session_cleanup(tGPsdata *p)
 
 static void annotation_session_free(tGPsdata *p)
 {
+  if (p->depths) {
+    ED_view3d_depths_free(p->depths);
+  }
   MEM_freeN(p);
 }
 

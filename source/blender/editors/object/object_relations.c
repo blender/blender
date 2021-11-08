@@ -1684,24 +1684,26 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 static bool single_data_needs_duplication(ID *id)
 {
-  /* NOTE: When dealing with linked data, we always make alocal copy of it.
+  /* NOTE: When dealing with linked data, we always make a local copy of it.
    * While in theory we could rather make it local when it only has one user, this is difficult
    * in practice with current code of this function. */
   return (id != NULL && (id->us > 1 || ID_IS_LINKED(id)));
 }
 
-static void libblock_relink_collection(Collection *collection, const bool do_collection)
+static void libblock_relink_collection(Main *bmain,
+                                       Collection *collection,
+                                       const bool do_collection)
 {
   if (do_collection) {
-    BKE_libblock_relink_to_newid(&collection->id);
+    BKE_libblock_relink_to_newid(bmain, &collection->id, 0);
   }
 
   for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
-    BKE_libblock_relink_to_newid(&cob->ob->id);
+    BKE_libblock_relink_to_newid(bmain, &cob->ob->id, 0);
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    libblock_relink_collection(child->collection, true);
+    libblock_relink_collection(bmain, child->collection, true);
   }
 }
 
@@ -1771,10 +1773,10 @@ static void single_object_users(
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
   /* Will also handle the master collection. */
-  BKE_libblock_relink_to_newid(&scene->id);
+  BKE_libblock_relink_to_newid(bmain, &scene->id, 0);
 
   /* Collection and object pointers in collections */
-  libblock_relink_collection(scene->master_collection, false);
+  libblock_relink_collection(bmain, scene->master_collection, false);
 
   /* We also have to handle runtime things in UI. */
   if (v3d) {
@@ -2594,10 +2596,10 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
-                                               const wmEvent *event)
+                                               const int mval[2])
 {
   int mat_slot = 0;
-  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);
   if (ob == NULL) {
     return BLI_strdup("");
   }
@@ -2715,21 +2717,27 @@ bool ED_operator_drop_material_poll(bContext *C)
   Object *obact = CTX_data_active_object(C);
 
   if (scene == NULL || ID_IS_LINKED(scene)) {
+    CTX_wm_operator_poll_msg_set(C, "Missing scene in context");
     return false;
   }
   if (CTX_data_edit_object(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot be used in edit mode");
     return false;
   }
 
   if (obact && !ELEM(obact->mode, OB_MODE_OBJECT, OB_MODE_SCULPT)) {
+    CTX_wm_operator_poll_msg_set(C, "Only supported in object and sculpt modes");
     return false;
   }
 
   return true;
 }
 
-/* used for dropbox */
-/* assigns to object under cursor, only first material slot */
+/**
+ * Used for drop-box.
+ * Assigns to object under cursor, only first material slot.
+ */
+
 void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
   /* identifiers */

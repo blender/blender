@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "render/output_driver.h"
+#include "session/output_driver.h"
 
-#include "util/util_function.h"
-#include "util/util_image.h"
-#include "util/util_string.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "util/function.h"
+#include "util/image.h"
+#include "util/string.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

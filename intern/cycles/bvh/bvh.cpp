@@ -18,12 +18,12 @@
 #include "bvh/bvh.h"
 
 #include "bvh/bvh2.h"
-#include "bvh/bvh_embree.h"
-#include "bvh/bvh_multi.h"
-#include "bvh/bvh_optix.h"
+#include "bvh/embree.h"
+#include "bvh/multi.h"
+#include "bvh/optix.h"
 
-#include "util/util_logging.h"
-#include "util/util_progress.h"
+#include "util/log.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

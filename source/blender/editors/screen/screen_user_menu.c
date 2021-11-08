@@ -111,7 +111,7 @@ bUserMenu *ED_screen_user_menu_ensure(bContext *C)
 bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
-                                                         short opcontext)
+                                                         wmOperatorCallContext opcontext)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
@@ -160,7 +160,7 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
                                            const char *ui_name,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
-                                           short opcontext)
+                                           wmOperatorCallContext opcontext)
 {
   bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_OPERATOR);
@@ -234,7 +234,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s", umi_op->op_idname);
+            SNPRINTF(label, TIP_("Missing: %s"), umi_op->op_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -248,7 +248,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s", umi_mt->mt_idname);
+            SNPRINTF(label, TIP_("Missing: %s"), umi_mt->mt_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -290,7 +290,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         if (!ok) {
           if (show_missing) {
-            SNPRINTF(label, "Missing: %s.%s", umi_pr->context_data_path, umi_pr->prop_id);
+            SNPRINTF(label, TIP_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }

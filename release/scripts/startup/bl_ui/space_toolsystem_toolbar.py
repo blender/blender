@@ -2192,23 +2192,20 @@ class _defs_node_edit:
             label="Links Cut",
             icon="ops.node.links_cut",
             widget=None,
-            keymap="Node Tool: Links Cut",)
+            keymap="Node Tool: Links Cut",
+            options={'KEYMAP_FALLBACK'},)
 
 
 class _defs_sequencer_generic:
 
     @ToolDef.from_fn
     def cursor():
-        return dict(
-            idname="builtin.cursor",
+        return dict(idname="builtin.cursor",
             label="Cursor",
-            description=(
-                "Set the cursor location, drag to transform"
-            ),
+            description=("Set the cursor location, drag to transform"),
             icon="ops.generic.cursor",
             keymap="Sequencer Tool: Cursor",
-            options={'KEYMAP_FALLBACK'},
-        )
+            options={'KEYMAP_FALLBACK'},)
 
     @ToolDef.from_fn
     def blade():
@@ -2223,7 +2220,8 @@ class _defs_sequencer_generic:
             cursor='CROSSHAIR',
             widget=None,
             keymap="Sequencer Tool: Blade",
-            draw_settings=draw_settings,)
+            draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},)
 
     @ToolDef.from_fn
     def sample():
@@ -2262,12 +2260,9 @@ class _defs_sequencer_generic:
 
     @ToolDef.from_fn
     def transform():
-        return dict(
-            idname="builtin.transform",
+        return dict(idname="builtin.transform",
             label="Transform",
-            description=(
-                "Supports any combination of grab, rotate, and scale at once"
-            ),
+            description=("Supports any combination of grab, rotate, and scale at once"),
             icon="ops.transform.transform",
             widget="SEQUENCER_GGT_gizmo2d",
             # No keymap default action, only for gizmo!
@@ -2328,7 +2323,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
-    # for reuse
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_transform = (_defs_image_uv_transform.translate,
         _defs_image_uv_transform.rotate,
         _defs_image_uv_transform.scale,
@@ -2344,6 +2340,10 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,),)
 
+    # Private tools dictionary, store data to implement `tools_all` &
+    # `tools_from_context`.
+    # The keys match image spaces modes: 'context.space_data.mode'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
             # for all modes
@@ -2399,6 +2399,8 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_select = ((_defs_node_select.select,
             _defs_node_select.box,
             _defs_node_select.lasso,
@@ -2409,6 +2411,11 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,),)
 
+    # Private tools dictionary, store data to implement `tools_all` &
+    # `tools_from_context`.
+    # The keys is always `None` since nodes don't use use modes to access
+    # different tools.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [*_tools_select,
             None,
@@ -2445,7 +2452,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
-    # for reuse
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_transform = (_defs_transform.translate,
         _defs_transform.rotate,
         (_defs_transform.scale,
@@ -2481,6 +2489,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         *_tools_annotate,
         _defs_view3d_generic.ruler,)
 
+    # Private tools dictionary, store data to implement `tools_all` &
+    # `tools_from_context`.
+    # The keys match object-modes from: 'context.mode'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
             # Don't use this!  because of paint modes.
@@ -2700,6 +2712,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_all(cls):
         yield from cls._tools.items()
 
+    # Private tool lists for convenient reuse in `_tools`.
+
     _tools_select = ((_defs_sequencer_select.select,
             _defs_sequencer_select.box,),)
     _tools_annotate = ((_defs_annotate.scribble,
@@ -2707,11 +2721,26 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,),)
 
+    # Private tools dictionary, store data to implement `tools_all` &
+    # `tools_from_context`.
+    # The keys match sequence editors view type:
+    # 'context.space_data.view_type'.
+    # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
-        None: [
-        ],
-        'PREVIEW': [
-            *_tools_select,
+        None: [],
+        'PREVIEW': [*_tools_select,
+            _defs_sequencer_generic.cursor,
+            None,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
+            _defs_sequencer_generic.transform,
+            None,
+            _defs_sequencer_generic.sample,
+            *_tools_annotate,],
+        'SEQUENCER': [*_tools_select,
+            _defs_sequencer_generic.blade,],
+        'SEQUENCER_PREVIEW': [*_tools_select,
             _defs_sequencer_generic.cursor,
             None,
             _defs_sequencer_generic.translate,
@@ -2721,25 +2750,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sequencer_generic.sample,
             *_tools_annotate,
-        ],
-        'SEQUENCER': [
-            *_tools_select,
-            _defs_sequencer_generic.blade,
-        ],
-        'SEQUENCER_PREVIEW': [
-            *_tools_select,
-            _defs_sequencer_generic.cursor,
             None,
-            _defs_sequencer_generic.translate,
-            _defs_sequencer_generic.rotate,
-            _defs_sequencer_generic.scale,
-            _defs_sequencer_generic.transform,
-            None,
-            _defs_sequencer_generic.sample,
-            *_tools_annotate,
-            None,
-            _defs_sequencer_generic.blade,
-        ],
+            _defs_sequencer_generic.blade,],
     }
 
 

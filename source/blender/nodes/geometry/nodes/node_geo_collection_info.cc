@@ -31,15 +31,15 @@ namespace blender::nodes {
 
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>("Collection").hide_label();
-  b.add_input<decl::Bool>("Separate Children")
+  b.add_input<decl::Collection>(N_("Collection")).hide_label();
+  b.add_input<decl::Bool>(N_("Separate Children"))
       .description(
-          "Output each child of the collection as a separate instance, sorted alphabetically");
-  b.add_input<decl::Bool>("Reset Children")
+          N_("Output each child of the collection as a separate instance, sorted alphabetically"));
+  b.add_input<decl::Bool>(N_("Reset Children"))
       .description(
-          "Reset the transforms of every child instance in the output. Only used when Separate "
-          "Children is enabled");
-  b.add_output<decl::Geometry>("Geometry");
+          N_("Reset the transforms of every child instance in the output. Only used when Separate "
+          "Children is enabled"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_collection_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -71,6 +71,14 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
     params.set_output("Geometry", geometry_set_out);
     return;
   }
+  const Object *self_object = params.self_object();
+  const bool is_recursive = BKE_collection_has_object_recursive_instanced(collection,
+                                                                          (Object *)self_object);
+  if (is_recursive) {
+    params.error_message_add(NodeWarningType::Error, "Collection contains current object");
+    params.set_output("Geometry", geometry_set_out);
+    return;
+  }
 
   const bNode &bnode = params.node();
   NodeGeometryCollectionInfo *node_storage = (NodeGeometryCollectionInfo *)bnode.storage;
@@ -78,8 +86,6 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
                                        GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
-
-  const Object *self_object = params.self_object();
 
   const bool separate_children = params.get_input<bool>("Separate Children");
   if (separate_children) {

@@ -921,6 +921,10 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
     /* Release the mesh from the geometry set again. */
     if (geometry_set.has<MeshComponent>()) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      if (mesh_component.get_for_read() != input_mesh) {
+        /* Make sure the mesh component actually owns the mesh before taking over ownership. */
+        mesh_component.ensure_owns_direct_data();
+      }
       mesh_output = mesh_component.release();
     }
 
@@ -1892,9 +1896,9 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   const bool is_mesh_eval_owned = (mesh_eval != mesh->runtime.mesh_eval);
   BKE_object_eval_assign_data(ob, &mesh_eval->id, is_mesh_eval_owned);
 
-  /* Add the final mesh as read-only non-owning component to the geometry set. */
+  /* Add the final mesh as a non-owning component to the geometry set. */
   MeshComponent &mesh_component = geometry_set_eval->get_component_for_write<MeshComponent>();
-  mesh_component.replace(mesh_eval, GeometryOwnershipType::ReadOnly);
+  mesh_component.replace(mesh_eval, GeometryOwnershipType::Editable);
   ob->runtime.geometry_set_eval = geometry_set_eval;
 
   ob->runtime.mesh_deform_eval = mesh_deform_eval;

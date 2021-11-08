@@ -552,7 +552,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 
 #else  /* WITH_OCEANSIM */
-  uiItemL(layout, IFACE_("Built without Ocean modifier"), ICON_NONE);
+  uiItemL(layout, TIP_("Built without Ocean modifier"), ICON_NONE);
 #endif /* WITH_OCEANSIM */
 }
 

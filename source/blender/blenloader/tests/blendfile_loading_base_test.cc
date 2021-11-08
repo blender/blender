@@ -65,7 +65,6 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_idtype_init();
   BKE_appdir_init();
   IMB_init();
-  BKE_images_init();
   BKE_modifier_init();
   DEG_register_node_types();
   RNA_init();

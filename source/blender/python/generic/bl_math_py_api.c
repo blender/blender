@@ -99,21 +99,21 @@ static PyObject *py_bl_math_lerp(PyObject *UNUSED(self), PyObject *args)
   return PyFloat_FromDouble(a * (1.0 - x) + b * x);
 }
 
-PyDoc_STRVAR(
-    py_bl_math_smoothstep_doc,
-    ".. function:: smoothstep(from_value, to_value, value)\n"
-    "\n"
-    "   Performs smooth interpolation between 0 and 1 as value changes between from and to values.\n"
-    "   Outside the range the function returns the same value as the nearest edge.\n"
-    "\n"
-    "   :arg from_value: The edge value where the result is 0.\n"
-    "   :type from_value: float\n"
-    "   :arg to_value: The edge value where the result is 1.\n"
-    "   :type to_value: float\n"
-    "   :arg factor: The interpolation value.\n"
-    "   :type factor: float\n"
-    "   :return: The interpolated value in [0.0, 1.0].\n"
-    "   :rtype: float\n");
+PyDoc_STRVAR(py_bl_math_smoothstep_doc,
+             ".. function:: smoothstep(from_value, to_value, value)\n"
+             "\n"
+             "   Performs smooth interpolation between 0 and 1 as value changes between from and "
+             "to values.\n"
+             "   Outside the range the function returns the same value as the nearest edge.\n"
+             "\n"
+             "   :arg from_value: The edge value where the result is 0.\n"
+             "   :type from_value: float\n"
+             "   :arg to_value: The edge value where the result is 1.\n"
+             "   :type to_value: float\n"
+             "   :arg factor: The interpolation value.\n"
+             "   :type factor: float\n"
+             "   :return: The interpolated value in [0.0, 1.0].\n"
+             "   :rtype: float\n");
 static PyObject *py_bl_math_smoothstep(PyObject *UNUSED(self), PyObject *args)
 {
   double a, b, x;

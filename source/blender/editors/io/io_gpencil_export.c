@@ -410,6 +410,7 @@ void WM_OT_gpencil_export_pdf(wmOperatorType *ot)
   static const EnumPropertyItem gpencil_export_frame_items[] = {
       {GP_EXPORT_FRAME_ACTIVE, "ACTIVE", 0, "Active", "Include only active frame"},
       {GP_EXPORT_FRAME_SELECTED, "SELECTED", 0, "Selected", "Include selected frames"},
+      {GP_EXPORT_FRAME_SCENE, "SCENE", 0, "Scene", "Include all scene frames"},
       {0, NULL, 0, NULL, NULL},
   };
 

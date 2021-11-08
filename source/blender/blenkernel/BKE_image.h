@@ -47,9 +47,6 @@ struct anim;
 #define IMA_MAX_SPACE 64
 #define IMA_UDIM_MAX 2000
 
-void BKE_images_init(void);
-void BKE_images_exit(void);
-
 void BKE_image_free_packedfiles(struct Image *image);
 void BKE_image_free_views(struct Image *image);
 void BKE_image_free_buffers(struct Image *image);
@@ -152,10 +149,6 @@ struct ImageUser;
 struct RenderData;
 struct RenderPass;
 struct RenderResult;
-
-/* ima->ok */
-#define IMA_OK 1
-#define IMA_OK_LOADED 2
 
 /* signals */
 /* reload only frees, doesn't read until image_get_ibuf() called */

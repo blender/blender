@@ -219,6 +219,20 @@ bool ED_operator_objectmode(bContext *C)
   return true;
 }
 
+/**
+ * Same as #ED_operator_objectmode() but additionally sets a "disabled hint". That is, a message
+ * to be displayed to the user explaining why the operator can't be used in current context.
+ */
+bool ED_operator_objectmode_poll_msg(bContext *C)
+{
+  if (!ED_operator_objectmode(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Only supported in object mode");
+    return false;
+  }
+
+  return true;
+}
+
 static bool ed_spacetype_test(bContext *C, int type)
 {
   if (ED_operator_areaactive(C)) {
@@ -1283,7 +1297,7 @@ static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
  *
  * callbacks:
  *
- * invoke() gets called on shift+lmb drag in action-zone
+ * invoke() gets called on Shift-LMB drag in action-zone
  * exec()   execute without any user interaction, based on properties
  * call init(), add handler
  *
@@ -2078,7 +2092,7 @@ typedef struct sAreaSplitData {
   int bigger, smaller;   /* constraints for moving new edge */
   int delta;             /* delta move edge */
   int origmin, origsize; /* to calculate fac, for property storage */
-  int previewmode;       /* draw previewline, then split */
+  int previewmode;       /* draw preview-line, then split. */
   void *draw_callback;   /* call `screen_draw_split_preview` */
   bool do_snap;
 
@@ -2628,8 +2642,8 @@ static int area_max_regionsize(ScrArea *area, ARegion *scalear, AZEdge edge)
       dist = BLI_rcti_size_y(&area->totrct);
     }
 
-    /* subtractwidth of regions on opposite side
-     * prevents dragging regions into other opposite regions */
+    /* Subtract the width of regions on opposite side
+     * prevents dragging regions into other opposite regions. */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region == scalear) {
         continue;
@@ -3082,12 +3096,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
   float cfra = (float)(CFRA);
 
-  /* init binarytree-list for getting keyframes */
+  /* Initialize binary-tree-list for getting keyframes. */
   struct AnimKeylist *keylist = ED_keylist_create();
 
-  /* seed up dummy dopesheet context with flags to perform necessary filtering */
+  /* Speed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
-    /* only selected channels are included */
+    /* Only selected channels are included. */
     ads.filterflag |= ADS_FILTER_ONLYSEL;
   }
 
@@ -4206,7 +4220,7 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Region Context Menu Operator (Header/Footer/Navbar)
+/** \name Region Context Menu Operator (Header/Footer/Navigation-Bar)
  * \{ */
 
 static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
@@ -5058,6 +5072,18 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
   int sizey = 520 * UI_DPI_FAC;
 
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
+  if (prop && RNA_property_is_set(op->ptr, prop)) {
+    /* Set active section via RNA, so it can fail properly. */
+
+    PointerRNA pref_ptr;
+    RNA_pointer_create(NULL, &RNA_Preferences, &U, &pref_ptr);
+    PropertyRNA *active_section_prop = RNA_struct_find_property(&pref_ptr, "active_section");
+
+    RNA_property_enum_set(&pref_ptr, active_section_prop, RNA_property_enum_get(op->ptr, prop));
+    RNA_property_update(C, &pref_ptr, active_section_prop);
+  }
+
   /* changes context! */
   if (WM_window_open(C,
                      IFACE_("Blender Preferences"),
@@ -5091,14 +5117,24 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
 
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
-  ot->name = "Show Preferences";
+  ot->name = "Open Preferences...";
   ot->description = "Edit user preferences and system settings";
   ot->idname = "SCREEN_OT_userpref_show";
 
   /* api callbacks */
   ot->exec = userpref_show_exec;
   ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+
+  prop = RNA_def_enum(ot->srna,
+                      "section",
+                      rna_enum_preference_section_items,
+                      0,
+                      "",
+                      "Section to activate in the Preferences");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */

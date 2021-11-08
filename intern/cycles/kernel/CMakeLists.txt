@@ -22,7 +22,7 @@ set(INC_SYS
 
 )
 
-set(SRC_DEVICE_CPU
+set(SRC_KERNEL_DEVICE_CPU
   device/cpu/kernel.cpp
   device/cpu/kernel_sse2.cpp
   device/cpu/kernel_sse3.cpp
@@ -31,63 +31,20 @@ set(SRC_DEVICE_CPU
   device/cpu/kernel_avx2.cpp
 )
 
-set(SRC_DEVICE_CUDA
+set(SRC_KERNEL_DEVICE_CUDA
   device/cuda/kernel.cu
 )
 
-set(SRC_DEVICE_HIP
+set(SRC_KERNEL_DEVICE_HIP
   device/hip/kernel.cpp
 )
 
-set(SRC_DEVICE_OPTIX
+set(SRC_KERNEL_DEVICE_OPTIX
   device/optix/kernel.cu
   device/optix/kernel_shader_raytrace.cu
 )
 
-set(SRC_BVH_HEADERS
-  bvh/bvh.h
-  bvh/bvh_nodes.h
-  bvh/bvh_shadow_all.h
-  bvh/bvh_local.h
-  bvh/bvh_traversal.h
-  bvh/bvh_types.h
-  bvh/bvh_util.h
-  bvh/bvh_volume.h
-  bvh/bvh_volume_all.h
-  bvh/bvh_embree.h
-)
-
-set(SRC_HEADERS
-  kernel_accumulate.h
-  kernel_adaptive_sampling.h
-  kernel_bake.h
-  kernel_camera.h
-  kernel_color.h
-  kernel_differential.h
-  kernel_emission.h
-  kernel_film.h
-  kernel_id_passes.h
-  kernel_jitter.h
-  kernel_light.h
-  kernel_light_background.h
-  kernel_light_common.h
-  kernel_lookup_table.h
-  kernel_math.h
-  kernel_montecarlo.h
-  kernel_passes.h
-  kernel_path_state.h
-  kernel_profiling.h
-  kernel_projection.h
-  kernel_random.h
-  kernel_shader.h
-  kernel_shadow_catcher.h
-  kernel_textures.h
-  kernel_types.h
-  kernel_work_stealing.h
-  kernel_write_passes.h
-)
-
-set(SRC_DEVICE_CPU_HEADERS
+set(SRC_KERNEL_DEVICE_CPU_HEADERS
   device/cpu/compat.h
   device/cpu/image.h
   device/cpu/globals.h
@@ -95,33 +52,34 @@ set(SRC_DEVICE_CPU_HEADERS
   device/cpu/kernel_arch.h
   device/cpu/kernel_arch_impl.h
 )
-set(SRC_DEVICE_GPU_HEADERS
+set(SRC_KERNEL_DEVICE_GPU_HEADERS
   device/gpu/image.h
   device/gpu/kernel.h
   device/gpu/parallel_active_index.h
   device/gpu/parallel_prefix_sum.h
   device/gpu/parallel_reduce.h
   device/gpu/parallel_sorted_index.h
+  device/gpu/work_stealing.h
 )
 
-set(SRC_DEVICE_CUDA_HEADERS
+set(SRC_KERNEL_DEVICE_CUDA_HEADERS
   device/cuda/compat.h
   device/cuda/config.h
   device/cuda/globals.h
 )
 
-set(SRC_DEVICE_HIP_HEADERS
+set(SRC_KERNEL_DEVICE_HIP_HEADERS
   device/hip/compat.h
   device/hip/config.h
   device/hip/globals.h
 )
 
-set(SRC_DEVICE_OPTIX_HEADERS
+set(SRC_KERNEL_DEVICE_OPTIX_HEADERS
   device/optix/compat.h
   device/optix/globals.h
 )
 
-set(SRC_CLOSURE_HEADERS
+set(SRC_KERNEL_CLOSURE_HEADERS
   closure/alloc.h
   closure/bsdf.h
   closure/bsdf_ashikhmin_velvet.h
@@ -147,157 +105,233 @@ set(SRC_CLOSURE_HEADERS
   closure/bsdf_hair_principled.h
 )
 
-set(SRC_SVM_HEADERS
+set(SRC_KERNEL_SVM_HEADERS
   svm/svm.h
-  svm/svm_ao.h
-  svm/svm_aov.h
-  svm/svm_attribute.h
-  svm/svm_bevel.h
-  svm/svm_blackbody.h
-  svm/svm_bump.h
-  svm/svm_camera.h
-  svm/svm_clamp.h
-  svm/svm_closure.h
-  svm/svm_convert.h
-  svm/svm_checker.h
-  svm/svm_color_util.h
-  svm/svm_brick.h
-  svm/svm_displace.h
-  svm/svm_fresnel.h
-  svm/svm_wireframe.h
-  svm/svm_wavelength.h
-  svm/svm_gamma.h
-  svm/svm_brightness.h
-  svm/svm_geometry.h
-  svm/svm_gradient.h
-  svm/svm_hsv.h
-  svm/svm_ies.h
-  svm/svm_image.h
-  svm/svm_invert.h
-  svm/svm_light_path.h
-  svm/svm_magic.h
-  svm/svm_map_range.h
-  svm/svm_mapping.h
-  svm/svm_mapping_util.h
-  svm/svm_math.h
-  svm/svm_math_util.h
-  svm/svm_mix.h
-  svm/svm_musgrave.h
-  svm/svm_noise.h
-  svm/svm_noisetex.h
-  svm/svm_normal.h
-  svm/svm_ramp.h
-  svm/svm_ramp_util.h
-  svm/svm_sepcomb_hsv.h
-  svm/svm_sepcomb_vector.h
-  svm/svm_sky.h
-  svm/svm_tex_coord.h
-  svm/svm_fractal_noise.h
-  svm/svm_types.h
-  svm/svm_value.h
-  svm/svm_vector_rotate.h
-  svm/svm_vector_transform.h
-  svm/svm_voronoi.h
-  svm/svm_voxel.h
-  svm/svm_wave.h
-  svm/svm_white_noise.h
-  svm/svm_vertex_color.h
+  svm/ao.h
+  svm/aov.h
+  svm/attribute.h
+  svm/bevel.h
+  svm/blackbody.h
+  svm/bump.h
+  svm/camera.h
+  svm/clamp.h
+  svm/closure.h
+  svm/convert.h
+  svm/checker.h
+  svm/color_util.h
+  svm/brick.h
+  svm/displace.h
+  svm/fresnel.h
+  svm/wireframe.h
+  svm/wavelength.h
+  svm/gamma.h
+  svm/brightness.h
+  svm/geometry.h
+  svm/gradient.h
+  svm/hsv.h
+  svm/ies.h
+  svm/image.h
+  svm/invert.h
+  svm/light_path.h
+  svm/magic.h
+  svm/map_range.h
+  svm/mapping.h
+  svm/mapping_util.h
+  svm/math.h
+  svm/math_util.h
+  svm/mix.h
+  svm/musgrave.h
+  svm/noise.h
+  svm/noisetex.h
+  svm/normal.h
+  svm/ramp.h
+  svm/ramp_util.h
+  svm/sepcomb_hsv.h
+  svm/sepcomb_vector.h
+  svm/sky.h
+  svm/tex_coord.h
+  svm/fractal_noise.h
+  svm/types.h
+  svm/value.h
+  svm/vector_rotate.h
+  svm/vector_transform.h
+  svm/voronoi.h
+  svm/voxel.h
+  svm/wave.h
+  svm/white_noise.h
+  svm/vertex_color.h
 )
 
-set(SRC_GEOM_HEADERS
+set(SRC_KERNEL_GEOM_HEADERS
   geom/geom.h
-  geom/geom_attribute.h
-  geom/geom_curve.h
-  geom/geom_curve_intersect.h
-  geom/geom_motion_curve.h
-  geom/geom_motion_triangle.h
-  geom/geom_motion_triangle_intersect.h
-  geom/geom_motion_triangle_shader.h
-  geom/geom_object.h
-  geom/geom_patch.h
-  geom/geom_primitive.h
-  geom/geom_shader_data.h
-  geom/geom_subd_triangle.h
-  geom/geom_triangle.h
-  geom/geom_triangle_intersect.h
-  geom/geom_volume.h
+  geom/attribute.h
+  geom/curve.h
+  geom/curve_intersect.h
+  geom/motion_curve.h
+  geom/motion_triangle.h
+  geom/motion_triangle_intersect.h
+  geom/motion_triangle_shader.h
+  geom/object.h
+  geom/patch.h
+  geom/primitive.h
+  geom/shader_data.h
+  geom/subd_triangle.h
+  geom/triangle.h
+  geom/triangle_intersect.h
+  geom/volume.h
 )
 
-set(SRC_INTEGRATOR_HEADERS
-  integrator/integrator_init_from_bake.h
-  integrator/integrator_init_from_camera.h
-  integrator/integrator_intersect_closest.h
-  integrator/integrator_intersect_shadow.h
-  integrator/integrator_intersect_subsurface.h
-  integrator/integrator_intersect_volume_stack.h
-  integrator/integrator_megakernel.h
-  integrator/integrator_shade_background.h
-  integrator/integrator_shade_light.h
-  integrator/integrator_shade_shadow.h
-  integrator/integrator_shade_surface.h
-  integrator/integrator_shade_volume.h
-  integrator/integrator_shadow_state_template.h
-  integrator/integrator_state.h
-  integrator/integrator_state_flow.h
-  integrator/integrator_state_template.h
-  integrator/integrator_state_util.h
-  integrator/integrator_subsurface.h
-  integrator/integrator_subsurface_disk.h
-  integrator/integrator_subsurface_random_walk.h
-  integrator/integrator_volume_stack.h
+set(SRC_KERNEL_BAKE_HEADERS
+  bake/bake.h
+)
+
+set(SRC_KERNEL_BVH_HEADERS
+  bvh/bvh.h
+  bvh/nodes.h
+  bvh/shadow_all.h
+  bvh/local.h
+  bvh/traversal.h
+  bvh/types.h
+  bvh/util.h
+  bvh/volume.h
+  bvh/volume_all.h
+  bvh/embree.h
+)
+
+set(SRC_KERNEL_CAMERA_HEADERS
+  camera/camera.h
+  camera/projection.h
+)
+
+set(SRC_KERNEL_FILM_HEADERS
+  film/accumulate.h
+  film/adaptive_sampling.h
+  film/id_passes.h
+  film/passes.h
+  film/read.h
+  film/write_passes.h
+)
+
+set(SRC_KERNEL_INTEGRATOR_HEADERS
+  integrator/init_from_bake.h
+  integrator/init_from_camera.h
+  integrator/intersect_closest.h
+  integrator/intersect_shadow.h
+  integrator/intersect_subsurface.h
+  integrator/intersect_volume_stack.h
+  integrator/megakernel.h
+  integrator/path_state.h
+  integrator/shade_background.h
+  integrator/shade_light.h
+  integrator/shader_eval.h
+  integrator/shade_shadow.h
+  integrator/shade_surface.h
+  integrator/shade_volume.h
+  integrator/shadow_catcher.h
+  integrator/shadow_state_template.h
+  integrator/state_flow.h
+  integrator/state.h
+  integrator/state_template.h
+  integrator/state_util.h
+  integrator/subsurface_disk.h
+  integrator/subsurface.h
+  integrator/subsurface_random_walk.h
+  integrator/volume_stack.h
+)
+
+set(SRC_KERNEL_LIGHT_HEADERS
+  light/light.h
+  light/background.h
+  light/common.h
+  light/sample.h
+)
+
+set(SRC_KERNEL_SAMPLE_HEADERS
+  sample/jitter.h
+  sample/lcg.h
+  sample/mapping.h
+  sample/mis.h
+  sample/pattern.h
+)
+
+set(SRC_KERNEL_UTIL_HEADERS
+  util/color.h
+  util/differential.h
+  util/lookup_table.h
+  util/profiling.h
+)
+
+set(SRC_KERNEL_TYPES_HEADERS
+  textures.h
+  types.h
+)
+
+set(SRC_KERNEL_HEADERS
+  ${SRC_KERNEL_BAKE_HEADERS}
+  ${SRC_KERNEL_BVH_HEADERS}
+  ${SRC_KERNEL_CAMERA_HEADERS}
+  ${SRC_KERNEL_CLOSURE_HEADERS}
+  ${SRC_KERNEL_FILM_HEADERS}
+  ${SRC_KERNEL_GEOM_HEADERS}
+  ${SRC_KERNEL_INTEGRATOR_HEADERS}
+  ${SRC_KERNEL_LIGHT_HEADERS}
+  ${SRC_KERNEL_SAMPLE_HEADERS}
+  ${SRC_KERNEL_SVM_HEADERS}
+  ${SRC_KERNEL_TYPES_HEADERS}
+  ${SRC_KERNEL_UTIL_HEADERS}
 )
 
 set(SRC_UTIL_HEADERS
-  ../util/util_atomic.h
-  ../util/util_color.h
-  ../util/util_defines.h
-  ../util/util_half.h
-  ../util/util_hash.h
-  ../util/util_math.h
-  ../util/util_math_fast.h
-  ../util/util_math_intersect.h
-  ../util/util_math_float2.h
-  ../util/util_math_float3.h
-  ../util/util_math_float4.h
-  ../util/util_math_int2.h
-  ../util/util_math_int3.h
-  ../util/util_math_int4.h
-  ../util/util_math_matrix.h
-  ../util/util_projection.h
-  ../util/util_rect.h
-  ../util/util_static_assert.h
-  ../util/util_transform.h
-  ../util/util_texture.h
-  ../util/util_types.h
-  ../util/util_types_float2.h
-  ../util/util_types_float2_impl.h
-  ../util/util_types_float3.h
-  ../util/util_types_float3_impl.h
-  ../util/util_types_float4.h
-  ../util/util_types_float4_impl.h
-  ../util/util_types_float8.h
-  ../util/util_types_float8_impl.h
-  ../util/util_types_int2.h
-  ../util/util_types_int2_impl.h
-  ../util/util_types_int3.h
-  ../util/util_types_int3_impl.h
-  ../util/util_types_int4.h
-  ../util/util_types_int4_impl.h
-  ../util/util_types_uchar2.h
-  ../util/util_types_uchar2_impl.h
-  ../util/util_types_uchar3.h
-  ../util/util_types_uchar3_impl.h
-  ../util/util_types_uchar4.h
-  ../util/util_types_uchar4_impl.h
-  ../util/util_types_uint2.h
-  ../util/util_types_uint2_impl.h
-  ../util/util_types_uint3.h
-  ../util/util_types_uint3_impl.h
-  ../util/util_types_uint4.h
-  ../util/util_types_uint4_impl.h
-  ../util/util_types_ushort4.h
-  ../util/util_types_vector3.h
-  ../util/util_types_vector3_impl.h
+  ../util/atomic.h
+  ../util/color.h
+  ../util/defines.h
+  ../util/half.h
+  ../util/hash.h
+  ../util/math.h
+  ../util/math_fast.h
+  ../util/math_intersect.h
+  ../util/math_float2.h
+  ../util/math_float3.h
+  ../util/math_float4.h
+  ../util/math_int2.h
+  ../util/math_int3.h
+  ../util/math_int4.h
+  ../util/math_matrix.h
+  ../util/projection.h
+  ../util/rect.h
+  ../util/static_assert.h
+  ../util/transform.h
+  ../util/texture.h
+  ../util/types.h
+  ../util/types_float2.h
+  ../util/types_float2_impl.h
+  ../util/types_float3.h
+  ../util/types_float3_impl.h
+  ../util/types_float4.h
+  ../util/types_float4_impl.h
+  ../util/types_float8.h
+  ../util/types_float8_impl.h
+  ../util/types_int2.h
+  ../util/types_int2_impl.h
+  ../util/types_int3.h
+  ../util/types_int3_impl.h
+  ../util/types_int4.h
+  ../util/types_int4_impl.h
+  ../util/types_uchar2.h
+  ../util/types_uchar2_impl.h
+  ../util/types_uchar3.h
+  ../util/types_uchar3_impl.h
+  ../util/types_uchar4.h
+  ../util/types_uchar4_impl.h
+  ../util/types_uint2.h
+  ../util/types_uint2_impl.h
+  ../util/types_uint3.h
+  ../util/types_uint3_impl.h
+  ../util/types_uint4.h
+  ../util/types_uint4_impl.h
+  ../util/types_ushort4.h
+  ../util/types_vector3.h
+  ../util/types_vector3_impl.h
 )
 
 set(LIB
@@ -331,14 +365,9 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
   # build for each arch
   set(cuda_sources device/cuda/kernel.cu
-    ${SRC_HEADERS}
-    ${SRC_DEVICE_GPU_HEADERS}
-    ${SRC_DEVICE_CUDA_HEADERS}
-    ${SRC_BVH_HEADERS}
-    ${SRC_SVM_HEADERS}
-    ${SRC_GEOM_HEADERS}
-    ${SRC_INTEGRATOR_HEADERS}
-    ${SRC_CLOSURE_HEADERS}
+    ${SRC_KERNEL_HEADERS}
+    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+    ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
     ${SRC_UTIL_HEADERS}
   )
   set(cuda_cubins)
@@ -489,13 +518,9 @@ endif()
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   # build for each arch
   set(hip_sources device/hip/kernel.cpp
-    ${SRC_HEADERS}
-    ${SRC_DEVICE_HIP_HEADERS}
-    ${SRC_BVH_HEADERS}
-    ${SRC_SVM_HEADERS}
-    ${SRC_GEOM_HEADERS}
-    ${SRC_INTEGRATOR_HEADERS}
-    ${SRC_CLOSURE_HEADERS}
+    ${SRC_KERNEL_HEADERS}
+    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+    ${SRC_KERNEL_DEVICE_HIP_HEADERS}
     ${SRC_UTIL_HEADERS}
   )
   set(hip_fatbins)
@@ -597,15 +622,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
         OUTPUT ${output}
         DEPENDS
           ${input}
-          ${SRC_HEADERS}
-          ${SRC_DEVICE_GPU_HEADERS}
-          ${SRC_DEVICE_CUDA_HEADERS}
-          ${SRC_DEVICE_OPTIX_HEADERS}
-          ${SRC_BVH_HEADERS}
-          ${SRC_SVM_HEADERS}
-          ${SRC_GEOM_HEADERS}
-          ${SRC_INTEGRATOR_HEADERS}
-          ${SRC_CLOSURE_HEADERS}
+          ${SRC_KERNEL_HEADERS}
+          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
           ${SRC_UTIL_HEADERS}
         COMMAND ${CUBIN_CC_ENV}
             "$<TARGET_FILE:cycles_cubin_cc>"
@@ -622,15 +642,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
           ${output}
         DEPENDS
           ${input}
-          ${SRC_HEADERS}
-          ${SRC_DEVICE_GPU_HEADERS}
-          ${SRC_DEVICE_CUDA_HEADERS}
-          ${SRC_DEVICE_OPTIX_HEADERS}
-          ${SRC_BVH_HEADERS}
-          ${SRC_SVM_HEADERS}
-          ${SRC_GEOM_HEADERS}
-          ${SRC_INTEGRATOR_HEADERS}
-          ${SRC_CLOSURE_HEADERS}
+          ${SRC_KERNEL_HEADERS}
+          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
           ${SRC_UTIL_HEADERS}
         COMMAND
           ${CUDA_NVCC_EXECUTABLE}
@@ -666,7 +681,7 @@ if(WITH_CYCLES_OSL)
     cycles_kernel_osl
   )
   add_subdirectory(osl)
-  add_subdirectory(shaders)
+  add_subdirectory(osl/shaders)
 endif()
 
 # CPU module
@@ -704,34 +719,35 @@ if(CXX_HAS_AVX2)
 endif()
 
 cycles_add_library(cycles_kernel "${LIB}"
-  ${SRC_DEVICE_CPU}
-  ${SRC_DEVICE_CUDA}
-  ${SRC_DEVICE_HIP}
-  ${SRC_DEVICE_OPTIX}
-  ${SRC_HEADERS}
-  ${SRC_DEVICE_CPU_HEADERS}
-  ${SRC_DEVICE_GPU_HEADERS}
-  ${SRC_DEVICE_CUDA_HEADERS}
-  ${SRC_DEVICE_HIP_HEADERS}
-  ${SRC_DEVICE_OPTIX_HEADERS}
-  ${SRC_BVH_HEADERS}
-  ${SRC_CLOSURE_HEADERS}
-  ${SRC_SVM_HEADERS}
-  ${SRC_GEOM_HEADERS}
-  ${SRC_INTEGRATOR_HEADERS}
+  ${SRC_KERNEL_DEVICE_CPU}
+  ${SRC_KERNEL_DEVICE_CUDA}
+  ${SRC_KERNEL_DEVICE_HIP}
+  ${SRC_KERNEL_DEVICE_OPTIX}
+  ${SRC_KERNEL_HEADERS}
+  ${SRC_KERNEL_DEVICE_CPU_HEADERS}
+  ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+  ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+  ${SRC_KERNEL_DEVICE_HIP_HEADERS}
+  ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
 )
 
-source_group("bvh" FILES ${SRC_BVH_HEADERS})
-source_group("closure" FILES ${SRC_CLOSURE_HEADERS})
-source_group("geom" FILES ${SRC_GEOM_HEADERS})
-source_group("integrator" FILES ${SRC_INTEGRATOR_HEADERS})
-source_group("kernel" FILES ${SRC_HEADERS})
-source_group("device\\cpu" FILES ${SRC_DEVICE_CPU} ${SRC_DEVICE_CPU_HEADERS})
-source_group("device\\hip" FILES ${SRC_DEVICE_HIP} ${SRC_DEVICE_HIP_HEADERS})
-source_group("device\\gpu" FILES ${SRC_DEVICE_GPU_HEADERS})
-source_group("device\\cuda" FILES ${SRC_DEVICE_CUDA} ${SRC_DEVICE_CUDA_HEADERS})
-source_group("device\\optix" FILES ${SRC_DEVICE_OPTIX} ${SRC_DEVICE_OPTIX_HEADERS})
-source_group("svm" FILES ${SRC_SVM_HEADERS})
+source_group("bake" FILES ${SRC_KERNEL_BAKE_HEADERS})
+source_group("bvh" FILES ${SRC_KERNEL_BVH_HEADERS})
+source_group("camera" FILES ${SRC_KERNEL_CAMERA_HEADERS})
+source_group("closure" FILES ${SRC_KERNEL_CLOSURE_HEADERS})
+source_group("device\\cpu" FILES ${SRC_KERNEL_DEVICE_CPU} ${SRC_KERNEL_DEVICE_CPU_HEADERS})
+source_group("device\\cuda" FILES ${SRC_KERNEL_DEVICE_CUDA} ${SRC_KERNEL_DEVICE_CUDA_HEADERS})
+source_group("device\\gpu" FILES ${SRC_KERNEL_DEVICE_GPU_HEADERS})
+source_group("device\\hip" FILES ${SRC_KERNEL_DEVICE_HIP} ${SRC_KERNEL_DEVICE_HIP_HEADERS})
+source_group("device\\optix" FILES ${SRC_KERNEL_DEVICE_OPTIX} ${SRC_KERNEL_DEVICE_OPTIX_HEADERS})
+source_group("film" FILES ${SRC_KERNEL_FILM_HEADERS})
+source_group("geom" FILES ${SRC_KERNEL_GEOM_HEADERS})
+source_group("integrator" FILES ${SRC_KERNEL_INTEGRATOR_HEADERS})
+source_group("kernel" FILES ${SRC_KERNEL_TYPES_HEADERS})
+source_group("light" FILES ${SRC_KERNEL_LIGHT_HEADERS})
+source_group("sample" FILES ${SRC_KERNEL_SAMPLE_HEADERS})
+source_group("svm" FILES ${SRC_KERNEL_SVM_HEADERS})
+source_group("util" FILES ${SRC_KERNEL_UTIL_HEADERS})
 
 if(WITH_CYCLES_CUDA)
   add_dependencies(cycles_kernel cycles_kernel_cuda)
@@ -745,19 +761,25 @@ endif()
 
 # Install kernel source for runtime compilation
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_HIP}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_GPU_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/gpu)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_HIP_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_INTEGRATOR_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/integrator)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_BAKE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bake)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_CAMERA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/camera)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_CUDA}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_GPU_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/gpu)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_FILM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/film)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_INTEGRATOR_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/integrator)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_LIGHT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/light)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SAMPLE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/sample)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_TYPES_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/util)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/util)
 
 if(WITH_NANOVDB)

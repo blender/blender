@@ -29,7 +29,7 @@ namespace blender::nodes {
 
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes

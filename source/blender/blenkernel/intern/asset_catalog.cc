@@ -18,24 +18,19 @@
  * \ingroup bke
  */
 
+#include <fstream>
+#include <set>
+
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.h"
-#include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
-#include "BLI_set.hh"
-#include "BLI_string_ref.hh"
-
-#include "DNA_userdef_types.h"
 
 /* For S_ISREG() and S_ISDIR() on Windows. */
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
-
-#include <fstream>
-#include <set>
 
 namespace blender::bke {
 
@@ -210,7 +205,7 @@ void AssetCatalogService::delete_catalog_by_id_hard(CatalogID catalog_id)
   catalog_collection_->catalogs_.remove(catalog_id);
   catalog_collection_->deleted_catalogs_.remove(catalog_id);
 
-  /* TODO(Sybren): adjust this when supporting mulitple CDFs. */
+  /* TODO(@sybren): adjust this when supporting multiple CDFs. */
   catalog_collection_->catalog_definition_file_->forget(catalog_id);
 }
 

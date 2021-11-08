@@ -1864,6 +1864,39 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Drop Name Operator
+ * \{ */
+
+static int drop_name_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  uiBut *but = UI_but_active_drop_name_button(C);
+  char *str = RNA_string_get_alloc(op->ptr, "string", NULL, 0, NULL);
+
+  if (str) {
+    ui_but_set_string_interactive(C, but, str);
+    MEM_freeN(str);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_drop_name(wmOperatorType *ot)
+{
+  ot->name = "Drop Name";
+  ot->idname = "UI_OT_drop_name";
+  ot->description = "Drop name to button";
+
+  ot->poll = ED_operator_regionactive;
+  ot->invoke = drop_name_invoke;
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(
+      ot->srna, "string", NULL, 0, "String", "The string value to drop into the button");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name UI List Search Operator
  * \{ */
 
@@ -2025,6 +2058,7 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_copy_to_selected_button);
   WM_operatortype_append(UI_OT_jump_to_target_button);
   WM_operatortype_append(UI_OT_drop_color);
+  WM_operatortype_append(UI_OT_drop_name);
 #ifdef WITH_PYTHON
   WM_operatortype_append(UI_OT_editsource);
   WM_operatortype_append(UI_OT_edittranslation_init);

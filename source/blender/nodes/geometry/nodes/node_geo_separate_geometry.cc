@@ -23,16 +23,16 @@ namespace blender::nodes {
 
 static void geo_node_separate_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection"))
       .default_value(true)
       .hide_value()
       .supports_field()
-      .description("The parts of the geometry that go into the first output");
-  b.add_output<decl::Geometry>("Selection")
-      .description("The parts of the geometry in the selection");
-  b.add_output<decl::Geometry>("Inverted")
-      .description("The parts of the geometry not in the selection");
+      .description(N_("The parts of the geometry that go into the first output"));
+  b.add_output<decl::Geometry>(N_("Selection"))
+      .description(N_("The parts of the geometry in the selection"));
+  b.add_output<decl::Geometry>(N_("Inverted"))
+      .description(N_("The parts of the geometry not in the selection"));
 }
 
 static void geo_node_separate_geometry_layout(uiLayout *layout,

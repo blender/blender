@@ -16,11 +16,11 @@
 
 #include "integrator/render_scheduler.h"
 
-#include "render/session.h"
-#include "render/tile.h"
-#include "util/util_logging.h"
-#include "util/util_math.h"
-#include "util/util_time.h"
+#include "session/session.h"
+#include "session/tile.h"
+#include "util/log.h"
+#include "util/math.h"
+#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 

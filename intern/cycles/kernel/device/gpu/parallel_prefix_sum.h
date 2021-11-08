@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
  * This is used for an array the size of the number of shaders in the scene
  * which is not usually huge, so might not be a significant bottleneck. */
 
-#include "util/util_atomic.h"
+#include "util/atomic.h"
 
 #ifdef __HIP__
 #  define GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE 1024

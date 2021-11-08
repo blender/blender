@@ -673,11 +673,7 @@ static EditBone *get_nearest_editbonepoint(
   }
 
   if (use_cycle) {
-    static int last_mval[2] = {-100, -100};
-    if ((len_manhattan_v2v2_int(vc->mval, last_mval) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) == 0) {
-      use_cycle = false;
-    }
-    copy_v2_v2_int(last_mval, vc->mval);
+    use_cycle = !WM_cursor_test_motion_and_update(vc->mval);
   }
 
   const bool do_nearest = !(XRAY_ACTIVE(vc->v3d) || use_cycle);

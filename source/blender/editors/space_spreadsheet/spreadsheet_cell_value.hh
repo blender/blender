@@ -58,6 +58,7 @@ class CellValue {
   std::optional<ObjectCellValue> value_object;
   std::optional<CollectionCellValue> value_collection;
   std::optional<GeometrySetCellValue> value_geometry_set;
+  std::optional<std::string> value_string;
 };
 
 }  // namespace blender::ed::spreadsheet

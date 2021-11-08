@@ -147,6 +147,10 @@ void UI_view2d_view_restore(const struct bContext *C);
 /* grid drawing */
 void UI_view2d_multi_grid_draw(
     const struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
+void UI_view2d_dot_grid_draw(const struct View2D *v2d,
+                             int grid_color_id,
+                             float step,
+                             int grid_levels);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
@@ -311,6 +315,9 @@ typedef struct View2DEdgePanData {
   /** View2d we're operating in. */
   struct View2D *v2d;
 
+  /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
+   * outside). */
+  bool enabled;
   /** Inside distance in UI units from the edge of the region within which to start panning. */
   float inside_pad;
   /** Outside distance in UI units from the edge of the region at which to stop panning. */

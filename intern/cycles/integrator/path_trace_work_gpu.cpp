@@ -20,14 +20,14 @@
 #include "device/device.h"
 
 #include "integrator/pass_accessor_gpu.h"
-#include "render/buffers.h"
-#include "render/scene.h"
-#include "util/util_logging.h"
-#include "util/util_string.h"
-#include "util/util_tbb.h"
-#include "util/util_time.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
+#include "util/log.h"
+#include "util/string.h"
+#include "util/tbb.h"
+#include "util/time.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -53,9 +53,9 @@ static size_t estimate_single_state_size()
  * rely on this. */
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE 4
 
-#include "kernel/integrator/integrator_state_template.h"
+#include "kernel/integrator/state_template.h"
 
-#include "kernel/integrator/integrator_shadow_state_template.h"
+#include "kernel/integrator/shadow_state_template.h"
 
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
@@ -120,7 +120,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * TODO: store float3 in separate XYZ arrays. */
 #define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
-  if ((kernel_features & feature) && (integrator_state_gpu_.parent_struct.name == nullptr)) { \
+  if ((kernel_features & (feature)) && (integrator_state_gpu_.parent_struct.name == nullptr)) { \
     device_only_memory<type> *array = new device_only_memory<type>(device_, \
                                                                    "integrator_state_" #name); \
     array->alloc_to_device(max_num_paths_); \
@@ -128,7 +128,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     integrator_state_gpu_.parent_struct.name = (type *)array->device_pointer; \
   }
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
-  if ((kernel_features & feature) && \
+  if ((kernel_features & (feature)) && \
       (integrator_state_gpu_.parent_struct[array_index].name == nullptr)) { \
     device_only_memory<type> *array = new device_only_memory<type>(device_, \
                                                                    "integrator_state_" #name); \
@@ -146,9 +146,9 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   }
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE (integrator_state_soa_volume_stack_size_)
 
-#include "kernel/integrator/integrator_state_template.h"
+#include "kernel/integrator/state_template.h"
 
-#include "kernel/integrator/integrator_shadow_state_template.h"
+#include "kernel/integrator/shadow_state_template.h"
 
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
@@ -258,7 +258,10 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
    * schedules work in halves of available number of paths. */
   work_tile_scheduler_.set_max_num_path_states(max_num_paths_ / 8);
 
-  work_tile_scheduler_.reset(effective_buffer_params_, start_sample, samples_num);
+  work_tile_scheduler_.reset(effective_buffer_params_,
+                             start_sample,
+                             samples_num,
+                             device_scene_->data.integrator.scrambling_distance);
 
   enqueue_reset();
 
@@ -804,10 +807,10 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
     interop_use_ = device->should_use_graphics_interop();
 
     if (interop_use_) {
-      VLOG(2) << "Will be using graphics interop GPU display update.";
+      VLOG(2) << "Using graphics interop GPU display update.";
     }
     else {
-      VLOG(2) << "Will be using naive GPU display update.";
+      VLOG(2) << "Using naive GPU display update.";
     }
 
     interop_use_checked_ = true;
@@ -1082,7 +1085,7 @@ bool PathTraceWorkGPU::kernel_creates_shadow_paths(DeviceKernel kernel)
 
 bool PathTraceWorkGPU::kernel_creates_ao_paths(DeviceKernel kernel)
 {
-  return (device_scene_->data.film.pass_ao != PASS_UNUSED) &&
+  return (device_scene_->data.kernel_features & KERNEL_FEATURE_AO) &&
          (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
 }

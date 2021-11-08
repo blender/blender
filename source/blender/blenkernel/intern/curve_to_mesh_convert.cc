@@ -58,9 +58,8 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const int vert_offset,
                                       const int edge_offset)
 {
-  Span<float3> positions = spline.evaluated_positions();
-
-  for (const int i : IndexRange(positions.size() - 1)) {
+  const int eval_size = spline.evaluated_points_size();
+  for (const int i : IndexRange(eval_size - 1)) {
     MEdge &edge = r_edges[edge_offset + i];
     edge.v1 = vert_offset + i;
     edge.v2 = vert_offset + i + 1;
@@ -70,13 +69,21 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
   if (spline.is_cyclic() && spline.evaluated_edges_size() > 1) {
     MEdge &edge = r_edges[edge_offset + spline.evaluated_edges_size() - 1];
     edge.v1 = vert_offset;
-    edge.v2 = vert_offset + positions.size() - 1;
+    edge.v2 = vert_offset + eval_size - 1;
     edge.flag = ME_LOOSEEDGE;
   }
 
-  for (const int i : positions.index_range()) {
+  Span<float3> positions = spline.evaluated_positions();
+  Span<float3> tangents = spline.evaluated_tangents();
+  Span<float3> normals = spline.evaluated_normals();
+  GVArray_Typed<float> radii = spline.interpolate_to_evaluated(spline.radii());
+  for (const int i : IndexRange(eval_size)) {
+    float4x4 point_matrix = float4x4::from_normalized_axis_data(
+        positions[i], normals[i], tangents[i]);
+    point_matrix.apply_scale(radii[i]);
+
     MVert &vert = r_verts[vert_offset + i];
-    copy_v3_v3(vert.co, positions[i] + profile_vert);
+    copy_v3_v3(vert.co, point_matrix * profile_vert);
   }
 }
 
@@ -88,6 +95,7 @@ static void mark_edges_sharp(MutableSpan<MEdge> edges)
 }
 
 static void spline_extrude_to_mesh_data(const ResultInfo &info,
+                                        const bool fill_caps,
                                         MutableSpan<MVert> r_verts,
                                         MutableSpan<MEdge> r_edges,
                                         MutableSpan<MLoop> r_loops,
@@ -180,6 +188,39 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
     }
   }
 
+  if (fill_caps && profile.is_cyclic()) {
+    const int poly_size = info.spline_edge_len * info.profile_edge_len;
+    const int cap_loop_offset = info.loop_offset + poly_size * 4;
+    const int cap_poly_offset = info.poly_offset + poly_size;
+
+    MPoly &poly_start = r_polys[cap_poly_offset];
+    poly_start.loopstart = cap_loop_offset;
+    poly_start.totloop = info.profile_edge_len;
+    MPoly &poly_end = r_polys[cap_poly_offset + 1];
+    poly_end.loopstart = cap_loop_offset + info.profile_edge_len;
+    poly_end.totloop = info.profile_edge_len;
+
+    const int last_ring_index = info.spline_vert_len - 1;
+    const int last_ring_vert_offset = info.vert_offset + info.profile_vert_len * last_ring_index;
+    const int last_ring_edge_offset = profile_edges_start +
+                                      info.profile_edge_len * last_ring_index;
+
+    for (const int i : IndexRange(info.profile_edge_len)) {
+      const int i_inv = info.profile_edge_len - i - 1;
+      MLoop &loop_start = r_loops[cap_loop_offset + i];
+      loop_start.v = info.vert_offset + i_inv;
+      loop_start.e = profile_edges_start + ((i == (info.profile_edge_len - 1)) ?
+                                                (info.profile_edge_len - 1) :
+                                                (i_inv - 1));
+      MLoop &loop_end = r_loops[cap_loop_offset + info.profile_edge_len + i];
+      loop_end.v = last_ring_vert_offset + i;
+      loop_end.e = last_ring_edge_offset + i;
+    }
+
+    mark_edges_sharp(r_edges.slice(profile_edges_start, info.profile_edge_len));
+    mark_edges_sharp(r_edges.slice(last_ring_edge_offset, info.profile_edge_len));
+  }
+
   /* Calculate the positions of each profile ring profile along the spline. */
   Span<float3> positions = spline.evaluated_positions();
   Span<float3> tangents = spline.evaluated_tangents();
@@ -226,14 +267,22 @@ static inline int spline_extrude_edge_size(const Spline &curve, const Spline &pr
          curve.evaluated_edges_size() * profile.evaluated_points_size();
 }
 
-static inline int spline_extrude_loop_size(const Spline &curve, const Spline &profile)
+static inline int spline_extrude_loop_size(const Spline &curve,
+                                           const Spline &profile,
+                                           const bool fill_caps)
 {
-  return curve.evaluated_edges_size() * profile.evaluated_edges_size() * 4;
+  const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size() * 4;
+  const int caps = (fill_caps && profile.is_cyclic()) ? profile.evaluated_edges_size() * 2 : 0;
+  return tube + caps;
 }
 
-static inline int spline_extrude_poly_size(const Spline &curve, const Spline &profile)
+static inline int spline_extrude_poly_size(const Spline &curve,
+                                           const Spline &profile,
+                                           const bool fill_caps)
 {
-  return curve.evaluated_edges_size() * profile.evaluated_edges_size();
+  const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size();
+  const int caps = (fill_caps && profile.is_cyclic()) ? 2 : 0;
+  return tube + caps;
 }
 
 struct ResultOffsets {
@@ -242,7 +291,9 @@ struct ResultOffsets {
   Array<int> loop;
   Array<int> poly;
 };
-static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles, Span<SplinePtr> curves)
+static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles,
+                                              Span<SplinePtr> curves,
+                                              const bool fill_caps)
 {
   const int total = profiles.size() * curves.size();
   Array<int> vert(total + 1);
@@ -263,8 +314,8 @@ static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles, Span<Spl
       poly[mesh_index] = poly_offset;
       vert_offset += spline_extrude_vert_size(*curves[i_spline], *profiles[i_profile]);
       edge_offset += spline_extrude_edge_size(*curves[i_spline], *profiles[i_profile]);
-      loop_offset += spline_extrude_loop_size(*curves[i_spline], *profiles[i_profile]);
-      poly_offset += spline_extrude_poly_size(*curves[i_spline], *profiles[i_profile]);
+      loop_offset += spline_extrude_loop_size(*curves[i_spline], *profiles[i_profile], fill_caps);
+      poly_offset += spline_extrude_poly_size(*curves[i_spline], *profiles[i_profile], fill_caps);
       mesh_index++;
     }
   }
@@ -652,12 +703,12 @@ static void copy_spline_domain_attributes_to_mesh(const CurveEval &curve,
  * changed anyway in a way that affects the normals. So currently this code uses the safer /
  * simpler solution of deferring normal calculation to the rest of Blender.
  */
-Mesh *curve_to_mesh_sweep(const CurveEval &curve, const CurveEval &profile)
+Mesh *curve_to_mesh_sweep(const CurveEval &curve, const CurveEval &profile, const bool fill_caps)
 {
   Span<SplinePtr> profiles = profile.splines();
   Span<SplinePtr> curves = curve.splines();
 
-  const ResultOffsets offsets = calculate_result_offsets(profiles, curves);
+  const ResultOffsets offsets = calculate_result_offsets(profiles, curves, fill_caps);
   if (offsets.vert.last() == 0) {
     return nullptr;
   }
@@ -696,6 +747,7 @@ Mesh *curve_to_mesh_sweep(const CurveEval &curve, const CurveEval &profile)
           };
 
           spline_extrude_to_mesh_data(info,
+                                      fill_caps,
                                       {mesh->mvert, mesh->totvert},
                                       {mesh->medge, mesh->totedge},
                                       {mesh->mloop, mesh->totloop},
@@ -733,7 +785,7 @@ static CurveEval get_curve_single_vert()
 Mesh *curve_to_wire_mesh(const CurveEval &curve)
 {
   static const CurveEval vert_curve = get_curve_single_vert();
-  return curve_to_mesh_sweep(curve, vert_curve);
+  return curve_to_mesh_sweep(curve, vert_curve, false);
 }
 
 }  // namespace blender::bke

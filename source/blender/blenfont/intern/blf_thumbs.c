@@ -106,7 +106,7 @@ void BLF_thumb_preview(const char *filename,
     font_size_curr -= (font_size_curr / font_shrink);
     font_shrink += 1;
 
-    font->pos[1] -= gc->ascender * 1.1f;
+    font->pos[1] -= blf_font_ascender(font) * 1.1f;
 
     /* We fallback to default english strings in case not enough chars are available in current
      * font for given translated string (useful in non-latin i18n context, like Chinese,

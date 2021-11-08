@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "DNA_uuid_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -145,7 +147,9 @@ bool ED_fileselect_is_asset_browser(const struct SpaceFile *sfile);
 struct AssetLibrary *ED_fileselect_active_asset_library_get(const struct SpaceFile *sfile);
 struct ID *ED_fileselect_active_asset_get(const struct SpaceFile *sfile);
 
-/* Activate the file that corresponds to the given ID.
+void ED_fileselect_activate_asset_catalog(const struct SpaceFile *sfile, bUUID catalog_id);
+
+/* Activate and select the file that corresponds to the given ID.
  * Pass deferred=true to wait for the next refresh before activating. */
 void ED_fileselect_activate_by_id(struct SpaceFile *sfile,
                                   struct ID *asset_id,

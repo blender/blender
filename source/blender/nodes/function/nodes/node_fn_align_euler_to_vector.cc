@@ -28,10 +28,14 @@ namespace blender::nodes {
 static void fn_node_align_euler_to_vector_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).hide_value();
-  b.add_input<decl::Float>("Factor").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>("Vector").default_value({0.0, 0.0, 1.0});
-  b.add_output<decl::Vector>("Rotation").subtype(PROP_EULER);
+  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).hide_value();
+  b.add_input<decl::Float>(N_("Factor"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Vector>(N_("Vector")).default_value({0.0, 0.0, 1.0});
+  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
 }
 
 static void fn_node_align_euler_to_vector_layout(uiLayout *layout,

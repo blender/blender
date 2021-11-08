@@ -27,8 +27,8 @@ namespace blender::nodes {
 
 static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes

@@ -30,7 +30,6 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_task.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
@@ -505,25 +504,12 @@ AnimKeylistDrawList *ED_keylist_draw_list_create(void)
   return MEM_callocN(sizeof(AnimKeylistDrawList), __func__);
 }
 
-static void ED_keylist_draw_list_elem_build_task(void *__restrict UNUSED(userdata),
-                                                 void *item,
-                                                 int UNUSED(index),
-                                                 const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  AnimKeylistDrawListElem *elem = item;
-  ED_keylist_draw_list_elem_build_keylist(elem);
-  ED_keylist_draw_list_elem_prepare_for_drawing(elem);
-}
-
 static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
 {
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  /* Create a task per item, a single item is complex enough to deserve its own task. */
-  settings.min_iter_per_thread = 1;
-
-  BLI_task_parallel_listbase(
-      &draw_list->channels, NULL, ED_keylist_draw_list_elem_build_task, &settings);
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_draw_list_elem_build_keylist(elem);
+    ED_keylist_draw_list_elem_prepare_for_drawing(elem);
+  }
 }
 
 static void ED_keylist_draw_list_draw_blocks(AnimKeylistDrawList *draw_list, View2D *v2d)

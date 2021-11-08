@@ -86,18 +86,23 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
   wmWindowManager *wm = (wmWindowManager *)id;
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BKE_LIB_FOREACHID_PROCESS(data, win->scene, IDWALK_CB_USER_ONE);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->scene, IDWALK_CB_USER_ONE);
 
     /* This pointer can be NULL during old files reading, better be safe than sorry. */
     if (win->workspace_hook != NULL) {
       ID *workspace = (ID *)BKE_workspace_active_get(win->workspace_hook);
-      BKE_LIB_FOREACHID_PROCESS_ID(data, workspace, IDWALK_CB_NOP);
+      BKE_lib_query_foreachid_process(data, &workspace, IDWALK_CB_USER);
       /* Allow callback to set a different workspace. */
       BKE_workspace_active_set(win->workspace_hook, (WorkSpace *)workspace);
+      if (BKE_lib_query_foreachid_iter_stop(data)) {
+        return;
+      }
     }
+
     if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
       LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-        BKE_screen_foreach_id_screen_area(data, area);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                                BKE_screen_foreach_id_screen_area(data, area));
       }
     }
   }

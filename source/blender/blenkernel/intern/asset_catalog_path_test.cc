@@ -193,19 +193,33 @@ TEST(AssetCatalogPathTest, is_contained_in)
 
 TEST(AssetCatalogPathTest, cleanup)
 {
-  AssetCatalogPath ugly_path("/  some /   родитель  / ");
-  AssetCatalogPath clean_path = ugly_path.cleanup();
-
-  EXPECT_EQ(AssetCatalogPath("/  some /   родитель  / "), ugly_path)
-      << "cleanup should not modify the path instance itself";
-
-  EXPECT_EQ(AssetCatalogPath("some/родитель"), clean_path);
-
-  AssetCatalogPath double_slashed("some//родитель");
-  EXPECT_EQ(AssetCatalogPath("some/родитель"), double_slashed.cleanup());
-
-  AssetCatalogPath with_colons("some/key:subkey=value/path");
-  EXPECT_EQ(AssetCatalogPath("some/key-subkey=value/path"), with_colons.cleanup());
+  {
+    AssetCatalogPath ugly_path("/  some /   родитель  / ");
+    AssetCatalogPath clean_path = ugly_path.cleanup();
+    EXPECT_EQ(AssetCatalogPath("/  some /   родитель  / "), ugly_path)
+        << "cleanup should not modify the path instance itself";
+    EXPECT_EQ(AssetCatalogPath("some/родитель"), clean_path);
+  }
+  {
+    AssetCatalogPath double_slashed("some//родитель");
+    EXPECT_EQ(AssetCatalogPath("some/родитель"), double_slashed.cleanup());
+  }
+  {
+    AssetCatalogPath with_colons("some/key:subkey=value/path");
+    EXPECT_EQ(AssetCatalogPath("some/key-subkey=value/path"), with_colons.cleanup());
+  }
+  {
+    const AssetCatalogPath with_backslashes("windows\\for\\life");
+    EXPECT_EQ(AssetCatalogPath("windows/for/life"), with_backslashes.cleanup());
+  }
+  {
+    const AssetCatalogPath with_mixed("windows\\for/life");
+    EXPECT_EQ(AssetCatalogPath("windows/for/life"), with_mixed.cleanup());
+  }
+  {
+    const AssetCatalogPath with_punctuation("is!/this?/¿valid?");
+    EXPECT_EQ(AssetCatalogPath("is!/this?/¿valid?"), with_punctuation.cleanup());
+  }
 }
 
 TEST(AssetCatalogPathTest, iterate_components)

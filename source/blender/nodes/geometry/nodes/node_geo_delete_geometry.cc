@@ -50,13 +50,13 @@ namespace blender::nodes {
 
 static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection"))
       .default_value(true)
       .hide_value()
       .supports_field()
-      .description("The parts of the geometry to be deleted");
-  b.add_output<decl::Geometry>("Geometry");
+      .description(N_("The parts of the geometry to be deleted"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_delete_geometry_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

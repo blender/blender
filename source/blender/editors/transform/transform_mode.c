@@ -1054,6 +1054,11 @@ void ElementResize(const TransInfo *t,
   }
 
   if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
+    if (t->options & CTX_POSE_BONE) {
+      /* Without this, the resulting location of scaled bones aren't correct,
+       * especially noticeable scaling root or disconnected bones around the cursor, see T92515. */
+      mul_mat3_m4_v3(tc->poseobj->obmat, vec);
+    }
     mul_m3_v3(td->smtx, vec);
   }
 
@@ -1085,7 +1090,14 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_RESIZE: {
       float mouse_dir_constraint[3];
       if (op) {
-        RNA_float_get_array(op->ptr, "mouse_dir_constraint", mouse_dir_constraint);
+        PropertyRNA *prop = RNA_struct_find_property(op->ptr, "mouse_dir_constraint");
+        if (prop) {
+          RNA_property_float_get_array(op->ptr, prop, mouse_dir_constraint);
+        }
+        else {
+          /* Resize is expected to have this property. */
+          BLI_assert(!STREQ(op->idname, "TRANSFORM_OT_resize"));
+        }
       }
       else {
         zero_v3(mouse_dir_constraint);

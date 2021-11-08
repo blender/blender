@@ -19,7 +19,7 @@
 #  include "device/optix/queue.h"
 #  include "device/optix/device_impl.h"
 
-#  include "util/util_time.h"
+#  include "util/time.h"
 
 #  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__

@@ -26,6 +26,7 @@ extern "C" {
 
 struct ID;
 struct bContext;
+struct Main;
 
 /**
  * Mark the datablock as asset.
@@ -51,6 +52,8 @@ void ED_asset_generate_preview(const struct bContext *C, struct ID *id);
  *
  * \return whether the asset metadata was actually removed; false when the ID was not an asset. */
 bool ED_asset_clear_id(struct ID *id);
+
+void ED_assets_pre_save(struct Main *bmain);
 
 bool ED_asset_can_mark_single_from_context(const struct bContext *C);
 

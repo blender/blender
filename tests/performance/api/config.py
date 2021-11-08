@@ -206,7 +206,7 @@ class TestConfig:
         # Optimization to avoid rebuilds.
         revisions_to_build = set()
         for entry in entries:
-            if entry.status in ('queued', 'outdated'):
+            if entry.status in {'queued', 'outdated'}:
                 revisions_to_build.add(entry.git_hash)
         self.queue.has_multiple_revisions_to_build = len(revisions_to_build) > 1
 
@@ -260,7 +260,7 @@ class TestConfig:
                         entry.executable = executable
                         entry.benchmark_type = self.benchmark_type
                         entry.date = date
-                        if entry.status in ('done', 'failed'):
+                        if entry.status in {'done', 'failed'}:
                             entry.status = 'outdated'
                 else:
                     # Add new entry if it did not exist yet.

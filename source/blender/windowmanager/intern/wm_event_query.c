@@ -276,6 +276,28 @@ bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
          (ISMOUSE_BUTTON(event->type) && (event->val == KM_PRESS));
 }
 
+/**
+ * Detect motion between selection (callers should only use this for selection picking),
+ * typically mouse press/click events.
+ *
+ * \param mval: Region relative coordinates, call with (-1, -1) resets the last cursor location.
+ * \returns True when there was motion since last called.
+ *
+ * NOTE(@campbellbarton): The logic used here isn't foolproof.
+ * It's possible that users move the cursor past #WM_EVENT_CURSOR_MOTION_THRESHOLD then back to
+ * a position within the threshold (between mouse clicks).
+ * In practice users never reported this since the threshold is very small (a few pixels).
+ * To prevent the unlikely case of values matching from another region,
+ * changing regions resets this value to (-1, -1).
+ */
+bool WM_cursor_test_motion_and_update(const int mval[2])
+{
+  static int mval_prev[2] = {-1, -1};
+  bool use_cycle = (len_manhattan_v2v2_int(mval, mval_prev) <= WM_EVENT_CURSOR_MOTION_THRESHOLD);
+  copy_v2_v2_int(mval_prev, mval);
+  return !use_cycle;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

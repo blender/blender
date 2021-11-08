@@ -373,15 +373,14 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   /* Check if image has been updated and tagged to be updated (full or partial). */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (((ima->gpuflag & IMA_GPU_REFRESH) != 0) ||
-      ((ibuf == NULL || tile == NULL || !tile->ok) &&
-       ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
+      ((ibuf == NULL || tile == NULL) && ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
     image_free_gpu(ima, true);
     BLI_freelistN(&ima->gpu_refresh_areas);
     ima->gpuflag &= ~(IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH);
   }
   else if (ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) {
     BLI_assert(ibuf);
-    BLI_assert(tile && tile->ok);
+    BLI_assert(tile);
     ImagePartialRefresh *refresh_area;
     while ((refresh_area = BLI_pophead(&ima->gpu_refresh_areas))) {
       const int tile_offset_x = refresh_area->tile_x * IMA_PARTIAL_REFRESH_TILE_SIZE;
@@ -417,7 +416,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
 
   /* Check if we have a valid image. If not, we return a dummy
    * texture with zero bind-code so we don't keep trying. */
-  if (tile == NULL || tile->ok == 0) {
+  if (tile == NULL) {
     *tex = image_gpu_texture_error_create(textarget);
     return *tex;
   }

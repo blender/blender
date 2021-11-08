@@ -26,7 +26,6 @@
 
 #include <string>
 
-#include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
 #include "BLO_readfile.h"

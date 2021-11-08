@@ -113,7 +113,7 @@ class OperatorSpecEditMode:
         """
         self.operator_name = operator_name
         self.operator_parameters = operator_parameters
-        if select_mode not in ['VERT', 'EDGE', 'FACE']:
+        if select_mode not in {'VERT', 'EDGE', 'FACE'}:
             raise ValueError("select_mode must be either {}, {} or {}".format('VERT', 'EDGE', 'FACE'))
         self.select_mode = select_mode
         self.selection = selection

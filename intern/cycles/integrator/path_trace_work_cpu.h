@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "kernel/integrator/integrator_state.h"
+#include "kernel/integrator/state.h"
 
 #include "device/cpu/kernel_thread_globals.h"
-#include "device/device_queue.h"
+#include "device/queue.h"
 
 #include "integrator/path_trace_work.h"
 
-#include "util/util_vector.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

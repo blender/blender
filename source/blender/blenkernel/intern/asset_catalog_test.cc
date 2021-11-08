@@ -902,8 +902,6 @@ TEST_F(AssetCatalogTest, update_catalog_path)
   const AssetCatalog *renamed_cat = service.find_catalog(UUID_POSES_RUZENA);
   ASSERT_NE(nullptr, renamed_cat);
   ASSERT_EQ(orig_cat, renamed_cat) << "Changing the path should not reallocate the catalog.";
-  EXPECT_EQ(orig_cat->simple_name, renamed_cat->simple_name)
-      << "Changing the path should not change the simple name.";
   EXPECT_EQ(orig_cat->catalog_id, renamed_cat->catalog_id)
       << "Changing the path should not change the catalog ID.";
 
@@ -930,6 +928,47 @@ TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
       << "Changing the path should update the simplename.";
   EXPECT_EQ("charlib-Ružena-face", service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
       << "Changing the path should update the simplename of children.";
+}
+
+TEST_F(AssetCatalogTest, update_catalog_path_add_slashes)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+
+  const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
+  const AssetCatalogPath orig_path = orig_cat->path;
+
+  /* Original path is `character/Ružena/poselib`.
+   * This rename will also create a new catalog for `character/Ružena/poses`. */
+  service.update_catalog_path(UUID_POSES_RUZENA, "character/Ružena/poses/general");
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path(orig_path))
+      << "The original (pre-rename) path should not be associated with a catalog any more.";
+
+  const AssetCatalog *renamed_cat = service.find_catalog(UUID_POSES_RUZENA);
+  ASSERT_NE(nullptr, renamed_cat);
+  EXPECT_EQ(orig_cat->catalog_id, renamed_cat->catalog_id)
+      << "Changing the path should not change the catalog ID.";
+
+  EXPECT_EQ("character/Ružena/poses/general", renamed_cat->path.str())
+      << "When creating a new catalog by renaming + adding a slash, the renamed catalog should be "
+         "assigned the path passed to update_catalog_path()";
+
+  /* Test the newly created catalog. */
+  const AssetCatalog *new_cat = service.find_catalog_by_path("character/Ružena/poses");
+  ASSERT_NE(nullptr, new_cat) << "Renaming to .../X/Y should cause .../X to exist as well.";
+  EXPECT_EQ("character/Ružena/poses", new_cat->path.str());
+  EXPECT_EQ("character-Ružena-poses", new_cat->simple_name);
+  EXPECT_TRUE(new_cat->flags.has_unsaved_changes);
+
+  /* Test the children. */
+  EXPECT_EQ("character/Ružena/poses/general/hand",
+            service.find_catalog(UUID_POSES_RUZENA_HAND)->path.str())
+      << "Changing the path should update children.";
+  EXPECT_EQ("character/Ružena/poses/general/face",
+            service.find_catalog(UUID_POSES_RUZENA_FACE)->path.str())
+      << "Changing the path should update children.";
 }
 
 TEST_F(AssetCatalogTest, merge_catalog_files)
@@ -984,7 +1023,7 @@ TEST_F(AssetCatalogTest, refresh_catalogs_with_modification)
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(cdf_dir);
 
-  /* === Perfom changes that should be handled gracefully by the reloading code: */
+  /* === Perform changes that should be handled gracefully by the reloading code: */
 
   /* 1. Delete a subtree of catalogs. */
   service.prune_catalogs_by_id(UUID_POSES_RUZENA);

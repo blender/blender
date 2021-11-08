@@ -234,6 +234,14 @@ OutputAttribute::~OutputAttribute()
   }
 }
 
+static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer &layer)
+{
+  if (layer.anonymous_id != nullptr) {
+    return layer.anonymous_id;
+  }
+  return layer.name;
+}
+
 static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data,
                                                          const CustomDataType data_type,
                                                          const int domain_size,
@@ -360,7 +368,7 @@ GVArrayPtr BuiltinCustomDataLayerProvider::try_get_for_read(
   return as_read_attribute_(data, domain_size);
 }
 
-GVMutableArrayPtr BuiltinCustomDataLayerProvider::try_get_for_write(
+WriteAttributeLookup BuiltinCustomDataLayerProvider::try_get_for_write(
     GeometryComponent &component) const
 {
   if (writable_ != Writable) {
@@ -397,10 +405,14 @@ GVMutableArrayPtr BuiltinCustomDataLayerProvider::try_get_for_write(
     data = new_data;
   }
 
+  std::function<void()> tag_modified_fn;
   if (update_on_write_ != nullptr) {
-    update_on_write_(component);
+    tag_modified_fn = [component = &component, update = update_on_write_]() {
+      update(*component);
+    };
   }
-  return as_write_attribute_(data, domain_size);
+
+  return {as_write_attribute_(data, domain_size), domain_, std::move(tag_modified_fn)};
 }
 
 bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) const
@@ -591,13 +603,7 @@ bool CustomDataAttributeProvider::foreach_attribute(const GeometryComponent &com
     const CustomDataType data_type = (CustomDataType)layer.type;
     if (this->type_is_supported(data_type)) {
       AttributeMetaData meta_data{domain_, data_type};
-      AttributeIDRef attribute_id;
-      if (layer.anonymous_id != nullptr) {
-        attribute_id = layer.anonymous_id;
-      }
-      else {
-        attribute_id = layer.name;
-      }
+      const AttributeIDRef attribute_id = attribute_id_from_custom_data_layer(layer);
       if (!callback(attribute_id, meta_data)) {
         return false;
       }
@@ -821,18 +827,32 @@ bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback call
 {
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     AttributeMetaData meta_data{domain, (CustomDataType)layer.type};
-    AttributeIDRef attribute_id;
-    if (layer.anonymous_id != nullptr) {
-      attribute_id = layer.anonymous_id;
-    }
-    else {
-      attribute_id = layer.name;
-    }
+    const AttributeIDRef attribute_id = attribute_id_from_custom_data_layer(layer);
     if (!callback(attribute_id, meta_data)) {
       return false;
     }
   }
   return true;
+}
+
+void CustomDataAttributes::reorder(Span<AttributeIDRef> new_order)
+{
+  BLI_assert(new_order.size() == data.totlayer);
+
+  Map<AttributeIDRef, int> old_order;
+  old_order.reserve(data.totlayer);
+  Array<CustomDataLayer> old_layers(Span(data.layers, data.totlayer));
+  for (const int i : old_layers.index_range()) {
+    old_order.add_new(attribute_id_from_custom_data_layer(old_layers[i]), i);
+  }
+
+  MutableSpan layers(data.layers, data.totlayer);
+  for (const int i : layers.index_range()) {
+    const int old_index = old_order.lookup(new_order[i]);
+    layers[i] = old_layers[old_index];
+  }
+
+  CustomData_update_typemap(&data);
 }
 
 }  // namespace blender::bke
@@ -925,7 +945,7 @@ blender::bke::WriteAttributeLookup GeometryComponent::attribute_try_get_for_writ
     const BuiltinAttributeProvider *builtin_provider =
         providers->builtin_attribute_providers().lookup_default_as(attribute_id.name(), nullptr);
     if (builtin_provider != nullptr) {
-      return {builtin_provider->try_get_for_write(*this), builtin_provider->domain()};
+      return builtin_provider->try_get_for_write(*this);
     }
   }
   for (const DynamicAttributesProvider *dynamic_provider :
@@ -1249,6 +1269,20 @@ static void save_output_attribute(OutputAttribute &output_attribute)
     varray.get(i, buffer);
     write_attribute.varray->set_by_relocate(i, buffer);
   }
+  if (write_attribute.tag_modified_fn) {
+    write_attribute.tag_modified_fn();
+  }
+}
+
+static std::function<void(OutputAttribute &)> get_simple_output_attribute_save_method(
+    const blender::bke::WriteAttributeLookup &attribute)
+{
+  if (!attribute.tag_modified_fn) {
+    return {};
+  }
+  return [tag_modified_fn = attribute.tag_modified_fn](OutputAttribute &UNUSED(attribute)) {
+    tag_modified_fn();
+  };
 }
 
 static OutputAttribute create_output_attribute(GeometryComponent &component,
@@ -1293,14 +1327,21 @@ static OutputAttribute create_output_attribute(GeometryComponent &component,
       /* Builtin attribute is on different domain. */
       return {};
     }
+
     GVMutableArrayPtr varray = std::move(attribute.varray);
     if (varray->type() == *cpp_type) {
       /* Builtin attribute matches exactly. */
-      return OutputAttribute(std::move(varray), domain, {}, ignore_old_values);
+      return OutputAttribute(std::move(varray),
+                             domain,
+                             get_simple_output_attribute_save_method(attribute),
+                             ignore_old_values);
     }
     /* Builtin attribute is on the same domain but has a different data type. */
     varray = conversions.try_convert(std::move(varray), *cpp_type);
-    return OutputAttribute(std::move(varray), domain, {}, ignore_old_values);
+    return OutputAttribute(std::move(varray),
+                           domain,
+                           get_simple_output_attribute_save_method(attribute),
+                           ignore_old_values);
   }
 
   const int domain_size = component.attribute_domain_size(domain);
@@ -1324,7 +1365,11 @@ static OutputAttribute create_output_attribute(GeometryComponent &component,
   }
   if (attribute.domain == domain && attribute.varray->type() == *cpp_type) {
     /* Existing generic attribute matches exactly. */
-    return OutputAttribute(std::move(attribute.varray), domain, {}, ignore_old_values);
+
+    return OutputAttribute(std::move(attribute.varray),
+                           domain,
+                           get_simple_output_attribute_save_method(attribute),
+                           ignore_old_values);
   }
 
   /* Allocate a new array that lives next to the existing attribute. It will overwrite the existing
@@ -1385,7 +1430,7 @@ const GVArray *AttributeFieldInput::get_varray_for_context(const fn::FieldContex
 std::string AttributeFieldInput::socket_inspection_name() const
 {
   std::stringstream ss;
-  ss << TIP_("Attribute: ") << name_;
+  ss << '"' << name_ << '"' << TIP_(" attribute from geometry");
   return ss.str();
 }
 
@@ -1468,7 +1513,7 @@ const GVArray *AnonymousAttributeFieldInput::get_varray_for_context(
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
 {
   std::stringstream ss;
-  ss << TIP_("Anonymous Attribute: ") << debug_name_;
+  ss << '"' << debug_name_ << '"' << TIP_(" from ") << producer_name_;
   return ss.str();
 }
 

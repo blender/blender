@@ -1083,29 +1083,20 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
-  if (u == 0.0f) {
-    CustomData_copy_data(
-        &coarse_mesh->vdata, &subdiv_mesh->vdata, coarse_edge->v1, subdiv_vertex_index, 1);
-  }
-  else if (u == 1.0f) {
-    CustomData_copy_data(
-        &coarse_mesh->vdata, &subdiv_mesh->vdata, coarse_edge->v2, subdiv_vertex_index, 1);
-  }
-  else {
-    BLI_assert(u > 0.0f);
-    BLI_assert(u < 1.0f);
-    const float interpolation_weights[2] = {1.0f - u, u};
-    const int coarse_vertex_indices[2] = {coarse_edge->v1, coarse_edge->v2};
-    CustomData_interp(&coarse_mesh->vdata,
-                      &subdiv_mesh->vdata,
-                      coarse_vertex_indices,
-                      interpolation_weights,
-                      NULL,
-                      2,
-                      subdiv_vertex_index);
-    if (ctx->vert_origindex != NULL) {
-      ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
-    }
+  /* This is never used for end-points (which are copied from the original). */
+  BLI_assert(u > 0.0f);
+  BLI_assert(u < 1.0f);
+  const float interpolation_weights[2] = {1.0f - u, u};
+  const int coarse_vertex_indices[2] = {coarse_edge->v1, coarse_edge->v2};
+  CustomData_interp(&coarse_mesh->vdata,
+                    &subdiv_mesh->vdata,
+                    coarse_vertex_indices,
+                    interpolation_weights,
+                    NULL,
+                    2,
+                    subdiv_vertex_index);
+  if (ctx->vert_origindex != NULL) {
+    ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
   }
 }
 
@@ -1124,8 +1115,11 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   /* Find neighbors of the current loose edge. */
   const MEdge *neighbors[2];
   find_edge_neighbors(ctx, coarse_edge, neighbors);
-  /* Interpolate custom data. */
-  subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
+  /* Interpolate custom data when not an end point.
+   * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
+  if (u != 0.0 && u != 1.0) {
+    subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
+  }
   /* Interpolate coordinate. */
   MVert *subdiv_vertex = &subdiv_mvert[subdiv_vertex_index];
   if (is_simple) {

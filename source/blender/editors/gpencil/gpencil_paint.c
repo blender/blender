@@ -161,6 +161,8 @@ typedef struct tGPsdata {
   ARegion *region;
   /** needed for GP_STROKE_2DSPACE. */
   View2D *v2d;
+  /** For operations that require occlusion testing. */
+  ViewDepths *depths;
   /** for using the camera rect within the 3d view. */
   rctf *subrect;
   rctf subrect_data;
@@ -1090,14 +1092,16 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       int found_depth = 0;
 
       depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_used, "depth_points");
+
+      const ViewDepths *depths = p->depths;
       int i;
       for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used; i++, ptc++, pt++) {
 
         round_v2i_v2fl(mval_i, &ptc->x);
 
-        if ((ED_view3d_autodist_depth(p->region, mval_i, depth_margin, depth_arr + i) == 0) &&
-            (i && (ED_view3d_autodist_depth_seg(
-                       p->region, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
+        if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
+            (i && (ED_view3d_depth_read_cached_seg(
+                       depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
           interp_depth = true;
         }
         else {
@@ -1346,7 +1350,10 @@ static bool gpencil_stroke_eraser_is_occluded(
     /* calculate difference matrix if parent object */
     BKE_gpencil_layer_transform_matrix_get(p->depsgraph, obact, gpl, diff_mat);
 
-    if (ED_view3d_autodist_simple(p->region, mval_i, mval_3d, 0, NULL)) {
+    float p_depth;
+    if (ED_view3d_depth_read_cached(p->depths, mval_i, 0, &p_depth)) {
+      ED_view3d_depth_unproject_v3(p->region, mval_i, (double)p_depth, mval_3d);
+
       const float depth_mval = ED_view3d_calc_depth_for_comparison(rv3d, mval_3d);
 
       mul_v3_m4v3(fpt, diff_mat, &pt->x);
@@ -1582,10 +1589,12 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
 
-          bool is_occluded_pt0, is_occluded_pt1, is_occluded_pt2 = true;
-          is_occluded_pt0 = (pt0 && ((pt0->flag & GP_SPOINT_TEMP_TAG) != 0)) ?
-                                ((pt0->flag & GP_SPOINT_TEMP_TAG2) != 0) :
-                                gpencil_stroke_eraser_is_occluded(p, gpl, pt0, pc0[0], pc0[1]);
+          bool is_occluded_pt0 = true, is_occluded_pt1 = true, is_occluded_pt2 = true;
+          if (pt0) {
+            is_occluded_pt0 = ((pt0->flag & GP_SPOINT_TEMP_TAG) != 0) ?
+                                  ((pt0->flag & GP_SPOINT_TEMP_TAG2) != 0) :
+                                  gpencil_stroke_eraser_is_occluded(p, gpl, pt0, pc0[0], pc0[1]);
+          }
           if (is_occluded_pt0) {
             is_occluded_pt1 = ((pt1->flag & GP_SPOINT_TEMP_TAG) != 0) ?
                                   ((pt1->flag & GP_SPOINT_TEMP_TAG2) != 0) :
@@ -1731,7 +1740,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
   if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
     View3D *v3d = p->area->spacedata.first;
     view3d_region_operator_needs_opengl(p->win, p->region);
-    ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
+    ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, &p->depths);
   }
 
   /* loop over all layers too, since while it's easy to restrict editing to
@@ -2085,6 +2094,9 @@ static void gpencil_session_free(tGPsdata *p)
   if (p->rng != NULL) {
     BLI_rng_free(p->rng);
   }
+  if (p->depths != NULL) {
+    ED_view3d_depths_free(p->depths);
+  }
 
   MEM_freeN(p);
 }
@@ -2265,8 +2277,9 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 static void gpencil_paint_strokeend(tGPsdata *p)
 {
   ToolSettings *ts = p->scene->toolsettings;
-  /* for surface sketching, need to set the right OpenGL context stuff so that
-   * the conversions will project the values correctly...
+  const bool is_eraser = (p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) != 0;
+  /* for surface sketching, need to set the right OpenGL context stuff so
+   * that the conversions will project the values correctly...
    */
   if (gpencil_project_check(p)) {
     View3D *v3d = p->area->spacedata.first;
@@ -2280,11 +2293,11 @@ static void gpencil_paint_strokeend(tGPsdata *p)
                              (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             NULL);
+                             is_eraser ? NULL : &p->depths);
   }
 
   /* check if doing eraser or not */
-  if ((p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
+  if (!is_eraser) {
     /* transfer stroke to frame */
     gpencil_stroke_newfrombuffer(p);
   }

@@ -30,13 +30,13 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Int>("Count").default_value(10).min(2).max(100000);
-  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Points");
-  b.add_output<decl::Vector>("Tangent").field_source();
-  b.add_output<decl::Vector>("Normal").field_source();
-  b.add_output<decl::Vector>("Rotation").field_source();
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>(N_("Count")).default_value(10).min(2).max(100000);
+  b.add_input<decl::Float>(N_("Length")).default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Points"));
+  b.add_output<decl::Vector>(N_("Tangent")).field_source();
+  b.add_output<decl::Vector>(N_("Normal")).field_source();
+  b.add_output<decl::Vector>(N_("Rotation")).field_source();
 }
 
 static void geo_node_curve_to_points_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -357,17 +357,20 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   if (attribute_outputs.tangent_id) {
     params.set_output(
         "Tangent",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.normal_id) {
     params.set_output(
         "Normal",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.rotation_id) {
     params.set_output(
         "Rotation",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id),
+                                                     params.attribute_producer_name()));
   }
 }
 

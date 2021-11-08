@@ -254,7 +254,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
   if (node->flag & NODE_HIDDEN) {
     rctf totr = node->totr;
     /* right part of node */
-    totr.xmin = node->totr.xmax - 20.0f;
+    totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
@@ -993,7 +993,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
     }
   }
   else {
-    uiItemL(layout, "No mesh in active object.", ICON_ERROR);
+    uiItemL(layout, TIP_("No mesh in active object"), ICON_ERROR);
   }
 }
 
@@ -3619,7 +3619,39 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_IMAGE: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
+      if (node_tree->type == NTREE_GEOMETRY) {
+        if (text[0] == '\0') {
+          uiTemplateID(layout,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+        else {
+          /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
+          uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+          uiItemL(row, text, 0);
+          uiTemplateID(row,
+                       C,
+                       ptr,
+                       "default_value",
+                       "image.new",
+                       "image.open",
+                       nullptr,
+                       0,
+                       ICON_NONE,
+                       nullptr);
+        }
+      }
+      else {
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      }
       break;
     }
     case SOCK_COLLECTION: {
@@ -4236,7 +4268,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
 }
 
 /* don't do shadows if th_col3 is -1. */
-void node_draw_link_bezier(const View2D *v2d,
+void node_draw_link_bezier(const bContext *C,
+                           const View2D *v2d,
                            const SpaceNode *snode,
                            const bNodeLink *link,
                            int th_col1,
@@ -4278,23 +4311,45 @@ void node_draw_link_bezier(const View2D *v2d,
         snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
         ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
          (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
+      PointerRNA from_node_ptr, to_node_ptr;
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->fromnode, &from_node_ptr);
+      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->tonode, &to_node_ptr);
       if (link->fromsock) {
-        copy_v4_v4(colors[1], std_node_socket_colors[link->fromsock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[1]);
       }
       else {
-        copy_v4_v4(colors[1], std_node_socket_colors[link->tosock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[1]);
       }
 
       if (link->tosock) {
-        copy_v4_v4(colors[2], std_node_socket_colors[link->tosock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[2]);
       }
       else {
-        copy_v4_v4(colors[2], std_node_socket_colors[link->fromsock->typeinfo->type]);
+        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[2]);
       }
     }
     else {
       UI_GetThemeColor4fv(th_col1, colors[1]);
       UI_GetThemeColor4fv(th_col2, colors[2]);
+    }
+
+    /* Highlight links connected to selected nodes. */
+    const bool is_fromnode_selected = link->fromnode && link->fromnode->flag & SELECT;
+    const bool is_tonode_selected = link->tonode && link->tonode->flag & SELECT;
+    if (is_fromnode_selected || is_tonode_selected) {
+      float color_selected[4];
+      UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
+      const float alpha = color_selected[3];
+
+      /* Interpolate color if highlight color is not fully transparent. */
+      if (alpha != 0.0) {
+        if (is_fromnode_selected) {
+          interp_v3_v3v3(colors[1], colors[1], color_selected, alpha);
+        }
+        if (is_tonode_selected) {
+          interp_v3_v3v3(colors[2], colors[2], color_selected, alpha);
+        }
+      }
     }
 
     if (g_batch_link.enabled && !highlighted) {
@@ -4341,7 +4396,7 @@ void node_draw_link_bezier(const View2D *v2d,
 }
 
 /* NOTE: this is used for fake links in groups too. */
-void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
+void node_draw_link(const bContext *C, View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;
 
@@ -4370,15 +4425,6 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       else if (link->flag & NODE_LINK_MUTED) {
         th_col1 = th_col2 = TH_REDALERT;
       }
-      else {
-        /* Regular link, highlight if connected to selected node. */
-        if (link->fromnode && link->fromnode->flag & SELECT) {
-          th_col1 = TH_EDGE_SELECT;
-        }
-        if (link->tonode && link->tonode->flag & SELECT) {
-          th_col2 = TH_EDGE_SELECT;
-        }
-      }
     }
     else {
       /* Invalid link. */
@@ -4394,7 +4440,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
     }
   }
 
-  node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, th_col3);
+  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3);
 }
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)

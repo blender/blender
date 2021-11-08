@@ -227,9 +227,19 @@ class FieldContext;
  * A #FieldNode that represents an input to the entire field-tree.
  */
 class FieldInput : public FieldNode {
+ public:
+  /* The order is also used for sorting in socket inspection. */
+  enum class Category {
+    NamedAttribute = 0,
+    Generated = 1,
+    AnonymousAttribute = 2,
+    Unknown,
+  };
+
  protected:
   const CPPType *type_;
   std::string debug_name_;
+  Category category_ = Category::Unknown;
 
  public:
   FieldInput(const CPPType &type, std::string debug_name = "");
@@ -245,6 +255,7 @@ class FieldInput : public FieldNode {
   virtual std::string socket_inspection_name() const;
   blender::StringRef debug_name() const;
   const CPPType &cpp_type() const;
+  Category category() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
   void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const override;
@@ -525,6 +536,11 @@ inline StringRef FieldInput::debug_name() const
 inline const CPPType &FieldInput::cpp_type() const
 {
   return *type_;
+}
+
+inline FieldInput::Category FieldInput::category() const
+{
+  return category_;
 }
 
 inline const CPPType &FieldInput::output_cpp_type(int output_index) const

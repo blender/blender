@@ -49,7 +49,7 @@ typedef enum {
   NODE_RIGHT = 8,
 } NodeBorder;
 
-#define NODE_GRID_STEPS 5
+#define NODE_GRID_STEP_SIZE 10
 #define NODE_EDGE_PAN_INSIDE_PAD 2
 #define NODE_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for node panning, use whole screen. */
 #define NODE_EDGE_PAN_SPEED_RAMP 1
@@ -64,7 +64,6 @@ void ED_node_cursor_location_set(struct SpaceNode *snode, const float value[2]);
 
 int ED_node_tree_path_length(struct SpaceNode *snode);
 void ED_node_tree_path_get(struct SpaceNode *snode, char *value);
-void ED_node_tree_path_get_fixedbuf(struct SpaceNode *snode, char *value, int max_length);
 
 void ED_node_tree_start(struct SpaceNode *snode,
                         struct bNodeTree *ntree,

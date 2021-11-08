@@ -141,7 +141,6 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
      * So we manually construct image user to be sure first
      * image from sequence (that one which is set as filename
      * for image data-block) is used for sockets detection. */
-    load_iuser.ok = 1;
     load_iuser.framenr = offset;
 
     /* make sure ima->type is correct */
@@ -411,7 +410,6 @@ static void node_composit_init_image(bNodeTree *ntree, bNode *node)
   node->storage = iuser;
   iuser->frames = 1;
   iuser->sfra = 1;
-  iuser->ok = 1;
   iuser->flag |= IMA_ANIM_ALWAYS;
 
   /* setup initial outputs */

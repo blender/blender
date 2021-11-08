@@ -106,7 +106,7 @@ ToolDef = namedtuple(
         #   Keep this functionality since it's likely useful for add-on key-maps.
         #
         # Warning: currently 'from_dict' this is a list of one item,
-        # so internally we can swap the key-map function for the key-map it's self.
+        # so internally we can swap the key-map function for the key-map itself.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
         # Optional data-block associated with this tool.
@@ -202,12 +202,40 @@ class ToolSelectPanelHelper:
     - keymap_prefix:
       The text prefix for each key-map for this spaces tools.
     - tools_all():
-      Returns (context_mode, tools) tuple pair for all tools defined.
+      Generator (context_mode, tools) tuple pairs for all tools defined.
     - tools_from_context(context, mode=None):
-      Returns tools available in this context.
+      A generator for all tools available in the current context.
 
-    Each tool is a 'ToolDef' or None for a separator in the toolbar, use ``None``.
+    Tool Sequence Structure
+    =======================
+
+    Sequences of tools as returned by tools_all() and tools_from_context() are comprised of:
+
+    - A `ToolDef` instance (representing a tool that can be activated).
+    - None (a visual separator in the tool list).
+    - A tuple of `ToolDef` or None values
+      (representing a group of tools that can be selected between using a click-drag action).
+      Note that only a single level of nesting is supported (groups cannot contain sub-groups).
+    - A callable which takes a single context argument and returns a tuple of values described above.
+      When the context is None, all potential tools must be returned.
     """
+
+    @classmethod
+    def tools_all(cls):
+        """
+        Return all tools for this toolbar, this must include all available tools ignoring the current context.
+        The value is must be a sequence of (mode, tool_list) pairs, where mode may be object-mode edit-mode etc.
+        The mode may be None for tool-bars that don't make use of sub-modes.
+        """
+        raise Exception("Sub-class %r must implement this method!" % cls)
+
+    @classmethod
+    def tools_from_context(cls, context, mode=None):
+        """
+        Return all tools for the current context,
+        this result is used at run-time and may filter out tools to display.
+        """
+        raise Exception("Sub-class %r must implement this method!" % cls)
 
     @staticmethod
     def _tool_class_from_space_type(space_type):

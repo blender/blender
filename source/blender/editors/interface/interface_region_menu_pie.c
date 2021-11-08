@@ -330,7 +330,7 @@ typedef struct PieMenuLevelData {
   wmOperatorType *ot;
   const char *propname;
   IDProperty *properties;
-  int context, flag;
+  wmOperatorCallContext context, flag;
 } PieMenuLevelData;
 
 /**
@@ -381,7 +381,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              int context,
+                              wmOperatorCallContext context,
                               int flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;

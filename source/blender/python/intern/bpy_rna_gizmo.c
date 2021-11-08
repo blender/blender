@@ -63,7 +63,7 @@ static int py_rna_gizmo_parse(PyObject *o, void *p)
 {
   /* No type checking (this is `self` not a user defined argument). */
   BLI_assert(BPy_StructRNA_Check(o));
-  BLI_assert(((const BPy_StructRNA *)o)->ptr.type == &RNA_Gizmo);
+  BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr.type, &RNA_Gizmo));
 
   wmGizmo **gz_p = p;
   *gz_p = ((const BPy_StructRNA *)o)->ptr.data;

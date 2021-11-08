@@ -27,21 +27,29 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Geometry>("Profile Curve");
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>(N_("Profile Curve"))
+      .only_realized_data()
+      .supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>(N_("Fill Caps"))
+      .description(
+          N_("If the profile spline is cyclic, fill the ends of the generated mesh with N-gons"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geometry_set_curve_to_mesh(GeometrySet &geometry_set, const GeometrySet &profile_set)
+static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
+                                       const GeometrySet &profile_set,
+                                       const bool fill_caps)
 {
+  const CurveEval *curve = geometry_set.get_curve_for_read();
   const CurveEval *profile_curve = profile_set.get_curve_for_read();
 
   if (profile_curve == nullptr) {
-    Mesh *mesh = bke::curve_to_wire_mesh(*geometry_set.get_curve_for_read());
+    Mesh *mesh = bke::curve_to_wire_mesh(*curve);
     geometry_set.replace_mesh(mesh);
   }
   else {
-    Mesh *mesh = bke::curve_to_mesh_sweep(*geometry_set.get_curve_for_read(), *profile_curve);
+    Mesh *mesh = bke::curve_to_mesh_sweep(*curve, *profile_curve, fill_caps);
     geometry_set.replace_mesh(mesh);
   }
 }
@@ -50,32 +58,16 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
-
-  if (profile_set.has_instances()) {
-    params.error_message_add(NodeWarningType::Error,
-                             TIP_("Instances are not supported in the profile input"));
-    params.set_output("Mesh", GeometrySet());
-    return;
-  }
-
-  if (!profile_set.has_curve() && !profile_set.is_empty()) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("No curve data available in the profile input"));
-  }
+  const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
   bool has_curve = false;
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curve()) {
       has_curve = true;
-      geometry_set_curve_to_mesh(geometry_set, profile_set);
+      geometry_set_curve_to_mesh(geometry_set, profile_set, fill_caps);
     }
     geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
   });
-
-  if (!has_curve && !curve_set.is_empty()) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("No curve data available in curve input"));
-  }
 
   params.set_output("Mesh", std::move(curve_set));
 }

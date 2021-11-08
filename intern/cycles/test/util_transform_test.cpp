@@ -16,8 +16,8 @@
 
 #include "testing/testing.h"
 
-#include "util/util_transform.h"
-#include "util/util_vector.h"
+#include "util/transform.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

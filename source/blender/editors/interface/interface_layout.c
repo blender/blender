@@ -82,7 +82,7 @@ typedef struct uiLayoutRoot {
   struct uiLayoutRoot *next, *prev;
 
   int type;
-  int opcontext;
+  wmOperatorCallContext opcontext;
 
   int emw, emh;
   int padding;
@@ -351,12 +351,16 @@ static int ui_text_icon_width_ex(uiLayout *layout,
     if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
       layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
-    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+
     float margin = pad_factor->text;
     if (icon) {
       margin += pad_factor->icon;
     }
-    return UI_fontstyle_string_width(fstyle, name) + (unit_x * margin);
+
+    const float aspect = layout->root->block->aspect;
+    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+    return UI_fontstyle_string_width_with_block_aspect(fstyle, name, aspect) +
+           (int)ceilf(unit_x * margin);
   }
   return unit_x * 10;
 }
@@ -1214,7 +1218,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  const char *name,
                                  int icon,
                                  IDProperty *properties,
-                                 int context,
+                                 wmOperatorCallContext context,
                                  int flag,
                                  PointerRNA *r_opptr)
 {
@@ -1335,7 +1339,7 @@ static void ui_item_menu_hold(struct bContext *C, ARegion *butregion, uiBut *but
     UI_menutype_draw(C, mt, layout);
   }
   else {
-    uiItemL(layout, "Menu Missing:", ICON_NONE);
+    uiItemL(layout, TIP_("Menu Missing:"), ICON_NONE);
     uiItemL(layout, menu_id, ICON_NONE);
   }
   UI_popup_menu_end(C, pup);
@@ -1346,7 +1350,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      const char *name,
                      int icon,
                      IDProperty *properties,
-                     int context,
+                     wmOperatorCallContext context,
                      int flag,
                      PointerRNA *r_opptr)
 {
@@ -1358,7 +1362,7 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              const char *name,
                              int icon,
                              IDProperty *properties,
-                             int context,
+                             wmOperatorCallContext context,
                              int flag,
                              const char *menu_id,
                              PointerRNA *r_opptr)
@@ -1372,7 +1376,7 @@ void uiItemFullO(uiLayout *layout,
                  const char *name,
                  int icon,
                  IDProperty *properties,
-                 int context,
+                 wmOperatorCallContext context,
                  int flag,
                  PointerRNA *r_opptr)
 {
@@ -1470,7 +1474,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             PointerRNA ptr,
                             PropertyRNA *prop,
                             IDProperty *properties,
-                            int context,
+                            wmOperatorCallContext context,
                             int flag,
                             const EnumPropertyItem *item_array,
                             int totitem)
@@ -1619,7 +1623,7 @@ void uiItemsFullEnumO(uiLayout *layout,
                       const char *opname,
                       const char *propname,
                       IDProperty *properties,
-                      int context,
+                      wmOperatorCallContext context,
                       int flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
@@ -3429,7 +3433,7 @@ void uiItemMenuFN(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc
 }
 
 typedef struct MenuItemLevel {
-  int opcontext;
+  wmOperatorCallContext opcontext;
   /* don't use pointers to the strings because python can dynamically
    * allocate strings and free before the menu draws, see T27304. */
   char opname[OP_MAX_TYPENAME];
@@ -5668,7 +5672,7 @@ bool uiLayoutGetFixedSize(uiLayout *layout)
   return (layout->item.flag & UI_ITEM_FIXED_SIZE) != 0;
 }
 
-void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext)
+void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext)
 {
   layout->root->opcontext = opcontext;
 }

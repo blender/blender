@@ -29,32 +29,35 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Vertices")
+  b.add_input<decl::Int>(N_("Vertices"))
       .default_value(32)
       .min(3)
       .max(512)
-      .description("The number of vertices around the circumference");
-  b.add_input<decl::Int>("Side Segments")
+      .description(N_("The number of vertices on the top and bottom circles"));
+  b.add_input<decl::Int>(N_("Side Segments"))
       .default_value(1)
       .min(1)
       .max(512)
-      .description("The number of segments along the side");
-  b.add_input<decl::Int>("Fill Segments")
+      .description(N_("The number of rectangular segments along each side"));
+  b.add_input<decl::Int>(N_("Fill Segments"))
       .default_value(1)
       .min(1)
       .max(512)
-      .description("The number of concentric segments of the fill");
-  b.add_input<decl::Float>("Radius")
+      .description(N_("The number of concentric rings used to fill the round faces"));
+  b.add_input<decl::Float>(N_("Radius"))
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description("The radius of the cylinder");
-  b.add_input<decl::Float>("Depth")
+      .description(N_("The radius of the cylinder"));
+  b.add_input<decl::Float>(N_("Depth"))
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description("The height of the cylinder on the Z axis");
-  b.add_output<decl::Geometry>("Geometry");
+      .description(N_("The height of the cylinder"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Bool>(N_("Top")).field_source();
+  b.add_output<decl::Bool>(N_("Bottom")).field_source();
+  b.add_output<decl::Bool>(N_("Side")).field_source();
 }
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,
@@ -97,35 +100,73 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
                                                        storage.fill_type;
 
+  auto return_default = [&]() {
+    params.set_output("Top", fn::make_constant_field<bool>(false));
+    params.set_output("Bottom", fn::make_constant_field<bool>(false));
+    params.set_output("Side", fn::make_constant_field<bool>(false));
+    params.set_output("Mesh", GeometrySet());
+  };
+
   const float radius = params.extract_input<float>("Radius");
   const float depth = params.extract_input<float>("Depth");
   const int circle_segments = params.extract_input<int>("Vertices");
   if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_output("Geometry", GeometrySet());
-    return;
+    return return_default();
   }
 
   const int side_segments = params.extract_input<int>("Side Segments");
   if (side_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
-    return;
+    return return_default();
   }
 
   const bool no_fill = fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE;
   const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
   if (fill_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
-    params.set_output("Geometry", GeometrySet());
-    return;
+    return return_default();
+  }
+
+  ConeAttributeOutputs attribute_outputs;
+  if (params.output_is_required("Top")) {
+    attribute_outputs.top_id = StrongAnonymousAttributeID("top_selection");
+  }
+  if (params.output_is_required("Bottom")) {
+    attribute_outputs.bottom_id = StrongAnonymousAttributeID("bottom_selection");
+  }
+  if (params.output_is_required("Side")) {
+    attribute_outputs.side_id = StrongAnonymousAttributeID("side_selection");
   }
 
   /* The cylinder is a special case of the cone mesh where the top and bottom radius are equal. */
-  Mesh *mesh = create_cylinder_or_cone_mesh(
-      radius, radius, depth, circle_segments, side_segments, fill_segments, fill_type);
+  Mesh *mesh = create_cylinder_or_cone_mesh(radius,
+                                            radius,
+                                            depth,
+                                            circle_segments,
+                                            side_segments,
+                                            fill_segments,
+                                            fill_type,
+                                            attribute_outputs);
 
-  params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
+  if (attribute_outputs.top_id) {
+    params.set_output("Top",
+                      AnonymousAttributeFieldInput::Create<bool>(
+                          std::move(attribute_outputs.top_id), params.attribute_producer_name()));
+  }
+  if (attribute_outputs.bottom_id) {
+    params.set_output(
+        "Bottom",
+        AnonymousAttributeFieldInput::Create<bool>(std::move(attribute_outputs.bottom_id),
+                                                   params.attribute_producer_name()));
+  }
+  if (attribute_outputs.side_id) {
+    params.set_output("Side",
+                      AnonymousAttributeFieldInput::Create<bool>(
+                          std::move(attribute_outputs.side_id), params.attribute_producer_name()));
+  }
+
+  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
 }  // namespace blender::nodes

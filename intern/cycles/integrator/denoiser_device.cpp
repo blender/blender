@@ -16,13 +16,13 @@
 
 #include "integrator/denoiser_device.h"
 
+#include "device/denoise.h"
 #include "device/device.h"
-#include "device/device_denoise.h"
-#include "device/device_memory.h"
-#include "device/device_queue.h"
-#include "render/buffers.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
+#include "device/memory.h"
+#include "device/queue.h"
+#include "session/buffers.h"
+#include "util/log.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

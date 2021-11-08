@@ -19,10 +19,10 @@
 /* TODO(sergey): The integrator folder might not be the best. Is easy to move files around if the
  * better place is figured out. */
 
+#include "device/denoise.h"
 #include "device/device.h"
-#include "device/device_denoise.h"
-#include "util/util_function.h"
-#include "util/util_unique_ptr.h"
+#include "util/function.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 

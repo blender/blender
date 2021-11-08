@@ -19,10 +19,11 @@
 
 #include "asset_library_service.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
 #include "BLI_path_util.h"
 
 #include "BKE_appdir.h"
+#include "BKE_callbacks.h"
 
 #include "CLG_log.h"
 
@@ -40,10 +41,12 @@ class AssetLibraryServiceTest : public testing::Test {
   static void SetUpTestSuite()
   {
     CLG_init();
+    BKE_callback_global_init();
   }
   static void TearDownTestSuite()
   {
     CLG_exit();
+    BKE_callback_global_finalize();
   }
 
   void SetUp() override

@@ -28,7 +28,7 @@ namespace blender::nodes {
 
 static void geo_node_input_normal_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Normal").field_source();
+  b.add_output<decl::Vector>(N_("Normal")).field_source();
 }
 
 static GVArrayPtr mesh_face_normals(const Mesh &mesh,
@@ -241,8 +241,9 @@ static const GVArray *construct_curve_normal_gvarray(const CurveComponent &compo
 
 class NormalFieldInput final : public fn::FieldInput {
  public:
-  NormalFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Normal")
+  NormalFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Normal node")
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

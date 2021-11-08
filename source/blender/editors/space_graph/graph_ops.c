@@ -52,11 +52,13 @@
 /* ************************** view-based operators **********************************/
 /* XXX should these really be here? */
 
-/* Set Cursor --------------------------------------------------------------------- */
-/* The 'cursor' in the Graph Editor consists of two parts:
+/* -------------------------------------------------------------------- */
+/** \name Set Cursor
+ *
+ * The 'cursor' in the Graph Editor consists of two parts:
  * 1) Current Frame Indicator (as per ANIM_OT_change_frame)
  * 2) Value Indicator (stored per Graph Editor instance)
- */
+ * \{ */
 
 static bool graphview_cursor_poll(bContext *C)
 {
@@ -225,7 +227,11 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
   RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Value", "", -100.0f, 100.0f);
 }
 
-/* Hide/Reveal ------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide/Reveal
+ * \{ */
 
 static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
 {
@@ -413,7 +419,11 @@ static void GRAPH_OT_reveal(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
-/* ************************** registration - operator types **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration: operator types
+ * \{ */
 
 void graphedit_operatortypes(void)
 {
@@ -496,7 +506,11 @@ void ED_operatormacros_graph(void)
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
-/* ************************** registration - keymaps **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration: Key-Maps
+ * \{ */
 
 void graphedit_keymap(wmKeyConfig *keyconf)
 {
@@ -514,3 +528,5 @@ void graphedit_keymap(wmKeyConfig *keyconf)
   /* keyframes */
   WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, 0);
 }
+
+/** \} */

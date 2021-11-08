@@ -76,6 +76,31 @@ class GenericValueLog : public ValueLog {
   }
 };
 
+class GFieldValueLog : public ValueLog {
+ private:
+  fn::GField field_;
+  const fn::CPPType &type_;
+  Vector<std::string> input_tooltips_;
+
+ public:
+  GFieldValueLog(fn::GField field, bool log_full_field);
+
+  const fn::GField &field() const
+  {
+    return field_;
+  }
+
+  Span<std::string> input_tooltips() const
+  {
+    return input_tooltips_;
+  }
+
+  const fn::CPPType &type() const
+  {
+    return type_;
+  }
+};
+
 struct GeometryAttributeInfo {
   std::string name;
   AttributeDomain domain;

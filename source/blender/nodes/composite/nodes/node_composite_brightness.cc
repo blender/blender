@@ -29,10 +29,10 @@ namespace blender::nodes {
 
 static void cmp_node_brightcontrast_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Bright").min(-100.0f).max(100.0f);
-  b.add_input<decl::Float>("Contrast").min(-100.0f).max(100.0f);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Bright")).min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>(N_("Contrast")).min(-100.0f).max(100.0f);
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes

@@ -193,7 +193,7 @@ inline bool try_dispatch_float_math_fl_fl_fl_to_fl(const int operation, Callback
     case NODE_MATH_SMOOTH_MIN:
       return dispatch([](float a, float b, float c) { return smoothminf(a, b, c); });
     case NODE_MATH_SMOOTH_MAX:
-      return dispatch([](float a, float b, float c) { return -smoothminf(-a, -b, -c); });
+      return dispatch([](float a, float b, float c) { return -smoothminf(-a, -b, c); });
     case NODE_MATH_WRAP:
       return dispatch([](float a, float b, float c) { return wrapf(a, b, c); });
   }

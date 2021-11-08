@@ -668,7 +668,6 @@ static UndoImageHandle *uhandle_add(ListBase *undo_handles, Image *image, ImageU
   uh->image_ref.ptr = image;
   uh->iuser = *iuser;
   uh->iuser.scene = NULL;
-  uh->iuser.ok = 1;
   BLI_addtail(undo_handles, uh);
   return uh;
 }

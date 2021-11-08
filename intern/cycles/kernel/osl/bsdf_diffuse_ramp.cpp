@@ -35,11 +35,10 @@
 #include <OSL/genclosure.h>
 
 #include "kernel/device/cpu/compat.h"
-#include "kernel/osl/osl_closures.h"
+#include "kernel/osl/closures.h"
 
 // clang-format off
-#include "kernel/kernel_types.h"
-#include "kernel/kernel_montecarlo.h"
+#include "kernel/types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 // clang-format on

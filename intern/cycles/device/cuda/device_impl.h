@@ -21,7 +21,7 @@
 #  include "device/cuda/util.h"
 #  include "device/device.h"
 
-#  include "util/util_map.h"
+#  include "util/map.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
 #    include "cuew.h"

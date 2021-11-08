@@ -735,7 +735,9 @@ void nodeSetSocketAvailability(struct bNodeSocket *sock, bool is_available);
 
 int nodeSocketLinkLimit(const struct bNodeSocket *sock);
 
-void nodeDeclarationEnsure(struct bNodeTree *ntree, struct bNode *node);
+bool nodeDeclarationEnsure(struct bNodeTree *ntree, struct bNode *node);
+bool nodeDeclarationEnsureOnOutdatedNode(struct bNodeTree *ntree, struct bNode *node);
+void nodeSocketDeclarationsUpdate(struct bNode *node);
 
 /* Node Clipboard */
 void BKE_node_clipboard_init(const struct bNodeTree *ntree);
@@ -1442,7 +1444,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_COLLECTION_INFO 1023
 #define GEO_NODE_IS_VIEWPORT 1024
 #define GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY 1025
-#define GEO_NODE_VOLUME_TO_MESH 1026
+#define GEO_NODE_LEGACY_VOLUME_TO_MESH 1026
 #define GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ 1027
 #define GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ 1028
 #define GEO_NODE_SUBDIVIDE_MESH 1029
@@ -1547,6 +1549,10 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_RAYCAST 1128
 #define GEO_NODE_CURVE_TO_POINTS 1130
 #define GEO_NODE_INSTANCES_TO_POINTS 1131
+#define GEO_NODE_IMAGE_TEXTURE 1132
+#define GEO_NODE_VOLUME_TO_MESH 1133
+#define GEO_NODE_INPUT_ID 1134
+#define GEO_NODE_SET_ID 1135
 
 /** \} */
 
@@ -1562,7 +1568,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_FLOAT_TO_INT 1209
 #define FN_NODE_VALUE_TO_STRING 1210
 #define FN_NODE_STRING_LENGTH 1211
-#define FN_NODE_STRING_SUBSTRING 1212
+#define FN_NODE_SLICE_STRING 1212
 #define FN_NODE_INPUT_SPECIAL_CHARACTERS 1213
 #define FN_NODE_RANDOM_VALUE 1214
 #define FN_NODE_ROTATE_EULER 1215

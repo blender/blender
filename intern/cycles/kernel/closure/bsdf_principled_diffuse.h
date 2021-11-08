@@ -27,6 +27,8 @@
 
 #include "kernel/closure/bsdf_util.h"
 
+#include "kernel/sample/mapping.h"
+
 CCL_NAMESPACE_BEGIN
 
 enum PrincipledDiffuseBsdfComponents {

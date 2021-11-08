@@ -22,13 +22,33 @@ namespace blender::nodes {
 
 static void geo_node_curve_primitive_spiral_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Resolution").default_value(32).min(1).max(1024).subtype(PROP_UNSIGNED);
-  b.add_input<decl::Float>("Rotations").default_value(2.0f).min(0.0f);
-  b.add_input<decl::Float>("Start Radius").default_value(1.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("End Radius").default_value(2.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Height").default_value(2.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Bool>("Reverse");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Int>(N_("Resolution"))
+      .default_value(32)
+      .min(1)
+      .max(1024)
+      .subtype(PROP_UNSIGNED)
+      .description(N_("Number of points in one rotation of the spiral"));
+  b.add_input<decl::Float>(N_("Rotations"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .description(N_("Number of times the spiral makes a full rotation"));
+  b.add_input<decl::Float>(N_("Start Radius"))
+      .default_value(1.0f)
+      .subtype(PROP_DISTANCE)
+      .description(
+          N_("Horizontal Distance from the Z axis at the start of the spiral"));
+  b.add_input<decl::Float>(N_("End Radius"))
+      .default_value(2.0f)
+      .subtype(PROP_DISTANCE)
+      .description(
+          N_("Horizontal Distance from the Z axis at the end of the spiral"));
+  b.add_input<decl::Float>(N_("Height"))
+      .default_value(2.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("The height perpendicular to the base of the spiral"));
+  b.add_input<decl::Bool>(N_("Reverse"))
+      .description(N_("Switch the direction from clockwise to counterclockwise"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,

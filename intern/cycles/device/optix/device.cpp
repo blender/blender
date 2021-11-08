@@ -19,7 +19,8 @@
 
 #include "device/cuda/device.h"
 #include "device/optix/device_impl.h"
-#include "util/util_logging.h"
+
+#include "util/log.h"
 
 #ifdef WITH_OPTIX
 #  include <optix_function_table_definition.h>

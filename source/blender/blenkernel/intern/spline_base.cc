@@ -486,6 +486,12 @@ Array<float> Spline::sample_uniform_index_factors(const int samples_size) const
     prev_length = length;
   }
 
+  /* Zero lengths or float inaccuracies can cause invalid values, or simply
+   * skip some, so set the values that weren't completed in the main loop. */
+  for (const int i : IndexRange(i_sample, samples_size - i_sample)) {
+    samples[i] = float(samples_size);
+  }
+
   if (!is_cyclic_) {
     /* In rare cases this can prevent overflow of the stored index. */
     samples.last() = lengths.size();

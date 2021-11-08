@@ -93,13 +93,17 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
 {
   if (ads != NULL) {
     BKE_LIB_FOREACHID_PROCESS_ID(data, ads->source, IDWALK_CB_NOP);
-    BKE_LIB_FOREACHID_PROCESS(data, ads->filter_grp, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ads->filter_grp, IDWALK_CB_NOP);
   }
 }
 
+/**
+ * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure).
+ */
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
-  BKE_LIB_FOREACHID_PROCESS(data, area->full, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
 
   /* TODO: this should be moved to a callback in `SpaceType`, defined in each editor's own code.
    * Will be for a later round of cleanup though... */
@@ -107,24 +111,21 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
     switch (sl->spacetype) {
       case SPACE_VIEW3D: {
         View3D *v3d = (View3D *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, v3d->camera, IDWALK_CB_NOP);
-        BKE_LIB_FOREACHID_PROCESS(data, v3d->ob_center, IDWALK_CB_NOP);
-
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->camera, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->ob_center, IDWALK_CB_NOP);
         if (v3d->localvd) {
-          BKE_LIB_FOREACHID_PROCESS(data, v3d->localvd->camera, IDWALK_CB_NOP);
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->localvd->camera, IDWALK_CB_NOP);
         }
         break;
       }
       case SPACE_GRAPH: {
         SpaceGraph *sipo = (SpaceGraph *)sl;
-
-        screen_foreach_id_dopesheet(data, sipo->ads);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                                screen_foreach_id_dopesheet(data, sipo->ads));
         break;
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_ID(data, sbuts->pinid, IDWALK_CB_NOP);
         break;
       }
@@ -132,48 +133,41 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         break;
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
-
         screen_foreach_id_dopesheet(data, &saction->ads);
-        BKE_LIB_FOREACHID_PROCESS(data, saction->action, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, saction->action, IDWALK_CB_NOP);
         break;
       }
       case SPACE_IMAGE: {
         SpaceImage *sima = (SpaceImage *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, sima->image, IDWALK_CB_USER_ONE);
-        BKE_LIB_FOREACHID_PROCESS(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
-        BKE_LIB_FOREACHID_PROCESS(data, sima->gpd, IDWALK_CB_USER);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->image, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->gpd, IDWALK_CB_USER);
         break;
       }
       case SPACE_SEQ: {
         SpaceSeq *sseq = (SpaceSeq *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, sseq->gpd, IDWALK_CB_USER);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER);
         break;
       }
       case SPACE_NLA: {
         SpaceNla *snla = (SpaceNla *)sl;
-
-        screen_foreach_id_dopesheet(data, snla->ads);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                                screen_foreach_id_dopesheet(data, snla->ads));
         break;
       }
       case SPACE_TEXT: {
         SpaceText *st = (SpaceText *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, st->text, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_NOP);
         break;
       }
       case SPACE_SCRIPT: {
         SpaceScript *scpt = (SpaceScript *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, scpt->script, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scpt->script, IDWALK_CB_NOP);
         break;
       }
       case SPACE_OUTLINER: {
         SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-
         BKE_LIB_FOREACHID_PROCESS_ID(data, space_outliner->search_tse.id, IDWALK_CB_NOP);
-
         if (space_outliner->treestore != NULL) {
           TreeStoreElem *tselem;
           BLI_mempool_iter iter;
@@ -187,26 +181,24 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-
         const bool is_private_nodetree = snode->id != NULL &&
                                          ntreeFromID(snode->id) == snode->nodetree;
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
-
-        BKE_LIB_FOREACHID_PROCESS(
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(
             data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
 
         LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
           if (path == snode->treepath.first) {
             /* first nodetree in path is same as snode->nodetree */
-            BKE_LIB_FOREACHID_PROCESS(data,
-                                      path->nodetree,
-                                      is_private_nodetree ? IDWALK_CB_EMBEDDED :
-                                                            IDWALK_CB_USER_ONE);
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                              path->nodetree,
+                                              is_private_nodetree ? IDWALK_CB_EMBEDDED :
+                                                                    IDWALK_CB_USER_ONE);
           }
           else {
-            BKE_LIB_FOREACHID_PROCESS(data, path->nodetree, IDWALK_CB_USER_ONE);
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
           }
 
           if (path->nodetree == NULL) {
@@ -214,22 +206,20 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           }
         }
 
-        BKE_LIB_FOREACHID_PROCESS(data, snode->edittree, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
         break;
       }
       case SPACE_CLIP: {
         SpaceClip *sclip = (SpaceClip *)sl;
-
-        BKE_LIB_FOREACHID_PROCESS(data, sclip->clip, IDWALK_CB_USER_ONE);
-        BKE_LIB_FOREACHID_PROCESS(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->clip, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
         break;
       }
       case SPACE_SPREADSHEET: {
         SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-
         LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
           if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-            BKE_LIB_FOREACHID_PROCESS(
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(
                 data, ((SpreadsheetContextObject *)context)->object, IDWALK_CB_NOP);
           }
         }
@@ -243,12 +233,13 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
 static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
-    bScreen *screen = (bScreen *)id;
+  if ((BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) == 0) {
+    return;
+  }
+  bScreen *screen = (bScreen *)id;
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      BKE_screen_foreach_id_screen_area(data, area);
-    }
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_screen_foreach_id_screen_area(data, area));
   }
 }
 
@@ -1624,7 +1615,6 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       SpaceImage *sima = (SpaceImage *)sl;
 
       sima->iuser.scene = NULL;
-      sima->iuser.ok = 1;
       sima->scopes.waveform_1 = NULL;
       sima->scopes.waveform_2 = NULL;
       sima->scopes.waveform_3 = NULL;

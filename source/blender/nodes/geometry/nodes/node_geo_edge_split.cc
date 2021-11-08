@@ -26,19 +26,20 @@ namespace blender::nodes {
 
 static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static Mesh *mesh_edge_split(const Mesh &mesh, const IndexMask selection)
 {
-  const BMeshCreateParams bmcp = {true};
+  BMeshCreateParams bmesh_create_params{};
+  bmesh_create_params.use_toolflags = true;
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  BMeshFromMeshParams params{};
-  BM_mesh_bm_from_me(NULL, bm, &mesh, &params);
+  BMeshFromMeshParams bmesh_from_mesh_params = {0};
+  BM_mesh_bm_from_me(NULL, bm, &mesh, &bmesh_from_mesh_params);
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
   for (const int i : selection) {

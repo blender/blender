@@ -178,35 +178,6 @@ void UI_draw_roundbox_4fv(const rctf *rect, bool filled, float rad, const float 
   UI_draw_roundbox_4fv_ex(rect, (filled) ? col : NULL, NULL, 1.0f, col, U.pixelsize, rad);
 }
 
-/* linear horizontal shade within button or in outline */
-/* view2d scrollers use it */
-void UI_draw_roundbox_shade_x(
-    const rctf *rect, bool filled, float rad, float shadetop, float shadedown, const float col[4])
-{
-  float inner1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float inner2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float outline[4];
-
-  if (filled) {
-    inner1[0] = min_ff(1.0f, col[0] + shadetop);
-    inner1[1] = min_ff(1.0f, col[1] + shadetop);
-    inner1[2] = min_ff(1.0f, col[2] + shadetop);
-    inner1[3] = 1.0f;
-    inner2[0] = max_ff(0.0f, col[0] + shadedown);
-    inner2[1] = max_ff(0.0f, col[1] + shadedown);
-    inner2[2] = max_ff(0.0f, col[2] + shadedown);
-    inner2[3] = 1.0f;
-  }
-
-  /* TODO: non-filled box don't have gradients. Just use middle color. */
-  outline[0] = clamp_f(col[0] + shadetop + shadedown, 0.0f, 1.0f);
-  outline[1] = clamp_f(col[1] + shadetop + shadedown, 0.0f, 1.0f);
-  outline[2] = clamp_f(col[2] + shadetop + shadedown, 0.0f, 1.0f);
-  outline[3] = clamp_f(col[3] + shadetop + shadedown, 0.0f, 1.0f);
-
-  UI_draw_roundbox_4fv_ex(rect, inner1, inner2, 1.0f, outline, U.pixelsize, rad);
-}
-
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
 {
   const int ofs_y = 4 * U.pixelsize;

@@ -1,0 +1,184 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * All rights reserved.
+ */
+
+/** \file
+ * \ingroup spnode
+ * \brief Node breadcrumbs drawing
+ */
+
+#include "BLI_vector.hh"
+
+#include "DNA_node_types.h"
+
+#include "BKE_context.h"
+#include "BKE_material.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+
+#include "BKE_screen.h"
+
+#include "RNA_access.h"
+
+#include "ED_screen.h"
+
+#include "UI_interface.h"
+#include "UI_interface.hh"
+#include "UI_resources.h"
+
+#include "UI_interface.hh"
+
+#include "node_intern.h"
+
+struct Mesh;
+struct Curve;
+struct Light;
+struct World;
+struct Material;
+
+namespace blender::ed::space_node {
+
+static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Object &object)
+{
+  if (object.type == OB_MESH && object.data) {
+    Mesh *mesh = (Mesh *)object.data;
+    ui::context_path_add_generic(path, RNA_Mesh, mesh);
+  }
+  if (object.type == OB_LAMP && object.data) {
+    Light *light = (Light *)object.data;
+    ui::context_path_add_generic(path, RNA_Light, light);
+  }
+  if (ELEM(object.type, OB_CURVE, OB_FONT, OB_SURF) && object.data) {
+    Curve *curve = (Curve *)object.data;
+    ui::context_path_add_generic(path, RNA_Curve, curve);
+  }
+}
+
+static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
+                                                       Vector<ui::ContextPathItem> &path,
+                                                       const bool skip_base = false)
+{
+  Vector<const bNodeTreePath *> tree_path = snode.treepath;
+  for (const bNodeTreePath *path_item : tree_path.as_span().drop_front(int(skip_base))) {
+    ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE);
+  }
+}
+
+static void get_context_path_node_shader(const bContext &C,
+                                         SpaceNode &snode,
+                                         Vector<ui::ContextPathItem> &path)
+{
+  if (snode.flag & SNODE_PIN) {
+    if (snode.shaderfrom == SNODE_SHADER_WORLD) {
+      Scene *scene = CTX_data_scene(&C);
+      ui::context_path_add_generic(path, RNA_Scene, scene);
+      if (scene != nullptr) {
+        World *world = scene->world;
+        ui::context_path_add_generic(path, RNA_World, world);
+      }
+      /* Skip the base node tree here, because the world contains a node tree already. */
+      context_path_add_node_tree_and_node_groups(snode, path, true);
+    }
+    else {
+      context_path_add_node_tree_and_node_groups(snode, path);
+    }
+  }
+  else {
+    Object *object = CTX_data_active_object(&C);
+    if (snode.shaderfrom == SNODE_SHADER_OBJECT && object != nullptr) {
+      ui::context_path_add_generic(path, RNA_Object, object);
+      if (!(object->matbits && object->matbits[object->actcol - 1])) {
+        context_path_add_object_data(path, *object);
+      }
+      Material *material = BKE_object_material_get(object, object->actcol);
+      ui::context_path_add_generic(path, RNA_Material, material);
+    }
+    else if (snode.shaderfrom == SNODE_SHADER_WORLD) {
+      Scene *scene = CTX_data_scene(&C);
+      ui::context_path_add_generic(path, RNA_Scene, scene);
+      if (scene != nullptr) {
+        World *world = scene->world;
+        ui::context_path_add_generic(path, RNA_World, world);
+      }
+    }
+#ifdef WITH_FREESTYLE
+    else if (snode.shaderfrom == SNODE_SHADER_LINESTYLE) {
+      ViewLayer *viewlayer = CTX_data_view_layer(&C);
+      FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(viewlayer);
+      ui::context_path_add_generic(path, RNA_ViewLayer, viewlayer);
+      Material *mat = BKE_object_material_get(object, object->actcol);
+      ui::context_path_add_generic(path, RNA_Material, mat);
+    }
+#endif
+    context_path_add_node_tree_and_node_groups(snode, path, true);
+  }
+}
+
+static void get_context_path_node_compositor(const bContext &C,
+                                             SpaceNode &snode,
+                                             Vector<ui::ContextPathItem> &path)
+{
+  if (snode.flag & SNODE_PIN) {
+    context_path_add_node_tree_and_node_groups(snode, path);
+  }
+  else {
+    Scene *scene = CTX_data_scene(&C);
+    ui::context_path_add_generic(path, RNA_Scene, scene);
+    context_path_add_node_tree_and_node_groups(snode, path);
+  }
+}
+
+static void get_context_path_node_geometry(const bContext &C,
+                                           SpaceNode &snode,
+                                           Vector<ui::ContextPathItem> &path)
+{
+  if (snode.flag & SNODE_PIN) {
+    context_path_add_node_tree_and_node_groups(snode, path);
+  }
+  else {
+    Object *object = CTX_data_active_object(&C);
+    ui::context_path_add_generic(path, RNA_Object, object);
+    ModifierData *modifier = BKE_object_active_modifier(object);
+    ui::context_path_add_generic(path, RNA_Modifier, modifier, ICON_MODIFIER);
+    context_path_add_node_tree_and_node_groups(snode, path);
+  }
+}
+
+Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C)
+{
+  SpaceNode *snode = CTX_wm_space_node(&C);
+  if (snode == nullptr) {
+    return {};
+  }
+
+  Vector<ui::ContextPathItem> context_path;
+
+  if (snode->edittree->type == NTREE_GEOMETRY) {
+    get_context_path_node_geometry(C, *snode, context_path);
+  }
+  else if (snode->edittree->type == NTREE_SHADER) {
+    get_context_path_node_shader(C, *snode, context_path);
+  }
+  else if (snode->edittree->type == NTREE_COMPOSIT) {
+    get_context_path_node_compositor(C, *snode, context_path);
+  }
+
+  return context_path;
+}
+
+}  // namespace blender::ed::space_node

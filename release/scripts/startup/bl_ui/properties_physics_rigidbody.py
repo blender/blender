@@ -109,7 +109,11 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        if obj.parent is not None and obj.parent.rigid_body is not None and not obj.parent.rigid_body.collision_shape == 'COMPOUND':
+        if (
+                (obj.parent is not None) and
+                (obj.parent.rigid_body is not None) and
+                (not obj.parent.rigid_body.collision_shape == 'COMPOUND')
+        ):
             return False
         return (obj and obj.rigid_body and (context.engine in cls.COMPAT_ENGINES))
 
@@ -124,7 +128,11 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
         layout.prop(rbo, "collision_shape", text="Shape")
 
         if rbo.collision_shape == 'COMPOUND':
-            if parent is not None and parent.rigid_body is not None and parent.rigid_body.collision_shape == 'COMPOUND':
+            if (
+                    (parent is not None) and
+                    (parent.rigid_body is not None) and
+                    (parent.rigid_body.collision_shape == 'COMPOUND')
+            ):
                 rigid_body_warning(layout, "Sub compound shapes are not allowed")
             else:
                 found = False
@@ -179,7 +187,11 @@ class PHYSICS_PT_rigid_body_collisions_sensitivity(PHYSICS_PT_rigidbody_panel, P
     @classmethod
     def poll(cls, context):
         obj = context.object
-        if obj.parent is not None and obj.parent.rigid_body is not None and not obj.parent.rigid_body.collision_shape == 'COMPOUND':
+        if (
+                (obj.parent is not None) and
+                (obj.parent.rigid_body is not None) and
+                (not obj.parent.rigid_body.collision_shape == 'COMPOUND')
+        ):
             return False
         return (obj and obj.rigid_body and (context.engine in cls.COMPAT_ENGINES))
 

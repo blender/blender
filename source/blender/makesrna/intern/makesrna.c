@@ -4793,6 +4793,7 @@ static const char *cpp_classes =
     "\n"
     "    bool operator==(const Pointer &other) const { return ptr.data == other.ptr.data; }\n"
     "    bool operator!=(const Pointer &other) const { return ptr.data != other.ptr.data; }\n"
+    "    bool operator<(const Pointer &other) const { return ptr.data < other.ptr.data; }\n"
     "\n"
     "    PointerRNA ptr;\n"
     "};\n"

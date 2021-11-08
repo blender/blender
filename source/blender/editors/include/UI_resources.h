@@ -39,6 +39,10 @@ typedef enum {
 
 #define BIFICONID_FIRST (ICON_NONE)
 
+/* Removed icon no longer used, defined so that add-ons don't have to be \
+ * updated. */
+#define ICON_SMALL_TRI_RIGHT_VEC (ICON_RIGHTARROW)
+
 /* use to denote intentionally unset theme color */
 #define TH_UNDEFINED -1
 

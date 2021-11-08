@@ -537,7 +537,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
     }
     /* Also realize instances for the profile input of the curve to mesh node. */
     if (node->type == GEO_NODE_CURVE_TO_MESH) {
-      bNodeSocket *profile_socket = node->inputs.last;
+      bNodeSocket *profile_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
       add_realize_instances_before_socket(ntree, node, profile_socket);
     }
   }
@@ -781,6 +781,8 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
   }
 }
 
@@ -969,7 +971,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
 
     /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
      * generate a mesh for all grids in the volume. */
-    case GEO_NODE_VOLUME_TO_MESH:
+    case GEO_NODE_LEGACY_VOLUME_TO_MESH:
       return false;
 
     /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
@@ -1217,6 +1219,56 @@ static void do_version_bones_roll(ListBase *lb)
         bone->arm_head, bone->arm_tail, bone->arm_mat[0], bone->arm_mat[1], &bone->arm_roll);
 
     do_version_bones_roll(&bone->childbase);
+  }
+}
+
+static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
+{
+  /* Add the new Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    if (BLI_listbase_count(&node->inputs) < 4) {
+      /* The offset socket didn't exist in the file yet. */
+      return;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    if (old_offset_socket->type == SOCK_VECTOR) {
+      /* Versioning happened already. */
+      return;
+    }
+    /* Change identifier of old socket, so that the there is no name collision. */
+    STRNCPY(old_offset_socket->identifier, "Offset_old");
+    nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_VECTOR, PROP_TRANSLATION, "Offset", "Offset");
+  }
+
+  /* Relink links that were connected to Position while Offset was enabled. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tonode->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    if (!STREQ(link->tosock->identifier, "Position")) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&link->tonode->inputs, 3);
+    /* This assumes that the offset is not linked to something else. That seems to be a reasonable
+     * assumption, because the node is probably only ever used in one or the other mode. */
+    const bool offset_enabled =
+        ((bNodeSocketValueBoolean *)old_offset_socket->default_value)->value;
+    if (offset_enabled) {
+      /* Relink to new offset socket. */
+      link->tosock = old_offset_socket->next;
+    }
+  }
+
+  /* Remove old Offset socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_SET_POSITION) {
+      continue;
+    }
+    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    nodeRemoveSocket(ntree, node, old_offset_socket);
   }
 }
 
@@ -2058,6 +2110,79 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      wm->xr.session_settings.base_scale = 1.0f;
+      wm->xr.session_settings.draw_flags |= (V3D_OFSDRAW_SHOW_SELECTION |
+                                             V3D_OFSDRAW_XR_SHOW_CONTROLLERS |
+                                             V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 40)) {
+    /* Update the `idnames` for renamed geometry and function nodes. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
+      version_geometry_nodes_set_position_node_offset(ntree);
+      version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
+    }
+
+    /* Add storage to viewer node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_VIEWER) {
+          if (node->storage == NULL) {
+            NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(
+                sizeof(NodeGeometryViewer), __func__);
+            data->data_type = CD_PROP_FLOAT;
+            node->storage = data;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_input_socket_name(
+            ntree, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, "Geometry", "Mesh");
+        version_node_input_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Points");
+        version_node_output_socket_name(ntree, GEO_NODE_POINTS_TO_VOLUME, "Geometry", "Volume");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVISION_SURFACE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_RESAMPLE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_CURVE, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_RADIUS, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_TILT, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_SET_CURVE_HANDLES, "Geometry", "Curve");
+        version_node_socket_name(ntree, GEO_NODE_TRANSLATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_ROTATE_INSTANCES, "Geometry", "Instances");
+        version_node_socket_name(ntree, GEO_NODE_SCALE_INSTANCES, "Geometry", "Instances");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry", "Mesh");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 1", "Mesh 1");
+        version_node_input_socket_name(ntree, GEO_NODE_MESH_BOOLEAN, "Geometry 2", "Mesh 2");
+        version_node_socket_name(ntree, GEO_NODE_SUBDIVIDE_MESH, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_TRIANGULATE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CONE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CUBE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_GRID, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Geometry", "Mesh");
+        version_node_output_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_LINE, "Geometry", "Mesh");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "Geometry", "Mesh");
+        version_node_socket_name(ntree, GEO_NODE_SET_POINT_RADIUS, "Geometry", "Points");
       }
     }
   }

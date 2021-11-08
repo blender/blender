@@ -90,7 +90,6 @@ void BKE_blender_free(void)
 
   IMB_exit();
   BKE_cachefiles_exit();
-  BKE_images_exit();
   DEG_free_node_types();
 
   BKE_brush_system_exit();

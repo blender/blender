@@ -483,6 +483,18 @@ struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
   return filelist_file_get_id(file);
 }
 
+void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID catalog_id)
+{
+  if (!ED_fileselect_is_asset_browser(sfile)) {
+    return;
+  }
+
+  FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params->catalog_id = catalog_id;
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+}
+
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
 {
   ID *asset_id = (ID *)custom_data;
@@ -514,14 +526,12 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
     const FileDirEntry *file = filelist_file_ex(files, file_index, false);
 
     if (filelist_file_get_id(file) != asset_id) {
-      filelist_entry_select_set(files, file, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
       continue;
     }
 
     params->active_file = file_index;
     filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
-
-    /* Keep looping to deselect the other files. */
+    break;
   }
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
@@ -981,6 +991,8 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  /* Request a slightly more compact layout for asset browsing. */
+  const bool compact = ED_fileselect_is_asset_browser(sfile);
   FileLayout *layout = NULL;
   View2D *v2d = &region->v2d;
   int numfiles;
@@ -1000,12 +1012,13 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   layout->textheight = textheight;
 
   if (params->display == FILE_IMGDISPLAY) {
+    const float pad_fac = compact ? 0.15f : 0.3f;
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
-    layout->tile_border_x = 0.3f * UI_UNIT_X;
-    layout->tile_border_y = 0.3f * UI_UNIT_X;
-    layout->prv_border_x = 0.3f * UI_UNIT_X;
-    layout->prv_border_y = 0.3f * UI_UNIT_Y;
+    layout->tile_border_x = pad_fac * UI_UNIT_X;
+    layout->tile_border_y = pad_fac * UI_UNIT_X;
+    layout->prv_border_x = pad_fac * UI_UNIT_X;
+    layout->prv_border_y = pad_fac * UI_UNIT_Y;
     layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
     layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
     layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);

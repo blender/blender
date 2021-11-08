@@ -591,7 +591,7 @@ class GreasePencilMaterialsPanel:
                 if len(ob.material_slots) > 0 and ob.active_material_index >= 0:
                     ma = ob.material_slots[ob.active_material_index].material
 
-            if ma is not None and ma.grease_pencil is not None:
+            if is_view3d and ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
                 if gpcolor.stroke_style == 'SOLID':
                     row = layout.row()

@@ -19,6 +19,8 @@
 
 /** \file
  * \ingroup spgraph
+ *
+ * Insert duplicate and bake keyframes.
  */
 
 #include <float.h>
@@ -68,9 +70,6 @@
 #include "WM_types.h"
 
 #include "graph_intern.h"
-
-/* ************************************************************************** */
-/* INSERT DUPLICATE AND BAKE KEYFRAMES */
 
 /* -------------------------------------------------------------------- */
 /** \name Insert Keyframes Operator

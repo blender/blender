@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
  *
  * Shared memory requirement is `sizeof(int) * (number_of_warps + 1)`. */
 
-#include "util/util_atomic.h"
+#include "util/atomic.h"
 
 #ifdef __HIP__
 #  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 1024

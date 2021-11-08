@@ -31,29 +31,23 @@ namespace blender::nodes {
 
 static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
-  b.add_input<decl::Float>("Crease")
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
+  b.add_input<decl::Float>(N_("Crease"))
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .supports_field()
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
                                                 PointerRNA *ptr)
 {
-#ifdef WITH_OPENSUBDIV
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
-#else
-  UNUSED_VARS(layout, ptr);
-#endif
+  uiItemR(layout, ptr, "uv_smooth", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", 0, "", ICON_NONE);
 }
 
 static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *node)
@@ -67,7 +61,7 @@ static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *n
 
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
@@ -82,7 +76,7 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 
   /* Only process subdivision if level is greater than 0. */
   if (subdiv_level == 0) {
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Mesh", std::move(geometry_set));
     return;
   }
 
@@ -148,7 +142,7 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
     BKE_subdiv_free(subdiv);
   });
 #endif
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Mesh", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

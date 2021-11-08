@@ -25,9 +25,9 @@ namespace blender::nodes {
 
 static void geo_node_curve_set_handles_decalre(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_set_handles_layout(uiLayout *layout,

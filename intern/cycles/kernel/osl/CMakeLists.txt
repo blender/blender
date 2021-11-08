@@ -25,21 +25,21 @@ set(SRC
   bsdf_diffuse_ramp.cpp
   bsdf_phong_ramp.cpp
   emissive.cpp
-  osl_bssrdf.cpp
-  osl_closures.cpp
-  osl_services.cpp
-  osl_shader.cpp
+  bssrdf.cpp
+  closures.cpp
+  services.cpp
+  shader.cpp
 )
 
 set(HEADER_SRC
-  osl_closures.h
-  osl_globals.h
-  osl_services.h
-  osl_shader.h
+  closures.h
+  globals.h
+  services.h
+  shader.h
 )
 
 set(LIB
-  cycles_render
+  cycles_scene
 
   ${OSL_LIBRARIES}
   ${OPENIMAGEIO_LIBRARIES}

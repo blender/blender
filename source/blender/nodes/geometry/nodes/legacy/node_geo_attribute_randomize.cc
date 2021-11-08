@@ -27,16 +27,16 @@ namespace blender::nodes {
 
 static void geo_node_legacy_attribute_randomize_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::Vector>("Min");
-  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Min", "Min_001");
-  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
-  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
-  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::Vector>(N_("Min"));
+  b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Min"), "Min_001");
+  b.add_input<decl::Float>(N_("Max"), "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>(N_("Min"), "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Max"), "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_legacy_attribute_random_layout(uiLayout *layout,

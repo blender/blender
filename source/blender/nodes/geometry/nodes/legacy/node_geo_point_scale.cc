@@ -25,13 +25,13 @@ namespace blender::nodes {
 
 static void geo_node_point_scale_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Factor");
-  b.add_input<decl::Vector>("Factor", "Factor_001")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Factor"));
+  b.add_input<decl::Vector>(N_("Factor"), "Factor_001")
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ);
-  b.add_input<decl::Float>("Factor", "Factor_002").default_value(1.0f).min(0.0f);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Float>(N_("Factor"), "Factor_002").default_value(1.0f).min(0.0f);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

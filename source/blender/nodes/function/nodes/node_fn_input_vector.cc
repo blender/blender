@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void fn_node_input_vector_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Vector");
+  b.add_output<decl::Vector>(N_("Vector"));
 };
 
 static void fn_node_input_vector_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

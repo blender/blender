@@ -477,6 +477,12 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
 
 void evaluate_constant_field(const GField &field, void *r_value)
 {
+  if (field.node().depends_on_input()) {
+    const CPPType &type = field.cpp_type();
+    type.copy_construct(type.default_value(), r_value);
+    return;
+  }
+
   ResourceScope scope;
   FieldContext context;
   Vector<const GVArray *> varrays = evaluate_fields(scope, {field}, IndexRange(1), context);
@@ -517,6 +523,7 @@ const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
 
 IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
 {
+  category_ = Category::Generated;
 }
 
 GVArray *IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &scope)

@@ -1950,8 +1950,36 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_refresh_exec;
-  /* Operator works for file or asset browsing */
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Refresh Asset Library Operator
+ * \{ */
+
+static int file_asset_library_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  ED_fileselect_clear(wm, sfile);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_asset_library_refresh(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Refresh Asset Library";
+  ot->description = "Reread assets and asset catalogs from the asset library on disk";
+  ot->idname = "FILE_OT_asset_library_refresh";
+
+  /* api callbacks */
+  ot->exec = file_asset_library_refresh_exec;
+  ot->poll = ED_operator_asset_browsing_active;
 }
 
 /** \} */
@@ -2463,12 +2491,14 @@ static void file_expand_directory(bContext *C)
     if (BLI_path_is_rel(params->dir)) {
       /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
       BLI_path_abs(params->dir,
-                   G.relbase_valid ? BKE_main_blendfile_path(bmain) : BKE_appdir_folder_default());
+                   G.relbase_valid ? BKE_main_blendfile_path(bmain) :
+                                     BKE_appdir_folder_default_or_root());
     }
     else if (params->dir[0] == '~') {
       char tmpstr[sizeof(params->dir) - 1];
       BLI_strncpy(tmpstr, params->dir + 1, sizeof(tmpstr));
-      BLI_join_dirfile(params->dir, sizeof(params->dir), BKE_appdir_folder_default(), tmpstr);
+      BLI_path_join(
+          params->dir, sizeof(params->dir), BKE_appdir_folder_default_or_root(), tmpstr, NULL);
     }
 
     else if (params->dir[0] == '\0')

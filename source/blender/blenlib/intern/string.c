@@ -1026,7 +1026,7 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
 }
 
 /**
- * Strip whitespace from end of the string.
+ * Strip white-space from end of the string.
  */
 void BLI_str_rstrip(char *str)
 {

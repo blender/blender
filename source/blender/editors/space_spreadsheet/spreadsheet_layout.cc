@@ -93,7 +93,9 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     const int real_index = spreadsheet_layout_.row_indices[row_index];
     const ColumnValues &column = *spreadsheet_layout_.columns[column_index].values;
     CellValue cell_value;
-    column.get_value(real_index, cell_value);
+    if (real_index < column.size()) {
+      column.get_value(real_index, cell_value);
+    }
 
     if (cell_value.value_int.has_value()) {
       const int value = *cell_value.value_int;
@@ -215,6 +217,23 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        ICON_MESH_DATA,
                        "Geometry",
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       0,
+                       0,
+                       0,
+                       0,
+                       nullptr);
+    }
+    else if (cell_value.value_string.has_value()) {
+      uiDefIconTextBut(params.block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       ICON_NONE,
+                       cell_value.value_string->c_str(),
                        params.xmin,
                        params.ymin,
                        params.width,

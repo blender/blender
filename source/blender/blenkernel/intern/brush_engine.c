@@ -1843,8 +1843,12 @@ void BKE_brush_channelset_expand(BlendExpander *expander, ID *id, BrushChannelSe
 {
 }
 
-void BKE_brush_channelset_foreach_id(LibraryForeachIDData *data, BrushChannelSet *chset)
+void BKE_brush_channelset_foreach_id(void *userdata,
+                                     BrushChannelSet *chset,
+                                     BrushChannelIDCallback callback)
 {
+
+  // for now, do nothing; in the future brush textures (might) have ID references
 }
 
 void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)

@@ -200,6 +200,8 @@ class NodeRef : NonCopyable, NonMovable {
   PointerRNA *rna() const;
   StringRefNull idname() const;
   StringRefNull name() const;
+  StringRefNull label() const;
+  StringRefNull label_or_name() const;
   bNodeType *typeinfo() const;
   const NodeDeclaration *declaration() const;
 
@@ -285,7 +287,17 @@ class NodeTreeRef : NonCopyable, NonMovable {
     RightToLeft,
   };
 
-  Vector<const NodeRef *> toposort(ToposortDirection direction) const;
+  struct ToposortResult {
+    Vector<const NodeRef *> sorted_nodes;
+    /**
+     * There can't be a correct topological sort of the nodes when there is a cycle. The nodes will
+     * still be sorted to some degree. The caller has to decide whether it can handle non-perfect
+     * sorts or not.
+     */
+    bool has_cycle = false;
+  };
+
+  ToposortResult toposort(ToposortDirection direction) const;
 
   bNodeTree *btree() const;
   StringRefNull name() const;
@@ -573,6 +585,20 @@ inline StringRefNull NodeRef::idname() const
 inline StringRefNull NodeRef::name() const
 {
   return bnode_->name;
+}
+
+inline StringRefNull NodeRef::label() const
+{
+  return bnode_->label;
+}
+
+inline StringRefNull NodeRef::label_or_name() const
+{
+  const StringRefNull label = this->label();
+  if (!label.is_empty()) {
+    return label;
+  }
+  return this->name();
 }
 
 inline bNodeType *NodeRef::typeinfo() const

@@ -158,8 +158,19 @@ class DOutputSocket : public DSocket {
   DInputSocket get_corresponding_group_node_input() const;
   DInputSocket get_active_corresponding_group_output_socket() const;
 
-  void foreach_target_socket(FunctionRef<void(DInputSocket)> target_fn,
-                             FunctionRef<void(DSocket)> skipped_fn) const;
+  struct TargetSocketPathInfo {
+    /** All sockets on the path from the current to the final target sockets, excluding `this`. */
+    Vector<DSocket, 16> sockets;
+  };
+
+  using ForeachTargetSocketFn =
+      FunctionRef<void(DInputSocket, const TargetSocketPathInfo &path_info)>;
+
+  void foreach_target_socket(ForeachTargetSocketFn target_fn) const;
+
+ private:
+  void foreach_target_socket(ForeachTargetSocketFn target_fn,
+                             TargetSocketPathInfo &path_info) const;
 };
 
 class DerivedNodeTree {

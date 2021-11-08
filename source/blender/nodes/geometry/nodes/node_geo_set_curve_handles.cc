@@ -25,10 +25,10 @@ namespace blender::nodes {
 
 static void geo_node_set_curve_handles_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>("Position").implicit_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_set_curve_handles_layout(uiLayout *layout,
@@ -125,7 +125,7 @@ static void geo_node_set_curve_handles_exec(GeoNodeExecParams params)
       (NodeGeometrySetCurveHandlePositions *)params.node().storage;
   const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)node_storage->mode;
 
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
 
@@ -144,7 +144,7 @@ static void geo_node_set_curve_handles_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Info,
                              TIP_("The input geometry does not contain a Bezier spline"));
   }
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Curve", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

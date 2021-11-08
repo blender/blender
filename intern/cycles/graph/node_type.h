@@ -17,11 +17,11 @@
 #pragma once
 
 #include "graph/node_enum.h"
-#include "util/util_array.h"
-#include "util/util_map.h"
-#include "util/util_param.h"
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/array.h"
+#include "util/map.h"
+#include "util/param.h"
+#include "util/string.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

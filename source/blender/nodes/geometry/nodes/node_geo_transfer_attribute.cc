@@ -40,22 +40,24 @@ namespace blender::nodes {
 
 static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target");
+  b.add_input<decl::Geometry>(N_("Target"))
+      .only_realized_data()
+      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
 
-  b.add_input<decl::Vector>("Attribute").hide_value().supports_field();
-  b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().supports_field();
-  b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().supports_field();
-  b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().supports_field();
-  b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
+  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
+  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
 
-  b.add_input<decl::Vector>("Source Position").implicit_field();
-  b.add_input<decl::Int>("Index").implicit_field();
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_input<decl::Int>(N_("Index")).implicit_field();
 
-  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7});
-  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7});
-  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7});
-  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7});
-  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7});
+  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7});
+  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7});
+  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7});
+  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7});
+  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7});
 }
 
 static void geo_node_transfer_attribute_layout(uiLayout *layout,
@@ -628,13 +630,14 @@ class IndexTransferFieldInput : public FieldInput {
                           GField src_field,
                           Field<int> index_field,
                           const AttributeDomain domain)
-      : FieldInput(src_field.cpp_type(), "Attribute Transfer Index"),
+      : FieldInput(src_field.cpp_type(), "Attribute Transfer node"),
         src_geometry_(std::move(geometry)),
         src_field_(std::move(src_field)),
         index_field_(std::move(index_field)),
         domain_(domain)
   {
     src_geometry_.ensure_owns_direct_data();
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const FieldContext &context,
@@ -746,21 +749,9 @@ static void geo_node_transfer_attribute_exec(GeoNodeExecParams params)
     });
   };
 
-  if (geometry.has_instances()) {
-    if (geometry.has_realized_data()) {
-      params.error_message_add(
-          NodeWarningType::Info,
-          TIP_("Only realized geometry is supported, instances will not be used"));
-    }
-    else {
-      params.error_message_add(NodeWarningType::Error,
-                               TIP_("Target geometry must contain realized data"));
-      return return_default();
-    }
-    /* Since the instances are not used, there is no point in keeping
-     * a reference to them while the field is passed around. */
-    geometry.remove(GEO_COMPONENT_TYPE_INSTANCES);
-  }
+  /* Since the instances are not used, there is no point in keeping
+   * a reference to them while the field is passed around. */
+  geometry.remove(GEO_COMPONENT_TYPE_INSTANCES);
 
   GField output_field;
   switch (mapping) {
@@ -790,8 +781,6 @@ static void geo_node_transfer_attribute_exec(GeoNodeExecParams params)
     }
     case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
       if (geometry.has_curve() && !geometry.has_mesh() && !geometry.has_pointcloud()) {
-        params.error_message_add(NodeWarningType::Warning,
-                                 TIP_("Curve targets are not currently supported"));
         return return_default();
       }
       auto fn = std::make_unique<NearestTransferFunction>(

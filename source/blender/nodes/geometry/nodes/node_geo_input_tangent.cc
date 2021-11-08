@@ -24,7 +24,7 @@ namespace blender::nodes {
 
 static void geo_node_input_tangent_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Tangent").field_source();
+  b.add_output<decl::Vector>(N_("Tangent")).field_source();
 }
 
 static void calculate_bezier_tangents(const BezierSpline &spline, MutableSpan<float3> tangents)
@@ -121,8 +121,9 @@ static const GVArray *construct_curve_tangent_gvarray(const CurveComponent &comp
 
 class TangentFieldInput final : public fn::FieldInput {
  public:
-  TangentFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Tangent")
+  TangentFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Tangent node")
   {
+    category_ = Category::Generated;
   }
 
   const GVArray *get_varray_for_context(const fn::FieldContext &context,

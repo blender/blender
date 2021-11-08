@@ -98,6 +98,11 @@ void namestack_push(const char *name);
 void *namestack_pop(void *passthru);
 #endif
 
+typedef void (*BrushChannelIDCallback)(void *userdata,
+                                       struct ID *id,
+                                       BrushChannelSet *chset,
+                                       BrushChannel *ch);
+
 typedef struct BrushMappingDef {
   int curve;
   bool enabled;
@@ -344,7 +349,9 @@ void BKE_brush_channelset_read_lib(struct BlendLibReader *reader,
 void BKE_brush_channelset_expand(struct BlendExpander *expander,
                                  struct ID *id,
                                  BrushChannelSet *chset);
-void BKE_brush_channelset_foreach_id(struct LibraryForeachIDData *data, BrushChannelSet *chset);
+void BKE_brush_channelset_foreach_id(void *userdata,
+                                     BrushChannelSet *chset,
+                                     BrushChannelIDCallback callback);
 
 void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src);
 const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping);

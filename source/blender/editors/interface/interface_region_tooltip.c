@@ -960,7 +960,8 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
 
     /* if operator poll check failed, it can give pretty precise info why */
     if (optype) {
-      const int opcontext = extra_icon ? extra_icon->optype_params->opcontext : but->opcontext;
+      const wmOperatorCallContext opcontext = extra_icon ? extra_icon->optype_params->opcontext :
+                                                           but->opcontext;
       CTX_wm_operator_poll_msg_clear(C);
       ui_but_context_poll_operator_ex(
           C, but, &(wmOperatorCallParams){.optype = optype, .opcontext = opcontext});

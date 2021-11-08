@@ -203,14 +203,18 @@ void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
     switch (fcm->type) {
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *fcm_py = (FMod_Python *)fcm->data;
-        BKE_LIB_FOREACHID_PROCESS(data, fcm_py->script, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fcm_py->script, IDWALK_CB_NOP);
 
-        IDP_foreach_property(fcm_py->prop,
-                             IDP_TYPE_FILTER_ID,
-                             BKE_lib_query_idpropertiesForeachIDLink_callback,
-                             data);
+        BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+            data,
+            IDP_foreach_property(fcm_py->prop,
+                                 IDP_TYPE_FILTER_ID,
+                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
+                                 data));
         break;
       }
+      default:
+        break;
     }
   }
 }

@@ -20,21 +20,22 @@
 #  include "device/optix/device_impl.h"
 
 #  include "bvh/bvh.h"
-#  include "bvh/bvh_optix.h"
-#  include "integrator/pass_accessor_gpu.h"
-#  include "render/buffers.h"
-#  include "render/hair.h"
-#  include "render/mesh.h"
-#  include "render/object.h"
-#  include "render/pass.h"
-#  include "render/scene.h"
+#  include "bvh/optix.h"
 
-#  include "util/util_debug.h"
-#  include "util/util_logging.h"
-#  include "util/util_md5.h"
-#  include "util/util_path.h"
-#  include "util/util_progress.h"
-#  include "util/util_time.h"
+#  include "integrator/pass_accessor_gpu.h"
+
+#  include "scene/hair.h"
+#  include "scene/mesh.h"
+#  include "scene/object.h"
+#  include "scene/pass.h"
+#  include "scene/scene.h"
+
+#  include "util/debug.h"
+#  include "util/log.h"
+#  include "util/md5.h"
+#  include "util/path.h"
+#  include "util/progress.h"
+#  include "util/time.h"
 
 #  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__
@@ -90,6 +91,7 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   };
 #  endif
   if (DebugFlags().optix.use_debug) {
+    VLOG(1) << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
@@ -1573,7 +1575,7 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
       return; \
     }
   KERNEL_TEX(IntegratorStateGPU, __integrator_state)
-#  include "kernel/kernel_textures.h"
+#  include "kernel/textures.h"
 #  undef KERNEL_TEX
 }
 

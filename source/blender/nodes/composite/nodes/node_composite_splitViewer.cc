@@ -38,7 +38,6 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
   ImageUser *iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "node image user");
   node->storage = iuser;
   iuser->sfra = 1;
-  iuser->ok = 1;
   node->custom1 = 50; /* default 50% split */
 
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");

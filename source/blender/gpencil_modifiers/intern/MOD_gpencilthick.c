@@ -191,8 +191,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "normalize_thickness", 0, NULL, ICON_NONE);
-  if (RNA_boolean_get(ptr, "normalize_thickness")) {
+  uiItemR(layout, ptr, "use_normalized_thickness", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "use_normalized_thickness")) {
     uiItemR(layout, ptr, "thickness", 0, NULL, ICON_NONE);
   }
   else {

@@ -82,7 +82,7 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
   WorkSpace *workspace = (WorkSpace *)id;
 
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BKE_LIB_FOREACHID_PROCESS(data, layout->screen, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout->screen, IDWALK_CB_USER);
   }
 }
 

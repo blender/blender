@@ -24,19 +24,17 @@
 
 #  include "device/cuda/device_impl.h"
 
-#  include "render/buffers.h"
-
-#  include "util/util_debug.h"
-#  include "util/util_foreach.h"
-#  include "util/util_logging.h"
-#  include "util/util_map.h"
-#  include "util/util_md5.h"
-#  include "util/util_path.h"
-#  include "util/util_string.h"
-#  include "util/util_system.h"
-#  include "util/util_time.h"
-#  include "util/util_types.h"
-#  include "util/util_windows.h"
+#  include "util/debug.h"
+#  include "util/foreach.h"
+#  include "util/log.h"
+#  include "util/map.h"
+#  include "util/md5.h"
+#  include "util/path.h"
+#  include "util/string.h"
+#  include "util/system.h"
+#  include "util/time.h"
+#  include "util/types.h"
+#  include "util/windows.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -380,7 +378,9 @@ string CUDADevice::compile_kernel(const uint kernel_features,
       cubin.c_str(),
       common_cflags.c_str());
 
-  printf("Compiling CUDA kernel ...\n%s\n", command.c_str());
+  printf("Compiling %sCUDA kernel ...\n%s\n",
+         (use_adaptive_compilation()) ? "adaptive " : "",
+         command.c_str());
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -407,13 +407,15 @@ string CUDADevice::compile_kernel(const uint kernel_features,
 
 bool CUDADevice::load_kernels(const uint kernel_features)
 {
-  /* TODO(sergey): Support kernels re-load for CUDA devices.
+  /* TODO(sergey): Support kernels re-load for CUDA devices adaptive compile.
    *
    * Currently re-loading kernel will invalidate memory pointers,
    * causing problems in cuCtxSynchronize.
    */
   if (cuModule) {
-    VLOG(1) << "Skipping kernel reload, not currently supported.";
+    if (use_adaptive_compilation()) {
+      VLOG(1) << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
+    }
     return true;
   }
 

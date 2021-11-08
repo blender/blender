@@ -20,11 +20,11 @@
 #include "integrator/pass_accessor.h"
 #include "integrator/path_trace_work.h"
 #include "integrator/work_balancer.h"
-#include "render/buffers.h"
-#include "util/util_function.h"
-#include "util/util_thread.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "session/buffers.h"
+#include "util/function.h"
+#include "util/thread.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -43,6 +43,22 @@ void version_node_socket_name(struct bNodeTree *ntree,
                               const int node_type,
                               const char *old_name,
                               const char *new_name);
+void version_node_input_socket_name(struct bNodeTree *ntree,
+                                    const int node_type,
+                                    const char *old_name,
+                                    const char *new_name);
+void version_node_output_socket_name(struct bNodeTree *ntree,
+                                     const int node_type,
+                                     const char *old_name,
+                                     const char *new_name);
+
+void version_node_socket_index_animdata(
+    Main *bmain,
+    int node_tree_type, /* NTREE_....., e.g. NTREE_SHADER */
+    int node_type,      /* SH_NODE_..., e.g. SH_NODE_BSDF_PRINCIPLED */
+    int socket_index_orig,
+    int socket_index_offset,
+    int total_number_of_sockets);
 
 void version_node_id(struct bNodeTree *ntree, const int node_type, const char *new_name);
 

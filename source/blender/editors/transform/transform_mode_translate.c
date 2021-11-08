@@ -403,7 +403,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
        * since re-applying translation without rotation removes rotation. */
     }
     else {
-      /* When transforming data that it's self stores rotation (objects, bones etc),
+      /* When transforming data that itself stores rotation (objects, bones etc),
        * apply rotation if it was applied (with the snap normal) previously.
        * This is needed because failing to rotate will leave the rotation at the last
        * value used before snapping was disabled. */

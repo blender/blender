@@ -145,6 +145,22 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
             }
           }
         }
+        /* For node sockets, it is useful to include the node name as well (multiple similar nodes
+         * are not distinguishable otherwise). Unfortunately, the node label cannot be retrieved
+         * from the rna path, for this to work access to the underlying node is needed (but finding
+         * the node iterates all nodes & sockets which would result in bad performance in some
+         * circumstances). */
+        if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+          char nodename[256];
+          if (BLI_str_quoted_substr(fcu->rna_path, "nodes[", nodename, sizeof(nodename))) {
+            const char *structname_all = BLI_sprintfN("%s : %s", nodename, structname);
+            if (free_structname) {
+              MEM_freeN((void *)structname);
+            }
+            structname = structname_all;
+            free_structname = 1;
+          }
+        }
       }
 
       /* Property Name is straightforward */

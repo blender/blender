@@ -82,6 +82,7 @@ typedef enum eGpencilExportSelect {
 typedef enum eGpencilExportFrame {
   GP_EXPORT_FRAME_ACTIVE = 0,
   GP_EXPORT_FRAME_SELECTED = 1,
+  GP_EXPORT_FRAME_SCENE = 2,
 } eGpencilExportFrame;
 
 bool gpencil_io_export(const char *filename, struct GpencilIOParams *iparams);

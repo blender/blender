@@ -37,3 +37,6 @@ void ED_asset_catalog_remove(AssetLibrary *library, const blender::bke::CatalogI
 void ED_asset_catalog_rename(AssetLibrary *library,
                              blender::bke::CatalogID catalog_id,
                              blender::StringRefNull new_name);
+void ED_asset_catalog_move(AssetLibrary *library,
+                           blender::bke::CatalogID src_catalog_id,
+                           blender::bke::CatalogID dst_parent_catalog_id);

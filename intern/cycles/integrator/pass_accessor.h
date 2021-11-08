@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "render/pass.h"
-#include "util/util_half.h"
-#include "util/util_string.h"
-#include "util/util_types.h"
+#include "scene/pass.h"
+#include "util/half.h"
+#include "util/string.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
