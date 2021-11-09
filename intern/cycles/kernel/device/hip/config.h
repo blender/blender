@@ -36,10 +36,34 @@
 /* Compute number of threads per block and minimum blocks per multiprocessor
  * given the maximum number of registers per thread. */
 
-#define ccl_gpu_kernel(block_num_threads, thread_num_registers) \
+#define ccl_gpu_kernel_threads(block_num_threads) \
+  extern "C" __global__ void __launch_bounds__(block_num_threads)
+
+#define ccl_gpu_kernel_threads_registers(block_num_threads, thread_num_registers) \
   extern "C" __global__ void __launch_bounds__(block_num_threads, \
                                                GPU_MULTIPRESSOR_MAX_REGISTERS / \
                                                    (block_num_threads * thread_num_registers))
+
+/* allow ccl_gpu_kernel to accept 1 or 2 parameters */
+#define SELECT_MACRO(_1, _2, NAME, ...) NAME
+#define ccl_gpu_kernel(...) \
+  SELECT_MACRO(__VA_ARGS__, ccl_gpu_kernel_threads_registers, ccl_gpu_kernel_threads)(__VA_ARGS__)
+
+#define ccl_gpu_kernel_signature(name, ...) kernel_gpu_##name(__VA_ARGS__)
+
+#define ccl_gpu_kernel_call(x) x
+
+/* define a function object where "func" is the lambda body, and additional parameters are used to
+ * specify captured state  */
+#define ccl_gpu_kernel_lambda(func, ...) \
+  struct KernelLambda { \
+    __VA_ARGS__; \
+    __device__ int operator()(const int state) \
+    { \
+      return (func); \
+    } \
+  } ccl_gpu_kernel_lambda_pass; \
+  ccl_gpu_kernel_lambda_pass
 
 /* sanity checks */
 
