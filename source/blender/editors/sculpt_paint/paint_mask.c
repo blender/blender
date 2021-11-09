@@ -190,7 +190,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (nodes) {
     MEM_freeN(nodes);
@@ -724,7 +724,7 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   operation->sculpt_gesture_end(C, sgcontext);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(CTX_data_active_object(C));
 
   SCULPT_tag_update_overlays(C);
 }
@@ -1340,7 +1340,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);
 
-  SCULPT_update_customdata_refs(sgcontext->ss);
+  SCULPT_update_customdata_refs(sgcontext->ss, sgcontext->vc.obact);
   BM_mesh_free(trimbm);
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
@@ -1404,6 +1404,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     sgcontext->ss->pbvh = BKE_pbvh_new();
 
     BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
+                         sculpt_mesh,
                          sgcontext->ss->bm,
                          sgcontext->ss->bm_smooth_shading,
                          sgcontext->ss->bm_log,

@@ -457,15 +457,37 @@ static void mesh_cd_calc_active_mask_uv_layer(const Mesh *me, DRW_MeshCDMask *cd
   }
 }
 
-static void mesh_cd_calc_active_vcol_layer(const Mesh *me, DRW_MeshAttributes *attrs_used)
+static bool mesh_cd_calc_active_vcol_layer(Mesh *me, DRW_MeshAttributes *attrs_used)
 {
+  CustomDataLayer *layer = BKE_id_attributes_active_get((ID *)me);
+
   const Mesh *me_final = editmesh_final_or_this(me);
   const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
 
-  int layer = CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR);
-  if (layer != -1) {
-    drw_mesh_attributes_add_request(attrs_used, CD_PROP_COLOR, layer, ATTR_DOMAIN_POINT);
+  int type, idx = -1;
+  AttributeDomain domain;
+
+  if (layer && ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    domain = BKE_id_attribute_domain((ID *)me, layer);
+    type = layer->type;
+
+    idx = CustomData_get_named_layer(
+        domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata, type, layer->name);
   }
+  else {
+    idx = CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR);
+    type = CD_PROP_COLOR;
+    domain = ATTR_DOMAIN_POINT;
+  }
+
+  if (idx != -1) {
+    if (type != CD_MLOOPCOL) {
+      drw_mesh_attributes_add_request(attrs_used, type, idx, domain);
+    }
+  }
+
+  return idx != -1;
 }
 
 static void mesh_cd_calc_active_mloopcol_layer(const Mesh *me, DRW_MeshCDMask *cd_used)
@@ -544,6 +566,11 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             type = CD_MTFACE;
 
             if (layer == -1) {
+              layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
+              type = CD_PROP_COLOR;
+            }
+
+            if (layer == -1) {
               layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
               type = CD_MCOL;
             }
@@ -617,13 +644,15 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             break;
           }
           case CD_MCOL: {
+            const CustomData *cdata = domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
+
             /* Vertex Color Data */
             if (layer == -1) {
-              layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
-                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL);
+              layer = (name[0] != '\0') ? CustomData_get_named_layer(cdata, CD_MLOOPCOL, name) :
+                                          CustomData_get_render_layer(cdata, CD_MLOOPCOL);
             }
             if (layer != -1) {
-              cd_used.vcol |= (1 << layer);
+              cd_used.vcol = 1;
             }
 
             break;
@@ -632,12 +661,15 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             cd_used.orco = 1;
             break;
           }
+
+          case CD_PROP_COLOR:
+            cd_used.vcol = 1;
+            /* fallthrough */
+          case CD_PROP_FLOAT3:
           case CD_PROP_BOOL:
           case CD_PROP_INT32:
           case CD_PROP_FLOAT:
-          case CD_PROP_FLOAT2:
-          case CD_PROP_FLOAT3:
-          case CD_PROP_COLOR: {
+          case CD_PROP_FLOAT2: {
             if (layer != -1 && domain != ATTR_DOMAIN_NUM) {
               drw_mesh_attributes_add_request(attributes, type, layer, domain);
             }
@@ -1107,7 +1139,10 @@ static void sculpt_request_active_vcol(MeshBatchCache *cache, Mesh *me)
 {
   DRW_MeshAttributes attrs_needed;
   drw_mesh_attributes_clear(&attrs_needed);
-  mesh_cd_calc_active_vcol_layer(me, &attrs_needed);
+
+  if (mesh_cd_calc_active_vcol_layer(me, &attrs_needed)) {
+    cache->cd_used.vcol = 1;
+  }
 
   BLI_assert(attrs_needed.num_requests != 0 &&
              "No MPropCol layer available in Sculpt, but batches requested anyway!");
@@ -1133,6 +1168,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_request_surface_batches(cache);
+
   return cache->batch.surface;
 }
 

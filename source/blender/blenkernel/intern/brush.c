@@ -2063,6 +2063,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       zero_v3(br->rgb);
 
       disable_dyntopo = true;
+      add_v3_fl(br->rgb, 1.0f);
+      zero_v3(br->secondary_rgb);
       break;
     case SCULPT_TOOL_SMEAR:
       br->alpha = 1.0f;

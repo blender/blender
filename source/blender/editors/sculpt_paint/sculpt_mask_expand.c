@@ -97,8 +97,8 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
   if (!create_face_set) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
   }
-  SCULPT_filter_cache_free(ss);
-  SCULPT_undo_push_end();
+  SCULPT_filter_cache_free(ss, ob);
+  SCULPT_undo_push_end(ob);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   ED_workspace_status_text(C, NULL);
 }
@@ -253,9 +253,9 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
       BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
     }
 
-    SCULPT_filter_cache_free(ss);
+    SCULPT_filter_cache_free(ss, ob);
 
-    SCULPT_undo_push_end();
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
     ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;

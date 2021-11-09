@@ -411,24 +411,274 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
   return NULL;
 }
 
-const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef vertex)
+bool SCULPT_has_colors(const SculptSession *ss)
+{
+  return ss->vcol_type != -1;
+}
+
+ATTR_NO_OPT bool SCULPT_vertex_color_get(const SculptSession *ss,
+                                         SculptVertRef vertex,
+                                         float out[4])
 {
   if (vertex.i == SCULPT_REF_NONE) {
-    return NULL;
+    return false;
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      if (ss->vcol) {
-        return ss->vcol[vertex.i].color;
+      if (!(ss->vcol || ss->mcol)) {
+        zero_v4(out);
+        return false;
       }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+        zero_v4(out);
+
+        int count = ss->pmap[vertex.i].count;
+        for (int i = 0; i < count; i++) {
+          MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+          MLoop *ml = ss->mloop + mp->loopstart;
+          int li = mp->loopstart;
+
+          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
+            if (ml->v != vertex.i) {
+              continue;
+            }
+
+            if (ss->vcol_type == CD_MLOOPCOL) {
+              MLoopCol *col = ss->mcol + li;
+
+              float temp[4];
+
+              rgba_uchar_to_float(temp, (const char *)col);
+              srgb_to_linearrgb_v3_v3(temp, temp);
+
+              add_v4_v4(out, temp);
+            }
+            else if (ss->vcol_type == CD_PROP_COLOR) {
+              add_v4_v4(out, ss->vcol[li].color);
+            }
+          }
+        }
+
+        if (count) {
+          mul_v4_fl(out, 1.0f / (float)count);
+        }
+      }
+      else {
+        if (ss->vcol_type == CD_MLOOPCOL) {
+          MLoopCol *col = ss->mcol + vertex.i;
+
+          float temp[4];
+          rgba_uchar_to_float(temp, (const char *)col);
+          srgb_to_linearrgb_v3_v3(temp, temp);
+
+          copy_v4_v4(out, temp);
+        }
+        if (ss->vcol_type == CD_PROP_COLOR) {
+          copy_v4_v4(out, ss->vcol[vertex.i].color);
+        }
+      }
+
+      return ss->vcol || ss->mcol;
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+
+      if (ss->vcol_type == -1) {
+        return false;
+      }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_POINT) {
+        switch (ss->vcol_type) {
+          case CD_PROP_COLOR:
+            copy_v4_v4(out, (float *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset));
+            break;
+
+          case CD_MLOOPCOL: {
+            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
+
+            float temp[4];
+            rgba_uchar_to_float(temp, (const char *)mp);
+            srgb_to_linearrgb_v3_v3(temp, temp);
+
+            copy_v4_v4(out, temp);
+
+            break;
+          }
+        }
+      }
+      else {
+        int tot = 0;
+
+        BMEdge *e = v->e;
+
+        if (!e) {
+          return false;
+        }
+
+        zero_v4(out);
+
+        do {
+          if (!e->l) {
+            continue;
+          }
+
+          BMLoop *l = e->l;
+          do {
+            BMLoop *l2 = l->v != v ? l->next : l;
+
+            switch (ss->vcol_type) {
+              case CD_PROP_COLOR:
+                add_v4_v4(out, (float *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset));
+                tot++;
+                break;
+
+              case CD_MLOOPCOL: {
+                MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset);
+
+                float temp[4];
+                rgba_uchar_to_float(temp, (const char *)mp);
+
+                srgb_to_linearrgb_v3_v3(temp, temp);
+
+                add_v4_v4(out, temp);
+                tot++;
+
+                break;
+              }
+            }
+          } while ((l = l->radial_next) != e->l);
+        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+        if (tot > 0) {
+          mul_v4_fl(out, 1.0f / (float)tot);
+        }
+      }
+
+      return true;
+    }
+
+    case PBVH_GRIDS:
+      break;
+  }
+
+  return false;
+}
+
+ATTR_NO_OPT void SCULPT_vertex_color_set(const SculptSession *ss,
+                                         SculptVertRef vertex,
+                                         float color[4])
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      if (!(ss->vcol || ss->mcol)) {
+        return;
+      }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
+        int count = ss->pmap[vertex.i].count;
+        for (int i = 0; i < count; i++) {
+          MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+          MLoop *ml = ss->mloop + mp->loopstart;
+          int li = mp->loopstart;
+
+          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
+            if (ml->v != vertex.i) {
+              continue;
+            }
+
+            if (ss->vcol_type == CD_MLOOPCOL) {
+              float temp[4];
+
+              MLoopCol *col = ss->mcol + li;
+
+              linearrgb_to_srgb_v3_v3(temp, color);
+              temp[3] = color[3];
+
+              rgba_float_to_uchar((char *)col, temp);
+            }
+            else if (ss->vcol_type == CD_PROP_COLOR) {
+              copy_v4_v4(ss->vcol[li].color, color);
+            }
+          }
+        }
+      }
+      else {
+        if (ss->vcol_type == CD_MLOOPCOL) {
+          MLoopCol *col = ss->mcol + vertex.i;
+          float temp[4];
+
+          linearrgb_to_srgb_v3_v3(temp, color);
+          temp[3] = color[3];
+
+          rgba_float_to_uchar((char *)col, temp);
+        }
+        else if (ss->vcol_type == CD_PROP_COLOR) {
+          copy_v4_v4(ss->vcol[vertex.i].color, color);
+        }
+      }
+
       break;
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)vertex.i;
 
-      if (ss->cd_vcol_offset >= 0) {
-        MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
-        return col->color;
+      if (ss->vcol_type == -1) {
+        return;
+      }
+
+      if (ss->vcol_domain == ATTR_DOMAIN_POINT) {
+        switch (ss->vcol_type) {
+          case CD_PROP_COLOR:
+            copy_v4_v4((float *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset), color);
+            break;
+
+          case CD_MLOOPCOL: {
+            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
+
+            float temp[4];
+            linearrgb_to_srgb_v3_v3(temp, color);
+            temp[3] = color[3];
+
+            rgba_float_to_uchar((char *)mp, temp);
+
+            break;
+          }
+        }
+      }
+      else {
+        BMEdge *e = v->e;
+
+        if (!e) {
+          return;
+        }
+
+        do {
+          if (!e->l) {
+            continue;
+          }
+
+          BMLoop *l = e->l;
+          do {
+            BMLoop *l2 = l->v != v ? l->next : l;
+
+            switch (ss->vcol_type) {
+              case CD_PROP_COLOR:
+                copy_v4_v4((float *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset), color);
+                break;
+
+              case CD_MLOOPCOL: {
+                MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset);
+                float temp[4];
+
+                linearrgb_to_srgb_v3_v3(temp, color);
+                temp[3] = color[3];
+                rgba_float_to_uchar((char *)mp, temp);
+
+                break;
+              }
+            }
+          } while ((l = l->radial_next) != e->l);
+        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
       }
 
       break;
@@ -436,7 +686,6 @@ const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef vertex)
     case PBVH_GRIDS:
       break;
   }
-  return NULL;
 }
 
 void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3])
@@ -554,6 +803,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex
 }
 
 static bool sculpt_temp_customlayer_get(SculptSession *ss,
+                                        Object *ob,
                                         AttributeDomain domain,
                                         int proptype,
                                         const char *name,
@@ -578,7 +828,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     if (permanent) {
       printf(
-          "%s: error: tried to make permanent customdata in multires mode; will make local array "
+          "%s: error: tried to make permanent customdata in multires mode; will make local "
+          "array "
           "instead.\n",
           __func__);
       permanent = false;
@@ -720,7 +971,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
         BM_data_layer_add_named(ss->bm, cdata, proptype, name);
         idx = CustomData_get_named_layer_index(cdata, proptype, name);
 
-        SCULPT_dyntopo_node_layers_update_offsets(ss);
+        SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
 
         if (!permanent) {
           cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
@@ -838,7 +1089,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   return true;
 }
 
-void SCULPT_update_customdata_refs(SculptSession *ss)
+void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob)
 {
   /* run twice, in case sculpt_temp_customlayer_get had to recreate a layer and
      messed up the ordering. */
@@ -848,13 +1099,13 @@ void SCULPT_update_customdata_refs(SculptSession *ss)
 
       if (scl && !scl->released && !scl->params.simple_array) {
         sculpt_temp_customlayer_get(
-            ss, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
+            ss, ob, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
     }
   }
 
   if (ss->bm) {
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
+    SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
   }
 }
 
@@ -882,6 +1133,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
 }
 
 bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    Object *ob,
                                     AttributeDomain domain,
                                     int proptype,
                                     const char *name,
@@ -891,11 +1143,11 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
 
   // call SCULPT_update_customdata_refs before and after,
   // thoeretically it can allocate new layers
-  SCULPT_update_customdata_refs(ss);
+  SCULPT_update_customdata_refs(ss, ob);
 
-  bool ret = sculpt_temp_customlayer_get(ss, domain, proptype, name, &scl, true, params);
+  bool ret = sculpt_temp_customlayer_get(ss, ob, domain, proptype, name, &scl, true, params);
 
-  SCULPT_update_customdata_refs(ss);
+  SCULPT_update_customdata_refs(ss, ob);
 
   return ret;
 }
@@ -940,7 +1192,7 @@ bool SCULPT_temp_customlayer_has(SculptSession *ss,
   return false;
 }
 
-bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
+bool SCULPT_temp_customlayer_release(SculptSession *ss, Object *ob, SculptCustomLayer *scl)
 {
   AttributeDomain domain = scl->domain;
 
@@ -979,7 +1231,7 @@ bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
       }
 
       CustomData_free_layer(cdata, scl->layer->type, totelem, scl->layer - cdata->layers);
-      SCULPT_update_customdata_refs(ss);
+      SCULPT_update_customdata_refs(ss, ob);
     }
     else {
       MEM_SAFE_FREE(scl->data);
@@ -991,14 +1243,15 @@ bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
 }
 
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
+                                 Object *ob,
                                  AttributeDomain domain,
                                  int proptype,
                                  const char *name,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params)
 {
-  bool ret = sculpt_temp_customlayer_get(ss, domain, proptype, name, scl, true, params);
-  SCULPT_update_customdata_refs(ss);
+  bool ret = sculpt_temp_customlayer_get(ss, ob, domain, proptype, name, scl, true, params);
+  SCULPT_update_customdata_refs(ss, ob);
 
   return ret;
 }
@@ -1196,9 +1449,9 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
     case PBVH_GRIDS:
       for (int i = 0; i < ss->totfaces; i++) {
 
-        /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
-         * modify the visibility. Force that geometry to the ID 1 to enable changing the visibility
-         * here. */
+        /* This can run on geometry without a face set assigned, so its ID sign can't be changed
+         * to modify the visibility. Force that geometry to the ID 1 to enable changing the
+         * visibility here. */
         if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
           ss->face_sets[i] = 1;
         }
@@ -1235,9 +1488,9 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
           BKE_pbvh_node_mark_update_triangulation(BKE_pbvh_node_from_index(ss->pbvh, node));
         }
 
-        /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
-         * modify the visibility. Force that geometry to the ID 1 to enable changing the visibility
-         * here. */
+        /* This can run on geometry without a face set assigned, so its ID sign can't be changed
+         * to modify the visibility. Force that geometry to the ID 1 to enable changing the
+         * visibility here. */
 
         if (fset == SCULPT_FACE_SET_NONE) {
           fset = 1;
@@ -1252,7 +1505,6 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
 
         BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
       }
-      break;
     }
   }
 }
@@ -2526,7 +2778,7 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
-                                      ss->cd_vcol_offset,
+                                      -1,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry);
       }
@@ -2583,7 +2835,7 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
-                                      ss->cd_vcol_offset,
+                                      -1,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry);
       }
@@ -3096,12 +3348,9 @@ bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
     copy_v3_v3(mv->origco, SCULPT_vertex_co_get(ss, vertex));
     SCULPT_vertex_normal_get(ss, vertex, mv->origno);
 
-    const float *color = SCULPT_vertex_color_get(ss, vertex);
-    if (color) {
-      copy_v4_v4(mv->origcolor, color);
-    }
+    SCULPT_vertex_color_get(ss, vertex, mv->origcolor);
 
-    mv->origmask = (short)(SCULPT_vertex_mask_get(ss, vertex) * 65535.0f);
+    mv->origmask = unit_float_to_ushort_clamp(SCULPT_vertex_mask_get(ss, vertex));
 
     return false;
   }
@@ -3215,12 +3464,16 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       *vd.mask = mv->origmask;
     }
 
-    if (type & SCULPT_UNDO_COLOR && vd.col) {
-      if (len_squared_v4v4(vd.col, mv->origcolor) > FLT_EPSILON) {
-        modified = true;
-      }
+    if (type & SCULPT_UNDO_COLOR) {
+      float color[4];
 
-      copy_v4_v4(vd.col, mv->origcolor);
+      if (SCULPT_vertex_color_get(ss, vd.vertex, color)) {
+        if (len_squared_v4v4(color, mv->origcolor) > FLT_EPSILON) {
+          modified = true;
+        }
+
+        SCULPT_vertex_color_set(ss, vd.vertex, mv->origcolor);
+      }
     }
 
     if (vd.mvert) {
@@ -5306,7 +5559,7 @@ void do_brush_action(
     if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
         SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_FACE_SETS) {
 
-      SCULPT_face_ensure_original(ss);
+      SCULPT_face_ensure_original(ss, ob);
 
       for (int i = 0; i < ss->totfaces; i++) {
         SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
@@ -5400,7 +5653,7 @@ void do_brush_action(
   if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, 1.0f, 1.0f, 0.0f, false, true);
+          ss, ob, 1.0f, 1.0f, 0.0f, false, true);
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
     SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
@@ -5911,7 +6164,7 @@ static void SCULPT_run_command(
   if (brush2->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, 1.0f, 1.0f, 0.0f, false, true);
+          ss, ob, 1.0f, 1.0f, 0.0f, false, true);
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
     SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
@@ -6344,8 +6597,8 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
     PBVH_CHECK_NAN(val);
 
     if (ss->filter_cache && ss->filter_cache->cloth_sim) {
-      /* When there is a simulation running in the filter cache that was created by a tool, combine
-       * the proxies into the simulation instead of directly into the mesh. */
+      /* When there is a simulation running in the filter cache that was created by a tool,
+       * combine the proxies into the simulation instead of directly into the mesh. */
       SCULPT_clip(sd, ss, ss->filter_cache->cloth_sim->pos[vd.index], val);
     }
     else {
@@ -6747,10 +7000,6 @@ bool SCULPT_mode_poll(bContext *C)
 
 bool SCULPT_vertex_colors_poll(bContext *C)
 {
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return false;
-  }
-
   return SCULPT_mode_poll(C);
 }
 
@@ -6884,7 +7133,7 @@ static const char *sculpt_tool_name(Sculpt *sd)
  * Operator for applying a stroke (various attributes including mouse path)
  * using the current brush. */
 
-void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
+void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
@@ -6897,13 +7146,13 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
 #endif
 
   if (ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
-    SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
+    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
     ss->custom_layers[SCULPT_SCL_LAYER_DISP] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]) {
-    SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
+    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
     ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID] = NULL;
   }
@@ -6916,20 +7165,20 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
   }
 
   if (ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
-    SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
+    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
     ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_FAIRING_FADE]) {
-    SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
+    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
 
     MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
     ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]) {
-    SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
+    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
 
     MEM_freeN(ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
     ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = NULL;
@@ -6975,7 +7224,7 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
   MEM_freeN(cache);
 }
 
-void SCULPT_release_customlayers(SculptSession *ss, bool non_customdata_only)
+void SCULPT_release_customlayers(SculptSession *ss, Object *ob, bool non_customdata_only)
 {
   for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
     if (ss->custom_layers[i]) {
@@ -6983,7 +7232,7 @@ void SCULPT_release_customlayers(SculptSession *ss, bool non_customdata_only)
         continue;
       }
 
-      SCULPT_temp_customlayer_release(ss, ss->custom_layers[i]);
+      SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[i]);
 
       MEM_freeN(ss->custom_layers[i]);
       ss->custom_layers[i] = NULL;
@@ -7789,7 +8038,19 @@ static bool sculpt_needs_connectivity_info(Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
+  //  if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
   return true;
+  //  }
+  return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
+          (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) || (brush->autosmooth_factor > 0) ||
+          ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
+          (brush->sculpt_tool == SCULPT_TOOL_POSE) || (brush->sculpt_tool == SCULPT_TOOL_PAINT) ||
+          (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
+          (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
+          (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
+          (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
+          (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
+          (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
 }
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
@@ -8558,7 +8819,8 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     brush->alpha = fabs(brush->alpha);
     ss->cache->bstrength = -fabs(ss->cache->bstrength);
 
-    // BKE_brush_channelset_set_float(ss->cache->channels_final, "strength", ss->cache->bstrength);
+    // BKE_brush_channelset_set_float(ss->cache->channels_final, "strength",
+    // ss->cache->bstrength);
   }
 
   ss->cache->stroke_distance = stroke->stroke_distance;
@@ -8785,13 +9047,13 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   }
 
   if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-    SCULPT_automasking_cache_free(ss, ss->cache->automasking);
+    SCULPT_automasking_cache_free(ss, ob, ss->cache->automasking);
   }
 
   int tool = SCULPT_get_tool(ss, brush);  // save tool for after we've freed ss->cache
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
-  SCULPT_cache_free(ss, ss->cache);
+  SCULPT_cache_free(ss, ob, ss->cache);
   ss->cache = NULL;
 
   if (tool == SCULPT_TOOL_ARRAY) {
@@ -8799,7 +9061,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     SCULPT_array_datalayers_free(ss->array, ob);
   }
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -8887,7 +9149,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   paint_stroke_cancel(C, op);
 
   if (ss->cache) {
-    SCULPT_cache_free(ss, ss->cache);
+    SCULPT_cache_free(ss, ob, ss->cache);
     ss->cache = NULL;
   }
 
@@ -9063,7 +9325,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
       if (has_undo) {
         SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-        SCULPT_undo_push_end();
+        SCULPT_undo_push_end(ob);
       }
       else if (need_bmlog) {
         if (ob->sculpt->bm_log) {

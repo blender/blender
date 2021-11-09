@@ -405,7 +405,7 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
     ss->active_face_index = BKE_pbvh_table_index_to_face(ss->pbvh, actf);
   }
 
-  SCULPT_dyntopo_node_layers_update_offsets(ss);
+  SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
 
   if (ss->bm_log) {
     BM_log_set_bm(ss->bm, ss->bm_log);
@@ -519,24 +519,33 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   BMIter iter;
   BMVert *v;
 
+  if (ss->vcol_type == -1) {
+    return;
+  }
+
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);
 
-    if (ss->cd_vcol_offset >= 0) {
-      MPropCol *mp = (MPropCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
-      copy_v4_v4(mv->origcolor, mp->color);
+    if (ss->cd_vert_mask_offset >= 0) {
+      mv->origmask = BM_ELEM_CD_GET_FLOAT(v, ss->cd_vert_mask_offset);
+    }
+
+    if (ss->vcol_type != -1) {
+      BKE_pbvh_bmesh_get_vcol(
+          v, mv->origcolor, ss->vcol_type, ss->vcol_domain, ss->cd_vcol_offset);
     }
   }
 }
 
 char dyntopop_node_idx_layer_id[] = "_dyntopo_node_id";
 
-void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
+void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob)
 {
-  SCULPT_dyntopo_node_layers_add(ss);
+  SCULPT_dyntopo_node_layers_add(ss, ob);
+
   if (ss->pbvh) {
     BKE_pbvh_update_offsets(ss->pbvh,
                             ss->cd_vert_node_offset,
@@ -554,10 +563,8 @@ bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
   return CustomData_get_named_layer_index(&ss->bm->vdata, type, name) >= 0;
 }
 
-void SCULPT_dyntopo_ensure_templayer(SculptSession *ss,
-                                     int type,
-                                     const char *name,
-                                     bool not_temporary)
+void SCULPT_dyntopo_ensure_templayer(
+    SculptSession *ss, Object *ob, int type, const char *name, bool not_temporary)
 {
   if (ss->save_temp_layers) {
     not_temporary = true;
@@ -567,7 +574,7 @@ void SCULPT_dyntopo_ensure_templayer(SculptSession *ss,
 
   if (li < 0) {
     BM_data_layer_add_named(ss->bm, &ss->bm->vdata, type, name);
-    SCULPT_update_customdata_refs(ss);
+    SCULPT_update_customdata_refs(ss, ob);
 
     li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
     ss->bm->vdata.layers[li].flag |= not_temporary ? 0 : CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
@@ -588,7 +595,7 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
 
 char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
 
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
+void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob)
 {
   int cd_node_layer_index, cd_face_node_layer_index;
 
@@ -613,11 +620,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   cd_face_node_layer_index = CustomData_get_named_layer_index(
       &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
 
-  ss->cd_origvcol_offset = -1;
-
   ss->cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
-
-  ss->cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
 
   ss->cd_vert_node_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
@@ -637,6 +640,21 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   ss->cd_face_areas = CustomData_get_named_layer(
       &ss->bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
   ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
+
+  AttributeDomain domain;
+  CustomDataLayer *cl;
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
+    ss->vcol_domain = (int)domain;
+    ss->vcol_type = cl->type;
+    ss->cd_vcol_offset = cl->offset;
+  }
+  else {
+    ss->cd_vcol_offset = -1;
+    ss->vcol_type = -1;
+    ss->vcol_domain = (int)ATTR_DOMAIN_NUM;
+  }
 }
 
 /**
@@ -686,6 +704,26 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
     for (int j = 0; j < BLI_array_len(newlayers); j++) {
       BM_data_layer_add_named(bm, data2, newlayers[j]->type, newlayers[j]->name);
       modified = true;
+    }
+
+    /* sync various ids */
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
+
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+
+      if (idx == -1) {
+        continue;
+      }
+
+      CustomDataLayer *cl2 = data2->layers + idx;
+
+      cl2->anonymous_id = cl1->anonymous_id;
+      cl2->uid = cl1->uid;
     }
 
     bool typemap[CD_NUMTYPES] = {0};
@@ -749,7 +787,7 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
   }
 
   if (modified) {
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
+    SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
   }
 }
 
@@ -774,7 +812,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   }
 
   /* destroy non-customdata temporary layers (which are rarely used) */
-  SCULPT_release_customlayers(ss, true);
+  SCULPT_release_customlayers(ss, ob, true);
 
   /* clear all the other temporary layer references, that point to customdata layers*/
   SCULPT_clear_scl_pointers(ss);
@@ -784,7 +822,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   }
   else {
     /*sculpt session was set up by paint.c. just call SCULPT_update_customdata_refs to be safe*/
-    SCULPT_update_customdata_refs(ss);
+    SCULPT_update_customdata_refs(ss, ob);
 
     /* also check bm_log */
     if (!ss->bm_log) {
@@ -847,19 +885,17 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);
 #endif
 
-  SCULPT_dyntopo_node_layers_add(ss);
+  SCULPT_dyntopo_node_layers_add(ss, ob);
   SCULPT_dyntopo_save_origverts(ss);
 
   if (SCULPT_has_persistent_base(ss)) {
-    SCULPT_ensure_persistent_layers(ss);
+    SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  SCULPT_update_customdata_refs(ss);
+  SCULPT_update_customdata_refs(ss, ob);
 
   BMIter iter;
   BMVert *v;
-
-  int cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
 
   int i = 0;
   BMEdge *e;
@@ -877,18 +913,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                                   ss->cd_faceset_offset,
                                   ss->cd_vert_node_offset,
                                   ss->cd_face_node_offset,
-                                  ss->cd_vcol_offset,
+                                  -1,
                                   v,
                                   ss->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(ss->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
-
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
-
-    if (ss->cd_vcol_offset >= 0) {
-      MPropCol *color = (MPropCol *)BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-      copy_v4_v4(mv->origcolor, color->color);
-    }
 
     i++;
   }
@@ -926,8 +954,8 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   SCULPT_pbvh_clear(ob);
 
-  /* destroy non-customdata temporary layers (which are rarely used) */
-  SCULPT_release_customlayers(ss, true);
+  /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
+  SCULPT_release_customlayers(ss, ob, true);
 
   /* free all the other pointers in ss->custom_layers*/
   SCULPT_clear_scl_pointers(ss);
@@ -987,7 +1015,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, NULL);
     if (use_undo) {
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
     }
 
     ss->active_vertex_index.i = ss->active_face_index.i = 0;
@@ -1010,7 +1038,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
     if (use_undo) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
     }
 
     ss->active_vertex_index.i = ss->active_face_index.i = 0;

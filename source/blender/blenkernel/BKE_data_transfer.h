@@ -76,7 +76,12 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type);
 int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type);
 
 #define DT_DATATYPE_IS_VERT(_dt) \
-  ELEM(_dt, DT_TYPE_MDEFORMVERT, DT_TYPE_SHAPEKEY, DT_TYPE_SKIN, DT_TYPE_BWEIGHT_VERT, DT_TYPE_PROPCOL)
+  ELEM(_dt, \
+       DT_TYPE_MDEFORMVERT, \
+       DT_TYPE_SHAPEKEY, \
+       DT_TYPE_SKIN, \
+       DT_TYPE_BWEIGHT_VERT, \
+       DT_TYPE_PROPCOL)
 #define DT_DATATYPE_IS_EDGE(_dt) \
   ELEM(_dt, \
        DT_TYPE_CREASE, \

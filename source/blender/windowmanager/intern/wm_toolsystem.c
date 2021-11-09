@@ -31,6 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -211,6 +212,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
               }
               else {
                 brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
+
                 BKE_brush_tool_set(brush, paint, slot_index);
               }
               BKE_paint_brush_set(paint, brush);

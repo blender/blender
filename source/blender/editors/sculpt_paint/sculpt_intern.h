@@ -144,12 +144,15 @@ void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
 void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vertex);
-
 int SCULPT_vertex_count_get(const struct SculptSession *ss);
+
+bool SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float out[4]);
+void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, float color[4]);
+bool SCULPT_has_colors(const SculptSession *ss);
+
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
 void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
 float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef index);
-const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef index);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
@@ -379,7 +382,7 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, SculptVertRef ind
 void SCULPT_face_sets_visibility_invert(SculptSession *ss);
 void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
-void SCULPT_face_ensure_original(SculptSession *ss);
+void SCULPT_face_ensure_original(SculptSession *ss, struct Object *ob);
 int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face);
 void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face);
 
@@ -512,9 +515,9 @@ enum eDynTopoWarnFlag {
 
 struct Mesh;
 
-void SCULPT_update_customdata_refs(SculptSession *ss);
+void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);
 
-void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss);
+void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob);
 void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 
 void SCULPT_dynamic_topology_enable_ex(struct Main *bmain,
@@ -530,7 +533,7 @@ void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
-void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
+void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss, Object *ob);
 void SCULPT_dyntopo_save_origverts(struct SculptSession *ss);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
@@ -547,7 +550,9 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob);
-void SCULPT_automasking_cache_free(SculptSession *ss, struct AutomaskingCache *automasking);
+void SCULPT_automasking_cache_free(SculptSession *ss,
+                                   Object *ob,
+                                   struct AutomaskingCache *automasking);
 
 bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
                                         const Sculpt *sd,
@@ -589,8 +594,11 @@ float *SCULPT_geodesic_from_vertex(Object *ob,
                                    const float limit_radius);
 
 /* Filters. */
-void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, const int undo_type);
-void SCULPT_filter_cache_free(SculptSession *ss);
+void SCULPT_filter_cache_init(struct bContext *C,
+                              struct Object *ob,
+                              Sculpt *sd,
+                              const int undo_type);
+void SCULPT_filter_cache_free(SculptSession *ss, struct Object *ob);
 
 void SCULPT_mask_filter_smooth_apply(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations);
@@ -607,6 +615,7 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
 struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(
     struct SculptSession *ss,
+    struct Object *ob,
     const float cloth_mass,
     const float cloth_damping,
     const float cloth_softbody_strength,
@@ -1734,7 +1743,7 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const char symm,
                                       const char axis,
                                       const float angle);
-void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache);
+void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache);
 
 bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex);
 
@@ -1751,8 +1760,8 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 void SCULPT_undo_push_begin(struct Object *ob, const char *name);
-void SCULPT_undo_push_end(void);
-void SCULPT_undo_push_end_ex(const bool use_nested_undo);
+void SCULPT_undo_push_end(struct Object *ob);
+void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
 
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
 
@@ -1862,10 +1871,8 @@ which works with all three PBVH types
 Ensure a named temporary layer exists, creating it if necassary.
 The layer will be marked with CD_FLAG_TEMPORARY.
 */
-void SCULPT_dyntopo_ensure_templayer(SculptSession *ss,
-                                     int type,
-                                     const char *name,
-                                     bool not_temporary);
+void SCULPT_dyntopo_ensure_templayer(
+    SculptSession *ss, struct Object *ob, int type, const char *name, bool not_temporary);
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name);
 
@@ -1873,7 +1880,7 @@ bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
   -1 is returned.*/
 int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
 
-void SCULPT_ensure_persistent_layers(SculptSession *ss);
+void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 
 #define SCULPT_LAYER_PERS_CO "Persistent Base Co"
 #define SCULPT_LAYER_PERS_NO "Persistent Base No"
@@ -1948,22 +1955,24 @@ Access per element data with SCULPT_temp_cdata_get.
 */
 
 bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    Object *ob,
                                     AttributeDomain domain,
                                     int proptype,
                                     const char *name,
                                     SculptLayerParams *params);
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
+                                 Object *ob,
                                  AttributeDomain domain,
                                  int proptype,
                                  const char *name,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params);
-bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl);
+bool SCULPT_temp_customlayer_release(SculptSession *ss, struct Object *ob, SculptCustomLayer *scl);
 bool SCULPT_temp_customlayer_has(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
                                  const char *name);
-void SCULPT_release_customlayers(SculptSession *ss, bool non_customdata_only);
+void SCULPT_release_customlayers(SculptSession *ss, struct Object *ob, bool non_customdata_only);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
@@ -2042,7 +2051,7 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
 
 /* initializes customdata layer used by SCULPT_neighbor_coords_average_interior when bound_smooth >
  * 0.0f*/
-void SCULPT_bound_smooth_ensure(SculptSession *ss);
+void SCULPT_bound_smooth_ensure(SculptSession *ss, struct Object *ob);
 
 #define SCULPT_stroke_needs_original(brush) \
   ELEM(brush->sculpt_tool, \

@@ -26,6 +26,7 @@
 #include "BLI_ghash.h"
 
 /* For embedding CCGKey in iterator. */
+#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include <stdint.h>
 
@@ -300,6 +301,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           unsigned int **grid_hidden,
                           bool fast_draw);
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          struct Mesh *me,
                           struct BMesh *bm,
                           bool smooth_shading,
                           struct BMLog *log,
@@ -618,7 +620,6 @@ typedef struct PBVHVertexIter {
   struct MVert *mverts;
   int totvert;
   const int *vert_indices;
-  struct MPropCol *vcol;
   float *vmask;
 
   /* bmesh */
@@ -639,7 +640,6 @@ typedef struct PBVHVertexIter {
   short *no;
   float *fno;
   float *mask;
-  float *col;
   bool visible;
 } PBVHVertexIter;
 
@@ -699,9 +699,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
           } \
-          if (vi.vcol) { \
-            vi.col = vi.vcol[vi.index].color; \
-          } \
         } \
         else { \
           BMVert *bv = NULL; \
@@ -726,10 +723,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             continue; \
           } \
           vi.bm_vert = bv; \
-          if (vi.cd_vcol_offset >= 0) { \
-            MPropCol *vcol = BM_ELEM_CD_GET_VOID_P(bv, vi.cd_vcol_offset); \
-            vi.col = vcol->color; \
-          } \
           vi.vertex.i = (intptr_t)bv; \
           vi.index = BM_elem_index_get(vi.bm_vert); \
           vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
@@ -784,6 +777,12 @@ struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
+
+/* updates pbvh->vcol_domain, vcol_type too */
+bool BKE_pbvh_get_color_layer(PBVH *pbvh,
+                              const struct Mesh *me,
+                              CustomDataLayer **cl_out,
+                              AttributeDomain *attr_out);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
@@ -1049,3 +1048,5 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                         DynRemeshParams *params,
                         int steps,
                         PBVHTopologyUpdateMode mode);
+void BKE_pbvh_bmesh_get_vcol(
+    struct BMVert *v, float color[4], int vcol_type, int vcol_domain, int vcol_offset);

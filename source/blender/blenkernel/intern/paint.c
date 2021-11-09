@@ -46,6 +46,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -80,13 +81,13 @@
 
 #include "bmesh.h"
 
-// XXX todo: figure out bad cross module refs
+// TODO: figure out bad cross module refs
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
+void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob);
 BMesh *SCULPT_dyntopo_empty_bmesh();
 void SCULPT_undo_ensure_bmlog(Object *ob);
-void SCULPT_update_customdata_refs(SculptSession *ss);
+void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);
 
 static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
@@ -1533,12 +1534,13 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->texcache);
 
-    bool SCULPT_temp_customlayer_release(SculptSession * ss, struct SculptCustomLayer * scl);
+    bool SCULPT_temp_customlayer_release(
+        SculptSession * ss, Object * ob, struct SculptCustomLayer * scl);
 
     if (ss->layers_to_free) {
       for (int i = 0; i < ss->tot_layers_to_free; i++) {
         if (ss->layers_to_free[i]) {
-          SCULPT_temp_customlayer_release(ss, ss->layers_to_free[i]);
+          SCULPT_temp_customlayer_release(ss, ob, ss->layers_to_free[i]);
           // SCULPT_temp_customlayer_release frees layers_to_free[i] itself
         }
       }
@@ -1747,7 +1749,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.modifier = NULL;
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-    ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
 
     ss->totloops = me->totloop;
     ss->totedges = me->totedge;
@@ -1756,6 +1757,27 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->edata = &me->edata;
     ss->ldata = &me->ldata;
     ss->pdata = &me->pdata;
+
+    CustomDataLayer *cl;
+    AttributeDomain domain;
+
+    ss->vcol = NULL;
+    ss->mcol = NULL;
+
+    if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
+      if (cl->type == CD_PROP_COLOR) {
+        ss->vcol = cl->data;
+      }
+      else {
+        ss->mcol = cl->data;
+      }
+
+      ss->vcol_domain = domain;
+      ss->vcol_type = cl->type;
+    }
+    else {
+      ss->vcol_type = -1;
+    }
   }
 
   /* Sculpt Face Sets. */
@@ -1877,7 +1899,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
           if (idx == -1) {
             BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, key->name);
-            SCULPT_update_customdata_refs(ss);
+            SCULPT_update_customdata_refs(ss, ob);
 
             idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
             ss->bm->vdata.layers[idx].uid = key->uid;
@@ -1923,7 +1945,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
         int cd_co = ss->bm->vdata.layers[idx].offset;
         ss->bm->vdata.layers[idx].uid = newkey->uid;
 
-        SCULPT_update_customdata_refs(ss);
+        SCULPT_update_customdata_refs(ss, ob);
 
         BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
           float *keyco = BM_ELEM_CD_GET_VOID_P(v, cd_co);
@@ -2010,18 +2032,54 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return;
+
+  int types[] = {CD_PROP_COLOR, CD_MLOOPCOL};
+  bool has_color = false;
+
+  for (int i = 0; i < 3; i++) {
+    bool ok = CustomData_has_layer(&orig_me->vdata, types[i]);
+    ok = ok || CustomData_has_layer(&orig_me->ldata, types[i]);
+
+    if (ok) {
+      has_color = true;
+      break;
+    }
   }
 
-  if (CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
-    return;
+  CustomDataLayer *cl;
+  if (has_color) {
+    cl = BKE_id_attributes_active_get(&orig_me->id);
+
+    if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+      cl = NULL;
+
+      /* find a color layer */
+      for (int step = 0; !cl && step < 2; step++) {
+        CustomData *cdata = step ? &orig_me->ldata : &orig_me->vdata;
+
+        for (int i = 0; i < cdata->totlayer; i++) {
+          if (ELEM(cdata->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+            cl = cdata->layers + i;
+            break;
+          }
+        }
+      }
+    }
+    else {
+      cl = NULL; /* no need to update active layer */
+    }
+  }
+  else {
+    CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+    cl = orig_me->vdata.layers + CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+
+    BKE_mesh_update_customdata_pointers(orig_me, true);
   }
 
-  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
-  BKE_mesh_update_customdata_pointers(orig_me, true);
-  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
-  SCULPT_dynamic_topology_sync_layers(object, orig_me);
+  if (cl) {
+    BKE_id_attributes_active_set(&orig_me->id, cl);
+    DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  }
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -2259,8 +2317,8 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv
     const bool is_hidden = (face_sets[face_index] < 0);
 
     /* Avoid creating and modifying the grid_hidden bitmap if the base mesh face is visible and
-     * there is not bitmap for the grid. This is because missing grid_hidden implies grid is fully
-     * visible. */
+     * there is not bitmap for the grid. This is because missing grid_hidden implies grid is
+     * fully visible. */
     if (is_hidden) {
       BKE_subdiv_ccg_grid_hidden_ensure(subdiv_ccg, i);
     }
@@ -2299,8 +2357,8 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
     object->sculpt->face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
     /* NOTE: In theory we could add that on the fly when required by sculpt code.
-     * But this then requires proper update of depsgraph etc. For now we play safe, optimization is
-     * always possible later if it's worth it. */
+     * But this then requires proper update of depsgraph etc. For now we play safe, optimization
+     * is always possible later if it's worth it. */
     BKE_sculpt_mask_layers_ensure(object, mmd);
   }
 
@@ -2308,8 +2366,8 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
   BKE_mesh_tessface_clear(mesh);
 
   /* We always need to flush updates from depsgraph here, since at the very least
-   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer of
-   * the mesh.
+   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer
+   * of the mesh.
    *
    * All known potential sources of updates:
    *   - Addition of, or changes to, the `CD_SCULPT_FACE_SETS` data layer
@@ -2331,6 +2389,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
   BKE_pbvh_set_symmetry(pbvh, 0, (int)BKE_get_fset_boundary_symflag(ob));
 
   BKE_pbvh_build_bmesh(pbvh,
+                       BKE_object_get_original_mesh(ob),
                        ob->sculpt->bm,
                        ob->sculpt->bm_smooth_shading,
                        ob->sculpt->bm_log,
@@ -2576,12 +2635,12 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                                                         .copy_temp_cdlayers = true,
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
-      SCULPT_dyntopo_node_layers_add(ob->sculpt);
+      SCULPT_dyntopo_node_layers_add(ob->sculpt, ob);
       SCULPT_undo_ensure_bmlog(ob);
 
       pbvh = build_pbvh_for_dynamic_topology(ob);
 
-      SCULPT_update_customdata_refs(ob->sculpt);
+      SCULPT_update_customdata_refs(ob->sculpt, ob);
     }
     else {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);

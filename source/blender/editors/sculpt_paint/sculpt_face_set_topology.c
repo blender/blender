@@ -175,7 +175,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
 
   MEM_freeN(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;

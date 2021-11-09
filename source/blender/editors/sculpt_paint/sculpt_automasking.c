@@ -198,14 +198,14 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   return mask;
 }
 
-void SCULPT_automasking_cache_free(SculptSession *ss, AutomaskingCache *automasking)
+void SCULPT_automasking_cache_free(SculptSession *ss, Object *ob, AutomaskingCache *automasking)
 {
   if (!automasking) {
     return;
   }
 
   if (automasking->factorlayer) {
-    SCULPT_temp_customlayer_release(ss, automasking->factorlayer);
+    SCULPT_temp_customlayer_release(ss, ob, automasking->factorlayer);
     MEM_SAFE_FREE(automasking->factorlayer);
   }
 
@@ -485,6 +485,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   if (!SCULPT_temp_customlayer_get(ss,
+                                   ob,
                                    ATTR_DOMAIN_POINT,
                                    CD_PROP_FLOAT,
                                    "__sculpt_mask_factor",

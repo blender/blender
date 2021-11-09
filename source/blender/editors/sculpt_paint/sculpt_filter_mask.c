@@ -257,7 +257,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -945,8 +945,8 @@ static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator *UNUSED(op))
   SculptSession *ss = ob->sculpt;
 
   sculpt_ipmask_restore_original_mask(ob);
-  SCULPT_undo_push_end();
-  SCULPT_filter_cache_free(ss);
+  SCULPT_undo_push_end(ob);
+  SCULPT_filter_cache_free(ss, ob);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
 }
 
@@ -972,8 +972,8 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
     for (int i = 0; i < filter_cache->totnode; i++) {
       BKE_pbvh_node_mark_update_mask(filter_cache->nodes[i]);
     }
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
+    SCULPT_filter_cache_free(ss, ob);
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
     return OPERATOR_FINISHED;
   }
@@ -1096,8 +1096,8 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_tag_update_overlays(C);
-  SCULPT_filter_cache_free(ss);
-  SCULPT_undo_push_end();
+  SCULPT_filter_cache_free(ss, ob);
+  SCULPT_undo_push_end(ob);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   return OPERATOR_FINISHED;
 }
@@ -1347,7 +1347,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   ED_region_tag_redraw(region);
 

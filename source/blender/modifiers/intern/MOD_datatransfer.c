@@ -456,7 +456,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "vertex_vgroup", "Vertex Groups", NULL, vertex_vgroup_panel_draw, vertex_panel);
 
   modifier_subpanel_register(
-      region_type, "vert_propcol", "Sculpt Colors", NULL, vert_propcol_panel_draw, vertex_panel);
+      region_type, "vert_propcol", "Colors", NULL, vert_propcol_panel_draw, vertex_panel);
 
   modifier_subpanel_register(
       region_type, "edge", "", edge_panel_draw_header, edge_panel_draw, panel_type);
@@ -469,7 +469,7 @@ static void panelRegister(ARegionType *region_type)
                                                             panel_type);
   modifier_subpanel_register(region_type,
                              "face_corner_vcol",
-                             "Vertex Colors",
+                             "Colors",
                              NULL,
                              face_corner_vcol_panel_draw,
                              face_corner_panel);

@@ -33,6 +33,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_mesh_mapping.h"
@@ -780,6 +781,10 @@ PBVH *BKE_pbvh_new(void)
 {
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
+
+  pbvh->vcol_type = -1;
+  pbvh->vcol_domain = ATTR_DOMAIN_NUM;
+
   return pbvh;
 }
 
@@ -1365,6 +1370,80 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
   return update_flags;
 }
 
+/* updates pbvh->vcol_domain, vcol_type too */
+ATTR_NO_OPT bool BKE_pbvh_get_color_layer(PBVH *pbvh,
+                                          const Mesh *me,
+                                          CustomDataLayer **r_cl,
+                                          AttributeDomain *r_attr)
+{
+  CustomDataLayer *cl = BKE_id_attributes_active_get((ID *)me);
+  AttributeDomain domain;
+
+  if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    if (pbvh) {
+      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
+      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
+    }
+
+    return false;
+  }
+
+  domain = BKE_id_attribute_domain((ID *)me, cl);
+
+  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    if (pbvh) {
+      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
+      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
+    }
+
+    return false;
+  }
+
+  if (cl) {
+    *r_cl = cl;
+    *r_attr = domain;
+
+    if (pbvh && pbvh->bm) {
+      CustomData *cdata_bm = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
+
+      int idx = CustomData_get_named_layer_index(cdata_bm, cl->type, cl->name);
+
+      if (!idx) {
+        /* should never happen, but the edge cases can get pretty crazy in
+           sculpt code.  Delay till the layer exists, typically it's added
+           by SCULPT_dynamic_topology_sync_layers.*/
+
+        pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
+        pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
+
+        *r_cl = NULL;
+        *r_attr = ATTR_DOMAIN_NUM;
+
+        return false;
+      }
+
+      pbvh->cd_vcol_offset = cdata_bm->layers[idx].offset;
+      cl = *r_cl = cdata_bm->layers + idx;
+    }
+
+    if (pbvh) {
+      pbvh->vcol_domain = domain;
+      pbvh->vcol_type = cl->type;
+    }
+
+    return true;
+  }
+  else {
+    if (pbvh) {
+      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
+      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
+    }
+
+    *r_cl = NULL;
+    return false;
+  }
+}
+
 static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1432,17 +1511,23 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      &pbvh->gridkey,
                                      update_flags);
         break;
-      case PBVH_FACES:
+      case PBVH_FACES: {
+        CustomDataLayer *cl = NULL;
+        AttributeDomain domain;
+
+        BKE_pbvh_get_color_layer(pbvh, pbvh->mesh, &cl, &domain);
+
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      pbvh->verts,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     CustomData_get_layer(pbvh->ldata, CD_MLOOPCOL),
+                                     cl ? cl->data : NULL,
+                                     cl ? cl->type : -1,
+                                     cl ? domain : ATTR_DOMAIN_AUTO,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
-                                     CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR),
                                      update_flags);
-        break;
+      } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
           pbvh_free_all_draw_buffers(node);
@@ -1469,18 +1554,22 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
             continue;
           }
 
-          GPU_pbvh_bmesh_buffers_update(node->mat_draw_buffers[i],
-                                        pbvh->bm,
-                                        node->bm_faces,
-                                        node->bm_unique_verts,
-                                        node->bm_other_verts,
-                                        node->tri_buffers + i,
-                                        update_flags,
-                                        pbvh->cd_vert_node_offset,
-                                        pbvh->face_sets_color_seed,
-                                        pbvh->face_sets_color_default,
-                                        data->flat_vcol_shading,
-                                        node->tri_buffers[i].mat_nr);
+          PBVHGPUBuildArgs args = {.buffers = node->mat_draw_buffers[i],
+                                   .bm = pbvh->bm,
+                                   .bm_faces = node->bm_faces,
+                                   .bm_unique_verts = node->bm_unique_verts,
+                                   .bm_other_verts = node->bm_other_verts,
+                                   .tribuf = node->tri_buffers + i,
+                                   .update_flags = update_flags,
+                                   .cd_vert_node_offset = pbvh->cd_vert_node_offset,
+                                   .face_sets_color_seed = pbvh->face_sets_color_seed,
+                                   .face_sets_color_default = pbvh->face_sets_color_default,
+                                   .flat_vcol = data->flat_vcol_shading,
+                                   .mat_nr = node->tri_buffers[i].mat_nr,
+                                   .active_vcol_domain = pbvh->vcol_domain,
+                                   .active_vcol_type = pbvh->vcol_type};
+
+          GPU_pbvh_bmesh_buffers_update(&args);
         }
         break;
     }
@@ -1542,8 +1631,6 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
 
   if (pbvh->type == PBVH_BMESH) {
     if (pbvh->bm) {
-      pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
-
       vdata = &pbvh->bm->vdata;
       ldata = &pbvh->bm->ldata;
     }
@@ -1556,8 +1643,12 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
     ldata = pbvh->ldata;
   }
 
-  GPU_pbvh_update_attribute_names(
-      vdata, ldata, GPU_pbvh_need_full_render_get(), pbvh->flags & PBVH_FAST_DRAW);
+  GPU_pbvh_update_attribute_names(vdata,
+                                  ldata,
+                                  GPU_pbvh_need_full_render_get(),
+                                  pbvh->flags & PBVH_FAST_DRAW,
+                                  pbvh->vcol_type,
+                                  pbvh->vcol_domain);
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -1629,21 +1720,19 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
 {
   PBVHVertexIter vd;
 
-  if (!pbvh->bm || pbvh->cd_vcol_offset < 0) {
+  if (!pbvh->bm || pbvh->vcol_type == -1) {
     return;
   }
 
-  int cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
-
-  if (cd_vcol_offset == -1) {
+  if (pbvh->vcol_type == -1) {
     return;
   }
 
   BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vd.bm_vert);
-    float *c2 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_vcol_offset);
 
-    copy_v4_v4(mv->origcolor, c2);
+    BKE_pbvh_bmesh_get_vcol(
+        vd.bm_vert, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1703,7 +1792,9 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
   }
 
   if (flag & (PBVH_UpdateColor)) {
-    /* Do nothing */
+    for (int i = 0; i < totnode; i++) {
+      nodes[i]->flag |= PBVH_UpdateRedraw | PBVH_UpdateDrawBuffers | PBVH_UpdateColor;
+    }
   }
 
   if (flag & (PBVH_UpdateVisibility)) {
@@ -3371,7 +3462,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
   vi->grid = NULL;
   vi->no = NULL;
-  vi->col = NULL;
   vi->fno = NULL;
   vi->mvert = NULL;
   vi->vertex.i = 0;
@@ -3415,9 +3505,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_vert = NULL;
 
     vi->cd_sculpt_vert = CustomData_get_offset(vi->bm_vdata, CD_DYNTOPO_VERT);
-
-    // we ensure pbvh->cd_vcol_offset is up to date here too
-    vi->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 
@@ -3429,7 +3516,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->mask = NULL;
   if (pbvh->type == PBVH_FACES) {
     vi->vmask = CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
-    vi->vcol = CustomData_get_layer(pbvh->vdata, CD_PROP_COLOR);
   }
 }
 
@@ -4197,15 +4283,9 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
 {
   MSculptVert *mv = pbvh->mdyntopo_verts + vertex.i;
 
-  int last_fset = 0;
-  int last_fset2 = 0;
-
   mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
                 SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER | SCULPTVERT_SEAM_BOUNDARY |
                 SCULPTVERT_SHARP_BOUNDARY | SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER);
-
-  int totsharp = 0, totseam = 0;
-  int visible = false;
 
   int index = (int)vertex.i;
 

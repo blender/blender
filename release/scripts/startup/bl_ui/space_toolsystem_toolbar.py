@@ -1163,10 +1163,6 @@ class _defs_sculpt:
         exclude_filter = {}
         # Use 'bpy.context' instead of 'context' since it can be None.
         prefs = bpy.context.preferences
-        if not prefs.experimental.use_sculpt_vertex_colors:
-            exclude_filter = {'PAINT' : True, 'SMEAR' : True}
-        if not prefs.experimental.use_sculpt_uvsmooth:
-            exclude_filter['UV_SMOOTH'] = True
 
         return generate_from_enum_ex(context,
             idname_prefix="builtin_brush.",
@@ -2592,11 +2588,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.cloth_filter,
             _defs_sculpt.ipmask_filter,
             lambda context: ((_defs_sculpt.color_filter,)
-                if context is None or (context.preferences.view.show_developer_ui and context.preferences.experimental.use_sculpt_vertex_colors)
+                if context is None
                 else ()),
             None,
             lambda context: ((_defs_sculpt.mask_by_color,)
-                if context is None or (context.preferences.view.show_developer_ui and context.preferences.experimental.use_sculpt_vertex_colors)
+                if context is None
                 else ()),
             None,
             _defs_sculpt.face_set_edit,

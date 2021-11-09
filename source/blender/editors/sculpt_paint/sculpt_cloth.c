@@ -313,7 +313,7 @@ static bool calc_bending_gradients(const SculptClothSimulation *cloth_sim,
 
   float invElen = 1.0f / elen;
 
-  float tmp1[3], tmp2[3], tmp3[3], tmp4[3], n1[3], n2[3];
+  float tmp1[3], tmp2[3], n1[3], n2[3];
 
   sub_v3_v3v3(tmp1, p2, p0);
   sub_v3_v3v3(tmp2, p3, p0);
@@ -2183,6 +2183,7 @@ static void cloth_sim_initialize_default_node_state(SculptSession *ss,
 
 /* Public functions. */
 SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
+                                                            Object *ob,
                                                             const float cloth_mass,
                                                             const float cloth_damping,
                                                             const float cloth_softbody_strength,
@@ -2200,7 +2201,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     if (SCULPT_has_persistent_base(ss)) {
-      SCULPT_ensure_persistent_layers(ss);
+      SCULPT_ensure_persistent_layers(ss, ob);
 
       cloth_sim->cd_pers_co = ss->custom_layers[SCULPT_SCL_PERS_CO]->cd_offset;
       cloth_sim->cd_pers_no = ss->custom_layers[SCULPT_SCL_PERS_NO]->cd_offset;
@@ -2376,6 +2377,7 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
           ss,
+          ob,
           SCULPT_get_float(ss, cloth_mass, sd, brush),
           SCULPT_get_float(ss, cloth_damping, sd, brush),
           SCULPT_get_float(ss, cloth_constraint_softbody_strength, sd, brush),
@@ -2740,8 +2742,8 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
+    SCULPT_filter_cache_free(ss, ob);
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }
@@ -2850,6 +2852,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
       ss,
+      ob,
       cloth_mass,
       cloth_damping,
       0.0f,

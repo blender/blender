@@ -25,6 +25,8 @@
 
 #include <stddef.h>
 
+#include "BKE_attribute.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,6 +50,24 @@ struct CustomData;
 
 /* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
+
+typedef struct PBVHGPUBuildArgs {
+  GPU_PBVH_Buffers *buffers;
+  struct BMesh *bm;
+
+  struct TableGSet *bm_faces;
+  struct TableGSet *bm_unique_verts;
+  struct TableGSet *bm_other_verts;
+
+  struct PBVHTriBuf *tribuf;
+
+  const int update_flags;
+  const int cd_vert_node_offset;
+  int face_sets_color_seed;
+  int face_sets_color_default;
+  bool flat_vcol;
+  short mat_nr, active_vcol_type, active_vcol_domain;
+} PBVHGPUBuildArgs;
 
 /* Build must be called once before using the other functions, used every time
  * mesh topology changes. Threaded. */
@@ -80,31 +100,23 @@ enum {
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MVert *mvert,
                                   const float *vmask,
-                                  const struct MLoopCol *vcol,
+                                  const void *vcol_data,
+                                  const int vcol_type,
+                                  const AttributeDomain vcol_domain,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
-                                  const struct MPropCol *vtcol,
                                   const int update_flags);
 
 void GPU_pbvh_update_attribute_names(
-    struct CustomData *vdata,
-    struct CustomData *ldata,
+    CustomData *vdata,
+    CustomData *ldata,
     bool need_full_render,
-    bool fast_mode);  // fast mode renders without vcol, uv, facesets, even mask, etc
+    bool fast_mode,
+    int active_vcol_type,
+    int active_vcol_domain);  // fast mode renders without vcol, uv, facesets, even mask, etc
 
-void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
-                                   struct BMesh *bm,
-                                   struct TableGSet *bm_faces,
-                                   struct TableGSet *bm_unique_verts,
-                                   struct TableGSet *bm_other_verts,
-                                   struct PBVHTriBuf *tribuf,
-                                   const int update_flags,
-                                   const int cd_vert_node_offset,
-                                   int face_sets_color_seed,
-                                   int face_sets_color_default,
-                                   bool flat_vcol,
-                                   short mat_nr);
+void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args);
 
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,

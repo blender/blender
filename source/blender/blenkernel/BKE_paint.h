@@ -651,6 +651,11 @@ typedef struct SculptSession {
 
   struct KeyBlock *shapekey_active;
   struct MPropCol *vcol;
+  struct MLoopCol *mcol;
+
+  int vcol_domain;
+  int vcol_type;
+
   float *vmask;
 
   /* Mesh connectivity maps. */

@@ -29,7 +29,6 @@ from bpy.app.translations import contexts as i18n_contexts
 
 # -----------------------------------------------------------------------------
 # Main Header
-
 class USERPREF_HT_header(Header):
     bl_space_type = 'PREFERENCES'
 
@@ -43,11 +42,9 @@ class USERPREF_HT_header(Header):
             pass
         else:
             # Show '*' to let users know the preferences have been modified.
-            layout.operator(
-                "wm.save_userpref",
+            layout.operator("wm.save_userpref",
                 text=iface_("Save Preferences") + (" *" if prefs.is_dirty else ""),
-                translate=False,
-            )
+                translate=False,)
 
     def draw(self, context):
         layout = self.layout
@@ -64,7 +61,6 @@ class USERPREF_HT_header(Header):
 
 # -----------------------------------------------------------------------------
 # Main Navigation Bar
-
 class USERPREF_PT_navigation_bar(Panel):
     bl_label = "Preferences Navigation"
     bl_space_type = 'PREFERENCES'
@@ -187,7 +183,6 @@ class CenterAlignMixIn:
 
 # -----------------------------------------------------------------------------
 # Interface Panels
-
 class InterfacePanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -353,7 +348,6 @@ class USERPREF_PT_interface_menus_pie(InterfacePanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Editing Panels
-
 class EditingPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -400,7 +394,8 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col.prop(edit, "use_duplicate_armature", text="Armature")
         col.prop(edit, "use_duplicate_camera", text="Camera")
         col.prop(edit, "use_duplicate_curve", text="Curve")
-        # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
+        # col.prop(edit, "use_duplicate_fcurve", text="F-Curve") # Not
+        # implemented.
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
         if hasattr(edit, "use_duplicate_hair"):
             col.prop(edit, "use_duplicate_hair", text="Hair")
@@ -420,7 +415,8 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col.prop(edit, "use_duplicate_speaker", text="Speaker")
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
-        # col.prop(edit, "use_duplicate_texture", text="Texture")  # Not implemented.
+        # col.prop(edit, "use_duplicate_texture", text="Texture") # Not
+        # implemented.
         col.prop(edit, "use_duplicate_volume", text="Volume")
 
 
@@ -493,7 +489,6 @@ class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Animation Panels
-
 class AnimationPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -556,7 +551,6 @@ class USERPREF_PT_animation_fcurves(AnimationPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # System Panels
-
 class SystemPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -607,8 +601,6 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
         # if hasattr(system, "opensubdiv_compute_type"):
         #     col.label(text="OpenSubdiv compute:")
         #     col.row().prop(system, "opensubdiv_compute_type", text="")
-
-
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Operating System Settings"
 
@@ -683,7 +675,6 @@ class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Viewport Panels
-
 class ViewportPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -762,7 +753,6 @@ class USERPREF_PT_viewport_selection(ViewportPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Theme Panels
-
 class ThemePanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -774,10 +764,8 @@ class USERPREF_MT_interface_theme_presets(Menu):
     preset_subdir = "interface_theme"
     preset_operator = "script.execute_preset"
     preset_type = 'XML'
-    preset_xml_map = (
-        ("preferences.themes[0]", "Theme"),
-        ("preferences.ui_styles[0]", "ThemeStyle"),
-    )
+    preset_xml_map = (("preferences.themes[0]", "Theme"),
+        ("preferences.ui_styles[0]", "ThemeStyle"),)
     draw = Menu.draw_preset
 
     @staticmethod
@@ -937,8 +925,7 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
-        flow = layout.grid_flow(
-            row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(ui, "transparent_checker_primary")
         flow.prop(ui, "transparent_checker_secondary")
@@ -1178,8 +1165,7 @@ class ThemeGenericClassGenerator:
 
     @staticmethod
     def generate_panel_classes_for_wcols():
-        wcols = [
-            ("Regular", "wcol_regular"),
+        wcols = [("Regular", "wcol_regular"),
             ("Tool", "wcol_tool"),
             ("Toolbar Item", "wcol_toolbar_item"),
             ("Radio Buttons", "wcol_radio"),
@@ -1198,8 +1184,7 @@ class ThemeGenericClassGenerator:
             ("Scroll Bar", "wcol_scroll"),
             ("Progress Bar", "wcol_progress"),
             ("List Item", "wcol_list_item"),
-            ("Tab", "wcol_tab"),
-        ]
+            ("Tab", "wcol_tab"),]
 
         for (name, wcol) in wcols:
             panel_id = "USERPREF_PT_theme_interface_" + wcol
@@ -1244,12 +1229,10 @@ class ThemeGenericClassGenerator:
                             "datapath": new_datapath,
                         })
 
-                        yield from generate_child_panel_classes_recurse(
-                            panel_id,
+                        yield from generate_child_panel_classes_recurse(panel_id,
                             prop.fixed_type,
                             theme_area,
-                            new_datapath,
-                        )
+                            new_datapath,)
 
         yield from generate_child_panel_classes_recurse(parent_id, rna_type, theme_area, datapath)
 
@@ -1273,8 +1256,7 @@ class ThemeGenericClassGenerator:
                 "datapath": theme_area.identifier.lower(),
             })
 
-            yield from ThemeGenericClassGenerator.generate_theme_area_child_panel_classes(
-                panel_id, Theme.bl_rna.properties[theme_area.identifier.lower()].fixed_type,
+            yield from ThemeGenericClassGenerator.generate_theme_area_child_panel_classes(panel_id, Theme.bl_rna.properties[theme_area.identifier.lower()].fixed_type,
                 theme_area, theme_area.identifier.lower())
 
 
@@ -1427,7 +1409,6 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
 
 # -----------------------------------------------------------------------------
 # Save/Load Panels
-
 class SaveLoadPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1494,7 +1475,6 @@ class USERPREF_PT_saveload_file_browser(SaveLoadPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Input Panels
-
 class InputPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1572,7 +1552,6 @@ class USERPREF_PT_input_ndof(InputPanel, CenterAlignMixIn, Panel):
 
 # -----------------------------------------------------------------------------
 # Navigation Panels
-
 class NavigationPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1725,20 +1704,16 @@ class USERPREF_PT_ndof_settings(Panel):
         layout.separator()
 
         row = layout.row(heading=("Invert Axis Pan" if show_3dview_settings else "Invert Pan Axis"))
-        for text, attr in (
-                ("X", "ndof_panx_invert_axis"),
+        for text, attr in (("X", "ndof_panx_invert_axis"),
                 ("Y", "ndof_pany_invert_axis"),
-                ("Z", "ndof_panz_invert_axis"),
-        ):
+                ("Z", "ndof_panz_invert_axis"),):
             row.prop(props, attr, text=text, toggle=True)
 
         if show_3dview_settings:
             row = layout.row(heading="Orbit")
-            for text, attr in (
-                    ("X", "ndof_rotx_invert_axis"),
+            for text, attr in (("X", "ndof_rotx_invert_axis"),
                     ("Y", "ndof_roty_invert_axis"),
-                    ("Z", "ndof_rotz_invert_axis"),
-            ):
+                    ("Z", "ndof_rotz_invert_axis"),):
                 row.prop(props, attr, text=text, toggle=True)
 
             layout.separator()
@@ -1758,8 +1733,6 @@ class USERPREF_PT_ndof_settings(Panel):
 
 # -----------------------------------------------------------------------------
 # Key-Map Editor Panels
-
-
 class KeymapPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1796,7 +1769,6 @@ class USERPREF_PT_keymap(KeymapPanel, Panel):
 
 # -----------------------------------------------------------------------------
 # Add-On Panels
-
 class AddOnPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1818,10 +1790,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         import os
 
         if not user_addon_paths:
-            for path in (
-                    bpy.utils.script_path_user(),
-                    bpy.utils.script_path_pref(),
-            ):
+            for path in (bpy.utils.script_path_user(),
+                    bpy.utils.script_path_pref(),):
                 if path is not None:
                     user_addon_paths.append(os.path.join(path, "addons"))
 
@@ -1850,13 +1820,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         prefs = context.preferences
         used_ext = {ext.module for ext in prefs.addons}
 
-        addon_user_dirs = tuple(
-            p for p in (
-                os.path.join(prefs.filepaths.script_directory, "addons"),
-                bpy.utils.user_resource('SCRIPTS', path="addons"),
-            )
-            if p
-        )
+        addon_user_dirs = tuple(p for p in (os.path.join(prefs.filepaths.script_directory, "addons"),
+                bpy.utils.user_resource('SCRIPTS', path="addons"),)
+            if p)
 
         # Development option for 2.8x, don't show users bundled addons
         # unless they have been updated for 2.8x.
@@ -1900,11 +1866,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 sub_col.label(text="    " + addon_path)
 
         if addon_utils.error_encoding:
-            self.draw_error(
-                col,
+            self.draw_error(col,
                 "One or more addons do not have UTF-8 encoding\n"
-                "(see console for details)",
-            )
+                "(see console for details)",)
 
         show_enabled_only = prefs.view.show_addons_enabled_only
         filter = wm.addon_filter
@@ -1923,29 +1887,18 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 continue
 
             # check if addon should be visible with current filters
-            is_visible = (
-                (filter == "All") or
-                (filter == info["category"]) or
-                (filter == "User" and (mod.__file__.startswith(addon_user_dirs)))
-            )
+            is_visible = ((filter == "All") or (filter == info["category"]) or (filter == "User" and (mod.__file__.startswith(addon_user_dirs))))
             if show_enabled_only:
                 is_visible = is_visible and is_enabled
 
             if is_visible:
-                if search and not (
-                        (search in info["name"].lower()) or
-                        (info["author"] and (search in info["author"].lower())) or
-                        ((filter == "All") and (search in info["category"].lower()))
-                ):
+                if search and not ((search in info["name"].lower()) or (info["author"] and (search in info["author"].lower())) or ((filter == "All") and (search in info["category"].lower()))):
                     continue
 
-                # Skip 2.7x add-ons included with Blender, unless in debug mode.
+                # Skip 2.7x add-ons included with Blender, unless in debug
+                # mode.
                 is_addon_27x = info.get("blender", (0,)) < (2, 80)
-                if (
-                        is_addon_27x and
-                        (not show_official_27x_addons) and
-                        (not mod.__file__.startswith(addon_user_dirs))
-                ):
+                if (is_addon_27x and (not show_official_27x_addons) and (not mod.__file__.startswith(addon_user_dirs))):
                     continue
 
                 # Addon UI Code
@@ -1954,24 +1907,21 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 colsub = box.column()
                 row = colsub.row(align=True)
 
-                row.operator(
-                    "preferences.addon_expand",
+                row.operator("preferences.addon_expand",
                     icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
-                    emboss=False,
-                ).module = module_name
+                    emboss=False,).module = module_name
 
-                row.operator(
-                    "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                row.operator("preferences.addon_disable" if is_enabled else "preferences.addon_enable",
                     icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
-                    emboss=False,
-                ).module = module_name
+                    emboss=False,).module = module_name
 
                 sub = row.row()
                 sub.active = is_enabled
                 sub.label(text="%s: %s" % (info["category"], info["name"]))
 
                 # WARNING: 2.8x exception, may be removed
-                # use disabled state for old add-ons, chances are they are broken.
+                # use disabled state for old add-ons, chances are they are
+                # broken.
                 if is_addon_27x:
                     sub.label(text="Upgrade to 2.8x required")
                     sub.label(icon='ERROR')
@@ -2017,29 +1967,19 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         split.label(text="Internet:")
                         sub = split.row()
                         if info["doc_url"]:
-                            sub.operator(
-                                "wm.url_open", text="Documentation", icon='HELP',
-                            ).url = info["doc_url"]
+                            sub.operator("wm.url_open", text="Documentation", icon='HELP',).url = info["doc_url"]
                         # Only add "Report a Bug" button if tracker_url is set
                         # or the add-on is bundled (use official tracker then).
                         if info.get("tracker_url"):
-                            sub.operator(
-                                "wm.url_open", text="Report a Bug", icon='URL',
-                            ).url = info["tracker_url"]
+                            sub.operator("wm.url_open", text="Report a Bug", icon='URL',).url = info["tracker_url"]
                         elif not user_addon:
-                            addon_info = (
-                                "Name: %s %s\n"
-                                "Author: %s\n"
-                            ) % (info["name"], str(info["version"]), info["author"])
-                            props = sub.operator(
-                                "wm.url_open_preset", text="Report a Bug", icon='URL',
-                            )
+                            addon_info = ("Name: %s %s\n"
+                                "Author: %s\n") % (info["name"], str(info["version"]), info["author"])
+                            props = sub.operator("wm.url_open_preset", text="Report a Bug", icon='URL',)
                             props.type = 'BUG_ADDON'
                             props.id = addon_info
                         if user_addon:
-                            sub.operator(
-                                "preferences.addon_remove", text="Remove", icon='CANCEL',
-                            ).module = mod.__name__
+                            sub.operator("preferences.addon_remove", text="Remove", icon='CANCEL',).module = mod.__name__
 
                     # Show addon user preferences
                     if is_enabled:
@@ -2079,16 +2019,13 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 row.label(text="", icon='ERROR')
 
                 if is_enabled:
-                    row.operator(
-                        "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
-                    ).module = module_name
+                    row.operator("preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,).module = module_name
 
                 row.label(text=module_name, translate=False)
 
 
 # -----------------------------------------------------------------------------
 # Studio Light Panels
-
 class StudioLightPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2218,7 +2155,6 @@ class USERPREF_PT_studiolight_light_editor(StudioLightPanel, Panel):
 
 # -----------------------------------------------------------------------------
 # Experimental Panels
-
 class ExperimentalPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2276,28 +2212,19 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
     bl_label = "New Features"
 
     def draw(self, context):
-        self._draw_items(
-            context, (
-                ({"property": "use_sculpt_vertex_colors"}, "T71947"),
-                ({"property": "use_sculpt_uvsmooth"}, ""),
-                ({"property": "use_sculpt_tools_tilt"}, "T82877"),
+        self._draw_items(context, (({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
-            ),
-        )
+                ({"property": "use_sculpt_uvsmooth"}, ""),),)
 
 
 class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
     bl_label = "Prototypes"
 
     def draw(self, context):
-        self._draw_items(
-            context, (
-                ({"property": "use_new_hair_type"}, "T68981"),
+        self._draw_items(context, (({"property": "use_new_hair_type"}, "T68981"),
                 ({"property": "use_new_point_cloud_type"}, "T75717"),
-                ({"property": "use_full_frame_compositor"}, "T88150"),
-            ),
-        )
+                ({"property": "use_full_frame_compositor"}, "T88150"),),)
 
 
 class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
@@ -2305,20 +2232,17 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
 
     @classmethod
     def poll(cls, _context):
-        # Unlike the other experimental panels, the debugging one is always visible
+        # Unlike the other experimental panels, the debugging one is always
+        # visible
         # even in beta or release.
         return True
 
     def draw(self, context):
-        self._draw_items(
-            context, (
-                ({"property": "use_undo_legacy"}, "T60695"),
+        self._draw_items(context, (({"property": "use_undo_legacy"}, "T60695"),
                 ({"property": "override_auto_resync"}, "T83811"),
                 ({"property": "proxy_to_override_auto_conversion"}, "T91671"),
                 ({"property": "use_cycles_debug"}, None),
-                ({"property": "use_geometry_nodes_legacy"}, "T91274"),
-            ),
-        )
+                ({"property": "use_geometry_nodes_legacy"}, "T91274"),),)
 
 
 # -----------------------------------------------------------------------------
@@ -2326,8 +2250,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
 
 # Order of registration defines order in UI,
 # so dynamically generated classes are 'injected' in the intended order.
-classes = (
-    USERPREF_PT_theme_user_interface,
+classes = (USERPREF_PT_theme_user_interface,
     *ThemeGenericClassGenerator.generate_panel_classes_for_wcols(),
     USERPREF_HT_header,
     USERPREF_PT_navigation_bar,
@@ -2422,8 +2345,7 @@ classes = (
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.
-    *ThemeGenericClassGenerator.generate_panel_classes_from_theme_areas(),
-)
+    *ThemeGenericClassGenerator.generate_panel_classes_from_theme_areas(),)
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

@@ -206,7 +206,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   MEM_SAFE_FREE(nodes);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */
   SCULPT_pbvh_clear(ob);

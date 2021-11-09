@@ -181,13 +181,14 @@ static void mask_filter_delta_step_free(void *delta_step_free)
   MEM_SAFE_FREE(delta_step->index);
   MEM_SAFE_FREE(delta_step);
 }
-void SCULPT_filter_cache_free(SculptSession *ss)
+
+void SCULPT_filter_cache_free(SculptSession *ss, Object *ob)
 {
   if (ss->filter_cache->cloth_sim) {
     SCULPT_cloth_simulation_free(ss->filter_cache->cloth_sim);
   }
   if (ss->filter_cache->automasking) {
-    SCULPT_automasking_cache_free(ss, ss->filter_cache->automasking);
+    SCULPT_automasking_cache_free(ss, ob, ss->filter_cache->automasking);
   }
   if (ss->filter_cache->mask_delta_step) {
     BLI_ghash_free(ss->filter_cache->mask_delta_step, NULL, mask_filter_delta_step_free);
@@ -760,8 +761,8 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
+    SCULPT_filter_cache_free(ss, ob);
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }
@@ -911,7 +912,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   if (filter_type == MESH_FILTER_SMOOTH && ss->filter_cache->bound_smooth_radius != 0.0f) {
     /*ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists*/
-    SCULPT_bound_smooth_ensure(ss);
+    SCULPT_bound_smooth_ensure(ss, ob);
   }
 
   WM_event_add_modal_handler(C, op);

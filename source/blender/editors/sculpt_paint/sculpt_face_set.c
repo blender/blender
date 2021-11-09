@@ -161,7 +161,7 @@ int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face)
   return s[0];
 }
 
-void SCULPT_face_ensure_original(SculptSession *ss)
+void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
 {
   if (ss->custom_layers[SCULPT_SCL_ORIG_FSETS]) {
     return;
@@ -170,6 +170,7 @@ void SCULPT_face_ensure_original(SculptSession *ss)
   SculptCustomLayer *scl = MEM_callocN(sizeof(*scl), "orig fset scl");
 
   SCULPT_temp_customlayer_get(ss,
+                              ob,
                               ATTR_DOMAIN_FACE,
                               CD_PROP_INT32,
                               "orig_faceset_attr_name",
@@ -889,7 +890,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -1236,7 +1237,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
@@ -1435,7 +1436,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   /* Sync face sets visibility and vertex visibility. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -2107,7 +2108,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes, totnode);
   MEM_freeN(nodes);
 }
@@ -2135,7 +2136,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   }
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   MEM_freeN(nodes);
 }
 
@@ -2205,7 +2206,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
   BMesh *bm = sculpt_faceset_bm_begin(ob, ss, mesh);
   if (ss->bm) {
     BKE_pbvh_bmesh_set_toolflags(ss->pbvh, true);
-    SCULPT_update_customdata_refs(ss);
+    SCULPT_update_customdata_refs(ss, ob);
   }
 
   BM_mesh_elem_table_init(bm, BM_FACE);
@@ -2623,7 +2624,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   if (ss->bm) {
     // slow! BKE_pbvh_bmesh_set_toolflags(ss->pbvh, false);
-    SCULPT_update_customdata_refs(ss);
+    SCULPT_update_customdata_refs(ss, ob);
   }
 }
 
@@ -2833,7 +2834,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     MEM_SAFE_FREE(op->customdata);
 
     if (ss->bm) {
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
     }
     else {
       ED_sculpt_undo_geometry_end(ob);

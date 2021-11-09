@@ -1895,13 +1895,14 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 #endif
 }
 
-void SCULPT_ensure_persistent_layers(SculptSession *ss)
+void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 {
   if (!ss->custom_layers[SCULPT_SCL_PERS_CO]) {
     SculptLayerParams params = {.permanent = true, .simple_array = false};
 
     ss->custom_layers[SCULPT_SCL_PERS_CO] = MEM_callocN(sizeof(SculptCustomLayer), "scl_pers_co");
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT3,
                                 SCULPT_LAYER_PERS_CO,
@@ -1910,6 +1911,7 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss)
 
     ss->custom_layers[SCULPT_SCL_PERS_NO] = MEM_callocN(sizeof(SculptCustomLayer), "scl_pers_no");
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT3,
                                 SCULPT_LAYER_PERS_NO,
@@ -1919,6 +1921,7 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss)
     ss->custom_layers[SCULPT_SCL_PERS_DISP] = MEM_callocN(sizeof(SculptCustomLayer),
                                                           "scl_pers_disp");
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT,
                                 SCULPT_LAYER_PERS_DISP,
@@ -1941,13 +1944,14 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 #endif
 
   if ((brush->flag & BRUSH_PERSISTENT) && SCULPT_has_persistent_base(ss)) {
-    SCULPT_ensure_persistent_layers(ss);
+    SCULPT_ensure_persistent_layers(ss, ob);
   }
 
   if (!ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
     ss->custom_layers[SCULPT_SCL_LAYER_DISP] = MEM_callocN(sizeof(SculptCustomLayer),
                                                            "layer disp scl");
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT,
                                 SCULPT_LAYER_DISP,
@@ -1959,6 +1963,7 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID] = MEM_callocN(sizeof(SculptCustomLayer),
                                                                 "layer disp scl");
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_INT32,
                                 SCULPT_LAYER_STROKE_ID,
@@ -3380,6 +3385,7 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
     SculptLayerParams params = {.permanent = false, .simple_array = true};
 
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_BOOL,
                                 "fairing_mask",
@@ -3387,6 +3393,7 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
                                 &params);
 
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT,
                                 "fairing_fade",
@@ -3394,13 +3401,14 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
                                 &params);
 
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT3,
                                 "prefairing_co",
                                 ss->custom_layers[SCULPT_SCL_PREFAIRING_CO],
                                 &params);
 
-    SCULPT_update_customdata_refs(ss);
+    SCULPT_update_customdata_refs(ss, ob);
   }
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
@@ -3902,8 +3910,10 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
   Brush local_brush;
 
-  // vector4, nto color
-  SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_COLOR, "_rake_temp", false);
+  /* TODO: use SCULPT_temp_customlayer api */
+
+  /*  vector4, but not a color */
+  SCULPT_dyntopo_ensure_templayer(ss, ob, CD_PROP_COLOR, "_rake_temp", false);
 
   int cd_temp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_COLOR, "_rake_temp");
 

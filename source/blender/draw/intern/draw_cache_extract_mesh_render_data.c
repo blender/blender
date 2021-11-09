@@ -464,6 +464,10 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
+
+    /* needed so correct vcol layer is shown in edit mode */
+    mr->me->attributes_active_index = me->attributes_active_index;
+
     mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
 
     if (mr->edit_data) {

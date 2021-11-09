@@ -589,9 +589,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       // th = 1.0 - th;
 
 #if 0
-      float *color = (float *)SCULPT_vertex_color_get(ss,ni.vertex);
+      float color[4];
+      SCULPT_vertex_color_get(ss,ni.vertex, color);
+
       color[0] = color[1] = color[2] = th;
       color[3] = 1.0f;
+
+      SCULPT_vertex_color_set(ss, ni.vertex, color);
 #endif
 
       float fac = bound_smooth;
@@ -1168,14 +1172,18 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
   return SCULPT_vertex_mask_get(ss, index);
 }
 
-void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index)
+void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef vertex)
 {
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   int total = 0;
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.vertex));
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    float tmp[4] = {0};
+
+    SCULPT_vertex_color_get(ss, ni.vertex, tmp);
+
+    add_v4_v4(avg, tmp);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -1184,7 +1192,7 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVer
     mul_v4_v4fl(result, avg, 1.0f / total);
   }
   else {
-    copy_v4_v4(result, SCULPT_vertex_color_get(ss, index));
+    SCULPT_vertex_color_get(ss, vertex, result);
   }
 }
 
@@ -1248,9 +1256,9 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   bool weighted = SCULPT_get_int(ss, use_weighted_smooth, sd, brush);
 
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
@@ -1540,7 +1548,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 }
 #endif
 
-void SCULPT_bound_smooth_ensure(SculptSession *ss)
+void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
 {
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
@@ -1549,6 +1557,7 @@ void SCULPT_bound_smooth_ensure(SculptSession *ss)
                                                             "bound_scl");
 
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_COLOR,
                                 "t__smooth_bdist",
@@ -1592,6 +1601,7 @@ void SCULPT_smooth(Sculpt *sd,
                                                              "vel_smooth_scl");
 
       SCULPT_temp_customlayer_get(ss,
+                                  ob,
                                   ATTR_DOMAIN_POINT,
                                   CD_PROP_FLOAT3,
                                   "__scl_smooth_vel",
@@ -1642,7 +1652,7 @@ void SCULPT_smooth(Sculpt *sd,
     bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
     /* ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists */
-    SCULPT_bound_smooth_ensure(ss);
+    SCULPT_bound_smooth_ensure(ss, ob);
   }
 
 #ifdef PROXY_ADVANCED
@@ -1905,9 +1915,9 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &params);
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
@@ -2172,9 +2182,9 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float tot = 0.0f;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!vd.col) {
-      continue;
-    }
+    float vcolor[4];
+
+    SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
 
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       const float fade = bstrength * SCULPT_brush_strength_factor(
@@ -2188,7 +2198,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
                                          vd.vertex,
                                          thread_id);
 
-      madd_v3_v3fl(avg, vd.col, fade);
+      madd_v3_v3fl(avg, vcolor, fade);
       tot += fade;
     }
   }
@@ -2220,14 +2230,15 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.vertex,
                                          thread_id);
-      if (!vd.col) {
-        continue;
-      }
+
+      float vcolor[4];
+
+      SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
 
       float avg2[3], avg3[3], val[3];
       float tot2 = 0.0f, tot4 = 0.0f;
 
-      copy_v4_v4(avg, vd.col);
+      copy_v4_v4(avg, vcolor);
 
       zero_v3(avg2);
       zero_v3(avg3);
@@ -2237,7 +2248,9 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-        const float *col = SCULPT_vertex_color_get(ss, ni.vertex);
+        float col[4];
+
+        SCULPT_vertex_color_get(ss, ni.vertex, col);
         const float *co = SCULPT_vertex_co_get(ss, ni.vertex);
 
         // simple color metric.  TODO: plug in appropriate color space code?

@@ -809,6 +809,71 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
   }
 }
 
+void BKE_pbvh_bmesh_get_vcol(
+    BMVert *v, float color[4], int vcol_type, int vcol_domain, int vcol_offset)
+{
+  if (vcol_domain == ATTR_DOMAIN_POINT) {
+    switch (vcol_offset) {
+      case CD_PROP_COLOR:
+        copy_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(v, vcol_offset));
+        break;
+      case CD_MLOOPCOL: {
+        MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, vcol_offset);
+
+        rgba_uchar_to_float(color, (const char *)mp);
+        srgb_to_linearrgb_v3_v3(color, color);
+
+        break;
+      }
+    }
+  }
+  else { /*average all loop colors*/
+    BMEdge *e = v->e;
+
+    zero_v4(color);
+
+    if (!e) {
+      return;
+    }
+
+    int tot = 0;
+
+    do {
+      BMLoop *l = e->l;
+
+      if (!l) {
+        continue;
+      }
+
+      do {
+        switch (vcol_type) {
+          case CD_PROP_COLOR:
+            add_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(l, vcol_offset));
+            tot++;
+
+            break;
+          case CD_MLOOPCOL: {
+            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l, vcol_offset);
+
+            float temp[4];
+
+            rgba_uchar_to_float(temp, (const char *)mp);
+            srgb_to_linearrgb_v3_v3(temp, temp);
+
+            add_v4_v4(color, temp);
+            tot++;
+            break;
+          }
+        }
+      } while ((l = l->radial_next) != e->l);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+    if (tot > 0) {
+      mul_v4_fl(color, 1.0f / (float)tot);
+    }
+  }
+}
+
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo)
 {
@@ -838,10 +903,9 @@ void BKE_pbvh_bmesh_update_origvert(
     }
   }
 
-  if (r_color && pbvh->cd_vcol_offset >= 0) {
-    MPropCol *ml1 = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_vcol_offset);
-
-    copy_v4_v4(mv->origcolor, ml1->color);
+  if (r_color && pbvh->vcol_type != -1) {
+    BKE_pbvh_bmesh_get_vcol(
+        v, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
 
     if (r_color) {
       *r_color = mv->origcolor;
@@ -1515,8 +1579,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
-  float avg[3] = {0.0f, 0.0f, 0.0f};
-  float avg_len = 0.0f;
   float curv = 0.0f, totcurv = 0.0f;
 
   BMEdge *e = v->e;
@@ -1581,6 +1643,10 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     }
 
 #ifdef MV_COLOR_BOUNDARY
+#  error "fix me! need to handle loops too"
+#endif
+
+#ifdef MV_COLOR_BOUNDARY  // CURRENTLY BROKEN
     if (cd_vcol >= 0) {
       float *color1 = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
       float *color2 = BM_ELEM_CD_GET_VOID_P(v2, cd_vcol);
@@ -1845,6 +1911,7 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
 }
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          struct Mesh *me,
                           BMesh *bm,
                           bool smooth_shading,
                           BMLog *log,
@@ -1868,7 +1935,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->type = PBVH_BMESH;
   pbvh->bm_log = log;
-  pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
   pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
   pbvh->depth_limit = 18;
@@ -1880,8 +1946,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BMVert *v;
 
   // BKE_pbvh_update_all_boundary_bmesh(pbvh);
-
-  int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   if (smooth_shading) {
     pbvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
@@ -1956,7 +2020,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
-                                  pbvh->cd_vcol_offset,
+                                  -1,
                                   v,
                                   pbvh->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
@@ -1964,13 +2028,20 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);
 
-    if (cd_vcol_offset >= 0) {
-      MPropCol *c1 = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-      copy_v4_v4(mv->origcolor, c1->color);
+    if (pbvh->vcol_type != -1) {
+      BKE_pbvh_bmesh_get_vcol(
+          v, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
     }
     else {
       zero_v4(mv->origcolor);
     }
+  }
+
+  if (me) {  // ensure pbvh->vcol_type, vcol_domain and cd_vcol_offset are up to date
+    CustomDataLayer *cl;
+    AttributeDomain domain;
+
+    BKE_pbvh_get_color_layer(pbvh, me, &cl, &domain);
   }
 }
 
@@ -3510,15 +3581,10 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_sculpt_vert,
                              const int cd_face_areas)
 {
-  if (pbvh->bm) {
-    pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
-  }
-
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
 }
@@ -5143,8 +5209,16 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  BKE_pbvh_build_bmesh(
-      pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_sculpt_vert, cd_face_area, false);
+  BKE_pbvh_build_bmesh(pbvh,
+                       NULL,
+                       bm,
+                       false,
+                       bmlog,
+                       cd_vert_node,
+                       cd_face_node,
+                       cd_sculpt_vert,
+                       cd_face_area,
+                       false);
 
   int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
 
@@ -5543,7 +5617,6 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
   pbvh->cd_face_area = bm->pdata.layers[idx].offset;
 
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
   pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
 }

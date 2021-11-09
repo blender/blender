@@ -82,7 +82,7 @@ static void sculpt_vertex_array_data_get(SculptArray *array,
   *r_symmetry_pass = array->symmetry_pass[vertex];
 }
 
-static void sculpt_array_datalayers_init(SculptArray *array, SculptSession *ss)
+static void sculpt_array_datalayers_init(Object *ob, SculptArray *array, SculptSession *ss)
 {
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
@@ -95,14 +95,19 @@ static void sculpt_array_datalayers_init(SculptArray *array, SculptSession *ss)
   }
 
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, &params);
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, &params);
 
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-  SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, array->scl_sym, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
+  SCULPT_temp_customlayer_get(ss,
+                              ob,
+                              ATTR_DOMAIN_POINT,
+                              CD_PROP_INT32,
+                              array_symmetry_pass_cd_name,
+                              array->scl_sym,
+                              &params);
 }
 
 static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, Mesh *mesh)
@@ -156,22 +161,28 @@ void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
   if (array->scl_inst) {
-    SCULPT_temp_customlayer_get(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-    SCULPT_temp_customlayer_release(ss, array->scl_inst);
+    SCULPT_temp_customlayer_get(ss,
+                                ob,
+                                ATTR_DOMAIN_POINT,
+                                CD_PROP_INT32,
+                                array_instance_cd_name,
+                                array->scl_inst,
+                                &params);
+    SCULPT_temp_customlayer_release(ss, ob, array->scl_inst);
   }
 
   if (array->scl_sym) {
     SCULPT_temp_customlayer_get(ss,
+                                ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_INT32,
                                 array_symmetry_pass_cd_name,
                                 array->scl_sym,
                                 &params);
-    SCULPT_temp_customlayer_release(ss, array->scl_sym);
+    SCULPT_temp_customlayer_release(ss, ob, array->scl_sym);
   }
 
-  SCULPT_update_customdata_refs(ss);
+  SCULPT_update_customdata_refs(ss, ob);
 
   array->scl_inst = NULL;
   array->scl_sym = NULL;
@@ -338,14 +349,19 @@ static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
   SculptSession *ss = ob->sculpt;
   int totvert = SCULPT_vertex_count_get(ss);
 
-  SCULPT_update_customdata_refs(ss);
+  SCULPT_update_customdata_refs(ss, ob);
 
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-  SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, array->scl_sym, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
+  SCULPT_temp_customlayer_get(ss,
+                              ob,
+                              ATTR_DOMAIN_POINT,
+                              CD_PROP_INT32,
+                              array_symmetry_pass_cd_name,
+                              array->scl_sym,
+                              &params);
 
   array->copy_index = MEM_malloc_arrayN(totvert, sizeof(int), "array copy index");
   array->symmetry_pass = MEM_malloc_arrayN(totvert, sizeof(int), "array symmetry pass index");
@@ -368,7 +384,7 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array)
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  sculpt_array_datalayers_init(array, ob->sculpt);
+  sculpt_array_datalayers_init(ob, array, ob->sculpt);
   sculpt_array_datalayers_add(array, ob->sculpt, sculpt_mesh);
 
   BMesh *srcbm = sculpt_array_source_build(ob, brush, array);
@@ -424,7 +440,7 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array)
     BM_mesh_free(destbm);
   }
   else {
-    SCULPT_update_customdata_refs(ob->sculpt);
+    SCULPT_update_customdata_refs(ob->sculpt, ob);
     ob->sculpt->needs_pbvh_rebuild = true;
   }
 

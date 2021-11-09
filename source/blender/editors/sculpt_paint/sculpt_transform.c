@@ -90,7 +90,7 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
     case SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM:
       BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
       ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, 1.0f, 1.0f, 0.0f, true, false);
+          ss, ob, 1.0f, 1.0f, 0.0f, true, false);
       SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);
       SCULPT_cloth_brush_store_simulation_state(ss, ss->filter_cache->cloth_sim);
       SCULPT_cloth_brush_ensure_nodes_constraints(sd,
@@ -385,13 +385,13 @@ void ED_sculpt_end_transform(struct bContext *C, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->filter_cache) {
-    SCULPT_filter_cache_free(ss);
+    SCULPT_filter_cache_free(ss, ob);
   }
   /* Force undo push to happen even inside transform operator, since the sculpt
    * undo system works separate from regular undo and this is require to properly
    * finish an undo step also when canceling. */
   const bool use_nested_undo = true;
-  SCULPT_undo_push_end_ex(use_nested_undo);
+  SCULPT_undo_push_end_ex(ob, use_nested_undo);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 

@@ -139,7 +139,7 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 
   SculptCustomLayer *scl_co, *scl_no, *scl_disp;
 
-  SCULPT_ensure_persistent_layers(ss);
+  SCULPT_ensure_persistent_layers(ss, ob);
 
   scl_co = ss->custom_layers[SCULPT_SCL_PERS_CO];
   scl_no = ss->custom_layers[SCULPT_SCL_PERS_NO];
@@ -253,7 +253,7 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
       ss->pbvh = NULL;
 
       /* Finish undo. */
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
 
       break;
     case PBVH_FACES:
@@ -326,10 +326,11 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       // symmetrize is messing up ids, regenerate them from scratch
       BM_reassign_ids(ss->bm);
+      BM_mesh_toolflags_set(ss->bm, false);
       BM_log_full_mesh(ss->bm, ss->bm_log);
 
       /* Finish undo. */
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
 
       break;
     case PBVH_FACES:
@@ -491,15 +492,25 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+bool SCULPT_convert_colors_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  bool ok = ob && ob->data && ob->type == OB_MESH;
+  ok = ok && ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_OBJECT);
+
+  return ok;
+}
+
 static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Sculpt Vertex Color to Vertex Color";
-  ot->description = "Copy the Sculpt Vertex Color to a regular color layer";
+  ot->description = "Copy to active face corner color attribute";
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll_no_bmesh;
+  ot->poll = SCULPT_convert_colors_poll;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -558,11 +569,11 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Vertex Color to Sculpt Vertex Color";
-  ot->description = "Copy the active loop color layer to the vertex color";
+  ot->description = "Load from active face corner color attribute";
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll_no_bmesh;
+  ot->poll = SCULPT_convert_colors_poll;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -692,7 +703,7 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
   const bool over_mesh = SCULPT_cursor_geometry_info_update(C, &sgi, sccd->mval, false, false);
   if (over_mesh) {
     SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
-    copy_v4_v4(sccd->sampled_color, SCULPT_vertex_color_get(ss, active_vertex));
+    SCULPT_vertex_color_get(ss, active_vertex, sccd->sampled_color);
     IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color);
   }
   else {
@@ -707,19 +718,23 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
 
 static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
 {
+  ARegion *region = CTX_wm_region(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
-  ARegion *region = CTX_wm_region(C);
   SculptSession *ss = ob->sculpt;
+  SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  float active_vertex_color[4];
 
-  if (!ss->bm && !ss->vcol) {
+  if (!SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color)) {
     return OPERATOR_CANCELLED;
   }
   else {
     const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
-    const float *active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
+    float active_vertex_color[4];
+
+    SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
 
     if (!active_vertex_color) {
       return OPERATOR_CANCELLED;
@@ -727,7 +742,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
     SampleColorCustomData *sccd = MEM_callocN(sizeof(SampleColorCustomData),
                                               "Sample Color Custom Data");
-    copy_v4_v4(sccd->sampled_color, SCULPT_vertex_color_get(ss, active_vertex));
+    copy_v4_v4(sccd->sampled_color, active_vertex_color);
     copy_v4_v4(sccd->initial_color, BKE_brush_color_get(scene, brush));
 
     sccd->draw_handle = ED_region_draw_cb_activate(
@@ -811,7 +826,7 @@ typedef struct MaskByColorContiguousFloodFillData {
   float threshold;
   bool invert;
   float *new_mask;
-  float initial_color[3];
+  float initial_color[4];
 } MaskByColorContiguousFloodFillData;
 
 static void do_mask_by_color_contiguous_update_nodes_cb(
@@ -852,7 +867,10 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
   int to_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
   int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
 
-  const float *current_color = SCULPT_vertex_color_get(ss, to_v);
+  const float current_color[4];
+
+  SCULPT_vertex_color_get(ss, to_v, current_color);
+
   float new_vertex_mask = sculpt_mask_by_color_delta_get(
       current_color, data->initial_color, data->threshold, data->invert);
   data->new_mask[to_v_i] = new_vertex_mask;
@@ -891,7 +909,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   ffd.threshold = threshold;
   ffd.invert = invert;
   ffd.new_mask = new_mask;
-  copy_v3_v3(ffd.initial_color, SCULPT_vertex_color_get(ss, vertex));
+  SCULPT_vertex_color_get(ss, vertex, ffd.initial_color);
 
   SCULPT_floodfill_execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill_cb, &ffd);
   SCULPT_floodfill_free(&flood);
@@ -933,12 +951,18 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
   const float threshold = data->mask_by_color_threshold;
   const bool invert = data->mask_by_color_invert;
   const bool preserve_mask = data->mask_by_color_preserve_mask;
-  const float *active_color = SCULPT_vertex_color_get(ss, data->mask_by_color_vertex);
+  float active_color[4];
+
+  SCULPT_vertex_color_get(ss, data->mask_by_color_vertex, active_color);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     const float current_mask = *vd.mask;
-    const float new_mask = sculpt_mask_by_color_delta_get(active_color, vd.col, threshold, invert);
+    float vcolor[4];
+
+    SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
+
+    const float new_mask = sculpt_mask_by_color_delta_get(active_color, vcolor, threshold, invert);
     *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
 
     if (current_mask == *vd.mask) {
@@ -991,6 +1015,10 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
+  if (!SCULPT_has_colors(ss)) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* Color data is not available in Multires. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
     return OPERATOR_CANCELLED;
@@ -1025,7 +1053,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
 
@@ -1110,7 +1138,7 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
   SCULPT_vertex_random_access_ensure(ss);
 
   if (ss->limit_surface) {
-    SCULPT_temp_customlayer_release(ss, ss->limit_surface);
+    SCULPT_temp_customlayer_release(ss, ob, ss->limit_surface);
   }
 
   MEM_SAFE_FREE(ss->limit_surface);
@@ -1119,9 +1147,14 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "_sculpt_limit_surface", &params);
-  SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "_sculpt_limit_surface", ss->limit_surface, &params);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "_sculpt_limit_surface", &params);
+  SCULPT_temp_customlayer_get(ss,
+                              ob,
+                              ATTR_DOMAIN_POINT,
+                              CD_PROP_FLOAT3,
+                              "_sculpt_limit_surface",
+                              ss->limit_surface,
+                              &params);
 
   const int totvert = SCULPT_vertex_count_get(ss);
   const bool weighted = false;
@@ -1208,7 +1241,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1);
       BKE_pbvh_node_mark_update_color(nodes[i]);
     }
-    SCULPT_undo_push_end();
+    SCULPT_undo_push_end(ob);
 
     MEM_SAFE_FREE(nodes);
 

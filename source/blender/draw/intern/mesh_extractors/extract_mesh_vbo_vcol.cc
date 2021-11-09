@@ -42,30 +42,61 @@ static void extract_vcol_init(const MeshRenderData *mr,
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
 
+  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
-  uint32_t vcol_layers = cache->cd_used.vcol;
 
-  for (int i = 0; i < MAX_MCOL; i++) {
-    if (vcol_layers & (1 << i)) {
-      char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i);
-      GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  /*
+  Note there are two color attribute types that operate over two domains
+  (verts and face corners).
+  */
+  int vcol_types[2] = {CD_MLOOPCOL, CD_PROP_COLOR};
 
-      BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
-      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  CustomDataLayer *actlayer = BKE_id_attributes_active_get((ID *)mr->me);
+  AttributeDomain actdomain = actlayer ? BKE_id_attribute_domain((ID *)mr->me, actlayer) :
+                                         ATTR_DOMAIN_AUTO;
+  int actn = -1;
 
-      if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL)) {
-        GPU_vertformat_alias_add(&format, "c");
-      }
-      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL)) {
-        GPU_vertformat_alias_add(&format, "ac");
-      }
+  /* prefer the active attribute to set active color if it's a color layer  */
+  if (actlayer && ELEM(actlayer->type, CD_PROP_COLOR, CD_MLOOPCOL) &&
+      ELEM(actdomain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    CustomData *cdata = actdomain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
+    actn = actlayer - (cdata->layers + cdata->typemap[actlayer->type]);
+  }
 
-      /* Gather number of auto layers. */
-      /* We only do `vcols` that are not overridden by `uvs`. */
-      if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
-        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-        GPU_vertformat_alias_add(&format, attr_name);
+  /* set up vbo format */
+  for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
+    int type = vcol_types[i];
+
+    for (int step = 0; step < 2; step++) {
+      CustomData *cdata = step ? cd_ldata : cd_vdata;
+      int count = CustomData_number_of_layers(cdata, type);
+      AttributeDomain domain = step ? ATTR_DOMAIN_CORNER : ATTR_DOMAIN_POINT;
+
+      for (int j = 0; j < count; j++) {
+        char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+        const char *layer_name = CustomData_get_layer_name(cdata, type, j);
+        GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+
+        BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
+        GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+        if (j == CustomData_get_render_layer(cdata, type)) {
+          GPU_vertformat_alias_add(&format, "c");
+        }
+
+        bool is_active = actn == -1 && j == CustomData_get_active_layer(cdata, type);
+        is_active |= actn != -1 && domain == actdomain && j == actn && type == actlayer->type;
+
+        if (is_active) {
+          GPU_vertformat_alias_add(&format, "ac");
+        }
+
+        /* Gather number of auto layers. */
+        /* We only do `vcols` that are not overridden by `uvs`. */
+        if (CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, layer_name) == -1) {
+          BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+          GPU_vertformat_alias_add(&format, attr_name);
+        }
       }
     }
   }
@@ -79,32 +110,122 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)GPU_vertbuf_get_data(vbo);
 
-  for (int i = 0; i < MAX_MCOL; i++) {
-    if (vcol_layers & (1 << i)) {
-      if (mr->extract_type == MR_EXTRACT_BMESH) {
-        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPCOL, i);
-        BMIter f_iter;
-        BMFace *efa;
-        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
-          BMLoop *l_iter, *l_first;
-          l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
-          do {
-            const MLoopCol *mloopcol = (const MLoopCol *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_ofs);
-            vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
-            vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
-            vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
-            vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
-            vcol_data++;
-          } while ((l_iter = l_iter->next) != l_first);
+  /* build data */
+  for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
+    int type = vcol_types[i];
+
+    for (int step = 0; step < 2; step++) {
+      CustomData *cdata = step ? cd_ldata : cd_vdata;
+      int count = CustomData_number_of_layers(cdata, type);
+
+      for (int j = 0; j < count; j++) {
+        int idx = CustomData_get_layer_index_n(cdata, type, j);
+
+        if (mr->extract_type == MR_EXTRACT_BMESH) {
+          BMFace *f;
+          BMIter iter;
+
+          CustomData *cdata_orig = step ? &mr->bm->ldata : &mr->bm->vdata;
+          int idx_orig = CustomData_get_layer_index_n(cdata_orig, type, j);
+          int cd_vcol = cdata_orig->layers[idx_orig].offset;
+
+          BM_ITER_MESH (f, &iter, mr->bm, BM_FACES_OF_MESH) {
+            BMLoop *l_iter = BM_FACE_FIRST_LOOP(f);
+            do {
+              BMElem *elem = step ? (BMElem *)l_iter : (BMElem *)l_iter->v;
+
+              switch (type) {
+                case CD_PROP_COLOR: {
+                  float *color = (float *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(color[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(color[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(color[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(color[3]);
+
+                  break;
+                }
+                case CD_MLOOPCOL: {
+                  float temp[4];
+
+                  MLoopCol *mloopcol = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(elem, cd_vcol);
+                  rgba_uchar_to_float(temp, (unsigned char *)mloopcol);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
+                  break;
+                }
+              }
+
+              vcol_data++;
+            } while ((l_iter = l_iter->next) != BM_FACE_FIRST_LOOP(f));
+          }
         }
-      }
-      else {
-        const MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
-        for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, mloopcol++, vcol_data++) {
-          vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
-          vcol_data->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
-          vcol_data->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
-          vcol_data->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
+        else {
+          switch (type) {
+            case CD_PROP_COLOR: {
+              MPropCol *colors = (MPropCol *)cdata->layers[idx].data;
+
+              if (step) {
+                for (int k = 0; k < mr->loop_len; k++, vcol_data++, colors++) {
+                  vcol_data->r = unit_float_to_ushort_clamp(colors->color[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(colors->color[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(colors->color[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(colors->color[3]);
+                }
+              }
+              else {
+                const MLoop *ml = mr->mloop;
+
+                for (int k = 0; k < mr->loop_len; k++, vcol_data++, ml++) {
+                  MPropCol *color = colors + ml->v;
+
+                  vcol_data->r = unit_float_to_ushort_clamp(color->color[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(color->color[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(color->color[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(color->color[3]);
+                }
+              }
+              break;
+            }
+            case CD_MLOOPCOL: {
+              MLoopCol *colors = (MLoopCol *)cdata->layers[idx].data;
+
+              if (step) {
+                for (int k = 0; k < mr->loop_len; k++, vcol_data++, colors++) {
+                  float temp[4];
+
+                  rgba_uchar_to_float(temp, (unsigned char *)colors);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
+                }
+              }
+              else {
+                const MLoop *ml = mr->mloop;
+
+                for (int k = 0; k < mr->loop_len; k++, vcol_data++, ml++) {
+                  MLoopCol *color = colors + ml->v;
+                  float temp[4];
+
+                  rgba_uchar_to_float(temp, (unsigned char *)color);
+                  srgb_to_linearrgb_v3_v3(temp, temp);
+
+                  vcol_data->r = unit_float_to_ushort_clamp(temp[0]);
+                  vcol_data->g = unit_float_to_ushort_clamp(temp[1]);
+                  vcol_data->b = unit_float_to_ushort_clamp(temp[2]);
+                  vcol_data->a = unit_float_to_ushort_clamp(temp[3]);
+                }
+              }
+              break;
+            }
+          }
         }
       }
     }

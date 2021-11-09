@@ -201,9 +201,12 @@ struct PBVH {
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vert_mask_offset;
-  int cd_vcol_offset;
   int cd_faceset_offset;
   int cd_face_area;
+  int cd_vcol_offset;
+
+  int vcol_type;
+  int vcol_domain;
 
   float planes[6][4];
   int num_planes;
@@ -372,5 +375,4 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 }
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
-
 //#define DEFRAGMENT_MEMORY
