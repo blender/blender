@@ -1323,6 +1323,9 @@ void BKE_image_print_memlist(Main *bmain)
 
 static bool imagecache_check_dirty(ImBuf *ibuf, void *UNUSED(userkey), void *UNUSED(userdata))
 {
+  if (ibuf == NULL) {
+    return false;
+  }
   return (ibuf->userflags & IB_BITMAPDIRTY) == 0;
 }
 
@@ -1366,6 +1369,9 @@ void BKE_image_free_all_textures(Main *bmain)
 
 static bool imagecache_check_free_anim(ImBuf *ibuf, void *UNUSED(userkey), void *userdata)
 {
+  if (ibuf == NULL) {
+    return true;
+  }
   int except_frame = *(int *)userdata;
   return (ibuf->userflags & IB_BITMAPDIRTY) == 0 && (ibuf->index != IMA_NO_INDEX) &&
          (except_frame != IMA_INDEX_ENTRY(ibuf->index));

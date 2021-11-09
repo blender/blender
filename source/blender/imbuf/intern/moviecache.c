@@ -242,6 +242,9 @@ static int get_item_priority(void *item_v, int default_priority)
 static bool get_item_destroyable(void *item_v)
 {
   MovieCacheItem *item = (MovieCacheItem *)item_v;
+  if (item->ibuf == NULL) {
+    return true;
+  }
   /* IB_BITMAPDIRTY means image was modified from inside blender and
    * changes are not saved to disk.
    *
