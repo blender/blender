@@ -127,9 +127,9 @@ void version_node_input_socket_name(bNodeTree *ntree,
 }
 
 void version_node_output_socket_name(bNodeTree *ntree,
-                                    const int node_type,
-                                    const char *old_name,
-                                    const char *new_name)
+                                     const int node_type,
+                                     const char *old_name,
+                                     const char *new_name)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == node_type) {

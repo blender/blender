@@ -38,7 +38,7 @@ static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Reset Children"))
       .description(
           N_("Reset the transforms of every child instance in the output. Only used when Separate "
-          "Children is enabled"));
+             "Children is enabled"));
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 

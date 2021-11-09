@@ -1030,8 +1030,8 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 }
 
 static int armature_parent_clear_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      const wmEvent *UNUSED(event))
+                                        wmOperator *UNUSED(op),
+                                        const wmEvent *UNUSED(event))
 {
   // False when no selected bones are connected to the active bone.
   bool enable_disconnect = false;
@@ -1066,7 +1066,8 @@ static int armature_parent_clear_invoke(bContext *C,
 
   uiLayout *row_disconnect = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row_disconnect, enable_disconnect);
-  uiItemEnumO(row_disconnect, "ARMATURE_OT_parent_clear", NULL, 0, "type", ARM_PAR_CLEAR_DISCONNECT);
+  uiItemEnumO(
+      row_disconnect, "ARMATURE_OT_parent_clear", NULL, 0, "type", ARM_PAR_CLEAR_DISCONNECT);
 
   UI_popup_menu_end(C, pup);
 

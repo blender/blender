@@ -13,12 +13,12 @@
 
 #include "intern/draw_manager_testing.h"
 
+#include "engines/basic/basic_private.h"
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/image/image_private.hh"
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
-#include "engines/basic/basic_private.h"
 #include "intern/draw_shader.h"
 
 namespace blender::draw {

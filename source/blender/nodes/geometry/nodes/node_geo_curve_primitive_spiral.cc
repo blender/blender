@@ -35,13 +35,11 @@ static void geo_node_curve_primitive_spiral_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Start Radius"))
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
-      .description(
-          N_("Horizontal Distance from the Z axis at the start of the spiral"));
+      .description(N_("Horizontal Distance from the Z axis at the start of the spiral"));
   b.add_input<decl::Float>(N_("End Radius"))
       .default_value(2.0f)
       .subtype(PROP_DISTANCE)
-      .description(
-          N_("Horizontal Distance from the Z axis at the end of the spiral"));
+      .description(N_("Horizontal Distance from the Z axis at the end of the spiral"));
   b.add_input<decl::Float>(N_("Height"))
       .default_value(2.0f)
       .subtype(PROP_DISTANCE)
