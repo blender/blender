@@ -52,16 +52,16 @@ pxr::UsdGeomXformable USDSkelRootWriter::create_xformable() const
   pxr::UsdGeomXformable root;
 
   if (is_under_skel_root()) {
-    root =
-      (usd_export_context_.export_params.export_as_overs) ?
-      pxr::UsdGeomXform(usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
-      pxr::UsdGeomXform::Define(usd_export_context_.stage, usd_export_context_.usd_path);
+    root = (usd_export_context_.export_params.export_as_overs) ?
+               pxr::UsdGeomXform(
+                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
+               pxr::UsdGeomXform::Define(usd_export_context_.stage, usd_export_context_.usd_path);
   }
   else {
-    root =
-      (usd_export_context_.export_params.export_as_overs) ?
-      pxr::UsdSkelRoot(usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
-      pxr::UsdSkelRoot::Define(usd_export_context_.stage, usd_export_context_.usd_path);
+    root = (usd_export_context_.export_params.export_as_overs) ?
+               pxr::UsdSkelRoot(
+                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
+               pxr::UsdSkelRoot::Define(usd_export_context_.stage, usd_export_context_.usd_path);
   }
 
   return root;

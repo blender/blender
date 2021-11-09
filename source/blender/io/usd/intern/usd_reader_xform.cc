@@ -51,7 +51,7 @@ void USDXformReader::create_object(Main *bmain, const double /* motionSampleTime
   object_->data = nullptr;
 }
 
-void USDXformReader::read_object_data(Main * bmain, const double motionSampleTime)
+void USDXformReader::read_object_data(Main *bmain, const double motionSampleTime)
 {
   USDPrimReader::read_object_data(bmain, motionSampleTime);
 

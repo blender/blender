@@ -151,11 +151,7 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
-    {USD_ATTR_IMPORT_NONE,
-     "NONE",
-     0,
-     "None",
-     "Do not import attributes"},
+    {USD_ATTR_IMPORT_NONE, "NONE", 0, "None", "Do not import attributes"},
     {USD_ATTR_IMPORT_USER,
      "USER",
      0,
@@ -756,11 +752,12 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   true,
                   "Export Custom Properties",
                   "When checked, custom properties will be exported as USD User Properties");
-  RNA_def_boolean(ot->srna,
-                  "add_properties_namespace",
-                  true,
-                  "Add Properties Namespace",
-                  "Add exported custom properties to the 'userProperties' USD attribute namespace");
+  RNA_def_boolean(
+      ot->srna,
+      "add_properties_namespace",
+      true,
+      "Add Properties Namespace",
+      "Add exported custom properties to the 'userProperties' USD attribute namespace");
   RNA_def_boolean(ot->srna,
                   "export_identity_transforms",
                   false,
@@ -971,8 +968,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDMtlNameCollisionMode mtl_name_collision_mode = RNA_enum_get(op->ptr,
                                                                         "mtl_name_collision_mode");
 
-  const eUSDAttrImportMode attr_import_mode = RNA_enum_get(op->ptr,
-                                                           "attr_import_mode");
+  const eUSDAttrImportMode attr_import_mode = RNA_enum_get(op->ptr, "attr_import_mode");
 
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
@@ -1249,13 +1245,12 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
       "Material Name Collision",
       "Behavior when the name of an imported material conflicts with an existing material");
 
-  RNA_def_enum(
-    ot->srna,
-    "attr_import_mode",
-    rna_enum_usd_attr_import_mode_items,
-    USD_ATTR_IMPORT_NONE,
-    "Import Attributes",
-    "Behavior when importing USD attributes as Blender custom properties");
+  RNA_def_enum(ot->srna,
+               "attr_import_mode",
+               rna_enum_usd_attr_import_mode_items,
+               USD_ATTR_IMPORT_NONE,
+               "Import Attributes",
+               "Behavior when importing USD attributes as Blender custom properties");
 }
 
 #endif /* WITH_USD */

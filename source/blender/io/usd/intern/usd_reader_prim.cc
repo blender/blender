@@ -46,7 +46,7 @@ void set_array_prop(IDProperty *idgroup,
     return;
   }
 
-  IDPropertyTemplate val = { 0 };
+  IDPropertyTemplate val = {0};
   val.array.len = static_cast<int>(vec.dimension);
 
   if (val.array.len <= 0) {
@@ -76,7 +76,8 @@ void set_array_prop(IDProperty *idgroup,
     return;
   }
 
-  typename VECT::ScalarType *prop_data = static_cast<typename VECT::ScalarType *>(prop->data.pointer);
+  typename VECT::ScalarType *prop_data = static_cast<typename VECT::ScalarType *>(
+      prop->data.pointer);
 
   for (int i = 0; i < val.array.len; ++i) {
     prop_data[i] = vec[i];
@@ -85,24 +86,22 @@ void set_array_prop(IDProperty *idgroup,
   IDP_AddToGroup(idgroup, prop);
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 namespace blender::io::usd {
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
-  static const pxr::TfToken userProperties("userProperties", pxr::TfToken::Immortal);
+static const pxr::TfToken userProperties("userProperties", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-static void set_string_prop(IDProperty *idgroup,
-                            const char *prop_name,
-                            const char *str_val)
+static void set_string_prop(IDProperty *idgroup, const char *prop_name, const char *str_val)
 {
   if (!idgroup) {
     return;
   }
 
-  IDPropertyTemplate val = { 0 };
+  IDPropertyTemplate val = {0};
   val.string.str = str_val;
   /* Note length includes null terminator. */
   val.string.len = strlen(str_val) + 1;
@@ -113,45 +112,39 @@ static void set_string_prop(IDProperty *idgroup,
   IDP_AddToGroup(idgroup, prop);
 }
 
-static void set_int_prop(IDProperty *idgroup,
-                         const char *prop_name,
-                         const int ival)
+static void set_int_prop(IDProperty *idgroup, const char *prop_name, const int ival)
 {
   if (!idgroup) {
     return;
   }
 
-  IDPropertyTemplate val = { 0 };
+  IDPropertyTemplate val = {0};
   val.i = ival;
   IDProperty *prop = IDP_New(IDP_INT, &val, prop_name);
 
   IDP_AddToGroup(idgroup, prop);
 }
 
-static void set_float_prop(IDProperty *idgroup,
-                           const char *prop_name,
-                           const float fval)
+static void set_float_prop(IDProperty *idgroup, const char *prop_name, const float fval)
 {
   if (!idgroup) {
     return;
   }
 
-  IDPropertyTemplate val = { 0 };
+  IDPropertyTemplate val = {0};
   val.f = fval;
   IDProperty *prop = IDP_New(IDP_FLOAT, &val, prop_name);
 
   IDP_AddToGroup(idgroup, prop);
 }
 
-static void set_double_prop(IDProperty *idgroup,
-                            const char *prop_name,
-                            const double dval)
+static void set_double_prop(IDProperty *idgroup, const char *prop_name, const double dval)
 {
   if (!idgroup) {
     return;
   }
 
-  IDPropertyTemplate val = { 0 };
+  IDPropertyTemplate val = {0};
   val.d = dval;
   IDProperty *prop = IDP_New(IDP_DOUBLE, &val, prop_name);
 
@@ -195,7 +188,8 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
     }
 
     /* When importing user properties, strip the namespace. */
-    pxr::TfToken attr_name = (attr_import_mode == USD_ATTR_IMPORT_USER) ? attr.GetBaseName() : attr.GetName();
+    pxr::TfToken attr_name = (attr_import_mode == USD_ATTR_IMPORT_USER) ? attr.GetBaseName() :
+                                                                          attr.GetName();
 
     pxr::SdfValueTypeName type_name = attr.GetTypeName();
 
@@ -259,7 +253,6 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
   }
 }
 
-
 USDPrimReader::USDPrimReader(const pxr::UsdPrim &prim,
                              const USDImportParams &import_params,
                              const ImportSettings &settings)
@@ -287,7 +280,7 @@ void USDPrimReader::read_object_data(Main * /* bmain */, const double motionSamp
     return;
   }
 
-  ID *id = object_->data ? static_cast<ID*>(object_->data) : &object_->id;
+  ID *id = object_->data ? static_cast<ID *>(object_->data) : &object_->id;
 
   set_props(id, prim_, motionSampleTime);
 }

@@ -190,7 +190,8 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
 
   std::vector<int> group_to_bone_idx;
 
-  for (const bDeformGroup *def = (const bDeformGroup *)mesh->vertex_group_names.first; def; def = def->next) {
+  for (const bDeformGroup *def = (const bDeformGroup *)mesh->vertex_group_names.first; def;
+       def = def->next) {
 
     int bone_idx = -1;
     /* For now, n-squared search is acceptable. */

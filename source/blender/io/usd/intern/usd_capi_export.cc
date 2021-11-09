@@ -84,19 +84,23 @@ static bool validate_params(const USDExportParams &params)
 
   if (params.export_materials && !pxr::SdfPath::IsValidPathString(params.material_prim_path)) {
     WM_reportf(RPT_ERROR,
-      "USD Export: invalid material prim path parameter '%s'", params.material_prim_path);
+               "USD Export: invalid material prim path parameter '%s'",
+               params.material_prim_path);
     valid = false;
   }
 
-  if (strlen(params.root_prim_path) != 0 && !pxr::SdfPath::IsValidPathString(params.root_prim_path)) {
-    WM_reportf(RPT_ERROR,
-      "USD Export: invalid root prim path parameter '%s'", params.root_prim_path);
+  if (strlen(params.root_prim_path) != 0 &&
+      !pxr::SdfPath::IsValidPathString(params.root_prim_path)) {
+    WM_reportf(
+        RPT_ERROR, "USD Export: invalid root prim path parameter '%s'", params.root_prim_path);
     valid = false;
   }
 
-  if (strlen(params.default_prim_path) != 0 && !pxr::SdfPath::IsValidPathString(params.default_prim_path)) {
+  if (strlen(params.default_prim_path) != 0 &&
+      !pxr::SdfPath::IsValidPathString(params.default_prim_path)) {
     WM_reportf(RPT_ERROR,
-      "USD Export: invalid default prim path parameter '%s'", params.default_prim_path);
+               "USD Export: invalid default prim path parameter '%s'",
+               params.default_prim_path);
     valid = false;
   }
 
@@ -219,7 +223,7 @@ static void export_startjob(void *customdata,
     pxr::SdfPath mtl_prim_path(data->params.material_prim_path);
 
     blender::io::usd::usd_define_or_over<pxr::UsdGeomScope>(
-      usd_stage, mtl_prim_path, data->params.export_as_overs);
+        usd_stage, mtl_prim_path, data->params.export_as_overs);
   }
 
   pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);

@@ -166,7 +166,6 @@ static bool report_notification(PyObject *dict)
   return false;
 }
 
-
 static bool is_none_value(PyObject *tup)
 {
   if (!(tup && PyTuple_Check(tup) && PyTuple_Size(tup) > 1)) {
@@ -738,7 +737,7 @@ bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_materia
     if (!surf_shader.GetSourceAssetSubIdentifier(&source_asset_sub_identifier, usdtokens::mdl)) {
       if (verbose) {
         std::cout << "No mdl source asset sub identifier for shader " << surf_shader.GetPath()
-          << std::endl;
+                  << std::endl;
       }
       return false;
     }

@@ -354,8 +354,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     set_viewport_material_props(mtl, usd_preview);
   }
 
-  if (params_.import_shaders_mode == USD_IMPORT_USD_PREVIEW_SURFACE
-    && usd_preview) {
+  if (params_.import_shaders_mode == USD_IMPORT_USD_PREVIEW_SURFACE && usd_preview) {
     /* Create shader nodes to represent a UsdPreviewSurface. */
     import_usd_preview(mtl, usd_preview);
   }
@@ -367,8 +366,8 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 #endif
     if (!imported_mdl && usd_preview) {
       /* We failed to import an MDL, so fall back on importing UsdPreviewSuface. */
-      std::string message = "Couldn't import MDL shaders for material "
-        + mtl_name + ", importing USD Preview Surface shaders instead";
+      std::string message = "Couldn't import MDL shaders for material " + mtl_name +
+                            ", importing USD Preview Surface shaders instead";
       WM_reportf(RPT_INFO, message.c_str());
       import_usd_preview(mtl, usd_preview);
     }
