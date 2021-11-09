@@ -254,7 +254,7 @@ class SEQUENCER_MT_editor_menus(Menu):
 class SEQUENCER_PT_gizmo_display(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
-    bl_label = "Gizmo"
+    bl_label = "Gizmos"
     bl_ui_units_x = 8
 
     def draw(self, context):
