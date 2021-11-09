@@ -1362,8 +1362,8 @@ static void draw_property_for_socket(const bContext &C,
       }
       else {
         uiLayout *row = uiLayoutRow(layout, false);
+        uiLayoutSetPropDecorate(row, true);
         uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
-        uiItemDecoratorR(row, md_ptr, rna_path, 0);
       }
     }
   }
