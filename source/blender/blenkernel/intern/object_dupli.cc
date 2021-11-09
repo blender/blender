@@ -166,6 +166,10 @@ static void copy_dupli_context(
   r_ctx->persistent_id[r_ctx->level] = index;
   ++r_ctx->level;
 
+  if (r_ctx->level == MAX_DUPLI_RECUR - 1) {
+    std::cerr << "Warning: Maximum instance recursion level reached.\n";
+  }
+
   r_ctx->gen = get_dupli_generator(r_ctx);
 }
 
