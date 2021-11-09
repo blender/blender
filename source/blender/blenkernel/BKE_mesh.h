@@ -22,6 +22,8 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute.h"
+#include "BKE_customdata.h"
 #include "BKE_mesh_types.h"
 #include "BLI_utildefines.h"
 
@@ -662,6 +664,37 @@ BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
   return (j != -1) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : -1;
 }
 
+/* ensures attribute active indices are kept up to date */
+bool BKE_mesh_customdata_merge(struct Mesh *me,
+                               AttributeDomain domain,
+                               CustomData *src,
+                               CustomDataMask mask,
+                               eCDAllocType alloctype,
+                               int totelem);
+
+void BKE_mesh_customdata_copy(struct Mesh *me,
+                              AttributeDomain domain,
+                              CustomData *src,
+                              CustomDataMask mask,
+                              eCDAllocType alloctype,
+                              int totelem);
+
+void BKE_mesh_attributes_update_pre(struct Mesh *me,
+                                    AttributeDomain domain,
+                                    CustomData **r_dst,
+                                    CustomData *src,
+                                    int *active_type,
+                                    char active_name[MAX_CUSTOMDATA_LAYER_NAME],
+                                    int *active_color_type,
+                                    char active_color_name[MAX_CUSTOMDATA_LAYER_NAME]);
+void BKE_mesh_attributes_update_post(struct Mesh *me,
+                                     AttributeDomain domain,
+                                     CustomData *dst,
+                                     CustomData *src,
+                                     int *active_type,
+                                     char active_name[MAX_CUSTOMDATA_LAYER_NAME],
+                                     int *active_color_type,
+                                     char active_color_name[MAX_CUSTOMDATA_LAYER_NAME]);
 #ifdef __cplusplus
 }
 #endif

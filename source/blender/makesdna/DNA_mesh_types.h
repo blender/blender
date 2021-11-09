@@ -197,6 +197,11 @@ typedef struct Mesh {
   int attributes_active_index;
   int vertex_group_active_index;
 
+  /* note that this can be inside of either vdata or ldata,
+     and can reference a layer of type CD_PROP_COLOR or
+     CD_MLOOPCOL */
+  int active_color_index;
+
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track
    * of the last selected face and is similar to the old active face flag where
@@ -228,15 +233,14 @@ typedef struct Mesh {
    * consistently ensure that this symmetry is maintained. */
   char symmetry;
 
-  char _pad1[2];
+  char _pad1[6];
 
   int face_sets_color_seed;
   /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
    * default and Face Sets can be used without affecting the color of the mesh. */
   int face_sets_color_default;
-
-  void *_pad2;
   Mesh_Runtime runtime;
+  void *_pad2;
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */

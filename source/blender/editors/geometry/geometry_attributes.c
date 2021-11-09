@@ -23,6 +23,8 @@
 
 #include "BKE_attribute.h"
 #include "BKE_context.h"
+#include "BKE_object.h"
+#include "BKE_paint.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -96,6 +98,11 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   BKE_id_attributes_active_set(id, layer);
 
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_update_object_for_edit(
+        CTX_data_ensure_evaluated_depsgraph(C), ob, false, false, false);
+  }
+
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
@@ -136,6 +143,53 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
                       "data_type",
                       rna_enum_attribute_type_items,
                       CD_PROP_FLOAT,
+                      "Data Type",
+                      "Type of data stored in attribute");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Geometry Attribute";
+  ot->description = "Add attribute to geometry";
+  ot->idname = "GEOMETRY_OT_color_attribute_add";
+
+  /* api callbacks */
+  ot->poll = geometry_attributes_poll;
+  ot->exec = geometry_attribute_add_exec;
+  ot->invoke = WM_operator_props_popup_confirm;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_string(ot->srna, "name", "Color", MAX_NAME, "Name", "Name of color attribute");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", -1, "Point", ""},
+                                        {ATTR_DOMAIN_CORNER, "CORNER", -1, "Face Corner", ""},
+                                        {0, NULL, 0, NULL, NULL}};
+
+  static EnumPropertyItem types[3] = {{CD_PROP_COLOR, "COLOR", -1, "Color", ""},
+                                      {CD_MLOOPCOL, "BYTE_COLOR", -1, "Byte Color", ""},
+                                      {0, NULL, 0, NULL, NULL}};
+
+  prop = RNA_def_enum(ot->srna,
+                      "domain",
+                      domains,
+                      ATTR_DOMAIN_POINT,
+                      "Domain",
+                      "Type of element that attribute is stored on");
+
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "data_type",
+                      types,
+                      CD_PROP_COLOR,
                       "Data Type",
                       "Type of data stored in attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

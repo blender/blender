@@ -1088,6 +1088,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
 
   BKE_pbvh_draw_cb(pbvh,
+                   mesh,
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,

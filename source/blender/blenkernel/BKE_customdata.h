@@ -465,6 +465,14 @@ int CustomData_layertype_layers_max(const int type);
 /* make sure the name of layer at index is unique */
 void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
+/* get unique layer name for a layer that doesn't currently exist */
+void CustomData_find_unique_layer_name(CustomData *data,
+                                       int type,
+                                       const char *name,
+                                       char *outname);
+
+/* try to find layer with name name; if it does not exist,
+   load the active layer name into outname*/
 void CustomData_validate_layer_name(const struct CustomData *data,
                                     int type,
                                     const char *name,

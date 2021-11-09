@@ -23,6 +23,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../../../intern/atomic
 )
 
 set(INC_SYS

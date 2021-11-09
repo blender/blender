@@ -412,6 +412,64 @@ static void rna_AttributeGroup_update_active(Main *bmain, Scene *scene, PointerR
   rna_Attribute_update_data(bmain, scene, ptr);
 }
 
+static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+
+  PointerRNA attribute_ptr;
+  RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
+  return attribute_ptr;
+}
+
+static void rna_AttributeGroup_active_color_set(PointerRNA *ptr,
+                                                PointerRNA attribute_ptr,
+                                                ReportList *UNUSED(reports))
+{
+  ID *id = ptr->owner_id;
+  CustomDataLayer *layer = attribute_ptr.data;
+
+  BKE_id_attributes_active_color_set(id, layer);
+}
+
+static int rna_AttributeGroup_active_color_index_get(PointerRNA *ptr)
+{
+  int *active = BKE_id_attributes_active_color_index_p(ptr->owner_id);
+
+  return active ? *active : -1;
+}
+
+static void rna_AttributeGroup_active_color_index_set(PointerRNA *ptr, int value)
+{
+  ID *id = ptr->owner_id;
+  int *active = BKE_id_attributes_active_color_index_p(ptr->owner_id);
+
+  if (active) {
+    CustomDataLayer *layer = BKE_id_attribute_from_index(id, value);
+
+    if (layer) {
+      BKE_id_attributes_active_color_set(id, layer);
+    }
+    else {
+      fprintf(stderr, "%s: error setting active color index to %d\n", __func__, value);
+    }
+  }
+}
+
+static void rna_AttributeGroup_active_color_index_range(
+    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+{
+  *min = 0;
+  *max = BKE_id_attributes_length(ptr->owner_id, CD_MASK_PROP_ALL);
+
+  *softmin = *min;
+  *softmax = *max;
+}
+
+static void rna_AttributeGroup_update_active_color(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_Attribute_update_data(bmain, scene, ptr);
+}
 #else
 
 static void rna_def_attribute_float(BlenderRNA *brna)
@@ -772,6 +830,25 @@ static void rna_def_attribute_group(BlenderRNA *brna)
                              "rna_AttributeGroup_active_index_set",
                              "rna_AttributeGroup_active_index_range");
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active");
+
+  prop = RNA_def_property(srna, "active_color", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Attribute");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_AttributeGroup_active_color_get",
+                                 "rna_AttributeGroup_active_color_set",
+                                 NULL,
+                                 NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+  RNA_def_property_ui_text(prop, "Active Color", "Active color attribute");
+  RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active_color");
+
+  prop = RNA_def_property(srna, "active_color_index", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop,
+                             "rna_AttributeGroup_active_color_index_get",
+                             "rna_AttributeGroup_active_color_index_set",
+                             "rna_AttributeGroup_active_color_index_range");
+  RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active_color");
 }
 
 void rna_def_attributes_common(StructRNA *srna)

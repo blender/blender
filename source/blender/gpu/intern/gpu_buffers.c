@@ -365,7 +365,7 @@ static void free_cd_layers(CDAttrLayers *cdattr)
 
 void gpu_pbvh_init()
 {
-  GPU_pbvh_update_attribute_names(NULL, NULL, false, false, -1, -1);
+  GPU_pbvh_update_attribute_names(NULL, NULL, false, false, -1, -1, NULL);
 }
 
 void gpu_pbvh_exit()
@@ -1322,14 +1322,15 @@ static int gpu_pbvh_bmesh_make_vcol_offs(CustomData *vdata,
                                          ColorRef r_cd_vcols[MAX_GPU_MCOL],
                                          bool active_only,
                                          int active_type,
-                                         int active_domain)
+                                         int active_domain,
+                                         CustomDataLayer *active_vcol_layer)
 {
   if (active_only) {
     CustomData *cdata = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
 
-    int idx = active_type != -1 ? CustomData_get_active_layer_index(cdata, active_type) : -1;
+    int idx = active_vcol_layer ? active_vcol_layer - cdata->layers : -1;
 
-    if (idx >= 0) {
+    if (idx >= 0 && idx < cdata->totlayer) {
       r_cd_vcols[0].cd_offset = cdata->layers[idx].offset;
       r_cd_vcols[0].domain = active_domain;
       r_cd_vcols[0].type = active_type;
@@ -1395,7 +1396,8 @@ ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
                                                  bool need_full_render,
                                                  bool fast_mode,
                                                  int active_vcol_type,
-                                                 int active_vcol_domain)
+                                                 int active_vcol_domain,
+                                                 CustomDataLayer *active_vcol_layer)
 {
   const bool active_only = !need_full_render;
 
@@ -1462,26 +1464,31 @@ ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
 
 #if !defined(NEW_ATTR_SYSTEM) && !defined(GPU_PERF_TEST)
     if (active_vcol_type != -1) {
-      const int act = CustomData_get_active_layer_index(
-          active_vcol_domain == ATTR_DOMAIN_POINT ? vdata : ldata, active_vcol_type);
       int ci = 0;
 
       ColorRef vcol_layers[MAX_GPU_MCOL];
-      int totlayer = gpu_pbvh_bmesh_make_vcol_offs(
-          vdata, ldata, vcol_layers, active_only, active_vcol_type, active_vcol_domain);
+      int totlayer = gpu_pbvh_bmesh_make_vcol_offs(vdata,
+                                                   ldata,
+                                                   vcol_layers,
+                                                   active_only,
+                                                   active_vcol_type,
+                                                   active_vcol_domain,
+                                                   active_vcol_layer);
 
       for (int i = 0; i < totlayer; i++) {
         ColorRef *ref = vcol_layers + i;
-        CustomDataLayer *cl = vdata->layers + ref->layer_idx;
+        CustomData *cdata = ref->domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+
+        CustomDataLayer *cl = cdata->layers + ref->layer_idx;
 
         if (g_vbo_id.totcol < MAX_GPU_MCOL) {
           g_vbo_id.col[ci++] = GPU_vertformat_attr_add(
               &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
           g_vbo_id.totcol++;
 
-          DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", vdata, cl);
+          DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", cdata, cl);
 
-          if ((int)ref->layer_idx == act && (int)ref->domain == active_vcol_domain) {
+          if (cl == active_vcol_layer) {
             GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
           }
         }
@@ -1579,7 +1586,8 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
                                                     int face_sets_color_default,
                                                     short mat_nr,
                                                     int active_vcol_type,
-                                                    int active_vcol_domain)
+                                                    int active_vcol_domain,
+                                                    CustomDataLayer *active_vcol_layer)
 {
   bool active_vcol_only = g_vbo_id.active_vcol_only;
 
@@ -1592,8 +1600,13 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
 
   ColorRef cd_vcols[MAX_GPU_MCOL];
 
-  const int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(
-      &bm->vdata, &bm->ldata, cd_vcols, active_vcol_only, active_vcol_type, active_vcol_domain);
+  const int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(&bm->vdata,
+                                                          &bm->ldata,
+                                                          cd_vcols,
+                                                          active_vcol_only,
+                                                          active_vcol_type,
+                                                          active_vcol_domain,
+                                                          active_vcol_layer);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr) * 6;
@@ -1764,7 +1777,8 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
                                                   bool flat_vcol,
                                                   short mat_nr,
                                                   int active_vcol_type,
-                                                  int active_vcol_domain)
+                                                  int active_vcol_domain,
+                                                  CustomDataLayer *active_vcol_layer)
 {
 
   bool active_vcol_only = g_vbo_id.active_vcol_only;
@@ -1785,8 +1799,13 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 
   ColorRef cd_vcols[MAX_GPU_MCOL];
 
-  int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(
-      &bm->vdata, &bm->ldata, cd_vcols, active_vcol_only, active_vcol_type, active_vcol_domain);
+  int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(&bm->vdata,
+                                                    &bm->ldata,
+                                                    cd_vcols,
+                                                    active_vcol_only,
+                                                    active_vcol_type,
+                                                    active_vcol_domain,
+                                                    active_vcol_layer);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr);
@@ -1936,7 +1955,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                             args->face_sets_color_default,
                                             mat_nr,
                                             args->active_vcol_type,
-                                            args->active_vcol_domain);
+                                            args->active_vcol_domain,
+                                            args->active_vcol_layer);
     return;
   }
 
@@ -1959,7 +1979,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                                     cd_vcols,
                                                     active_vcol_only,
                                                     args->active_vcol_type,
-                                                    args->active_vcol_domain);
+                                                    args->active_vcol_domain,
+                                                    args->active_vcol_layer);
 
   /* Count visible triangles */
   if (buffers->smooth) {
@@ -1976,7 +1997,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                           args->flat_vcol,
                                           mat_nr,
                                           args->active_vcol_type,
-                                          args->active_vcol_domain);
+                                          args->active_vcol_domain,
+                                          args->active_vcol_layer);
     return;
   }
 

@@ -1134,6 +1134,7 @@ typedef struct PBVHUpdateData {
   int flag;
   bool show_sculpt_face_sets;
   bool flat_vcol_shading;
+  Mesh *mesh;
 } PBVHUpdateData;
 
 static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
@@ -1376,7 +1377,7 @@ ATTR_NO_OPT bool BKE_pbvh_get_color_layer(PBVH *pbvh,
                                           CustomDataLayer **r_cl,
                                           AttributeDomain *r_attr)
 {
-  CustomDataLayer *cl = BKE_id_attributes_active_get((ID *)me);
+  CustomDataLayer *cl = BKE_id_attributes_active_color_get((ID *)me);
   AttributeDomain domain;
 
   if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
@@ -1454,6 +1455,12 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
+  Mesh *me = data->mesh;
+
+  CustomDataLayer *vcol_layer = NULL;
+  AttributeDomain vcol_domain;
+
+  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
     node->updategen++;
@@ -1567,7 +1574,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                    .flat_vcol = data->flat_vcol_shading,
                                    .mat_nr = node->tri_buffers[i].mat_nr,
                                    .active_vcol_domain = pbvh->vcol_domain,
-                                   .active_vcol_type = pbvh->vcol_type};
+                                   .active_vcol_type = pbvh->vcol_type,
+                                   .active_vcol_layer = vcol_layer};
 
           GPU_pbvh_bmesh_buffers_update(&args);
         }
@@ -1623,7 +1631,8 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
+static void pbvh_update_draw_buffers(
+    PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
 {
 
   CustomData *vdata;
@@ -1643,12 +1652,17 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
     ldata = pbvh->ldata;
   }
 
+  CustomDataLayer *vcol_layer = NULL;
+  AttributeDomain domain;
+  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &domain);
+
   GPU_pbvh_update_attribute_names(vdata,
                                   ldata,
                                   GPU_pbvh_need_full_render_get(),
                                   pbvh->flags & PBVH_FAST_DRAW,
                                   pbvh->vcol_type,
-                                  pbvh->vcol_domain);
+                                  pbvh->vcol_domain,
+                                  vcol_layer);
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -1665,7 +1679,7 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
 
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data = {
-      .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading};
+      .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading, .mesh = me};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -3177,6 +3191,7 @@ static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
 }
 
 void BKE_pbvh_draw_cb(PBVH *pbvh,
+                      Mesh *me,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
@@ -3221,11 +3236,11 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 
       pbvh->need_full_render = GPU_pbvh_need_full_render_get();
       BKE_pbvh_draw_cb(
-          pbvh, update_only_visible, update_frustum, draw_frustum, draw_fn, user_data);
+          pbvh, me, update_only_visible, update_frustum, draw_frustum, draw_fn, user_data);
       return;
     }
 
-    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
+    pbvh_update_draw_buffers(pbvh, me, nodes, totnode, update_flag);
   }
   MEM_SAFE_FREE(nodes);
 

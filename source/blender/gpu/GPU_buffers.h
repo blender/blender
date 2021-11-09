@@ -67,6 +67,7 @@ typedef struct PBVHGPUBuildArgs {
   int face_sets_color_default;
   bool flat_vcol;
   short mat_nr, active_vcol_type, active_vcol_domain;
+  struct CustomDataLayer *active_vcol_layer;
 } PBVHGPUBuildArgs;
 
 /* Build must be called once before using the other functions, used every time
@@ -114,7 +115,9 @@ void GPU_pbvh_update_attribute_names(
     bool need_full_render,
     bool fast_mode,
     int active_vcol_type,
-    int active_vcol_domain);  // fast mode renders without vcol, uv, facesets, even mask, etc
+    int active_vcol_domain,
+    struct CustomDataLayer
+        *active_vcol_layer);  // fast mode renders without vcol, uv, facesets, even mask, etc
 
 void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args);
 

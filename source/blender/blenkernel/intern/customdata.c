@@ -5022,7 +5022,31 @@ static bool customdata_unique_check(void *arg, const char *name)
     int type;
     int index;
   } *data_arg = arg;
+
   return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);
+}
+
+void CustomData_find_unique_layer_name(CustomData *data, int type, const char *name, char *outname)
+{
+  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+  struct {
+    CustomData *data;
+    int type;
+    int index;
+  } data_arg;
+
+  if (!typeInfo->defaultname) {
+    return;
+  }
+
+  data_arg.data = data;
+  data_arg.type = type;
+  data_arg.index = -1;
+
+  BLI_strncpy(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+  BLI_uniquename_cb(
+      customdata_unique_check, &data_arg, NULL, '.', outname, MAX_CUSTOMDATA_LAYER_NAME);
 }
 
 void CustomData_set_layer_unique_name(CustomData *data, int index)
@@ -5053,10 +5077,10 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
       customdata_unique_check, &data_arg, NULL, '.', nlayer->name, sizeof(nlayer->name));
 }
 
-void CustomData_validate_layer_name(const CustomData *data,
-                                    int type,
-                                    const char *name,
-                                    char *outname)
+ATTR_NO_OPT void CustomData_validate_layer_name(const CustomData *data,
+                                                int type,
+                                                const char *name,
+                                                char *outname)
 {
   int index = -1;
 

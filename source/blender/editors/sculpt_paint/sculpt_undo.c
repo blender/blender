@@ -138,7 +138,9 @@ typedef struct SculptUndoStep {
 
   // active vcol layer
   SculptAttrRef active_attr_start;
+  SculptAttrRef active_vcol_attr_start;
   SculptAttrRef active_attr_end;
+  SculptAttrRef active_vcol_attr_end;
 
   bContext *C;
 } SculptUndoStep;
@@ -146,6 +148,7 @@ typedef struct SculptUndoStep {
 static UndoSculpt *sculpt_undo_get_nodes(void);
 static bool sculpt_attr_ref_equals(SculptAttrRef *a, SculptAttrRef *b);
 static void sculpt_save_active_attr(Object *ob, SculptAttrRef *attr);
+static void sculpt_save_active_vcol_attr(Object *ob, SculptAttrRef *attr);
 
 static void update_unode_bmesh_memsize(SculptUndoNode *unode);
 static UndoSculpt *sculpt_undo_get_nodes(void);
@@ -2216,6 +2219,24 @@ static void sculpt_save_active_attr(Object *ob, SculptAttrRef *attr)
   attr->was_set = true;
 }
 
+static void sculpt_save_active_vcol_attr(Object *ob, SculptAttrRef *attr)
+{
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  CustomDataLayer *cl;
+
+  if (ob && me && (cl = BKE_id_attributes_active_color_get((ID *)me))) {
+    attr->domain = BKE_id_attribute_domain((ID *)me, cl);
+    BLI_strncpy(attr->name, cl->name, sizeof(attr->name));
+    attr->type = cl->type;
+  }
+  else {
+    attr->domain = NO_ACTIVE_LAYER;
+    attr->name[0] = 0;
+  }
+
+  attr->was_set = true;
+}
+
 void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check)
 {
   UndoStack *ustack = ED_undo_stack_get();
@@ -2242,6 +2263,10 @@ void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry
 
   if (!us->active_attr_start.was_set) {
     sculpt_save_active_attr(ob, &us->active_attr_start);
+  }
+
+  if (!us->active_vcol_attr_start.was_set) {
+    sculpt_save_active_vcol_attr(ob, &us->active_vcol_attr_start);
   }
 
   SculptSession *ss = ob->sculpt;
@@ -2306,6 +2331,7 @@ void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo)
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
   sculpt_save_active_attr(ob, &us->active_attr_end);
+  sculpt_save_active_vcol_attr(ob, &us->active_vcol_attr_end);
 }
 
 /* -------------------------------------------------------------------- */
@@ -2336,6 +2362,33 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
 
   if (cl) {
     BKE_id_attributes_active_set(&me->id, cl);
+  }
+}
+
+static void sculpt_undo_set_active_vcol_layer(struct bContext *C, SculptAttrRef *attr)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  if (attr->domain == NO_ACTIVE_LAYER) {
+    // from reading the code, it appears you cannot set
+    // the active layer to NULL, so don't worry about it.
+    // BKE_id_attributes_active_set(&me->id, NULL);
+    return;
+  }
+
+  SculptAttrRef existing;
+  sculpt_save_active_vcol_attr(ob, &existing);
+
+  if (!sculpt_attr_ref_equals(&existing, attr) && ob->sculpt && ob->sculpt->pbvh) {
+    BKE_pbvh_update_vertex_data(ob->sculpt->pbvh, PBVH_UpdateColor);
+  }
+
+  CustomDataLayer *cl;
+  cl = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+
+  if (cl) {
+    BKE_id_attributes_active_color_set(&me->id, cl);
   }
 }
 
@@ -2407,12 +2460,16 @@ static void sculpt_undosys_step_decode_undo(struct bContext *C,
     BLI_assert(us_iter->step.type == us->step.type); /* Previous loop ensures this. */
 
     sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter)->active_attr_start);
+    sculpt_undo_set_active_vcol_layer(C, &((SculptUndoStep *)us_iter)->active_vcol_attr_start);
+
     sculpt_undosys_step_decode_undo_impl(C, depsgraph, us_iter);
     // sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter)->active_attr_start);
 
     if (us_iter == us) {
       if (us_iter->step.prev && us_iter->step.prev->type == BKE_UNDOSYS_TYPE_SCULPT) {
         sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter->step.prev)->active_attr_end);
+        sculpt_undo_set_active_vcol_layer(
+            C, &((SculptUndoStep *)us_iter->step.prev)->active_vcol_attr_end);
       }
       break;
     }
@@ -2434,10 +2491,12 @@ static void sculpt_undosys_step_decode_redo(struct bContext *C,
   }
   while (us_iter && (us_iter->step.is_applied == false)) {
     sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter)->active_attr_start);
+    sculpt_undo_set_active_vcol_layer(C, &((SculptUndoStep *)us_iter)->active_vcol_attr_start);
     sculpt_undosys_step_decode_redo_impl(C, depsgraph, us_iter);
 
     if (us_iter == us) {
       sculpt_undo_set_active_layer(C, &((SculptUndoStep *)us_iter)->active_attr_end);
+      sculpt_undo_set_active_vcol_layer(C, &((SculptUndoStep *)us_iter)->active_vcol_attr_end);
       break;
     }
     us_iter = (SculptUndoStep *)us_iter->step.next;

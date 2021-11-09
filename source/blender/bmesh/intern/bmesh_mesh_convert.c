@@ -1035,6 +1035,8 @@ void BM_mesh_bm_to_me(
   BMIter iter;
   int i, j;
 
+  CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
   if (params->copy_temp_cdlayers) {
     bm_unmark_temp_cdlayers(bm);
   }
@@ -1066,6 +1068,24 @@ void BM_mesh_bm_to_me(
 #endif
   }
 
+  int active_types[4], active_color_types[4];
+  CustomData *active_dsts[4];
+  char active_names[4][MAX_CUSTOMDATA_LAYER_NAME];
+  char active_color_names[4][MAX_CUSTOMDATA_LAYER_NAME];
+  int active_domains[4] = {
+      ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
+
+  for (int i = 0; i < 4; i++) {
+    BKE_mesh_attributes_update_pre(me,
+                                   active_domains[i],
+                                   active_dsts + i,
+                                   srcdatas[i],
+                                   active_types + i,
+                                   active_names[i],
+                                   active_color_types + i,
+                                   active_color_names[i]);
+  }
+
   /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
   CustomData_free(&me->edata, me->totedge);
@@ -1083,7 +1103,6 @@ void BM_mesh_bm_to_me(
   me->totface = 0;
   me->act_face = -1;
 
-  CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   int id_flags[4] = {-1, -1, -1, -1};
 
   {
@@ -1120,6 +1139,18 @@ void BM_mesh_bm_to_me(
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *dst;
+    BKE_mesh_attributes_update_post(me,
+                                    active_domains[i],
+                                    active_dsts[i],
+                                    srcdatas[i],
+                                    active_types + i,
+                                    active_names[i],
+                                    active_color_types + i,
+                                    active_color_names[i]);
+  }
 
   /* This is called again, 'dotess' arg is used there. */
   BKE_mesh_update_customdata_pointers(me, 0);
@@ -1530,10 +1561,12 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     CustomData_MeshMasks_update(&mask, cd_mask_extra);
   }
   mask.vmask &= ~CD_MASK_SHAPEKEY;
-  CustomData_merge(&bm->vdata, &me->vdata, mask.vmask, CD_CALLOC, me->totvert);
-  CustomData_merge(&bm->edata, &me->edata, mask.emask, CD_CALLOC, me->totedge);
-  CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_CALLOC, me->totloop);
-  CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_CALLOC, me->totpoly);
+
+  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_POINT, &bm->vdata, mask.vmask, CD_CALLOC, me->totvert);
+  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_EDGE, &bm->edata, mask.emask, CD_CALLOC, me->totedge);
+  BKE_mesh_customdata_merge(
+      me, ATTR_DOMAIN_CORNER, &bm->ldata, mask.lmask, CD_CALLOC, me->totloop);
+  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_FACE, &bm->pdata, mask.pmask, CD_CALLOC, me->totpoly);
 
   BKE_mesh_update_customdata_pointers(me, false);
 
