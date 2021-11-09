@@ -132,10 +132,12 @@ static void shaderdata_to_shaderglobals(const KernelGlobalsCPU *kg,
   /* Used by render-services. */
   sd->osl_globals = kg;
   if (path_flag & PATH_RAY_SHADOW) {
+    sd->osl_path_state = nullptr;
     sd->osl_shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
   else {
     sd->osl_path_state = (const IntegratorStateCPU *)state;
+    sd->osl_shadow_path_state = nullptr;
   }
 }
 
