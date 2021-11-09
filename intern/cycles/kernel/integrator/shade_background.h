@@ -175,7 +175,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 
       /* Write to render buffer. */
       const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-      kernel_accum_emission(kg, state, throughput, light_eval, render_buffer);
+      kernel_accum_emission(kg, state, throughput * light_eval, render_buffer);
     }
   }
 }

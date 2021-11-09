@@ -608,7 +608,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
         if (!result.indirect_scatter) {
           const float3 emission = volume_emission_integrate(
               &coeff, closure_flag, transmittance, dt);
-          accum_emission += emission;
+          accum_emission += result.indirect_throughput * emission;
         }
       }
 
@@ -661,7 +661,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Write accumulated emission. */
   if (!is_zero(accum_emission)) {
-    kernel_accum_emission(kg, state, result.indirect_throughput, accum_emission, render_buffer);
+    kernel_accum_emission(kg, state, accum_emission, render_buffer);
   }
 
 #  ifdef __DENOISING_FEATURES__

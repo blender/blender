@@ -90,7 +90,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
 
   /* Write to render buffer. */
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput, light_eval, render_buffer);
+  kernel_accum_emission(kg, state, throughput * light_eval, render_buffer);
 }
 
 ccl_device void integrator_shade_light(KernelGlobals kg,

@@ -101,7 +101,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   }
 
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput, L, render_buffer);
+  kernel_accum_emission(kg, state, throughput * L, render_buffer);
 }
 #endif /* __EMISSION__ */
 
