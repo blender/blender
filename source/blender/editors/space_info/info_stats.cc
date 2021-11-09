@@ -18,8 +18,8 @@
  * \ingroup spinfo
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -70,9 +70,11 @@
 
 #include "GPU_capabilities.h"
 
+ENUM_OPERATORS(eUserpref_StatusBar_Flag, STATUSBAR_SHOW_VERSION)
+
 #define MAX_INFO_NUM_LEN 16
 
-typedef struct SceneStats {
+struct SceneStats {
   uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
   uint64_t totface, totfacesel, totfacesculpt;
@@ -81,9 +83,9 @@ typedef struct SceneStats {
   uint64_t totlamp, totlampsel;
   uint64_t tottri;
   uint64_t totgplayer, totgpframe, totgpstroke, totgppoint;
-} SceneStats;
+};
 
-typedef struct SceneStatsFmt {
+struct SceneStatsFmt {
   /* Totals */
   char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN], totvertsculpt[MAX_INFO_NUM_LEN];
   char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
@@ -94,16 +96,16 @@ typedef struct SceneStatsFmt {
   char tottri[MAX_INFO_NUM_LEN];
   char totgplayer[MAX_INFO_NUM_LEN], totgpframe[MAX_INFO_NUM_LEN];
   char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
-} SceneStatsFmt;
+};
 
 static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *stats)
 {
-  if (me_eval == NULL) {
+  if (me_eval == nullptr) {
     return false;
   }
 
   int totvert, totedge, totface, totloop;
-  if (me_eval->runtime.subdiv_ccg != NULL) {
+  if (me_eval->runtime.subdiv_ccg != nullptr) {
     const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
     BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
   }
@@ -166,7 +168,7 @@ static void stats_object(Object *ob,
     case OB_CURVE:
     case OB_FONT: {
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if ((me_eval != NULL) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
+      if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
         break;
       }
 
@@ -242,10 +244,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */
-    bArmature *arm = obedit->data;
-    EditBone *ebo;
+    bArmature *arm = static_cast<bArmature *>(obedit->data);
 
-    for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
       stats->totbone++;
 
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
@@ -274,14 +275,13 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
-    Curve *cu = obedit->data;
-    Nurb *nu;
+    Curve *cu = static_cast<Curve *>(obedit->data);
     BezTriple *bezt;
     BPoint *bp;
     int a;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-    for (nu = nurbs->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
         bezt = nu->bezt;
         a = nu->pntsu;
@@ -314,10 +314,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_MBALL) {
     /* MetaBall Edit */
-    MetaBall *mball = obedit->data;
-    MetaElem *ml;
+    MetaBall *mball = static_cast<MetaBall *>(obedit->data);
 
-    for (ml = mball->editelems->first; ml; ml = ml->next) {
+    LISTBASE_FOREACH (MetaElem *, ml, mball->editelems) {
       stats->totvert++;
       if (ml->flag & SELECT) {
         stats->totvertsel++;
@@ -326,7 +325,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_LATTICE) {
     /* Lattice Edit */
-    Lattice *lt = obedit->data;
+    Lattice *lt = static_cast<Lattice *>(obedit->data);
     Lattice *editlatt = lt->editlatt->latt;
     BPoint *bp;
     int a;
@@ -347,10 +346,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 static void stats_object_pose(const Object *ob, SceneStats *stats)
 {
   if (ob->pose) {
-    bArmature *arm = ob->data;
-    bPoseChannel *pchan;
+    bArmature *arm = static_cast<bArmature *>(ob->data);
 
-    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       stats->totbone++;
       if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
         if (pchan->bone->layer & arm->layer) {
@@ -372,7 +370,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 
   SculptSession *ss = ob->sculpt;
 
-  if (ss == NULL || ss->pbvh == NULL) {
+  if (ss == nullptr || ss->pbvh == nullptr) {
     return;
   }
 
@@ -460,7 +458,7 @@ static void stats_update(Depsgraph *depsgraph,
       stats_object(ob_iter, v3d_local, stats, objects_gset);
     }
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
-    BLI_gset_free(objects_gset, NULL);
+    BLI_gset_free(objects_gset, nullptr);
   }
 }
 
@@ -476,7 +474,7 @@ void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
     const bScreen *screen = WM_window_get_active_screen(win);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacetype == SPACE_VIEW3D) {
-        View3D *v3d = area->spacedata.first;
+        View3D *v3d = (View3D *)area->spacedata.first;
         if (v3d->localvd) {
           MEM_SAFE_FREE(v3d->runtime.local_stats);
         }
@@ -490,14 +488,14 @@ static bool format_stats(
 {
   /* Create stats if they don't already exist. */
   SceneStats **stats_p = (v3d_local) ? &v3d_local->runtime.local_stats : &view_layer->stats;
-  if (*stats_p == NULL) {
+  if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
-    wmWindowManager *wm = bmain->wm.first;
+    wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
     if (wm->is_interface_locked) {
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
-    *stats_p = MEM_mallocN(sizeof(SceneStats), __func__);
+    *stats_p = (SceneStats *)MEM_mallocN(sizeof(SceneStats), __func__);
     stats_update(depsgraph, view_layer, v3d_local, *stats_p);
   }
 
@@ -542,7 +540,7 @@ static void get_stats_string(
 {
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   LayerCollection *layer_collection = view_layer->active_collection;
 
   if (object_mode == OB_MODE_OBJECT) {
@@ -646,7 +644,7 @@ static const char *info_statusbar_string(Main *bmain,
   /* Scene statistics. */
   if (statusbar_flag & STATUSBAR_SHOW_STATS) {
     SceneStatsFmt stats_fmt;
-    if (format_stats(bmain, scene, view_layer, NULL, &stats_fmt)) {
+    if (format_stats(bmain, scene, view_layer, nullptr, &stats_fmt)) {
       get_stats_string(info + ofs, len, &ofs, view_layer, &stats_fmt);
     }
   }
@@ -731,7 +729,7 @@ static void stats_row(int col1,
 void ED_info_draw_stats(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d_local, int x, int *y, int height)
 {
-  BLI_assert(v3d_local == NULL || v3d_local->localvd != NULL);
+  BLI_assert(v3d_local == nullptr || v3d_local->localvd != nullptr);
   SceneStatsFmt stats_fmt;
   if (!format_stats(bmain, scene, view_layer, v3d_local, &stats_fmt)) {
     return;
@@ -739,7 +737,7 @@ void ED_info_draw_stats(
 
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_set_default();
 
   UI_FontThemeColor(font_id, TH_TEXT_HI);
@@ -801,7 +799,7 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
     }
     else if (obedit->type == OB_ARMATURE) {
       stats_row(col1, labels[JOINTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
@@ -816,15 +814,15 @@ void ED_info_draw_stats(
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
   else if ((ob) && (ob->type == OB_GPENCIL)) {
-    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, NULL, y, height);
-    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, NULL, y, height);
-    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, NULL, y, height);
-    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, NULL, y, height);
+    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
+    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
+    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);
+    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, nullptr, y, height);
   }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, NULL, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
     }
     else {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, stats_fmt.totvert, y, height);
@@ -835,10 +833,10 @@ void ED_info_draw_stats(
     stats_row(col1, labels[LIGHTS], col2, stats_fmt.totlampsel, stats_fmt.totlamp, y, height);
   }
   else {
-    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
-    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, NULL, y, height);
-    stats_row(col1, labels[FACES], col2, stats_fmt.totface, NULL, y, height);
-    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
+    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
+    stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
+    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
   }
 
   BLF_disable(font_id, BLF_SHADOW);
