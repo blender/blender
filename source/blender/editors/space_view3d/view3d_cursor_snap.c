@@ -770,7 +770,22 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
     return false;
   }
 
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  ARegion *region = CTX_wm_region(C);
+  if (region->regiontype != RGN_TYPE_WINDOW) {
+    if (!region->overlap) {
+      return false;
+    }
+    /* Sometimes the cursor may be on an invisible part of an overlapping region. */
+    const wmWindowManager *wm = CTX_wm_manager(C);
+    const wmEvent *event = wm->winactive->eventstate;
+    if (ED_region_overlap_isect_xy(region, event->xy)) {
+      return false;
+    }
+    /* Find the visible region under the cursor.
+     * TODO(Germano): Shouldn't this be the region in context? */
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
+
   RegionView3D *rv3d = region->regiondata;
   if (rv3d->rflag & RV3D_NAVIGATING) {
     /* Don't draw the cursor while navigating. It can be distracting. */
