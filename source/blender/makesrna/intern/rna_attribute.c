@@ -201,12 +201,12 @@ static void rna_Attribute_active_render_set(PointerRNA *ptr, bool value)
   }
 
   if (!BKE_id_attributes_supported(id)) {
-    return false;
+    return;
   }
 
   if (GS(id->name) != ID_ME) {
     /* only meshes for now */
-    return false;
+    return;
   }
 
   Mesh *me = (Mesh *)id;
@@ -229,7 +229,7 @@ static void rna_Attribute_active_render_set(PointerRNA *ptr, bool value)
   }
 
   if (!cdata) {
-    return false;
+    return;
   }
 
   if (ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
