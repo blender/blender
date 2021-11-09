@@ -154,7 +154,7 @@ bool HIPDevice::support_device(const uint /*kernel_features*/)
     hipDeviceProp_t props;
     hipGetDeviceProperties(&props, hipDevId);
 
-    set_error(string_printf("HIP backend requires AMD RDNA2 graphics card or up, but found %s.",
+    set_error(string_printf("HIP backend requires AMD RDNA graphics card or up, but found %s.",
                             props.name));
     return false;
   }
