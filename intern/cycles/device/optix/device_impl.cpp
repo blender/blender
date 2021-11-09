@@ -891,19 +891,22 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   denoiser_.state.alloc_to_device(denoiser_.scratch_offset + denoiser_.scratch_size);
 
   /* Initialize denoiser state for the current tile size. */
-  const OptixResult result = optixDenoiserSetup(denoiser_.optix_denoiser,
-                                                denoiser_.queue.stream(),
-                                                buffer_params.width,
-                                                buffer_params.height,
-                                                denoiser_.state.device_pointer,
-                                                denoiser_.scratch_offset,
-                                                denoiser_.state.device_pointer +
-                                                    denoiser_.scratch_offset,
-                                                denoiser_.scratch_size);
+  const OptixResult result = optixDenoiserSetup(
+      denoiser_.optix_denoiser,
+      0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
+            on a stream that is not the default stream */
+      buffer_params.width,
+      buffer_params.height,
+      denoiser_.state.device_pointer,
+      denoiser_.scratch_offset,
+      denoiser_.state.device_pointer + denoiser_.scratch_offset,
+      denoiser_.scratch_size);
   if (result != OPTIX_SUCCESS) {
     set_error("Failed to set up OptiX denoiser");
     return false;
   }
+
+  cuda_assert(cuCtxSynchronize());
 
   denoiser_.is_configured = true;
   denoiser_.configured_size.x = buffer_params.width;
