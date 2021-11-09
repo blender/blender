@@ -5990,7 +5990,7 @@ class VIEW3D_PT_shading_render_pass(Panel):
 class VIEW3D_PT_gizmo_display(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Gizmo"
+    bl_label = "Gizmos"
     bl_ui_units_x = 8
 
     def draw(self, context):
