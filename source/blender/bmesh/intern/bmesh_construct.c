@@ -31,6 +31,7 @@
 
 #include "BKE_customdata.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "bmesh.h"
@@ -587,6 +588,25 @@ static BMFace *bm_mesh_copy_new_face(
   } while ((l_iter = l_iter->next) != l_first);
 
   return f_new;
+}
+
+void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
+                                            const Mesh *me_src,
+                                            const BMAllocTemplate *allocsize)
+{
+  if (allocsize == NULL) {
+    allocsize = &bm_mesh_allocsize_default;
+  }
+
+  CustomData_copy(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+  CustomData_copy(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+  CustomData_copy(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+  CustomData_copy(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+
+  CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
+  CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
+  CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
+  CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
 }
 
 void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTemplate *allocsize)
