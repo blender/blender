@@ -235,7 +235,7 @@ class TestEnvironment:
         output_prefix = 'TEST_OUTPUT: '
 
         expression = (f'import sys, pickle, base64\n'
-                      f'sys.path.append("{package_path}")\n'
+                      f'sys.path.append(r"{package_path}")\n'
                       f'import {modulename}\n'
                       f'args = pickle.loads(base64.b64decode({args}))\n'
                       f'result = {modulename}.{functionname}(args)\n'
