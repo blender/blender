@@ -39,6 +39,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "BLF_api.h"
@@ -811,7 +812,7 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
 }
 
-static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "sky_type", DEFAULT_FLAGS, "", ICON_NONE);
 
@@ -825,6 +826,10 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), Poin
     uiItemR(layout, ptr, "ground_albedo", DEFAULT_FLAGS, nullptr, ICON_NONE);
   }
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
+    Scene *scene = CTX_data_scene(C);
+    if (BKE_scene_uses_blender_eevee(scene)) {
+      uiItemL(layout, TIP_("Nishita not available in Eevee"), ICON_ERROR);
+    }
     uiItemR(layout, ptr, "sun_disc", DEFAULT_FLAGS, nullptr, 0);
 
     uiLayout *col;
