@@ -10,7 +10,7 @@ TEST(bmesh_core, BMVertCreate)
   BMVert *bv1, *bv2, *bv3;
   const float co1[3] = {1.0f, 2.0f, 0.0f};
 
-  << BMeshCreateParams bmesh_create_params = {0};
+  BMeshCreateParams bmesh_create_params = {0};
 
   bmesh_create_params.use_toolflags = true;
 
