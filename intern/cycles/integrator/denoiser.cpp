@@ -33,7 +33,10 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
     return make_unique<OptiXDenoiser>(path_trace_device, params);
   }
 
-  return make_unique<OIDNDenoiser>(path_trace_device, params);
+  /* Always fallback to OIDN. */
+  DenoiseParams oidn_params = params;
+  oidn_params.type = DENOISER_OPENIMAGEDENOISE;
+  return make_unique<OIDNDenoiser>(path_trace_device, oidn_params);
 }
 
 Denoiser::Denoiser(Device *path_trace_device, const DenoiseParams &params)
