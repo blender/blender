@@ -248,6 +248,10 @@ static BMesh *BMD_mesh_bm_create(
   BMeshCreateParams bmcp = {false};
   BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
 
+  /* Needed so active layers are set based on `mesh` not `mesh_operand_ob`,
+   * otherwise the wrong active render layer is used, see T92384. */
+  BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
+
   BMeshFromMeshParams params{};
   params.calc_face_normal = true;
   BM_mesh_bm_from_me(bm, mesh_operand_ob, &params);
