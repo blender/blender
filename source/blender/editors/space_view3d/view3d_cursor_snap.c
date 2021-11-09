@@ -692,7 +692,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
       ED_transform_calc_orientation_from_type_ex(
-          scene, view_layer, v3d, region->regiondata, ob, ob, orient_index, pivot_point, omat);
+          scene, view_layer, v3d, rv3d, ob, NULL, orient_index, pivot_point, omat);
 
       if (state->use_plane_axis_auto) {
         mat3_align_axis_to_v3(omat, state->plane_axis, rv3d->viewinv[2]);
