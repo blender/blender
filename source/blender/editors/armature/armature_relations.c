@@ -908,9 +908,9 @@ static int armature_parent_set_invoke(bContext *C,
                                       wmOperator *UNUSED(op),
                                       const wmEvent *UNUSED(event))
 {
-  // False when all selected bones are parented to the active bone.
+  /* False when all selected bones are parented to the active bone. */
   bool enable_offset = false;
-  // False when all selected bones are connected to the active bone.
+  /* False when all selected bones are connected to the active bone. */
   bool enable_connect = false;
   {
     Object *ob = CTX_data_edit_object(C);
@@ -1033,9 +1033,9 @@ static int armature_parent_clear_invoke(bContext *C,
                                         wmOperator *UNUSED(op),
                                         const wmEvent *UNUSED(event))
 {
-  // False when no selected bones are connected to the active bone.
+  /* False when no selected bones are connected to the active bone. */
   bool enable_disconnect = false;
-  // False when no selected bones are parented to the active bone.
+  /* False when no selected bones are parented to the active bone. */
   bool enable_clear = false;
   {
     Object *ob = CTX_data_edit_object(C);
