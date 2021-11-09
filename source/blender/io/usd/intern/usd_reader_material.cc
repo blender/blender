@@ -33,6 +33,8 @@
 
 #include "DNA_material_types.h"
 
+#include "WM_api.h"
+
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/usdShade/material.h>
@@ -347,18 +349,29 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
    * if there is one. */
   pxr::UsdShadeShader usd_preview;
   if (get_usd_preview_surface(usd_material, usd_preview)) {
+    /* Always set the viewport material properties from the USD
+     * Preview Surface settings. */
     set_viewport_material_props(mtl, usd_preview);
-
-    /* Optionally, create shader nodes to represent a UsdPreviewSurface. */
-    if (params_.import_shaders_mode == USD_IMPORT_USD_PREVIEW_SURFACE) {
-      import_usd_preview(mtl, usd_preview);
-    }
   }
 
-  if (params_.import_shaders_mode == USD_IMPORT_MDL) {
+  if (params_.import_shaders_mode == USD_IMPORT_USD_PREVIEW_SURFACE
+    && usd_preview) {
+    /* Create shader nodes to represent a UsdPreviewSurface. */
+    import_usd_preview(mtl, usd_preview);
+  }
+  else if (params_.import_shaders_mode == USD_IMPORT_MDL) {
+    bool imported_mdl = false;
 #ifdef WITH_PYTHON
-    umm_import_material(mtl, usd_material);
+    /* Invoke UMM to convert to MDL. */
+    imported_mdl = umm_import_material(mtl, usd_material, true /* Verbose */);
 #endif
+    if (!imported_mdl && usd_preview) {
+      /* We failed to import an MDL, so fall back on importing UsdPreviewSuface. */
+      std::string message = "Couldn't import MDL shaders for material "
+        + mtl_name + ", importing USD Preview Surface shaders instead";
+      WM_reportf(RPT_INFO, message.c_str());
+      import_usd_preview(mtl, usd_preview);
+    }
   }
 
   return mtl;

@@ -85,7 +85,9 @@ const EnumPropertyItem rna_enum_usd_import_shaders_mode_items[] = {
      "USD MDL",
      0,
      "MDL",
-     "Convert MDL shaders to Blender materials"},
+     "Convert MDL shaders to Blender materials; if no MDL shaders "
+     "exist on the material, log a warning and import existing USD "
+     "Preview Surface shaders instead"},
     {0, NULL, 0, NULL, NULL},
 };
 

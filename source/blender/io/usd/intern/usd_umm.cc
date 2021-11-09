@@ -577,7 +577,11 @@ static bool import_material(Material *mtl,
   if (ret) {
     std::cout << "result:\n";
     print_obj(ret);
-    report_notification(ret);
+    if (report_notification(ret)) {
+      /* The function returned a notification object,
+       * indicating a failure. */
+      success = false;
+    }
     Py_DECREF(ret);
   }
 
@@ -712,7 +716,7 @@ bool umm_module_loaded()
   return loaded;
 }
 
-bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_material)
+bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_material, bool verbose)
 {
   if (!(mtl && usd_material)) {
     return false;
@@ -725,13 +729,17 @@ bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_materia
     /* Check if we have an mdl source asset. */
     pxr::SdfAssetPath source_asset;
     if (!surf_shader.GetSourceAsset(&source_asset, usdtokens::mdl)) {
-      std::cout << "No mdl source asset for shader " << surf_shader.GetPath() << std::endl;
+      if (verbose) {
+        std::cout << "No mdl source asset for shader " << surf_shader.GetPath() << std::endl;
+      }
       return false;
     }
     pxr::TfToken source_asset_sub_identifier;
     if (!surf_shader.GetSourceAssetSubIdentifier(&source_asset_sub_identifier, usdtokens::mdl)) {
-      std::cout << "No mdl source asset sub identifier for shader " << surf_shader.GetPath()
-                << std::endl;
+      if (verbose) {
+        std::cout << "No mdl source asset sub identifier for shader " << surf_shader.GetPath()
+          << std::endl;
+      }
       return false;
     }
 
