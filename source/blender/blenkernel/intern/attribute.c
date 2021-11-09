@@ -35,7 +35,10 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
@@ -149,6 +152,48 @@ bool BKE_id_attribute_rename(ID *id,
   return true;
 }
 
+typedef struct AttrUniqueData {
+  ID *id;
+  CustomDataMask mask;
+} AttrUniqueData;
+
+static bool unique_name_cb(void *arg, const char *name)
+{
+  AttrUniqueData *data = (AttrUniqueData *)arg;
+
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(data->id, info);
+
+  for (AttributeDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM; domain++) {
+    if (!info[domain].customdata) {
+      continue;
+    }
+
+    CustomData *cdata = info[domain].customdata;
+    for (int i = 0; i < cdata->totlayer; i++) {
+      CustomDataLayer *layer = cdata->layers + i;
+
+      if ((CD_TYPE_AS_MASK(layer->type) & data->mask) && STREQ(layer->name, name)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool BKE_id_attribute_find_unique_name(ID *id,
+                                       const char *name,
+                                       char *outname,
+                                       CustomDataMask mask)
+{
+  AttrUniqueData data = {.id = id, .mask = mask};
+
+  BLI_strncpy(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+
+  return BLI_uniquename_cb(unique_name_cb, &data, NULL, '.', outname, MAX_CUSTOMDATA_LAYER_NAME);
+}
+
 ATTR_NO_OPT CustomDataLayer *BKE_id_attribute_new(
     ID *id, const char *name, const int type, const AttributeDomain domain, ReportList *reports)
 {
@@ -162,7 +207,11 @@ ATTR_NO_OPT CustomDataLayer *BKE_id_attribute_new(
   }
 
   char uniquename[sizeof(customdata->layers->name)];
-  CustomData_find_unique_layer_name(customdata, type, name, uniquename);
+  BKE_id_attribute_find_unique_name(
+      id,
+      name,
+      uniquename,
+      ((1ULL << type) & CD_MASK_PROP_ALL) ? CD_MASK_PROP_ALL : (CustomDataMask)(1ULL << type));
 
   switch (GS(id->name)) {
     case ID_ME: {
@@ -490,6 +539,90 @@ int *BKE_id_attributes_active_color_index_p(ID *id)
   switch (GS(id->name)) {
     case ID_ME: {
       return &((Mesh *)id)->active_color_index;
+    }
+    default:
+      return NULL;
+  }
+}
+
+CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
+{
+  int active_index = *BKE_id_attributes_render_color_index_p(id);
+  if (active_index > BKE_id_attributes_length(id, CD_MASK_PROP_ALL)) {
+    fprintf(stderr, "bad active color index %d; was out of bounds\n", active_index);
+    return NULL;
+  }
+
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  int index = 0;
+
+  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
+    CustomData *customdata = info[domain].customdata;
+    if (customdata) {
+      for (int i = 0; i < customdata->totlayer; i++) {
+        CustomDataLayer *layer = &customdata->layers[i];
+        if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
+          if (index == active_index) {
+            if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER) &&
+                ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+              return layer;
+            }
+            else {
+              fprintf(
+                  stderr, "bad active color index %d; type was: %d\n", active_index, layer->type);
+              return NULL;
+            }
+          }
+
+          index++;
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+ATTR_NO_OPT void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  if (!active_layer || !ELEM(active_layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    fprintf(stderr,
+            "bad active color layer %p; type was %d\n",
+            active_layer,
+            active_layer ? active_layer->type : -1);
+    return;
+  }
+
+  int index = 0;
+
+  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
+    CustomData *customdata = info[domain].customdata;
+
+    if (customdata) {
+      for (int i = 0; i < customdata->totlayer; i++) {
+        CustomDataLayer *layer = &customdata->layers[i];
+        if (layer == active_layer && ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+          *BKE_id_attributes_render_color_index_p(id) = index;
+          return;
+        }
+        if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
+          index++;
+        }
+      }
+    }
+  }
+}
+
+int *BKE_id_attributes_render_color_index_p(ID *id)
+{
+  switch (GS(id->name)) {
+    case ID_ME: {
+      return &((Mesh *)id)->render_color_index;
     }
     default:
       return NULL;

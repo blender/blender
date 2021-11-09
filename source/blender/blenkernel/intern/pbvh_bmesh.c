@@ -809,11 +809,11 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_bmesh_get_vcol(
-    BMVert *v, float color[4], int vcol_type, int vcol_domain, int vcol_offset)
+ATTR_NO_OPT void BKE_pbvh_bmesh_get_vcol(
+    BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset)
 {
   if (vcol_domain == ATTR_DOMAIN_POINT) {
-    switch (vcol_offset) {
+    switch (vcol_type) {
       case CD_PROP_COLOR:
         copy_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(v, vcol_offset));
         break;

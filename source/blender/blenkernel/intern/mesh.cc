@@ -2274,15 +2274,11 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
 
 void BKE_mesh_attributes_update_pre(Mesh *me,
                                     AttributeDomain domain,
-                                    CustomData **r_dst,
-                                    CustomData *src,
-                                    int *active_type,
-                                    char active_name[MAX_CUSTOMDATA_LAYER_NAME],
-                                    int *active_color_type,
-                                    char active_color_name[MAX_CUSTOMDATA_LAYER_NAME])
+                                    CustomDataMergeState *state)
 {
   CustomDataLayer *active = BKE_id_attributes_active_get((ID *)me);
   CustomDataLayer *active_color = BKE_id_attributes_active_color_get((ID *)me);
+  CustomDataLayer *render_color = BKE_id_attributes_render_color_get((ID *)me);
 
   CustomData *dst = NULL;
 
@@ -2305,64 +2301,72 @@ void BKE_mesh_attributes_update_pre(Mesh *me,
       return;
   }
 
-  *r_dst = dst;
+  state->dst = dst;
 
   /* check that domain is correct */
   active = active && BKE_id_attribute_domain((ID *)me, active) != domain ? NULL : active;
   active_color = active_color && BKE_id_attribute_domain((ID *)me, active_color) != domain ?
                      NULL :
                      active_color;
+  render_color = render_color && BKE_id_attribute_domain((ID*)me, render_color) != domain ? NULL : render_color;
 
   if (active) {
-    *active_type = active->type;
-    BLI_strncpy(active_name, active->name, sizeof(active_name));
+    state->active_type = active->type;
+    BLI_strncpy(state->active_name, active->name, sizeof(state->active_name));
   }
   else {
-    *active_type = -1;
+    state->active_type = -1;
   }
 
   if (active_color) {
-    *active_color_type = active_color->type;
-    BLI_strncpy(active_color_name, active_color->name, sizeof(active_color_name));
+    state->active_color_type = active_color->type;
+    BLI_strncpy(state->active_color_name, active_color->name, sizeof(state->active_color_name));
   }
   else {
-    *active_color_type = -1;
+    state->active_color_type = -1;
+  }
+
+  if (render_color) {
+    state->render_color_type = render_color->type;
+    BLI_strncpy(state->render_color_name, render_color->name, sizeof(state->render_color_name));
+  }
+  else {
+    state->render_color_type = -1;
   }
 }
 
 void BKE_mesh_attributes_update_post(Mesh *me,
                                      AttributeDomain domain,
-                                     CustomData *dst,
-                                     CustomData *src,
-                                     int *active_type,
-                                     char active_name[MAX_CUSTOMDATA_LAYER_NAME],
-                                     int *active_color_type,
-                                     char active_color_name[MAX_CUSTOMDATA_LAYER_NAME])
+                                     CustomDataMergeState *state)
 {
 
-  int active_idx = *active_type != -1 ?
-                       CustomData_get_named_layer_index(dst, *active_type, active_name) :
+  int active_idx = state->active_type != -1 ?
+                       CustomData_get_named_layer_index(state->dst, state->active_type, state->active_name) :
                        -1;
-  int active_color_idx = *active_color_type != -1 ?
+  int active_color_idx = state->active_color_type != -1 ?
                              CustomData_get_named_layer_index(
-                                 dst, *active_color_type, active_color_name) :
+                                 state->dst, state->active_color_type, state->active_color_name) :
+                             -1;
+  int render_color_idx = state->render_color_type != -1 ?
+                             CustomData_get_named_layer_index(
+                                 state->dst, state->render_color_type, state->render_color_name) :
                              -1;
 
   if (active_idx != -1) {
-    BKE_id_attributes_active_set((ID *)me, dst->layers + active_idx);
+    BKE_id_attributes_active_set((ID *)me, state->dst->layers + active_idx);
   }
 
   if (active_color_idx != -1) {
-    BKE_id_attributes_active_set((ID *)me, dst->layers + active_idx);
+    BKE_id_attributes_active_color_set((ID *)me, state->dst->layers + active_color_idx);
   }
-  else if (*active_color_type != -1) {
+  else if (state->active_color_type != -1) {
     bool ok = false;
 
     // layer disappeared, find a new one
-    for (int i = 0; i < dst->totlayer; i++) {
-      if (ELEM(dst->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    for (int i = 0; i < state->dst->totlayer; i++) {
+      if (ELEM(state->dst->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
         ok = true;
-        BKE_id_attributes_active_set((ID *)me, dst->layers + i);
+        BKE_id_attributes_active_color_set((ID *)me, state->dst->layers + i);
         break;
       }
     }
@@ -2373,7 +2377,35 @@ void BKE_mesh_attributes_update_post(Mesh *me,
 
       for (int i = 0; i < other->totlayer; i++) {
         if (ELEM(other->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-          BKE_id_attributes_active_set((ID *)me, other->layers + i);
+          BKE_id_attributes_active_color_set((ID *)me, other->layers + i);
+          break;
+        }
+      }
+    }
+  }
+
+  if (render_color_idx != -1) {
+    BKE_id_attributes_render_color_set((ID *)me, state->dst->layers + render_color_idx);
+  }
+  else if (state->render_color_type != -1) {
+    bool ok = false;
+
+    // layer disappeared, find a new one
+    for (int i = 0; i < state->dst->totlayer; i++) {
+      if (ELEM(state->dst->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+        ok = true;
+        BKE_id_attributes_render_color_set((ID *)me, state->dst->layers + i);
+        break;
+      }
+    }
+
+    if (!ok) {
+      // failed to find one?  try other color attribute domain
+      CustomData *other = domain == ATTR_DOMAIN_POINT ? &me->ldata : &me->vdata;
+
+      for (int i = 0; i < other->totlayer; i++) {
+        if (ELEM(other->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+          BKE_id_attributes_render_color_set((ID *)me, other->layers + i);
           break;
         }
       }
@@ -2391,19 +2423,19 @@ bool BKE_mesh_customdata_merge(Mesh *me,
   int active_type, active_color_type;
   char active_name[MAX_CUSTOMDATA_LAYER_NAME];
   char active_color_name[MAX_CUSTOMDATA_LAYER_NAME];
-  CustomData *dst = NULL;
+  CustomDataMergeState state;
 
   BKE_mesh_attributes_update_pre(
-      me, domain, &dst, src, &active_type, active_name, &active_color_type, active_color_name);
+      me, domain, &state);
 
-  if (!dst) {
+  if (!state.dst) {
     return false;
   }
 
-  bool ret = CustomData_merge(src, dst, mask, alloctype, totelem);
+  bool ret = CustomData_merge(src, state.dst, mask, alloctype, totelem);
 
   BKE_mesh_attributes_update_post(
-      me, domain, dst, src, &active_type, active_name, &active_color_type, active_color_name);
+      me, domain, &state);
 
   return ret;
 }
@@ -2418,17 +2450,17 @@ void BKE_mesh_customdata_copy(Mesh *me,
   int active_type, active_color_type;
   char active_name[MAX_CUSTOMDATA_LAYER_NAME];
   char active_color_name[MAX_CUSTOMDATA_LAYER_NAME];
-  CustomData *dst = NULL;
+  CustomDataMergeState state;
 
   BKE_mesh_attributes_update_pre(
-      me, domain, &dst, src, &active_type, active_name, &active_color_type, active_color_name);
+      me, domain, &state);
 
-  if (!dst) {
+  if (!state.dst) {
     return;
   }
 
-  CustomData_copy(src, dst, mask, alloctype, totelem);
+  CustomData_copy(src, state.dst, mask, alloctype, totelem);
 
   BKE_mesh_attributes_update_post(
-      me, domain, dst, src, &active_type, active_name, &active_color_type, active_color_name);
+      me, domain, &state);
 }

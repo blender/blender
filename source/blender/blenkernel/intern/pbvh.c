@@ -1461,6 +1461,22 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   AttributeDomain vcol_domain;
 
   BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
+  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get((ID *)me);
+
+  if (pbvh->bm && render_vcol_layer) {
+    AttributeDomain domain = BKE_id_attribute_domain((ID *)me, render_vcol_layer);
+    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
+
+    int idx = CustomData_get_named_layer_index(
+        cdata, render_vcol_layer->type, render_vcol_layer->name);
+
+    if (idx == -1) {
+      render_vcol_layer = NULL; /* layers hasn't been synced over yet */
+    }
+    else {
+      render_vcol_layer = cdata->layers + idx;
+    }
+  }
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
     node->updategen++;
@@ -1575,7 +1591,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                    .mat_nr = node->tri_buffers[i].mat_nr,
                                    .active_vcol_domain = pbvh->vcol_domain,
                                    .active_vcol_type = pbvh->vcol_type,
-                                   .active_vcol_layer = vcol_layer};
+                                   .active_vcol_layer = vcol_layer,
+                                   .render_vcol_layer = render_vcol_layer};
 
           GPU_pbvh_bmesh_buffers_update(&args);
         }
@@ -1656,13 +1673,31 @@ static void pbvh_update_draw_buffers(
   AttributeDomain domain;
   BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &domain);
 
+  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get((ID *)me);
+
+  if (pbvh->bm && render_vcol_layer) {
+    AttributeDomain domain = BKE_id_attribute_domain((ID *)me, render_vcol_layer);
+    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
+
+    int idx = CustomData_get_named_layer_index(
+        cdata, render_vcol_layer->type, render_vcol_layer->name);
+
+    if (idx == -1) {
+      render_vcol_layer = NULL; /* layer hasn't been synced over yet */
+    }
+    else {
+      render_vcol_layer = cdata->layers + idx;
+    }
+  }
+
   GPU_pbvh_update_attribute_names(vdata,
                                   ldata,
                                   GPU_pbvh_need_full_render_get(),
                                   pbvh->flags & PBVH_FAST_DRAW,
                                   pbvh->vcol_type,
                                   pbvh->vcol_domain,
-                                  vcol_layer);
+                                  vcol_layer,
+                                  render_vcol_layer);
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */

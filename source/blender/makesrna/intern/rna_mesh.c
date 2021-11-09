@@ -778,7 +778,10 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 1);
+  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+
+  return BKE_id_attributes_render_color_get(ptr->owner_id) == layer;
+  //return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 1);
 }
 
 static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
@@ -788,7 +791,12 @@ static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 
 static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 1);
+  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+
+  if (value) {
+    BKE_id_attributes_render_color_set(ptr->owner_id, layer);
+  }
+//  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 1);
 }
 
 static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
@@ -818,7 +826,10 @@ static int rna_MeshVertColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshVertColorLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 1);
+  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+
+  return BKE_id_attributes_render_color_get(ptr->owner_id) == layer;
+  //return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 1);
 }
 
 static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
@@ -828,7 +839,11 @@ static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
 
 static void rna_MeshVertColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_vdata(ptr), value, CD_PROP_COLOR, 1);
+  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+
+  if (value) {
+    BKE_id_attributes_render_color_set(ptr->owner_id, layer);
+  }
 }
 
 static void rna_MeshVertColorLayer_active_set(PointerRNA *ptr, bool value)

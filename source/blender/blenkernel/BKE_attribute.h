@@ -92,6 +92,14 @@ int *BKE_id_attributes_active_color_index_p(struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, struct CustomDataLayer *active_layer);
 struct CustomDataLayer *BKE_id_attributes_active_color_get(struct ID *id);
 
+int *BKE_id_attributes_render_color_index_p(struct ID *id);
+void BKE_id_attributes_render_color_set(struct ID *id, struct CustomDataLayer *active_layer);
+CustomDataLayer *BKE_id_attributes_render_color_get(struct ID *id);
+
+bool BKE_id_attribute_find_unique_name(struct ID *id,
+                                       const char *name,
+                                       char *outname,
+                                       CustomDataMask mask);
 #ifdef __cplusplus
 }
 #endif

@@ -786,9 +786,7 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
     CustomData_regen_active_refs(&ss->bm->pdata);
   }
 
-  if (modified) {
-    SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
-  }
+  SCULPT_update_customdata_refs(ss, ob);
 }
 
 BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,

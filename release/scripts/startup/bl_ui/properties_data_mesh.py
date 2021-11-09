@@ -466,6 +466,9 @@ class MESH_UL_color_attributes(UIList):
         split = layout.split(factor=0.50)
         split.emboss = 'NONE'
         split.prop(attribute, "name", text="")
+
+        split.prop(attribute, "active_render", text="", icon = 'RESTRICT_RENDER_OFF' if attribute.active_render else 'RESTRICT_RENDER_ON')
+
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
@@ -526,8 +529,6 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         add_builtin("crease")
 
         add_attributes(mesh.attributes)
-        add_attributes(mesh.uv_layers)
-        add_attributes(ob.vertex_groups)
 
         colliding_names = [name for name, layers in attributes_by_name.items() if len(layers) >= 2]
         if len(colliding_names) == 0:

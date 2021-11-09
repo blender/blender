@@ -665,6 +665,7 @@ BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
 }
 
 /* ensures attribute active indices are kept up to date */
+
 bool BKE_mesh_customdata_merge(struct Mesh *me,
                                AttributeDomain domain,
                                CustomData *src,
@@ -679,22 +680,21 @@ void BKE_mesh_customdata_copy(struct Mesh *me,
                               eCDAllocType alloctype,
                               int totelem);
 
+typedef struct CustomDataMergeState {
+  struct CustomData *dst;
+  int active_type, active_color_type, render_color_type;
+  char active_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char active_color_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char render_color_name[MAX_CUSTOMDATA_LAYER_NAME];
+} CustomDataMergeState;
+
 void BKE_mesh_attributes_update_pre(struct Mesh *me,
                                     AttributeDomain domain,
-                                    CustomData **r_dst,
-                                    CustomData *src,
-                                    int *active_type,
-                                    char active_name[MAX_CUSTOMDATA_LAYER_NAME],
-                                    int *active_color_type,
-                                    char active_color_name[MAX_CUSTOMDATA_LAYER_NAME]);
+                                    CustomDataMergeState *state);
+
 void BKE_mesh_attributes_update_post(struct Mesh *me,
                                      AttributeDomain domain,
-                                     CustomData *dst,
-                                     CustomData *src,
-                                     int *active_type,
-                                     char active_name[MAX_CUSTOMDATA_LAYER_NAME],
-                                     int *active_color_type,
-                                     char active_color_name[MAX_CUSTOMDATA_LAYER_NAME]);
+                                     CustomDataMergeState *state);
 #ifdef __cplusplus
 }
 #endif

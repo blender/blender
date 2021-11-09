@@ -1068,22 +1068,17 @@ void BM_mesh_bm_to_me(
 #endif
   }
 
-  int active_types[4], active_color_types[4];
-  CustomData *active_dsts[4];
-  char active_names[4][MAX_CUSTOMDATA_LAYER_NAME];
-  char active_color_names[4][MAX_CUSTOMDATA_LAYER_NAME];
   int active_domains[4] = {
       ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
+  CustomDataMergeState attr_states[4];
 
-  for (int i = 0; i < 4; i++) {
+  //undo mesh?
+  bool non_id_mesh = GS(me->id.name) != ID_ME;
+
+  for (int i = 0; !non_id_mesh && i < 4; i++) {
     BKE_mesh_attributes_update_pre(me,
                                    active_domains[i],
-                                   active_dsts + i,
-                                   srcdatas[i],
-                                   active_types + i,
-                                   active_names[i],
-                                   active_color_types + i,
-                                   active_color_names[i]);
+                                   attr_states+i);
   }
 
   /* Free custom data. */
@@ -1140,20 +1135,15 @@ void BM_mesh_bm_to_me(
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
-  for (int i = 0; i < 4; i++) {
+  /* This is called again, 'dotess' arg is used there. */
+  BKE_mesh_update_customdata_pointers(me, 0);
+
+  for (int i = 0; !non_id_mesh && i < 4; i++) {
     CustomData *dst;
     BKE_mesh_attributes_update_post(me,
                                     active_domains[i],
-                                    active_dsts[i],
-                                    srcdatas[i],
-                                    active_types + i,
-                                    active_names[i],
-                                    active_color_types + i,
-                                    active_color_names[i]);
+                                    attr_states+i);
   }
-
-  /* This is called again, 'dotess' arg is used there. */
-  BKE_mesh_update_customdata_pointers(me, 0);
 
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

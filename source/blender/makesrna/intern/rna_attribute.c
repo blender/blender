@@ -146,6 +146,105 @@ static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
   BKE_id_attribute_rename(ptr->owner_id, ptr->data, value, NULL);
 }
 
+static bool rna_Attribute_active_render_get(PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  CustomDataLayer *layer = ptr->data;
+
+  if (!BKE_id_attributes_supported(id)) {
+    return false;
+  }
+
+  if (ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    return layer == BKE_id_attributes_render_color_get(id);
+  }
+
+  if (GS(id->name) != ID_ME) {
+    /* only meshes for now */
+    return false;
+  }
+
+  Mesh *me = (Mesh *)id;
+  AttributeDomain domain = BKE_id_attribute_domain(id, layer);
+  CustomData *cdata = NULL;
+
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      cdata = &me->vdata;
+      break;
+    case ATTR_DOMAIN_EDGE:
+      cdata = &me->edata;
+      break;
+    case ATTR_DOMAIN_CORNER:
+      cdata = &me->ldata;
+      break;
+    case ATTR_DOMAIN_FACE:
+      cdata = &me->pdata;
+      break;
+  }
+
+  if (!cdata) {
+    return false;
+  }
+
+  CustomDataLayer *base = CustomData_get_layer_index(cdata, layer->type);
+  return layer == base + base->active_rnd;
+}
+
+static void rna_Attribute_active_render_set(PointerRNA *ptr, bool value)
+{
+  ID *id = ptr->owner_id;
+  CustomDataLayer *layer = ptr->data;
+
+  if (!value) {
+    return;  // do nothing;
+  }
+
+  if (!BKE_id_attributes_supported(id)) {
+    return false;
+  }
+
+  if (GS(id->name) != ID_ME) {
+    /* only meshes for now */
+    return false;
+  }
+
+  Mesh *me = (Mesh *)id;
+  AttributeDomain domain = BKE_id_attribute_domain(id, layer);
+  CustomData *cdata = NULL;
+
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      cdata = &me->vdata;
+      break;
+    case ATTR_DOMAIN_EDGE:
+      cdata = &me->edata;
+      break;
+    case ATTR_DOMAIN_CORNER:
+      cdata = &me->ldata;
+      break;
+    case ATTR_DOMAIN_FACE:
+      cdata = &me->pdata;
+      break;
+  }
+
+  if (!cdata) {
+    return false;
+  }
+
+  if (ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    BKE_id_attributes_render_color_set(id, layer);
+  }
+  else {
+
+    CustomDataLayer *base = CustomData_get_layer_index(cdata, layer->type);
+    int idx = base - cdata->layers;
+    int newrender = layer - base;
+
+    CustomData_set_layer_render(cdata, layer->type, newrender);
+  }
+}
+
 static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
 {
   CustomDataLayer *layer = ptr->data;
@@ -756,6 +855,11 @@ static void rna_def_attribute(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_Attribute_type_get", NULL, NULL);
   RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "active_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Attribute_active_render_get", "rna_Attribute_active_render_set");
+  RNA_def_property_ui_text(prop, "Active Render", "Active for render");
 
   prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);

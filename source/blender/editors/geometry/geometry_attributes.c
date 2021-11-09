@@ -81,7 +81,7 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
   return rna_enum_attribute_domain_itemf(ob->data, r_free);
 }
 
-static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
+ATTR_NO_OPT static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = ob->data;
@@ -97,6 +97,10 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   }
 
   BKE_id_attributes_active_set(id, layer);
+
+  if (ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    BKE_id_attributes_active_color_set(id, layer);
+  }
 
   if (ob->mode == OB_MODE_SCULPT) {
     BKE_sculpt_update_object_for_edit(

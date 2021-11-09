@@ -1050,4 +1050,4 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                         int steps,
                         PBVHTopologyUpdateMode mode);
 void BKE_pbvh_bmesh_get_vcol(
-    struct BMVert *v, float color[4], int vcol_type, int vcol_domain, int vcol_offset);
+    struct BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset);

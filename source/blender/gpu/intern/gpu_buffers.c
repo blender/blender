@@ -365,7 +365,7 @@ static void free_cd_layers(CDAttrLayers *cdattr)
 
 void gpu_pbvh_init()
 {
-  GPU_pbvh_update_attribute_names(NULL, NULL, false, false, -1, -1, NULL);
+  GPU_pbvh_update_attribute_names(NULL, NULL, false, false, -1, -1, NULL, NULL);
 }
 
 void gpu_pbvh_exit()
@@ -1323,7 +1323,8 @@ static int gpu_pbvh_bmesh_make_vcol_offs(CustomData *vdata,
                                          bool active_only,
                                          int active_type,
                                          int active_domain,
-                                         CustomDataLayer *active_vcol_layer)
+                                         CustomDataLayer *active_vcol_layer,
+                                         CustomDataLayer *render_vcol_layer)
 {
   if (active_only) {
     CustomData *cdata = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
@@ -1365,13 +1366,11 @@ static int gpu_pbvh_bmesh_make_vcol_offs(CustomData *vdata,
   /* ensure render layer is last
     draw cache code seems to need this
    */
-  int render = CustomData_get_render_layer_index(
-      active_domain == ATTR_DOMAIN_POINT ? vdata : ldata, active_type);
-  // int active = CustomData_get_active_layer_index(
-  //   active_domain == ATTR_DOMAIN_POINT ? vdata : ldata, active_type);
 
   for (int i = 0; i < count; i++) {
-    if (r_cd_vcols[i].layer_idx == render) {
+    CustomData *cdata = r_cd_vcols[i].domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+
+    if (cdata->layers + r_cd_vcols[i].layer_idx == render_vcol_layer) {
       SWAP(ColorRef, r_cd_vcols[i], r_cd_vcols[count - 1]);
       break;
     }
@@ -1397,7 +1396,8 @@ ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
                                                  bool fast_mode,
                                                  int active_vcol_type,
                                                  int active_vcol_domain,
-                                                 CustomDataLayer *active_vcol_layer)
+                                                 CustomDataLayer *active_vcol_layer,
+                                                 CustomDataLayer *render_vcol_layer)
 {
   const bool active_only = !need_full_render;
 
@@ -1473,7 +1473,8 @@ ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
                                                    active_only,
                                                    active_vcol_type,
                                                    active_vcol_domain,
-                                                   active_vcol_layer);
+                                                   active_vcol_layer,
+                                                   render_vcol_layer);
 
       for (int i = 0; i < totlayer; i++) {
         ColorRef *ref = vcol_layers + i;
@@ -1587,7 +1588,8 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
                                                     short mat_nr,
                                                     int active_vcol_type,
                                                     int active_vcol_domain,
-                                                    CustomDataLayer *active_vcol_layer)
+                                                    CustomDataLayer *active_vcol_layer,
+                                                    CustomDataLayer *render_vcol_layer)
 {
   bool active_vcol_only = g_vbo_id.active_vcol_only;
 
@@ -1606,7 +1608,8 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
                                                           active_vcol_only,
                                                           active_vcol_type,
                                                           active_vcol_domain,
-                                                          active_vcol_layer);
+                                                          active_vcol_layer,
+                                                          render_vcol_layer);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr) * 6;
@@ -1778,7 +1781,8 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
                                                   short mat_nr,
                                                   int active_vcol_type,
                                                   int active_vcol_domain,
-                                                  CustomDataLayer *active_vcol_layer)
+                                                  CustomDataLayer *active_vcol_layer,
+                                                  CustomDataLayer *render_vcol_layer)
 {
 
   bool active_vcol_only = g_vbo_id.active_vcol_only;
@@ -1805,7 +1809,8 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
                                                     active_vcol_only,
                                                     active_vcol_type,
                                                     active_vcol_domain,
-                                                    active_vcol_layer);
+                                                    active_vcol_layer,
+                                                    render_vcol_layer);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr);
@@ -1956,7 +1961,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                             mat_nr,
                                             args->active_vcol_type,
                                             args->active_vcol_domain,
-                                            args->active_vcol_layer);
+                                            args->active_vcol_layer,
+                                            args->render_vcol_layer);
     return;
   }
 
@@ -1980,7 +1986,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                                     active_vcol_only,
                                                     args->active_vcol_type,
                                                     args->active_vcol_domain,
-                                                    args->active_vcol_layer);
+                                                    args->active_vcol_layer,
+                                                    args->render_vcol_layer);
 
   /* Count visible triangles */
   if (buffers->smooth) {
@@ -1998,7 +2005,8 @@ ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
                                           mat_nr,
                                           args->active_vcol_type,
                                           args->active_vcol_domain,
-                                          args->active_vcol_layer);
+                                          args->active_vcol_layer,
+                                          args->render_vcol_layer);
     return;
   }
 

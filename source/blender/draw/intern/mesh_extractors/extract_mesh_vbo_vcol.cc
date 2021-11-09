@@ -59,9 +59,12 @@ static void extract_vcol_init(const MeshRenderData *mr,
   /* prefer the active attribute to set active color if it's a color layer  */
   if (actlayer && ELEM(actlayer->type, CD_PROP_COLOR, CD_MLOOPCOL) &&
       ELEM(actdomain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+
     CustomData *cdata = actdomain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
     actn = actlayer - (cdata->layers + cdata->typemap[actlayer->type]);
   }
+
+  CustomDataLayer *render_layer = BKE_id_attributes_render_color_get((ID *)mr->me);
 
   /* set up vbo format */
   for (int i = 0; i < ARRAY_SIZE(vcol_types); i++) {
@@ -80,7 +83,11 @@ static void extract_vcol_init(const MeshRenderData *mr,
         BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
         GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-        if (j == CustomData_get_render_layer(cdata, type)) {
+        int idx = CustomData_get_layer_index_n(cdata, type, j);
+        CustomDataLayer *layer = cdata->layers + idx;
+
+        if (render_layer && layer->type == render_layer->type &&
+            STREQ(layer->name, render_layer->name)) {
           GPU_vertformat_alias_add(&format, "c");
         }
 

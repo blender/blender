@@ -201,6 +201,7 @@ typedef struct Mesh {
      and can reference a layer of type CD_PROP_COLOR or
      CD_MLOOPCOL */
   int active_color_index;
+  int render_color_index;
 
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track
@@ -233,7 +234,7 @@ typedef struct Mesh {
    * consistently ensure that this symmetry is maintained. */
   char symmetry;
 
-  char _pad1[6];
+  char _pad1[2];
 
   int face_sets_color_seed;
   /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
