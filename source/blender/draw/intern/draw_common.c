@@ -101,11 +101,6 @@ void DRW_globals_update(void)
       gb->colorEditMeshMiddle,
       dot_v3v3(gb->colorEditMeshMiddle, (float[3]){0.3333f, 0.3333f, 0.3333f})); /* Desaturate */
 
-  interp_v4_v4v4(gb->colorDupliSelect, gb->colorBackground, gb->colorSelect, 0.5f);
-  /* Was 50% in 2.7x since the background was lighter making it easier to tell the color from
-   * black, with a darker background we need a more faded color. */
-  interp_v4_v4v4(gb->colorDupli, gb->colorBackground, gb->colorWire, 0.3f);
-
 #ifdef WITH_FREESTYLE
   UI_GetThemeColor4fv(TH_FREESTYLE_EDGE_MARK, gb->colorEdgeFreestyle);
   UI_GetThemeColor4fv(TH_FREESTYLE_FACE_MARK, gb->colorFaceFreestyle);
@@ -300,7 +295,10 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) && (ob->mode & OB_MODE_EDIT);
-  const bool active = (view_layer->basact && view_layer->basact->object == ob);
+  const bool active = (ob->base_flag & BASE_FROM_DUPLI) ?
+                          (DRW_object_get_dupli_parent(ob) == view_layer->basact->object) :
+                          (view_layer->basact && view_layer->basact->object == ob);
+
   /* confusing logic here, there are 2 methods of setting the color
    * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
    *
@@ -345,21 +343,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 
   if (r_color != NULL) {
     if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
-      *r_color = G_draw.block.colorDupli;
-    }
-    else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
-      switch (theme_id) {
-        case TH_ACTIVE:
-        case TH_SELECT:
-          *r_color = G_draw.block.colorDupliSelect;
-          break;
-        case TH_TRANSFORM:
-          *r_color = G_draw.block.colorTransform;
-          break;
-        default:
-          *r_color = G_draw.block.colorDupli;
-          break;
-      }
+      *r_color = G_draw.block.colorWire;
     }
     else {
       switch (theme_id) {
