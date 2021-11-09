@@ -38,6 +38,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
@@ -48,6 +49,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
@@ -1264,7 +1266,8 @@ static TreeElement *outliner_show_active_get_element(bContext *C,
     TreeElement *te_obact = te;
 
     if (obact->mode & OB_MODE_POSE) {
-      bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+      Object *obpose = BKE_object_pose_armature_get(obact);
+      bPoseChannel *pchan = BKE_pose_channel_active(obpose, false);
       if (pchan) {
         te = outliner_find_posechannel(&te_obact->subtree, pchan);
       }

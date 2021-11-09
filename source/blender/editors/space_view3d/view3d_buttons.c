@@ -1552,7 +1552,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
   PointerRNA pchanptr;
   uiLayout *col;
 
-  pchan = BKE_pose_channel_active(ob);
+  pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   if (!pchan) {
     uiItemL(layout, IFACE_("No Bone Active"), ICON_NONE);

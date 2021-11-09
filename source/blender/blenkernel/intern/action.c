@@ -705,7 +705,12 @@ bool BKE_pose_channels_is_valid(const bPose *pose)
 
 #endif
 
-bPoseChannel *BKE_pose_channel_active(Object *ob)
+bool BKE_pose_is_layer_visible(const bArmature *arm, const bPoseChannel *pchan)
+{
+  return (pchan->bone->layer & arm->layer);
+}
+
+bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
 {
   bArmature *arm = (ob) ? ob->data : NULL;
   bPoseChannel *pchan;
@@ -716,12 +721,19 @@ bPoseChannel *BKE_pose_channel_active(Object *ob)
 
   /* find active */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-    if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer)) {
-      return pchan;
+    if ((pchan->bone) && (pchan->bone == arm->act_bone)) {
+      if (!check_arm_layer || BKE_pose_is_layer_visible(arm, pchan)) {
+        return pchan;
+      }
     }
   }
 
   return NULL;
+}
+
+bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob)
+{
+  return BKE_pose_channel_active(ob, true);
 }
 
 bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob)
@@ -732,7 +744,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob)
     return NULL;
   }
 
-  bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
   if (pchan && (pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
     return pchan;
   }

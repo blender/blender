@@ -746,7 +746,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
   const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
 
-  pchan_act = BKE_pose_channel_active(ob);
+  pchan_act = BKE_pose_channel_active_if_layer_visible(ob);
   if (pchan_act == NULL) {
     return OPERATOR_CANCELLED;
   }

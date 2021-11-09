@@ -3216,7 +3216,7 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
       if (obact->mode & OB_MODE_POSE) {
         Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
         Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
-        bPoseChannel *pcham_act = BKE_pose_channel_active(obact_eval);
+        bPoseChannel *pcham_act = BKE_pose_channel_active_if_layer_visible(obact_eval);
         if (pcham_act) {
           BLI_strncpy(v3d->ob_center_bone, pcham_act->name, sizeof(v3d->ob_center_bone));
         }

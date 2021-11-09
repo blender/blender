@@ -583,8 +583,8 @@ bool ED_object_parent_set(ReportList *reports,
     }
     case PAR_BONE:
     case PAR_BONE_RELATIVE:
-      pchan = BKE_pose_channel_active(par);
-      pchan_eval = BKE_pose_channel_active(parent_eval);
+      pchan = BKE_pose_channel_active_if_layer_visible(par);
+      pchan_eval = BKE_pose_channel_active_if_layer_visible(parent_eval);
 
       if (pchan == NULL) {
         BKE_report(reports, RPT_ERROR, "No active bone");
