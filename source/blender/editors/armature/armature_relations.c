@@ -745,6 +745,10 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
 #define ARM_PAR_CONNECT 1
 #define ARM_PAR_OFFSET 2
 
+/* armature un-parenting options */
+#define ARM_PAR_CLEAR 1
+#define ARM_PAR_CLEAR_DISCONNECT 2
+
 /* check for null, before calling! */
 static void bone_connect_to_existing_parent(EditBone *bone)
 {
@@ -904,19 +908,29 @@ static int armature_parent_set_invoke(bContext *C,
                                       wmOperator *UNUSED(op),
                                       const wmEvent *UNUSED(event))
 {
-  bool all_childbones = false;
+  // False when all selected bones are parented to the active bone.
+  bool enable_offset = false;
+  // False when all selected bones are connected to the active bone.
+  bool enable_connect = false;
   {
     Object *ob = CTX_data_edit_object(C);
     bArmature *arm = ob->data;
     EditBone *actbone = arm->act_edbone;
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone) && (ebone->flag & BONE_SELECTED)) {
-        if (ebone != actbone) {
-          if (ebone->parent != actbone) {
-            all_childbones = true;
-            break;
-          }
-        }
+      if (!EBONE_EDITABLE(ebone) || !(ebone->flag & BONE_SELECTED)) {
+        continue;
+      }
+      if (ebone == actbone) {
+        continue;
+      }
+
+      if (ebone->parent != actbone) {
+        enable_offset = true;
+        enable_connect = true;
+        break;
+      }
+      else if (!(ebone->flag & BONE_CONNECTED)) {
+        enable_connect = true;
       }
     }
   }
@@ -924,11 +938,14 @@ static int armature_parent_set_invoke(bContext *C,
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
-  uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_CONNECT);
-  if (all_childbones) {
-    /* Object becomes parent, make the associated menus. */
-    uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);
-  }
+
+  uiLayout *row_offset = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(row_offset, enable_offset);
+  uiItemEnumO(row_offset, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);
+
+  uiLayout *row_connect = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(row_connect, enable_connect);
+  uiItemEnumO(row_connect, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_CONNECT);
 
   UI_popup_menu_end(C, pup);
 
@@ -955,8 +972,8 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 }
 
 static const EnumPropertyItem prop_editarm_clear_parent_types[] = {
-    {1, "CLEAR", 0, "Clear Parent", ""},
-    {2, "DISCONNECT", 0, "Disconnect Bone", ""},
+    {ARM_PAR_CLEAR, "CLEAR", 0, "Clear Parent", ""},
+    {ARM_PAR_CLEAR_DISCONNECT, "DISCONNECT", 0, "Disconnect Bone", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1012,6 +1029,50 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int armature_parent_clear_invoke(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      const wmEvent *UNUSED(event))
+{
+  // False when no selected bones are connected to the active bone.
+  bool enable_disconnect = false;
+  // False when no selected bones are parented to the active bone.
+  bool enable_clear = false;
+  {
+    Object *ob = CTX_data_edit_object(C);
+    bArmature *arm = ob->data;
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
+      if (!EBONE_EDITABLE(ebone) || !(ebone->flag & BONE_SELECTED)) {
+        continue;
+      }
+      if (ebone->parent == NULL) {
+        continue;
+      }
+      enable_clear = true;
+
+      if (ebone->flag & BONE_CONNECTED) {
+        enable_disconnect = true;
+        break;
+      }
+    }
+  }
+
+  uiPopupMenu *pup = UI_popup_menu_begin(
+      C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Parent"), ICON_NONE);
+  uiLayout *layout = UI_popup_menu_layout(pup);
+
+  uiLayout *row_clear = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(row_clear, enable_clear);
+  uiItemEnumO(row_clear, "ARMATURE_OT_parent_clear", NULL, 0, "type", ARM_PAR_CLEAR);
+
+  uiLayout *row_disconnect = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(row_disconnect, enable_disconnect);
+  uiItemEnumO(row_disconnect, "ARMATURE_OT_parent_clear", NULL, 0, "type", ARM_PAR_CLEAR_DISCONNECT);
+
+  UI_popup_menu_end(C, pup);
+
+  return OPERATOR_INTERFACE;
+}
+
 void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1021,7 +1082,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
       "Remove the parent-child relationship between selected bones and their parents";
 
   /* api callbacks */
-  ot->invoke = WM_menu_invoke;
+  ot->invoke = armature_parent_clear_invoke;
   ot->exec = armature_parent_clear_exec;
   ot->poll = ED_operator_editarmature;
 
