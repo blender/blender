@@ -788,7 +788,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   }
 
   /* Normal pass. */
-  if (render_pass_denoising_normal != PASS_UNUSED) {
+  if (guiding_pass_normal != PASS_UNUSED) {
     kernel_assert(render_pass_denoising_normal != PASS_UNUSED);
 
     const float *normal_in = buffer + render_pass_denoising_normal;
