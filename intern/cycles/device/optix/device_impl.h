@@ -82,7 +82,6 @@ class OptiXDevice : public CUDADevice {
   class Denoiser {
    public:
     explicit Denoiser(OptiXDevice *device);
-    ~Denoiser();
 
     OptiXDevice *device;
     OptiXDeviceQueue queue;
