@@ -200,7 +200,7 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
     BLI_str_format_attribute_domain_size(
         element_count, element_count_from_instances(draw_context.current_geometry_set));
   }
-  if (component == GEO_COMPONENT_TYPE_VOLUME) {
+  else if (component == GEO_COMPONENT_TYPE_VOLUME) {
     BLI_str_format_attribute_domain_size(
         element_count, element_count_from_volume(draw_context.current_geometry_set));
   }
