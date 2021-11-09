@@ -10,9 +10,6 @@ vec4 color_from_id(float color_id)
   if (isTransform) {
     return colorTransform;
   }
-  else if (color_id == 0.0) {
-    return colorDupliSelect;
-  }
   else if (color_id == 1.0) {
     return colorActive;
   }
