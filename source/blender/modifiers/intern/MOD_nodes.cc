@@ -88,6 +88,7 @@
 #include "MOD_ui_common.h"
 
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_spreadsheet.h"
 #include "ED_undo.h"
 
@@ -1128,8 +1129,17 @@ struct AttributeSearchData {
 /* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
 BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
 
-static NodesModifierData *get_modifier_data(Main &bmain, const AttributeSearchData &data)
+static NodesModifierData *get_modifier_data(Main &bmain,
+                                            const wmWindowManager &wm,
+                                            const AttributeSearchData &data)
 {
+  if (ED_screen_animation_playing(&wm)) {
+    /* Work around an issue where the attribute search exec function has stale pointers when data
+     * is reallocated when evaluating the node tree, causing a crash. This would be solved by
+     * allowing the UI search data to own arbitrary memory rather than just referencing it. */
+    return nullptr;
+  }
+
   const Object *object = (Object *)BKE_libblock_find_session_uuid(
       &bmain, ID_OB, data.object_session_uid);
   if (object == nullptr) {
@@ -1147,7 +1157,7 @@ static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
   AttributeSearchData &data = *static_cast<AttributeSearchData *>(arg);
-  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), data);
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
   if (nmd == nullptr) {
     return;
   }
@@ -1181,7 +1191,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   }
   AttributeSearchData &data = *static_cast<AttributeSearchData *>(data_v);
   const GeometryAttributeInfo &item = *static_cast<const GeometryAttributeInfo *>(item_v);
-  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), data);
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
   if (nmd == nullptr) {
     return;
   }
