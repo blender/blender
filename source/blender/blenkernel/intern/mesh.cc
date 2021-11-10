@@ -88,7 +88,7 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->pdata);
   CustomData_reset(&mesh->ldata);
 
-  BKE_mesh_runtime_reset(mesh);
+  BKE_mesh_runtime_init_data(mesh);
 
   mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
@@ -168,7 +168,7 @@ static void mesh_free_data(ID *id)
     mesh->edit_mesh = nullptr;
   }
 
-  BKE_mesh_runtime_clear_cache(mesh);
+  BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
 }
@@ -308,7 +308,9 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;
-  BKE_mesh_runtime_reset(mesh);
+
+  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  BKE_mesh_runtime_init_data(mesh);
 
   /* happens with old files */
   if (mesh->mselect == nullptr) {
