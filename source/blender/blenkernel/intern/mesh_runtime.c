@@ -45,15 +45,52 @@
  * \{ */
 
 /**
- * Default values defined at read time.
+ * \brief Initialize the runtime mutexes of the given mesh.
+ *
+ * Any existing mutexes will be overridden.
  */
-void BKE_mesh_runtime_reset(Mesh *mesh)
+static void mesh_runtime_init_mutexes(Mesh *mesh)
 {
-  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
   mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
   BLI_mutex_init(mesh->runtime.eval_mutex);
   mesh->runtime.render_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime render_mutex");
   BLI_mutex_init(mesh->runtime.render_mutex);
+}
+
+/**
+ * \brief free the mutexes of the given mesh runtime.
+ */
+static void mesh_runtime_free_mutexes(Mesh *mesh)
+{
+  if (mesh->runtime.eval_mutex != NULL) {
+    BLI_mutex_end(mesh->runtime.eval_mutex);
+    MEM_freeN(mesh->runtime.eval_mutex);
+    mesh->runtime.eval_mutex = NULL;
+  }
+  if (mesh->runtime.render_mutex != NULL) {
+    BLI_mutex_end(mesh->runtime.render_mutex);
+    MEM_freeN(mesh->runtime.render_mutex);
+    mesh->runtime.render_mutex = NULL;
+  }
+}
+
+/**
+ * \brief Initialize the runtime of the given mesh.
+ *
+ * Function expects that the runtime is already cleared.
+ */
+void BKE_mesh_runtime_init_data(Mesh *mesh)
+{
+  mesh_runtime_init_mutexes(mesh);
+}
+
+/**
+ * \brief Free all data (and mutexes) inside the runtime of the given mesh.
+ */
+void BKE_mesh_runtime_free_data(Mesh *mesh)
+{
+  BKE_mesh_runtime_clear_cache(mesh);
+  mesh_runtime_free_mutexes(mesh);
 }
 
 /* Clear all pointers which we don't want to be shared on copying the datablock.
@@ -71,25 +108,16 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
   runtime->bvh_cache = NULL;
   runtime->shrinkwrap_data = NULL;
 
-  mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
-  BLI_mutex_init(mesh->runtime.eval_mutex);
-
-  mesh->runtime.render_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime render_mutex");
-  BLI_mutex_init(mesh->runtime.render_mutex);
+  mesh_runtime_init_mutexes(mesh);
 }
 
+/**
+ * \brief This function clears runtime cache of the given mesh.
+ * 
+ * Call this function to recalculate runtime data when used.
+ */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
-  if (mesh->runtime.eval_mutex != NULL) {
-    BLI_mutex_end(mesh->runtime.eval_mutex);
-    MEM_freeN(mesh->runtime.eval_mutex);
-    mesh->runtime.eval_mutex = NULL;
-  }
-  if (mesh->runtime.render_mutex != NULL) {
-    BLI_mutex_end(mesh->runtime.render_mutex);
-    MEM_freeN(mesh->runtime.render_mutex);
-    mesh->runtime.render_mutex = NULL;
-  }
   if (mesh->runtime.mesh_eval != NULL) {
     mesh->runtime.mesh_eval->edit_mesh = NULL;
     BKE_id_free(NULL, mesh->runtime.mesh_eval);
