@@ -523,6 +523,26 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
  * Film.
  */
 
+ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgba,
+                                                          const int rgba_offset,
+                                                          const int rgba_stride,
+                                                          const int x,
+                                                          const int y,
+                                                          const half4 half_pixel)
+{
+  /* Work around HIP issue with half float display, see T92972. */
+#ifdef __KERNEL_HIP__
+  ccl_global half *out = ((ccl_global half *)rgba) + (rgba_offset + y * rgba_stride + x) * 4;
+  out[0] = half_pixel.x;
+  out[1] = half_pixel.y;
+  out[2] = half_pixel.z;
+  out[3] = half_pixel.w;
+#else
+  ccl_global half4 *out = ((ccl_global half4 *)rgba) + rgba_offset + y * rgba_stride + x;
+  *out = half_pixel;
+#endif
+}
+
 #define KERNEL_FILM_CONVERT_VARIANT(variant, input_channel_count) \
   ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS) \
       ccl_gpu_kernel_signature(film_convert_##variant, \
@@ -588,8 +608,9 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 \
     film_apply_pass_pixel_overlays_rgba(&kfilm_convert, buffer, pixel); \
 \
-    ccl_global half4 *out = ((ccl_global half4 *)rgba) + rgba_offset + y * rgba_stride + x; \
-    *out = float4_to_half4_display(make_float4(pixel[0], pixel[1], pixel[2], pixel[3])); \
+    const half4 half_pixel = float4_to_half4_display( \
+        make_float4(pixel[0], pixel[1], pixel[2], pixel[3])); \
+    kernel_gpu_film_convert_half_write(rgba, rgba_offset, rgba_stride, x, y, half_pixel); \
   }
 
 /* 1 channel inputs */
