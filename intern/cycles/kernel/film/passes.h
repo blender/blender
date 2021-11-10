@@ -160,40 +160,6 @@ ccl_device_forceinline void kernel_write_denoising_features_volume(KernelGlobals
 }
 #endif /* __DENOISING_FEATURES__ */
 
-#ifdef __SHADOW_CATCHER__
-
-/* Write shadow catcher passes on a bounce from the shadow catcher object. */
-ccl_device_forceinline void kernel_write_shadow_catcher_bounce_data(
-    KernelGlobals kg,
-    IntegratorState state,
-    ccl_private const ShaderData *sd,
-    ccl_global float *ccl_restrict render_buffer)
-{
-  if (!kernel_data.integrator.has_shadow_catcher) {
-    return;
-  }
-
-  kernel_assert(kernel_data.film.pass_shadow_catcher_sample_count != PASS_UNUSED);
-  kernel_assert(kernel_data.film.pass_shadow_catcher_matte != PASS_UNUSED);
-
-  if (!kernel_shadow_catcher_is_path_split_bounce(kg, state, sd->object_flag)) {
-    return;
-  }
-
-  ccl_global float *buffer = kernel_pass_pixel_render_buffer(kg, state, render_buffer);
-
-  /* Count sample for the shadow catcher object. */
-  kernel_write_pass_float(buffer + kernel_data.film.pass_shadow_catcher_sample_count, 1.0f);
-
-  /* Since the split is done, the sample does not contribute to the matte, so accumulate it as
-   * transparency to the matte. */
-  const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_write_pass_float(buffer + kernel_data.film.pass_shadow_catcher_matte + 3,
-                          average(throughput));
-}
-
-#endif /* __SHADOW_CATCHER__ */
-
 ccl_device_inline size_t kernel_write_id_pass(ccl_global float *ccl_restrict buffer,
                                               size_t depth,
                                               float id,

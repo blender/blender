@@ -1024,7 +1024,7 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   else {
     /* Continue to background, light or surface. */
     integrator_intersect_next_kernel_after_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
-        kg, state, &isect);
+        kg, state, &isect, render_buffer);
     return;
   }
 #endif /* __VOLUME__ */

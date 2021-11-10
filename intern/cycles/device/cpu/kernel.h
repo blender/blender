@@ -42,7 +42,7 @@ class CPUKernels {
 
   IntegratorInitFunction integrator_init_from_camera;
   IntegratorInitFunction integrator_init_from_bake;
-  IntegratorFunction integrator_intersect_closest;
+  IntegratorShadeFunction integrator_intersect_closest;
   IntegratorFunction integrator_intersect_shadow;
   IntegratorFunction integrator_intersect_subsurface;
   IntegratorFunction integrator_intersect_volume_stack;

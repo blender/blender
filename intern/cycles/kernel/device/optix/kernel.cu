@@ -57,7 +57,7 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_closest()
   const int global_index = optixGetLaunchIndex().x;
   const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
                                                        global_index;
-  integrator_intersect_closest(nullptr, path_index);
+  integrator_intersect_closest(nullptr, path_index, __params.render_buffer);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_shadow()

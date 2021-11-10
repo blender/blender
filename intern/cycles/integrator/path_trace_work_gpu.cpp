@@ -437,7 +437,15 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
   DCHECK_LE(work_size, max_num_paths_);
 
   switch (kernel) {
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST: {
+      /* Closest ray intersection kernels with integrator state and render buffer. */
+      void *d_render_buffer = (void *)buffers_->buffer.device_pointer;
+      void *args[] = {&d_path_index, &d_render_buffer, const_cast<int *>(&work_size)};
+
+      queue_->enqueue(kernel, work_size, args);
+      break;
+    }
+
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK: {
