@@ -1348,7 +1348,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
                              const float min_step,
                              const int grid_levels)
 {
-  BLI_assert(grid_levels > 0 && grid_levels < 10);
+  BLI_assert(grid_levels >= 0 && grid_levels < 10);
   const float zoom_x = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
   const float zoom_normalized = (zoom_x - v2d->minzoom) / (v2d->maxzoom - v2d->minzoom);
 
