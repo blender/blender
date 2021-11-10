@@ -94,6 +94,15 @@ typedef struct BlendfileLinkAppendContextItem {
   void *userdata;
 } BlendfileLinkAppendContextItem;
 
+/* A blendfile library entry in the `libraries` list of #BlendfileLinkAppendContext. */
+typedef struct BlendfileLinkAppendContextLibrary {
+  char *path;               /* Absolute .blend file path. */
+  BlendHandle *blo_handle;  /* Blend file handle, if any. */
+  bool blo_handle_is_owned; /* Whether the blend file handle is owned, or borrowed. */
+  /* The blendfile report associated with the `blo_handle`, if owned. */
+  BlendFileReadReport bf_reports;
+} BlendfileLinkAppendContextLibrary;
+
 typedef struct BlendfileLinkAppendContext {
   /** List of library paths to search IDs in. */
   LinkNodePair libraries;
@@ -140,6 +149,43 @@ enum {
   LINK_APPEND_TAG_INDIRECT = 1 << 0,
 };
 
+static BlendHandle *link_append_context_library_blohandle_ensure(
+    BlendfileLinkAppendContext *lapp_context,
+    BlendfileLinkAppendContextLibrary *lib_context,
+    ReportList *reports)
+{
+  if (reports != NULL) {
+    lib_context->bf_reports.reports = reports;
+  }
+
+  char *libname = lib_context->path;
+  BlendHandle *blo_handle = lib_context->blo_handle;
+  if (blo_handle == NULL) {
+    if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
+      blo_handle = BLO_blendhandle_from_memory(lapp_context->blendfile_mem,
+                                               (int)lapp_context->blendfile_memsize,
+                                               &lib_context->bf_reports);
+    }
+    else {
+      blo_handle = BLO_blendhandle_from_file(libname, &lib_context->bf_reports);
+    }
+    lib_context->blo_handle = blo_handle;
+    lib_context->blo_handle_is_owned = true;
+  }
+
+  return blo_handle;
+}
+
+static void link_append_context_library_blohandle_release(
+    BlendfileLinkAppendContext *UNUSED(lapp_context),
+    BlendfileLinkAppendContextLibrary *lib_context)
+{
+  if (lib_context->blo_handle_is_owned && lib_context->blo_handle != NULL) {
+    BLO_blendhandle_close(lib_context->blo_handle);
+    lib_context->blo_handle = NULL;
+  }
+}
+
 /** Allocate and initialize a new context to link/append datablocks.
  *
  *  \param flag a combination of #eFileSel_Params_Flag from DNA_space_types.h & #eBLOLibLinkFlags
@@ -161,6 +207,12 @@ void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_con
 {
   if (lapp_context->new_id_to_item != NULL) {
     BLI_ghash_free(lapp_context->new_id_to_item, NULL, NULL);
+  }
+
+  for (LinkNode *liblink = lapp_context->libraries.list; liblink != NULL;
+       liblink = liblink->next) {
+    BlendfileLinkAppendContextLibrary *lib_context = liblink->link;
+    link_append_context_library_blohandle_release(lapp_context, lib_context);
   }
 
   BLI_assert(lapp_context->library_weak_reference_mapping == NULL);
@@ -209,18 +261,31 @@ void BKE_blendfile_link_append_context_embedded_blendfile_clear(
 
 /** Add a new source library to search for items to be linked to the given link/append context.
  *
+ * \param libname: the absolute path to the library blend file.
+ * \param blo_handle: the blend file handle of the library, NULL is not available. Note that this
+ *                    is only borrowed for linking purpose, no releasing or other management will
+ *                    be performed by #BKE_blendfile_link_append code on it.
+ *
  * \note *Never* call BKE_blendfile_link_append_context_library_add() after having added some
  * items. */
 void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *lapp_context,
-                                                   const char *libname)
+                                                   const char *libname,
+                                                   BlendHandle *blo_handle)
 {
   BLI_assert(lapp_context->items.list == NULL);
 
+  BlendfileLinkAppendContextLibrary *lib_context = BLI_memarena_calloc(lapp_context->memarena,
+                                                                       sizeof(*lib_context));
+
   size_t len = strlen(libname) + 1;
   char *libpath = BLI_memarena_alloc(lapp_context->memarena, len);
-
   BLI_strncpy(libpath, libname, len);
-  BLI_linklist_append_arena(&lapp_context->libraries, libpath, lapp_context->memarena);
+
+  lib_context->path = libpath;
+  lib_context->blo_handle = blo_handle;
+  lib_context->blo_handle_is_owned = (blo_handle == NULL);
+
+  BLI_linklist_append_arena(&lapp_context->libraries, lib_context, lapp_context->memarena);
   lapp_context->num_libraries++;
 }
 
@@ -1076,7 +1141,6 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   Main *mainl;
-  BlendHandle *bh;
   Library *lib;
 
   LinkNode *liblink, *itemlink;
@@ -1086,18 +1150,12 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
   for (lib_idx = 0, liblink = lapp_context->libraries.list; liblink;
        lib_idx++, liblink = liblink->next) {
-    char *libname = liblink->link;
-    BlendFileReadReport bf_reports = {.reports = reports};
+    BlendfileLinkAppendContextLibrary *lib_context = liblink->link;
+    char *libname = lib_context->path;
+    BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
+        lapp_context, lib_context, reports);
 
-    if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
-      bh = BLO_blendhandle_from_memory(
-          lapp_context->blendfile_mem, (int)lapp_context->blendfile_memsize, &bf_reports);
-    }
-    else {
-      bh = BLO_blendhandle_from_file(libname, &bf_reports);
-    }
-
-    if (bh == NULL) {
+    if (blo_handle == NULL) {
       /* Unlikely since we just browsed it, but possible
        * Error reports will have been made by BLO_blendhandle_from_file() */
       continue;
@@ -1111,7 +1169,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
      * #loose_data_instantiate instead. */
     lapp_context->params->flag &= ~BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
 
-    mainl = BLO_library_link_begin(&bh, libname, lapp_context->params);
+    mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
     lib = mainl->curlib;
     BLI_assert(lib);
     UNUSED_VARS_NDEBUG(lib);
@@ -1138,7 +1196,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
 
       new_id = BLO_library_link_named_part(
-          mainl, &bh, item->idcode, item->name, lapp_context->params);
+          mainl, &blo_handle, item->idcode, item->name, lapp_context->params);
 
       if (new_id) {
         /* If the link is successful, clear item's libs 'todo' flags.
@@ -1149,8 +1207,8 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
     }
 
-    BLO_library_link_end(mainl, &bh, lapp_context->params);
-    BLO_blendhandle_close(bh);
+    BLO_library_link_end(mainl, &blo_handle, lapp_context->params);
+    link_append_context_library_blohandle_release(lapp_context, lib_context);
   }
 
   /* Instantiate newly linked IDs as needed, if no append is scheduled. */

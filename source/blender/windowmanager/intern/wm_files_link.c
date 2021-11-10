@@ -309,7 +309,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
         if (!BLI_ghash_haskey(libraries, libname)) {
           BLI_ghash_insert(libraries, BLI_strdup(libname), POINTER_FROM_INT(lib_idx));
           lib_idx++;
-          BKE_blendfile_link_append_context_library_add(lapp_context, libname);
+          BKE_blendfile_link_append_context_library_add(lapp_context, libname, NULL);
         }
       }
     }
@@ -341,7 +341,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   else {
     BlendfileLinkAppendContextItem *item;
 
-    BKE_blendfile_link_append_context_library_add(lapp_context, libname);
+    BKE_blendfile_link_append_context_library_add(lapp_context, libname, NULL);
     item = BKE_blendfile_link_append_context_item_add(
         lapp_context, name, BKE_idtype_idcode_from_name(group), NULL);
     BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, item, 0);
@@ -530,7 +530,7 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   BKE_blendfile_link_append_context_embedded_blendfile_set(
       lapp_context, datatoc_startup_blend, datatoc_startup_blend_size);
 
-  BKE_blendfile_link_append_context_library_add(lapp_context, filepath);
+  BKE_blendfile_link_append_context_library_add(lapp_context, filepath, NULL);
   BlendfileLinkAppendContextItem *item = BKE_blendfile_link_append_context_item_add(
       lapp_context, id_name, id_code, NULL);
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, item, 0);
@@ -651,7 +651,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
 
-  BKE_blendfile_link_append_context_library_add(lapp_context, lib->filepath_abs);
+  BKE_blendfile_link_append_context_library_add(lapp_context, lib->filepath_abs, NULL);
 
   BKE_blendfile_library_relocate(lapp_context, reports, lib, true);
 
@@ -736,7 +736,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       do_reload = true;
 
       lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
-      BKE_blendfile_link_append_context_library_add(lapp_context, path);
+      BKE_blendfile_link_append_context_library_add(lapp_context, path, NULL);
     }
     else {
       int totfiles = 0;
@@ -769,13 +769,13 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
           }
 
           CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", path);
-          BKE_blendfile_link_append_context_library_add(lapp_context, path);
+          BKE_blendfile_link_append_context_library_add(lapp_context, path, NULL);
         }
         RNA_END;
       }
       else {
         CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", path);
-        BKE_blendfile_link_append_context_library_add(lapp_context, path);
+        BKE_blendfile_link_append_context_library_add(lapp_context, path, NULL);
       }
     }
 

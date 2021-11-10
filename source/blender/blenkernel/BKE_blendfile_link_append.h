@@ -23,6 +23,7 @@
 extern "C" {
 #endif
 
+struct BlendHandle;
 struct ID;
 struct Library;
 struct LibraryLink_Params;
@@ -50,7 +51,8 @@ void BKE_blendfile_link_append_context_embedded_blendfile_clear(
     struct BlendfileLinkAppendContext *lapp_context);
 
 void BKE_blendfile_link_append_context_library_add(struct BlendfileLinkAppendContext *lapp_context,
-                                                   const char *libname);
+                                                   const char *libname,
+                                                   struct BlendHandle *blo_handle);
 struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
     struct BlendfileLinkAppendContext *lapp_context,
     const char *idname,
