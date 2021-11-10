@@ -23,9 +23,9 @@
  * Search Box Region & Interaction
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_ID.h"
 #include "MEM_guardedalloc.h"
@@ -84,7 +84,7 @@ struct uiSearchItems {
   void *active;
 };
 
-typedef struct uiSearchboxData {
+struct uiSearchboxData {
   rcti bbox;
   uiFontStyle fstyle;
   uiSearchItems items;
@@ -102,7 +102,7 @@ typedef struct uiSearchboxData {
    * Used so we can show leading text to menu items less prominently (not related to 'use_sep').
    */
   const char *sep_string;
-} uiSearchboxData;
+};
 
 #define SEARCH_ITEMS 10
 
@@ -166,9 +166,9 @@ bool UI_search_item_add(uiSearchItems *items,
 
   if (name_prefix_offset != 0) {
     /* Lazy initialize, as this isn't used often. */
-    if (items->name_prefix_offsets == NULL) {
-      items->name_prefix_offsets = MEM_callocN(
-          items->maxitem * sizeof(*items->name_prefix_offsets), "search name prefix offsets");
+    if (items->name_prefix_offsets == nullptr) {
+      items->name_prefix_offsets = (uint8_t *)MEM_callocN(
+          items->maxitem * sizeof(*items->name_prefix_offsets), __func__);
     }
     items->name_prefix_offsets[items->totitem] = name_prefix_offset;
   }
@@ -198,7 +198,7 @@ int UI_searchbox_size_x(void)
 
 int UI_search_items_find_index(uiSearchItems *items, const char *name)
 {
-  if (items->name_prefix_offsets != NULL) {
+  if (items->name_prefix_offsets != nullptr) {
     for (int i = 0; i < items->totitem; i++) {
       if (STREQ(name, items->names[i] + items->name_prefix_offsets[i])) {
         return i;
@@ -218,7 +218,7 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name)
 /* region is the search box itself */
 static void ui_searchbox_select(bContext *C, ARegion *region, uiBut *but, int step)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   /* apply step */
   data->active += step;
@@ -285,14 +285,14 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
 
 int ui_searchbox_find_index(ARegion *region, const char *name)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   return UI_search_items_find_index(&data->items, name);
 }
 
 /* x and y in screen-coords. */
 bool ui_searchbox_inside(ARegion *region, const int xy[2])
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   return BLI_rcti_isect_pt(&data->bbox, xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin);
 }
@@ -300,12 +300,12 @@ bool ui_searchbox_inside(ARegion *region, const int xy[2])
 /* string validated to be of correct length (but->hardmax) */
 bool ui_searchbox_apply(uiBut *but, ARegion *region)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   uiButSearch *search_but = (uiButSearch *)but;
 
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
-  search_but->item_active = NULL;
+  search_but->item_active = nullptr;
 
   if (data->active != -1) {
     const char *name = data->items.names[data->active] +
@@ -314,7 +314,7 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
                             data->items.name_prefix_offsets[data->active] :
                             0);
 
-    const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
+    const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : nullptr;
 
     /* Search button with dynamic string properties may have their own method of applying
      * the search results, so only copy the result if there is a proper space for it. */
@@ -356,7 +356,7 @@ static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
       }
 
       ARegion *searchbox_region = UI_region_searchbox_region_get(region);
-      uiSearchboxData *data = searchbox_region->regiondata;
+      uiSearchboxData *data = static_cast<uiSearchboxData *>(searchbox_region->regiondata);
 
       BLI_assert(data->items.pointers[data->active] == search_but->item_active);
 
@@ -367,13 +367,13 @@ static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
           C, region, &rect, search_but->arg, search_but->item_active);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool ui_searchbox_event(
     bContext *C, ARegion *region, uiBut *but, ARegion *butregion, const wmEvent *event)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   uiButSearch *search_but = (uiButSearch *)but;
   int type = event->type, val = event->val;
   bool handled = false;
@@ -481,7 +481,7 @@ static void ui_searchbox_update_fn(bContext *C,
 void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool reset)
 {
   uiButSearch *search_but = (uiButSearch *)but;
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
@@ -499,7 +499,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
     if (search_but->items_update_fn && search_but->item_active) {
       data->items.active = search_but->item_active;
       ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
-      data->items.active = NULL;
+      data->items.active = nullptr;
 
       /* found active item, calculate real offset by centering it */
       if (data->items.totitem) {
@@ -538,7 +538,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
                          /* Never include the prefix in the button. */
                          (data->items.name_prefix_offsets ? data->items.name_prefix_offsets[a] :
                                                             0);
-      const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
+      const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : nullptr;
       if (STREQLEN(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen)) {
         data->active = a;
         break;
@@ -558,7 +558,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
 int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *str)
 {
   uiButSearch *search_but = (uiButSearch *)but;
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   int match = AUTOCOMPLETE_NO_MATCH;
 
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
@@ -569,7 +569,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 
     match = UI_autocomplete_end(data->items.autocpl, str);
-    data->items.autocpl = NULL;
+    data->items.autocpl = nullptr;
   }
 
   return match;
@@ -577,7 +577,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
 
 static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   /* pixel space */
   wmOrtho2_region_pixelspace(region);
@@ -630,7 +630,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
         const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
         char *name = data->items.names[a];
         int icon = data->items.icons[a];
-        char *name_sep_test = NULL;
+        char *name_sep_test = nullptr;
 
         uiMenuItemSeparatorType separator_type = UI_MENU_ITEM_SEPARATOR_NONE;
         if (data->use_shortcut_sep) {
@@ -652,15 +652,15 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           }
 
           /* Simple menu item. */
-          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, separator_type, NULL);
+          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, separator_type, nullptr);
         }
         else {
           /* Split menu item, faded text before the separator. */
-          char *name_sep = NULL;
+          char *name_sep = nullptr;
           do {
             name_sep = name_sep_test;
             name_sep_test = strstr(name_sep + search_sep_len, data->sep_string);
-          } while (name_sep_test != NULL);
+          } while (name_sep_test != nullptr);
 
           name_sep += search_sep_len;
           const char name_sep_prev = *name_sep;
@@ -683,7 +683,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           }
 
           /* The previous menu item draws the active selection. */
-          ui_draw_menu_item(&data->fstyle, &rect, name_sep, icon, state, separator_type, NULL);
+          ui_draw_menu_item(&data->fstyle, &rect, name_sep, icon, state, separator_type, nullptr);
         }
       }
       /* indicate more */
@@ -705,7 +705,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
 
 static void ui_searchbox_region_free_fn(ARegion *region)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   /* free search data */
   for (int a = 0; a < data->items.maxitem; a++) {
@@ -716,12 +716,12 @@ static void ui_searchbox_region_free_fn(ARegion *region)
   MEM_freeN(data->items.icons);
   MEM_freeN(data->items.states);
 
-  if (data->items.name_prefix_offsets != NULL) {
+  if (data->items.name_prefix_offsets != nullptr) {
     MEM_freeN(data->items.name_prefix_offsets);
   }
 
   MEM_freeN(data);
-  region->regiondata = NULL;
+  region->regiondata = nullptr;
 }
 
 static ARegion *ui_searchbox_create_generic_ex(bContext *C,
@@ -746,7 +746,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   region->type = &type;
 
   /* create searchbox data */
-  uiSearchboxData *data = MEM_callocN(sizeof(uiSearchboxData), "uiSearchboxData");
+  uiSearchboxData *data = (uiSearchboxData *)MEM_callocN(sizeof(uiSearchboxData), __func__);
 
   /* set font, get bb */
   data->fstyle = style->widget; /* copy struct */
@@ -767,7 +767,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
     data->prv_cols = but->a2;
   }
 
-  if (but->optype != NULL || use_shortcut_sep) {
+  if (but->optype != nullptr || use_shortcut_sep) {
     data->use_shortcut_sep = true;
   }
   data->sep_string = search_but->item_sep_string;
@@ -881,13 +881,13 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   /* In case the button's string is dynamic, make sure there are buffers available. */
   data->items.maxstrlen = but->hardmax == 0 ? UI_MAX_NAME_STR : but->hardmax;
   data->items.totitem = 0;
-  data->items.names = MEM_callocN(data->items.maxitem * sizeof(void *), "search names");
-  data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
-  data->items.icons = MEM_callocN(data->items.maxitem * sizeof(int), "search icons");
-  data->items.states = MEM_callocN(data->items.maxitem * sizeof(int), "search flags");
-  data->items.name_prefix_offsets = NULL; /* Lazy initialized as needed. */
+  data->items.names = (char **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
+  data->items.pointers = (void **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
+  data->items.icons = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
+  data->items.states = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
+  data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
-    data->items.names[i] = MEM_callocN(data->items.maxstrlen + 1, "search pointers");
+    data->items.names[i] = (char *)MEM_callocN(data->items.maxstrlen + 1, __func__);
   }
 
   return region;
@@ -924,7 +924,7 @@ static void str_tolower_titlecaps_ascii(char *str, const size_t len)
 
 static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARegion *region)
 {
-  uiSearchboxData *data = region->regiondata;
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   /* pixel space */
   wmOrtho2_region_pixelspace(region);
@@ -952,10 +952,10 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
       {
         const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
 
-        wmOperatorType *ot = data->items.pointers[a];
+        wmOperatorType *ot = static_cast<wmOperatorType *>(data->items.pointers[a]);
         char text_pre[128];
-        char *text_pre_p = strstr(ot->idname, "_OT_");
-        if (text_pre_p == NULL) {
+        const char *text_pre_p = strstr(ot->idname, "_OT_");
+        if (text_pre_p == nullptr) {
           text_pre[0] = '\0';
         }
         else {
@@ -975,7 +975,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           data->items.icons[a],
                           state,
                           UI_MENU_ITEM_SEPARATOR_NONE,
-                          NULL);
+                          nullptr);
         ui_draw_menu_item(&data->fstyle,
                           &rect_post,
                           data->items.names[a],
@@ -983,7 +983,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           state,
                           data->use_shortcut_sep ? UI_MENU_ITEM_SEPARATOR_SHORTCUT :
                                                    UI_MENU_ITEM_SEPARATOR_NONE,
-                          NULL);
+                          nullptr);
       }
     }
     /* indicate more */
@@ -1044,17 +1044,17 @@ void ui_but_search_refresh(uiButSearch *search_but)
     return;
   }
 
-  uiSearchItems *items = MEM_callocN(sizeof(uiSearchItems), "search items");
+  uiSearchItems *items = (uiSearchItems *)MEM_callocN(sizeof(uiSearchItems), __func__);
 
   /* setup search struct */
   items->maxitem = 10;
   items->maxstrlen = 256;
-  items->names = MEM_callocN(items->maxitem * sizeof(void *), "search names");
+  items->names = (char **)MEM_callocN(items->maxitem * sizeof(void *), __func__);
   for (int i = 0; i < items->maxitem; i++) {
-    items->names[i] = MEM_callocN(but->hardmax + 1, "search names");
+    items->names[i] = (char *)MEM_callocN(but->hardmax + 1, __func__);
   }
 
-  ui_searchbox_update_fn(but->block->evil_C, search_but, but->drawstr, items);
+  ui_searchbox_update_fn((bContext *)but->block->evil_C, search_but, but->drawstr, items);
 
   if (!search_but->results_are_suggestions) {
     /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */

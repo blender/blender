@@ -66,7 +66,7 @@ set(SRC
   interface_region_menu_popup.c
   interface_region_popover.c
   interface_region_popup.c
-  interface_region_search.c
+  interface_region_search.cc
   interface_region_tooltip.c
   interface_regions.c
   interface_style.c
