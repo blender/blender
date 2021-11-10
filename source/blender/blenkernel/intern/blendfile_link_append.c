@@ -277,6 +277,9 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
   BlendfileLinkAppendContextLibrary *lib_context = BLI_memarena_calloc(lapp_context->memarena,
                                                                        sizeof(*lib_context));
 
+  BlendfileLinkAppendContextLibrary *ctx_lib = BLI_memarena_alloc(lapp_context->memarena,
+                                                                  sizeof(*ctx_lib));
+
   size_t len = strlen(libname) + 1;
   char *libpath = BLI_memarena_alloc(lapp_context->memarena, len);
   BLI_strncpy(libpath, libname, len);
