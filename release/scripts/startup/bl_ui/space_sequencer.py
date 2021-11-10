@@ -1173,6 +1173,31 @@ class SEQUENCER_MT_pivot_pie(Menu):
         pie.prop_enum(sequencer_tool_settings, "pivot_point", value='MEDIAN')
 
 
+class SEQUENCER_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("sequencer.view_all")
+        pie.operator("sequencer.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
+
+
+class SEQUENCER_MT_preview_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator_context = 'INVOKE_REGION_PREVIEW'
+        pie.operator("sequencer.view_all_preview")
+        pie.operator("sequencer.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
+        pie.separator()
+        pie.operator("sequencer.view_zoom_ratio", text="Zoom 1:1").ratio = 1
+
+
 class SequencerButtonsPanel:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -2615,6 +2640,8 @@ classes = (
     SEQUENCER_MT_context_menu,
     SEQUENCER_MT_preview_context_menu,
     SEQUENCER_MT_pivot_pie,
+    SEQUENCER_MT_view_pie,
+    SEQUENCER_MT_preview_view_pie,
 
     SEQUENCER_PT_color_tag_picker,
 

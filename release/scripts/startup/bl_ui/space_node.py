@@ -367,6 +367,17 @@ class NODE_MT_node(Menu):
         layout.operator("node.read_viewlayers")
 
 
+class NODE_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("node.view_all")
+        pie.operator("node.view_selected", icon='ZOOM_SELECTED')
+
+
 class NODE_PT_active_tool(ToolActivePanelHelper, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -877,6 +888,7 @@ classes = (
     NODE_MT_node,
     NODE_MT_node_color_context_menu,
     NODE_MT_context_menu,
+    NODE_MT_view_pie,
     NODE_PT_material_slots,
     NODE_PT_node_color_presets,
     NODE_PT_active_node_generic,

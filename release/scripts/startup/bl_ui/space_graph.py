@@ -338,6 +338,18 @@ class GRAPH_MT_key_snap(Menu):
         layout.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
 
 
+class GRAPH_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("graph.view_all")
+        pie.operator("graph.view_selected", icon='ZOOM_SELECTED')
+        pie.operator("graph.view_frame")
+
+
 class GRAPH_MT_delete(Menu):
     bl_label = "Delete"
 
@@ -468,6 +480,7 @@ classes = (
     GRAPH_MT_channel_context_menu,
     GRAPH_MT_pivot_pie,
     GRAPH_MT_snap_pie,
+    GRAPH_MT_view_pie,
     GRAPH_PT_filters,
 )
 

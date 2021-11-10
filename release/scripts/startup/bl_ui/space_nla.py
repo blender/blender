@@ -247,6 +247,18 @@ class NLA_MT_snap_pie(Menu):
         pie.operator("nla.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
 
 
+class NLA_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("nla.view_all")
+        pie.operator("nla.view_selected", icon='ZOOM_SELECTED')
+        pie.operator("nla.view_frame")
+
+
 class NLA_MT_context_menu(Menu):
     bl_label = "NLA Context Menu"
 
@@ -300,6 +312,7 @@ classes = (
     NLA_MT_add,
     NLA_MT_edit_transform,
     NLA_MT_snap_pie,
+    NLA_MT_view_pie,
     NLA_MT_context_menu,
     NLA_MT_channel_context_menu,
     NLA_PT_filters,
