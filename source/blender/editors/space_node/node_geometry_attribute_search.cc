@@ -33,6 +33,7 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
+#include "ED_screen.h"
 #include "ED_undo.h"
 
 #include "BLT_translation.h"
@@ -64,6 +65,10 @@ BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
 static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
+  if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+    return;
+  }
+
   AttributeSearchData *data = static_cast<AttributeSearchData *>(arg);
 
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -79,6 +84,9 @@ static void attribute_search_update_fn(
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
 {
+  if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+    return;
+  }
   if (item_v == nullptr) {
     return;
   }
