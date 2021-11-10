@@ -241,7 +241,7 @@ typedef enum eBLOLibLinkFlags {
  * #BLO_library_link_begin, #BLO_library_link_named_part & #BLO_library_link_end.
  * Wrap these in parameters since it's important both functions receive matching values.
  */
-struct LibraryLink_Params {
+typedef struct LibraryLink_Params {
   /** The current main database, e.g. #G_MAIN or `CTX_data_main(C)`. */
   struct Main *bmain;
   /** Options for linking, used for instantiating. */
@@ -257,7 +257,7 @@ struct LibraryLink_Params {
     /** The active 3D viewport (only used to define local-view). */
     const struct View3D *v3d;
   } context;
-};
+} LibraryLink_Params;
 
 void BLO_library_link_params_init(struct LibraryLink_Params *params,
                                   struct Main *bmain,

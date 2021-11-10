@@ -284,7 +284,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   /* We define our working data...
    * Note that here, each item 'uses' one library, and only one. */
-  lapp_context = BKE_blendfile_link_append_context_new(flag);
+  LibraryLink_Params lapp_params;
+  BLO_library_link_params_init_with_context(
+      &lapp_params, bmain, flag, 0, scene, view_layer, CTX_wm_view3d(C));
+
+  lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
   BKE_blendfile_link_append_context_embedded_blendfile_set(
       lapp_context, datatoc_startup_blend, datatoc_startup_blend_size);
 
@@ -354,7 +358,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   /* XXX We'd need re-entrant locking on Main for this to work... */
   // BKE_main_lock(bmain);
 
-  BKE_blendfile_link(lapp_context, op->reports, bmain, scene, view_layer, CTX_wm_view3d(C));
+  BKE_blendfile_link(lapp_context, op->reports);
 
   // BKE_main_unlock(bmain);
 
@@ -364,7 +368,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   /* append, rather than linking */
   if (do_append) {
-    BKE_blendfile_append(lapp_context, op->reports, bmain, scene, view_layer, CTX_wm_view3d(C));
+    BKE_blendfile_append(lapp_context, op->reports);
   }
 
   BKE_blendfile_link_append_context_free(lapp_context);
@@ -519,7 +523,10 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* Define working data, with just the one item we want to link. */
-  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(flag);
+  LibraryLink_Params lapp_params;
+  BLO_library_link_params_init_with_context(&lapp_params, bmain, flag, 0, scene, view_layer, v3d);
+
+  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
   BKE_blendfile_link_append_context_embedded_blendfile_set(
       lapp_context, datatoc_startup_blend, datatoc_startup_blend_size);
 
@@ -529,10 +536,10 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, item, 0);
 
   /* Link datablock. */
-  BKE_blendfile_link(lapp_context, NULL, bmain, scene, view_layer, v3d);
+  BKE_blendfile_link(lapp_context, NULL);
 
   if (do_append) {
-    BKE_blendfile_append(lapp_context, NULL, bmain, scene, view_layer, v3d);
+    BKE_blendfile_append(lapp_context, NULL);
   }
 
   /* Get linked datablock and free working data. */
@@ -632,13 +639,21 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
   }
 
   Main *bmain = CTX_data_main(C);
-  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
-      BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT);
+  LibraryLink_Params lapp_params;
+  BLO_library_link_params_init_with_context(&lapp_params,
+                                            bmain,
+                                            BLO_LIBLINK_USE_PLACEHOLDERS |
+                                                BLO_LIBLINK_FORCE_INDIRECT,
+                                            0,
+                                            CTX_data_scene(C),
+                                            CTX_data_view_layer(C),
+                                            NULL);
+
+  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
 
   BKE_blendfile_link_append_context_library_add(lapp_context, lib->filepath_abs);
 
-  BKE_blendfile_library_relocate(
-      lapp_context, reports, lib, true, bmain, CTX_data_scene(C), CTX_data_view_layer(C));
+  BKE_blendfile_library_relocate(lapp_context, reports, lib, true);
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
@@ -711,12 +726,16 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       return OPERATOR_CANCELLED;
     }
 
+    LibraryLink_Params lapp_params;
+    BLO_library_link_params_init_with_context(
+        &lapp_params, bmain, flag, 0, CTX_data_scene(C), CTX_data_view_layer(C), NULL);
+
     if (BLI_path_cmp(lib->filepath_abs, path) == 0) {
       CLOG_INFO(&LOG, 4, "We are supposed to reload '%s' lib (%d)", lib->filepath, lib->id.us);
 
       do_reload = true;
 
-      lapp_context = BKE_blendfile_link_append_context_new(flag);
+      lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
       BKE_blendfile_link_append_context_library_add(lapp_context, path);
     }
     else {
@@ -737,7 +756,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
         }
       }
 
-      lapp_context = BKE_blendfile_link_append_context_new(flag);
+      lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
 
       if (totfiles) {
         RNA_BEGIN (op->ptr, itemptr, "files") {
@@ -765,13 +784,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
           lapp_context, BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT, true);
     }
 
-    BKE_blendfile_library_relocate(lapp_context,
-                                   op->reports,
-                                   lib,
-                                   do_reload,
-                                   bmain,
-                                   CTX_data_scene(C),
-                                   CTX_data_view_layer(C));
+    BKE_blendfile_library_relocate(lapp_context, op->reports, lib, do_reload);
 
     BKE_blendfile_link_append_context_free(lapp_context);
 

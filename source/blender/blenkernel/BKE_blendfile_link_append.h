@@ -25,6 +25,7 @@ extern "C" {
 
 struct ID;
 struct Library;
+struct LibraryLink_Params;
 struct Main;
 struct ReportList;
 struct Scene;
@@ -34,7 +35,8 @@ struct View3D;
 typedef struct BlendfileLinkAppendContext BlendfileLinkAppendContext;
 typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;
 
-BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(const int flag);
+BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(
+    struct LibraryLink_Params *params);
 void BKE_blendfile_link_append_context_free(struct BlendfileLinkAppendContext *lapp_context);
 void BKE_blendfile_link_append_context_flag_set(struct BlendfileLinkAppendContext *lapp_context,
                                                 const int flag,
@@ -66,25 +68,14 @@ struct ID *BKE_blendfile_link_append_context_item_newid_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
 
 void BKE_blendfile_append(struct BlendfileLinkAppendContext *lapp_context,
-                          struct ReportList *reports,
-                          struct Main *bmain,
-                          struct Scene *scene,
-                          struct ViewLayer *view_layer,
-                          const struct View3D *v3d);
+                          struct ReportList *reports);
 void BKE_blendfile_link(struct BlendfileLinkAppendContext *lapp_context,
-                        struct ReportList *reports,
-                        struct Main *bmain,
-                        struct Scene *scene,
-                        struct ViewLayer *view_layer,
-                        const struct View3D *v3d);
+                        struct ReportList *reports);
 
 void BKE_blendfile_library_relocate(struct BlendfileLinkAppendContext *lapp_context,
                                     struct ReportList *reports,
                                     struct Library *library,
-                                    const bool do_reload,
-                                    struct Main *bmain,
-                                    struct Scene *scene,
-                                    struct ViewLayer *view_layer);
+                                    const bool do_reload);
 
 #ifdef __cplusplus
 }
