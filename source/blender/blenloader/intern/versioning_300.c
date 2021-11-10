@@ -645,6 +645,10 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 25)) {
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
@@ -780,7 +784,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   {
     /* Keep this block, even when empty. */
 
-    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
   }
 }
 
