@@ -70,7 +70,8 @@ using namespace metal;
 
 /* kernel.h adapters */
 
-#define ccl_gpu_kernel(...)
+#define ccl_gpu_kernel(block_num_threads, thread_num_registers)
+#define ccl_gpu_kernel_threads(block_num_threads)
 
 /* convert a comma-separated list into a semicolon-separated list (so that we can generate a struct based on kernel entrypoint parameters) */
 #define FN0()
@@ -143,7 +144,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
     ccl_private MetalKernelContext &context; \
     __VA_ARGS__; \
     int operator()(const int state) const { return (func); } \
-  }ccl_gpu_kernel_lambda_pass(context); ccl_gpu_kernel_lambda_pass
+  } ccl_gpu_kernel_lambda_pass(context)
 
 // clang-format on
 
