@@ -62,15 +62,15 @@ bool BlenderSync::BKE_object_is_modified(BL::Object &b_ob)
   return false;
 }
 
-bool BlenderSync::object_is_geometry(BL::Object &b_ob)
+bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 {
-  BL::ID b_ob_data = b_ob.data();
+  BL::ID b_ob_data = b_ob_info.object_data;
 
   if (!b_ob_data) {
     return false;
   }
 
-  BL::Object::type_enum type = b_ob.type();
+  BL::Object::type_enum type = b_ob_info.iter_object.type();
 
   if (type == BL::Object::type_VOLUME || type == BL::Object::type_HAIR) {
     /* Will be exported attached to mesh. */
@@ -85,6 +85,24 @@ bool BlenderSync::object_is_geometry(BL::Object &b_ob)
   }
 
   return b_ob_data.is_a(&RNA_Mesh);
+}
+
+bool BlenderSync::object_can_have_geometry(BL::Object &b_ob)
+{
+  BL::Object::type_enum type = b_ob.type();
+  switch (type) {
+    case BL::Object::type_MESH:
+    case BL::Object::type_CURVE:
+    case BL::Object::type_SURFACE:
+    case BL::Object::type_META:
+    case BL::Object::type_FONT:
+    case BL::Object::type_HAIR:
+    case BL::Object::type_POINTCLOUD:
+    case BL::Object::type_VOLUME:
+      return true;
+    default:
+      return false;
+  }
 }
 
 bool BlenderSync::object_is_light(BL::Object &b_ob)
@@ -189,7 +207,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
 
   /* only interested in object that we can create meshes from */
-  if (!object_is_geometry(b_ob)) {
+  if (!object_is_geometry(b_ob_info)) {
     return NULL;
   }
 

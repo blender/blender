@@ -162,19 +162,19 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     /* Object */
     else if (b_id.is_a(&RNA_Object)) {
       BL::Object b_ob(b_id);
-      const bool is_geometry = object_is_geometry(b_ob);
-      const bool is_light = !is_geometry && object_is_light(b_ob);
+      const bool can_have_geometry = object_can_have_geometry(b_ob);
+      const bool is_light = !can_have_geometry && object_is_light(b_ob);
 
       if (b_ob.is_instancer() && b_update.is_updated_shading()) {
         /* Needed for e.g. object color updates on instancer. */
         object_map.set_recalc(b_ob);
       }
 
-      if (is_geometry || is_light) {
+      if (can_have_geometry || is_light) {
         const bool updated_geometry = b_update.is_updated_geometry();
 
         /* Geometry (mesh, hair, volume). */
-        if (is_geometry) {
+        if (can_have_geometry) {
           if (b_update.is_updated_transform() || b_update.is_updated_shading()) {
             object_map.set_recalc(b_ob);
           }
