@@ -208,7 +208,8 @@ class BlenderSync {
   /* util */
   void find_shader(BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
   bool BKE_object_is_modified(BL::Object &b_ob);
-  bool object_is_geometry(BL::Object &b_ob);
+  bool object_is_geometry(BObjectInfo &b_ob_info);
+  bool object_can_have_geometry(BL::Object &b_ob);
   bool object_is_light(BL::Object &b_ob);
 
   /* variables */
