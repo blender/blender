@@ -95,8 +95,7 @@ class HIPDevice : public Device {
 
   string compile_kernel(const uint kernel_features,
                         const char *name,
-                        const char *base = "hip",
-                        bool force_ptx = false);
+                        const char *base = "hip");
 
   virtual bool load_kernels(const uint kernel_features) override;
   void reserve_local_memory(const uint kernel_features);

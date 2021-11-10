@@ -222,7 +222,6 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   const string include_path = source_path;
   string cflags = string_printf(
       "-m%d "
-      "--ptxas-options=\"-v\" "
       "--use_fast_math "
       "-DHIPCC "
       "-I\"%s\"",
@@ -236,8 +235,7 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
 
 string HIPDevice::compile_kernel(const uint kernel_features,
                                  const char *name,
-                                 const char *base,
-                                 bool force_ptx)
+                                 const char *base)
 {
   /* Compute kernel name. */
   int major, minor;
@@ -255,13 +253,11 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
-    if (!force_ptx) {
-      const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, arch));
-      VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
-      if (path_exists(fatbin)) {
-        VLOG(1) << "Using precompiled kernel.";
-        return fatbin;
-      }
+    const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, arch));
+    VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
+    if (path_exists(fatbin)) {
+      VLOG(1) << "Using precompiled kernel.";
+      return fatbin;
     }
   }
 
@@ -298,9 +294,9 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 
 #  ifdef _WIN32
   if (!use_adaptive_compilation() && have_precompiled_kernels()) {
-    if (major < 3) {
+    if (!hipSupportsDevice(hipDevId)) {
       set_error(
-          string_printf("HIP backend requires compute capability 3.0 or up, but found %d.%d. "
+          string_printf("HIP backend requires compute capability 10.1 or up, but found %d.%d. "
                         "Your GPU is not supported.",
                         major,
                         minor));
