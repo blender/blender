@@ -840,6 +840,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(struct bContext *C,
                                                struct wmGizmo *gz,
                                                struct Base **r_base,
                                                struct BMElem **r_ele);
+void ED_view3d_gizmo_mesh_preselect_clear(struct wmGizmo *gz);
 
 /* space_view3d.c */
 void ED_view3d_buttons_region_layout_ex(const struct bContext *C,

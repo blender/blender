@@ -29,9 +29,11 @@
 #include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
@@ -51,6 +53,39 @@
 #include "ED_view3d.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Shared Internal API
+ * \{ */
+
+/**
+ * Check if drawing should be performed, clear the pre-selection in the case it's disabled.
+ * Without this, the gizmo would be visible while transforming. See T92954.
+ *
+ * NOTE(@campbellbarton): This is a workaround for the gizmo system, since typically poll
+ * would be used for this purpose. The problem with using poll is once the gizmo is visible again
+ * is there is a visible flicker showing the previous location before cursor motion causes the
+ * pre selection to be updated. While this is only a glitch, it's distracting.
+ * The gizmo system it's self could support this use case by tracking which gizmos draw and ensure
+ * gizmos always run #wmGizmoType.test_select before drawing, however pre-selection is already
+ * outside the scope of what gizmos are meant to be used for, so keep this workaround localized
+ * to this gizmo type unless this seems worth supporting for more typical use-cases.
+ *
+ * Longer term it may be better to use #wmPaintCursor instead of gizmos (as snapping preview does).
+ */
+static bool gizmo_preselect_poll_for_draw(const bContext *C, wmGizmo *gz)
+{
+  if (G.moving == false) {
+    RegionView3D *rv3d = CTX_wm_region_view3d(C);
+    if (!(rv3d && (rv3d->rflag & RV3D_NAVIGATING))) {
+      return true;
+    }
+  }
+  ED_view3d_gizmo_mesh_preselect_clear(gz);
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mesh Element (Vert/Edge/Face) Pre-Select Gizmo API
  * \{ */
 
@@ -65,8 +100,12 @@ typedef struct MeshElemGizmo3D {
   struct EditMesh_PreSelElem *psel;
 } MeshElemGizmo3D;
 
-static void gizmo_preselect_elem_draw(const bContext *UNUSED(C), wmGizmo *gz)
+static void gizmo_preselect_elem_draw(const bContext *C, wmGizmo *gz)
 {
+  if (!gizmo_preselect_poll_for_draw(C, gz)) {
+    return;
+  }
+
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
   if (gz_ele->base_index != -1) {
     Object *ob = gz_ele->bases[gz_ele->base_index]->object;
@@ -292,8 +331,12 @@ typedef struct MeshEdgeRingGizmo3D {
   struct EditMesh_PreSelEdgeRing *psel;
 } MeshEdgeRingGizmo3D;
 
-static void gizmo_preselect_edgering_draw(const bContext *UNUSED(C), wmGizmo *gz)
+static void gizmo_preselect_edgering_draw(const bContext *C, wmGizmo *gz)
 {
+  if (!gizmo_preselect_poll_for_draw(C, gz)) {
+    return;
+  }
+
   MeshEdgeRingGizmo3D *gz_ring = (MeshEdgeRingGizmo3D *)gz;
   if (gz_ring->base_index != -1) {
     Object *ob = gz_ring->bases[gz_ring->base_index]->object;
@@ -504,4 +547,33 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
     }
   }
 }
+
+void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz)
+{
+  if (STREQ(gz->type->idname, "GIZMO_GT_mesh_preselect_elem_3d")) {
+    MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
+    gz_ele->base_index = -1;
+    gz_ele->vert_index = -1;
+    gz_ele->edge_index = -1;
+    gz_ele->face_index = -1;
+  }
+  else if (STREQ(gz->type->idname, "GIZMO_GT_mesh_preselect_edgering_3d")) {
+    MeshEdgeRingGizmo3D *gz_ele = (MeshEdgeRingGizmo3D *)gz;
+    gz_ele->base_index = -1;
+    gz_ele->edge_index = -1;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+
+  const char *prop_ids[] = {"object_index", "vert_index", "edge_index", "face_index"};
+  for (int i = 0; i < ARRAY_SIZE(prop_ids); i++) {
+    PropertyRNA *prop = RNA_struct_find_property(gz->ptr, prop_ids[i]);
+    if (prop == NULL) {
+      continue;
+    }
+    RNA_property_int_set(gz->ptr, prop, -1);
+  }
+}
+
 /** \} */
