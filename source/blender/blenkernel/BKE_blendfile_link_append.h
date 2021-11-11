@@ -68,6 +68,34 @@ void *BKE_blendfile_link_append_context_item_userdata_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
 struct ID *BKE_blendfile_link_append_context_item_newid_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
+short BKE_blendfile_link_append_context_item_idcode_get(
+    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
+
+typedef enum eBlendfileLinkAppendForeachItemFlag {
+  /** Loop over directly linked items (i.e. those explicitely defined by user code). */
+  BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT = 1 << 0,
+  /** Loop over indirectly linked items (i.e. those defined by internal code, as dependencies of
+   * direct ones).
+   *
+   * IMPORTANT: Those 'indirect' items currently may not cover **all** indrectly linked data. See
+   * comments in #foreach_libblock_link_append_callback. */
+  BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 0,
+} eBlendfileLinkAppendForeachItemFlag;
+/** Callback called by #BKE_blendfile_link_append_context_item_foreach over each (or a subset of
+ * each) of the items in given #BlendfileLinkAppendContext.
+ *
+ * \param userdata: An opaque void pointer passed to the `callback_function`.
+ *
+ * \return `true` if iteration should continue, `false` otherwise. */
+typedef bool (*BKE_BlendfileLinkAppendContexteItemFunction)(
+    struct BlendfileLinkAppendContext *lapp_context,
+    struct BlendfileLinkAppendContextItem *item,
+    void *userdata);
+void BKE_blendfile_link_append_context_item_foreach(
+    struct BlendfileLinkAppendContext *lapp_context,
+    BKE_BlendfileLinkAppendContexteItemFunction callback_function,
+    const eBlendfileLinkAppendForeachItemFlag flag,
+    void *userdata);
 
 void BKE_blendfile_append(struct BlendfileLinkAppendContext *lapp_context,
                           struct ReportList *reports);

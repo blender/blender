@@ -277,9 +277,6 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
   BlendfileLinkAppendContextLibrary *lib_context = BLI_memarena_calloc(lapp_context->memarena,
                                                                        sizeof(*lib_context));
 
-  BlendfileLinkAppendContextLibrary *ctx_lib = BLI_memarena_alloc(lapp_context->memarena,
-                                                                  sizeof(*ctx_lib));
-
   size_t len = strlen(libname) + 1;
   char *libpath = BLI_memarena_alloc(lapp_context->memarena, len);
   BLI_strncpy(libpath, libname, len);
@@ -347,6 +344,44 @@ ID *BKE_blendfile_link_append_context_item_newid_get(
     BlendfileLinkAppendContext *UNUSED(lapp_context), BlendfileLinkAppendContextItem *item)
 {
   return item->new_id;
+}
+
+short BKE_blendfile_link_append_context_item_idcode_get(
+    struct BlendfileLinkAppendContext *UNUSED(lapp_context),
+    struct BlendfileLinkAppendContextItem *item)
+{
+  return item->idcode;
+}
+
+/** Iterate over all (or a subset) of the items listed in given #BlendfileLinkAppendContext, and
+ * call the `callback_function` on them.
+ *
+ * \param flag: Control which type of items to process (see
+ * #eBlendfileLinkAppendForeachItemFlag enum flags).
+ * \param userdata: An opaque void pointer passed to the `callback_function`.
+ */
+void BKE_blendfile_link_append_context_item_foreach(
+    struct BlendfileLinkAppendContext *lapp_context,
+    BKE_BlendfileLinkAppendContexteItemFunction callback_function,
+    const eBlendfileLinkAppendForeachItemFlag flag,
+    void *userdata)
+{
+  for (LinkNode *itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
+    BlendfileLinkAppendContextItem *item = itemlink->link;
+
+    if ((flag & BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT) == 0 &&
+        (item->tag & LINK_APPEND_TAG_INDIRECT) == 0) {
+      continue;
+    }
+    if ((flag & BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT) == 0 &&
+        (item->tag & LINK_APPEND_TAG_INDIRECT) != 0) {
+      continue;
+    }
+
+    if (!callback_function(lapp_context, item, userdata)) {
+      break;
+    }
+  }
 }
 
 /** \} */
