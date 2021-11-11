@@ -306,11 +306,23 @@ class BezierSpline final : public Spline {
   blender::Span<HandleType> handle_types_left() const;
   blender::MutableSpan<HandleType> handle_types_left();
   blender::Span<blender::float3> handle_positions_left() const;
-  blender::MutableSpan<blender::float3> handle_positions_left();
+  /**
+   * Get writable access to the hande position.
+   *
+   * \param write_only: pass true for an uninitialized spline, this prevents accessing
+   * uninitialized memory while autogenerating handles.
+   */
+  blender::MutableSpan<blender::float3> handle_positions_left(bool write_only = false);
   blender::Span<HandleType> handle_types_right() const;
   blender::MutableSpan<HandleType> handle_types_right();
   blender::Span<blender::float3> handle_positions_right() const;
-  blender::MutableSpan<blender::float3> handle_positions_right();
+  /**
+   * Get writable access to the hande position.
+   *
+   * \param write_only: pass true for an uninitialized spline, this prevents accessing
+   * uninitialized memory while autogenerating handles.
+   */
+  blender::MutableSpan<blender::float3> handle_positions_right(bool write_only = false);
   void ensure_auto_handles() const;
 
   void translate(const blender::float3 &translation) override;
