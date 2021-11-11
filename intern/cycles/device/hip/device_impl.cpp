@@ -376,10 +376,9 @@ string HIPDevice::compile_kernel(const uint kernel_features,
 
 bool HIPDevice::load_kernels(const uint kernel_features)
 {
-  /* TODO(sergey): Support kernels re-load for CUDA devices adaptive compile.
+  /* TODO(sergey): Support kernels re-load for HIP devices adaptive compile.
    *
-   * Currently re-loading kernel will invalidate memory pointers,
-   * causing problems in cuCtxSynchronize.
+   * Currently re-loading kernels will invalidate memory pointers.
    */
   if (hipModule) {
     if (use_adaptive_compilation()) {
@@ -900,7 +899,6 @@ void HIPDevice::tex_alloc(device_texture &mem)
 {
   HIPContextScope scope(this);
 
-  /* General variables for both architectures */
   string bind_name = mem.name;
   size_t dsize = datatype_size(mem.data_type);
   size_t size = mem.memory_size();
@@ -1065,7 +1063,6 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    /* Kepler+, bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 
