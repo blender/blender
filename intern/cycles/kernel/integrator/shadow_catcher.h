@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "kernel/film/write_passes.h"
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/state_util.h"
 
@@ -47,7 +48,7 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals 
     return false;
   }
 
-  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
     return false;
   }
 
@@ -86,6 +87,28 @@ ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(const uint32_t p
 ccl_device_forceinline bool kernel_shadow_catcher_is_object_pass(const uint32_t path_flag)
 {
   return path_flag & PATH_RAY_SHADOW_CATCHER_PASS;
+}
+
+/* Write shadow catcher passes on a bounce from the shadow catcher object. */
+ccl_device_forceinline void kernel_write_shadow_catcher_bounce_data(
+    KernelGlobals kg, IntegratorState state, ccl_global float *ccl_restrict render_buffer)
+{
+  kernel_assert(kernel_data.film.pass_shadow_catcher_sample_count != PASS_UNUSED);
+  kernel_assert(kernel_data.film.pass_shadow_catcher_matte != PASS_UNUSED);
+
+  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
+  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
+                                        kernel_data.film.pass_stride;
+  ccl_global float *buffer = render_buffer + render_buffer_offset;
+
+  /* Count sample for the shadow catcher object. */
+  kernel_write_pass_float(buffer + kernel_data.film.pass_shadow_catcher_sample_count, 1.0f);
+
+  /* Since the split is done, the sample does not contribute to the matte, so accumulate it as
+   * transparency to the matte. */
+  const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+  kernel_write_pass_float(buffer + kernel_data.film.pass_shadow_catcher_matte + 3,
+                          average(throughput));
 }
 
 #endif /* __SHADOW_CATCHER__ */

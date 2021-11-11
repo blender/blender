@@ -88,7 +88,10 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
 #ifdef __SHADOW_CATCHER__
 /* Split path if a shadow catcher was hit. */
 ccl_device_forceinline void integrator_split_shadow_catcher(
-    KernelGlobals kg, IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg,
+    IntegratorState state,
+    ccl_private const Intersection *ccl_restrict isect,
+    ccl_global float *ccl_restrict render_buffer)
 {
   /* Test if we hit a shadow catcher object, and potentially split the path to continue tracing two
    * paths from here. */
@@ -96,6 +99,8 @@ ccl_device_forceinline void integrator_split_shadow_catcher(
   if (!kernel_shadow_catcher_is_path_split_bounce(kg, state, object_flags)) {
     return;
   }
+
+  kernel_write_shadow_catcher_bounce_data(kg, state, render_buffer);
 
   /* Mark state as having done a shadow catcher split so that it stops contributing to
    * the shadow catcher matte pass, but keeps contributing to the combined pass. */
@@ -191,6 +196,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
     KernelGlobals kg,
     IntegratorState state,
     ccl_private const Intersection *ccl_restrict isect,
+    ccl_global float *ccl_restrict render_buffer,
     const bool hit)
 {
   /* Continue with volume kernel if we are inside a volume, regardless if we hit anything. */
@@ -233,7 +239,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
 
 #ifdef __SHADOW_CATCHER__
         /* Handle shadow catcher. */
-        integrator_split_shadow_catcher(kg, state, isect);
+        integrator_split_shadow_catcher(kg, state, isect, render_buffer);
 #endif
       }
       else {
@@ -253,7 +259,10 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
  * volume shading and termination testing have already been done. */
 template<uint32_t current_kernel>
 ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
-    KernelGlobals kg, IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg,
+    IntegratorState state,
+    ccl_private const Intersection *ccl_restrict isect,
+    ccl_global float *ccl_restrict render_buffer)
 {
   if (isect->prim != PRIM_NONE) {
     /* Hit a surface, continue with light or surface kernel. */
@@ -278,7 +287,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
 
 #ifdef __SHADOW_CATCHER__
       /* Handle shadow catcher. */
-      integrator_split_shadow_catcher(kg, state, isect);
+      integrator_split_shadow_catcher(kg, state, isect, render_buffer);
 #endif
       return;
     }
@@ -290,7 +299,9 @@ ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
   }
 }
 
-ccl_device void integrator_intersect_closest(KernelGlobals kg, IntegratorState state)
+ccl_device void integrator_intersect_closest(KernelGlobals kg,
+                                             IntegratorState state,
+                                             ccl_global float *ccl_restrict render_buffer)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_CLOSEST);
 
@@ -341,7 +352,7 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg, IntegratorState s
 
   /* Setup up next kernel to be executed. */
   integrator_intersect_next_kernel<DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST>(
-      kg, state, &isect, hit);
+      kg, state, &isect, render_buffer, hit);
 }
 
 CCL_NAMESPACE_END

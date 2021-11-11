@@ -492,10 +492,6 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
 #endif
 
-#ifdef __SHADOW_CATCHER__
-    kernel_write_shadow_catcher_bounce_data(kg, state, &sd, render_buffer);
-#endif
-
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
     integrate_surface_direct_light(kg, state, &sd, &rng_state);

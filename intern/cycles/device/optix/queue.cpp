@@ -73,7 +73,8 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *a
                         sizeof(device_ptr),
                         cuda_stream_));
 
-  if (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE) {
+  if (kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE) {
     cuda_device_assert(
         cuda_device_,
         cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, render_buffer),

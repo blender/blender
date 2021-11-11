@@ -76,7 +76,7 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
     if (queued_kernel) {
       switch (queued_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
-          integrator_intersect_closest(kg, state);
+          integrator_intersect_closest(kg, state, render_buffer);
           break;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
           integrator_shade_background(kg, state, render_buffer);
