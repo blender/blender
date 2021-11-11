@@ -1056,17 +1056,17 @@
       <ThemeInfo
         info_selected="#6080ff"
         info_selected_text="#000000"
-        info_error="#FF0038ff"
+        info_error="#ff0038ff"
         info_error_text="#000000"
-        info_warning="#FFE900ff"
+        info_warning="#ffe900ff"
         info_warning_text="#000000"
-        info_info="#0068B3ff"
+        info_info="#0068b3ff"
         info_info_text="#000000"
-        info_debug="#B30095ff"
+        info_debug="#b30095ff"
         info_debug_text="#000000"
-        info_property="#44B300ff"
+        info_property="#44b300ff"
         info_property_text="#000000"
-        info_operator="#44B300ff"
+        info_operator="#44b300ff"
         info_operator_text="#000000"
         >
         <space>
@@ -1352,6 +1352,15 @@
             </panelcolors>
           </ThemeSpaceGeneric>
         </space>
+        <space_list>
+          <ThemeSpaceListGeneric
+            list="#adadad"
+            list_title="#c3c3c3"
+            list_text="#c3c3c3"
+            list_text_hi="#00ffff"
+            >
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeSpreadsheet>
     </spreadsheet>
     <bone_color_sets>
@@ -1530,6 +1539,44 @@
         >
       </ThemeCollectionColor>
     </collection_color>
+    <strip_color>
+      <ThemeStripColor
+        color="#e2605b"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#f1a355"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#f1dc55"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#7bcc7b"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#5db6ea"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#8d59da"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#c673b8"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#7a5441"
+        >
+      </ThemeStripColor>
+      <ThemeStripColor
+        color="#5f5f5f"
+        >
+      </ThemeStripColor>
+    </strip_color>
   </Theme>
   <ThemeStyle>
     <panel_title>
