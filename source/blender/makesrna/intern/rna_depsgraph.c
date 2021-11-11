@@ -207,8 +207,10 @@ static bool rna_DepsgraphUpdate_is_updated_transform_get(PointerRNA *ptr)
 
 static bool rna_DepsgraphUpdate_is_updated_shading_get(PointerRNA *ptr)
 {
+  /* Assume any animated parameters can affect shading, we don't have fine
+   * grained enough updates to distinguish this. */
   ID *id = ptr->data;
-  return ((id->recalc & ID_RECALC_SHADING) != 0);
+  return ((id->recalc & (ID_RECALC_SHADING | ID_RECALC_ANIMATION)) != 0);
 }
 
 static bool rna_DepsgraphUpdate_is_updated_geometry_get(PointerRNA *ptr)
