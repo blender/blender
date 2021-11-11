@@ -621,6 +621,12 @@ typedef struct TransInfo {
     O_SET,
   } orient_curr;
 
+  /**
+   * All values from `TransInfo.orient[].type` converted into a flag
+   * to allow quickly checking which orientation types are used.
+   */
+  int orient_type_mask;
+
   short prop_mode;
 
   /** Value taken as input, either through mouse coordinates or entered as a parameter. */

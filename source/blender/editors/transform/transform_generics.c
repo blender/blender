@@ -512,6 +512,15 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
+    t->orient_type_mask = 0;
+    for (int i = 0; i < 3; i++) {
+      const int type = t->orient[i].type;
+      if (type < V3D_ORIENT_CUSTOM_MATRIX) {
+        BLI_assert(type < 32);
+        t->orient_type_mask |= (1 << type);
+      }
+    }
+
     transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
   }
 

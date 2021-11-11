@@ -662,6 +662,12 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   mul_m3_m3m3(td->axismtx, omat, pmat);
   normalize_m3(td->axismtx);
 
+  if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
+    if (!gimbal_axis_pose(ob, pchan, td->ext->axismtx_gimbal)) {
+      copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
+    }
+  }
+
   if (t->mode == TFM_BONE_ENVELOPE_DIST) {
     td->loc = NULL;
     td->val = &bone->dist;

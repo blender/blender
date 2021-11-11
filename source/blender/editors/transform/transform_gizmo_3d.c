@@ -515,7 +515,7 @@ static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
 {
   /* Protect-flags apply to local space in pose mode, so only let them influence axis
    * visibility if we show the global orientation, otherwise it's confusing. */
-  if (orientation_index == V3D_ORIENT_LOCAL) {
+  if (ELEM(orientation_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
     protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
   }
 }
