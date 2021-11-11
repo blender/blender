@@ -713,7 +713,8 @@ struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 /* transform_gizmo.c */
 #define GIZMO_AXIS_LINE_WIDTH 2.0f
 
-bool gimbal_axis(struct Object *ob, float gmat[3][3]);
+bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
+bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
 void drawDial3d(const TransInfo *t);
 
 /** \} */
