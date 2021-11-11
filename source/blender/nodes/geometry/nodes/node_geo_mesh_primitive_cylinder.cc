@@ -56,8 +56,8 @@ static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
       .description(N_("The height of the cylinder"));
   b.add_output<decl::Geometry>(N_("Mesh"));
   b.add_output<decl::Bool>(N_("Top")).field_source();
-  b.add_output<decl::Bool>(N_("Bottom")).field_source();
   b.add_output<decl::Bool>(N_("Side")).field_source();
+  b.add_output<decl::Bool>(N_("Bottom")).field_source();
 }
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,
