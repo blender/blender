@@ -142,11 +142,14 @@ Span<float3> BezierSpline::handle_positions_left() const
   this->ensure_auto_handles();
   return handle_positions_left_;
 }
-MutableSpan<float3> BezierSpline::handle_positions_left()
+MutableSpan<float3> BezierSpline::handle_positions_left(const bool write_only)
 {
-  this->ensure_auto_handles();
+  if (!write_only) {
+    this->ensure_auto_handles();
+  }
   return handle_positions_left_;
 }
+
 Span<BezierSpline::HandleType> BezierSpline::handle_types_right() const
 {
   return handle_types_right_;
@@ -160,9 +163,11 @@ Span<float3> BezierSpline::handle_positions_right() const
   this->ensure_auto_handles();
   return handle_positions_right_;
 }
-MutableSpan<float3> BezierSpline::handle_positions_right()
+MutableSpan<float3> BezierSpline::handle_positions_right(const bool write_only)
 {
-  this->ensure_auto_handles();
+  if (!write_only) {
+    this->ensure_auto_handles();
+  }
   return handle_positions_right_;
 }
 
