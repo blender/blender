@@ -325,6 +325,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=1024,
     )
 
+    sample_offset: IntProperty(
+        name="Sample Offset",
+        description="Number of samples to skip when starting render",
+        min=0, max=(1 << 24),
+        default=0,
+    )
+
     time_limit: FloatProperty(
         name="Time Limit",
         description="Limit the render time (excluding synchronization time)."

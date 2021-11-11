@@ -36,6 +36,7 @@ void WorkTileScheduler::set_max_num_path_states(int max_num_path_states)
 void WorkTileScheduler::reset(const BufferParams &buffer_params,
                               int sample_start,
                               int samples_num,
+                              int sample_offset,
                               float scrambling_distance)
 {
   /* Image buffer parameters. */
@@ -51,6 +52,7 @@ void WorkTileScheduler::reset(const BufferParams &buffer_params,
   /* Samples parameters. */
   sample_start_ = sample_start;
   samples_num_ = samples_num;
+  sample_offset_ = sample_offset;
 
   /* Initialize new scheduling. */
   reset_scheduler_state();
@@ -111,6 +113,7 @@ bool WorkTileScheduler::get_work(KernelWorkTile *work_tile_, const int max_work_
   work_tile.h = tile_size_.height;
   work_tile.start_sample = sample_start_ + start_sample;
   work_tile.num_samples = min(tile_size_.num_samples, samples_num_ - start_sample);
+  work_tile.sample_offset = sample_offset_;
   work_tile.offset = offset_;
   work_tile.stride = stride_;
 

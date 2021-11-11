@@ -835,18 +835,25 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   /* samples */
   int samples = get_int(cscene, "samples");
   int preview_samples = get_int(cscene, "preview_samples");
+  int sample_offset = get_int(cscene, "sample_offset");
 
   if (background) {
     params.samples = samples;
+    params.sample_offset = sample_offset;
   }
   else {
     params.samples = preview_samples;
-    if (params.samples == 0)
+    if (params.samples == 0) {
       params.samples = INT_MAX;
+    }
+    params.sample_offset = 0;
   }
 
+  /* Clamp sample offset. */
+  params.sample_offset = clamp(params.sample_offset, 0, Integrator::MAX_SAMPLES);
+
   /* Clamp samples. */
-  params.samples = min(params.samples, Integrator::MAX_SAMPLES);
+  params.samples = clamp(params.samples, 0, Integrator::MAX_SAMPLES - params.sample_offset);
 
   /* Viewport Performance */
   params.pixel_size = b_engine.get_preview_pixel_size(b_scene);

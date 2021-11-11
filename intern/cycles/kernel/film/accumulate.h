@@ -141,7 +141,8 @@ ccl_device_forceinline ccl_global float *kernel_accum_pixel_render_buffer(
 ccl_device_inline int kernel_accum_sample(KernelGlobals kg,
                                           ConstIntegratorState state,
                                           ccl_global float *ccl_restrict render_buffer,
-                                          int sample)
+                                          int sample,
+                                          int sample_offset)
 {
   if (kernel_data.film.pass_sample_count == PASS_UNUSED) {
     return sample;
@@ -149,7 +150,8 @@ ccl_device_inline int kernel_accum_sample(KernelGlobals kg,
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
 
-  return atomic_fetch_and_add_uint32((uint *)(buffer) + kernel_data.film.pass_sample_count, 1);
+  return atomic_fetch_and_add_uint32((uint *)(buffer) + kernel_data.film.pass_sample_count, 1) +
+         sample_offset;
 }
 
 ccl_device void kernel_accum_adaptive_buffer(KernelGlobals kg,

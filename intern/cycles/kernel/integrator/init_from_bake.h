@@ -65,7 +65,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   }
 
   /* Always count the sample, even if the camera sample will reject the ray. */
-  const int sample = kernel_accum_sample(kg, state, render_buffer, scheduled_sample);
+  const int sample = kernel_accum_sample(
+      kg, state, render_buffer, scheduled_sample, tile->sample_offset);
 
   /* Setup render buffers. */
   const int index = INTEGRATOR_STATE(state, path, render_pixel_index);

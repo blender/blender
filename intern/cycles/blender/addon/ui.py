@@ -290,6 +290,9 @@ class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
         col.active = not (cscene.use_adaptive_sampling and cscene.use_preview_adaptive_sampling)
         col.prop(cscene, "sampling_pattern", text="Pattern")
 
+        col = layout.column(align=True)
+        col.prop(cscene, "sample_offset")
+
         layout.separator()
 
         col = layout.column(align=True)

@@ -250,7 +250,8 @@ void PathTraceWorkGPU::init_execution()
 
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
                                       int start_sample,
-                                      int samples_num)
+                                      int samples_num,
+                                      int sample_offset)
 {
   /* Limit number of states for the tile and rely on a greedy scheduling of tiles. This allows to
    * add more work (because tiles are smaller, so there is higher chance that more paths will
@@ -261,6 +262,7 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
   work_tile_scheduler_.reset(effective_buffer_params_,
                              start_sample,
                              samples_num,
+                             sample_offset,
                              device_scene_->data.integrator.scrambling_distance);
 
   enqueue_reset();

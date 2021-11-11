@@ -1410,6 +1410,7 @@ typedef struct KernelWorkTile {
 
   uint start_sample;
   uint num_samples;
+  uint sample_offset;
 
   int offset;
   uint stride;
