@@ -1026,17 +1026,22 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
-  int i = 0;
+  int geometry_socket_count = 0;
+
+  int i;
   LISTBASE_FOREACH_INDEX (const bNodeSocket *, socket, &nmd->node_group->inputs, i) {
     /* The first socket is the special geometry socket for the modifier object. */
-    if (i == 0 && socket->type == SOCK_GEOMETRY) {
-      continue;
+    if (i == 0) {
+      if (socket->type == SOCK_GEOMETRY) {
+        continue;
+      }
+      BKE_modifier_set_error(ob, md, "The first node group input must be a geometry");
     }
 
     IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket->identifier);
     if (property == nullptr) {
       if (socket->type == SOCK_GEOMETRY) {
-        BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
+        geometry_socket_count++;
       }
       else {
         BKE_modifier_set_error(ob, md, "Missing property for input socket \"%s\"", socket->name);
@@ -1049,6 +1054,10 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
           ob, md, "Property type does not match input socket \"(%s)\"", socket->name);
       continue;
     }
+  }
+
+  if (geometry_socket_count > 1) {
+    BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
   }
 }
 
