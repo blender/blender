@@ -294,7 +294,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   object->set_visibility(visibility);
 
-  object->set_is_shadow_catcher(b_ob.is_shadow_catcher());
+  object->set_is_shadow_catcher(b_ob.is_shadow_catcher() || b_parent.is_shadow_catcher());
 
   float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
   object->set_shadow_terminator_shading_offset(shadow_terminator_shading_offset);
