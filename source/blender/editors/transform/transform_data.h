@@ -85,6 +85,8 @@ typedef struct TransDataExtension {
   float isize[3];
   /** Object matrix. */
   float obmat[4][4];
+  /** Use for #V3D_ORIENT_GIMBAL orientation. */
+  float axismtx_gimbal[3][3];
   /** Use instead of #TransData.smtx,
    * It is the same but without the #Bone.bone_mat, see #TD_PBONE_LOCAL_MTX_C. */
   float l_smtx[3][3];
