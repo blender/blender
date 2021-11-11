@@ -67,7 +67,9 @@ typedef struct {
   char abspath[FILE_MAX]; /* absolute path */
   BlendHandle *blo_handle;
   /* Referenced by `blo_handle`, so stored here to keep alive for long enough. */
+  ReportList reports;
   BlendFileReadReport bf_reports;
+
   int flag;
   PyObject *dict;
   /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
@@ -256,16 +258,17 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   PyObject *ret;
   BPy_Library *self_from;
   PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX);
-  ReportList reports;
+  ReportList *reports = &self->reports;
+  BlendFileReadReport *bf_reports = &self->bf_reports;
 
-  BKE_reports_init(&reports, RPT_STORE);
-  BlendFileReadReport bf_reports = {.reports = &reports};
+  BKE_reports_init(reports, RPT_STORE);
+  memset(bf_reports, 0, sizeof(*bf_reports));
+  bf_reports->reports = reports;
 
-  self->bf_reports = bf_reports;
-  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &self->bf_reports);
+  self->blo_handle = BLO_blendhandle_from_file(self->abspath, bf_reports);
 
   if (self->blo_handle == NULL) {
-    if (BPy_reports_to_error(&reports, PyExc_IOError, true) != -1) {
+    if (BPy_reports_to_error(reports, PyExc_IOError, true) != -1) {
       PyErr_Format(PyExc_IOError, "load: %s failed to open blend file", self->abspath);
     }
     return NULL;
@@ -301,7 +304,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   PyTuple_SET_ITEMS(ret, (PyObject *)self_from, (PyObject *)self);
   Py_INCREF(self);
 
-  BKE_reports_clear(&reports);
+  BKE_reports_clear(reports);
 
   return ret;
 }
