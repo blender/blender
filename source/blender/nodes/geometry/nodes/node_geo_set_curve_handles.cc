@@ -28,6 +28,7 @@ static void geo_node_set_curve_handles_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Offset")).default_value(float3(0.0f, 0.0f, 0.0f)).supports_field();
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
@@ -50,7 +51,8 @@ static void geo_node_set_curve_handles_init(bNodeTree *UNUSED(tree), bNode *node
 static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
                                       GeometryComponent &component,
                                       const Field<bool> &selection_field,
-                                      const Field<float3> &position_field)
+                                      const Field<float3> &position_field,
+                                      const Field<float3> &offset_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
   const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
@@ -111,11 +113,22 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     }
   }
 
-  OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output_only<float3>(
-      side, ATTR_DOMAIN_POINT);
   fn::FieldEvaluator position_evaluator{field_context, &selection};
-  position_evaluator.add_with_destination(position_field, positions.varray());
+  position_evaluator.add(position_field);
+  position_evaluator.add(offset_field);
   position_evaluator.evaluate();
+
+  const VArray<float3> &positions_input = position_evaluator.get_evaluated<float3>(0);
+  const VArray<float3> &offsets_input = position_evaluator.get_evaluated<float3>(1);
+
+  OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output<float3>(
+      side, ATTR_DOMAIN_POINT, {0, 0, 0});
+  MutableSpan<float3> position_mutable = positions.as_span();
+
+  for (int i : selection) {
+    position_mutable[i] = positions_input[i] + offsets_input[i];
+  }
+
   positions.save();
 }
 
@@ -128,6 +141,7 @@ static void geo_node_set_curve_handles_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
+  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
 
   bool has_bezier = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
@@ -137,7 +151,8 @@ static void geo_node_set_curve_handles_exec(GeoNodeExecParams params)
       set_position_in_component(mode,
                                 geometry_set.get_component_for_write<CurveComponent>(),
                                 selection_field,
-                                position_field);
+                                position_field,
+                                offset_field);
     }
   });
   if (!has_bezier) {
