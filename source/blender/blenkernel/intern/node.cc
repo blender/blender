@@ -4722,6 +4722,9 @@ static OutputFieldDependency find_group_output_dependencies(
         /* Propagate search further to the left. */
         for (const InputSocketRef *origin_input_socket :
              gather_input_socket_dependencies(field_dependency, origin_node)) {
+          if (!origin_input_socket->is_available()) {
+            continue;
+          }
           if (!field_state_by_socket_id[origin_input_socket->id()].is_single) {
             if (handled_sockets.add(origin_input_socket)) {
               sockets_to_check.push(origin_input_socket);
@@ -4770,6 +4773,9 @@ static void propagate_data_requirements_from_right_to_left(
         const Vector<const InputSocketRef *> connected_inputs = gather_input_socket_dependencies(
             field_dependency, *node);
         for (const InputSocketRef *input_socket : connected_inputs) {
+          if (!input_socket->is_available()) {
+            continue;
+          }
           if (inferencing_interface.inputs[input_socket->index()] ==
               InputSocketFieldType::Implicit) {
             if (!input_socket->is_logically_linked()) {
