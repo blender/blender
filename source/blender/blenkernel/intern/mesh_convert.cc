@@ -1279,7 +1279,7 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
 
 /**
  * \param use_virtual_modifiers: When enabled calculate virtual-modifiers before applying `md_eval`
- * support this since virtual-modieirs are not modifiers from auser perspective,
+ * support this since virtual-modifiers are not modifiers from a user perspective,
  * allowing shape keys to be included with the modifier being applied, see: T91923.
  */
 Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,

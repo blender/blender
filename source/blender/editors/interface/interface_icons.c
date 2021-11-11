@@ -1484,7 +1484,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 
 /**
  * Version of #icon_draw_rect() that uses the GPU for scaling. This is only used for
- * #ICON_TYPE_IMBUF because it's a backported fix for performance issues, see T92922. Only
+ * #ICON_TYPE_IMBUF because it's a back-ported fix for performance issues, see T92922. Only
  * File/Asset Browser use #ICON_TYPE_IMBUF right now, which makes implications more predictable.
  *
  * TODO(Julian): This code is mostly duplicated. #icon_draw_rect() should be ported to use the GPU

@@ -1775,7 +1775,7 @@ static void object_update_from_subsurf_ccg(Object *object)
    * it is orig as in what was in object_eval->data before evaluating
    * modifier stack.
    *
-   * mesh_cow is a copy-on-written version od object_orig->data.
+   * mesh_cow is a copy-on-written version of `object_orig->data`.
    */
   Mesh *mesh_cow = (Mesh *)object->runtime.data_orig;
   copy_ccg_data(mesh_cow, mesh_orig, CD_MDISPS);
