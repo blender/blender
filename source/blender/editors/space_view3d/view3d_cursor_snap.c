@@ -759,7 +759,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 /** \name Callbacks
  * \{ */
 
-static bool v3d_cursor_snap_pool_fn(bContext *C)
+static bool v3d_cursor_snap_poll_fn(bContext *C)
 {
   if (G.moving) {
     return false;
@@ -898,7 +898,7 @@ static void v3d_cursor_snap_activate(void)
     }
 
     struct wmPaintCursor *pc = WM_paint_cursor_activate(
-        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_pool_fn, v3d_cursor_snap_draw_fn, NULL);
+        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_poll_fn, v3d_cursor_snap_draw_fn, NULL);
     data_intern->handle = pc;
   }
 }
