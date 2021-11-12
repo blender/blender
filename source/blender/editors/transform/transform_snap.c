@@ -200,7 +200,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
   if (t->spacetype == SPACE_VIEW3D) {
     bool draw_target = (t->tsnap.status & TARGET_INIT) &&
-                       (t->scene->toolsettings->snap_mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
+                       (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
 
     if (draw_target || validSnap(t)) {
       const float *loc_cur = NULL;
@@ -1248,7 +1248,7 @@ short snapObjectsTransform(
       t->depsgraph,
       t->region,
       t->view,
-      t->settings->snap_mode,
+      t->tsnap.mode,
       &(const struct SnapObjectParams){
           .snap_select = t->tsnap.modeSelect,
           .edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL,
