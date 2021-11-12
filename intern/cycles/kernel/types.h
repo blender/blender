@@ -430,6 +430,16 @@ typedef struct BsdfEval {
   float3 glossy;
 } BsdfEval;
 
+/* Closure Filter */
+
+typedef enum FilterClosures {
+  FILTER_CLOSURE_EMISSION = (1 << 0),
+  FILTER_CLOSURE_DIFFUSE = (1 << 1),
+  FILTER_CLOSURE_GLOSSY = (1 << 2),
+  FILTER_CLOSURE_TRANSMISSION = (1 << 3),
+  FILTER_CLOSURE_DIRECT_LIGHT = (1 << 4),
+} FilterClosures;
+
 /* Shader Flag */
 
 typedef enum ShaderFlag {
@@ -1186,7 +1196,11 @@ typedef struct KernelIntegrator {
   int has_shadow_catcher;
   float scrambling_distance;
 
+  /* Closure filter. */
+  int filter_closures;
+
   /* padding */
+  int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

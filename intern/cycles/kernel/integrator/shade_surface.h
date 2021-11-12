@@ -445,7 +445,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     }
 #endif
 
-    shader_prepare_surface_closures(kg, state, &sd);
+    shader_prepare_surface_closures(kg, state, &sd, path_flag);
 
 #ifdef __HOLDOUT__
     /* Evaluate holdout. */

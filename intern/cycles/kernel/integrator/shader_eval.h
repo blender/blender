@@ -105,8 +105,45 @@ ccl_device_inline void shader_copy_volume_phases(ccl_private ShaderVolumePhases 
 
 ccl_device_inline void shader_prepare_surface_closures(KernelGlobals kg,
                                                        ConstIntegratorState state,
-                                                       ccl_private ShaderData *sd)
+                                                       ccl_private ShaderData *sd,
+                                                       const uint32_t path_flag)
 {
+  /* Filter out closures. */
+  if (kernel_data.integrator.filter_closures) {
+    if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_EMISSION) {
+      sd->closure_emission_background = zero_float3();
+    }
+
+    if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
+      sd->flag &= ~SD_BSDF_HAS_EVAL;
+    }
+
+    if (path_flag & PATH_RAY_CAMERA) {
+      for (int i = 0; i < sd->num_closure; i++) {
+        ccl_private ShaderClosure *sc = &sd->closure[i];
+
+        if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
+          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE) {
+            sc->type = CLOSURE_NONE_ID;
+            sc->sample_weight = 0.0f;
+          }
+        }
+        else if (CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
+          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY) {
+            sc->type = CLOSURE_NONE_ID;
+            sc->sample_weight = 0.0f;
+          }
+        }
+        else if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type)) {
+          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION) {
+            sc->type = CLOSURE_NONE_ID;
+            sc->sample_weight = 0.0f;
+          }
+        }
+      }
+    }
+  }
+
   /* Defensive sampling.
    *
    * We can likely also do defensive sampling at deeper bounces, particularly
