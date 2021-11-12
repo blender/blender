@@ -1064,7 +1064,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       /* Protect-flags apply to world space in object mode, so only let them influence axis
        * visibility if we show the global orientation, otherwise it's confusing. */
-      if (orient_index == V3D_ORIENT_GLOBAL) {
+      if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
         protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
       }
       totsel++;
