@@ -77,7 +77,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 /* Default flags for uiItemR(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS UI_ITEM_R_SPLIT_EMPTY_NAME

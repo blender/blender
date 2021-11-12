@@ -44,7 +44,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 
-#include "node_intern.h"
+#include "node_intern.hh"
 
 using blender::IndexRange;
 using blender::Map;

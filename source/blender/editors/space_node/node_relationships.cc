@@ -60,7 +60,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_node_tree_ref.hh"
 
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 using namespace blender::nodes::node_tree_ref_types;
 

@@ -43,7 +43,7 @@
 
 #include "UI_interface.hh"
 
-#include "node_intern.h"
+#include "node_intern.hh"
 
 struct Mesh;
 struct Curve;

@@ -64,7 +64,7 @@ struct wmTimer;
 /* Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
-/* Defined in `node_intern.h`. */
+/* Defined in `node_intern.hh`. */
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 
 /* Defined in `file_intern.h`. */
