@@ -2022,6 +2022,13 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *region, uiBlock *bloc
   BLI_rcti_translate(rect, -region->winrct.xmin, -region->winrct.ymin);
 }
 
+static bool ui_but_pixelrect_in_view(const ARegion *region, const rcti *rect)
+{
+  rcti rect_winspace = *rect;
+  BLI_rcti_translate(&rect_winspace, region->winrct.xmin, region->winrct.ymin);
+  return BLI_rcti_isect(&region->winrct, &rect_winspace, NULL);
+}
+
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void UI_block_draw(const bContext *C, uiBlock *block)
 {
@@ -2095,14 +2102,20 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 
   /* widgets */
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (!(but->flag & (UI_HIDDEN | UI_SCROLLED))) {
-      ui_but_to_pixelrect(&rect, region, block, but);
+    if (but->flag & (UI_HIDDEN | UI_SCROLLED)) {
+      continue;
+    }
 
-      /* XXX: figure out why invalid coordinates happen when closing render window */
-      /* and material preview is redrawn in main window (temp fix for bug T23848) */
-      if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
-        ui_draw_but(C, region, &style, but, &rect);
-      }
+    ui_but_to_pixelrect(&rect, region, block, but);
+    /* Optimization: Don't draw buttons that are not visible (outside view bounds). */
+    if (!ui_but_pixelrect_in_view(region, &rect)) {
+      continue;
+    }
+
+    /* XXX: figure out why invalid coordinates happen when closing render window */
+    /* and material preview is redrawn in main window (temp fix for bug T23848) */
+    if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
+      ui_draw_but(C, region, &style, but, &rect);
     }
   }
 
