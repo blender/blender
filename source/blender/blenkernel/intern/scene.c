@@ -999,7 +999,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
     /* Sanity check. */
     if (!SEQ_valid_strip_channel(seq)) {
       BLI_freelinkN(lb, seq);
-      BLO_read_data_reports(reader)->count.vse_strips_skipped++;
+      BLO_read_data_reports(reader)->count.sequence_strips_skipped++;
     }
     else if (seq->seqbase.first) {
       link_recurs_seq(reader, &seq->seqbase);
