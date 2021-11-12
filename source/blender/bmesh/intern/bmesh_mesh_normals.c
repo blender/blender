@@ -2264,7 +2264,6 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   }
 
   BM_lnorspace_update(bm);
-  BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
   /* Create a loop normal layer. */
   if (!CustomData_has_layer(&bm->ldata, CD_NORMAL)) {
@@ -2276,14 +2275,15 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
 
+  int l_index = 0;
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      const int l_index = BM_elem_index_get(l);
       const short *clnors_data = BM_ELEM_CD_GET_VOID_P(l, cd_custom_normal_offset);
       float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_normal_offset);
 
       BKE_lnor_space_custom_data_to_normal(
           bm->lnor_spacearr->lspacearr[l_index], clnors_data, normal);
+      l_index += 1;
     }
   }
 
