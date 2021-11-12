@@ -42,7 +42,8 @@ static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
       .only_realized_data()
-      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
+      .supported_type(
+          {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE});
 
   b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
   b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
@@ -769,6 +770,8 @@ static void geo_node_transfer_attribute_exec(GeoNodeExecParams params)
     }
     case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
       if (geometry.has_curve() && !geometry.has_mesh() && !geometry.has_pointcloud()) {
+        params.error_message_add(NodeWarningType::Error,
+                                 TIP_("The target geometry must contain a mesh or a point cloud"));
         return return_default();
       }
       auto fn = std::make_unique<NearestTransferFunction>(
