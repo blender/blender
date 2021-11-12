@@ -1062,9 +1062,13 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         }
       }
 
-      /* Protect-flags apply to world space in object mode, so only let them influence axis
-       * visibility if we show the global orientation, otherwise it's confusing. */
-      if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
+      if (orient_index == V3D_ORIENT_GLOBAL) {
+        /* Protect-flags apply to world space in object mode,
+         * so only let them influence axis visibility if we show the global orientation,
+         * otherwise it's confusing. */
+        protectflag_to_drawflags(base->object->protectflag & OB_LOCK_LOC, &rv3d->twdrawflag);
+      }
+      else if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
         protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
       }
       totsel++;
