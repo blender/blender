@@ -483,7 +483,7 @@ void applySnapping(TransInfo *t, float *vec)
   }
 
   if (t->tsnap.project && t->tsnap.mode == SCE_SNAP_MODE_FACE) {
-    /* The snap has already been resolved for each transdata. */
+    /* A similar snap will be applied to each transdata in `applyProject`. */
     return;
   }
 

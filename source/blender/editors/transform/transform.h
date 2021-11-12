@@ -317,9 +317,9 @@ typedef struct TransSnap {
   /* Snapped Element Type (currently for objects only). */
   char snapElem;
   /** snapping from this point (in global-space). */
-  float snapPoint[3];
-  /** to this point (in global-space). */
   float snapTarget[3];
+  /** to this point (in global-space). */
+  float snapPoint[3];
   float snapTargetGrid[3];
   float snapNormal[3];
   char snapNodeBorder;
