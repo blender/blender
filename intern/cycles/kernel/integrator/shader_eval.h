@@ -246,8 +246,7 @@ ccl_device_inline float _shader_bsdf_multi_eval(KernelGlobals kg,
         float3 eval = bsdf_eval(kg, sd, sc, omega_in, is_transmission, &bsdf_pdf);
 
         if (bsdf_pdf != 0.0f) {
-          const bool is_diffuse = CLOSURE_IS_BSDF_DIFFUSE(sc->type);
-          bsdf_eval_accum(result_eval, is_diffuse, eval * sc->weight, 1.0f);
+          bsdf_eval_accum(result_eval, sc->type, eval * sc->weight);
           sum_pdf += bsdf_pdf * sc->sample_weight;
         }
       }
@@ -272,7 +271,7 @@ ccl_device_inline
                      ccl_private BsdfEval *bsdf_eval,
                      const uint light_shader_flags)
 {
-  bsdf_eval_init(bsdf_eval, false, zero_float3());
+  bsdf_eval_init(bsdf_eval, CLOSURE_NONE_ID, zero_float3());
 
   return _shader_bsdf_multi_eval(
       kg, sd, omega_in, is_transmission, NULL, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
@@ -365,8 +364,7 @@ ccl_device int shader_bsdf_sample_closure(KernelGlobals kg,
   label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 
   if (*pdf != 0.0f) {
-    const bool is_diffuse = CLOSURE_IS_BSDF_DIFFUSE(sc->type);
-    bsdf_eval_init(bsdf_eval, is_diffuse, eval * sc->weight);
+    bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
 
     if (sd->num_closure > 1) {
       const bool is_transmission = shader_bsdf_is_transmission(sd, *omega_in);
@@ -692,7 +690,7 @@ ccl_device_inline float _shader_volume_phase_multi_eval(
     float3 eval = volume_phase_eval(sd, svc, omega_in, &phase_pdf);
 
     if (phase_pdf != 0.0f) {
-      bsdf_eval_accum(result_eval, false, eval, 1.0f);
+      bsdf_eval_accum(result_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
       sum_pdf += phase_pdf * svc->sample_weight;
     }
 
@@ -708,7 +706,7 @@ ccl_device float shader_volume_phase_eval(KernelGlobals kg,
                                           const float3 omega_in,
                                           ccl_private BsdfEval *phase_eval)
 {
-  bsdf_eval_init(phase_eval, false, zero_float3());
+  bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, zero_float3());
 
   return _shader_volume_phase_multi_eval(sd, phases, omega_in, -1, phase_eval, 0.0f, 0.0f);
 }
@@ -766,7 +764,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals kg,
   label = volume_phase_sample(sd, svc, randu, randv, &eval, omega_in, domega_in, pdf);
 
   if (*pdf != 0.0f) {
-    bsdf_eval_init(phase_eval, false, eval);
+    bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
   }
 
   return label;
@@ -789,7 +787,7 @@ ccl_device int shader_phase_sample_closure(KernelGlobals kg,
   label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 
   if (*pdf != 0.0f)
-    bsdf_eval_init(phase_eval, false, eval);
+    bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
 
   return label;
 }

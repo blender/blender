@@ -187,8 +187,6 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_transmission_indirect = PASS_UNUSED;
   kfilm->pass_volume_direct = PASS_UNUSED;
   kfilm->pass_volume_indirect = PASS_UNUSED;
-  kfilm->pass_volume_direct = PASS_UNUSED;
-  kfilm->pass_volume_indirect = PASS_UNUSED;
   kfilm->pass_shadow = PASS_UNUSED;
 
   /* Mark passes as unused so that the kernel knows the pass is inaccessible. */
@@ -673,13 +671,12 @@ uint Film::get_kernel_features(const Scene *scene) const
       kernel_features |= KERNEL_FEATURE_DENOISING;
     }
 
-    if (pass_type != PASS_NONE && pass_type != PASS_COMBINED &&
-        pass_type <= PASS_CATEGORY_LIGHT_END) {
+    if (pass_type >= PASS_DIFFUSE && pass_type <= PASS_VOLUME_INDIRECT) {
       kernel_features |= KERNEL_FEATURE_LIGHT_PASSES;
+    }
 
-      if (pass_type == PASS_SHADOW) {
-        kernel_features |= KERNEL_FEATURE_SHADOW_PASS;
-      }
+    if (pass_type == PASS_SHADOW) {
+      kernel_features |= KERNEL_FEATURE_SHADOW_PASS;
     }
 
     if (pass_type == PASS_AO) {

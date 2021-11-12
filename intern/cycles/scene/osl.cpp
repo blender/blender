@@ -274,19 +274,26 @@ void OSLShaderManager::shading_system_init()
 
         "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
 
-        "__unused__", /* PATH_RAY_SINGLE_PASS_DONE */
-        "__unused__", /* PATH_RAY_TRANSPARENT_BACKGROUND */
-        "__unused__", /* PATH_RAY_TERMINATE_IMMEDIATE */
-        "__unused__", /* PATH_RAY_TERMINATE_AFTER_TRANSPARENT */
-        "__unused__", /* PATH_RAY_EMISSION */
-        "__unused__", /* PATH_RAY_SUBSURFACE */
-        "__unused__", /* PATH_RAY_DENOISING_FEATURES */
-        "__unused__", /* PATH_RAY_REFLECT_PASS */
-        "__unused__", /* PATH_RAY_TRANSMISSION_PASS */
-        "__unused__", /* PATH_RAY_VOLUME_PASS */
-        "__unused__", /* PATH_RAY_SHADOW_FOR_LIGHT */
-        "__unused__", /* PATH_RAY_SHADOW_CATCHER_HIT */
-        "__unused__", /* PATH_RAY_SHADOW_CATCHER_PASS */
+        /* Remaining irrelevant bits up to 32. */
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
+        "__unused__",
     };
 
     const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
