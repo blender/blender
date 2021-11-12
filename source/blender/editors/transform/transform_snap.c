@@ -574,70 +574,61 @@ static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
   return true;
 }
 
-static void initSnappingMode(TransInfo *t)
+static short snap_mode_from_scene(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
-  /* All obedit types will match. */
-  const int obedit_type = t->obedit_type;
-  ViewLayer *view_layer = t->view_layer;
-  Base *base_act = view_layer->basact;
+  short r_snap_mode = SCE_SNAP_MODE_INCREMENT;
 
   if (t->spacetype == SPACE_NODE) {
-    /* force project off when not supported */
-    t->tsnap.project = 0;
-
-    t->tsnap.mode = ts->snap_node_mode;
+    r_snap_mode = ts->snap_node_mode;
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    /* force project off when not supported */
-    t->tsnap.project = 0;
-
-    t->tsnap.mode = ts->snap_uv_mode;
-    if ((t->tsnap.mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
+    r_snap_mode = ts->snap_uv_mode;
+    if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
         (t->mode == TFM_TRANSLATION)) {
-      t->tsnap.mode &= ~SCE_SNAP_MODE_INCREMENT;
-      t->tsnap.mode |= SCE_SNAP_MODE_GRID;
+      r_snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
+      r_snap_mode |= SCE_SNAP_MODE_GRID;
     }
   }
   else if (t->spacetype == SPACE_SEQ) {
-    t->tsnap.mode = SEQ_tool_settings_snap_mode_get(t->scene);
+    r_snap_mode = SEQ_tool_settings_snap_mode_get(t->scene);
   }
   else if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
-    /* force project off when not supported */
-    if ((ts->snap_mode & SCE_SNAP_MODE_FACE) == 0) {
-      t->tsnap.project = 0;
-    }
-
-    t->tsnap.mode = ts->snap_mode;
-    if ((t->tsnap.mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION)) {
-      /* Special case in which snap to increments is transformed to snap to grid. */
-      t->tsnap.mode &= ~SCE_SNAP_MODE_INCREMENT;
-      t->tsnap.mode |= SCE_SNAP_MODE_GRID;
+    /* All obedit types will match. */
+    const int obedit_type = t->obedit_type;
+    if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
+        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL, -1)) {
+      r_snap_mode = ts->snap_mode;
+      if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
+          (t->mode == TFM_TRANSLATION)) {
+        /* Special case in which snap to increments is transformed to snap to grid. */
+        r_snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
+        r_snap_mode |= SCE_SNAP_MODE_GRID;
+      }
     }
   }
   else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
     /* No incremental snapping. */
-    t->tsnap.mode = 0;
-  }
-  else {
-    /* Fallback. */
-    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+    r_snap_mode = 0;
   }
 
+  return r_snap_mode;
+}
+
+static short snap_select_type_get(TransInfo *t)
+{
+  short r_snap_select = SNAP_ALL;
+
+  ViewLayer *view_layer = t->view_layer;
+  Base *base_act = view_layer->basact;
   if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
-    /* Only 3D view or UV. */
-    /* Not with camera selected in camera view. */
-
-    setSnappingCallback(t);
-
+    const int obedit_type = t->obedit_type;
     if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
       /* In "Edit Strokes" mode,
        * snap tool can perform snap to selected or active objects (see T49632)
        * TODO: perform self snap in gpencil_strokes.
        *
        * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
-      t->tsnap.modeSelect = SNAP_ALL;
     }
     else if ((obedit_type != -1) &&
              ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
@@ -646,29 +637,44 @@ static void initSnappingMode(TransInfo *t)
 
       if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
         /* Exclude editmesh if using proportional edit */
-        t->tsnap.modeSelect = SNAP_NOT_ACTIVE;
+        r_snap_select = SNAP_NOT_ACTIVE;
       }
-      else {
-        t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_ACTIVE;
+      else if (!t->tsnap.snap_self) {
+        r_snap_select = SNAP_NOT_ACTIVE;
       }
     }
     else if ((obedit_type == -1) && base_act && base_act->object &&
              (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
       /* Particles edit mode. */
-      t->tsnap.modeSelect = SNAP_ALL;
     }
     else if (obedit_type == -1) {
       /* Object mode */
-      t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-    }
-    else {
-      /* Increment if snap is not possible */
-      t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+      r_snap_select = SNAP_NOT_SELECTED;
     }
   }
   else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
-    setSnappingCallback(t);
-    t->tsnap.modeSelect = SNAP_NOT_SELECTED;
+    r_snap_select = SNAP_NOT_SELECTED;
+  }
+
+  return r_snap_select;
+}
+
+static void initSnappingMode(TransInfo *t)
+{
+  ToolSettings *ts = t->settings;
+  t->tsnap.mode = snap_mode_from_scene(t);
+  t->tsnap.modeSelect = snap_select_type_get(t);
+
+  if ((t->spacetype != SPACE_VIEW3D) || !(ts->snap_mode & SCE_SNAP_MODE_FACE)) {
+    /* Force project off when not supported. */
+    t->tsnap.project = 0;
+  }
+
+  if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE, SPACE_SEQ)) {
+    /* Not with camera selected in camera view. */
+    if (!(t->options & CTX_CAMERA)) {
+      setSnappingCallback(t);
+    }
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
