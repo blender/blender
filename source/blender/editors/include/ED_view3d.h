@@ -588,8 +588,6 @@ float ED_view3d_radius_to_dist(const struct View3D *v3d,
                                const bool use_aspect,
                                const float radius);
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned int pos);
-
 /* Back-buffer select and draw support. */
 void ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
 int ED_view3d_backbuf_sample_size_clamp(struct ARegion *region, const float dist);

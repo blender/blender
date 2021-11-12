@@ -92,6 +92,7 @@ void imm_draw_cylinder_wire_3d(
 void imm_draw_cylinder_fill_3d(
     uint pos, float base, float top, float height, int slices, int stacks);
 
+void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], uint pos);
 #ifdef __cplusplus
 }
 #endif
