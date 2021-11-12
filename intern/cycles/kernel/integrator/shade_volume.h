@@ -794,10 +794,11 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const float3 throughput_phase = throughput * bsdf_eval_sum(&phase_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 diffuse_glossy_ratio = (bounce == 0) ?
-                                            one_float3() :
-                                            INTEGRATOR_STATE(state, path, diffuse_glossy_ratio);
-    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
+    const float3 pass_diffuse_weight = (bounce == 0) ?
+                                           one_float3() :
+                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = zero_float3();
   }
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
@@ -876,7 +877,8 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput_phase;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    INTEGRATOR_STATE_WRITE(state, path, diffuse_glossy_ratio) = one_float3();
+    INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_float3();
+    INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_float3();
   }
 
   /* Update path state */

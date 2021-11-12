@@ -60,8 +60,9 @@ KERNEL_STRUCT_MEMBER(path, float, min_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(path, float, continuation_probability, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput. */
 KERNEL_STRUCT_MEMBER(path, float3, throughput, KERNEL_FEATURE_PATH_TRACING)
-/* Ratio of throughput to distinguish diffuse and glossy render passes. */
-KERNEL_STRUCT_MEMBER(path, float3, diffuse_glossy_ratio, KERNEL_FEATURE_LIGHT_PASSES)
+/* Ratio of throughput to distinguish diffuse / glossy / transmission render passes. */
+KERNEL_STRUCT_MEMBER(path, float3, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(path, float3, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
 /* Denoising. */
 KERNEL_STRUCT_MEMBER(path, float3, denoising_feature_throughput, KERNEL_FEATURE_DENOISING)
 /* Shader sorting. */

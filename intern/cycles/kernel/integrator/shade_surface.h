@@ -191,14 +191,18 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
-  shadow_flag |= (is_transmission) ? PATH_RAY_TRANSMISSION_PASS : PATH_RAY_REFLECT_PASS;
+  shadow_flag |= PATH_RAY_SURFACE_PASS;
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 diffuse_glossy_ratio = (bounce == 0) ?
-                                            bsdf_eval_diffuse_glossy_ratio(&bsdf_eval) :
-                                            INTEGRATOR_STATE(state, path, diffuse_glossy_ratio);
-    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
+    const float3 pass_diffuse_weight = (bounce == 0) ?
+                                           bsdf_eval_pass_diffuse_weight(&bsdf_eval) :
+                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    const float3 pass_glossy_weight = (bounce == 0) ?
+                                          bsdf_eval_pass_glossy_weight(&bsdf_eval) :
+                                          INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
@@ -283,7 +287,9 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (INTEGRATOR_STATE(state, path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(state, path, diffuse_glossy_ratio) = bsdf_eval_diffuse_glossy_ratio(
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = bsdf_eval_pass_diffuse_weight(
+          &bsdf_eval);
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = bsdf_eval_pass_glossy_weight(
           &bsdf_eval);
     }
   }
@@ -445,7 +451,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     }
 #endif
 
-    shader_prepare_surface_closures(kg, state, &sd);
+    shader_prepare_surface_closures(kg, state, &sd, path_flag);
 
 #ifdef __HOLDOUT__
     /* Evaluate holdout. */

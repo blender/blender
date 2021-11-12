@@ -63,6 +63,14 @@ NODE_DEFINE(Integrator)
   SOCKET_BOOLEAN(caustics_reflective, "Reflective Caustics", true);
   SOCKET_BOOLEAN(caustics_refractive, "Refractive Caustics", true);
   SOCKET_FLOAT(filter_glossy, "Filter Glossy", 0.0f);
+
+  SOCKET_BOOLEAN(use_direct_light, "Use Direct Light", true);
+  SOCKET_BOOLEAN(use_indirect_light, "Use Indirect Light", true);
+  SOCKET_BOOLEAN(use_diffuse, "Use Diffuse", true);
+  SOCKET_BOOLEAN(use_glossy, "Use Glossy", true);
+  SOCKET_BOOLEAN(use_transmission, "Use Transmission", true);
+  SOCKET_BOOLEAN(use_emission, "Use Emission", true);
+
   SOCKET_INT(seed, "Seed", 0);
   SOCKET_FLOAT(sample_clamp_direct, "Sample Clamp Direct", 0.0f);
   SOCKET_FLOAT(sample_clamp_indirect, "Sample Clamp Indirect", 0.0f);
@@ -183,6 +191,27 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->caustics_reflective = caustics_reflective;
   kintegrator->caustics_refractive = caustics_refractive;
   kintegrator->filter_glossy = (filter_glossy == 0.0f) ? FLT_MAX : 1.0f / filter_glossy;
+
+  kintegrator->filter_closures = 0;
+  if (!use_direct_light) {
+    kintegrator->filter_closures |= FILTER_CLOSURE_DIRECT_LIGHT;
+  }
+  if (!use_indirect_light) {
+    kintegrator->min_bounce = 1;
+    kintegrator->max_bounce = 1;
+  }
+  if (!use_diffuse) {
+    kintegrator->filter_closures |= FILTER_CLOSURE_DIFFUSE;
+  }
+  if (!use_glossy) {
+    kintegrator->filter_closures |= FILTER_CLOSURE_GLOSSY;
+  }
+  if (!use_transmission) {
+    kintegrator->filter_closures |= FILTER_CLOSURE_TRANSMISSION;
+  }
+  if (!use_emission) {
+    kintegrator->filter_closures |= FILTER_CLOSURE_EMISSION;
+  }
 
   kintegrator->seed = seed;
 
