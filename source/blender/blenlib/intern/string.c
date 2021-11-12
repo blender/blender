@@ -1346,9 +1346,8 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
 }
 
 /**
- * Format a attribute domain to a up to 6 places (plus '\0' terminator) string using long number
- * names abbreviations. This function is designed to produce a compact representation of large
- * numbers.
+ * Format a count to up to 6 places (plus '\0' terminator) string using long number
+ * names abbreviations. Used to produce a compact representation of large numbers.
  *
  * 1 -> 1
  * 15 -> 15
@@ -1362,8 +1361,7 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
  * 1000000000 -> 1B
  * ...
  *
- * Dimension of 7 is the maximum length of the resulting string
- * A combination with 7 places would be -15.5K\0
+ * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
  */
 void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format)
 {
