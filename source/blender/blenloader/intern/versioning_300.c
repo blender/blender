@@ -2178,5 +2178,21 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    /* Use consistent socket identifiers for the vector math node.
+     * Thecode to make unique identifiers from the names was inconsitent. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY)) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == SH_NODE_MATH) {
+            bNodeSocket *value1 = ((bNodeSocket *)node->inputs.first)->next;
+            bNodeSocket *value2 = value1->next;
+            strcpy(value1->identifier, "Value_001");
+            strcpy(value2->identifier, "Value_002");
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }
