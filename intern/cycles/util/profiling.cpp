@@ -171,4 +171,9 @@ bool Profiler::get_object(int object, uint64_t &samples, uint64_t &hits)
   return true;
 }
 
+bool Profiler::active() const
+{
+  return (worker != nullptr);
+}
+
 CCL_NAMESPACE_END
