@@ -1340,7 +1340,8 @@ void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int of
   CLAMP(g, 0, 255);
   b = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
   CLAMP(b, 0, 255);
-  a = offset + floorf((1.0f - fac) * cp1[3] + fac * cp2[3]);
+
+  a = floorf((1.0f - fac) * cp1[3] + fac * cp2[3]); /* No shading offset. */
   CLAMP(a, 0, 255);
 
   col[0] = ((float)r) / 255.0f;
