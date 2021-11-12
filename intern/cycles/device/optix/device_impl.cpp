@@ -886,8 +886,7 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   denoiser_.scratch_offset = sizes.stateSizeInBytes;
 
   /* Allocate denoiser state if tile size has changed since last setup. */
-  denoiser_.state.alloc_to_device(denoiser_.scratch_offset + denoiser_.scratch_size +
-                                  sizeof(float));
+  denoiser_.state.alloc_to_device(denoiser_.scratch_offset + denoiser_.scratch_size);
 
   /* Initialize denoiser state for the current tile size. */
   const OptixResult result = optixDenoiserSetup(
@@ -971,16 +970,6 @@ bool OptiXDevice::denoise_run(DenoiseContext &context, const DenoisePass &pass)
 
   /* Finally run denoising. */
   OptixDenoiserParams params = {}; /* All parameters are disabled/zero. */
-  params.hdrIntensity = denoiser_.state.device_pointer + denoiser_.scratch_offset +
-                        denoiser_.scratch_size;
-
-  optix_assert(
-      optixDenoiserComputeIntensity(denoiser_.optix_denoiser,
-                                    denoiser_.queue.stream(),
-                                    &color_layer,
-                                    params.hdrIntensity,
-                                    denoiser_.state.device_pointer + denoiser_.scratch_offset,
-                                    denoiser_.scratch_size));
 
   OptixDenoiserLayer image_layers = {};
   image_layers.input = color_layer;
