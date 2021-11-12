@@ -208,7 +208,7 @@ class TestEnvironment:
 
     def call_blender(self, args: List[str], foreground=False) -> List[str]:
         # Execute Blender command with arguments.
-        common_args = ['--factory-startup', '--enable-autoexec', '--python-exit-code', '1']
+        common_args = ['--factory-startup', '-noaudio', '--enable-autoexec', '--python-exit-code', '1']
         if foreground:
             common_args += ['--no-window-focus', '--window-geometry', '0', '0', '1024', '768']
         else:
