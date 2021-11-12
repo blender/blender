@@ -95,9 +95,7 @@ typedef struct SnapCursorDataIntern {
 
 static SnapCursorDataIntern g_data_intern = {
     .state_default = {.prevpoint = NULL,
-                      .snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
-                                          SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_EDGE_PERPENDICULAR |
-                                          SCE_SNAP_MODE_EDGE_MIDPOINT),
+                      .snap_elem_force = SCE_SNAP_MODE_GEOM,
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},
                       .color_line = {255, 255, 255, 128},

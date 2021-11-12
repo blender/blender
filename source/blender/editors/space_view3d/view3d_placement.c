@@ -45,10 +45,6 @@
 
 #include "view3d_intern.h"
 
-#define SNAP_MODE_GEOM \
-  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE | \
-   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT)
-
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 
 /**
@@ -1308,7 +1304,7 @@ static int idp_rna_snap_target_get_fn(struct PointerRNA *UNUSED(ptr),
   }
 
   /* Make sure you keep a consistent #snap_mode. */
-  snap_state->snap_elem_force = SNAP_MODE_GEOM;
+  snap_state->snap_elem_force = SCE_SNAP_MODE_GEOM;
   return PLACE_SNAP_TO_GEOMETRY;
 }
 
@@ -1319,7 +1315,7 @@ static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
   short snap_mode = 0; /* #toolsettings->snap_mode. */
   const enum ePlace_SnapTo snap_to = value;
   if (snap_to == PLACE_SNAP_TO_GEOMETRY) {
-    snap_mode = SNAP_MODE_GEOM;
+    snap_mode = SCE_SNAP_MODE_GEOM;
   }
 
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();

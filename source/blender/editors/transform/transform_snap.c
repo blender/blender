@@ -918,8 +918,7 @@ static void snap_calc_view3d_fn(TransInfo *t, float *UNUSED(vec))
   mval[0] = t->mval[0];
   mval[1] = t->mval[1];
 
-  if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                       SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+  if (t->tsnap.mode & SCE_SNAP_MODE_GEOM) {
     zero_v3(no); /* objects won't set this */
     snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
     found = snap_elem != 0;
