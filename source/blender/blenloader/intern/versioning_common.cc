@@ -27,6 +27,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_lib_id.h"
@@ -36,6 +37,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "versioning_common.h"
+
+using blender::StringRef;
 
 ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
                                              int region_type,
@@ -98,6 +101,30 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
     if (STREQ(socket->identifier, old_name)) {
       BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
     }
+  }
+}
+
+/**
+ * Convert `SocketName.001` unique name format to `SocketName_001`. Previously both were used.
+ */
+void version_node_socket_id_delim(bNodeSocket *socket)
+{
+  StringRef name = socket->name;
+  StringRef id = socket->identifier;
+
+  if (!id.startswith(name)) {
+    /* We only need to affect the case where the identifier starts with the name. */
+    return;
+  }
+
+  StringRef id_number = id.drop_known_prefix(name);
+  if (id_number.is_empty()) {
+    /* The name was already unique, and didn't need numbers at the end for the id. */
+    return;
+  }
+
+  if (id_number.startswith(".")) {
+    socket->identifier[name.size()] = '_';
   }
 }
 
