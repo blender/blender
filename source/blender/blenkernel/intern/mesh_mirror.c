@@ -137,7 +137,8 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
 Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         Object *ob,
                                                         const Mesh *mesh,
-                                                        const int axis)
+                                                        const int axis,
+                                                        const bool use_correct_order_on_merge)
 {
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
   const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
@@ -260,21 +261,51 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     mul_m4_v3(mtx, mv->co);
 
     if (do_vtargetmap) {
-      /* compare location of the original and mirrored vertex, to see if they
-       * should be mapped for merging */
-      if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
-        *vtmap_a = maxVerts + i;
-        tot_vtargetmap++;
+      /* Compare location of the original and mirrored vertex,
+       * to see if they should be mapped for merging.
+       *
+       * Always merge from the copied into the original vertices so it's possible to
+       * generate a 1:1 mapping by scanning vertices from the beginning of the array
+       * as is done in #BKE_editmesh_vert_coords_when_deformed. Without this,
+       * the coordinates returned will sometimes point to the copied vertex locations, see:
+       * T91444.
+       *
+       * However, such a change also affects non-versionable things like some modifiers binding, so
+       * we cannot enforce that behavior on existing modifiers, in which case we keep using the
+       * old, incorrect behavior of merging the source vertex into its copy.
+       */
+      if (use_correct_order_on_merge) {
+        if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+          *vtmap_b = i;
+          tot_vtargetmap++;
 
-        /* average location */
-        mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
-        copy_v3_v3(mv_prev->co, mv->co);
-      }
-      else {
+          /* average location */
+          mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
+          copy_v3_v3(mv_prev->co, mv->co);
+        }
+        else {
+          *vtmap_b = -1;
+        }
+
+        /* Fill here to avoid 2x loops. */
         *vtmap_a = -1;
       }
+      else {
+        if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+          *vtmap_a = maxVerts + i;
+          tot_vtargetmap++;
 
-      *vtmap_b = -1; /* fill here to avoid 2x loops */
+          /* average location */
+          mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
+          copy_v3_v3(mv_prev->co, mv->co);
+        }
+        else {
+          *vtmap_a = -1;
+        }
+
+        /* Fill here to avoid 2x loops. */
+        *vtmap_b = -1;
+      }
 
       vtmap_a++;
       vtmap_b++;

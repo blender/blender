@@ -821,7 +821,8 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mmd.flag = 0;
       mmd.flag &= MOD_MIR_AXIS_X << i;
       mesh_mirror_temp = mesh_mirror;
-      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(&mmd, ob, mesh_mirror, axis);
+      mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+          &mmd, ob, mesh_mirror, axis, true);
       if (mesh_mirror_temp != mesh_mirror) {
         BKE_id_free(nullptr, mesh_mirror_temp);
       }
