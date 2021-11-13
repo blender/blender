@@ -416,9 +416,7 @@ bool SCULPT_has_colors(const SculptSession *ss)
   return ss->vcol_type != -1;
 }
 
-ATTR_NO_OPT bool SCULPT_vertex_color_get(const SculptSession *ss,
-                                         SculptVertRef vertex,
-                                         float out[4])
+bool SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float out[4])
 {
   if (vertex.i == SCULPT_REF_NONE) {
     return false;
@@ -565,9 +563,7 @@ ATTR_NO_OPT bool SCULPT_vertex_color_get(const SculptSession *ss,
   return false;
 }
 
-ATTR_NO_OPT void SCULPT_vertex_color_set(const SculptSession *ss,
-                                         SculptVertRef vertex,
-                                         float color[4])
+void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, float color[4])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -6565,11 +6561,6 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   PBVHProxyNode *proxies;
   int proxy_count;
-  float(*orco)[3] = NULL;
-
-  if (use_orco && !ss->bm) {
-    orco = SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS)->co;
-  }
 
   BKE_pbvh_node_get_proxies(data->nodes[n], &proxies, &proxy_count);
 
@@ -6580,10 +6571,10 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
       if (ss->bm) {
         float *co = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, vd.bm_vert)->origco;
         copy_v3_v3(val, co);
-        // copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
       }
       else {
-        copy_v3_v3(val, orco[vd.i]);
+        float *co = ss->mdyntopo_verts[vd.index].origco;
+        copy_v3_v3(val, co);
       }
     }
     else {

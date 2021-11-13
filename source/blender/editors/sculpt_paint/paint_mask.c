@@ -1412,7 +1412,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->cd_face_node_offset,
                          sgcontext->ss->cd_sculpt_vert,
                          sgcontext->ss->cd_face_areas,
-                         sgcontext->ss->fast_draw);
+                         sgcontext->ss->fast_draw,
+                         true);
   }
   else {  // save result to mesh
     Mesh *result = BKE_mesh_from_bmesh_nomain(bm,

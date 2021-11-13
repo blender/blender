@@ -672,12 +672,12 @@ static void cloth_brush_add_bend_constraint(SculptSession *ss,
 }
 #endif
 
-ATTR_NO_OPT static void cloth_brush_add_length_constraint(SculptSession *ss,
-                                                          SculptClothSimulation *cloth_sim,
-                                                          const int node_index,
-                                                          const int v1i,
-                                                          const int v2i,
-                                                          const bool use_persistent)
+static void cloth_brush_add_length_constraint(SculptSession *ss,
+                                              SculptClothSimulation *cloth_sim,
+                                              const int node_index,
+                                              const int v1i,
+                                              const int v2i,
+                                              const bool use_persistent)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
   SculptVertRef v1, v2;
@@ -766,10 +766,10 @@ static void cloth_brush_add_pin_constraint(SculptClothSimulation *cloth_sim,
   cloth_brush_reallocate_constraints(cloth_sim);
 }
 
-ATTR_NO_OPT static void cloth_brush_add_deformation_constraint(SculptClothSimulation *cloth_sim,
-                                                               const int node_index,
-                                                               const int v,
-                                                               const float strength)
+static void cloth_brush_add_deformation_constraint(SculptClothSimulation *cloth_sim,
+                                                   const int node_index,
+                                                   const int v,
+                                                   const float strength)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
 
@@ -1669,10 +1669,10 @@ static void cloth_free_tasks(SculptClothSimulation *cloth_sim)
   cloth_sim->tot_constraint_tasks = 0;
 }
 
-ATTR_NO_OPT static void cloth_sort_constraints_for_tasks(SculptSession *ss,
-                                                         Brush *brush,
-                                                         SculptClothSimulation *cloth_sim,
-                                                         int totthread)
+static void cloth_sort_constraints_for_tasks(SculptSession *ss,
+                                             Brush *brush,
+                                             SculptClothSimulation *cloth_sim,
+                                             int totthread)
 {
   SculptClothTaskData *tasks = MEM_calloc_arrayN(
       totthread + 1, sizeof(SculptClothTaskData), "SculptClothTaskData");

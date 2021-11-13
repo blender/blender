@@ -292,7 +292,7 @@ typedef struct BMFlagLayer {
 
 struct RangeTreeUInt;
 
-//#define WITH_BM_ID_FREELIST
+#define WITH_BM_ID_FREELIST
 
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
@@ -387,6 +387,11 @@ typedef struct BMesh {
     uint *freelist;
     int freelist_len, freelist_size;
     uint *free_ids, free_ids_size;
+
+    /* maps ids to their position within the freelist
+       only used if freelist is bigger then a certain size,
+       see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
+    struct SmallHash *free_idx_map;
 #else
     struct RangeTreeUInt *idtree;
 #endif

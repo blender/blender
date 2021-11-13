@@ -194,7 +194,7 @@ bool BKE_id_attribute_find_unique_name(ID *id,
   return BLI_uniquename_cb(unique_name_cb, &data, NULL, '.', outname, MAX_CUSTOMDATA_LAYER_NAME);
 }
 
-ATTR_NO_OPT CustomDataLayer *BKE_id_attribute_new(
+CustomDataLayer *BKE_id_attribute_new(
     ID *id, const char *name, const int type, const AttributeDomain domain, ReportList *reports)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
@@ -300,7 +300,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return NULL;
 }
 
-ATTR_NO_OPT CustomDataLayer *BKE_id_attribute_from_index(const ID *id, int lookup_index)
+CustomDataLayer *BKE_id_attribute_from_index(const ID *id, int lookup_index)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -501,7 +501,7 @@ CustomDataLayer *BKE_id_attributes_active_color_get(ID *id)
   return NULL;
 }
 
-ATTR_NO_OPT void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
+void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -585,7 +585,7 @@ CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
   return NULL;
 }
 
-ATTR_NO_OPT void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
+void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);

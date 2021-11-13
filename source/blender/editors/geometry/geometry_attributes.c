@@ -81,7 +81,7 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
   return rna_enum_attribute_domain_itemf(ob->data, r_free);
 }
 
-ATTR_NO_OPT static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
+static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = ob->data;

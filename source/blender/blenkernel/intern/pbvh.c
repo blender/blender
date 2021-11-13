@@ -1372,10 +1372,10 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
 }
 
 /* updates pbvh->vcol_domain, vcol_type too */
-ATTR_NO_OPT bool BKE_pbvh_get_color_layer(PBVH *pbvh,
-                                          const Mesh *me,
-                                          CustomDataLayer **r_cl,
-                                          AttributeDomain *r_attr)
+bool BKE_pbvh_get_color_layer(PBVH *pbvh,
+                              const Mesh *me,
+                              CustomDataLayer **r_cl,
+                              AttributeDomain *r_attr)
 {
   CustomDataLayer *cl = BKE_id_attributes_active_color_get((ID *)me);
   AttributeDomain domain;
@@ -1667,6 +1667,14 @@ static void pbvh_update_draw_buffers(
   else {
     vdata = pbvh->vdata;
     ldata = pbvh->ldata;
+  }
+
+  if (!vdata && me) {
+    vdata = &me->vdata;
+  }
+
+  if (!ldata && me) {
+    ldata = &me->ldata;
   }
 
   CustomDataLayer *vcol_layer = NULL;

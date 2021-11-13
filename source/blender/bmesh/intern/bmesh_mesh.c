@@ -284,6 +284,14 @@ void BM_mesh_data_free(BMesh *bm)
     BLI_ghash_free(bm->idmap.ghash, NULL, NULL);
   }
 
+#ifdef WITH_BM_ID_FREELIST
+  if (bm->idmap.free_idx_map) {
+    BLI_smallhash_release(bm->idmap.free_idx_map);
+    MEM_freeN(bm->idmap.free_idx_map);
+    bm->idmap.free_idx_map = NULL;
+  }
+#endif
+
   const bool is_ldata_free = CustomData_bmesh_has_free(&bm->ldata);
   const bool is_pdata_free = CustomData_bmesh_has_free(&bm->pdata);
 

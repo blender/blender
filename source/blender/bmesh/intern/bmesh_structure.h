@@ -101,3 +101,5 @@ void bm_alloc_id(BMesh *bm, BMElem *elem);
 void bm_free_id(BMesh *bm, BMElem *elem);
 void bm_init_idmap_cdlayers(BMesh *bm);
 void bm_update_idmap_cdlayers(BMesh *bm);
+void bm_free_ids_check(BMesh *bm, uint id);
+void bm_id_freelist_push(BMesh *bm, uint id);

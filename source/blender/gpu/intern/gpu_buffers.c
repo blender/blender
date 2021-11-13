@@ -1088,10 +1088,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
 static int debug_pass = 0;
 bool pbvh_show_orig_co = false;
 
-ATTR_NO_OPT static void gpu_bmesh_get_vcol(BMVert *v,
-                                           BMLoop *l,
-                                           const ColorRef *ref,
-                                           float color[4])
+static void gpu_bmesh_get_vcol(BMVert *v, BMLoop *l, const ColorRef *ref, float color[4])
 {
   if (ref->domain == ATTR_DOMAIN_POINT) {
     switch (ref->type) {
@@ -1171,20 +1168,20 @@ ATTR_NO_OPT static void gpu_bmesh_get_vcol(BMVert *v,
 }
 
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
-ATTR_NO_OPT static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
-                                                      BMVert *v,
-                                                      BMLoop *l,
-                                                      GPUVertBuf *vert_buf,
-                                                      int v_index,
-                                                      const float fno[3],
-                                                      const float *fmask,
-                                                      const int cd_vert_mask_offset,
-                                                      const int cd_vert_node_offset,
-                                                      const bool show_mask,
-                                                      const bool show_vcol,
-                                                      bool *empty_mask,
-                                                      const ColorRef *vcol_layers,
-                                                      const int totvcol)
+static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
+                                          BMVert *v,
+                                          BMLoop *l,
+                                          GPUVertBuf *vert_buf,
+                                          int v_index,
+                                          const float fno[3],
+                                          const float *fmask,
+                                          const int cd_vert_mask_offset,
+                                          const int cd_vert_node_offset,
+                                          const bool show_mask,
+                                          const bool show_vcol,
+                                          bool *empty_mask,
+                                          const ColorRef *vcol_layers,
+                                          const int totvcol)
 {
   /* Vertex should always be visible if it's used by a visible face. */
   BLI_assert(!BM_elem_flag_test(v, BM_ELEM_HIDDEN));
@@ -1390,14 +1387,14 @@ bool GPU_pbvh_need_full_render_get()
   return g_vbo_id.need_full_render;
 }
 
-ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
-                                                 CustomData *ldata,
-                                                 bool need_full_render,
-                                                 bool fast_mode,
-                                                 int active_vcol_type,
-                                                 int active_vcol_domain,
-                                                 CustomDataLayer *active_vcol_layer,
-                                                 CustomDataLayer *render_vcol_layer)
+void GPU_pbvh_update_attribute_names(CustomData *vdata,
+                                     CustomData *ldata,
+                                     bool need_full_render,
+                                     bool fast_mode,
+                                     int active_vcol_type,
+                                     int active_vcol_domain,
+                                     CustomDataLayer *active_vcol_layer,
+                                     CustomDataLayer *render_vcol_layer)
 {
   const bool active_only = !need_full_render;
 
@@ -1537,14 +1534,14 @@ ATTR_NO_OPT void GPU_pbvh_update_attribute_names(CustomData *vdata,
   }
 }
 
-ATTR_NO_OPT static void gpu_flat_vcol_make_vert(float co[3],
-                                                BMVert *v,
-                                                BMLoop *l,
-                                                GPUVertBuf *vert_buf,
-                                                int v_index,
-                                                ColorRef vcol_refs[MAX_GPU_MCOL],
-                                                int totoffsets,
-                                                const float fno[3])
+static void gpu_flat_vcol_make_vert(float co[3],
+                                    BMVert *v,
+                                    BMLoop *l,
+                                    GPUVertBuf *vert_buf,
+                                    int v_index,
+                                    ColorRef vcol_refs[MAX_GPU_MCOL],
+                                    int totoffsets,
+                                    const float fno[3])
 {
   for (int i = 0; i < totoffsets; i++) {
     float color[4];
@@ -1937,7 +1934,7 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer.
  * Threaded - do not call any functions that use OpenGL calls! */
-ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
+void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
 {
   BMesh *bm = args->bm;
   GPU_PBVH_Buffers *buffers = args->buffers;

@@ -309,7 +309,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
-                          bool fast_draw);
+                          bool fast_draw,
+                          bool update_sculptverts);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
@@ -318,6 +319,18 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
 void BKE_pbvh_free(PBVH *pbvh);
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log);
+
+/* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
+ */
+void BKE_pbvh_update_sculpt_verts(struct BMesh *bm,
+                                  const int cd_sculpt_vert,
+                                  const int cd_faceset_offset,
+                                  const int cd_vert_node_offset,
+                                  const int cd_face_node_offset,
+                                  const int boundary_symmetry,
+                                  const int vcol_type,
+                                  const AttributeDomain vcol_domain,
+                                  const int cd_vcol_offset);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(

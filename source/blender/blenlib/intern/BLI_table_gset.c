@@ -26,7 +26,7 @@ TableGSet *BLI_table_gset_new_ex(const char *info, int size)
   TableGSet *ts = MEM_callocN(sizeof(TableGSet), info);
 
   // ts->ptr_to_idx.buckets = (void *)BLI_ghash_ptr_new_ex(info, (uint)size);
-  BLI_smallhash_init(&ts->ptr_to_idx);
+  BLI_smallhash_init_ex(&ts->ptr_to_idx, size);
 
   if (size) {
     ts->elems = MEM_callocN(sizeof(void *) * (uint)size, info);

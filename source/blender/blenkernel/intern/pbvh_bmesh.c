@@ -300,10 +300,45 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 
   BKE_pbvh_node_fully_hidden_set(n, !has_visible);
   n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir | PBVH_UpdateTris;
+  n->flag |= PBVH_UpdateBB | PBVH_UpdateOriginalBB;
 
   if (add_orco) {
     BKE_pbvh_bmesh_check_tris(pbvh, n);
   }
+}
+
+static void pbvh_print_mem_size(PBVH *pbvh)
+{
+  BMesh *bm = pbvh->bm;
+  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+  int tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
+  int sizes[4] = {
+      (int)sizeof(BMVert), (int)sizeof(BMEdge), (int)sizeof(BMLoop), (int)sizeof(BMFace)};
+
+  float memsize1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float memsize2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *cdata = cdatas[i];
+
+    memsize1[i] = (float)(sizes[i] * tots[i]) / 1024.0f / 1024.0f;
+    memsize2[i] = (float)(cdata->totsize * tots[i]) / 1024.0f / 1024.0f;
+  }
+
+  printf("base sizes:\n");
+  printf("  v: %.2fmb e: %.2fmb l: %.2fmb f: %.2fmb\n",
+         memsize1[0],
+         memsize1[1],
+         memsize1[2],
+         memsize1[3]);
+
+  printf("custom attribute sizes:\n");
+  printf("  v: %.2fmb e: %.2fmb l: %.2fmb f: %.2fmb\n",
+         memsize2[0],
+         memsize2[1],
+         memsize2[2],
+         memsize2[3]);
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
@@ -318,7 +353,7 @@ static void pbvh_bmesh_node_split(
   BKE_pbvh_free_proxyarray(pbvh, n);
 #endif
 
-  if (depth > 6 || BLI_table_gset_len(n->bm_faces) <= pbvh->leaf_limit) {
+  if (n->depth >= pbvh->depth_limit || BLI_table_gset_len(n->bm_faces) <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
     pbvh_bmesh_node_finalize(pbvh, node_index, cd_vert_node_offset, cd_face_node_offset, add_orco);
     return;
@@ -354,6 +389,8 @@ static void pbvh_bmesh_node_split(
 
   /* Initialize children */
   PBVHNode *c1 = &pbvh->nodes[children], *c2 = &pbvh->nodes[children + 1];
+
+  c1->depth = c2->depth = n->depth + 1;
 
   c1->flag |= PBVH_Leaf;
   c2->flag |= PBVH_Leaf;
@@ -476,7 +513,7 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 
   // pbvh_bmesh_check_nodes(pbvh);
 
-  if (bm_faces_size <= pbvh->leaf_limit) {
+  if (bm_faces_size <= pbvh->leaf_limit || pbvh->nodes[node_index].depth >= pbvh->depth_limit) {
     /* Node limit not exceeded */
     return false;
   }
@@ -809,7 +846,7 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
   }
 }
 
-ATTR_NO_OPT void BKE_pbvh_bmesh_get_vcol(
+void BKE_pbvh_bmesh_get_vcol(
     BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset)
 {
   if (vcol_domain == ATTR_DOMAIN_POINT) {
@@ -1241,6 +1278,16 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
     for (int j = 0; j < data->tot_border_verts; j++) {
       BMVert *v = data->border_verts[j];
 
+      if (BM_elem_is_free((BMElem *)v, BM_VERT)) {
+        printf("%s: error, v was freed!\n", __func__);
+        continue;
+      }
+
+      if (v->head.index < 0 || v->head.index >= bm->totvert) {
+        printf("%s: error, v->head.index was out of bounds!\n", __func__);
+        continue;
+      }
+
       if (BLI_BITMAP_TEST(visit, v->head.index)) {
         continue;
       }
@@ -1304,23 +1351,31 @@ static void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
   }
 }
 
-struct FastNodeBuildInfo {
+typedef struct FastNodeBuildInfo {
   int totface; /* number of faces */
   int start;   /* start of faces in array */
   int depth;
+  int node_index;
   struct FastNodeBuildInfo *child1;
   struct FastNodeBuildInfo *child2;
-};
+  float cent[3], no[3];
+  int tag;
+} FastNodeBuildInfo;
 
 /**
  * Recursively split the node if it exceeds the leaf_limit.
  * This function is multi-thread-able since each invocation applies
  * to a sub part of the arrays.
  */
-static void pbvh_bmesh_node_limit_ensure_fast(
-    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node, MemArena *arena)
+static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
+                                              BMFace **nodeinfo,
+                                              BBC *bbc_array,
+                                              FastNodeBuildInfo *node,
+                                              FastNodeBuildInfo ***r_leaves,
+                                              int *r_totleaf,
+                                              MemArena *arena)
 {
-  struct FastNodeBuildInfo *child1, *child2;
+  FastNodeBuildInfo *child1, *child2;
 
   if (node->totface <= pbvh->leaf_limit || node->depth >= pbvh->depth_limit) {
     return;
@@ -1399,8 +1454,8 @@ static void pbvh_bmesh_node_limit_ensure_fast(
    * each sequential part belonging to one node only */
   BLI_assert((num_child1 + num_child2) == node->totface);
 
-  node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(struct FastNodeBuildInfo));
-  node->child2 = child2 = BLI_memarena_alloc(arena, sizeof(struct FastNodeBuildInfo));
+  node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
+  node->child2 = child2 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
 
   child1->totface = num_child1;
   child1->start = node->start;
@@ -1412,95 +1467,148 @@ static void pbvh_bmesh_node_limit_ensure_fast(
 
   child1->child1 = child1->child2 = child2->child1 = child2->child2 = NULL;
 
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child1, arena);
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child2, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child1, r_leaves, r_totleaf, arena);
+  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child2, r_leaves, r_totleaf, arena);
+
+  FastNodeBuildInfo **leaves = *r_leaves;
+  BLI_array_declare(leaves);
+  BLI_array_len_set(leaves, *r_totleaf);
+
+  if (!child1->child1 && !child1->child2) {
+    BLI_array_append(leaves, child1);
+  }
+
+  if (!child2->child1 && !child2->child2) {
+    BLI_array_append(leaves, child2);
+  }
+
+  *r_leaves = leaves;
+  *r_totleaf = BLI_array_len(leaves);
 }
 
-static void pbvh_bmesh_create_nodes_fast_recursive(
-    PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node, int node_index)
-{
-  PBVHNode *n = pbvh->nodes + node_index;
+typedef struct LeafBuilderThreadData {
+  PBVH *pbvh;
+  BMFace **nodeinfo;
+  BBC *bbc_array;
+  FastNodeBuildInfo **leaves;
+} LeafBuilderThreadData;
 
+static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
+                                                const int i,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  LeafBuilderThreadData *data = (LeafBuilderThreadData *)userdata;
+  PBVH *pbvh = data->pbvh;
+  BMFace **nodeinfo = data->nodeinfo;
+  BBC *bbc_array = data->bbc_array;
+  struct FastNodeBuildInfo *node = data->leaves[i];
+
+  /* node does not have children so it's a leaf node, populate with faces and tag accordingly
+   * this is an expensive part but it's not so easily thread-able due to vertex node indices */
+  // const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
+  const int cd_face_node_offset = pbvh->cd_face_node_offset;
+
+  PBVHNode *n = pbvh->nodes + node->node_index;
+  const int node_index = node->node_index;
+
+  bool has_visible = false;
+
+  n->flag = PBVH_Leaf | PBVH_UpdateTris;
+  n->bm_faces = BLI_table_gset_new_ex("bm_faces", node->totface);
+
+  /* Create vert hash sets */
+  n->bm_unique_verts = BLI_table_gset_new_ex("bm_unique_verts", node->totface * 3);
+  n->bm_other_verts = BLI_table_gset_new_ex("bm_other_verts", node->totface * 3);
+
+  BB_reset(&n->vb);
+
+  const int end = node->start + node->totface;
+
+  for (int i = node->start; i < end; i++) {
+    BMFace *f = nodeinfo[i];
+    BBC *bbc = &bbc_array[BM_elem_index_get(f)];
+
+    /* Update ownership of faces */
+    BLI_table_gset_insert(n->bm_faces, f);
+    BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
+
+    /* Update vertices */
+    BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+    BMLoop *l_iter = l_first;
+    do {
+      BMVert *v = l_iter->v;
+
+      if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
+        BLI_table_gset_insert(n->bm_unique_verts, v);
+        BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, node_index);
+      }
+      else {
+        BLI_table_gset_add(n->bm_other_verts, v);
+      }
+    } while ((l_iter = l_iter->next) != l_first);
+
+    /* Update node bounding box */
+    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      has_visible = true;
+    }
+
+    BB_expand_with_bb(&n->vb, (BB *)bbc);
+  }
+
+  BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
+             n->vb.bmin[2] <= n->vb.bmax[2]);
+
+  n->orig_vb = n->vb;
+
+  /* Build GPU buffers for new node and update vertex normals */
+  BKE_pbvh_node_mark_rebuild_draw(n);
+
+  BKE_pbvh_node_fully_hidden_set(n, !has_visible);
+  n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
+}
+
+static void pbvh_bmesh_create_nodes_fast_recursive_create(PBVH *pbvh,
+                                                          BMFace **nodeinfo,
+                                                          BBC *bbc_array,
+                                                          struct FastNodeBuildInfo *node)
+{
   /* two cases, node does not have children or does have children */
   if (node->child1) {
     int children_offset = pbvh->totnode;
-
-    n->children_offset = children_offset;
     pbvh_grow_nodes(pbvh, pbvh->totnode + 2);
-    pbvh_bmesh_create_nodes_fast_recursive(
-        pbvh, nodeinfo, bbc_array, node->child1, children_offset);
-    pbvh_bmesh_create_nodes_fast_recursive(
-        pbvh, nodeinfo, bbc_array, node->child2, children_offset + 1);
 
-    n = &pbvh->nodes[node_index];
+    PBVHNode *n = pbvh->nodes + node->node_index;
+    n->children_offset = children_offset;
+
+    n->depth = node->depth;
+    (n + 1)->depth = node->depth + 1;
+    (n + 2)->depth = node->depth + 1;
+
+    node->child1->node_index = children_offset;
+    node->child2->node_index = children_offset + 1;
+
+    pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, node->child1);
+    pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, node->child2);
+  }
+}
+
+static void pbvh_bmesh_create_nodes_fast_recursive_final(PBVH *pbvh,
+                                                         BMFace **nodeinfo,
+                                                         BBC *bbc_array,
+                                                         struct FastNodeBuildInfo *node)
+{
+  /* two cases, node does not have children or does have children */
+  if (node->child1) {
+    pbvh_bmesh_create_nodes_fast_recursive_final(pbvh, nodeinfo, bbc_array, node->child1);
+    pbvh_bmesh_create_nodes_fast_recursive_final(pbvh, nodeinfo, bbc_array, node->child2);
+
+    PBVHNode *n = pbvh->nodes + node->node_index;
 
     /* Update bounding box */
     BB_reset(&n->vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset].vb);
-    BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset + 1].vb);
+    BB_expand_with_bb(&n->vb, &pbvh->nodes[node->child1->node_index].vb);
+    BB_expand_with_bb(&n->vb, &pbvh->nodes[node->child2->node_index].vb);
     n->orig_vb = n->vb;
-  }
-  else {
-    /* node does not have children so it's a leaf node, populate with faces and tag accordingly
-     * this is an expensive part but it's not so easily thread-able due to vertex node indices */
-    const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
-    const int cd_face_node_offset = pbvh->cd_face_node_offset;
-
-    bool has_visible = false;
-
-    n->flag = PBVH_Leaf | PBVH_UpdateTris;
-    n->bm_faces = BLI_table_gset_new_ex("bm_faces", node->totface);
-
-    /* Create vert hash sets */
-    n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
-    n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
-
-    BB_reset(&n->vb);
-
-    const int end = node->start + node->totface;
-
-    for (int i = node->start; i < end; i++) {
-      BMFace *f = nodeinfo[i];
-      BBC *bbc = &bbc_array[BM_elem_index_get(f)];
-
-      /* Update ownership of faces */
-      BLI_table_gset_insert(n->bm_faces, f);
-      BM_ELEM_CD_SET_INT(f, cd_face_node_offset, node_index);
-
-      /* Update vertices */
-      BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
-      BMLoop *l_iter = l_first;
-      do {
-        BMVert *v = l_iter->v;
-        if (!BLI_table_gset_haskey(n->bm_unique_verts, v)) {
-          if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-            BLI_table_gset_add(n->bm_other_verts, v);
-          }
-          else {
-            BLI_table_gset_insert(n->bm_unique_verts, v);
-            BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
-          }
-        }
-        /* Update node bounding box */
-      } while ((l_iter = l_iter->next) != l_first);
-
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        has_visible = true;
-      }
-
-      BB_expand_with_bb(&n->vb, (BB *)bbc);
-    }
-
-    BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
-               n->vb.bmin[2] <= n->vb.bmax[2]);
-
-    n->orig_vb = n->vb;
-
-    /* Build GPU buffers for new node and update vertex normals */
-    BKE_pbvh_node_mark_rebuild_draw(n);
-
-    BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-    n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
   }
 }
 
@@ -1909,6 +2017,180 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
     } while (l != e->l);
   }
 }
+
+typedef struct FaceBinThread {
+  MemArena *arena;
+  FastNodeBuildInfo *nodes, **leaves;
+  int totnode, totleaf;
+} FaceBinThread;
+
+static void coalese_pbvh(PBVH *pbvh, BMesh *bm)
+{
+  BMIter iter;
+  BMFace *f;
+
+  const char tag = BM_ELEM_TAG_ALT;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    f->head.hflag &= ~tag;
+  }
+
+  int leafsize = 1000;
+  double f1 = pow(2.0, ceil(log2(bm->totface / (double)leafsize)));
+  leafsize = (int)ceil(bm->totface / f1);
+
+  printf("leafsize: %d\n", leafsize);
+
+  int *fmap = MEM_calloc_arrayN(bm->totface, sizeof(int), "pbvh face map");
+  int totleaf = 0;
+
+  FastNodeBuildInfo *nodes = NULL;
+  BLI_array_declare(nodes);
+
+  const int qsize = leafsize;
+  BMFace **queue = MEM_calloc_arrayN(qsize, sizeof(*queue), "pbvh queue");
+
+  BM_mesh_elem_table_ensure(bm, BM_FACE | BM_VERT);
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    int qhead = 0;
+    int qtail = 0;
+
+    if (f->head.hflag & tag) {
+      continue;
+    }
+
+    int ni = totleaf++;
+    BLI_array_grow_one(nodes);
+
+    FastNodeBuildInfo *node = nodes + BLI_array_len(nodes) - 1;
+    copy_v3_v3(node->cent, f->l_first->v->co);
+    copy_v3_v3(node->no, f->no);
+
+    queue[0] = f;
+    qhead = 1;
+
+    while (qhead != qtail) {
+      BMFace *f2 = queue[qtail];
+      qtail = (qtail + 1) % qsize;
+
+      fmap[f2->head.index] = ni;
+      node->totface++;
+
+      BMLoop *l = f2->l_first;
+      do {
+        BMLoop *l2 = l;
+        do {
+          if (!(l2->f->head.hflag & tag)) {
+            l2->f->head.hflag |= tag;
+
+            queue[qhead] = l2->f;
+            qhead = (qhead + 1) % qsize;
+          }
+        } while ((l2 = l2->radial_next) != l);
+      } while ((l = l->next) != f2->l_first);
+    }
+  }
+
+  printf("totleafs: %d\n", totleaf);
+  BLI_array_grow_items(nodes, BLI_array_len(nodes) << 1);
+
+  const int tag2 = 1;
+  int pi = totleaf;
+  int starti = 0;
+  int endi = totleaf;
+
+  for (int step = 0; step < 55; step++) {
+    if (endi - starti <= 1) {
+      break;
+    }
+
+    for (int i = starti; i < endi; i++) {
+      FastNodeBuildInfo *n1 = nodes + i, *n2 = NULL;
+
+      if (n1->tag & tag2) {
+        continue;
+      }
+
+      float mindis = 1e17;
+
+      for (int j = starti; j < endi; j++) {
+        FastNodeBuildInfo *n3 = nodes + j;
+
+        if (j == i || n3->tag) {
+          continue;
+        }
+
+        float dis = len_squared_v3v3(n1->cent, n3->cent);
+        if (dis < mindis) {
+          mindis = dis;
+          n2 = n3;
+        }
+      }
+
+      if (!n2) {
+        break;
+      }
+
+      FastNodeBuildInfo *parent = nodes + pi;
+      pi++;
+
+      n1->tag |= tag2;
+      n2->tag |= tag2;
+      parent->tag = 0;
+      parent->child1 = n1;
+      parent->child2 = n2;
+    }
+
+    starti = endi;
+    endi = pi;
+  }
+
+  MEM_SAFE_FREE(queue);
+  MEM_SAFE_FREE(fmap);
+  BLI_array_free(nodes);
+}
+
+void BKE_pbvh_update_sculpt_verts(BMesh *bm,
+                                  const int cd_sculpt_vert,
+                                  const int cd_faceset_offset,
+                                  const int cd_vert_node_offset,
+                                  const int cd_face_node_offset,
+                                  const int boundary_symmetry,
+                                  const int vcol_type,
+                                  const AttributeDomain vcol_domain,
+                                  const int cd_vcol_offset)
+{
+  BMVert *v;
+  BMIter iter;
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
+
+    mv->flag = SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
+
+    bke_pbvh_update_vert_boundary(cd_sculpt_vert,
+                                  cd_faceset_offset,
+                                  cd_vert_node_offset,
+                                  cd_face_node_offset,
+                                  -1,
+                                  v,
+                                  boundary_symmetry);
+
+    BKE_pbvh_bmesh_update_valence(cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
+
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
+
+    if (vcol_type != -1) {
+      BKE_pbvh_bmesh_get_vcol(v, mv->origcolor, vcol_type, vcol_domain, cd_vcol_offset);
+    }
+    else {
+      zero_v4(mv->origcolor);
+    }
+  }
+}
+
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct Mesh *me,
@@ -1919,8 +2201,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
-                          bool fast_draw)
+                          bool fast_draw,
+                          bool update_sculptverts)
 {
+  // coalese_pbvh(pbvh, bm);
+
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -1944,8 +2229,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   BMIter iter;
   BMVert *v;
-
-  // BKE_pbvh_update_all_boundary_bmesh(pbvh);
 
   if (smooth_shading) {
     pbvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
@@ -1991,51 +2274,38 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   }
 
   /* setup root node */
-  struct FastNodeBuildInfo rootnode = {0};
+  struct FastNodeBuildInfo rootnode = {0}, **leaves = NULL;
+
   rootnode.totface = bm->totface;
+  int totleaf = 0;
 
   /* start recursion, assign faces to nodes accordingly */
-  pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, &rootnode, arena);
+  pbvh_bmesh_node_limit_ensure_fast(
+      pbvh, nodeinfo, bbc_array, &rootnode, &leaves, &totleaf, arena);
 
-  /* We now have all faces assigned to a node,
-   * next we need to assign those to the gsets of the nodes. */
+  pbvh_grow_nodes(pbvh, 1);
+  rootnode.node_index = 0;
 
-  /* Start with all faces in the root node */
-  pbvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");
-  pbvh->totnode = 1;
+  pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, &rootnode);
+
+  /* build leaf nodes */
+  LeafBuilderThreadData tdata = {
+      .pbvh = pbvh, .nodeinfo = nodeinfo, .bbc_array = bbc_array, .leaves = leaves};
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totleaf);
+  BLI_task_parallel_range(0, totleaf, &tdata, pbvh_bmesh_create_leaf_fast_task_cb, &settings);
+
+  //  pbvh_bmesh_create_leaf_fast(pbvh, nodeinfo, bbc_array, leaves[i]);
+
+  MEM_SAFE_FREE(leaves);
 
   /* take root node and visit and populate children recursively */
-  pbvh_bmesh_create_nodes_fast_recursive(pbvh, nodeinfo, bbc_array, &rootnode, 0);
+  pbvh_bmesh_create_nodes_fast_recursive_final(pbvh, nodeinfo, bbc_array, &rootnode);
 
   BLI_memarena_free(arena);
   MEM_freeN(bbc_array);
   MEM_freeN(nodeinfo);
-
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
-
-    mv->flag = SCULPTVERT_NEED_DISK_SORT;
-
-    bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
-                                  pbvh->cd_faceset_offset,
-                                  pbvh->cd_vert_node_offset,
-                                  pbvh->cd_face_node_offset,
-                                  -1,
-                                  v,
-                                  pbvh->boundary_symmetry);
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
-
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
-
-    if (pbvh->vcol_type != -1) {
-      BKE_pbvh_bmesh_get_vcol(
-          v, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
-    }
-    else {
-      zero_v4(mv->origcolor);
-    }
-  }
 
   if (me) {  // ensure pbvh->vcol_type, vcol_domain and cd_vcol_offset are up to date
     CustomDataLayer *cl;
@@ -2043,6 +2313,39 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
     BKE_pbvh_get_color_layer(pbvh, me, &cl, &domain);
   }
+
+  /*final check that nodes are sufficiently subdivided*/
+  int totnode = pbvh->totnode;
+
+  for (int i = 0; i < totnode; i++) {
+    PBVHNode *n = pbvh->nodes + i;
+
+    if (totnode != pbvh->totnode) {
+#ifdef PROXY_ADVANCED
+      BKE_pbvh_free_proxyarray(pbvh, n);
+#endif
+    }
+
+    if (n->flag & PBVH_Leaf) {
+      /* Recursively split nodes that have gotten too many
+       * elements */
+      pbvh_bmesh_node_limit_ensure(pbvh, i);
+    }
+  }
+
+  if (update_sculptverts) {
+    BKE_pbvh_update_sculpt_verts(pbvh->bm,
+                                 pbvh->cd_sculpt_vert,
+                                 pbvh->cd_faceset_offset,
+                                 pbvh->cd_vert_node_offset,
+                                 pbvh->cd_face_node_offset,
+                                 pbvh->boundary_symmetry,
+                                 pbvh->vcol_type,
+                                 pbvh->vcol_domain,
+                                 pbvh->cd_vcol_offset);
+  }
+
+  pbvh_print_mem_size(pbvh);
 }
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
@@ -3223,7 +3526,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 
       if (bad) {
         modified = true;
-        printf("  DELETE! %.4f    %.4f  %d\n", overlap, volume, BLI_array_len(stack));
+        // printf("  DELETE! %.4f    %.4f  %d\n", overlap, volume, BLI_array_len(stack));
 
         BLI_array_clear(substack);
 
@@ -3524,23 +3827,23 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
     pbvh_bmesh_balance_tree(pbvh);
     pbvh_bmesh_check_nodes(pbvh);
     pbvh->balance_counter = 0;
-  }
 
-  totnode = pbvh->totnode;
+    totnode = pbvh->totnode;
 
-  for (int i = 0; i < totnode; i++) {
-    PBVHNode *n = pbvh->nodes + i;
+    for (int i = 0; i < totnode; i++) {
+      PBVHNode *n = pbvh->nodes + i;
 
-    if (totnode != pbvh->totnode) {
+      if (totnode != pbvh->totnode) {
 #ifdef PROXY_ADVANCED
-      BKE_pbvh_free_proxyarray(pbvh, n);
+        BKE_pbvh_free_proxyarray(pbvh, n);
 #endif
-    }
+      }
 
-    if (n->flag & PBVH_Leaf) {
-      /* Recursively split nodes that have gotten too many
-       * elements */
-      pbvh_bmesh_node_limit_ensure(pbvh, i);
+      if (n->flag & PBVH_Leaf) {
+        /* Recursively split nodes that have gotten too many
+         * elements */
+        pbvh_bmesh_node_limit_ensure(pbvh, i);
+      }
     }
   }
 }
@@ -5218,7 +5521,8 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
                        cd_face_node,
                        cd_sculpt_vert,
                        cd_face_area,
-                       false);
+                       false,
+                       true);
 
   int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
 

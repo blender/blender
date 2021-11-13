@@ -2382,7 +2382,7 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
 }
 
-static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
+static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts)
 {
   PBVH *pbvh = BKE_pbvh_new();
 
@@ -2397,7 +2397,8 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->cd_face_node_offset,
                        ob->sculpt->cd_sculpt_vert,
                        ob->sculpt->cd_face_areas,
-                       ob->sculpt->fast_draw);
+                       ob->sculpt->fast_draw,
+                       update_sculptverts);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
 
@@ -2609,7 +2610,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   if (ob->sculpt->bm != NULL) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special PBVH. */
-    pbvh = build_pbvh_for_dynamic_topology(ob);
+    pbvh = build_pbvh_for_dynamic_topology(ob, false);
 
     ob->sculpt->pbvh = pbvh;
   }
@@ -2638,7 +2639,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       SCULPT_dyntopo_node_layers_add(ob->sculpt, ob);
       SCULPT_undo_ensure_bmlog(ob);
 
-      pbvh = build_pbvh_for_dynamic_topology(ob);
+      pbvh = build_pbvh_for_dynamic_topology(ob, true);
 
       SCULPT_update_customdata_refs(ob->sculpt, ob);
     }

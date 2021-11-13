@@ -459,9 +459,9 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   }
 }
 
-ATTR_NO_OPT static void do_smear_brush_task_cb_exec(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict tls)
+static void do_smear_brush_task_cb_exec(void *__restrict userdata,
+                                        const int n,
+                                        const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -546,8 +546,9 @@ ATTR_NO_OPT static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT static void do_smear_store_prev_colors_task_cb_exec(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

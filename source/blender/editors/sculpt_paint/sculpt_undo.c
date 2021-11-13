@@ -799,9 +799,15 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   SCULPT_dyntopo_node_layers_add(ss, ob);
   SCULPT_update_customdata_refs(ss, ob);
 
-  if (ss->pbvh && ss->bm) {
-    SCULT_dyntopo_flag_all_disk_sort(ss);
-  }
+  BKE_pbvh_update_sculpt_verts(ss->bm,
+                               ss->cd_sculpt_vert,
+                               ss->cd_faceset_offset,
+                               ss->cd_vert_node_offset,
+                               ss->cd_face_node_offset,
+                               ss->boundary_symmetry,
+                               ss->vcol_type,
+                               ss->vcol_domain,
+                               ss->cd_vcol_offset);
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */

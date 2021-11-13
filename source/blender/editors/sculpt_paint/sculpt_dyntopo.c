@@ -902,22 +902,15 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     e->head.hflag |= BM_ELEM_DRAW;
   }
 
-  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-
-    mv->flag |= SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
-
-    BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
-                                  ss->cd_faceset_offset,
-                                  ss->cd_vert_node_offset,
-                                  ss->cd_face_node_offset,
-                                  -1,
-                                  v,
-                                  ss->boundary_symmetry);
-    BKE_pbvh_bmesh_update_valence(ss->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
-
-    i++;
-  }
+  BKE_pbvh_update_sculpt_verts(ss->bm,
+                               ss->cd_sculpt_vert,
+                               ss->cd_faceset_offset,
+                               ss->cd_vert_node_offset,
+                               ss->cd_face_node_offset,
+                               ss->boundary_symmetry,
+                               ss->vcol_type,
+                               ss->vcol_domain,
+                               ss->cd_vcol_offset);
 
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {

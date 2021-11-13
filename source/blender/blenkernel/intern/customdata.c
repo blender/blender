@@ -5077,10 +5077,10 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
       customdata_unique_check, &data_arg, NULL, '.', nlayer->name, sizeof(nlayer->name));
 }
 
-ATTR_NO_OPT void CustomData_validate_layer_name(const CustomData *data,
-                                                int type,
-                                                const char *name,
-                                                char *outname)
+void CustomData_validate_layer_name(const CustomData *data,
+                                    int type,
+                                    const char *name,
+                                    char *outname)
 {
   int index = -1;
 

@@ -44,10 +44,46 @@
 #define SELECT 1
 
 #ifdef WITH_BM_ID_FREELIST
+
+/* if freelist is bigger then this, allocate free_idx_map */
+#  define FREELIST_HASHMAP_THRESHOLD_HIGH 1024
+
+/* if freelist is smaller then this, free free_idx_map*/
+#  define FREELIST_HASHMAP_THRESHOLD_LOW 700
+
+static void bm_id_freelist_check_hashmap(BMesh *bm)
+{
+  if (!bm->idmap.free_idx_map && bm->idmap.freelist_len >= FREELIST_HASHMAP_THRESHOLD_HIGH) {
+    printf("switching on freelist idx map");
+    bm->idmap.free_idx_map = MEM_callocN(sizeof(SmallHash), "free_idx_map");
+    BLI_smallhash_init_ex(bm->idmap.free_idx_map, bm->idmap.freelist_len);
+
+    for (int i = 0; i < bm->idmap.freelist_len; i++) {
+      BLI_smallhash_insert(
+          bm->idmap.free_idx_map, (uintptr_t)bm->idmap.freelist[i], POINTER_FROM_INT(i));
+    }
+  }
+  else if (bm->idmap.free_idx_map && bm->idmap.freelist_len <= FREELIST_HASHMAP_THRESHOLD_LOW) {
+    BLI_smallhash_release(bm->idmap.free_idx_map);
+    MEM_freeN(bm->idmap.free_idx_map);
+
+    printf("switching off freelist idx map");
+  }
+}
+
 static uint bm_id_freelist_pop(BMesh *bm)
 {
+  bm_id_freelist_check_hashmap(bm);
+
   if (bm->idmap.freelist_len > 0) {
-    return bm->idmap.freelist[--bm->idmap.freelist_len];
+    int i = --bm->idmap.freelist_len;
+    uint id = bm->idmap.freelist[i];
+
+    if (bm->idmap.free_idx_map) {
+      BLI_smallhash_remove(bm->idmap.free_idx_map, (uintptr_t) id);
+    }
+
+    return id;
   }
 
   return 0;
@@ -78,13 +114,26 @@ void bm_id_freelist_take(BMesh *bm, uint id)
     return;
   }
 
-  BLI_BITMAP_ENABLE(bm->idmap.free_ids, id);
+  BLI_BITMAP_DISABLE(bm->idmap.free_ids, id);
 
-  for (int i = 0; i < bm->idmap.freelist_len; i++) {
-    if (bm->idmap.freelist[i] == id) {
+  if (bm->idmap.free_idx_map) {
+    void **val = BLI_smallhash_lookup_p(bm->idmap.free_idx_map, (uintptr_t)id);
+
+    if (val) {
+      int i = POINTER_AS_INT(*val);
+
       // swap with end
       bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
       bm->idmap.freelist_len--;
+    }
+  }
+  else {
+    for (int i = 0; i < bm->idmap.freelist_len; i++) {
+      if (bm->idmap.freelist[i] == id) {
+        // swap with end
+        bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
+        bm->idmap.freelist_len--;
+      }
     }
   }
 }
@@ -100,6 +149,7 @@ static bool bm_id_freelist_has(BMesh *bm, uint id)
 
 void bm_id_freelist_push(BMesh *bm, uint id)
 {
+  bm_id_freelist_check_hashmap(bm);
   bm_free_ids_check(bm, id);
 
   bm->idmap.freelist_len++;
@@ -111,7 +161,6 @@ void bm_id_freelist_push(BMesh *bm, uint id)
 
     if (bm->idmap.freelist) {
       newlist = MEM_reallocN(bm->idmap.freelist, size * sizeof(uint));
-      memcpy((void *)newlist, (void *)bm->idmap.freelist, bm->idmap.freelist_size);
     }
     else {
       newlist = MEM_malloc_arrayN(size, sizeof(uint), "bm->idmap.freelist");
@@ -121,6 +170,14 @@ void bm_id_freelist_push(BMesh *bm, uint id)
     bm->idmap.freelist = newlist;
   }
 
+  if (bm->idmap.free_idx_map) {
+    void **val;
+
+    if (!BLI_smallhash_ensure_p(bm->idmap.free_idx_map, (uintptr_t)id, &val)) {
+      *val = POINTER_FROM_INT(bm->idmap.freelist_len - 1);
+    }
+  }
+
   bm->idmap.freelist[bm->idmap.freelist_len - 1] = id;
   BLI_BITMAP_ENABLE(bm->idmap.free_ids, id);
 }
@@ -128,7 +185,7 @@ void bm_id_freelist_push(BMesh *bm, uint id)
 
 // static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
-void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
+ATTR_NO_OPT void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
   // CustomData *cdata = &bm->vdata + _typemap[elem->head.htype];
   // int cd_id_off = cdata->layers[cdata->typemap[CD_MESH_ID]].offset;

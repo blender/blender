@@ -567,7 +567,13 @@ static void rna_AttributeGroup_active_color_index_range(
 
 static void rna_AttributeGroup_update_active_color(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  rna_Attribute_update_data(bmain, scene, ptr);
+  ID *id = ptr->owner_id;
+
+  /* cheating way for importers to avoid slow updates */
+  if (id->us > 0) {
+    // DEG_id_tag_update(id, 0);
+    // WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  }
 }
 #else
 

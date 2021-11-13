@@ -843,7 +843,6 @@ void BLI_mempool_as_array(BLI_mempool *pool,void *data)
     memcpy(p,elem,(size_t)esize);
     p = NODE_STEP_NEXT(p);
   }
-  BLI_assert((int)(p - (char *)data) == pool->totused * esize);
 }
 
 /**

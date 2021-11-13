@@ -846,7 +846,7 @@ void BM_mesh_bm_from_me(Object *ob,
 #ifdef WITH_BM_ID_FREELIST
   /*ensure correct id freelist*/
   if (bm->idmap.flag & BM_HAS_IDS) {
-    bm_free_ids_check(bm, bm->idmap.max_id);
+    bm_free_ids_check(bm, bm->idmap.maxid);
 
     MEM_SAFE_FREE(bm->idmap.freelist);
     bm->idmap.freelist_len = 0;
@@ -874,8 +874,8 @@ void BM_mesh_bm_from_me(Object *ob,
       }
     }
 
-    for (uint i = 0; i < max_id; i++) {
-      if (!BLI_BITMAP_TEST(bm->idmap.free_ids, id)) {
+    for (uint i = 0; i < bm->idmap.maxid; i++) {
+      if (!BLI_BITMAP_TEST(bm->idmap.free_ids, i)) {
         bm_id_freelist_push(bm, i);
       }
     }
@@ -1072,13 +1072,11 @@ void BM_mesh_bm_to_me(
       ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
   CustomDataMergeState attr_states[4];
 
-  //undo mesh?
+  // undo mesh?
   bool non_id_mesh = GS(me->id.name) != ID_ME;
 
   for (int i = 0; !non_id_mesh && i < 4; i++) {
-    BKE_mesh_attributes_update_pre(me,
-                                   active_domains[i],
-                                   attr_states+i);
+    BKE_mesh_attributes_update_pre(me, active_domains[i], attr_states + i);
   }
 
   /* Free custom data. */
@@ -1140,9 +1138,7 @@ void BM_mesh_bm_to_me(
 
   for (int i = 0; !non_id_mesh && i < 4; i++) {
     CustomData *dst;
-    BKE_mesh_attributes_update_post(me,
-                                    active_domains[i],
-                                    attr_states+i);
+    BKE_mesh_attributes_update_post(me, active_domains[i], attr_states + i);
   }
 
   i = 0;

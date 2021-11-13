@@ -57,6 +57,8 @@ struct PBVHNode {
   int children_offset;
   int subtree_tottri;
 
+  int depth;
+
   /* Pointer into the PBVH prim_indices array and the number of
    * primitives used by this leaf node.
    *
