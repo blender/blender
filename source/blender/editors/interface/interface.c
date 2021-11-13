@@ -1993,23 +1993,9 @@ void UI_block_end(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
-void ui_fontscale(short *points, float aspect)
+void ui_fontscale(float *points, float aspect)
 {
-  if (aspect < 0.9f || aspect > 1.1f) {
-    float pointsf = *points;
-
-    /* For some reason scaling fonts goes too fast compared to widget size. */
-    /* XXX(ton): not true anymore? */
-    // aspect = sqrt(aspect);
-    pointsf /= aspect;
-
-    if (aspect > 1.0f) {
-      *points = ceilf(pointsf);
-    }
-    else {
-      *points = floorf(pointsf);
-    }
-  }
+  *points /= aspect;
 }
 
 /* Project button or block (but==NULL) to pixels in region-space. */

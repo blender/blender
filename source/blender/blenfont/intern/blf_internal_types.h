@@ -65,7 +65,7 @@ typedef struct GlyphCacheBLF {
   struct GlyphCacheBLF *prev;
 
   /* font size. */
-  unsigned int size;
+  float size;
 
   /* and dpi. */
   unsigned int dpi;
@@ -205,7 +205,7 @@ typedef struct FontBLF {
   unsigned int dpi;
 
   /* font size. */
-  unsigned int size;
+  float size;
 
   /* Column width when printing monospaced. */
   int fixed_width;

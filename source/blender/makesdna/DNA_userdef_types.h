@@ -69,8 +69,9 @@ typedef struct uiFont {
 typedef struct uiFontStyle {
   /** Saved in file, 0 is default. */
   short uifont_id;
+  char _pad1[2];
   /** Actual size depends on 'global' dpi. */
-  short points;
+  float points;
   /** Style hint. */
   short italic, bold;
   /** Value is amount of pixels blur. */
@@ -82,6 +83,7 @@ typedef struct uiFontStyle {
   float shadowalpha;
   /** 1 value, typically white or black anyway. */
   float shadowcolor;
+  char _pad2[4];
 } uiFontStyle;
 
 /* this is fed to the layout engine and widget code */

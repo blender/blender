@@ -1350,19 +1350,24 @@ void blf_font_free(FontBLF *font)
 /** \name Font Configure
  * \{ */
 
-void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
+void blf_font_size(FontBLF *font, float size, unsigned int dpi)
 {
   blf_glyph_cache_acquire(font);
+
+  /* FreeType uses fixed-point integers in 64ths. */
+  FT_F26Dot6 ft_size = lroundf(size * 64.0f);
+  /* Adjust our size to be on even 64ths. */
+  size = (float)ft_size / 64.0f;
 
   GlyphCacheBLF *gc = blf_glyph_cache_find(font, size, dpi);
   if (gc && (font->size == size && font->dpi == dpi)) {
     /* Optimization: do not call FT_Set_Char_Size if size did not change. */
   }
   else {
-    const FT_Error err = FT_Set_Char_Size(font->face, 0, ((FT_F26Dot6)(size)) * 64, dpi, dpi);
+    const FT_Error err = FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi);
     if (err) {
       /* FIXME: here we can go through the fixed size and choice a close one */
-      printf("The current font don't support the size, %u and dpi, %u\n", size, dpi);
+      printf("The current font don't support the size, %f and dpi, %u\n", size, dpi);
     }
     else {
       font->size = size;

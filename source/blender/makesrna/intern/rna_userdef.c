@@ -1136,10 +1136,11 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font");
 
-  prop = RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 6, 24);
+  prop = RNA_def_property(srna, "points", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 6.0f, 32.0f);
+  RNA_def_property_ui_range(prop, 8.0f, 20.0f, 10.0f, 1);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 0, 5);

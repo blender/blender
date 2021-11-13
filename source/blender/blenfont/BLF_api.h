@@ -65,7 +65,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
-void BLF_size(int fontid, int size, int dpi);
+void BLF_size(int fontid, float size, int dpi);
 
 /* goal: small but useful color API */
 void BLF_color4ubv(int fontid, const unsigned char rgba[4]);

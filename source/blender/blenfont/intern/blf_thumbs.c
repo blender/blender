@@ -95,7 +95,7 @@ void BLF_thumb_preview(const char *filename,
     const size_t draw_str_i18n_len = strlen(draw_str_i18n);
     int draw_str_i18n_nbr = 0;
 
-    blf_font_size(font, (unsigned int)MAX2(font_size_min, font_size_curr), dpi);
+    blf_font_size(font, (float)MAX2(font_size_min, font_size_curr), dpi);
     gc = blf_glyph_cache_find(font, font->size, font->dpi);
     /* There will be no matching glyph cache if blf_font_size() failed to set font size. */
     if (!gc) {

@@ -1348,7 +1348,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   const uiStyle *style = UI_style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
-  short fstyle_points = fstyle->points;
+  float fstyle_points = fstyle->points;
   const float aspect = ((uiBlock *)region->uiblocks.first)->aspect;
   const float zoom = 1.0f / aspect;
   const int px = U.pixelsize;

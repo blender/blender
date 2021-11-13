@@ -342,7 +342,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   /* XXX font id is crap design */
   const int fontid = UI_style_get()->widgetlabel.uifont_id;
   NodeFrame *data = (NodeFrame *)node->storage;
-  const int font_size = data->label_size / aspect;
+  const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
   nodeLabel(ntree, node, label, sizeof(label));
@@ -350,7 +350,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
   /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24, font_size), U.dpi);
+  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
 
   /* title color */
   int color_id = node_get_colorid(node);

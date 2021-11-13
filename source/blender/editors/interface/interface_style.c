@@ -483,9 +483,9 @@ void uiStyleInit(void)
        * Yes, this build the glyph cache and create
        * the texture.
        */
-      BLF_size(font->blf_id, 11 * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 12 * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 14 * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 11.0f * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 12.0f * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 14.0f * U.pixelsize, U.dpi);
     }
   }
 
@@ -510,7 +510,7 @@ void uiStyleInit(void)
     blf_mono_font = BLF_load_mono_default(unique);
   }
 
-  BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
+  BLF_size(blf_mono_font, 12.0f * U.pixelsize, 72);
 
   /* Set default flags based on UI preferences (not render fonts) */
   {
@@ -555,7 +555,7 @@ void uiStyleInit(void)
     blf_mono_font_render = BLF_load_mono_default(unique);
   }
 
-  BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
+  BLF_size(blf_mono_font_render, 12.0f * U.pixelsize, 72);
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)

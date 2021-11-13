@@ -70,14 +70,15 @@ PyDoc_STRVAR(py_blf_size_doc,
              "font use 0.\n"
              "   :type fontid: int\n"
              "   :arg size: Point size of the font.\n"
-             "   :type size: int\n"
+             "   :type size: float\n"
              "   :arg dpi: dots per inch value to use for drawing.\n"
              "   :type dpi: int\n");
 static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
-  int fontid, size, dpi;
+  int fontid, dpi;
+  float size;
 
-  if (!PyArg_ParseTuple(args, "iii:blf.size", &fontid, &size, &dpi)) {
+  if (!PyArg_ParseTuple(args, "ifi:blf.size", &fontid, &size, &dpi)) {
     return NULL;
   }
 
