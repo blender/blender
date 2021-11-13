@@ -86,6 +86,30 @@ static void test_line_start(char c, bool *r_last_state)
 }
 
 /**
+ * This function receives a character and returns its closing pair if it exists.
+ * \param character: Characater to find the closing pair.
+ * \return The closing pair of the character if it exists.
+ */
+static char text_closing_character_pair_get(const char character)
+{
+
+  switch (character) {
+    case '(':
+      return ')';
+    case '[':
+      return ']';
+    case '{':
+      return '}';
+    case '"':
+      return '"';
+    case '\'':
+      return '\'';
+    default:
+      return 0;
+  }
+}
+
+/**
  * This function converts the indentation tabs from a buffer to spaces.
  * \param in_buf: A pointer to a cstring.
  * \param tab_size: The size, in spaces, of the tab character.
@@ -2403,7 +2427,17 @@ static int text_delete_exec(bContext *C, wmOperator *op)
         }
       }
     }
-
+    if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
+      const char *current = text->curl->line + text->curc;
+      if (*current != '\0') {
+        const char *prev = BLI_str_find_prev_char_utf8(text->curl->line + text->curc,
+                                                       text->curl->line);
+        if (*current == text_closing_character_pair_get(*prev)) {
+          txt_move_right(text, false);
+          txt_backspace_char(text);
+        }
+      }
+    }
     txt_backspace_char(text);
   }
   else if (type == DEL_NEXT_WORD) {
@@ -3443,6 +3477,12 @@ static int text_insert_exec(bContext *C, wmOperator *op)
     while (str[i]) {
       code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       done |= txt_add_char(text, code);
+      if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
+        if (text_closing_character_pair_get(code)) {
+          done |= txt_add_char(text, text_closing_character_pair_get(code));
+          txt_move_left(text, false);
+        }
+      }
     }
   }
 

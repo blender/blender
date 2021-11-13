@@ -5024,6 +5024,14 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "Collection Instance Empty Size",
                            "Display size of the empty when new collection instances are created");
 
+  /* Text Editor */
+
+  prop = RNA_def_property(srna, "use_text_edit_auto_close", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "text_flag", USER_TEXT_EDIT_AUTO_CLOSE);
+  RNA_def_property_ui_text(
+      prop, "Auto Close", "Auto close relevant characters inside the text editor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
+
   /* Undo */
 
   prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
