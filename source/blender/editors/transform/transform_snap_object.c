@@ -581,15 +581,15 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
   struct RayCastAll_Data *data = userdata;
   data->raycast_callback(data->bvhdata, index, ray, hit);
   if (hit->index != -1) {
-    /* get all values in worldspace */
+    /* Get all values in world-space. */
     float location[3], normal[3];
     float depth;
 
-    /* worldspace location */
+    /* World-space location. */
     mul_v3_m4v3(location, (float(*)[4])data->obmat, hit->co);
     depth = (hit->dist + data->len_diff) / data->local_scale;
 
-    /* worldspace normal */
+    /* World-space normal. */
     copy_v3_v3(normal, hit->no);
     mul_m3_v3((float(*)[3])data->timat, normal);
     normalize_v3(normal);
@@ -783,7 +783,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
         *ray_depth = hit.dist;
         copy_v3_v3(r_loc, hit.co);
 
-        /* back to worldspace */
+        /* Back to world-space. */
         mul_m4_v3(obmat, r_loc);
 
         if (r_no) {
@@ -953,7 +953,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
         *ray_depth = hit.dist;
         copy_v3_v3(r_loc, hit.co);
 
-        /* back to worldspace */
+        /* Back to world-space. */
         mul_m4_v3(obmat, r_loc);
 
         if (r_no) {

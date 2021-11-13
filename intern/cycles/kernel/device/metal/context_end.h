@@ -17,7 +17,7 @@
 ; /* end of MetalKernelContext class definition */
 
 /* Silently redirect into the MetalKernelContext instance */
-/* NOTE: These macros will need maintaining as entrypoints change */
+/* NOTE: These macros will need maintaining as entry-points change. */
 
 #undef kernel_integrator_state
 #define kernel_integrator_state context.launch_params_metal.__integrator_state

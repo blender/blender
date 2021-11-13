@@ -311,7 +311,7 @@ typedef struct Object {
   float rotAxis[3], drotAxis[3];
   /** Axis angle rotation - angle part. */
   float rotAngle, drotAngle;
-  /** Final worldspace matrix with constraints & animsys applied. */
+  /** Final world-space matrix with constraints & animsys applied. */
   float obmat[4][4];
   /** Inverse result of parent, so that object doesn't 'stick' to parent. */
   float parentinv[4][4];

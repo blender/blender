@@ -902,7 +902,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
 
 static void node_widgets()
 {
-  /* create the widgetmap for the area here */
+  /* Create the widget-map for the area here. */
   wmGizmoMapType_Params params{SPACE_NODE, RGN_TYPE_WINDOW};
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&params);
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_transform);

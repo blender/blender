@@ -115,8 +115,10 @@ enum {
   CONSTRAIN_AXIS_Z = 2,
 };
 
-/* Constraining modes.
-   Off / Scene orientation / Global (or Local if Scene orientation is Global) */
+/**
+ * Constraining modes.
+ * Off / Scene orientation / Global (or Local if Scene orientation is Global).
+ */
 enum {
   CONSTRAIN_MODE_OFF = 0,
   CONSTRAIN_MODE_1 = 1,
@@ -163,7 +165,7 @@ typedef struct RulerInfo {
 typedef struct RulerItem {
   wmGizmo gz;
 
-  /* worldspace coords, middle being optional */
+  /** World-space coords, middle being optional. */
   float co[3][3];
 
   int flag;

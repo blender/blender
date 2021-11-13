@@ -4909,7 +4909,9 @@ bool ED_curve_editnurb_select_pick(
 /** \name Spin Operator
  * \{ */
 
-/* 'cent' is in object space and 'dvec' in worldspace.
+/**
+ * \param axis: is in world-space.
+ * \param cent: is in object-space.
  */
 bool ed_editnurb_spin(
     float viewmat[4][4], View3D *v3d, Object *obedit, const float axis[3], const float cent[3])

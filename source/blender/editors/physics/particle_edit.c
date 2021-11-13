@@ -3903,8 +3903,8 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
       copy_v3_v3(co, key->co);
       mul_m4_v3(mat, co);
 
-      /* use 'kco' as the object space version of worldspace 'co',
-       * ob->imat is set before calling */
+      /* Use `kco` as the object space version of world-space `co`,
+       * `ob->imat` is set before calling. */
       mul_v3_m4v3(kco, data->ob->imat, co);
 
       point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, NULL);
@@ -3993,15 +3993,15 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
             copy_v3_v3(oco, key->co);
             mul_m4_v3(mat, oco);
 
-            /* use 'kco' as the object space version of worldspace 'co',
-             * ob->imat is set before calling */
+            /* Use `kco` as the object space version of world-space `co`,
+             * `ob->imat` is set before calling. */
             mul_v3_m4v3(kco, data->ob->imat, oco);
 
             point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, NULL);
             if (point_index != -1) {
               copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
-              mul_mat3_m4_v3(data->ob->obmat, onor); /* normal into worldspace */
-              mul_mat3_m4_v3(imat, onor);            /* worldspace into particle space */
+              mul_mat3_m4_v3(data->ob->obmat, onor); /* Normal into world-space. */
+              mul_mat3_m4_v3(imat, onor);            /* World-space into particle-space. */
               normalize_v3(onor);
             }
             else {

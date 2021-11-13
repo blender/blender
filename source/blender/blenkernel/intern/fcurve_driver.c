@@ -422,7 +422,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
         }
       }
       else {
-        /* Convert to worldspace. */
+        /* Convert to world-space. */
         copy_v3_v3(tmp_loc, pchan->pose_head);
         mul_m4_v3(ob->obmat, tmp_loc);
       }

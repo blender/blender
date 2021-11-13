@@ -134,8 +134,10 @@ enum {
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
   LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 27,
-  /** EXCEPTION! Specific handling of RB objects regarding collections differs depending whether we
-     duplicate scene/collections, or objects. */
+  /**
+   * EXCEPTION! Specific handling of RB objects regarding collections differs depending whether we
+   * duplicate scene/collections, or objects.
+   */
   LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 28,
 
   /* *** Helper 'defines' gathering most common flag sets. *** */

@@ -64,8 +64,10 @@ typedef struct RegionView3D {
 
   /** User defined clipping planes. */
   float clip[6][4];
-  /** Clip in object space,
-   * means we can test for clipping in editmode without first going into worldspace. */
+  /**
+   * Clip in object space,
+   * means we can test for clipping in edit-mode without first going into world-space.
+   */
   float clip_local[6][4];
   struct BoundBox *clipbb;
 
@@ -94,8 +96,8 @@ typedef struct RegionView3D {
   /** Runtime only. */
   float pixsize;
   /**
-   * View center & orbit pivot, negative of worldspace location,
-   * also matches -viewinv[3][0:3] in ortho mode.
+   * View center & orbit pivot, negative of world-space location,
+   * also matches `-viewinv[3][0:3]` in orthographic mode.
    */
   float ofs[3];
   /** Viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac. */

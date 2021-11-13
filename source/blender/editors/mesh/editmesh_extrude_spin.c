@@ -80,7 +80,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     BMOperator spinop;
 
-    /* keep the values in worldspace since we're passing the obmat */
+    /* Keep the values in world-space since we're passing the `obmat`. */
     if (!EDBM_op_init(em,
                       &spinop,
                       op,
