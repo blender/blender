@@ -2008,8 +2008,6 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     }
   }
 
-  G.file_loaded = 1;
-
   return 0;
 }
 

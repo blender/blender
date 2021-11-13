@@ -45,7 +45,6 @@ typedef struct Global {
 
   /** When set: `G_MAIN->name` contains valid relative base path. */
   bool relbase_valid;
-  bool file_loaded;
   bool save_over;
 
   /** Strings of recent opened files. */

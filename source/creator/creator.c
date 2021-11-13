@@ -551,7 +551,8 @@ int main(int argc,
     WM_exit(C);
   }
   else {
-    if (!G.file_loaded) {
+    /* When no file is loaded, show the splash screen. */
+    if (!G.relbase_valid) {
       WM_init_splash(C);
     }
     WM_main(C);
