@@ -113,7 +113,7 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 
 /**
  * \brief This function clears runtime cache of the given mesh.
- * 
+ *
  * Call this function to recalculate runtime data when used.
  */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)

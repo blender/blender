@@ -233,9 +233,7 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string HIPDevice::compile_kernel(const uint kernel_features,
-                                 const char *name,
-                                 const char *base)
+string HIPDevice::compile_kernel(const uint kernel_features, const char *name, const char *base)
 {
   /* Compute kernel name. */
   int major, minor;
