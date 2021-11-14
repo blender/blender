@@ -119,9 +119,14 @@ void bm_id_freelist_take(BMesh *bm, uint id)
     void **val = BLI_ghash_lookup_p(bm->idmap.free_idx_map, POINTER_FROM_UINT(id));
 
     if (val) {
-      int i = POINTER_AS_INT(*val);
+      uint i = POINTER_AS_UINT(*val);
+
+      uint end = bm->idmap.freelist[bm->idmap.freelist_len - 1];
 
       // swap with end
+      void **endval = BLI_ghash_lookup_p(bm->idmap.free_idx_map, POINTER_FROM_UINT(end));
+      *endval = POINTER_FROM_UINT(i);
+
       bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
       bm->idmap.freelist_len--;
     }
