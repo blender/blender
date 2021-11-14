@@ -318,12 +318,15 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 
   float memsize1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float memsize2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float tot = 0.0f;
 
   for (int i = 0; i < 4; i++) {
     CustomData *cdata = cdatas[i];
 
     memsize1[i] = (float)(sizes[i] * tots[i]) / 1024.0f / 1024.0f;
     memsize2[i] = (float)(cdata->totsize * tots[i]) / 1024.0f / 1024.0f;
+
+    tot += memsize1[i] + memsize2[i];
   }
 
   printf("base sizes:\n");
@@ -339,6 +342,21 @@ static void pbvh_print_mem_size(PBVH *pbvh)
          memsize2[1],
          memsize2[2],
          memsize2[3]);
+
+  int ptrsize = (int)sizeof(void *);
+
+  float memsize3[3] = {(float)(ptrsize * bm->idmap.map_size) / 1024.0 / 1024.0,
+                       (float)(ptrsize * bm->idmap.freelist_len) / 1024.0 / 1024.0,
+                       (float)(4 * bm->idmap.free_ids_size) / 1024.0 / 1024.0};
+
+  printf("idmap sizes:\n  map_size: %.2fmb freelist_len: %.2fmb free_ids_size: %.2fmb\n",
+         memsize3[0],
+         memsize3[1],
+         memsize3[2]);
+
+  tot += memsize3[0] + memsize3[1] + memsize3[2];
+
+  printf("total: %.2f\n", tot);
 
 #ifdef WITH_BM_ID_FREELIST
   if (bm->idmap.free_idx_map) {
@@ -3598,7 +3616,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
     printf("joined nodes; %d faces\n", BLI_array_len(faces));
 
     for (int i = 0; i < BLI_array_len(faces); i++) {
-      if (BM_elem_is_free((BMElem*) faces[i], BM_FACE)) {
+      if (BM_elem_is_free((BMElem *)faces[i], BM_FACE)) {
         printf("corrupted face in pbvh tree; faces[i]: %p\n", faces[i]);
         continue;
       }
