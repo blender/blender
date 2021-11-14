@@ -526,7 +526,7 @@ class VIEWLAYER_PT_freestyle_linestyle_strokes(ViewLayerFreestyleLineStyle, Pane
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         col = layout.column(align=True)
@@ -830,7 +830,7 @@ class VIEWLAYER_PT_freestyle_linestyle_color(ViewLayerFreestyleLineStyle, Panel)
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         col = layout.column()
@@ -922,7 +922,7 @@ class VIEWLAYER_PT_freestyle_linestyle_alpha(ViewLayerFreestyleLineStyle, Panel)
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         col = layout.column()
@@ -1036,7 +1036,7 @@ class VIEWLAYER_PT_freestyle_linestyle_thickness(ViewLayerFreestyleLineStyle, Pa
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         col = layout.column()
@@ -1182,7 +1182,7 @@ class VIEWLAYER_PT_freestyle_linestyle_geometry(ViewLayerFreestyleLineStyle, Pan
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         col = layout.column()
@@ -1215,7 +1215,7 @@ class VIEWLAYER_PT_freestyle_linestyle_texture(ViewLayerFreestyleLineStyle, Pane
         row = layout.row(align=True)
         row.alignment = 'LEFT'
         row.label(text=lineset.name, icon='LINE_DATA')
-        row.label(text="", icon='SMALL_TRI_RIGHT_VEC')
+        row.label(text="", icon='RIGHTARROW')
         row.label(text=linestyle.name)
 
         layout.prop(linestyle, "use_nodes")

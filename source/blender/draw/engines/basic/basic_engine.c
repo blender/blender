@@ -38,7 +38,6 @@
 #include "basic_engine.h"
 #include "basic_private.h"
 
-
 #define BASIC_ENGINE "BLENDER_BASIC"
 
 /* *********** LISTS *********** */
@@ -107,13 +106,13 @@ static void basic_cache_init(void *vedata)
              BASIC_shaders_pointcloud_depth_conservative_sh_get(draw_ctx->sh_cfg) :
              BASIC_shaders_pointcloud_depth_sh_get(draw_ctx->sh_cfg);
     DRW_PASS_CREATE(psl->depth_pass_pointcloud[i], state | clip_state | infront_state);
-    stl->g_data->depth_pointcloud_shgrp[i] = grp = DRW_shgroup_create(sh, psl->depth_pass_pointcloud[i]);
+    stl->g_data->depth_pointcloud_shgrp[i] = grp = DRW_shgroup_create(
+        sh, psl->depth_pass_pointcloud[i]);
     DRW_shgroup_uniform_vec2(grp, "sizeViewport", DRW_viewport_size_get(), 1);
     DRW_shgroup_uniform_vec2(grp, "sizeViewportInv", DRW_viewport_invert_size_get(), 1);
 
     stl->g_data->depth_hair_shgrp[i] = grp = DRW_shgroup_create(
         BASIC_shaders_depth_sh_get(draw_ctx->sh_cfg), psl->depth_pass[i]);
-
 
     sh = DRW_state_is_select() ? BASIC_shaders_depth_conservative_sh_get(draw_ctx->sh_cfg) :
                                  BASIC_shaders_depth_sh_get(draw_ctx->sh_cfg);

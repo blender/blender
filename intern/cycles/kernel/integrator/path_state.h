@@ -185,7 +185,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, 
 
     /* Render pass categories. */
     if (bounce == 1) {
-      flag |= (label & LABEL_TRANSMIT) ? PATH_RAY_TRANSMISSION_PASS : PATH_RAY_REFLECT_PASS;
+      flag |= PATH_RAY_SURFACE_PASS;
     }
   }
 

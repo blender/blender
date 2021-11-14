@@ -95,9 +95,7 @@ typedef struct SnapCursorDataIntern {
 
 static SnapCursorDataIntern g_data_intern = {
     .state_default = {.prevpoint = NULL,
-                      .snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
-                                          SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_EDGE_PERPENDICULAR |
-                                          SCE_SNAP_MODE_EDGE_MIDPOINT),
+                      .snap_elem_force = SCE_SNAP_MODE_GEOM,
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},
                       .color_line = {255, 255, 255, 128},
@@ -692,7 +690,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
       ED_transform_calc_orientation_from_type_ex(
-          scene, view_layer, v3d, region->regiondata, ob, ob, orient_index, pivot_point, omat);
+          scene, view_layer, v3d, rv3d, ob, NULL, orient_index, pivot_point, omat);
 
       if (state->use_plane_axis_auto) {
         mat3_align_axis_to_v3(omat, state->plane_axis, rv3d->viewinv[2]);
@@ -759,7 +757,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 /** \name Callbacks
  * \{ */
 
-static bool v3d_cursor_snap_pool_fn(bContext *C)
+static bool v3d_cursor_snap_poll_fn(bContext *C)
 {
   if (G.moving) {
     return false;
@@ -770,7 +768,22 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
     return false;
   }
 
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  ARegion *region = CTX_wm_region(C);
+  if (region->regiontype != RGN_TYPE_WINDOW) {
+    if (!region->overlap) {
+      return false;
+    }
+    /* Sometimes the cursor may be on an invisible part of an overlapping region. */
+    const wmWindowManager *wm = CTX_wm_manager(C);
+    const wmEvent *event = wm->winactive->eventstate;
+    if (ED_region_overlap_isect_xy(region, event->xy)) {
+      return false;
+    }
+    /* Find the visible region under the cursor.
+     * TODO(Germano): Shouldn't this be the region in context? */
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
+
   RegionView3D *rv3d = region->regiondata;
   if (rv3d->rflag & RV3D_NAVIGATING) {
     /* Don't draw the cursor while navigating. It can be distracting. */
@@ -883,7 +896,7 @@ static void v3d_cursor_snap_activate(void)
     }
 
     struct wmPaintCursor *pc = WM_paint_cursor_activate(
-        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_pool_fn, v3d_cursor_snap_draw_fn, NULL);
+        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_poll_fn, v3d_cursor_snap_draw_fn, NULL);
     data_intern->handle = pc;
   }
 }

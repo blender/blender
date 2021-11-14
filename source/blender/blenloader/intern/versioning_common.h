@@ -62,6 +62,8 @@ void version_node_socket_index_animdata(
 
 void version_node_id(struct bNodeTree *ntree, const int node_type, const char *new_name);
 
+void version_node_socket_id_delim(bNodeSocket *socket);
+
 #ifdef __cplusplus
 }
 #endif

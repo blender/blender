@@ -33,10 +33,12 @@ CCL_NAMESPACE_BEGIN
 #  define GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE 512
 #endif
 
-template<uint blocksize>
-__device__ void gpu_parallel_prefix_sum(int *counter, int *prefix_sum, const int num_values)
+__device__ void gpu_parallel_prefix_sum(const int global_id,
+                                        ccl_global int *counter,
+                                        ccl_global int *prefix_sum,
+                                        const int num_values)
 {
-  if (!(ccl_gpu_block_idx_x == 0 && ccl_gpu_thread_idx_x == 0)) {
+  if (global_id != 0) {
     return;
   }
 

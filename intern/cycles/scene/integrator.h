@@ -56,6 +56,13 @@ class Integrator : public Node {
   NODE_SOCKET_API(bool, caustics_refractive)
   NODE_SOCKET_API(float, filter_glossy)
 
+  NODE_SOCKET_API(bool, use_direct_light);
+  NODE_SOCKET_API(bool, use_indirect_light);
+  NODE_SOCKET_API(bool, use_diffuse);
+  NODE_SOCKET_API(bool, use_glossy);
+  NODE_SOCKET_API(bool, use_transmission);
+  NODE_SOCKET_API(bool, use_emission);
+
   NODE_SOCKET_API(int, seed)
 
   NODE_SOCKET_API(float, sample_clamp_direct)

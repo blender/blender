@@ -216,8 +216,9 @@ GHOST_XrAction::GHOST_XrAction(XrInstance instance,
 
   XrActionCreateInfo action_info{XR_TYPE_ACTION_CREATE_INFO};
   strcpy(action_info.actionName, info.name);
-  strcpy(action_info.localizedActionName, info.name); /* Just use same name for localized. This can
-                                                         be changed in the future if necessary. */
+
+  /* Just use same name for localized. This can be changed in the future if necessary. */
+  strcpy(action_info.localizedActionName, info.name);
 
   switch (info.type) {
     case GHOST_kXrActionTypeBooleanInput:

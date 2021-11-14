@@ -162,19 +162,19 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     /* Object */
     else if (b_id.is_a(&RNA_Object)) {
       BL::Object b_ob(b_id);
-      const bool is_geometry = object_is_geometry(b_ob);
-      const bool is_light = !is_geometry && object_is_light(b_ob);
+      const bool can_have_geometry = object_can_have_geometry(b_ob);
+      const bool is_light = !can_have_geometry && object_is_light(b_ob);
 
       if (b_ob.is_instancer() && b_update.is_updated_shading()) {
         /* Needed for e.g. object color updates on instancer. */
         object_map.set_recalc(b_ob);
       }
 
-      if (is_geometry || is_light) {
+      if (can_have_geometry || is_light) {
         const bool updated_geometry = b_update.is_updated_geometry();
 
         /* Geometry (mesh, hair, volume). */
-        if (is_geometry) {
+        if (can_have_geometry) {
           if (b_update.is_updated_transform() || b_update.is_updated_shading()) {
             object_map.set_recalc(b_ob);
           }
@@ -835,18 +835,25 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   /* samples */
   int samples = get_int(cscene, "samples");
   int preview_samples = get_int(cscene, "preview_samples");
+  int sample_offset = get_int(cscene, "sample_offset");
 
   if (background) {
     params.samples = samples;
+    params.sample_offset = sample_offset;
   }
   else {
     params.samples = preview_samples;
-    if (params.samples == 0)
+    if (params.samples == 0) {
       params.samples = INT_MAX;
+    }
+    params.sample_offset = 0;
   }
 
+  /* Clamp sample offset. */
+  params.sample_offset = clamp(params.sample_offset, 0, Integrator::MAX_SAMPLES);
+
   /* Clamp samples. */
-  params.samples = min(params.samples, Integrator::MAX_SAMPLES);
+  params.samples = clamp(params.samples, 0, Integrator::MAX_SAMPLES - params.sample_offset);
 
   /* Viewport Performance */
   params.pixel_size = b_engine.get_preview_pixel_size(b_scene);

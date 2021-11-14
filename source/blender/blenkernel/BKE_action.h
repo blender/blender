@@ -125,6 +125,17 @@ struct bActionGroup *BKE_action_group_find_name(struct bAction *act, const char 
 /* Clear all 'temp' flags on all groups */
 void action_groups_clear_tempflags(struct bAction *act);
 
+/**
+ * Return whether the action has one unique point in time keyed.
+ *
+ * This is mostly for the pose library, which will have different behavior depending on whether an
+ * Action corresponds to a "pose" (one keyframe) or "animation snippet" (multiple keyframes).
+ *
+ * \return `false` when there is no keyframe at all or keys on different points in time, `true`
+ * when exactly one point in time is keyed.
+ */
+bool BKE_action_has_single_frame(const struct bAction *act);
+
 /* Pose API ----------------- */
 
 void BKE_pose_channel_free(struct bPoseChannel *pchan);

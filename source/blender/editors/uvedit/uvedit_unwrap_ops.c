@@ -118,7 +118,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   int cd_loop_uv_offset;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-    ED_mesh_uv_texture_add(obedit->data, NULL, true, true);
+    ED_mesh_uv_texture_add(obedit->data, NULL, true, true, NULL);
   }
 
   /* Happens when there are no faces. */

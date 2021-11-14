@@ -102,7 +102,7 @@ struct CurveDrawData {
 
     /* offset projection by this value */
     bool use_offset;
-    float offset[3]; /* worldspace */
+    float offset[3]; /* world-space */
     float surface_offset;
     bool use_surface_offset_absolute;
   } project;

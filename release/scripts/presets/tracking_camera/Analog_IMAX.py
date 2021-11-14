@@ -1,4 +1,6 @@
 import bpy
-bpy.context.camera.sensor_width = 71.41
-bpy.context.camera.sensor_height = 52.63
-bpy.context.camera.sensor_fit = 'HORIZONTAL'
+camera = bpy.context.edit_movieclip.tracking.camera
+
+camera.sensor_width = 71.41
+camera.units = 'MILLIMETERS'
+camera.pixel_aspect = 1

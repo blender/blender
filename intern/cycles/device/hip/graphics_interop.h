@@ -48,7 +48,7 @@ class HIPDeviceGraphicsInterop : public DeviceGraphicsInterop {
   HIPDeviceQueue *queue_ = nullptr;
   HIPDevice *device_ = nullptr;
 
-  /* OpenGL PBO which is currently registered as the destination for the CUDA buffer. */
+  /* OpenGL PBO which is currently registered as the destination for the HIP buffer. */
   uint opengl_pbo_id_ = 0;
   /* Buffer area in pixels of the corresponding PBO. */
   int64_t buffer_area_ = 0;

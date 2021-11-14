@@ -33,16 +33,16 @@ CCL_NAMESPACE_BEGIN
 #endif
 #define GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY (~0)
 
-template<uint blocksize, typename GetKeyOp>
-__device__ void gpu_parallel_sorted_index_array(const uint num_states,
+template<typename GetKeyOp>
+__device__ void gpu_parallel_sorted_index_array(const uint state_index,
+                                                const uint num_states,
                                                 const int num_states_limit,
-                                                int *indices,
-                                                int *num_indices,
-                                                int *key_counter,
-                                                int *key_prefix_sum,
+                                                ccl_global int *indices,
+                                                ccl_global int *num_indices,
+                                                ccl_global int *key_counter,
+                                                ccl_global int *key_prefix_sum,
                                                 GetKeyOp get_key_op)
 {
-  const uint state_index = ccl_gpu_block_idx_x * blocksize + ccl_gpu_thread_idx_x;
   const int key = (state_index < num_states) ? get_key_op(state_index) :
                                                GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY;
 

@@ -161,6 +161,7 @@ class VIEW3D_HT_tool_header(Header):
             sub.prop(context.object, "use_mesh_mirror_x", text="X", toggle=True)
             sub.prop(context.object, "use_mesh_mirror_y", text="Y", toggle=True)
             sub.prop(context.object, "use_mesh_mirror_z", text="Z", toggle=True)
+
             if mode_string == 'EDIT_MESH':
                 tool_settings = context.tool_settings
                 layout.prop(tool_settings, "use_mesh_automerge", text="")
@@ -168,7 +169,6 @@ class VIEW3D_HT_tool_header(Header):
                 row.popover(panel="VIEW3D_PT_tools_weightpaint_symmetry_for_topbar", text="")
             elif mode_string == 'SCULPT':
                 row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
-                layout.prop(context.object.data, "use_fset_boundary_mirror")
             elif mode_string == 'PAINT_VERTEX':
                 row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
 
@@ -5992,7 +5992,7 @@ class VIEW3D_PT_shading_render_pass(Panel):
 class VIEW3D_PT_gizmo_display(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Gizmo"
+    bl_label = "Gizmos"
     bl_ui_units_x = 8
 
     def draw(self, context):

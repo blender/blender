@@ -75,7 +75,10 @@ class PathTraceWork {
 
   /* Render given number of samples as a synchronous blocking call.
    * The samples are added to the render buffer associated with this work. */
-  virtual void render_samples(RenderStatistics &statistics, int start_sample, int samples_num) = 0;
+  virtual void render_samples(RenderStatistics &statistics,
+                              int start_sample,
+                              int samples_num,
+                              int sample_offset) = 0;
 
   /* Copy render result from this work to the corresponding place of the GPU display.
    *

@@ -1522,12 +1522,15 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
   return me->edit_mesh ? me->edit_mesh->bm->totfacesel : 0;
 }
 
-static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me, const char *name, const bool do_init)
+static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me,
+                                            ReportList *reports,
+                                            const char *name,
+                                            const bool do_init)
 {
   PointerRNA ptr;
   CustomData *ldata;
   CustomDataLayer *cdl = NULL;
-  int index = ED_mesh_color_add(me, name, false, do_init);
+  int index = ED_mesh_color_add(me, name, false, do_init, reports);
 
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
@@ -1548,13 +1551,14 @@ static void rna_Mesh_vertex_color_remove(struct Mesh *me,
 }
 
 static PointerRNA rna_Mesh_sculpt_vertex_color_new(struct Mesh *me,
+                                                   ReportList *reports,
                                                    const char *name,
                                                    const bool do_init)
 {
   PointerRNA ptr;
   CustomData *vdata;
   CustomDataLayer *cdl = NULL;
-  int index = ED_mesh_sculpt_color_add(me, name, false, do_init);
+  int index = ED_mesh_sculpt_color_add(me, name, false, do_init, reports);
 
   if (index != -1) {
     vdata = rna_mesh_vdata_helper(me);
@@ -1606,12 +1610,15 @@ DEFINE_CUSTOMDATA_PROPERTY_API(
     polygon, string, CD_PROP_STRING, pdata, totpoly, MeshPolygonStringPropertyLayer)
 #  undef DEFINE_CUSTOMDATA_PROPERTY_API
 
-static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me, const char *name, const bool do_init)
+static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me,
+                                         ReportList *reports,
+                                         const char *name,
+                                         const bool do_init)
 {
   PointerRNA ptr;
   CustomData *ldata;
   CustomDataLayer *cdl = NULL;
-  int index = ED_mesh_uv_texture_add(me, name, false, do_init);
+  int index = ED_mesh_uv_texture_add(me, name, false, do_init, reports);
 
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
@@ -2535,6 +2542,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
   RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
   RNA_def_boolean(func,
                   "do_init",
@@ -2584,6 +2592,7 @@ static void rna_def_vert_colors(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "new", "rna_Mesh_sculpt_vertex_color_new");
   RNA_def_function_ui_description(func, "Add a sculpt vertex color layer to Mesh");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_string(func, "name", "Col", 0, "", "Sculpt Vertex color name");
   RNA_def_boolean(func,
                   "do_init",
@@ -2637,6 +2646,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "UV Loop Layers", "Collection of uv loop layers");
 
   func = RNA_def_function(srna, "new", "rna_Mesh_uv_layers_new");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
   RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
   RNA_def_boolean(func,

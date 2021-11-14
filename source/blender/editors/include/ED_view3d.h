@@ -588,8 +588,6 @@ float ED_view3d_radius_to_dist(const struct View3D *v3d,
                                const bool use_aspect,
                                const float radius);
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned int pos);
-
 /* Back-buffer select and draw support. */
 void ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
 int ED_view3d_backbuf_sample_size_clamp(struct ARegion *region, const float dist);
@@ -840,6 +838,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(struct bContext *C,
                                                struct wmGizmo *gz,
                                                struct Base **r_base,
                                                struct BMElem **r_ele);
+void ED_view3d_gizmo_mesh_preselect_clear(struct wmGizmo *gz);
 
 /* space_view3d.c */
 void ED_view3d_buttons_region_layout_ex(const struct bContext *C,

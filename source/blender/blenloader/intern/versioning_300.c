@@ -647,6 +647,10 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 25)) {
+    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
@@ -781,8 +785,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 4, 2, 25);
   }
 }
 
@@ -1269,6 +1271,18 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     }
     bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
     nodeRemoveSocket(ntree, node, old_offset_socket);
+  }
+}
+
+static void version_node_tree_socket_id_delim(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      version_node_socket_id_delim(socket);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      version_node_socket_id_delim(socket);
+    }
   }
 }
 
@@ -2212,6 +2226,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_CUSTOM) {
+        version_node_tree_socket_id_delim(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {

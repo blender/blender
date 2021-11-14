@@ -363,7 +363,7 @@ void BLF_position(int fontid, float x, float y, float z)
   }
 }
 
-void BLF_size(int fontid, int size, int dpi)
+void BLF_size(int fontid, float size, int dpi)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -910,7 +910,7 @@ void BLF_state_print(int fontid)
   if (font) {
     printf("fontid %d %p\n", fontid, (void *)font);
     printf("  name:    '%s'\n", font->name);
-    printf("  size:     %u\n", font->size);
+    printf("  size:     %f\n", font->size);
     printf("  dpi:      %u\n", font->dpi);
     printf("  pos:      %.6f %.6f %.6f\n", UNPACK3(font->pos));
     printf("  aspect:   (%d) %.6f %.6f %.6f\n",

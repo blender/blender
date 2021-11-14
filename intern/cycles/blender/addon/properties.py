@@ -325,6 +325,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=1024,
     )
 
+    sample_offset: IntProperty(
+        name="Sample Offset",
+        description="Number of samples to skip when starting render",
+        min=0, max=(1 << 24),
+        default=0,
+    )
+
     time_limit: FloatProperty(
         name="Time Limit",
         description="Limit the render time (excluding synchronization time)."
@@ -1419,10 +1426,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
             elif device_type == 'HIP':
                 import sys
-                col.label(text="Requires discrete AMD GPU with RDNA2 architecture", icon='BLANK1')
-                # TODO: provide driver version info.
-                #if sys.platform[:3] == "win":
-                #    col.label(text="and AMD driver version ??? or newer", icon='BLANK1')
+                col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
+                if sys.platform[:3] == "win":
+                    col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
             return
 
         for device in devices:

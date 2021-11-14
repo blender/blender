@@ -194,4 +194,3 @@ void IMAGE_shader_library_ensure(void);
 void IMAGE_shader_free(void);
 
 }  // namespace blender::draw::image_engine
-

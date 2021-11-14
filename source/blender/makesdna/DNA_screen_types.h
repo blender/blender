@@ -667,7 +667,7 @@ typedef enum eRegion_Type {
   RGN_TYPE_FOOTER = 11,
   RGN_TYPE_TOOL_HEADER = 12,
   /* Region type used exclusively by internal code and add-ons to register draw callbacks to the XR
-     context (surface, mirror view). Does not represent any real region. */
+   * context (surface, mirror view). Does not represent any real region. */
   RGN_TYPE_XR = 13,
 
 #define RGN_TYPE_LEN (RGN_TYPE_XR + 1)

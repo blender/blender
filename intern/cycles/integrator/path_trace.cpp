@@ -380,7 +380,10 @@ void PathTrace::path_trace(RenderWork &render_work)
     PathTraceWork *path_trace_work = path_trace_works_[i].get();
 
     PathTraceWork::RenderStatistics statistics;
-    path_trace_work->render_samples(statistics, render_work.path_trace.start_sample, num_samples);
+    path_trace_work->render_samples(statistics,
+                                    render_work.path_trace.start_sample,
+                                    num_samples,
+                                    render_work.path_trace.sample_offset);
 
     const double work_time = time_dt() - work_start_time;
     work_balance_infos_[i].time_spent += work_time;
@@ -849,7 +852,8 @@ void PathTrace::progress_update_if_needed(const RenderWork &render_work)
     const int2 tile_size = get_render_tile_size();
     const int num_samples_added = tile_size.x * tile_size.y * render_work.path_trace.num_samples;
     const int current_sample = render_work.path_trace.start_sample +
-                               render_work.path_trace.num_samples;
+                               render_work.path_trace.num_samples -
+                               render_work.path_trace.sample_offset;
     progress_->add_samples(num_samples_added, current_sample);
   }
 

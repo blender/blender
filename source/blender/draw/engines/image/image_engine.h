@@ -31,4 +31,3 @@ extern DrawEngineType draw_engine_image_type;
 #ifdef __cplusplus
 }
 #endif
-

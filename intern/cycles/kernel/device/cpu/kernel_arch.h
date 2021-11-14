@@ -37,7 +37,7 @@
 
 KERNEL_INTEGRATOR_INIT_FUNCTION(init_from_camera);
 KERNEL_INTEGRATOR_INIT_FUNCTION(init_from_bake);
-KERNEL_INTEGRATOR_FUNCTION(intersect_closest);
+KERNEL_INTEGRATOR_SHADE_FUNCTION(intersect_closest);
 KERNEL_INTEGRATOR_FUNCTION(intersect_shadow);
 KERNEL_INTEGRATOR_FUNCTION(intersect_subsurface);
 KERNEL_INTEGRATOR_FUNCTION(intersect_volume_stack);

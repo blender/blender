@@ -28,27 +28,12 @@ void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 {
   int flag = int(abs(ObjectInfo.w));
   bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
-  bool is_from_dupli = (flag & DRW_BASE_FROM_DUPLI) != 0;
   bool is_from_set = (flag & DRW_BASE_FROM_SET) != 0;
   bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
 
   if (is_from_set) {
-    rim_col = colorDupli.rgb;
-    wire_col = colorDupli.rgb;
-  }
-  else if (is_from_dupli) {
-    if (is_selected) {
-      if (isTransform) {
-        rim_col = colorTransform.rgb;
-      }
-      else {
-        rim_col = colorDupliSelect.rgb;
-      }
-    }
-    else {
-      rim_col = colorDupli.rgb;
-    }
-    wire_col = colorDupli.rgb;
+    rim_col = colorWire.rgb;
+    wire_col = colorWire.rgb;
   }
   else if (is_selected && useColoring) {
     if (isTransform) {

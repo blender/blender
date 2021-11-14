@@ -136,4 +136,3 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
 };
 
 }  // namespace blender::draw::image_engine
-

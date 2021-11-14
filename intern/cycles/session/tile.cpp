@@ -29,6 +29,7 @@
 #include "util/path.h"
 #include "util/string.h"
 #include "util/system.h"
+#include "util/time.h"
 #include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -503,9 +504,9 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
     }
   }
 
-  DCHECK_EQ(tile_buffers.params.pass_stride, buffer_params_.pass_stride);
+  const double time_start = time_dt();
 
-  vector<float> pixel_storage;
+  DCHECK_EQ(tile_buffers.params.pass_stride, buffer_params_.pass_stride);
 
   const BufferParams &tile_params = tile_buffers.params;
 
@@ -515,12 +516,31 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
   const int64_t pass_stride = tile_params.pass_stride;
   const int64_t tile_row_stride = tile_params.width * pass_stride;
 
-  const int64_t xstride = pass_stride * sizeof(float);
-  const int64_t ystride = xstride * tile_params.width;
-  const int64_t zstride = ystride * tile_params.height;
-
+  vector<float> pixel_storage;
   const float *pixels = tile_buffers.buffer.data() + tile_params.window_x * pass_stride +
                         tile_params.window_y * tile_row_stride;
+
+  /* If there is an overscan used for the tile copy pixels into single continuous block of memory
+   * without any "gaps".
+   * This is a workaround for bug in OIIO (https://github.com/OpenImageIO/oiio/pull/3176).
+   * Our task reference: T93008. */
+  if (tile_params.window_x || tile_params.window_y ||
+      tile_params.window_width != tile_params.width ||
+      tile_params.window_height != tile_params.height) {
+    pixel_storage.resize(pass_stride * tile_params.window_width * tile_params.window_height);
+    float *pixels_continuous = pixel_storage.data();
+
+    const int64_t pixels_row_stride = pass_stride * tile_params.width;
+    const int64_t pixels_continuous_row_stride = pass_stride * tile_params.window_width;
+
+    for (int i = 0; i < tile_params.window_height; ++i) {
+      memcpy(pixels_continuous, pixels, sizeof(float) * pixels_continuous_row_stride);
+      pixels += pixels_row_stride;
+      pixels_continuous += pixels_continuous_row_stride;
+    }
+
+    pixels = pixel_storage.data();
+  }
 
   VLOG(3) << "Write tile at " << tile_x << ", " << tile_y;
 
@@ -531,6 +551,11 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
    *
    * The only thing we have to ensure is that the tile_x and tile_y are a multiple of the
    * image tile size, which happens in compute_render_tile_size. */
+
+  const int64_t xstride = pass_stride * sizeof(float);
+  const int64_t ystride = xstride * tile_params.window_width;
+  const int64_t zstride = ystride * tile_params.window_height;
+
   if (!write_state_.tile_out->write_tiles(tile_x,
                                           tile_x + tile_params.window_width,
                                           tile_y,
@@ -547,6 +572,8 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
   }
 
   ++write_state_.num_tiles_written;
+
+  VLOG(3) << "Tile written in " << time_dt() - time_start << " seconds.";
 
   return true;
 }
@@ -588,6 +615,9 @@ void TileManager::finish_write_tiles()
   if (full_buffer_written_cb) {
     full_buffer_written_cb(write_state_.filename);
   }
+
+  VLOG(3) << "Tile file size is "
+          << string_human_readable_number(path_file_size(write_state_.filename)) << " bytes.";
 
   /* Advance the counter upon explicit finish of the file.
    * Makes it possible to re-use tile manager for another scene, and avoids unnecessary increments

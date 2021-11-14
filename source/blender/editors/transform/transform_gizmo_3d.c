@@ -515,7 +515,7 @@ static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
 {
   /* Protect-flags apply to local space in pose mode, so only let them influence axis
    * visibility if we show the global orientation, otherwise it's confusing. */
-  if (orientation_index == V3D_ORIENT_LOCAL) {
+  if (ELEM(orientation_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
     protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
   }
 }
@@ -564,72 +564,63 @@ static bool test_rotmode_euler(short rotmode)
   return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
 
-/**
- * Return false when no gimbal for selection.
- */
-bool gimbal_axis(Object *ob, float gmat[3][3])
+bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
 {
-  if (ob->mode & OB_MODE_POSE) {
-    bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  float mat[3][3], tmat[3][3], obmat[3][3];
+  if (test_rotmode_euler(pchan->rotmode)) {
+    eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
+  }
+  else { /* quat */
+    return 0;
+  }
 
-    if (pchan) {
-      float mat[3][3], tmat[3][3], obmat[3][3];
-      if (test_rotmode_euler(pchan->rotmode)) {
-        eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
-      }
-      else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-        axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
-      }
-      else { /* quat */
-        return 0;
-      }
+  /* apply bone transformation */
+  mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 
-      /* apply bone transformation */
-      mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
+  if (pchan->parent) {
+    float parent_mat[3][3];
 
-      if (pchan->parent) {
-        float parent_mat[3][3];
+    copy_m3_m4(parent_mat,
+               (pchan->bone->flag & BONE_HINGE) ? pchan->parent->bone->arm_mat :
+                                                  pchan->parent->pose_mat);
+    mul_m3_m3m3(mat, parent_mat, tmat);
 
-        copy_m3_m4(parent_mat,
-                   (pchan->bone->flag & BONE_HINGE) ? pchan->parent->bone->arm_mat :
-                                                      pchan->parent->pose_mat);
-        mul_m3_m3m3(mat, parent_mat, tmat);
-
-        /* needed if object transformation isn't identity */
-        copy_m3_m4(obmat, ob->obmat);
-        mul_m3_m3m3(gmat, obmat, mat);
-      }
-      else {
-        /* needed if object transformation isn't identity */
-        copy_m3_m4(obmat, ob->obmat);
-        mul_m3_m3m3(gmat, obmat, tmat);
-      }
-
-      normalize_m3(gmat);
-      return 1;
-    }
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->obmat);
+    mul_m3_m3m3(gmat, obmat, mat);
   }
   else {
-    if (test_rotmode_euler(ob->rotmode)) {
-      eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
-    }
-    else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-      axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
-    }
-    else { /* quat */
-      return 0;
-    }
-
-    if (ob->parent) {
-      float parent_mat[3][3];
-      copy_m3_m4(parent_mat, ob->parent->obmat);
-      normalize_m3(parent_mat);
-      mul_m3_m3m3(gmat, parent_mat, gmat);
-    }
-    return 1;
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->obmat);
+    mul_m3_m3m3(gmat, obmat, tmat);
   }
 
-  return 0;
+  normalize_m3(gmat);
+  return true;
+}
+
+bool gimbal_axis_object(Object *ob, float gmat[3][3])
+{
+  if (test_rotmode_euler(ob->rotmode)) {
+    eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
+  }
+  else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+    axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
+  }
+  else { /* quat */
+    return 0;
+  }
+
+  if (ob->parent) {
+    float parent_mat[3][3];
+    copy_m3_m4(parent_mat, ob->parent->obmat);
+    normalize_m3(parent_mat);
+    mul_m3_m3m3(gmat, parent_mat, gmat);
+  }
+  return 1;
 }
 
 /* centroid, boundbox, of selection */
@@ -1071,9 +1062,13 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         }
       }
 
-      /* Protect-flags apply to world space in object mode, so only let them influence axis
-       * visibility if we show the global orientation, otherwise it's confusing. */
       if (orient_index == V3D_ORIENT_GLOBAL) {
+        /* Protect-flags apply to world space in object mode,
+         * so only let them influence axis visibility if we show the global orientation,
+         * otherwise it's confusing. */
+        protectflag_to_drawflags(base->object->protectflag & OB_LOCK_LOC, &rv3d->twdrawflag);
+      }
+      else if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
         protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
       }
       totsel++;

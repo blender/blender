@@ -79,7 +79,8 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (INTEGRATOR_STATE(state, path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(state, path, diffuse_glossy_ratio) = one_float3();
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_float3();
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_float3();
     }
   }
 

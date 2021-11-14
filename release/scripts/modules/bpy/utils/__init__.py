@@ -26,6 +26,7 @@ not associated with blenders internal data.
 __all__ = (
     "blend_paths",
     "escape_identifier",
+    "flip_name",
     "unescape_identifier",
     "keyconfig_init",
     "keyconfig_set",
@@ -61,6 +62,7 @@ from _bpy import (
     _utils_units as units,
     blend_paths,
     escape_identifier,
+    flip_name,
     unescape_identifier,
     register_class,
     resource_path,

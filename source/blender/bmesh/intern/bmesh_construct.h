@@ -23,6 +23,7 @@
 #include "bmesh_core.h"
 
 struct BMAllocTemplate;
+struct Mesh;
 
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len);
 
@@ -66,6 +67,9 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
+void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
+                                            const struct Mesh *me_src,
+                                            const struct BMAllocTemplate *allocsize);
 void BM_mesh_copy_init_customdata(BMesh *bm_dst,
                                   BMesh *bm_src,
                                   const struct BMAllocTemplate *allocsize);

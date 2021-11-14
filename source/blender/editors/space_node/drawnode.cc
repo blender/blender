@@ -39,6 +39,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "BLF_api.h"
@@ -76,7 +77,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 /* Default flags for uiItemR(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS UI_ITEM_R_SPLIT_EMPTY_NAME
@@ -341,7 +342,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   /* XXX font id is crap design */
   const int fontid = UI_style_get()->widgetlabel.uifont_id;
   NodeFrame *data = (NodeFrame *)node->storage;
-  const int font_size = data->label_size / aspect;
+  const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
   nodeLabel(ntree, node, label, sizeof(label));
@@ -349,7 +350,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
   /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24, font_size), U.dpi);
+  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
 
   /* title color */
   int color_id = node_get_colorid(node);
@@ -811,7 +812,7 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
 }
 
-static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "sky_type", DEFAULT_FLAGS, "", ICON_NONE);
 
@@ -825,6 +826,10 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), Poin
     uiItemR(layout, ptr, "ground_albedo", DEFAULT_FLAGS, nullptr, ICON_NONE);
   }
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
+    Scene *scene = CTX_data_scene(C);
+    if (BKE_scene_uses_blender_eevee(scene)) {
+      uiItemL(layout, TIP_("Nishita not available in Eevee"), ICON_ERROR);
+    }
     uiItemR(layout, ptr, "sun_disc", DEFAULT_FLAGS, nullptr, 0);
 
     uiLayout *col;

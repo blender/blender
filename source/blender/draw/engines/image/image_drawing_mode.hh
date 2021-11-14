@@ -151,4 +151,3 @@ class DefaultDrawingMode : public AbstractDrawingMode {
 };
 
 }  // namespace blender::draw::image_engine
-

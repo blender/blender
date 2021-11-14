@@ -35,13 +35,13 @@ namespace blender::nodes {
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
   b.add_input<decl::Int>(N_("Count")).default_value(10).min(1).max(100000).supports_field();
   b.add_input<decl::Float>(N_("Length"))
       .default_value(0.1f)
       .min(0.001f)
       .supports_field()
       .subtype(PROP_DISTANCE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field();
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
@@ -64,7 +64,7 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)node->storage;
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
 
-  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next->next;
   bNodeSocket *length_socket = count_socket->next;
 
   nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);

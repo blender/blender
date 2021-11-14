@@ -24,6 +24,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "testing/testing.h"
@@ -927,6 +928,28 @@ TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
   EXPECT_EQ("charlib-Ružena", service.find_catalog(UUID_POSES_RUZENA)->simple_name)
       << "Changing the path should update the simplename.";
   EXPECT_EQ("charlib-Ružena-face", service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
+      << "Changing the path should update the simplename of children.";
+}
+
+TEST_F(AssetCatalogTest, update_catalog_path_longer_than_simplename)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+  const std::string new_path =
+      "this/is/a/very/long/path/that/exceeds/the/simple-name/length/of/assets";
+  ASSERT_GT(new_path.length(), sizeof(AssetMetaData::catalog_simple_name))
+      << "This test case should work with paths longer than AssetMetaData::catalog_simple_name";
+
+  service.update_catalog_path(UUID_POSES_RUZENA, new_path);
+
+  const std::string new_simple_name = service.find_catalog(UUID_POSES_RUZENA)->simple_name;
+  EXPECT_LT(new_simple_name.length(), sizeof(AssetMetaData::catalog_simple_name))
+      << "The new simple name should fit in the asset metadata.";
+  EXPECT_EQ("...very-long-path-that-exceeds-the-simple-name-length-of-assets", new_simple_name)
+      << "Changing the path should update the simplename.";
+  EXPECT_EQ("...long-path-that-exceeds-the-simple-name-length-of-assets-face",
+            service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
       << "Changing the path should update the simplename of children.";
 }
 

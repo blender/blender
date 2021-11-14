@@ -26,6 +26,10 @@
 #include "BKE_node.h"
 #include "UI_interface.h"
 #include "UI_view2d.h"
+
+#include "BLI_vector.hh"
+#include "UI_interface.hh"
+
 #include <stddef.h> /* for size_t */
 
 /* internal exports only */
@@ -42,10 +46,6 @@ struct bNodeSocket;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* temp data to pass on to modal */
 typedef struct bNodeLinkDrag {
@@ -342,14 +342,6 @@ extern const char *node_context_dir[];
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#  include "BLI_vector.hh"
-#  include "UI_interface.hh"
 namespace blender::ed::space_node {
 Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
 }
-#endif

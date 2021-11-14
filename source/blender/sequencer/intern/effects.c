@@ -3741,7 +3741,7 @@ static void init_text_effect(Sequence *seq)
   data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
   data->text_font = NULL;
   data->text_blf_id = -1;
-  data->text_size = 60;
+  data->text_size = 60.0f;
 
   copy_v4_fl(data->color, 1.0f);
   data->shadow_color[3] = 0.7f;
@@ -3842,7 +3842,7 @@ static int num_inputs_text(void)
 static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
 {
   TextVars *data = seq->effectdata;
-  if (data->text[0] == 0 || data->text_size < 1 ||
+  if (data->text[0] == 0 || data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
        (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0))) {
     return EARLY_USE_INPUT_1;

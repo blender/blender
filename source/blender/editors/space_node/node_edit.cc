@@ -76,7 +76,7 @@
 #include "NOD_geometry.h"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 #define USE_ESC_COMPO
 

@@ -379,6 +379,18 @@ class DOPESHEET_MT_view(Menu):
         layout.menu("INFO_MT_area")
 
 
+class DOPESHEET_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("action.view_all")
+        pie.operator("action.view_selected", icon='ZOOM_SELECTED')
+        pie.operator("action.view_frame")
+
+
 class DOPESHEET_MT_select(Menu):
     bl_label = "Select"
 
@@ -778,6 +790,7 @@ classes = (
     DOPESHEET_MT_context_menu,
     DOPESHEET_MT_channel_context_menu,
     DOPESHEET_MT_snap_pie,
+    DOPESHEET_MT_view_pie,
     DOPESHEET_PT_filters,
     DOPESHEET_PT_gpencil_mode,
     DOPESHEET_PT_gpencil_layer_masks,

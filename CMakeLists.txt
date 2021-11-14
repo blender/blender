@@ -440,7 +440,11 @@ mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
 mark_as_advanced(WITH_CUDA_DYNLOAD)
 
 # AMD HIP
-option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" OFF)
+if(WIN32)
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
+else()
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" OFF)
+endif()
 option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
 set(CYCLES_HIP_BINARIES_ARCH gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
 mark_as_advanced(WITH_CYCLES_DEVICE_HIP)

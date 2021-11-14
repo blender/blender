@@ -41,7 +41,8 @@ struct Mesh;
 struct Object;
 struct Scene;
 
-void BKE_mesh_runtime_reset(struct Mesh *mesh);
+void BKE_mesh_runtime_init_data(struct Mesh *mesh);
+void BKE_mesh_runtime_free_data(struct Mesh *mesh);
 void BKE_mesh_runtime_reset_on_copy(struct Mesh *mesh, const int flag);
 int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 void BKE_mesh_runtime_looptri_recalc(struct Mesh *mesh);

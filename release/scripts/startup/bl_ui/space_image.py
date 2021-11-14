@@ -591,6 +591,31 @@ class IMAGE_MT_uvs_snap_pie(Menu):
         ).target = 'ADJACENT_UNSELECTED'
 
 
+class IMAGE_MT_view_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
+
+        pie = layout.menu_pie()
+        pie.operator("image.view_all")
+
+        if show_uvedit or show_maskedit:
+            pie.operator("image.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
+            pie.operator("image.view_center_cursor", text="Center View to Cursor")
+        else:
+            # Add spaces so items stay in the same position through all modes.
+            pie.separator()
+            pie.separator()
+
+        pie.operator("image.view_zoom_ratio", text="Zoom 1:1").ratio = 1
+        pie.operator("image.view_all", text="Frame All Fit").fit_view = True
+
+
 class IMAGE_HT_tool_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOL_HEADER'
@@ -1633,6 +1658,7 @@ classes = (
     IMAGE_MT_mask_context_menu,
     IMAGE_MT_pivot_pie,
     IMAGE_MT_uvs_snap_pie,
+    IMAGE_MT_view_pie,
     IMAGE_HT_tool_header,
     IMAGE_HT_header,
     IMAGE_MT_editor_menus,

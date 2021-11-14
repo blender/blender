@@ -29,6 +29,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 struct wmGizmo;
 struct wmGizmoGroup;
@@ -162,6 +163,8 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    */
   WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 10),
 } eWM_GizmoFlagGroupTypeFlag;
+
+ENUM_OPERATORS(eWM_GizmoFlagGroupTypeFlag, WM_GIZMOGROUPTYPE_VR_REDRAWS);
 
 /**
  * #wmGizmoGroup.init_flag

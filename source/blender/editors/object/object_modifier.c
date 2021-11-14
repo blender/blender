@@ -666,12 +666,13 @@ bool ED_object_modifier_convert(ReportList *UNUSED(reports),
 static Mesh *modifier_apply_create_mesh_for_modifier(Depsgraph *depsgraph,
                                                      Object *object,
                                                      ModifierData *md_eval,
+                                                     bool use_virtual_modifiers,
                                                      bool build_shapekey_layers)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Mesh *mesh_applied = BKE_mesh_create_derived_for_modifier(
-      depsgraph, scene_eval, object_eval, md_eval, build_shapekey_layers);
+      depsgraph, scene_eval, object_eval, md_eval, use_virtual_modifiers, build_shapekey_layers);
   return mesh_applied;
 }
 
@@ -708,7 +709,8 @@ static bool modifier_apply_shape(Main *bmain,
       return false;
     }
 
-    Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, false);
+    Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(
+        depsgraph, ob, md_eval, true, false);
     if (!mesh_applied) {
       BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
       return false;
@@ -767,7 +769,8 @@ static bool modifier_apply_obdata(
       }
     }
     else {
-      Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, ob, md_eval, true);
+      Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(
+          depsgraph, ob, md_eval, true, true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return false;

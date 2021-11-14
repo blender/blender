@@ -181,6 +181,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
   /* axismtx has the real orientation */
   transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->obmat));
+  if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
+    if (!gimbal_axis_object(ob, td->ext->axismtx_gimbal)) {
+      copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
+    }
+  }
 
   td->con = ob->constraints.first;
 

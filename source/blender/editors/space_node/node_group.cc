@@ -58,7 +58,7 @@
 
 #include "NOD_common.h"
 #include "NOD_socket.h"
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities

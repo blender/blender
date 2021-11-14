@@ -122,11 +122,11 @@ static void moviecache_valfree(void *val)
 
   PRINT("%s: cache '%s' free item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
 
-  BLI_mutex_lock(&limitor_lock);
   if (item->c_handle) {
+    BLI_mutex_lock(&limitor_lock);
     MEM_CacheLimiter_unmanage(item->c_handle);
+    BLI_mutex_unlock(&limitor_lock);
   }
-  BLI_mutex_unlock(&limitor_lock);
 
   if (item->ibuf) {
     IMB_freeImBuf(item->ibuf);
@@ -242,6 +242,9 @@ static int get_item_priority(void *item_v, int default_priority)
 static bool get_item_destroyable(void *item_v)
 {
   MovieCacheItem *item = (MovieCacheItem *)item_v;
+  if (item->ibuf == NULL) {
+    return true;
+  }
   /* IB_BITMAPDIRTY means image was modified from inside blender and
    * changes are not saved to disk.
    *

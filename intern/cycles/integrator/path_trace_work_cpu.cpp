@@ -71,14 +71,17 @@ void PathTraceWorkCPU::init_execution()
 
 void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
                                       int start_sample,
-                                      int samples_num)
+                                      int samples_num,
+                                      int sample_offset)
 {
   const int64_t image_width = effective_buffer_params_.width;
   const int64_t image_height = effective_buffer_params_.height;
   const int64_t total_pixels_num = image_width * image_height;
 
-  for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
-    kernel_globals.start_profiling();
+  if (device_->profiler.active()) {
+    for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
+      kernel_globals.start_profiling();
+    }
   }
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
@@ -97,6 +100,7 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
       work_tile.w = 1;
       work_tile.h = 1;
       work_tile.start_sample = start_sample;
+      work_tile.sample_offset = sample_offset;
       work_tile.num_samples = 1;
       work_tile.offset = effective_buffer_params_.offset;
       work_tile.stride = effective_buffer_params_.stride;
@@ -106,9 +110,10 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
       render_samples_full_pipeline(kernel_globals, work_tile, samples_num);
     });
   });
-
-  for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
-    kernel_globals.stop_profiling();
+  if (device_->profiler.active()) {
+    for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
+      kernel_globals.stop_profiling();
+    }
   }
 
   statistics.occupancy = 1.0f;

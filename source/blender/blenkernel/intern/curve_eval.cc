@@ -225,8 +225,8 @@ static SplinePtr spline_from_dna_bezier(const Nurb &nurb)
   Span<const BezTriple> src_points{nurb.bezt, nurb.pntsu};
   spline->resize(src_points.size());
   MutableSpan<float3> positions = spline->positions();
-  MutableSpan<float3> handle_positions_left = spline->handle_positions_left();
-  MutableSpan<float3> handle_positions_right = spline->handle_positions_right();
+  MutableSpan<float3> handle_positions_left = spline->handle_positions_left(true);
+  MutableSpan<float3> handle_positions_right = spline->handle_positions_right(true);
   MutableSpan<BezierSpline::HandleType> handle_types_left = spline->handle_types_left();
   MutableSpan<BezierSpline::HandleType> handle_types_right = spline->handle_types_right();
   MutableSpan<float> radii = spline->radii();

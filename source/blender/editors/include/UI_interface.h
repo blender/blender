@@ -245,10 +245,10 @@ enum {
 };
 
 /* Default font size for normal text. */
-#define UI_DEFAULT_TEXT_POINTS 11
+#define UI_DEFAULT_TEXT_POINTS 11.0f
 
 /* Larger size used for title text. */
-#define UI_DEFAULT_TITLE_POINTS 11
+#define UI_DEFAULT_TITLE_POINTS 11.0f
 
 #define UI_PANEL_WIDTH 340
 #define UI_COMPACT_PANEL_WIDTH 160

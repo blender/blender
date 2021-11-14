@@ -1391,7 +1391,6 @@ class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):
 
     draw = VIEW3D_PT_sculpt_symmetry.draw
 
-
 # ********** default tools for weight-paint ****************
 
 

@@ -33,9 +33,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
-void node_operatortypes(void)
+void node_operatortypes()
 {
   WM_operatortype_append(NODE_OT_select);
   WM_operatortype_append(NODE_OT_select_all);

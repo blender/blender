@@ -159,8 +159,11 @@ static void TimeToTransData(
   copy_v2_v2(td2d->ih2, td2d->h2);
 
   /* Setup #TransData. */
-  td->loc = time; /* Usually #td2d->loc is used here. But this is for when the original location is
-                     not float[3]. */
+
+  /* Usually #td2d->loc is used here.
+   * But this is for when the original location is not float[3]. */
+  td->loc = time;
+
   copy_v3_v3(td->iloc, td->loc);
   td->val = time;
   td->ival = *(time);

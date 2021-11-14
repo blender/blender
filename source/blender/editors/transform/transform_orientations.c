@@ -524,8 +524,19 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
 {
   switch (orientation_index) {
     case V3D_ORIENT_GIMBAL: {
-      if (ob && gimbal_axis(ob, r_mat)) {
-        break;
+
+      if (ob) {
+        if (ob->mode & OB_MODE_POSE) {
+          const bPoseChannel *pchan = BKE_pose_channel_active(ob);
+          if (pchan && gimbal_axis_pose(ob, pchan, r_mat)) {
+            break;
+          }
+        }
+        else {
+          if (gimbal_axis_object(ob, r_mat)) {
+            break;
+          }
+        }
       }
       /* If not gimbal, fall through to normal. */
       ATTR_FALLTHROUGH;

@@ -286,27 +286,26 @@ enum PathRayFlag {
   PATH_RAY_DENOISING_FEATURES = (1U << 23U),
 
   /* Render pass categories. */
-  PATH_RAY_REFLECT_PASS = (1U << 24U),
-  PATH_RAY_TRANSMISSION_PASS = (1U << 25U),
-  PATH_RAY_VOLUME_PASS = (1U << 26U),
-  PATH_RAY_ANY_PASS = (PATH_RAY_REFLECT_PASS | PATH_RAY_TRANSMISSION_PASS | PATH_RAY_VOLUME_PASS),
+  PATH_RAY_SURFACE_PASS = (1U << 24U),
+  PATH_RAY_VOLUME_PASS = (1U << 25U),
+  PATH_RAY_ANY_PASS = (PATH_RAY_SURFACE_PASS | PATH_RAY_VOLUME_PASS),
 
   /* Shadow ray is for a light or surface, or AO. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
-  PATH_RAY_SHADOW_FOR_AO = (1U << 28U),
+  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 26U),
+  PATH_RAY_SHADOW_FOR_AO = (1U << 27U),
 
   /* A shadow catcher object was hit and the path was split into two. */
-  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 29U),
+  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 28U),
 
   /* A shadow catcher object was hit and this path traces only shadow catchers, writing them into
    * their dedicated pass for later division.
    *
    * NOTE: Is not covered with `PATH_RAY_ANY_PASS` because shadow catcher does special handling
    * which is separate from the light passes. */
-  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 30U),
+  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 29U),
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
-  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 31U),
+  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 30U),
 };
 
 /* Configure ray visibility bits for rays and objects respectively,
@@ -428,7 +427,18 @@ typedef enum CryptomatteType {
 typedef struct BsdfEval {
   float3 diffuse;
   float3 glossy;
+  float3 sum;
 } BsdfEval;
+
+/* Closure Filter */
+
+typedef enum FilterClosures {
+  FILTER_CLOSURE_EMISSION = (1 << 0),
+  FILTER_CLOSURE_DIFFUSE = (1 << 1),
+  FILTER_CLOSURE_GLOSSY = (1 << 2),
+  FILTER_CLOSURE_TRANSMISSION = (1 << 3),
+  FILTER_CLOSURE_DIRECT_LIGHT = (1 << 4),
+} FilterClosures;
 
 /* Shader Flag */
 
@@ -1186,7 +1196,11 @@ typedef struct KernelIntegrator {
   int has_shadow_catcher;
   float scrambling_distance;
 
+  /* Closure filter. */
+  int filter_closures;
+
   /* padding */
+  int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
@@ -1410,6 +1424,7 @@ typedef struct KernelWorkTile {
 
   uint start_sample;
   uint num_samples;
+  uint sample_offset;
 
   int offset;
   uint stride;

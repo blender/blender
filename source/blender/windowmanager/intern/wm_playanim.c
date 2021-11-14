@@ -1570,7 +1570,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   /* initialize the font */
   BLF_init();
   ps.fontid = BLF_load_mono_default(false);
-  BLF_size(ps.fontid, 11, 72);
+  BLF_size(ps.fontid, 11.0f, 72);
 
   ps.ibufx = ibuf->x;
   ps.ibufy = ibuf->y;

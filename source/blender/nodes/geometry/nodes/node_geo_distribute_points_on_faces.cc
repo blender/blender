@@ -295,6 +295,12 @@ BLI_NOINLINE static void propagate_existing_attributes(
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const CustomDataType output_data_type = entry.value.data_type;
+
+    ReadAttributeLookup source_attribute = mesh_component.attribute_try_get_for_read(attribute_id);
+    if (!source_attribute) {
+      continue;
+    }
+
     /* The output domain is always #ATTR_DOMAIN_POINT, since we are creating a point cloud. */
     OutputAttribute attribute_out = point_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, output_data_type);
@@ -303,23 +309,12 @@ BLI_NOINLINE static void propagate_existing_attributes(
     }
 
     GMutableSpan out_span = attribute_out.as_span();
-
-    std::optional<AttributeMetaData> attribute_info = point_component.attribute_get_meta_data(
-        attribute_id);
-    if (!attribute_info) {
-      continue;
-    }
-
-    const AttributeDomain source_domain = attribute_info->domain;
-    GVArrayPtr source_attribute = mesh_component.attribute_get_for_read(
-        attribute_id, source_domain, output_data_type, nullptr);
-    if (!source_attribute) {
-      continue;
-    }
-
-    interpolate_attribute(
-        mesh, bary_coords, looptri_indices, source_domain, *source_attribute, out_span);
-
+    interpolate_attribute(mesh,
+                          bary_coords,
+                          looptri_indices,
+                          source_attribute.domain,
+                          *source_attribute.varray,
+                          out_span);
     attribute_out.save();
   }
 }

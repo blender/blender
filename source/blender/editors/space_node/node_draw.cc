@@ -85,7 +85,7 @@
 
 #include "FN_field_cpp_type.hh"
 
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 #ifdef WITH_COMPOSITOR
 #  include "COM_compositor.h"

@@ -96,6 +96,8 @@ class Profiler {
   bool get_shader(int shader, uint64_t &samples, uint64_t &hits);
   bool get_object(int object, uint64_t &samples, uint64_t &hits);
 
+  bool active() const;
+
  protected:
   void run();
 

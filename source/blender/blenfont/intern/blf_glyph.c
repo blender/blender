@@ -76,7 +76,7 @@ static FT_Fixed to_16dot16(double val)
 /**
  * Find a glyph cache that matches a size, DPI & styles.
  */
-GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
+GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
   while (gc) {

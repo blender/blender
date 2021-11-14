@@ -69,8 +69,9 @@ typedef struct uiFont {
 typedef struct uiFontStyle {
   /** Saved in file, 0 is default. */
   short uifont_id;
+  char _pad1[2];
   /** Actual size depends on 'global' dpi. */
-  short points;
+  float points;
   /** Style hint. */
   short italic, bold;
   /** Value is amount of pixels blur. */
@@ -82,6 +83,7 @@ typedef struct uiFontStyle {
   float shadowalpha;
   /** 1 value, typically white or black anyway. */
   float shadowcolor;
+  char _pad2[4];
 } uiFontStyle;
 
 /* this is fed to the layout engine and widget code */
@@ -940,7 +942,8 @@ typedef struct UserDef {
   short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
 
   float collection_instance_empty_size;
-  char _pad10[2];
+  char text_flag;
+  char _pad10[1];
 
   char file_preview_type; /* eUserpref_File_Preview_Type */
   char statusbar_flag;    /* eUserpref_StatusBar_Flag */
@@ -1263,6 +1266,14 @@ typedef enum eDupli_ID_Flags {
   /* Duplicate (and hence make local) linked data. */
   USER_DUP_LINKED_ID = (1 << 30),
 } eDupli_ID_Flags;
+
+/**
+ * Text Editor options
+ * #UserDef.text_flag
+ */
+typedef enum eTextEdit_Flags {
+  USER_TEXT_EDIT_AUTO_CLOSE = (1 << 0),
+} eTextEdit_Flags;
 
 /**
  * Text draw options

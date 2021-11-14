@@ -97,8 +97,8 @@ static void read_vertices(const tinygltf::Accessor &accessor,
   validate_accessor(accessor, buffer_view, buffer, stride, packed_size);
 
   /* Resize the vertices vector, if necessary, to include room for the attribute data.
-     If there are multiple attributes for a primitive, the first one will resize, and the
-     subsequent will not need to. */
+   * If there are multiple attributes for a primitive, the first one will resize, and the
+   * subsequent will not need to. */
   primitive.vertices.resize(accessor.count);
 
   /* Copy the attribute value over from the glTF buffer into the appropriate vertex field. */
@@ -147,9 +147,9 @@ static void read_indices(const tinygltf::Accessor &accessor,
                          const tinygltf::Buffer &buffer,
                          GHOST_XrPrimitive &primitive)
 {
-  if (buffer_view.target != TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER &&
-      buffer_view.target != 0) { /* Allow 0 (not specified) even though spec doesn't seem to allow
-                                    this (BoomBox GLB fails). */
+
+  /* Allow 0 (not specified) even though spec doesn't seem to allow this (BoomBox GLB fails). */
+  if (buffer_view.target != TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER && buffer_view.target != 0) {
     throw GHOST_XrException(
         "glTF: Accessor for indices uses bufferview with invalid 'target' type.");
   }
@@ -164,8 +164,8 @@ static void read_indices(const tinygltf::Accessor &accessor,
 
   validate_accessor(accessor, buffer_view, buffer, component_size_bytes, component_size_bytes);
 
-  if ((accessor.count % 3) != 0) { /* Since only triangles are supported, enforce that the number
-                                      of indices is divisible by 3. */
+  /* Since only triangles are supported, enforce that the number of indices is divisible by 3. */
+  if ((accessor.count % 3) != 0) {
     throw GHOST_XrException("glTF: Unexpected number of indices for triangle primitive");
   }
 
