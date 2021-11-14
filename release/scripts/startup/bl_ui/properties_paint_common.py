@@ -472,7 +472,7 @@ class UnifiedPaintPanel:
             layout = layout.column(align=True)
 
         row = layout.row(align=True)
-        row.use_property_split = False
+        row.use_property_split = True
         row.use_property_decorate = False
 
         typeprop = "value"
@@ -530,30 +530,33 @@ class UnifiedPaintPanel:
                 row.label(text=text)
                 row.prop_menu_enum(finalch, typeprop, text=text)
             else:
-                # why is it so hard to make bitflag checkboxes?
+                # why is it so hard to make bitflag checkboxes? - joeedh
 
                 row.label(text=text)
-                col = layout.row(align=True)
-                #col.emboss = "NONE"
-                row1 = col.column(align=True)
-                row2 = col.column(align=True)
+                col = layout.column(align=True)
+                col.emboss = "NONE"
+                col.use_property_decorate = False
+                col.use_property_split = False
 
-                row1.emboss = "NONE"
-                row2.emboss = "NONE"
+                #row1 = col.column(align=True)
+                #row2 = col.column(align=True)
 
-                row1.use_property_split = False
-                row2.use_property_split = False
-                row1.use_property_decorate = False
-                row2.use_property_decorate = False
+                #row1.emboss = "NONE"
+                #row2.emboss = "NONE"
+
+                #row1.use_property_split = False
+                #row2.use_property_split = False
+                #row1.use_property_decorate = False
+                #row2.use_property_decorate = False
 
                 for j, item in enumerate(finalch.enum_items):
-                    row3 = row1 if j % 2 == 0 else row2
+                    #row3 = row1 if j % 2 == 0 else row2
 
                     if item.identifier in finalch.value:
                         itemicon = "CHECKBOX_HLT"
                     else:
                         itemicon = "CHECKBOX_DEHLT"
-                    row3.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
+                    col.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
 
         elif header and ch.idname == "direction":
             row2 = row.row(align=True)
