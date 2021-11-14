@@ -3598,6 +3598,11 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
     printf("joined nodes; %d faces\n", BLI_array_len(faces));
 
     for (int i = 0; i < BLI_array_len(faces); i++) {
+      if (BM_elem_is_free((BMElem*) faces[i], BM_FACE)) {
+        printf("corrupted face in pbvh tree; faces[i]: %p\n", faces[i]);
+        continue;
+      }
+
       if (BM_ELEM_CD_GET_INT(faces[i], cd_face_node) != DYNTOPO_NODE_NONE) {
         // printf("duplicate faces in pbvh_bmesh_balance_tree!\n");
         continue;
