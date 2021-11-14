@@ -431,7 +431,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 
 void BKE_pbvh_draw_debug_cb(
     PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
+    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth),
     void *user_data);
 
 /* PBVH Access */

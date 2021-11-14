@@ -966,8 +966,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
     if (SCULPT_DEBUG_BUFFERS) {
       /* Color each buffers in different colors. Only work in solid/Xray mode. */
       shgrp = DRW_shgroup_create_sub(shgrp);
-      DRW_shgroup_uniform_vec3(
-          shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
+      DRW_shgroup_uniform_vec3(shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
     }
 #if 0
     float extramat[4][4], mat[4][4];
@@ -989,10 +988,8 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
   }
 }
 
-static void sculpt_debug_cb(void *user_data,
-                            const float bmin[3],
-                            const float bmax[3],
-                            PBVHNodeFlags flag)
+static void sculpt_debug_cb(
+    void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth)
 {
   int *debug_node_nr = (int *)user_data;
   BoundBox bb;
@@ -1007,7 +1004,12 @@ static void sculpt_debug_cb(void *user_data,
   }
 #else /* Color coded leaf bounds. */
   if (flag & PBVH_Leaf) {
-    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
+    float color[4];
+
+    copy_v4_v4(color, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
+    mul_v3_fl(color, 1.0f - fminf((float)depth / 16.0f, 1.0f));
+
+    DRW_debug_bbox(&bb, color);
   }
 #endif
 }
@@ -1100,8 +1102,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     DRW_debug_modelmat(scd->ob->obmat);
     BKE_pbvh_draw_debug_cb(
         pbvh,
-        (void (*)(
-            void *d, const float min[3], const float max[3], PBVHNodeFlags f))sculpt_debug_cb,
+        (void (*)(void *d, const float min[3], const float max[3], PBVHNodeFlags f, int depth))
+            sculpt_debug_cb,
         &debug_node_nr);
   }
 }

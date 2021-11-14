@@ -3312,7 +3312,7 @@ extern bool pbvh_show_orig_co;
 
 void BKE_pbvh_draw_debug_cb(
     PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
+    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth),
     void *user_data)
 {
   for (int a = 0; a < pbvh->totnode; a++) {
@@ -3321,10 +3321,10 @@ void BKE_pbvh_draw_debug_cb(
     int num = a + node->updategen;
 
     if (pbvh_show_orig_co) {
-      draw_fn(&num, node->orig_vb.bmin, node->orig_vb.bmax, node->flag);
+      draw_fn(&num, node->orig_vb.bmin, node->orig_vb.bmax, node->flag, node->depth);
     }
     else {
-      draw_fn(&num, node->vb.bmin, node->vb.bmax, node->flag);
+      draw_fn(&num, node->vb.bmin, node->vb.bmax, node->flag, node->depth);
     }
   }
 }

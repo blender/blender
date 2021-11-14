@@ -54,7 +54,7 @@
 static void bm_id_freelist_check_hashmap(BMesh *bm)
 {
   if (!bm->idmap.free_idx_map && bm->idmap.freelist_len >= FREELIST_HASHMAP_THRESHOLD_HIGH) {
-    printf("switching on freelist idx map");
+    printf("switching on freelist idx map\n");
     bm->idmap.free_idx_map = MEM_callocN(sizeof(SmallHash), "free_idx_map");
     BLI_smallhash_init_ex(bm->idmap.free_idx_map, bm->idmap.freelist_len);
 
@@ -66,8 +66,9 @@ static void bm_id_freelist_check_hashmap(BMesh *bm)
   else if (bm->idmap.free_idx_map && bm->idmap.freelist_len <= FREELIST_HASHMAP_THRESHOLD_LOW) {
     BLI_smallhash_release(bm->idmap.free_idx_map);
     MEM_freeN(bm->idmap.free_idx_map);
+    bm->idmap.free_idx_map = NULL;
 
-    printf("switching off freelist idx map");
+    printf("switching off freelist idx map\n");
   }
 }
 
@@ -126,6 +127,8 @@ void bm_id_freelist_take(BMesh *bm, uint id)
       bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
       bm->idmap.freelist_len--;
     }
+
+    BLI_smallhash_remove(bm->idmap.free_idx_map, (uintptr_t)id);
   }
   else {
     for (int i = 0; i < bm->idmap.freelist_len; i++) {
@@ -273,7 +276,7 @@ void bm_free_id(BMesh *bm, BMElem *elem)
     range_tree_uint_release(bm->idmap.idtree, id);
   }
 #else
-
+  bm_id_freelist_push(bm, id);
 #endif
 
   if ((bm->idmap.flag & BM_HAS_ID_MAP)) {

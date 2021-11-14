@@ -339,6 +339,14 @@ static void pbvh_print_mem_size(PBVH *pbvh)
          memsize2[1],
          memsize2[2],
          memsize2[3]);
+
+#ifdef WITH_BM_ID_FREELIST
+  if (bm->idmap.free_idx_map) {
+    printf("free_idx_map: nentries %d, size %d\n",
+           bm->idmap.free_idx_map->nentries,
+           bm->idmap.free_idx_map->nbuckets);
+  }
+#endif
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
@@ -394,6 +402,7 @@ static void pbvh_bmesh_node_split(
 
   c1->flag |= PBVH_Leaf;
   c2->flag |= PBVH_Leaf;
+
   c1->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
   c2->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
 
@@ -1581,8 +1590,8 @@ static void pbvh_bmesh_create_nodes_fast_recursive_create(PBVH *pbvh,
     n->children_offset = children_offset;
 
     n->depth = node->depth;
-    (n + 1)->depth = node->depth + 1;
-    (n + 2)->depth = node->depth + 1;
+    (n + 1)->depth = node->child1->depth;
+    (n + 2)->depth = node->child2->depth;
 
     node->child1->node_index = children_offset;
     node->child2->node_index = children_offset + 1;
@@ -3846,6 +3855,8 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
       }
     }
   }
+
+  pbvh_print_mem_size(pbvh);
 }
 
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
