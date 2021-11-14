@@ -2431,7 +2431,8 @@ static int text_delete_exec(bContext *C, wmOperator *op)
       const char *curr = text->curl->line + text->curc;
       if (*curr != '\0') {
         const char *prev = BLI_str_find_prev_char_utf8(curr, text->curl->line);
-        if (*curr == text_closing_character_pair_get(*prev)) {
+        if ((curr != prev) && /* When back-spacing from the start of the line. */
+            (*curr == text_closing_character_pair_get(*prev))) {
           txt_move_right(text, false);
           txt_backspace_char(text);
         }
