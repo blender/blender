@@ -391,7 +391,7 @@ typedef struct BMesh {
     /* maps ids to their position within the freelist
        only used if freelist is bigger then a certain size,
        see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
-    struct SmallHash *free_idx_map;
+    struct GHash *free_idx_map;
 #else
     struct RangeTreeUInt *idtree;
 #endif

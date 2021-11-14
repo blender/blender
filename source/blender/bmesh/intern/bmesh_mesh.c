@@ -286,8 +286,7 @@ void BM_mesh_data_free(BMesh *bm)
 
 #ifdef WITH_BM_ID_FREELIST
   if (bm->idmap.free_idx_map) {
-    BLI_smallhash_release(bm->idmap.free_idx_map);
-    MEM_freeN(bm->idmap.free_idx_map);
+    BLI_ghash_free(bm->idmap.free_idx_map, NULL, NULL);
     bm->idmap.free_idx_map = NULL;
   }
 #endif

@@ -342,9 +342,11 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 
 #ifdef WITH_BM_ID_FREELIST
   if (bm->idmap.free_idx_map) {
-    printf("free_idx_map: nentries %d, size %d\n",
+    printf("freelist length: %d\n", bm->idmap.freelist_len);
+    /* printf("free_idx_map: nentries %d, size %d: nfreecells: %d\n",
            bm->idmap.free_idx_map->nentries,
-           bm->idmap.free_idx_map->nbuckets);
+           bm->idmap.free_idx_map->nbuckets,
+           bm->idmap.free_idx_map->nfreecells);*/
   }
 #endif
 }

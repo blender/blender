@@ -55,17 +55,15 @@ static void bm_id_freelist_check_hashmap(BMesh *bm)
 {
   if (!bm->idmap.free_idx_map && bm->idmap.freelist_len >= FREELIST_HASHMAP_THRESHOLD_HIGH) {
     printf("switching on freelist idx map\n");
-    bm->idmap.free_idx_map = MEM_callocN(sizeof(SmallHash), "free_idx_map");
-    BLI_smallhash_init_ex(bm->idmap.free_idx_map, bm->idmap.freelist_len);
+    bm->idmap.free_idx_map = BLI_ghash_ptr_new("free_idx_map");
 
     for (int i = 0; i < bm->idmap.freelist_len; i++) {
-      BLI_smallhash_insert(
-          bm->idmap.free_idx_map, (uintptr_t)bm->idmap.freelist[i], POINTER_FROM_INT(i));
+      BLI_ghash_insert(
+          bm->idmap.free_idx_map, POINTER_FROM_UINT(bm->idmap.freelist[i]), POINTER_FROM_INT(i));
     }
   }
   else if (bm->idmap.free_idx_map && bm->idmap.freelist_len <= FREELIST_HASHMAP_THRESHOLD_LOW) {
-    BLI_smallhash_release(bm->idmap.free_idx_map);
-    MEM_freeN(bm->idmap.free_idx_map);
+    BLI_ghash_free(bm->idmap.free_idx_map, NULL, NULL);
     bm->idmap.free_idx_map = NULL;
 
     printf("switching off freelist idx map\n");
@@ -81,7 +79,7 @@ static uint bm_id_freelist_pop(BMesh *bm)
     uint id = bm->idmap.freelist[i];
 
     if (bm->idmap.free_idx_map) {
-      BLI_smallhash_remove(bm->idmap.free_idx_map, (uintptr_t) id);
+      BLI_ghash_remove(bm->idmap.free_idx_map, POINTER_FROM_UINT(id), NULL, NULL);
     }
 
     return id;
@@ -118,7 +116,7 @@ void bm_id_freelist_take(BMesh *bm, uint id)
   BLI_BITMAP_DISABLE(bm->idmap.free_ids, id);
 
   if (bm->idmap.free_idx_map) {
-    void **val = BLI_smallhash_lookup_p(bm->idmap.free_idx_map, (uintptr_t)id);
+    void **val = BLI_ghash_lookup_p(bm->idmap.free_idx_map, POINTER_FROM_UINT(id));
 
     if (val) {
       int i = POINTER_AS_INT(*val);
@@ -128,7 +126,7 @@ void bm_id_freelist_take(BMesh *bm, uint id)
       bm->idmap.freelist_len--;
     }
 
-    BLI_smallhash_remove(bm->idmap.free_idx_map, (uintptr_t)id);
+    BLI_ghash_remove(bm->idmap.free_idx_map, POINTER_FROM_UINT(id), NULL, NULL);
   }
   else {
     for (int i = 0; i < bm->idmap.freelist_len; i++) {
@@ -176,7 +174,7 @@ void bm_id_freelist_push(BMesh *bm, uint id)
   if (bm->idmap.free_idx_map) {
     void **val;
 
-    if (!BLI_smallhash_ensure_p(bm->idmap.free_idx_map, (uintptr_t)id, &val)) {
+    if (!BLI_ghash_ensure_p(bm->idmap.free_idx_map, POINTER_FROM_UINT(id), &val)) {
       *val = POINTER_FROM_INT(bm->idmap.freelist_len - 1);
     }
   }
