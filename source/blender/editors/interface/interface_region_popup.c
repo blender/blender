@@ -743,7 +743,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   if (block_old) {
     block->oldblock = block_old;
     UI_block_update_from_old(C, block);
-    UI_blocklist_free_inactive(C, &region->uiblocks);
+    UI_blocklist_free_inactive(C, region);
   }
 
   /* checks which buttons are visible, sets flags to prevent draw (do after region init) */

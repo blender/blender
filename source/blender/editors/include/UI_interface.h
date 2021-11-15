@@ -731,8 +731,8 @@ bool UI_block_is_search_only(const uiBlock *block);
 void UI_block_set_search_only(uiBlock *block, bool search_only);
 
 void UI_block_free(const struct bContext *C, uiBlock *block);
-void UI_blocklist_free(const struct bContext *C, struct ListBase *lb);
-void UI_blocklist_free_inactive(const struct bContext *C, struct ListBase *lb);
+void UI_blocklist_free(const struct bContext *C, struct ARegion *region);
+void UI_blocklist_free_inactive(const struct bContext *C, struct ARegion *region);
 void UI_screen_free_active_but(const struct bContext *C, struct bScreen *screen);
 
 void UI_block_region_set(uiBlock *block, struct ARegion *region);

@@ -787,12 +787,14 @@ static MenuSearch_Data *menu_items_from_ui_create(
           }
 
           if (region) {
+            BLI_ghash_remove(region->runtime.block_name_map, sub_block->name, NULL, NULL);
             BLI_remlink(&region->uiblocks, sub_block);
           }
           UI_block_free(nullptr, sub_block);
         }
       }
       if (region) {
+        BLI_ghash_remove(region->runtime.block_name_map, block->name, NULL, NULL);
         BLI_remlink(&region->uiblocks, block);
       }
       UI_block_free(nullptr, block);

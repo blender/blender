@@ -445,7 +445,7 @@ static void property_search_all_tabs(const bContext *C,
                    i,
                    property_search_for_context(C, region_copy, &sbuts_copy));
 
-    UI_blocklist_free(C, &region_copy->uiblocks);
+    UI_blocklist_free(C, region_copy);
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
