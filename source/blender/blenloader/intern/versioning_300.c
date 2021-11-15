@@ -2158,8 +2158,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
   {
-    /* Use consistent socket identifiers for the vector math node.
-     * Thecode to make unique identifiers from the names was inconsitent. */
+    /* Use consistent socket identifiers for the math node.
+     * The code to make unique identifiers from the names was inconsistent. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY)) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -2167,7 +2167,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             bNodeSocket *value1 = ((bNodeSocket *)node->inputs.first)->next;
             bNodeSocket *value2 = value1->next;
             strcpy(value1->identifier, "Value_001");
-            strcpy(value2->identifier, "Value_002");
+            if (value2 != NULL) {
+              /* This can be null when file is quite old so that the socket did not exist
+               * (before 0406eb110332a8). */
+              strcpy(value2->identifier, "Value_002");
+            }
           }
         }
       }
