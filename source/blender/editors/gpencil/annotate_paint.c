@@ -1195,7 +1195,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
     /* Second Pass: Remove any points that are tagged */
     if (do_cull) {
       BKE_gpencil_stroke_delete_tagged_points(
-          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, false, 0);
     }
   }
 }

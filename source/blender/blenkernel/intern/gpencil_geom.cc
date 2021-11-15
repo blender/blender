@@ -3122,8 +3122,9 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
                                                     bGPDstroke *gps,
                                                     bGPDstroke *next_stroke,
                                                     int tag_flags,
-                                                    bool select,
-                                                    int limit)
+                                                    const bool select,
+                                                    const bool flat_cap,
+                                                    const int limit)
 {
   tGPDeleteIsland *islands = (tGPDeleteIsland *)MEM_callocN(
       sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2, "gp_point_islands");
@@ -3171,6 +3172,9 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
     for (idx = 0; idx < num_islands; idx++) {
       tGPDeleteIsland *island = &islands[idx];
       new_stroke = BKE_gpencil_stroke_duplicate(gps, false, true);
+      if (flat_cap) {
+        new_stroke->caps[1 - (idx % 2)] = GP_STROKE_CAP_FLAT;
+      }
 
       /* if cyclic and first stroke, save to join later */
       if ((is_cyclic) && (gps_first == nullptr)) {

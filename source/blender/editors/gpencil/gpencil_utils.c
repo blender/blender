@@ -3372,7 +3372,7 @@ bGPDstroke *ED_gpencil_stroke_join_and_trim(
     }
     /* Remove tagged points to trim stroke. */
     gps_final = BKE_gpencil_stroke_delete_tagged_points(
-        gpd, gpf, gps_dst, gps_dst->next, GP_SPOINT_TAG, false, 0);
+        gpd, gpf, gps_dst, gps_dst->next, GP_SPOINT_TAG, false, false, 0);
   }
 
   /* Join both strokes. */

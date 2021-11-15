@@ -2635,7 +2635,7 @@ static int gpencil_delete_selected_points(bContext *C)
             else {
               /* delete unwanted points by splitting stroke into several smaller ones */
               BKE_gpencil_stroke_delete_tagged_points(
-                  gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+                  gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, false, 0);
             }
 
             changed = true;
@@ -4656,11 +4656,11 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
 
                   /* delete selected points from destination stroke */
                   BKE_gpencil_stroke_delete_tagged_points(
-                      gpd_dst, gpf_dst, gps_dst, NULL, GP_SPOINT_SELECT, false, 0);
+                      gpd_dst, gpf_dst, gps_dst, NULL, GP_SPOINT_SELECT, false, false, 0);
 
                   /* delete selected points from origin stroke */
                   BKE_gpencil_stroke_delete_tagged_points(
-                      gpd_src, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+                      gpd_src, gpf, gps, gps->next, GP_SPOINT_SELECT, false, false, 0);
                 }
               }
               /* selected strokes mode */
@@ -4839,11 +4839,11 @@ static int gpencil_stroke_split_exec(bContext *C, wmOperator *op)
 
               /* delete selected points from destination stroke */
               BKE_gpencil_stroke_delete_tagged_points(
-                  gpd, gpf, gps_dst, NULL, GP_SPOINT_SELECT, true, 0);
+                  gpd, gpf, gps_dst, NULL, GP_SPOINT_SELECT, true, false, 0);
 
               /* delete selected points from origin stroke */
               BKE_gpencil_stroke_delete_tagged_points(
-                  gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, 0);
+                  gpd, gpf, gps, gps->next, GP_SPOINT_SELECT, false, false, 0);
             }
           }
         }
@@ -5039,7 +5039,7 @@ static void gpencil_cutter_dissolve(bGPdata *gpd,
     }
 
     BKE_gpencil_stroke_delete_tagged_points(
-        gpd, hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
+        gpd, hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, flat_caps, 1);
   }
 }
 

@@ -1699,7 +1699,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
       }
 
       BKE_gpencil_stroke_delete_tagged_points(
-          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, false, 0);
     }
     gpencil_update_cache(p->gpd);
   }
