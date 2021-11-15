@@ -130,10 +130,6 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
 static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
                                        struct bNode *node,
                                        const bool mute);
-static FieldInferencingInterface *node_field_inferencing_interface_copy(
-    const FieldInferencingInterface &field_inferencing_interface);
-static void node_field_inferencing_interface_free(
-    const FieldInferencingInterface *field_inferencing_interface);
 
 static void ntree_init_data(ID *id)
 {
@@ -246,7 +242,7 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   ntree_dst->interface_type = nullptr;
 
   if (ntree_src->field_inferencing_interface) {
-    ntree_dst->field_inferencing_interface = node_field_inferencing_interface_copy(
+    ntree_dst->field_inferencing_interface = new FieldInferencingInterface(
         *ntree_src->field_inferencing_interface);
   }
 
@@ -301,7 +297,7 @@ static void ntree_free_data(ID *id)
     MEM_freeN(sock);
   }
 
-  node_field_inferencing_interface_free(ntree->field_inferencing_interface);
+  delete ntree->field_inferencing_interface;
 
   /* free preview hash */
   if (ntree->previews) {
@@ -4546,18 +4542,6 @@ void ntreeUpdateAllNew(Main *main)
     }
   }
   FOREACH_NODETREE_END;
-}
-
-static FieldInferencingInterface *node_field_inferencing_interface_copy(
-    const FieldInferencingInterface &field_inferencing_interface)
-{
-  return new FieldInferencingInterface(field_inferencing_interface);
-}
-
-static void node_field_inferencing_interface_free(
-    const FieldInferencingInterface *field_inferencing_interface)
-{
-  delete field_inferencing_interface;
 }
 
 namespace blender::bke::node_field_inferencing {
