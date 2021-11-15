@@ -524,7 +524,7 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
  * Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate image transform origin
+ * \param seq: Sequence to calculate transformed image quad
  * \param apply_rotation: Apply sequence rotation transform to the quad
  * \param r_quad: array of 4 2D vectors
  */
@@ -540,7 +540,7 @@ void SEQ_image_transform_quad_get(const Scene *scene,
  * Get 4 corner points of strip image. Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate image transform origin
+ * \param seq: Sequence to calculate transformed image quad
  * \param r_quad: array of 4 2D vectors
  */
 void SEQ_image_transform_final_quad_get(const Scene *scene,
