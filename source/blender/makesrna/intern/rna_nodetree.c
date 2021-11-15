@@ -2805,6 +2805,7 @@ static StructRNA *rna_NodeSocket_register(Main *UNUSED(bmain),
 
   /* setup dummy socket & socket type to store static properties in */
   memset(&dummyst, 0, sizeof(bNodeSocketType));
+  dummyst.type = SOCK_CUSTOM;
 
   memset(&dummysock, 0, sizeof(bNodeSocket));
   dummysock.typeinfo = &dummyst;
