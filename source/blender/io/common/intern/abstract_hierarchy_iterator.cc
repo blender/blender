@@ -681,6 +681,15 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
         writer = ensure_writer(&hair_context, &AbstractHierarchyIterator::create_hair_writer);
         break;
       case PART_EMITTER:
+      case PART_FLUID_FLIP:
+      case PART_FLUID_SPRAY:
+      case PART_FLUID_BUBBLE:
+      case PART_FLUID_FOAM:
+      case PART_FLUID_TRACER:
+      case PART_FLUID_SPRAYFOAM:
+      case PART_FLUID_SPRAYBUBBLE:
+      case PART_FLUID_FOAMBUBBLE:
+      case PART_FLUID_SPRAYFOAMBUBBLE:
         writer = ensure_writer(&hair_context, &AbstractHierarchyIterator::create_particle_writer);
         break;
     }
