@@ -248,7 +248,6 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
     SEQ_transform_set_right_handle_frame(seq, load_data->effect.end_frame);
   }
 
-  SEQ_relations_update_changed_seq_and_deps(scene, seq, 1, 1); /* Runs SEQ_time_update_sequence. */
   seq_add_set_name(scene, seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
 
@@ -798,6 +797,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   SEQ_time_update_sequence(scene, seqbase, seq);
+  SEQ_relations_invalidate_cache_raw(scene, seq);
 }
 
 void SEQ_add_movie_reload_if_needed(struct Main *bmain,

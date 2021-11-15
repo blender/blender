@@ -267,6 +267,65 @@ void SEQ_time_update_sequence(Scene *scene, ListBase *seqbase, Sequence *seq)
   seq_time_update_sequence_bounds(scene, seq);
 }
 
+static bool update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *changed_seq)
+{
+  Sequence *subseq;
+  bool do_update = false;
+
+  /* recurse downwards to see if this seq depends on the changed seq */
+
+  if (seq == NULL) {
+    return false;
+  }
+
+  if (seq == changed_seq) {
+    do_update = true;
+  }
+
+  for (subseq = seq->seqbase.first; subseq; subseq = subseq->next) {
+    if (update_changed_seq_recurs(scene, subseq, changed_seq)) {
+      do_update = true;
+    }
+  }
+
+  if (seq->seq1) {
+    if (update_changed_seq_recurs(scene, seq->seq1, changed_seq)) {
+      do_update = true;
+    }
+  }
+  if (seq->seq2 && (seq->seq2 != seq->seq1)) {
+    if (update_changed_seq_recurs(scene, seq->seq2, changed_seq)) {
+      do_update = true;
+    }
+  }
+  if (seq->seq3 && (seq->seq3 != seq->seq1) && (seq->seq3 != seq->seq2)) {
+    if (update_changed_seq_recurs(scene, seq->seq3, changed_seq)) {
+      do_update = true;
+    }
+  }
+
+  if (do_update) {
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+    SEQ_time_update_sequence(scene, seqbase, seq);
+  }
+
+  return do_update;
+}
+
+void SEQ_time_update_recursive(Scene *scene, Sequence *changed_seq)
+{
+  Editing *ed = SEQ_editing_get(scene);
+  Sequence *seq;
+
+  if (ed == NULL) {
+    return;
+  }
+
+  for (seq = ed->seqbase.first; seq; seq = seq->next) {
+    update_changed_seq_recurs(scene, seq, changed_seq);
+  }
+}
+
 int SEQ_time_find_next_prev_edit(Scene *scene,
                                  int timeline_frame,
                                  const short side,

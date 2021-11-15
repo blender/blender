@@ -1925,6 +1925,11 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,
   }
 }
 
+bool BKE_movieclip_proxy_enabled(MovieClip *clip)
+{
+  return clip->flag & MCLIP_USE_PROXY;
+}
+
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)
 {
   return framenr - (float)clip->start_frame + 1.0f;
