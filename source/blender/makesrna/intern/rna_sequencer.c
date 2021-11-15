@@ -2250,7 +2250,7 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_REVERSE_FRAMES);
   RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse frame order");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "mul");
@@ -2272,7 +2272,8 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "strobe", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 1.0f, 30.0f);
   RNA_def_property_ui_text(prop, "Strobe", "Only display every nth frame");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");

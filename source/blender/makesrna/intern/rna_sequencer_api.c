@@ -59,6 +59,7 @@
 #  include "SEQ_relations.h"
 #  include "SEQ_render.h"
 #  include "SEQ_sequencer.h"
+#  include "SEQ_time.h"
 
 #  include "WM_api.h"
 
@@ -69,7 +70,7 @@ static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
   ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, self);
 
   if (do_data) {
-    SEQ_relations_update_changed_seq_and_deps(scene, self, true, true);
+    SEQ_time_update_recursive(scene, self);
     // new_tstripdata(self); /* need 2.6x version of this. */
   }
 
