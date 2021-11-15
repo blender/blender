@@ -2942,6 +2942,9 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
       }
     }
   }
+
+  out->planes = R_IMF_PLANES_RGB;
+
   return out;
 }
 
@@ -4024,6 +4027,14 @@ static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
   return EARLY_DO_EFFECT;
 }
 
+static int early_out_mul_input1(Sequence *UNUSED(seq), float facf0, float facf1)
+{
+  if (facf0 == 0.0f && facf1 == 0.0f) {
+    return EARLY_USE_INPUT_2;
+  }
+  return EARLY_DO_EFFECT;
+}
+
 static void get_default_fac_noop(Sequence *UNUSED(seq),
                                  float UNUSED(timeline_frame),
                                  float *facf0,
@@ -4134,6 +4145,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.multithreaded = true;
       rval.init = init_alpha_over_or_under;
       rval.execute_slice = do_alphaover_effect;
+      rval.early_out = early_out_mul_input1;
       break;
     case SEQ_TYPE_OVERDROP:
       rval.multithreaded = true;

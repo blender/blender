@@ -58,6 +58,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_scene_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #ifdef WITH_AVI
@@ -1443,7 +1445,15 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
    *
    * The issue was reported to FFmpeg under ticket #8747 in the FFmpeg tracker
    * and is fixed in the newer versions than 4.3.1. */
-  anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, 32, 0);
+
+  const AVPixFmtDescriptor *pix_fmt_descriptor = av_pix_fmt_desc_get(anim->pCodecCtx->pix_fmt);
+
+  int planes = R_IMF_PLANES_RGBA;
+  if ((pix_fmt_descriptor->flags & AV_PIX_FMT_FLAG_ALPHA) == 0) {
+    planes = R_IMF_PLANES_RGB;
+  }
+
+  anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
   anim->cur_frame_final->rect = MEM_mallocN_aligned(
       (size_t)4 * anim->x * anim->y, 32, "ffmpeg ibuf");
   anim->cur_frame_final->mall |= IB_rect;

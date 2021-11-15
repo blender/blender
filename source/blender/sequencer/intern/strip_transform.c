@@ -520,7 +520,8 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
 }
 
 /**
- * Get 4 corner points of strip image, optionally without rotation component applied
+ * Get 4 corner points of strip image, optionally without rotation component applied.
+ * Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
  * \param seq: Sequence to calculate image transform origin
@@ -536,7 +537,7 @@ void SEQ_image_transform_quad_get(const Scene *scene,
 }
 
 /**
- * Get 4 corner points of strip image.
+ * Get 4 corner points of strip image. Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
  * \param seq: Sequence to calculate image transform origin
