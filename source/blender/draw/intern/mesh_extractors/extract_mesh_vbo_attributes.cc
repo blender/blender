@@ -172,6 +172,18 @@ static void init_vbo_for_attribute(const MeshRenderData *mr,
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
   GPU_vertformat_attr_add(&format, attr_name, comp_type, comp_size, fetch_mode);
+
+  /* Ensure Sculpt Vertex Colors are properly aliased. */
+  if (request.cd_type == CD_PROP_COLOR && request.domain == ATTR_DOMAIN_POINT) {
+    CustomData *cd_vdata = get_custom_data_for_domain(mr, ATTR_DOMAIN_POINT);
+    if (request.layer_index == CustomData_get_render_layer(cd_vdata, CD_PROP_COLOR)) {
+      GPU_vertformat_alias_add(&format, "c");
+    }
+    if (request.layer_index == CustomData_get_active_layer(cd_vdata, CD_PROP_COLOR)) {
+      GPU_vertformat_alias_add(&format, "ac");
+    }
+  }
+
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, static_cast<uint32_t>(mr->loop_len));
 }
