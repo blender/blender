@@ -122,6 +122,7 @@ class AssetCatalogDropController : public ui::AbstractTreeViewItemDropController
   bool on_drop(const wmDrag &drag) override;
 
   ::AssetLibrary &get_asset_library() const;
+  AssetCatalog *get_drag_catalog(const wmDrag &drag) const;
 
   static bool has_droppable_asset(const wmDrag &drag, const char **r_disabled_hint);
   static bool drop_assets_into_catalog(const AssetCatalogTreeView &tree_view,
@@ -343,7 +344,14 @@ AssetCatalogDropController::AssetCatalogDropController(AssetCatalogTreeView &tre
 bool AssetCatalogDropController::can_drop(const wmDrag &drag, const char **r_disabled_hint) const
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
-    /* Always supported. */
+    const AssetCatalog *drag_catalog = get_drag_catalog(drag);
+    /* Note: Technically it's not an issue to allow this (the catalog will just receive a new
+     * path and the catalog system will generate missing parents from the path). But it does
+     * appear broken to users, so disabling entirely. */
+    if (catalog_item_.catalog_path().is_contained_in(drag_catalog->path)) {
+      *r_disabled_hint = "Catalog cannot be dropped into itself";
+      return false;
+    }
     return true;
   }
   if (drag.type == WM_DRAG_ASSET_LIST) {
@@ -363,11 +371,7 @@ std::string AssetCatalogDropController::drop_tooltip(const wmDrag &drag) const
 std::string AssetCatalogDropController::drop_tooltip_asset_catalog(const wmDrag &drag) const
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
-
-  const ::AssetLibrary *asset_library = tree_view<AssetCatalogTreeView>().asset_library_;
-  bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(asset_library);
-  wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
-  AssetCatalog *src_catalog = catalog_service->find_catalog(catalog_drag->drag_catalog_id);
+  const AssetCatalog *src_catalog = get_drag_catalog(drag);
 
   return std::string(TIP_("Move Catalog")) + " '" + src_catalog->path.name() + "' " +
          TIP_("into") + " '" + catalog_item_.get_name() + "'";
@@ -437,6 +441,18 @@ bool AssetCatalogDropController::drop_assets_into_catalog(const AssetCatalogTree
   }
 
   return true;
+}
+
+AssetCatalog *AssetCatalogDropController::get_drag_catalog(const wmDrag &drag) const
+{
+  if (drag.type != WM_DRAG_ASSET_CATALOG) {
+    return nullptr;
+  }
+  const bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+      &get_asset_library());
+  const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
+
+  return catalog_service->find_catalog(catalog_drag->drag_catalog_id);
 }
 
 bool AssetCatalogDropController::has_droppable_asset(const wmDrag &drag,
