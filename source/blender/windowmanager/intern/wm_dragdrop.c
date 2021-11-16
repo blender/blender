@@ -725,10 +725,12 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
 static void wm_drop_redalert_draw(const char *redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
-  float col_fg[4];
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
+  float col_fg[4], col_bg[4];
   UI_GetThemeColor4fv(TH_REDALERT, col_fg);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }
