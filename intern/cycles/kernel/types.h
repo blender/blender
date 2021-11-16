@@ -272,33 +272,34 @@ enum PathRayFlag {
   PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 20U),
   PATH_RAY_SUBSURFACE_DISK = (1U << 21U),
   PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 22U),
+  PATH_RAY_SUBSURFACE_BACKFACING = (1U << 23U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
-                         PATH_RAY_SUBSURFACE_USE_FRESNEL),
+                         PATH_RAY_SUBSURFACE_USE_FRESNEL | PATH_RAY_SUBSURFACE_BACKFACING),
 
   /* Contribute to denoising features. */
-  PATH_RAY_DENOISING_FEATURES = (1U << 23U),
+  PATH_RAY_DENOISING_FEATURES = (1U << 24U),
 
   /* Render pass categories. */
-  PATH_RAY_SURFACE_PASS = (1U << 24U),
-  PATH_RAY_VOLUME_PASS = (1U << 25U),
+  PATH_RAY_SURFACE_PASS = (1U << 25U),
+  PATH_RAY_VOLUME_PASS = (1U << 26U),
   PATH_RAY_ANY_PASS = (PATH_RAY_SURFACE_PASS | PATH_RAY_VOLUME_PASS),
 
   /* Shadow ray is for a light or surface, or AO. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 26U),
-  PATH_RAY_SHADOW_FOR_AO = (1U << 27U),
+  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
+  PATH_RAY_SHADOW_FOR_AO = (1U << 28U),
 
   /* A shadow catcher object was hit and the path was split into two. */
-  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 28U),
+  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 29U),
 
   /* A shadow catcher object was hit and this path traces only shadow catchers, writing them into
    * their dedicated pass for later division.
    *
    * NOTE: Is not covered with `PATH_RAY_ANY_PASS` because shadow catcher does special handling
    * which is separate from the light passes. */
-  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 29U),
+  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 30U),
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
-  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 30U),
+  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 31U),
 };
 
 /* Configure ray visibility bits for rays and objects respectively,

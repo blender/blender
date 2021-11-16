@@ -200,12 +200,12 @@ class Progress {
     total_pixel_samples = total_pixel_samples_;
   }
 
-  float get_progress() const
+  double get_progress() const
   {
     thread_scoped_lock lock(progress_mutex);
 
     if (total_pixel_samples > 0) {
-      return ((float)pixel_samples) / total_pixel_samples;
+      return ((double)pixel_samples) / (double)total_pixel_samples;
     }
     return 0.0f;
   }
