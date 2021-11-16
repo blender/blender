@@ -1030,7 +1030,7 @@ class WM_OT_url_open_preset(Operator):
           "Report a bug in an add-on"),
          _url_from_bug_addon),
         (('RELEASE_NOTES', "Release Notes",
-          "Read about whats new in this version of Blender"),
+          "Read about what's new in this version of Blender"),
          _url_from_release_notes),
         (('MANUAL', "Manual",
           "The reference manual for this version of Blender"),
@@ -1430,7 +1430,7 @@ class WM_OT_properties_edit(Operator):
     type_items = rna_custom_property_type_items
     subtype_items = rna_vector_subtype_items
 
-    # Helper method to avoid repetative code to retrieve a single value from sequences and non-sequences.
+    # Helper method to avoid repetitive code to retrieve a single value from sequences and non-sequences.
     @staticmethod
     def _convert_new_value_single(old_value, new_type):
         if hasattr(old_value, "__len__") and len(old_value) > 0:

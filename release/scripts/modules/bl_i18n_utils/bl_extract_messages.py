@@ -877,7 +877,7 @@ def dump_messages(do_messages, do_checks, settings):
     addons = utils.enable_addons(support={"OFFICIAL"})
     # Note this is not needed if we have been started with factory settings, but just in case...
     # XXX This is not working well, spent a whole day trying to understand *why* we still have references of
-    #     those removed calsses in things like `bpy.types.OperatorProperties.__subclasses__()`
+    #     those removed classes in things like `bpy.types.OperatorProperties.__subclasses__()`
     #     (could not even reproduce it from regular py console in Blender with UI...).
     #     For some reasons, cleanup does not happen properly, *and* we have no way to tell which class is valid
     #     and which has been unregistered. So for now, just go for the dirty, easy way: do not disable add-ons. :(

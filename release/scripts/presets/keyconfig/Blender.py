@@ -202,7 +202,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    # Developer note, this is an experemental option.
+    # Developer note, this is an experimental option.
     use_pie_click_drag: BoolProperty(
         name="Pie Menu on Drag",
         description=(

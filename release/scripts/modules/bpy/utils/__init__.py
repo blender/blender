@@ -108,7 +108,7 @@ def execfile(filepath, *, mod=None):
     mod_orig = modules.get(mod_name, None)
     modules[mod_name] = mod
 
-    # No error supression, just ensure `sys.modules[mod_name]` is properly restored in the case of an error.
+    # No error suppression, just ensure `sys.modules[mod_name]` is properly restored in the case of an error.
     try:
         mod_spec.loader.exec_module(mod)
     finally:

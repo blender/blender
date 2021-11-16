@@ -261,7 +261,7 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
 
         # col = layout.column(align=True)
         # col.label(text="Activation:")
-        # XXX: settings such as activate on collison/etc.
+        # XXX: settings such as activate on collision/etc.
 
         col = flow.column()
         col.prop(rbo, "linear_damping", text="Damping Translation")

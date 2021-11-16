@@ -42,7 +42,7 @@ roles:
   # For interop between configs, and to determine XYZ for rendering
   aces_interchange: Linear ACES
 
-  # Specifed by OCIO, not used in Blender
+  # Specified by OCIO, not used in Blender
   color_timing: Filmic Log
   compositing_log: Filmic Log
   default: Linear
