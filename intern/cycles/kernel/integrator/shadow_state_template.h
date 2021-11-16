@@ -40,15 +40,15 @@ KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, queued_kernel, KERNEL_FEATURE_PATH_T
 /* enum PathRayFlag */
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput. */
-KERNEL_STRUCT_MEMBER(shadow_path, float3, throughput, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_path, packed_float3, throughput, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput for shadow pass. */
 KERNEL_STRUCT_MEMBER(shadow_path,
-                     float3,
+                     packed_float3,
                      unshadowed_throughput,
                      KERNEL_FEATURE_SHADOW_PASS | KERNEL_FEATURE_AO_ADDITIVE)
 /* Ratio of throughput to distinguish diffuse / glossy / transmission render passes. */
-KERNEL_STRUCT_MEMBER(shadow_path, float3, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
-KERNEL_STRUCT_MEMBER(shadow_path, float3, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(shadow_path, packed_float3, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
+KERNEL_STRUCT_MEMBER(shadow_path, packed_float3, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
 /* Number of intersections found by ray-tracing. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, num_hits, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_END(shadow_path)
@@ -56,8 +56,8 @@ KERNEL_STRUCT_END(shadow_path)
 /********************************** Shadow Ray *******************************/
 
 KERNEL_STRUCT_BEGIN(shadow_ray)
-KERNEL_STRUCT_MEMBER(shadow_ray, float3, P, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER(shadow_ray, float3, D, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_ray, packed_float3, P, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, t, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, dP, KERNEL_FEATURE_PATH_TRACING)

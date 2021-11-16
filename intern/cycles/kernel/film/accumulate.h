@@ -552,7 +552,7 @@ ccl_device_inline void kernel_accum_background(KernelGlobals kg,
                                                const bool is_transparent_background_ray,
                                                ccl_global float *ccl_restrict render_buffer)
 {
-  float3 contribution = INTEGRATOR_STATE(state, path, throughput) * L;
+  float3 contribution = float3(INTEGRATOR_STATE(state, path, throughput)) * L;
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, path, bounce) - 1);
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);

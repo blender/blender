@@ -195,12 +195,13 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 pass_diffuse_weight = (bounce == 0) ?
-                                           bsdf_eval_pass_diffuse_weight(&bsdf_eval) :
-                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
-    const float3 pass_glossy_weight = (bounce == 0) ?
-                                          bsdf_eval_pass_glossy_weight(&bsdf_eval) :
-                                          INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    const packed_float3 pass_diffuse_weight =
+        (bounce == 0) ? packed_float3(bsdf_eval_pass_diffuse_weight(&bsdf_eval)) :
+                        INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    const packed_float3 pass_glossy_weight = (bounce == 0) ?
+                                                 packed_float3(
+                                                     bsdf_eval_pass_glossy_weight(&bsdf_eval)) :
+                                                 INTEGRATOR_STATE(state, path, pass_glossy_weight);
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }

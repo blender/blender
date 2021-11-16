@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 device_memory::device_memory(Device *device, const char *name, MemoryType type)
     : data_type(device_type_traits<uchar>::data_type),
-      data_elements(device_type_traits<uchar>::num_elements_cpu),
+      data_elements(device_type_traits<uchar>::num_elements),
       data_size(0),
       device_size(0),
       data_width(0),

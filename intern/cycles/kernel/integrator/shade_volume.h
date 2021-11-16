@@ -792,9 +792,10 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const float3 throughput_phase = throughput * bsdf_eval_sum(&phase_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 pass_diffuse_weight = (bounce == 0) ?
-                                           one_float3() :
-                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    const packed_float3 pass_diffuse_weight = (bounce == 0) ?
+                                                  packed_float3(one_float3()) :
+                                                  INTEGRATOR_STATE(
+                                                      state, path, pass_diffuse_weight);
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = zero_float3();
   }
