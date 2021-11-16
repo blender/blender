@@ -2320,7 +2320,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, &rootnode);
 
   if (!totleaf) {
-    leaves = MEM_mallocN(sizeof(void*), "leaves");
+    leaves = MEM_mallocN(sizeof(void *), "leaves");
     totleaf = 1;
 
     leaves[0] = &rootnode;
