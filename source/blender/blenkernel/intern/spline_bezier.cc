@@ -599,7 +599,10 @@ Span<float> BezierSpline::evaluated_mappings() const
 
   Span<int> offsets = this->control_point_offsets();
 
-  calculate_mappings_linear_resolution(offsets, size, resolution_, is_cyclic_, mappings);
+  blender::threading::isolate_task([&]() {
+    /* Isolate the task, since this is function is multi-threaded and holds a lock. */
+    calculate_mappings_linear_resolution(offsets, size, resolution_, is_cyclic_, mappings);
+  });
 
   mapping_cache_dirty_ = false;
   return mappings;
@@ -635,10 +638,13 @@ Span<float3> BezierSpline::evaluated_positions() const
   Span<int> offsets = this->control_point_offsets();
 
   const int grain_size = std::max(512 / resolution_, 1);
-  blender::threading::parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
-    for (const int i : range) {
-      this->evaluate_segment(i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
-    }
+  blender::threading::isolate_task([&]() {
+    /* Isolate the task, since this is function is multi-threaded and holds a lock. */
+    blender::threading::parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
+      for (const int i : range) {
+        this->evaluate_segment(i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
+      }
+    });
   });
   if (is_cyclic_) {
     this->evaluate_segment(
