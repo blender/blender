@@ -138,6 +138,54 @@ void resetTransRestrictions(TransInfo *t)
   t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
+static void *t_view_get(TransInfo *t)
+{
+  if (t->spacetype == SPACE_VIEW3D) {
+    View3D *v3d = t->area->spacedata.first;
+    return (void *)v3d;
+  }
+  else if (t->region) {
+    return (void *)&t->region->v2d;
+  }
+  return NULL;
+}
+
+static int t_around_get(TransInfo *t)
+{
+  if (t->flag & T_OVERRIDE_CENTER) {
+    /* Avoid initialization of individual origins (#V3D_AROUND_LOCAL_ORIGINS). */
+    return V3D_AROUND_CENTER_BOUNDS;
+  }
+
+  ScrArea *area = t->area;
+  if (t->spacetype == SPACE_VIEW3D) {
+    /* Bend always uses the cursor. */
+    if (t->mode == TFM_BEND) {
+      return V3D_AROUND_CURSOR;
+    }
+    else {
+      return t->settings->transform_pivot_point;
+    }
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = area->spacedata.first;
+    return sima->around;
+  }
+  else if (t->spacetype == SPACE_GRAPH) {
+    SpaceGraph *sipo = area->spacedata.first;
+    return sipo->around;
+  }
+  else if (t->spacetype == SPACE_CLIP) {
+    SpaceClip *sclip = area->spacedata.first;
+    return sclip->around;
+  }
+  else if (t->spacetype == SPACE_SEQ && t->region->regiontype == RGN_TYPE_PREVIEW) {
+    return SEQ_tool_settings_pivot_point_get(t->scene);
+  }
+
+  return V3D_AROUND_CENTER_BOUNDS;
+}
+
 /**
  * Setup internal data, mouse, vectors
  *
@@ -261,31 +309,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = area->spacedata.first;
     bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
 
-    t->view = v3d;
     t->animtimer = (animscreen) ? animscreen->animtimer : NULL;
 
     if (t->scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) {
       t->flag |= T_V3D_ALIGN;
-    }
-    t->around = t->scene->toolsettings->transform_pivot_point;
-
-    /* bend always uses the cursor */
-    if (t->mode == TFM_BEND) {
-      t->around = V3D_AROUND_CURSOR;
-    }
-
-    /* exceptional case */
-    if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-      if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
-        const bool use_island = transdata_check_local_islands(t, t->around);
-
-        if ((t->obedit_type != -1) && !use_island) {
-          t->options |= CTX_NO_PET;
-        }
-      }
     }
 
     if (object_mode & OB_MODE_ALL_PAINT) {
@@ -313,10 +342,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
-    /* XXX for now, get View2D from the active region. */
-    t->view = &region->v2d;
-    t->around = sima->around;
-
     if (ED_space_image_show_uvedit(sima, OBACT(t->view_layer))) {
       /* UV transform */
     }
@@ -331,21 +356,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
     /* image not in uv edit, nor in mask mode, can happen for some tools */
   }
-  else if (t->spacetype == SPACE_NODE) {
-    /* XXX for now, get View2D from the active region. */
-    t->view = &region->v2d;
-    t->around = V3D_AROUND_CENTER_BOUNDS;
-  }
-  else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = area->spacedata.first;
-    t->view = &region->v2d;
-    t->around = sipo->around;
-  }
   else if (t->spacetype == SPACE_CLIP) {
     SpaceClip *sclip = area->spacedata.first;
-    t->view = &region->v2d;
-    t->around = sclip->around;
-
     if (ED_space_clip_check_show_trackedit(sclip)) {
       t->options |= CTX_MOVIECLIP;
     }
@@ -354,20 +366,30 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
-    t->view = &region->v2d;
-    t->around = SEQ_tool_settings_pivot_point_get(t->scene);
     t->options |= CTX_SEQUENCER_IMAGE;
   }
-  else {
-    if (region) {
-      /* XXX: For now, get View2D from the active region. */
-      t->view = &region->v2d;
-      /* XXX: For now, the center point is the midpoint of the data. */
+
+  setTransformViewAspect(t, t->aspect);
+
+  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_float_get_array(op->ptr, prop, t->center_global);
+    mul_v3_v3(t->center_global, t->aspect);
+    t->flag |= T_OVERRIDE_CENTER;
+  }
+
+  t->view = t_view_get(t);
+  t->around = t_around_get(t);
+
+  /* Exceptional case. */
+  if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+    if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
+      const bool use_island = transdata_check_local_islands(t, t->around);
+
+      if ((t->obedit_type != -1) && !use_island) {
+        t->options |= CTX_NO_PET;
+      }
     }
-    else {
-      t->view = NULL;
-    }
-    t->around = V3D_AROUND_CENTER_BOUNDS;
   }
 
   bool t_values_set_is_array = false;
@@ -654,15 +676,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* Disable cursor wrap when edge panning is enabled. */
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     t->flag |= T_NO_CURSOR_WRAP;
-  }
-
-  setTransformViewAspect(t, t->aspect);
-
-  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_float_get_array(op->ptr, prop, t->center_global);
-    mul_v3_v3(t->center_global, t->aspect);
-    t->flag |= T_OVERRIDE_CENTER;
   }
 
   setTransformViewMatrices(t);
