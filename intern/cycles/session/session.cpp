@@ -505,7 +505,7 @@ void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 double Session::get_estimated_remaining_time() const
 {
   const double completed = progress.get_progress();
-  if (completed == 0.0f) {
+  if (completed == 0.0) {
     return 0.0;
   }
 
