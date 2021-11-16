@@ -6382,6 +6382,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "data-blocks as assets, not just poses");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
+  prop = RNA_def_property(srna, "show_asset_debug_info", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Asset Debug Info",
+                           "Enable some extra fields in the Asset Browser to aid in debugging");
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
+
   prop = RNA_def_property(srna, "use_override_templates", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_override_templates", 1);
   RNA_def_property_ui_text(
