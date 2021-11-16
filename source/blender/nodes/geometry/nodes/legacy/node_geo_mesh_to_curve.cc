@@ -44,7 +44,7 @@ static void geo_node_legacy_mesh_to_curve_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error,
                              TIP_("No attribute with name \"") + selection_name + "\"");
   }
-  GVArray_Typed<bool> selection = component.attribute_get_for_read<bool>(
+  VArray<bool> selection = component.attribute_get_for_read<bool>(
       selection_name, ATTR_DOMAIN_EDGE, true);
 
   Vector<int64_t> selected_edge_indices;

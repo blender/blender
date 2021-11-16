@@ -165,6 +165,7 @@ set(SRC
 
   BLI_alloca.h
   BLI_allocator.hh
+  BLI_any.hh
   BLI_args.h
   BLI_array.h
   BLI_array.hh
@@ -411,6 +412,7 @@ blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    tests/BLI_any_test.cc
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc

@@ -541,10 +541,10 @@ class NearestTransferFunction : public fn::MultiFunction {
     attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
       using T = decltype(dummy);
       if (use_mesh_ && use_points_) {
-        GVArray_Typed<T> src_mesh{*mesh_data_};
-        GVArray_Typed<T> src_point{*point_data_};
-        copy_with_indices_and_comparison(*src_mesh,
-                                         *src_point,
+        VArray<T> src_mesh = mesh_data_->typed<T>();
+        VArray<T> src_point = point_data_->typed<T>();
+        copy_with_indices_and_comparison(src_mesh,
+                                         src_point,
                                          mesh_distances,
                                          point_distances,
                                          mask,
@@ -553,12 +553,12 @@ class NearestTransferFunction : public fn::MultiFunction {
                                          dst.typed<T>());
       }
       else if (use_points_) {
-        GVArray_Typed<T> src_point{*point_data_};
-        copy_with_indices(*src_point, mask, point_indices, dst.typed<T>());
+        VArray<T> src_point = point_data_->typed<T>();
+        copy_with_indices(src_point, mask, point_indices, dst.typed<T>());
       }
       else if (use_mesh_) {
-        GVArray_Typed<T> src_mesh{*mesh_data_};
-        copy_with_indices(*src_mesh, mask, mesh_indices, dst.typed<T>());
+        VArray<T> src_mesh = mesh_data_->typed<T>();
+        copy_with_indices(src_mesh, mask, mesh_indices, dst.typed<T>());
       }
     });
   }
@@ -667,8 +667,7 @@ class IndexTransferFunction : public fn::MultiFunction {
 
     attribute_math::convert_to_static_type(type, [&](auto dummy) {
       using T = decltype(dummy);
-      GVArray_Typed<T> src{*src_data_};
-      copy_with_indices_clamped(*src, mask, indices, dst.typed<T>());
+      copy_with_indices_clamped(src_data_->typed<T>(), mask, indices, dst.typed<T>());
     });
   }
 };

@@ -64,9 +64,9 @@ class EndpointFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask UNUSED(mask),
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask UNUSED(mask),
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -111,9 +111,9 @@ class EndpointFieldInput final : public fn::FieldInput {
         }
         current_point += spline->size();
       }
-      return &scope.construct<fn::GVArray_For_ArrayContainer<Array<bool>>>(std::move(selection));
+      return VArray<bool>::ForContainer(std::move(selection));
     }
-    return nullptr;
+    return {};
   };
 
   uint64_t hash() const override

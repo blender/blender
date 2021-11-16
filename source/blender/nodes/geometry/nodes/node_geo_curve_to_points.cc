@@ -113,7 +113,7 @@ static GMutableSpan ensure_point_attribute(PointCloudComponent &points,
   points.attribute_try_create(attribute_id, ATTR_DOMAIN_POINT, data_type, AttributeInitDefault());
   WriteAttributeLookup attribute = points.attribute_try_get_for_write(attribute_id);
   BLI_assert(attribute);
-  return attribute.varray->get_internal_span();
+  return attribute.varray.get_internal_span();
 }
 
 template<typename T>
@@ -194,7 +194,7 @@ static void copy_evaluated_point_attributes(const Span<SplinePtr> splines,
       const int size = offsets[i + 1] - offsets[i];
 
       data.positions.slice(offset, size).copy_from(spline.evaluated_positions());
-      spline.interpolate_to_evaluated(spline.radii())->materialize(data.radii.slice(offset, size));
+      spline.interpolate_to_evaluated(spline.radii()).materialize(data.radii.slice(offset, size));
 
       for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
@@ -203,7 +203,7 @@ static void copy_evaluated_point_attributes(const Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
 
-        spline.interpolate_to_evaluated(spline_span)->materialize(dst.slice(offset, size).data());
+        spline.interpolate_to_evaluated(spline_span).materialize(dst.slice(offset, size).data());
       }
 
       if (!data.tangents.is_empty()) {
@@ -233,7 +233,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
 
       spline.sample_with_index_factors<float3>(
           spline.evaluated_positions(), uniform_samples, data.positions.slice(offset, size));
-      spline.sample_with_index_factors<float>(*spline.interpolate_to_evaluated(spline.radii()),
+      spline.sample_with_index_factors<float>(spline.interpolate_to_evaluated(spline.radii()),
                                               uniform_samples,
                                               data.radii.slice(offset, size));
 
@@ -244,7 +244,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
 
-        spline.sample_with_index_factors(*spline.interpolate_to_evaluated(spline_span),
+        spline.sample_with_index_factors(spline.interpolate_to_evaluated(spline_span),
                                          uniform_samples,
                                          dst.slice(offset, size));
       }

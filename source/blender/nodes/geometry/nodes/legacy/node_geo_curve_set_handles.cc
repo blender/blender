@@ -84,7 +84,7 @@ static void geo_node_curve_set_handles_exec(GeoNodeExecParams params)
   MutableSpan<SplinePtr> splines = curve.splines();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
+  VArray<bool> selection = curve_component.attribute_get_for_read(
       selection_name, ATTR_DOMAIN_POINT, true);
 
   const BezierSpline::HandleType new_handle_type = handle_type_from_input_type(type);

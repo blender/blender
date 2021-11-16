@@ -129,10 +129,9 @@ static Array<float> curve_length_point_domain(const CurveEval &curve)
   return lengths;
 }
 
-static const GVArray *construct_curve_parameter_gvarray(const CurveEval &curve,
-                                                        const IndexMask mask,
-                                                        const AttributeDomain domain,
-                                                        ResourceScope &scope)
+static VArray<float> construct_curve_parameter_varray(const CurveEval &curve,
+                                                      const IndexMask mask,
+                                                      const AttributeDomain domain)
 {
   if (domain == ATTR_DOMAIN_POINT) {
     Span<SplinePtr> splines = curve.splines();
@@ -147,7 +146,7 @@ static const GVArray *construct_curve_parameter_gvarray(const CurveEval &curve,
         values[offsets[i_spline] + i] *= spline_length_inv;
       }
     }
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float>>>(std::move(values));
+    return VArray<float>::ForContainer(std::move(values));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
@@ -156,32 +155,31 @@ static const GVArray *construct_curve_parameter_gvarray(const CurveEval &curve,
     for (const int i : mask) {
       values[i] *= total_length_inv;
     }
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float>>>(std::move(values));
+    return VArray<float>::ForContainer(std::move(values));
   }
-  return nullptr;
+  return {};
 }
 
-static const GVArray *construct_curve_length_gvarray(const CurveEval &curve,
-                                                     const IndexMask mask,
-                                                     const AttributeDomain domain,
-                                                     ResourceScope &scope)
+static VArray<float> construct_curve_length_varray(const CurveEval &curve,
+                                                   const IndexMask mask,
+                                                   const AttributeDomain domain)
 {
   if (domain == ATTR_DOMAIN_POINT) {
     Array<float> lengths = curve_length_point_domain(curve);
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float>>>(std::move(lengths));
+    return VArray<float>::ForContainer(std::move(lengths));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
     if (curve.splines().size() == 1) {
       Array<float> lengths(1, 0.0f);
-      return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float>>>(std::move(lengths));
+      return VArray<float>::ForContainer(std::move(lengths));
     }
 
     Array<float> lengths = curve_length_spline_domain(curve, mask);
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float>>>(std::move(lengths));
+    return VArray<float>::ForContainer(std::move(lengths));
   }
 
-  return nullptr;
+  return {};
 }
 
 class CurveParameterFieldInput final : public fn::FieldInput {
@@ -191,9 +189,9 @@ class CurveParameterFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -205,11 +203,11 @@ class CurveParameterFieldInput final : public fn::FieldInput {
         const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
         const CurveEval *curve = curve_component.get_for_read();
         if (curve) {
-          return construct_curve_parameter_gvarray(*curve, mask, domain, scope);
+          return construct_curve_parameter_varray(*curve, mask, domain);
         }
       }
     }
-    return nullptr;
+    return {};
   }
 
   uint64_t hash() const override
@@ -231,9 +229,9 @@ class CurveLengthFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -244,11 +242,11 @@ class CurveLengthFieldInput final : public fn::FieldInput {
         const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
         const CurveEval *curve = curve_component.get_for_read();
         if (curve) {
-          return construct_curve_length_gvarray(*curve, mask, domain, scope);
+          return construct_curve_length_varray(*curve, mask, domain);
         }
       }
     }
-    return nullptr;
+    return {};
   }
 
   uint64_t hash() const override

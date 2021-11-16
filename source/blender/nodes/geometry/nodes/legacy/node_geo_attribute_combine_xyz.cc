@@ -95,11 +95,11 @@ static void combine_attributes(GeometryComponent &component, const GeoNodeExecPa
   if (!attribute_result) {
     return;
   }
-  GVArray_Typed<float> attribute_x = params.get_input_attribute<float>(
+  VArray<float> attribute_x = params.get_input_attribute<float>(
       "X", component, result_domain, 0.0f);
-  GVArray_Typed<float> attribute_y = params.get_input_attribute<float>(
+  VArray<float> attribute_y = params.get_input_attribute<float>(
       "Y", component, result_domain, 0.0f);
-  GVArray_Typed<float> attribute_z = params.get_input_attribute<float>(
+  VArray<float> attribute_z = params.get_input_attribute<float>(
       "Z", component, result_domain, 0.0f);
 
   for (const int i : IndexRange(attribute_result->size())) {

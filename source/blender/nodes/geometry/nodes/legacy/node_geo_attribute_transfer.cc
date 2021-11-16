@@ -407,13 +407,13 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
       if (pointcloud_distances_sq[i] < mesh_distances_sq[i]) {
         /* Point-cloud point is closer. */
         const int index = pointcloud_indices[i];
-        pointcloud_src_attribute.varray->get(index, buffer);
+        pointcloud_src_attribute.varray.get(index, buffer);
         dst_attribute->set_by_relocate(i, buffer);
       }
       else {
         /* Mesh element is closer. */
         const int index = mesh_indices[i];
-        mesh_src_attribute.varray->get(index, buffer);
+        mesh_src_attribute.varray.get(index, buffer);
         dst_attribute->set_by_relocate(i, buffer);
       }
     }
@@ -424,7 +424,7 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
         src_name, data_type);
     for (const int i : IndexRange(tot_samples)) {
       const int index = pointcloud_indices[i];
-      src_attribute.varray->get(index, buffer);
+      src_attribute.varray.get(index, buffer);
       dst_attribute->set_by_relocate(i, buffer);
     }
   }
@@ -434,7 +434,7 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
                                                                                    data_type);
     for (const int i : IndexRange(tot_samples)) {
       const int index = mesh_indices[i];
-      src_attribute.varray->get(index, buffer);
+      src_attribute.varray.get(index, buffer);
       dst_attribute->set_by_relocate(i, buffer);
     }
   }
@@ -460,7 +460,7 @@ static void transfer_attribute(const GeoNodeExecParams &params,
   const AttributeDomain dst_domain = (input_domain == ATTR_DOMAIN_AUTO) ? auto_domain :
                                                                           input_domain;
 
-  GVArray_Typed<float3> dst_positions = dst_component.attribute_get_for_read<float3>(
+  VArray<float3> dst_positions = dst_component.attribute_get_for_read<float3>(
       "position", dst_domain, {0, 0, 0});
 
   switch (mapping) {

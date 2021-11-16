@@ -179,9 +179,9 @@ static void align_rotations_on_component(GeometryComponent &component,
     return;
   }
 
-  GVArray_Typed<float> factors = params.get_input_attribute<float>(
+  VArray<float> factors = params.get_input_attribute<float>(
       "Factor", component, ATTR_DOMAIN_POINT, 1.0f);
-  GVArray_Typed<float3> vectors = params.get_input_attribute<float3>(
+  VArray<float3> vectors = params.get_input_attribute<float3>(
       "Vector", component, ATTR_DOMAIN_POINT, {0, 0, 1});
 
   float3 local_main_axis{0, 0, 0};

@@ -25,9 +25,8 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::VArray;
 using blender::fn::GVArray;
-using blender::fn::GVArray_For_ArrayContainer;
-using blender::fn::GVArrayPtr;
 
 void BezierSpline::copy_settings(Spline &dst) const
 {
@@ -702,26 +701,26 @@ static void interpolate_to_evaluated_impl(const BezierSpline &spline,
   }
 }
 
-GVArrayPtr BezierSpline::interpolate_to_evaluated(const GVArray &src) const
+GVArray BezierSpline::interpolate_to_evaluated(const GVArray &src) const
 {
   BLI_assert(src.size() == this->size());
 
   if (src.is_single()) {
-    return src.shallow_copy();
+    return src;
   }
 
   const int eval_size = this->evaluated_points_size();
   if (eval_size == 1) {
-    return src.shallow_copy();
+    return src;
   }
 
-  GVArrayPtr new_varray;
+  GVArray new_varray;
   blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(eval_size);
       interpolate_to_evaluated_impl<T>(*this, src.typed<T>(), values);
-      new_varray = std::make_unique<GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
+      new_varray = VArray<T>::ForContainer(std::move(values));
     }
   });
 

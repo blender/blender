@@ -255,7 +255,7 @@ static void geo_node_legacy_curve_spline_type_exec(GeoNodeExecParams params)
   const CurveEval &curve = *curve_component->get_for_read();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component->attribute_get_for_read(
+  VArray<bool> selection = curve_component->attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();

@@ -25,10 +25,6 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
-
 namespace blender::nodes {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)

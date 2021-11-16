@@ -31,19 +31,18 @@ static void geo_node_input_normal_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Normal")).field_source();
 }
 
-static GVArrayPtr mesh_face_normals(const Mesh &mesh,
-                                    const Span<MVert> verts,
-                                    const Span<MPoly> polys,
-                                    const Span<MLoop> loops,
-                                    const IndexMask mask)
+static VArray<float3> mesh_face_normals(const Mesh &mesh,
+                                        const Span<MVert> verts,
+                                        const Span<MPoly> polys,
+                                        const Span<MLoop> loops,
+                                        const IndexMask mask)
 {
   /* Use existing normals to avoid unnecessarily recalculating them, if possible. */
   if (!(mesh.runtime.cd_dirty_poly & CD_MASK_NORMAL) &&
       CustomData_has_layer(&mesh.pdata, CD_NORMAL)) {
     const void *data = CustomData_get_layer(&mesh.pdata, CD_NORMAL);
 
-    return std::make_unique<fn::GVArray_For_Span<float3>>(
-        Span<float3>((const float3 *)data, polys.size()));
+    return VArray<float3>::ForSpan({(const float3 *)data, polys.size()});
   }
 
   auto normal_fn = [verts, polys, loops](const int i) -> float3 {
@@ -53,24 +52,21 @@ static GVArrayPtr mesh_face_normals(const Mesh &mesh,
     return normal;
   };
 
-  return std::make_unique<
-      fn::GVArray_For_EmbeddedVArray<float3, VArray_For_Func<float3, decltype(normal_fn)>>>(
-      mask.min_array_size(), mask.min_array_size(), normal_fn);
+  return VArray<float3>::ForFunc(mask.min_array_size(), normal_fn);
 }
 
-static GVArrayPtr mesh_vertex_normals(const Mesh &mesh,
-                                      const Span<MVert> verts,
-                                      const Span<MPoly> polys,
-                                      const Span<MLoop> loops,
-                                      const IndexMask mask)
+static VArray<float3> mesh_vertex_normals(const Mesh &mesh,
+                                          const Span<MVert> verts,
+                                          const Span<MPoly> polys,
+                                          const Span<MLoop> loops,
+                                          const IndexMask mask)
 {
   /* Use existing normals to avoid unnecessarily recalculating them, if possible. */
   if (!(mesh.runtime.cd_dirty_vert & CD_MASK_NORMAL) &&
       CustomData_has_layer(&mesh.vdata, CD_NORMAL)) {
     const void *data = CustomData_get_layer(&mesh.pdata, CD_NORMAL);
 
-    return std::make_unique<fn::GVArray_For_Span<float3>>(
-        Span<float3>((const float3 *)data, mesh.totvert));
+    return VArray<float3>::ForSpan({(const float3 *)data, mesh.totvert});
   }
 
   /* If the normals are dirty, they must be recalculated for the output of this node's field
@@ -91,14 +87,14 @@ static GVArrayPtr mesh_vertex_normals(const Mesh &mesh,
                                         nullptr,
                                         (float(*)[3])normals.data());
 
-  return std::make_unique<fn::GVArray_For_ArrayContainer<Array<float3>>>(std::move(normals));
+  return VArray<float3>::ForContainer(std::move(normals));
 }
 
-static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_component,
+static VArray<float3> construct_mesh_normals_gvarray(const MeshComponent &mesh_component,
                                                      const Mesh &mesh,
                                                      const IndexMask mask,
                                                      const AttributeDomain domain,
-                                                     ResourceScope &scope)
+                                                     ResourceScope &UNUSED(scope))
 {
   Span<MVert> verts{mesh.mvert, mesh.totvert};
   Span<MEdge> edges{mesh.medge, mesh.totedge};
@@ -107,18 +103,18 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
 
   switch (domain) {
     case ATTR_DOMAIN_FACE: {
-      return scope.add_value(mesh_face_normals(mesh, verts, polys, loops, mask)).get();
+      return mesh_face_normals(mesh, verts, polys, loops, mask);
     }
     case ATTR_DOMAIN_POINT: {
-      return scope.add_value(mesh_vertex_normals(mesh, verts, polys, loops, mask)).get();
+      return mesh_vertex_normals(mesh, verts, polys, loops, mask);
     }
     case ATTR_DOMAIN_EDGE: {
       /* In this case, start with vertex normals and convert to the edge domain, since the
        * conversion from edges to vertices is very simple. Use the full mask since the edges
        * might use the vertex normal from any index. */
-      GVArrayPtr vert_normals = mesh_vertex_normals(
+      GVArray vert_normals = mesh_vertex_normals(
           mesh, verts, polys, loops, IndexRange(verts.size()));
-      Span<float3> vert_normals_span = vert_normals->get_internal_span().typed<float3>();
+      Span<float3> vert_normals_span = vert_normals.get_internal_span().typed<float3>();
       Array<float3> edge_normals(mask.min_array_size());
 
       /* Use "manual" domain interpolation instead of the GeometryComponent API to avoid
@@ -130,23 +126,21 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
                               .normalized();
       }
 
-      return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float3>>>(
-          std::move(edge_normals));
+      return VArray<float3>::ForContainer(std::move(edge_normals));
     }
     case ATTR_DOMAIN_CORNER: {
       /* The normals on corners are just the mesh's face normals, so start with the face normal
        * array and copy the face normal for each of its corners. */
-      GVArrayPtr face_normals = mesh_face_normals(
+      VArray<float3> face_normals = mesh_face_normals(
           mesh, verts, polys, loops, IndexRange(polys.size()));
 
       /* In this case using the mesh component's generic domain interpolation is fine, the data
        * will still be normalized, since the face normal is just copied to every corner. */
-      GVArrayPtr loop_normals = mesh_component.attribute_try_adapt_domain(
+      return mesh_component.attribute_try_adapt_domain<float3>(
           std::move(face_normals), ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
-      return scope.add_value(std::move(loop_normals)).get();
     }
     default:
-      return nullptr;
+      return {};
   }
 }
 
@@ -204,9 +198,9 @@ static Array<float3> curve_normal_point_domain(const CurveEval &curve)
   return normals;
 }
 
-static const GVArray *construct_curve_normal_gvarray(const CurveComponent &component,
+static VArray<float3> construct_curve_normal_gvarray(const CurveComponent &component,
                                                      const AttributeDomain domain,
-                                                     ResourceScope &scope)
+                                                     ResourceScope &UNUSED(scope))
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
@@ -220,20 +214,18 @@ static const GVArray *construct_curve_normal_gvarray(const CurveComponent &compo
      * This is only possible when there is only one poly spline. */
     if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
       const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
-      return &scope.construct<fn::GVArray_For_Span<float3>>(spline.evaluated_normals());
+      return VArray<float3>::ForSpan(spline.evaluated_normals());
     }
 
     Array<float3> normals = curve_normal_point_domain(*curve);
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float3>>>(std::move(normals));
+    return VArray<float3>::ForContainer(std::move(normals));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
     Array<float3> point_normals = curve_normal_point_domain(*curve);
-    GVArrayPtr gvarray = std::make_unique<fn::GVArray_For_ArrayContainer<Array<float3>>>(
-        std::move(point_normals));
-    GVArrayPtr spline_normals = component.attribute_try_adapt_domain(
-        std::move(gvarray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
-    return scope.add_value(std::move(spline_normals)).get();
+    VArray<float3> varray = VArray<float3>::ForContainer(std::move(point_normals));
+    return component.attribute_try_adapt_domain<float3>(
+        std::move(varray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
   return nullptr;
@@ -246,9 +238,9 @@ class NormalFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -260,7 +252,7 @@ class NormalFieldInput final : public fn::FieldInput {
         const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
         const Mesh *mesh = mesh_component.get_for_read();
         if (mesh == nullptr) {
-          return nullptr;
+          return {};
         }
 
         return construct_mesh_normals_gvarray(mesh_component, *mesh, mask, domain, scope);
@@ -270,7 +262,7 @@ class NormalFieldInput final : public fn::FieldInput {
         return construct_curve_normal_gvarray(curve_component, domain, scope);
       }
     }
-    return nullptr;
+    return {};
   }
 
   uint64_t hash() const override

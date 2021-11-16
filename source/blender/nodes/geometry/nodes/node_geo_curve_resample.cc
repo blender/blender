@@ -26,10 +26,6 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
-
 namespace blender::nodes {
 
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
@@ -124,7 +120,7 @@ static SplinePtr resample_spline(const Spline &src, const int count)
           std::optional<GMutableSpan> output_attribute = dst->attributes.get_for_write(
               attribute_id);
           if (output_attribute) {
-            src.sample_with_index_factors(*src.interpolate_to_evaluated(*input_attribute),
+            src.sample_with_index_factors(src.interpolate_to_evaluated(*input_attribute),
                                           uniform_samples,
                                           *output_attribute);
             return true;
@@ -147,8 +143,8 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
 
   dst->positions().copy_from(src.evaluated_positions());
   dst->positions().copy_from(src.evaluated_positions());
-  src.interpolate_to_evaluated(src.radii())->materialize(dst->radii());
-  src.interpolate_to_evaluated(src.tilts())->materialize(dst->tilts());
+  src.interpolate_to_evaluated(src.radii()).materialize(dst->radii());
+  src.interpolate_to_evaluated(src.tilts()).materialize(dst->tilts());
 
   src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
@@ -156,7 +152,7 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
         if (dst->attributes.create(attribute_id, meta_data.data_type)) {
           std::optional<GMutableSpan> dst_attribute = dst->attributes.get_for_write(attribute_id);
           if (dst_attribute) {
-            src.interpolate_to_evaluated(*src_attribute)->materialize(dst_attribute->data());
+            src.interpolate_to_evaluated(*src_attribute).materialize(dst_attribute->data());
             return true;
           }
         }

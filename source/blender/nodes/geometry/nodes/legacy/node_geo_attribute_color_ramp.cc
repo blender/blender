@@ -85,7 +85,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     return;
   }
 
-  GVArray_Typed<float> attribute_in = component.attribute_get_for_read<float>(
+  VArray<float> attribute_in = component.attribute_get_for_read<float>(
       input_name, result_domain, 0.0f);
 
   MutableSpan<ColorGeometry4f> results = attribute_result.as_span();

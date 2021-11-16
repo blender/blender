@@ -313,7 +313,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
                           bary_coords,
                           looptri_indices,
                           source_attribute.domain,
-                          *source_attribute.varray,
+                          source_attribute.varray,
                           out_span);
     attribute_out.save();
   }

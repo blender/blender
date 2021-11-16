@@ -57,13 +57,8 @@ using fn::GPointer;
 using fn::GSpan;
 using fn::GVArray;
 using fn::GVArray_GSpan;
-using fn::GVArray_Span;
-using fn::GVArray_Typed;
-using fn::GVArrayPtr;
 using fn::GVMutableArray;
 using fn::GVMutableArray_GSpan;
-using fn::GVMutableArray_Typed;
-using fn::GVMutableArrayPtr;
 using geometry_nodes_eval_log::NodeWarningType;
 
 /**
@@ -316,21 +311,21 @@ class GeoNodeExecParams {
    * \note This will add an error message if the string socket is active and
    * the input attribute does not exist.
    */
-  GVArrayPtr get_input_attribute(const StringRef name,
-                                 const GeometryComponent &component,
-                                 const AttributeDomain domain,
-                                 const CustomDataType type,
-                                 const void *default_value) const;
+  GVArray get_input_attribute(const StringRef name,
+                              const GeometryComponent &component,
+                              const AttributeDomain domain,
+                              const CustomDataType type,
+                              const void *default_value) const;
 
   template<typename T>
-  GVArray_Typed<T> get_input_attribute(const StringRef name,
-                                       const GeometryComponent &component,
-                                       const AttributeDomain domain,
-                                       const T &default_value) const
+  VArray<T> get_input_attribute(const StringRef name,
+                                const GeometryComponent &component,
+                                const AttributeDomain domain,
+                                const T &default_value) const
   {
     const CustomDataType type = bke::cpp_type_to_custom_data_type(CPPType::get<T>());
-    GVArrayPtr varray = this->get_input_attribute(name, component, domain, type, &default_value);
-    return GVArray_Typed<T>(std::move(varray));
+    GVArray varray = this->get_input_attribute(name, component, domain, type, &default_value);
+    return varray.typed<T>();
   }
 
   /**

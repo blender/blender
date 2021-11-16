@@ -171,13 +171,12 @@ static void add_instances_from_component(InstancesComponent &instances,
 
   const int domain_size = src_geometry.attribute_domain_size(domain);
 
-  GVArray_Typed<float3> positions = src_geometry.attribute_get_for_read<float3>(
+  VArray<float3> positions = src_geometry.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
-  GVArray_Typed<float3> rotations = src_geometry.attribute_get_for_read<float3>(
+  VArray<float3> rotations = src_geometry.attribute_get_for_read<float3>(
       "rotation", domain, {0, 0, 0});
-  GVArray_Typed<float3> scales = src_geometry.attribute_get_for_read<float3>(
-      "scale", domain, {1, 1, 1});
-  GVArray_Typed<int> id_attribute = src_geometry.attribute_get_for_read<int>("id", domain, -1);
+  VArray<float3> scales = src_geometry.attribute_get_for_read<float3>("scale", domain, {1, 1, 1});
+  VArray<int> id_attribute = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   /* The initial size of the component might be non-zero if there are two component types. */
   const int start_len = instances.instances_amount();

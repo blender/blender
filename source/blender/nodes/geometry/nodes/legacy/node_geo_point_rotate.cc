@@ -169,9 +169,9 @@ static void point_rotate_on_component(GeometryComponent &component,
   const int domain_size = rotations.size();
 
   if (storage.type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {
-    GVArray_Typed<float3> axis = params.get_input_attribute<float3>(
+    VArray<float3> axis = params.get_input_attribute<float3>(
         "Axis", component, ATTR_DOMAIN_POINT, {0, 0, 1});
-    GVArray_Typed<float> angles = params.get_input_attribute<float>(
+    VArray<float> angles = params.get_input_attribute<float>(
         "Angle", component, ATTR_DOMAIN_POINT, 0);
 
     if (storage.space == GEO_NODE_POINT_ROTATE_SPACE_OBJECT) {
@@ -182,7 +182,7 @@ static void point_rotate_on_component(GeometryComponent &component,
     }
   }
   else {
-    GVArray_Typed<float3> eulers = params.get_input_attribute<float3>(
+    VArray<float3> eulers = params.get_input_attribute<float3>(
         "Rotation", component, ATTR_DOMAIN_POINT, {0, 0, 0});
 
     if (storage.space == GEO_NODE_POINT_ROTATE_SPACE_OBJECT) {

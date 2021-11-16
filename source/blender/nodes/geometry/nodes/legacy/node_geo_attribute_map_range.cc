@@ -362,7 +362,7 @@ static void map_range_attribute(GeometryComponent &component, const GeoNodeExecP
 
   const AttributeDomain domain = get_result_domain(component, input_name, result_name);
 
-  GVArrayPtr attribute_input = component.attribute_try_get_for_read(input_name, domain, data_type);
+  GVArray attribute_input = component.attribute_try_get_for_read(input_name, domain, data_type);
 
   if (!attribute_input) {
     params.error_message_add(NodeWarningType::Error,
@@ -381,12 +381,12 @@ static void map_range_attribute(GeometryComponent &component, const GeoNodeExecP
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      map_range_float(attribute_input->typed<float>(), attribute_result.as_span<float>(), params);
+      map_range_float(attribute_input.typed<float>(), attribute_result.as_span<float>(), params);
       break;
     }
     case CD_PROP_FLOAT3: {
       map_range_float3(
-          attribute_input->typed<float3>(), attribute_result.as_span<float3>(), params);
+          attribute_input.typed<float3>(), attribute_result.as_span<float3>(), params);
       break;
     }
     default:

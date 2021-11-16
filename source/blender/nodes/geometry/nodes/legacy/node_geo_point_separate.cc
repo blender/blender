@@ -55,7 +55,7 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
 {
   for (const AttributeIDRef &attribute_id : in_component.attribute_ids()) {
     ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray->type());
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     /* Only copy point attributes. Theoretically this could interpolate attributes on other
      * domains to the point domain, but that would conflict with attributes that are built-in
@@ -69,7 +69,7 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      GVArray_Span<T> span{*attribute.varray};
+      VArray_Span span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       copy_data_based_on_mask(span, masks, invert, out_span);
     });
@@ -103,7 +103,7 @@ static void separate_points_from_component(const GeometryComponent &in_component
     return;
   }
 
-  const GVArray_Typed<bool> mask_attribute = in_component.attribute_get_for_read<bool>(
+  const VArray<bool> mask_attribute = in_component.attribute_get_for_read<bool>(
       mask_name, ATTR_DOMAIN_POINT, false);
   VArray_Span<bool> masks{mask_attribute};
 

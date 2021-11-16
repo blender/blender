@@ -104,7 +104,7 @@ static void attribute_convert_calc(GeometryComponent &component,
     return;
   }
 
-  GVArrayPtr source_attribute = component.attribute_try_get_for_read(
+  GVArray source_attribute = component.attribute_try_get_for_read(
       source_name, result_domain, result_type);
   if (!source_attribute) {
     params.error_message_add(NodeWarningType::Error,
@@ -118,7 +118,7 @@ static void attribute_convert_calc(GeometryComponent &component,
     return;
   }
 
-  GVArray_GSpan source_span{*source_attribute};
+  GVArray_GSpan source_span{source_attribute};
   GMutableSpan result_span = result_attribute.as_span();
 
   BLI_assert(source_span.size() == result_span.size());

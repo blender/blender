@@ -61,7 +61,7 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
         if (meta_data.domain != ATTR_DOMAIN_CURVE) {
           return true;
         }
-        GVArrayPtr spline_attribute = curve_component.attribute_get_for_read(
+        GVArray spline_attribute = curve_component.attribute_get_for_read(
             attribute_id, ATTR_DOMAIN_CURVE, meta_data.data_type);
 
         OutputAttribute result_attribute = points.attribute_try_get_for_output_only(
@@ -70,7 +70,7 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
 
         /* Only copy the attributes of splines in the offsets. */
         for (const int i : offsets.index_range()) {
-          spline_attribute->get(offsets[i], result[i]);
+          spline_attribute.get(offsets[i], result[i]);
         }
 
         result_attribute.save();
@@ -130,7 +130,7 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
 
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
-        blender::fn::GVArray_For_GSpan(spline_span).get(0, point_span[i]);
+        spline_span.type().copy_assign(spline_span[0], point_span[i]);
       }
 
       for (const auto item : end_data.point_attributes.items()) {
@@ -139,7 +139,7 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
 
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
-        blender::fn::GVArray_For_GSpan(spline_span).get(spline.size() - 1, point_span[i]);
+        spline_span.type().copy_assign(spline_span[spline.size() - 1], point_span[i]);
       }
     }
   });

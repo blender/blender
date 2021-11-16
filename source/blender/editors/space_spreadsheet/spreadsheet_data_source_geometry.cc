@@ -78,7 +78,7 @@ static std::optional<eSpreadsheetColumnValueType> cpp_type_to_column_value_type(
 void ExtraColumns::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  for (const auto &item : columns_.items()) {
+  for (const auto item : columns_.items()) {
     SpreadsheetColumnID column_id;
     column_id.name = (char *)item.key.c_str();
     fn(column_id, true);
@@ -168,12 +168,12 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   if (!attribute) {
     return {};
   }
-  const fn::GVArray *varray = scope_.add(std::move(attribute.varray));
+  fn::GVArray varray = std::move(attribute.varray);
   if (attribute.domain != domain_) {
     return {};
   }
-  int domain_size = varray->size();
-  const CustomDataType type = bke::cpp_type_to_custom_data_type(varray->type());
+  int domain_size = varray.size();
+  const CustomDataType type = bke::cpp_type_to_custom_data_type(varray.type());
   switch (type) {
     case CD_PROP_FLOAT:
       return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT,
@@ -181,7 +181,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                          domain_size,
                                          [varray](int index, CellValue &r_cell_value) {
                                            float value;
-                                           varray->get(index, &value);
+                                           varray.get(index, &value);
                                            r_cell_value.value_float = value;
                                          });
     case CD_PROP_INT32:
@@ -191,7 +191,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
           domain_size,
           [varray](int index, CellValue &r_cell_value) {
             int value;
-            varray->get(index, &value);
+            varray.get(index, &value);
             r_cell_value.value_int = value;
           },
           STREQ(column_id.name, "id") ? 5.5f : 0.0f);
@@ -201,7 +201,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                          domain_size,
                                          [varray](int index, CellValue &r_cell_value) {
                                            bool value;
-                                           varray->get(index, &value);
+                                           varray.get(index, &value);
                                            r_cell_value.value_bool = value;
                                          });
     case CD_PROP_FLOAT2: {
@@ -210,7 +210,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                          domain_size,
                                          [varray](int index, CellValue &r_cell_value) {
                                            float2 value;
-                                           varray->get(index, &value);
+                                           varray.get(index, &value);
                                            r_cell_value.value_float2 = value;
                                          });
     }
@@ -220,7 +220,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                          domain_size,
                                          [varray](int index, CellValue &r_cell_value) {
                                            float3 value;
-                                           varray->get(index, &value);
+                                           varray.get(index, &value);
                                            r_cell_value.value_float3 = value;
                                          });
     }
@@ -230,7 +230,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
                                          domain_size,
                                          [varray](int index, CellValue &r_cell_value) {
                                            ColorGeometry4f value;
-                                           varray->get(index, &value);
+                                           varray.get(index, &value);
                                            r_cell_value.value_color = value;
                                          });
     }
@@ -738,7 +738,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
 
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const int domain_size = component.attribute_domain_size(domain);
-  for (const auto &item : fields_to_show.items()) {
+  for (const auto item : fields_to_show.items()) {
     StringRef name = item.key;
     const GField &field = item.value;
 

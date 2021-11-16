@@ -169,10 +169,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     span_count++;
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    total_size += varray->size();
-    positions_span = varray->get_internal_span();
+    total_size += varray.size();
+    positions_span = varray.get_internal_span();
   }
 
   if (geometry_set.has_curve()) {
@@ -200,18 +200,18 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (geometry_set.has_mesh()) {
     const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray->materialize(positions.as_mutable_span().slice(offset, varray.size()));
+    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }
 
   if (geometry_set.has_pointcloud()) {
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray->materialize(positions.as_mutable_span().slice(offset, varray.size()));
+    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }
 
@@ -235,16 +235,16 @@ static void read_positions(const GeometryComponent &component,
                                            Span<float4x4> transforms,
                                            Vector<float3> *r_coords)
 {
-  GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
+  VArray<float3> positions = component.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   /* NOTE: could use convex hull operation here to
    * cut out some vertices, before accumulating,
    * but can also be done by the user beforehand. */
 
-  r_coords->reserve(r_coords->size() + positions.size() * transforms.size());
+  r_coords->reserve(r_coords->size() + positions->size() * transforms.size());
   for (const float4x4 &transform : transforms) {
-    for (const int i : positions.index_range()) {
+    for (const int i : positions->index_range()) {
       const float3 position = positions[i];
       const float3 transformed_position = transform * position;
       r_coords->append(transformed_position);

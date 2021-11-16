@@ -197,11 +197,11 @@ static void raycast_from_points(const GeoNodeExecParams &params,
       (GeometryNodeRaycastMapMode)storage.mapping);
   const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
 
-  GVArray_Typed<float3> ray_origins = dst_component.attribute_get_for_read<float3>(
+  VArray<float3> ray_origins = dst_component.attribute_get_for_read<float3>(
       "position", result_domain, {0, 0, 0});
-  GVArray_Typed<float3> ray_directions = params.get_input_attribute<float3>(
+  VArray<float3> ray_directions = params.get_input_attribute<float3>(
       "Ray Direction", dst_component, result_domain, {0, 0, 0});
-  GVArray_Typed<float> ray_lengths = params.get_input_attribute<float>(
+  VArray<float> ray_lengths = params.get_input_attribute<float>(
       "Ray Length", dst_component, result_domain, 0);
 
   OutputAttribute_Typed<bool> hit_attribute =
@@ -218,10 +218,10 @@ static void raycast_from_points(const GeoNodeExecParams &params,
   Array<int> hit_indices;
   Array<float3> hit_positions_internal;
   if (!hit_attribute_names.is_empty()) {
-    hit_indices.reinitialize(ray_origins->size());
+    hit_indices.reinitialize(ray_origins.size());
 
     if (!hit_position_attribute) {
-      hit_positions_internal.reinitialize(ray_origins->size());
+      hit_positions_internal.reinitialize(ray_origins.size());
     }
   }
   const MutableSpan<bool> is_hit = hit_attribute ? hit_attribute.as_span() : MutableSpan<bool>();

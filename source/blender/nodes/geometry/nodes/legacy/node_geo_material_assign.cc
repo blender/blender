@@ -72,7 +72,7 @@ static void geo_node_legacy_material_assign_exec(GeoNodeExecParams params)
     MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh != nullptr) {
-      GVArray_Typed<bool> face_mask = mesh_component.attribute_get_for_read<bool>(
+      VArray<bool> face_mask = mesh_component.attribute_get_for_read<bool>(
           mask_name, ATTR_DOMAIN_FACE, true);
       assign_material_to_faces(*mesh, face_mask, material);
     }

@@ -153,7 +153,7 @@ static void attribute_calc_proximity(GeometryComponent &component,
   if (!position_attribute || (!distance_attribute && !location_attribute)) {
     return;
   }
-  GVArray_Typed<float3> positions{*position_attribute.varray};
+  VArray<float3> positions = position_attribute.varray.typed<float3>();
   const NodeGeometryAttributeProximity &storage =
       *(const NodeGeometryAttributeProximity *)params.node().storage;
 

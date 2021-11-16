@@ -78,7 +78,7 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   const CustomDataType data_type = (input_type == GEO_NODE_ATTRIBUTE_INPUT_FLOAT) ? CD_PROP_FLOAT :
                                                                                     CD_PROP_FLOAT3;
 
-  GVArrayPtr attribute = params.get_input_attribute(
+  GVArray attribute = params.get_input_attribute(
       "Factor", component, ATTR_DOMAIN_POINT, data_type, nullptr);
   if (!attribute) {
     return;
@@ -86,13 +86,13 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
 
   MutableSpan<float3> scale_span = scale_attribute.as_span();
   if (data_type == CD_PROP_FLOAT) {
-    GVArray_Typed<float> factors{*attribute};
+    VArray<float> factors = attribute.typed<float>();
     for (const int i : scale_span.index_range()) {
       scale_span[i] = scale_span[i] * factors[i];
     }
   }
   else if (data_type == CD_PROP_FLOAT3) {
-    GVArray_Typed<float3> factors{*attribute};
+    VArray<float3> factors = attribute.typed<float3>();
     for (const int i : scale_span.index_range()) {
       scale_span[i] = scale_span[i] * factors[i];
     }

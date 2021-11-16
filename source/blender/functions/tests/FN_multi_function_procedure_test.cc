@@ -9,6 +9,43 @@
 
 namespace blender::fn::tests {
 
+TEST(multi_function_procedure, ConstantOutput)
+{
+  /**
+   * procedure(int *var2) {
+   *   var1 = 5;
+   *   var2 = var1 + var1;
+   * }
+   */
+
+  CustomMF_Constant<int> constant_fn{5};
+  CustomMF_SI_SI_SO<int, int, int> add_fn{"Add", [](int a, int b) { return a + b; }};
+
+  MFProcedure procedure;
+  MFProcedureBuilder builder{procedure};
+
+  auto [var1] = builder.add_call<1>(constant_fn);
+  auto [var2] = builder.add_call<1>(add_fn, {var1, var1});
+  builder.add_destruct(*var1);
+  builder.add_return();
+  builder.add_output_parameter(*var2);
+
+  EXPECT_TRUE(procedure.validate());
+
+  MFProcedureExecutor executor{"My Procedure", procedure};
+
+  MFParamsBuilder params{executor, 2};
+  MFContextBuilder context;
+
+  Array<int> output_array(2);
+  params.add_uninitialized_single_output(output_array.as_mutable_span());
+
+  executor.call(IndexRange(2), params, context);
+
+  EXPECT_EQ(output_array[0], 10);
+  EXPECT_EQ(output_array[1], 10);
+}
+
 TEST(multi_function_procedure, SimpleTest)
 {
   /**

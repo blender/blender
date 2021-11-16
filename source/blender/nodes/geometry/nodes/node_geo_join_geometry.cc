@@ -27,8 +27,6 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-
 namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
@@ -190,10 +188,10 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     if (domain_size == 0) {
       continue;
     }
-    GVArrayPtr read_attribute = component->attribute_get_for_read(
+    GVArray read_attribute = component->attribute_get_for_read(
         attribute_id, domain, data_type, nullptr);
 
-    GVArray_GSpan src_span{*read_attribute};
+    GVArray_GSpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
     cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_size);
@@ -319,8 +317,7 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
             spline->size() * type.size(), type.alignment(), __func__);
 
         const DataTypeConversions &conversions = blender::nodes::get_implicit_type_conversions();
-        conversions.try_convert(std::make_unique<GVArray_For_GSpan>(*attribute), type)
-            ->materialize(converted_buffer);
+        conversions.try_convert(GVArray::ForSpan(*attribute), type).materialize(converted_buffer);
 
         spline->attributes.remove(attribute_id);
         spline->attributes.create_by_move(attribute_id, data_type, converted_buffer);
@@ -333,14 +330,14 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
         /* In this case the attribute did not exist, but there is a spline domain attribute
          * we can retrieve a value from, as a spline to point domain conversion. So fill the
          * new attribute with the value for this spline. */
-        GVArrayPtr current_curve_attribute = current_curve->attributes.get_for_read(
+        GVArray current_curve_attribute = current_curve->attributes.get_for_read(
             attribute_id, data_type, nullptr);
 
         BLI_assert(spline->attributes.get_for_read(attribute_id));
         std::optional<GMutableSpan> new_attribute = spline->attributes.get_for_write(attribute_id);
 
         BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
-        current_curve_attribute->get(spline_index_in_component, buffer);
+        current_curve_attribute.get(spline_index_in_component, buffer);
         type.fill_assign_n(buffer, new_attribute->data(), new_attribute->size());
       }
     }
@@ -397,8 +394,8 @@ static void ensure_spline_attribute(const AttributeIDRef &attribute_id,
     if (size == 0) {
       continue;
     }
-    GVArrayPtr read_attribute = curve.attributes.get_for_read(attribute_id, data_type, nullptr);
-    GVArray_GSpan src_span{*read_attribute};
+    GVArray read_attribute = curve.attributes.get_for_read(attribute_id, data_type, nullptr);
+    GVArray_GSpan src_span{read_attribute};
 
     const void *src_buffer = src_span.data();
     type.copy_assign_n(src_buffer, result_attribute[offset], size);

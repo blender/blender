@@ -199,28 +199,28 @@ class MusgraveFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_detail = [&](int param_index) -> const VArray<float> & {
+    auto get_detail = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Detail");
     };
-    auto get_dimension = [&](int param_index) -> const VArray<float> & {
+    auto get_dimension = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Dimension");
     };
-    auto get_lacunarity = [&](int param_index) -> const VArray<float> & {
+    auto get_lacunarity = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Lacunarity");
     };
-    auto get_offset = [&](int param_index) -> const VArray<float> & {
+    auto get_offset = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Offset");
     };
-    auto get_gain = [&](int param_index) -> const VArray<float> & {
+    auto get_gain = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Gain");
     };
 

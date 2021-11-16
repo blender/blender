@@ -248,9 +248,9 @@ class FieldInput : public FieldNode {
    * Get the value of this specific input based on the given context. The returned virtual array,
    * should live at least as long as the passed in #scope. May return null.
    */
-  virtual const GVArray *get_varray_for_context(const FieldContext &context,
-                                                IndexMask mask,
-                                                ResourceScope &scope) const = 0;
+  virtual GVArray get_varray_for_context(const FieldContext &context,
+                                         IndexMask mask,
+                                         ResourceScope &scope) const = 0;
 
   virtual std::string socket_inspection_name() const;
   blender::StringRef debug_name() const;
@@ -268,9 +268,9 @@ class FieldContext {
  public:
   ~FieldContext() = default;
 
-  virtual const GVArray *get_varray_for_input(const FieldInput &field_input,
-                                              IndexMask mask,
-                                              ResourceScope &scope) const;
+  virtual GVArray get_varray_for_input(const FieldInput &field_input,
+                                       IndexMask mask,
+                                       ResourceScope &scope) const;
 };
 
 /**
@@ -289,8 +289,8 @@ class FieldEvaluator : NonMovable, NonCopyable {
   const FieldContext &context_;
   const IndexMask mask_;
   Vector<GField> fields_to_evaluate_;
-  Vector<GVMutableArray *> dst_varrays_;
-  Vector<const GVArray *> evaluated_varrays_;
+  Vector<GVMutableArray> dst_varrays_;
+  Vector<GVArray> evaluated_varrays_;
   Vector<OutputPointerInfo> output_pointer_infos_;
   bool is_evaluated_ = false;
 
@@ -317,13 +317,12 @@ class FieldEvaluator : NonMovable, NonCopyable {
    * \param field: Field to add to the evaluator.
    * \param dst: Mutable virtual array that the evaluated result for this field is be written into.
    */
-  int add_with_destination(GField field, GVMutableArray &dst);
+  int add_with_destination(GField field, GVMutableArray dst);
 
   /** Same as #add_with_destination but typed. */
-  template<typename T> int add_with_destination(Field<T> field, VMutableArray<T> &dst)
+  template<typename T> int add_with_destination(Field<T> field, VMutableArray<T> dst)
   {
-    GVMutableArray &varray = scope_.construct<GVMutableArray_For_VMutableArray<T>>(dst);
-    return this->add_with_destination(GField(std::move(field)), varray);
+    return this->add_with_destination(GField(std::move(field)), GVMutableArray(std::move(dst)));
   }
 
   /**
@@ -342,11 +341,10 @@ class FieldEvaluator : NonMovable, NonCopyable {
    */
   template<typename T> int add_with_destination(Field<T> field, MutableSpan<T> dst)
   {
-    GVMutableArray &varray = scope_.construct<GVMutableArray_For_MutableSpan<T>>(dst);
-    return this->add_with_destination(std::move(field), varray);
+    return this->add_with_destination(std::move(field), VMutableArray<T>::ForSpan(dst));
   }
 
-  int add(GField field, const GVArray **varray_ptr);
+  int add(GField field, GVArray *varray_ptr);
 
   /**
    * \param field: Field to add to the evaluator.
@@ -354,14 +352,14 @@ class FieldEvaluator : NonMovable, NonCopyable {
    *   assigned to the given position.
    * \return Index of the field in the evaluator which can be used in the #get_evaluated methods.
    */
-  template<typename T> int add(Field<T> field, const VArray<T> **varray_ptr)
+  template<typename T> int add(Field<T> field, VArray<T> *varray_ptr)
   {
     const int field_index = fields_to_evaluate_.append_and_get_index(std::move(field));
-    dst_varrays_.append(nullptr);
-    output_pointer_infos_.append(
-        OutputPointerInfo{varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &scope) {
-                            *(const VArray<T> **)dst = &*scope.construct<GVArray_Typed<T>>(varray);
-                          }});
+    dst_varrays_.append({});
+    output_pointer_infos_.append(OutputPointerInfo{
+        varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &UNUSED(scope)) {
+          *(VArray<T> *)dst = varray.typed<T>();
+        }});
     return field_index;
   }
 
@@ -378,14 +376,12 @@ class FieldEvaluator : NonMovable, NonCopyable {
   const GVArray &get_evaluated(const int field_index) const
   {
     BLI_assert(is_evaluated_);
-    return *evaluated_varrays_[field_index];
+    return evaluated_varrays_[field_index];
   }
 
-  template<typename T> const VArray<T> &get_evaluated(const int field_index)
+  template<typename T> VArray<T> get_evaluated(const int field_index)
   {
-    const GVArray &varray = this->get_evaluated(field_index);
-    GVArray_Typed<T> &typed_varray = scope_.construct<GVArray_Typed<T>>(varray);
-    return *typed_varray;
+    return this->get_evaluated(field_index).typed<T>();
   }
 
   /**
@@ -396,11 +392,11 @@ class FieldEvaluator : NonMovable, NonCopyable {
   IndexMask get_evaluated_as_mask(const int field_index);
 };
 
-Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
-                                        Span<GFieldRef> fields_to_evaluate,
-                                        IndexMask mask,
-                                        const FieldContext &context,
-                                        Span<GVMutableArray *> dst_varrays = {});
+Vector<GVArray> evaluate_fields(ResourceScope &scope,
+                                Span<GFieldRef> fields_to_evaluate,
+                                IndexMask mask,
+                                const FieldContext &context,
+                                Span<GVMutableArray> dst_varrays = {});
 
 /* -------------------------------------------------------------------- */
 /** \name Utility functions for simple field creation and evaluation
@@ -429,11 +425,11 @@ class IndexFieldInput final : public FieldInput {
  public:
   IndexFieldInput();
 
-  static GVArray *get_index_varray(IndexMask mask, ResourceScope &scope);
+  static GVArray get_index_varray(IndexMask mask, ResourceScope &scope);
 
-  const GVArray *get_varray_for_context(const FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final;
+  GVArray get_varray_for_context(const FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const final;
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;

@@ -220,22 +220,22 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_smoothness = [&](int param_index) -> const VArray<float> & {
+    auto get_smoothness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Smoothness");
     };
-    auto get_exponent = [&](int param_index) -> const VArray<float> & {
+    auto get_exponent = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Exponent");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
@@ -651,19 +651,19 @@ class VoronoiMetricFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_smoothness = [&](int param_index) -> const VArray<float> & {
+    auto get_smoothness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Smoothness");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
@@ -1153,16 +1153,16 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {

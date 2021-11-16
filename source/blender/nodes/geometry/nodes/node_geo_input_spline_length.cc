@@ -25,31 +25,25 @@ static void geo_node_input_spline_length_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Length")).field_source();
 }
 
-static const GVArray *construct_spline_length_gvarray(const CurveComponent &component,
-                                                      const AttributeDomain domain,
-                                                      ResourceScope &scope)
+static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
+                                                     const AttributeDomain domain,
+                                                     ResourceScope &UNUSED(scope))
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
-    return nullptr;
+    return {};
   }
 
   Span<SplinePtr> splines = curve->splines();
   auto length_fn = [splines](int i) { return splines[i]->length(); };
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return &scope.construct<
-        fn::GVArray_For_EmbeddedVArray<float, VArray_For_Func<float, decltype(length_fn)>>>(
-        splines.size(), splines.size(), length_fn);
+    return VArray<float>::ForFunc(splines.size(), length_fn);
   }
   if (domain == ATTR_DOMAIN_POINT) {
-    GVArrayPtr length = std::make_unique<
-        fn::GVArray_For_EmbeddedVArray<float, VArray_For_Func<float, decltype(length_fn)>>>(
-        splines.size(), splines.size(), length_fn);
-    return scope
-        .add_value(component.attribute_try_adapt_domain(
-            std::move(length), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT))
-        .get();
+    VArray<float> length = VArray<float>::ForFunc(splines.size(), length_fn);
+    return component.attribute_try_adapt_domain<float>(
+        std::move(length), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
 
   return nullptr;
@@ -62,9 +56,9 @@ class SplineLengthFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask UNUSED(mask),
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask UNUSED(mask),
+                                 ResourceScope &scope) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -76,7 +70,7 @@ class SplineLengthFieldInput final : public fn::FieldInput {
         return construct_spline_length_gvarray(curve_component, domain, scope);
       }
     }
-    return nullptr;
+    return {};
   }
 
   uint64_t hash() const override

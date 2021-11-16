@@ -360,12 +360,12 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     result.attribute_try_create(
         entry.key, domain_output, data_type_output, AttributeInitDefault());
     WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(attribute_id);
-    if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
+    if (!write_attribute || &write_attribute.varray.type() != cpp_type ||
         write_attribute.domain != domain_output) {
       continue;
     }
 
-    fn::GVMutableArray_GSpan dst_span{*write_attribute.varray};
+    fn::GVMutableArray_GSpan dst_span{write_attribute.varray};
 
     int offset = 0;
     for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -377,11 +377,11 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
           if (domain_size == 0) {
             continue; /* Domain size is 0, so no need to increment the offset. */
           }
-          GVArrayPtr source_attribute = component.attribute_try_get_for_read(
+          GVArray source_attribute = component.attribute_try_get_for_read(
               attribute_id, domain_output, data_type_output);
 
           if (source_attribute) {
-            fn::GVArray_GSpan src_span{*source_attribute};
+            fn::GVArray_GSpan src_span{source_attribute};
             const void *src_buffer = src_span.data();
             for (const int UNUSED(i) : set_group.transforms.index_range()) {
               void *dst_buffer = dst_span[offset];

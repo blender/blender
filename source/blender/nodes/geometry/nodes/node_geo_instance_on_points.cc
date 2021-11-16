@@ -80,10 +80,10 @@ static void add_instances_from_component(InstancesComponent &dst_component,
                                                                                    select_len);
 
   FieldEvaluator field_evaluator{field_context, domain_size};
-  const VArray<bool> *pick_instance = nullptr;
-  const VArray<int> *indices = nullptr;
-  const VArray<float3> *rotations = nullptr;
-  const VArray<float3> *scales = nullptr;
+  VArray<bool> pick_instance;
+  VArray<int> indices;
+  VArray<float3> rotations;
+  VArray<float3> scales;
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
   field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
@@ -92,7 +92,7 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
   field_evaluator.evaluate();
 
-  GVArray_Typed<float3> positions = src_component.attribute_get_for_read<float3>(
+  VArray<float3> positions = src_component.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
 
   const InstancesComponent *src_instances = instance.get_component_for_read<InstancesComponent>();
@@ -101,7 +101,7 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   Array<int> handle_mapping;
   /* Only fill #handle_mapping when it may be used below. */
   if (src_instances != nullptr &&
-      (!pick_instance->is_single() || pick_instance->get_internal_single())) {
+      (!pick_instance.is_single() || pick_instance.get_internal_single())) {
     Span<InstanceReference> src_references = src_instances->references();
     handle_mapping.reinitialize(src_references.size());
     for (const int src_instance_handle : src_references.index_range()) {
@@ -121,17 +121,16 @@ static void add_instances_from_component(InstancesComponent &dst_component,
 
       /* Compute base transform for every instances. */
       float4x4 &dst_transform = dst_transforms[range_i];
-      dst_transform = float4x4::from_loc_eul_scale(
-          positions[i], rotations->get(i), scales->get(i));
+      dst_transform = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
 
       /* Reference that will be used by this new instance. */
       int dst_handle = empty_reference_handle;
 
-      const bool use_individual_instance = pick_instance->get(i);
+      const bool use_individual_instance = pick_instance[i];
       if (use_individual_instance) {
         if (src_instances != nullptr) {
           const int src_instances_amount = src_instances->instances_amount();
-          const int original_index = indices->get(i);
+          const int original_index = indices[i];
           /* Use #mod_i instead of `%` to get the desirable wrap around behavior where -1
            * refers to the last element. */
           const int index = mod_i(original_index, std::max(src_instances_amount, 1));
@@ -155,10 +154,10 @@ static void add_instances_from_component(InstancesComponent &dst_component,
     }
   });
 
-  GVArrayPtr id_attribute = src_component.attribute_try_get_for_read(
-      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
-  if (id_attribute) {
-    GVArray_Typed<int> ids{*id_attribute};
+  VArray<int> ids = src_component
+                        .attribute_try_get_for_read("id", ATTR_DOMAIN_POINT, CD_PROP_INT32)
+                        .typed<int>();
+  if (ids) {
     VArray_Span<int> ids_span{ids};
     MutableSpan<int> dst_ids = dst_component.instance_ids_ensure();
     for (const int64_t i : selection.index_range()) {
@@ -166,8 +165,8 @@ static void add_instances_from_component(InstancesComponent &dst_component,
     }
   }
 
-  if (pick_instance->is_single()) {
-    if (pick_instance->get_internal_single()) {
+  if (pick_instance.is_single()) {
+    if (pick_instance.get_internal_single()) {
       if (instance.has_realized_data()) {
         params.error_message_add(
             NodeWarningType::Info,

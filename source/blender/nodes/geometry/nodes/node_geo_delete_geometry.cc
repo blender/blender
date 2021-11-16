@@ -138,7 +138,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     if (!domains.contains(attribute.domain)) {
       continue;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray->type());
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         attribute_id, attribute.domain, data_type);
@@ -149,7 +149,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      GVArray_Span<T> span{*attribute.varray};
+      VArray_Span<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       out_span.copy_from(span);
     });
@@ -178,7 +178,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     if (domain != attribute.domain) {
       continue;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray->type());
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         attribute_id, attribute.domain, data_type);
@@ -189,7 +189,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      GVArray_Span<T> span{*attribute.varray};
+      VArray_Span<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       copy_data(span, out_span, mask);
     });

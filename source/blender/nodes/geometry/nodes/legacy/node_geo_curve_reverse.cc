@@ -44,7 +44,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
   MutableSpan<SplinePtr> splines = curve.splines();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
+  VArray<bool> selection = curve_component.attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {

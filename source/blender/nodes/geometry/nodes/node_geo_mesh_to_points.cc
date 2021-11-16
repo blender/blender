@@ -113,14 +113,14 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const CustomDataType data_type = entry.value.data_type;
-    GVArrayPtr src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
+    GVArray src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
     OutputAttribute dst = point_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
       attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
-        GVArray_Typed<T> src_typed{*src};
-        copy_attribute_to_points(*src_typed, selection, dst.as_span().typed<T>());
+        VArray<T> src_typed = src.typed<T>();
+        copy_attribute_to_points(src_typed, selection, dst.as_span().typed<T>());
       });
       dst.save();
     }
