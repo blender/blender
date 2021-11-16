@@ -1113,7 +1113,9 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
     ADDCH(smooth_strength_factor)->flag |= BRUSH_CHANNEL_INHERIT;
   }
 
-  ADDCH(smooth_strength_projection);
+  if (!BRUSHSET_LOOKUP(chset, smooth_strength_projection)) {
+    ADDCH(smooth_strength_projection)->flag |= BRUSH_CHANNEL_INHERIT;
+  }
 
   ADDCH(accumulate);
   ADDCH(original_normal);
@@ -1712,7 +1714,6 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
       BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 0.6f);
-      BRUSHSET_LOOKUP(chset, strength)->flag &= ~BRUSH_MAPPING_INHERIT;
 
       BrushChannel *ch = BRUSHSET_LOOKUP(chset, hue_offset);
       BKE_brush_mapping_reset(ch, SCULPT_TOOL_PAINT, BRUSH_MAPPING_PRESSURE);
@@ -1923,8 +1924,7 @@ void BKE_brush_channelset_check_radius(BrushChannelSet *chset)
     ch2->flag |= mask & ch1->flag;
   }
 
-  mask = BRUSH_MAPPING_ENABLED | BRUSH_MAPPING_INHERIT | BRUSH_MAPPING_INVERT |
-         BRUSH_MAPPING_UI_EXPANDED;
+  mask = BRUSH_MAPPING_ENABLED | BRUSH_MAPPING_INVERT | BRUSH_MAPPING_UI_EXPANDED;
 
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMapping *mp1 = ch1->mappings + i;

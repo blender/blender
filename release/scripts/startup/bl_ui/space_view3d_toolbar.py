@@ -1143,13 +1143,13 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col2 = col.row()  # sub.column()
         ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
 
-        col2.use_property_split = False
+        col2.use_property_split = True
         row2 = col2.row()
-        row2.prop_enum(ch, "flags_value", "CLEANUP", icon="CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
+        row2.prop_enum(ch, "flags_value", "CLEANUP")
 
         row3 = row2.row()
         row3.enabled = "COLLAPSE" not in ch.flags_value
-        row3.prop_enum(ch, "flags_value", "LOCAL_COLLAPSE", icon="CHECKBOX_HLT" if "LOCAL_COLLAPSE" in ch.flags_value else "CHECKBOX_DEHLT")
+        row3.prop_enum(ch, "flags_value", "LOCAL_COLLAPSE")
 
         """
         UnifiedPaintPanel.channel_unified(
@@ -1380,8 +1380,8 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         layout.separator()
 
         layout.prop(sculpt, "symmetrize_direction")
-        layout.operator("sculpt.symmetrize")
         layout.prop(WindowManager.operator_properties_last("sculpt.symmetrize"), "merge_tolerance")
+        layout.operator("sculpt.symmetrize")
 
 
 class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):

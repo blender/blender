@@ -1161,8 +1161,14 @@ class _defs_sculpt:
     @staticmethod
     def generate_from_brushes(context):
         exclude_filter = {}
+
         # Use 'bpy.context' instead of 'context' since it can be None.
         prefs = bpy.context.preferences
+
+        # don't hide this behind experimental option in sculpt branch?
+        # joeedh
+        #if not prefs.experimental.use_sculpt_uvsmooth:
+        #    exclude_filter["UV_SMOOTH"] = True
 
         return generate_from_enum_ex(context,
             idname_prefix="builtin_brush.",
@@ -1396,6 +1402,7 @@ class _defs_sculpt:
     def color_filter():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.color_filter")
+
             layout.prop(props, "type", expand=False)
             if props.type == 'FILL':
                 layout.prop(props, "fill_color", expand=False)
@@ -2587,13 +2594,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
             _defs_sculpt.ipmask_filter,
-            lambda context: ((_defs_sculpt.color_filter,)
-                if context is None
-                else ()),
-            None,
-            lambda context: ((_defs_sculpt.mask_by_color,)
-                if context is None
-                else ()),
+            _defs_sculpt.color_filter,
+            _defs_sculpt.mask_by_color,
             None,
             _defs_sculpt.face_set_edit,
             None,

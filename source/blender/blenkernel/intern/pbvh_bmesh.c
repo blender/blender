@@ -614,7 +614,7 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
   int updateflag = PBVH_UpdateTris | PBVH_UpdateBB | PBVH_UpdateDrawBuffers |
                    PBVH_UpdateCurvatureDir | PBVH_UpdateOtherVerts;
   updateflag |= PBVH_UpdateColor | PBVH_UpdateMask | PBVH_UpdateNormals | PBVH_UpdateOriginalBB;
-  updateflag |= PBVH_UpdateVisibility | PBVH_UpdateRedraw;
+  updateflag |= PBVH_UpdateVisibility | PBVH_UpdateRedraw | PBVH_RebuildDrawBuffers;
 
   node->flag |= updateflag;
 
@@ -1286,6 +1286,8 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
     datas[i].cd_sculpt_vert = pbvh->cd_sculpt_vert;
     datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
     datas[i].node_nr = nodes[i] - pbvh->nodes;
+
+    BKE_pbvh_bmesh_check_tris(pbvh, nodes[i]);
   }
 
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2317,6 +2319,13 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh_bmesh_create_nodes_fast_recursive_create(pbvh, nodeinfo, bbc_array, &rootnode);
 
+  if (!totleaf) {
+    leaves = MEM_mallocN(sizeof(void*), "leaves");
+    totleaf = 1;
+
+    leaves[0] = &rootnode;
+  }
+
   /* build leaf nodes */
   LeafBuilderThreadData tdata = {
       .pbvh = pbvh, .nodeinfo = nodeinfo, .bbc_array = bbc_array, .leaves = leaves};
@@ -2777,7 +2786,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   BLI_array_staticdeclare(loops, 128);
   BLI_array_staticdeclare(loops_idx, 128);
 
-  PBVHTriBuf *tribufs = NULL;  // material-specific tribuffers
+  PBVHTriBuf *tribufs = NULL;  // material-specific tri buffers
   BLI_array_declare(tribufs);
 
   node->flag &= ~PBVH_UpdateTris;

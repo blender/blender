@@ -830,6 +830,58 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.mesh.loopcut_slide
   ops.mesh.offset_edge_loops_slide
   ops.mesh.polybuild_hover
+  ops.mesh.primitive_cone_add_gizmo
+  ops.mesh.primitive_cube_add_gizmo
+  ops.mesh.primitive_cylinder_add_gizmo
+  ops.mesh.primitive_grid_add_gizmo
+  ops.mesh.primitive_sphere_add_gizmo
+  ops.mesh.primitive_torus_add_gizmo
+  ops.mesh.rip
+  ops.mesh.rip_edge
+  ops.mesh.spin
+  ops.mesh.spin.duplicate
+  ops.mesh.vertices_smooth
+  ops.node.links_cut
+  ops.paint.eyedropper_add
+  ops.paint.vertex_color_fill
+  ops.paint.weight_fill
+  ops.paint.weight_gradient
+  ops.paint.weight_sample
+  ops.paint.weight_sample_group
+  ops.pose.breakdowner
+  ops.pose.push
+  ops.pose.relax
+  ops.sculpt.border_face_set
+  ops.sculpt.border_hide
+  ops.sculpt.border_mask
+  ops.sculpt.box_trim
+  ops.sculpt.cloth_filter
+  ops.sculpt.color_filter
+  ops.sculpt.face_set_edit
+  ops.sculpt.ipmask_filter
+  ops.sculpt.lasso_face_set
+  ops.sculpt.lasso_mask
+  ops.sculpt.lasso_trim
+  ops.sculpt.line_mask
+  ops.sculpt.line_project
+  ops.sculpt.mesh_filter
+  ops.sequencer.blade
+  ops.transform.bone_envelope
+  ops.transform.bone_size
+  ops.transform.edge_slide
+  ops.transform.push_pull
+  ops.transform.resize.cage
+  ops.transform.resize
+  ops.transform.rotate
+  ops.transform.shear
+  ops.transform.shrink_fatten
+  ops.transform.tilt
+  ops.transform.tosphere
+  ops.transform.transform
+  ops.transform.translate
+  ops.transform.vert_slide
+  ops.transform.vertex_random
+  ops.view3d.ruler
   # END ICON_GEOM_NAMES
 )
 

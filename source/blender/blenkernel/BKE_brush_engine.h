@@ -243,6 +243,8 @@ BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const 
 void BKE_brush_mapping_reset(BrushChannel *ch, int tool, int mapping);
 void BKE_brush_mapping_inherit_all(BrushChannel *ch);
 
+void BKE_brush_channelset_inherit_mappings(BrushChannelSet *chset);
+
 void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,
                                 BrushChannelSet *parent);
@@ -305,7 +307,8 @@ void BKE_brush_channel_curve_assign(BrushChannel *ch, BrushCurve *curve);
 /* returns size of vector */
 int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingData *mapdata);
 
-float BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
+/* returns size of vector */
+int BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
                                             BrushChannelSet *toolset,
                                             const char *idname,
                                             float r_vec[4],

@@ -2500,6 +2500,27 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       BKE_brush_channelset_free(chset);
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 2)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      BrushChannelSet *chset = brush->channels;
+      BrushChannel *ch;
+
+      for (int i = 0; i < 2; i++) {
+        ch = i ? BRUSHSET_LOOKUP(chset, smooth_strength_projection) :
+                 BRUSHSET_LOOKUP(chset, smooth_strength_factor);
+
+        for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+          ch->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

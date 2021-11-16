@@ -6298,12 +6298,10 @@ def km_3d_view_tool_sculpt_cloth_filter(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [("sculpt.cloth_filter", params.tool_maybe_tweak_event, None)]},)
 
-
 def km_3d_view_tool_sculpt_color_filter(params):
     return ("3D View Tool: Sculpt, Color Filter",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [("sculpt.color_filter", params.tool_maybe_tweak_event, None)]},)
-
 
 def km_3d_view_tool_sculpt_mask_by_color(params):
     return ("3D View Tool: Sculpt, Mask by Color",

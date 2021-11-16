@@ -494,13 +494,19 @@ class UnifiedPaintPanel:
             sd.channels.ensure(ch)
 
             finalch = sd.channels[prop_name]
-            if ch.mappings["PRESSURE"].inherit:
-                pressurech = finalch
 
             is_toolset = True
             path = "tool_settings.sculpt.channels[\"%s\"]" % ch.idname
         else:
             path = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname
+
+        if not (ch.inherit and ch.mappings["PRESSURE"].inherit_mode == "NEVER"):
+            pressurech = finalch
+
+            if pressurech == ch and ch.mappings["PRESSURE"].inherit_mode == "ALWAYS":
+                sd = context.tool_settings.sculpt
+                sd.channels.ensure(ch)
+                pressurech = sd.channels[ch.idname]
 
         if show_reorder:
             props = row.operator("brush.change_channel_order", text="", icon="TRIA_UP")
@@ -609,8 +615,14 @@ class UnifiedPaintPanel:
 
                 for i, mp in enumerate(ch.mappings):
                     mp0 = mp
-                    if mp.inherit:
+
+                    if mp.inherit_mode != "NEVER":
                         mp = finalch.mappings[i]
+
+                        if mp.inherit_mode == "ALWAYS" and finalch == ch:
+                            sd = context.tool_settings.sculpt
+                            sd.channels.ensure(ch)
+                            mp = sd.channels[ch.idname].mappings[i]
 
                     row2 = layout.row(align=True)
                     row2.use_property_split = False
@@ -626,7 +638,14 @@ class UnifiedPaintPanel:
                     row2.prop(mp0, "ui_expanded", text="", emboss=False, icon="DOWNARROW_HLT" if mp.ui_expanded else "RIGHTARROW")
 
                     row2.label(text=name)
+
+                    #row3 = row2.row(align=True)
+                    #row3.prop_enum(mp0, "inherit_mode", "ALWAYS", icon="BRUSHES_ALL", text="")
+                    #row3.prop_enum(mp0, "inherit_mode", "NEVER", icon="FORWARD", text="")
+                    #row3.prop_enum(mp0, "inherit_mode", "USE_CHANNEL", icon="FORWARD", text="")
+
                     row2.prop(mp0, "inherit", text="", icon="BRUSHES_ALL")
+                    
                     row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
                     row2.prop(mp, "invert", text="", icon="ARROW_LEFTRIGHT")
 
@@ -643,7 +662,7 @@ class UnifiedPaintPanel:
                         
                         row = col.row(align=True)
 
-                        if mp0.inherit or toolsettings_only:
+                        if mp0.inherit_mode == "ALWAYS" or (mp0.inherit_mode == "USE_CHANNEL" and ch.inherits):
                             path2 = path + ".mappings[\"%s\"].curve" % (mp.type)
                         else:
                             brushpath = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname

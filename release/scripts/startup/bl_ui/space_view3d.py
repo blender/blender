@@ -290,8 +290,22 @@ class _draw_tool_settings_context_mode:
                     text, row.ui_units_x = name_size_overrides[ch.idname]
 
                 row.prop(final_ch, "value", slider=True, expand=False, text=text)
-                if final_ch.type in ["FLOAT", "INT"]:
-                    row.prop(final_ch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
+
+                sd = context.tool_settings.sculpt
+                sd.channels.ensure(ch)
+
+                if ch.mappings["PRESSURE"].inherit_mode != "NEVER":
+                    pressurech = final_ch
+
+                    if final_ch == ch and ch.mappings["PRESSURE"].inherit_mode == "ALWAYS":
+                        sd = context.tool_settings.sculpt
+                        sd.channels.ensure(ch)
+                        pressurech = sd.channels[ch.idname]
+                else:
+                    pressurech = ch
+
+                if ch.type in ["FLOAT", "INT"]:
+                    row.prop(pressurech.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
                 
                 #UnifiedPaintPanel.channel_unified(row, context, brush,
                 #ch.idname, header=True)

@@ -102,6 +102,18 @@ struct CurveMappingCache *brush_curve_cache = NULL;
 extern BrushChannelType brush_builtin_channels[];
 extern int brush_builtin_channel_len;
 
+static bool brush_mapping_inherits(BrushChannel *ch, BrushMapping *mp)
+{
+  switch (mp->inherit_mode) {
+    case BRUSH_MAPPING_INHERIT_NEVER:
+      return false;
+    case BRUSH_MAPPING_INHERIT_ALWAYS:
+      return true;
+    case BRUSH_MAPPING_INHERIT_CHANNEL:
+      return ch->flag & BRUSH_CHANNEL_INHERIT;
+  }
+}
+
 void BKE_brush_channel_system_init()
 {
   brush_curve_cache = BKE_curvemapping_cache_create();
@@ -449,7 +461,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
     }
 
     if (mdef->inherit) {
-      mp->flag |= BRUSH_MAPPING_INHERIT;
+      mp->flag |= BRUSH_MAPPING_INHERIT_ALWAYS;
     }
 
     int slope = CURVEMAP_SLOPE_POSITIVE;
@@ -831,8 +843,11 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       of BRUSH_MAPPING_FLAG doen't prevent mapping inheritance
       if BRUSH_CHANNEL_INHERIT in ch->flag *is* set.*/
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-      if (ch->mappings[i].flag & BRUSH_MAPPING_INHERIT) {
+      if (brush_mapping_inherits(ch, ch->mappings + i)) {
         BKE_brush_mapping_copy_data(mch->mappings + i, pch->mappings + i);
+      }
+      else {
+        BKE_brush_mapping_copy_data(mch->mappings + i, ch->mappings + i);
       }
     }
 
@@ -1081,27 +1096,60 @@ void BKE_brush_channel_set_int(BrushChannel *ch, int val)
   ch->ivalue = val;
 }
 
+void brush_channel_apply_mapping_flags(BrushChannel *ch, BrushChannel *child, BrushChannel *parent)
+{
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    BrushMapping *mp = ch->mappings + i;
+    BrushMapping *cmp = child ? child->mappings + i : NULL;
+    BrushMapping *pmp = parent ? parent->mappings + i : NULL;
+
+    if (pmp && brush_mapping_inherits(child, cmp)) {
+      *mp = *pmp;
+    }
+    else {
+      *mp = *cmp;
+    }
+  }
+}
+
+static BrushChannel *brush_channel_final(BrushChannelSet *child,
+                                         BrushChannelSet *parent,
+                                         const char *idname,
+                                         BrushChannel **r_child,
+                                         BrushChannel **r_parent)
+{
+  if (!parent) {
+    *r_parent = NULL;
+    *r_child = BKE_brush_channelset_lookup(child, idname);
+
+    return *r_child;
+  }
+
+  BrushChannel *ch = BKE_brush_channelset_lookup(child, idname);
+
+  *r_child = ch;
+  *r_parent = BKE_brush_channelset_lookup(parent, idname);
+
+  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
+    return *r_parent;
+  }
+
+  return ch;
+}
+
 int BKE_brush_channelset_get_final_int(BrushChannelSet *child,
                                        BrushChannelSet *parent,
                                        const char *idname,
                                        BrushMappingData *mapdata)
 {
-  if (!parent) {
-    return BKE_brush_channelset_get_int(child, idname, mapdata);
-  }
-
-  BrushChannel *ch = BKE_brush_channelset_lookup(child, idname);
-
-  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
-    BrushChannel *pch = BKE_brush_channelset_lookup(parent, idname);
-
-    if (pch) {
-      return BKE_brush_channel_get_int(pch, mapdata);
-    }
-  }
+  BrushChannel *parentch, *childch;
+  BrushChannel *ch = brush_channel_final(child, parent, idname, &childch, &parentch);
 
   if (ch) {
-    return BKE_brush_channel_get_int(ch, mapdata);
+    BrushChannel cpy = *ch;
+    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+
+    return BKE_brush_channel_get_int(&cpy, mapdata);
   }
 
   printf("%s: failed to find brush channel %s\n", __func__, idname);
@@ -1137,23 +1185,19 @@ void BKE_brush_channelset_set_final_int(BrushChannelSet *child,
   BKE_brush_channel_set_int(ch, value);
 }
 
-float BKE_brush_channelset_get_final_float(BrushChannelSet *brushset,
-                                           BrushChannelSet *toolset,
+float BKE_brush_channelset_get_final_float(BrushChannelSet *child,
+                                           BrushChannelSet *parent,
                                            const char *idname,
                                            BrushMappingData *mapdata)
 {
-  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
-
-  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
-    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
-
-    if (pch) {
-      return BKE_brush_channel_get_float(pch, mapdata);
-    }
-  }
+  BrushChannel *parentch, *childch;
+  BrushChannel *ch = brush_channel_final(child, parent, idname, &childch, &parentch);
 
   if (ch) {
-    return BKE_brush_channel_get_float(ch, mapdata);
+    BrushChannel cpy = *ch;
+    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+
+    return BKE_brush_channel_get_float(&cpy, mapdata);
   }
 
   printf("%s: failed to find brush channel %s\n", __func__, idname);
@@ -1240,29 +1284,26 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
   return size;
 }
 
-float BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
-                                            BrushChannelSet *toolset,
-                                            const char *idname,
-                                            float r_vec[4],
-                                            BrushMappingData *mapdata)
+int BKE_brush_channelset_get_final_vector(BrushChannelSet *child,
+                                          BrushChannelSet *parent,
+                                          const char *idname,
+                                          float r_vec[4],
+                                          BrushMappingData *mapdata)
 {
-  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
-
-  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
-    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
-
-    if (pch) {
-      return BKE_brush_channel_get_vector(pch, r_vec, mapdata);
-    }
-  }
+  BrushChannel *parentch, *childch;
+  BrushChannel *ch = brush_channel_final(child, parent, idname, &childch, &parentch);
 
   if (ch) {
-    return BKE_brush_channel_get_vector(ch, r_vec, mapdata);
+    BrushChannel cpy = *ch;
+    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+
+    return BKE_brush_channel_get_vector(&cpy, r_vec, mapdata);
   }
 
   printf("%s: failed to find brush channel %s\n", __func__, idname);
 
-  return 0.0f;
+  zero_v4(r_vec);
+  return 0;
 }
 
 void BKE_brush_channelset_set_final_vector(BrushChannelSet *brushset,
@@ -1521,18 +1562,6 @@ static void _int_set_uninherit(BrushChannelSet *chset, const char *channel, int 
   ch->flag &= ~BRUSH_CHANNEL_INHERIT;
 }
 
-/*flag all mappings to use inherited curves even if owning channel
-  is not set to inherit.*/
-void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
-{
-  BrushChannel *ch;
-  for (ch = chset->channels.first; ch; ch = ch->next) {
-    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-      ch->mappings[i].flag |= BRUSH_MAPPING_INHERIT;
-    }
-  }
-}
-
 static void commandlist_add_auto_fset(BrushChannelSet *chset,
                                       BrushCommandList *cl,
                                       Brush *brush,
@@ -1591,7 +1620,7 @@ static void commandlist_add_dyntopo(BrushChannelSet *chset,
     float_set_uninherit(cmd->params, spacing, spacing);
     float_set_uninherit(cmd->params, radius, radius2);
 
-    BKE_brush_commandset_inherit_all_mappings(cmd->params);
+    BKE_brush_channelset_inherit_mappings(cmd->params);
   }
 }
 static void bke_builtin_commandlist_create_paint(Brush *brush,
@@ -1604,7 +1633,7 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
 
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
-  BKE_brush_commandset_inherit_all_mappings(cmd->params);
+  BKE_brush_channelset_inherit_mappings(cmd->params);
 
   float radius = BRUSHSET_GET_FLOAT(chset, radius, NULL);
 
@@ -1648,7 +1677,7 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
     float_set_uninherit(cmd->params, projection, autosmooth_projection);
     float_set_uninherit(cmd->params, spacing, autosmooth_spacing);
 
-    BKE_brush_commandset_inherit_all_mappings(cmd->params);
+    BKE_brush_channelset_inherit_mappings(cmd->params);
   }
 
   float vcol_boundary = BKE_brush_channelset_get_float(chset, "vcol_boundary_factor", NULL);
@@ -1662,7 +1691,7 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
     float_set_uninherit(cmd->params, spacing, GETF("vcol_boundary_spacing"));
     float_set_uninherit(cmd->params, strength, vcol_boundary);
 
-    BKE_brush_commandset_inherit_all_mappings(cmd->params);
+    BKE_brush_channelset_inherit_mappings(cmd->params);
   }
 
 #undef GETF
@@ -1725,7 +1754,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
   BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
-  BKE_brush_commandset_inherit_all_mappings(cmd->params);
+  BKE_brush_channelset_inherit_mappings(cmd->params);
 
   bool no_autosmooth = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
   bool no_rake = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_MASK);
@@ -1765,7 +1794,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), smooth_tool);
     BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
-    BKE_brush_commandset_inherit_all_mappings(cmd->params);
+    BKE_brush_channelset_inherit_mappings(cmd->params);
 
     BrushChannel *ch = BRUSHSET_ENSURE_BUILTIN(cmd->params, falloff_curve);
     BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, autosmooth_falloff_curve);
@@ -1831,7 +1860,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
     float_set_uninherit(cmd->params, projection, topology_rake_projection);
     float_set_uninherit(cmd->params, spacing, topology_rake_spacing);
 
-    BKE_brush_commandset_inherit_all_mappings(cmd->params);
+    BKE_brush_channelset_inherit_mappings(cmd->params);
   }
 }
 
@@ -2070,10 +2099,17 @@ void BKE_brush_channel_category_set(BrushChannel *ch, const char *str)
   ch->category = BLI_strdup(str);
 }
 
+void BKE_brush_channelset_inherit_mappings(BrushChannelSet *chset)
+{
+  for (BrushChannel *ch = chset->channels.first; ch; ch = ch->next) {
+    BKE_brush_mapping_inherit_all(ch);
+  }
+}
+
 void BKE_brush_mapping_inherit_all(BrushChannel *ch)
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-    ch->mappings[i].flag |= BRUSH_MAPPING_INHERIT;
+    ch->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
   }
 }
 

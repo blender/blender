@@ -418,6 +418,25 @@ PointerRNA rna_BrushCurve_curve_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, curve->curve);
 }
 
+bool rna_BrushMapping_inherit_get(PointerRNA *ptr)
+{
+  BrushMapping *mp = (BrushMapping *)ptr->data;
+
+  return mp->inherit_mode;
+}
+
+void rna_BrushMapping_inherit_set(PointerRNA *ptr, bool val)
+{
+  BrushMapping *mp = (BrushMapping *)ptr->data;
+
+  if (val) {
+    mp->inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+  }
+  else {
+    mp->inherit_mode = BRUSH_MAPPING_INHERIT_NEVER;
+  }
+}
+
 int rna_BrushChannel_mappings_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
 {
   BrushChannel *ch = ptr->data;
@@ -661,44 +680,67 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Brush Mapping", "Brush Mapping");
 
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, "BrushMapping", "factor");
+  RNA_def_property_float_sdna(prop, NULL, "factor");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Factor", "Mapping factor");
 
   prop = RNA_def_property(srna, "premultiply", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, "BrushMapping", "premultiply");
+  RNA_def_property_float_sdna(prop, NULL, "premultiply");
   RNA_def_property_range(prop, -100000, 100000);
   RNA_def_property_ui_range(prop, -100, 100, 0.01, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Pre-Multiply", "Multiply input data by this amount");
 
   prop = RNA_def_property(srna, "func_cutoff", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, "BrushMapping", "func_cutoff");
+  RNA_def_property_float_sdna(prop, NULL, "func_cutoff");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Cutoff", "Cutoff for square and cutoff modes");
 
   prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, "BrushMapping", "min");
+  RNA_def_property_float_sdna(prop, NULL, "min");
   RNA_def_property_range(prop, -100000, 100000);
   RNA_def_property_ui_range(prop, -2.0, 2.0, 0.001, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Min", "");
 
   prop = RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, "BrushMapping", "max");
+  RNA_def_property_float_sdna(prop, NULL, "max");
   RNA_def_property_range(prop, -100000, 100000);
   RNA_def_property_ui_range(prop, -2.0, 2.0, 0.001, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Max", "");
 
-  prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_INHERIT);
+  static EnumPropertyItem inherit_mode_items[] = {
+      {BRUSH_MAPPING_INHERIT_NEVER,
+       "NEVER",
+       ICON_NONE,
+       "Never",
+       "Do not inherit from scene defaults even if channel is set to inherit"},
+      {BRUSH_MAPPING_INHERIT_ALWAYS,
+       "ALWAYS",
+       ICON_NONE,
+       "Always",
+       "Inherit from scene defaults even if channel is not set to inherit"},
+      {BRUSH_MAPPING_INHERIT_CHANNEL,
+       "USE_CHANNEL",
+       ICON_NONE,
+       "Use Channel",
+       "Use channel's inheritance mode"},
+      {0, NULL, 0, NULL, NULL}};
+
+  prop = RNA_def_property(srna, "inherit_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "inherit_mode");
+  RNA_def_property_enum_items(prop, inherit_mode_items);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(
-      prop,
-      "Inherit",
-      "Inherit from parent channel even if owning channel is set not to inherit.");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "inherit_mode", BRUSH_MAPPING_INHERIT_ALWAYS);
+  RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene channel");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_BrushMapping_inherit_get", "rna_BrushMapping_inherit_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurveMapping");
@@ -707,19 +749,19 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_BrushMapping_curve_get", NULL, NULL, NULL);
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, "BrushMapping", "type");
+  RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, mapping_type_items);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Type", "Channel Type");
 
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_ENABLED);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_MAPPING_ENABLED);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_INVERT);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_MAPPING_INVERT);
   RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
@@ -752,7 +794,7 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Function", "Input data function");
 
   prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_UI_EXPANDED);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_MAPPING_UI_EXPANDED);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Expanded", "View advanced properties");
 }

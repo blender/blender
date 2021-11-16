@@ -43,7 +43,7 @@ typedef struct BrushMapping {
   float premultiply;  // premultiply input data
   int mapfunc;
   float func_cutoff;
-  int _pad[1];
+  char inherit_mode, _pad[3];
 } BrushMapping;
 
 typedef struct BrushCurve {
@@ -79,15 +79,24 @@ typedef struct BrushChannelSet {
 
 #define BRUSH_CHANNEL_MAX_IDNAME sizeof(((BrushChannel){0}).idname)
 
-// mapping flags
+/* BrushMapping->flag */
 enum {
   BRUSH_MAPPING_ENABLED = 1 << 0,
   BRUSH_MAPPING_INVERT = 1 << 1,
   BRUSH_MAPPING_UI_EXPANDED = 1 << 2,
-  BRUSH_MAPPING_INHERIT = 1 << 3,  // inherit mapping even if channel overall is not inherited
 };
 
-// BrushMapping->mapfunc
+/* BrushMapping->inherit_mode */
+enum {
+  /* never inherit */
+  BRUSH_MAPPING_INHERIT_NEVER,
+  /* always inherit */
+  BRUSH_MAPPING_INHERIT_ALWAYS,
+  /* use channel's inheritance mode */
+  BRUSH_MAPPING_INHERIT_CHANNEL
+};
+
+/* BrushMapping->mapfunc */
 typedef enum {
   BRUSH_MAPFUNC_NONE,
   BRUSH_MAPFUNC_SAW,

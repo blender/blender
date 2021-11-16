@@ -3183,6 +3183,14 @@ void BKE_pbvh_update_normals(PBVH *pbvh, struct SubdivCCG *subdiv_ccg)
   PBVHNode **nodes;
   int totnode;
 
+  if (pbvh->type == PBVH_BMESH) {
+    for (int i = 0; i < pbvh->totnode; i++) {
+      if (pbvh->nodes[i].flag & PBVH_Leaf) {
+        BKE_pbvh_bmesh_check_tris(pbvh, pbvh->nodes + i);
+      }
+    }
+  }
+
   BKE_pbvh_search_gather(
       pbvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals), &nodes, &totnode);
 

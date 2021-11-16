@@ -116,14 +116,24 @@ def object_child_map(objects):
     return objects_children
 
 import sys
+def get_active_vcol(me):
+  vcol = me.vertex_colors.active
+  if not vcol and len(me.vertex_colors) > 0:
+    vcol = me.vertex_colors[0]
+  
+  return vcol
+  
 def mesh_data_lists_from_mesh(me, material_colors):
     me_loops = me.loops[:]
-    me_loops_color = me.vertex_colors.active.data[:]
+    me_loops_color = get_active_vcol(me)
+    me_loops_color = me_loops_color.data[:] if me_loops_color else None
     me_verts = me.vertices[:]
     me_polys = me.polygons[:]
-
+  
     tris_data = []
-
+    
+    white = [1, 1, 1, 1]
+    
     for p in me_polys:
         # Note, all faces are handled, backfacing/zero area is checked just before writing.
         material_index = p.material_index
@@ -135,22 +145,25 @@ def mesh_data_lists_from_mesh(me, material_colors):
         l_sta = p.loop_start
         l_len = p.loop_total
         loops_poly = me_loops[l_sta:l_sta + l_len]
-        color_poly = me_loops_color[l_sta:l_sta + l_len]
+        color_poly = me_loops_color[l_sta:l_sta + l_len] if me_loops_color else None
         i0 = 0
         i1 = 1
 
         # we only write tris now
         assert(len(loops_poly) == 3)
-
+        
         for i2 in range(2, l_len):
             l0 = loops_poly[i0]
             l1 = loops_poly[i1]
             l2 = loops_poly[i2]
-
-            c0 = color_poly[i0]
-            c1 = color_poly[i1]
-            c2 = color_poly[i2]
-
+            
+            if color_poly:
+              c0 = color_poly[i0]
+              c1 = color_poly[i1]
+              c2 = color_poly[i2]
+            else:
+              c1 = c2 = c3 = white
+              
             v0 = me_verts[l0.vertex_index]
             v1 = me_verts[l1.vertex_index]
             v2 = me_verts[l2.vertex_index]
