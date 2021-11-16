@@ -504,7 +504,7 @@ void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 
 double Session::get_estimated_remaining_time() const
 {
-  const float completed = progress.get_progress();
+  const double completed = progress.get_progress();
   if (completed == 0.0f) {
     return 0.0;
   }
@@ -573,7 +573,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
   }
 
   /* Sample. */
-  if (num_samples == Integrator::MAX_SAMPLES) {
+  if (!params.background && num_samples == Integrator::MAX_SAMPLES) {
     substatus = status_append(substatus, string_printf("Sample %d", current_sample));
   }
   else {

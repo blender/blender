@@ -129,7 +129,7 @@ void BlenderSession::create_session()
   /* reset status/progress */
   last_status = "";
   last_error = "";
-  last_progress = -1.0f;
+  last_progress = -1.0;
   start_resize_time = 0.0;
 
   /* create session */
@@ -854,7 +854,7 @@ void BlenderSession::get_status(string &status, string &substatus)
   session->progress.get_status(status, substatus);
 }
 
-void BlenderSession::get_progress(float &progress, double &total_time, double &render_time)
+void BlenderSession::get_progress(double &progress, double &total_time, double &render_time)
 {
   session->progress.get_time(total_time, render_time);
   progress = session->progress.get_progress();
@@ -862,7 +862,7 @@ void BlenderSession::get_progress(float &progress, double &total_time, double &r
 
 void BlenderSession::update_bake_progress()
 {
-  float progress = session->progress.get_progress();
+  double progress = session->progress.get_progress();
 
   if (progress != last_progress) {
     b_engine.update_progress(progress);
@@ -874,7 +874,7 @@ void BlenderSession::update_status_progress()
 {
   string timestatus, status, substatus;
   string scene_status = "";
-  float progress;
+  double progress;
   double total_time, remaining_time = 0, render_time;
   float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
   float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
