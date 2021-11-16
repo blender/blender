@@ -346,7 +346,7 @@ template<typename T> class VArrayImpl_For_GVArray : public VArrayImpl<T> {
   VArrayImpl_For_GVArray(GVArray varray) : VArrayImpl<T>(varray.size()), varray_(std::move(varray))
   {
     BLI_assert(varray_);
-    BLI_assert(varray_.type().is<T>());
+    BLI_assert(varray_.type().template is<T>());
   }
 
  protected:
@@ -496,7 +496,7 @@ template<typename T> class VMutableArrayImpl_For_GVMutableArray : public VMutabl
       : VMutableArrayImpl<T>(varray.size()), varray_(varray)
   {
     BLI_assert(varray_);
-    BLI_assert(varray_.type().is<T>());
+    BLI_assert(varray_.type().template is<T>());
   }
 
  private:
