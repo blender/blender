@@ -89,8 +89,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
 static void geometry_set_collect_recursive_collection_instance(
     const Collection &collection, const float4x4 &transform, Vector<GeometryInstanceGroup> &r_sets)
 {
-  float4x4 offset_matrix;
-  unit_m4(offset_matrix.values);
+  float4x4 offset_matrix = float4x4::identity();
   sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
   const float4x4 instance_transform = transform * offset_matrix;
   geometry_set_collect_recursive_collection(collection, instance_transform, r_sets);
@@ -183,10 +182,7 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups)
 {
-  float4x4 unit_transform;
-  unit_m4(unit_transform.values);
-
-  geometry_set_collect_recursive(geometry_set, unit_transform, r_instance_groups);
+  geometry_set_collect_recursive(geometry_set, float4x4::identity(), r_instance_groups);
 }
 
 void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,

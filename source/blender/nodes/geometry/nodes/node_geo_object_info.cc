@@ -76,9 +76,7 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
           instances.add_instance(handle, transform);
         }
         else {
-          float unit_transform[4][4];
-          unit_m4(unit_transform);
-          instances.add_instance(handle, unit_transform);
+          instances.add_instance(handle, float4x4::identity());
         }
       }
       else {
