@@ -27,8 +27,14 @@ class DialogOperator(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+# Only needed if you want to add into a dynamic menu
+def menu_func(self, context):
+    self.layout.operator(DialogOperator.bl_idname, text="Dialog Operator")
 
+
+# Register and add to the object menu (required to also use F3 search "Dialog Operator" for quick access)
 bpy.utils.register_class(DialogOperator)
+bpy.types.VIEW3D_MT_object.append(menu_func)
 
 # Test call.
 bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
