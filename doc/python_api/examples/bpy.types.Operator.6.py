@@ -31,8 +31,13 @@ class SearchEnumOperator(bpy.types.Operator):
         context.window_manager.invoke_search_popup(self)
         return {'RUNNING_MODAL'}
 
+# Only needed if you want to add into a dynamic menu
+def menu_func(self, context):
+    self.layout.operator(SearchEnumOperator.bl_idname, text="Search Enum Operator")
 
+# Register and add to the object menu (required to also use F3 search "Search Enum Operator" for quick access)
 bpy.utils.register_class(SearchEnumOperator)
+bpy.types.VIEW3D_MT_object.append(menu_func)
 
 # test call
 bpy.ops.object.search_enum_operator('INVOKE_DEFAULT')
