@@ -865,7 +865,7 @@ void BlenderSession::update_bake_progress()
   double progress = session->progress.get_progress();
 
   if (progress != last_progress) {
-    b_engine.update_progress(progress);
+    b_engine.update_progress((float)progress);
     last_progress = progress;
   }
 }
@@ -918,7 +918,7 @@ void BlenderSession::update_status_progress()
     last_status_time = current_time;
   }
   if (progress != last_progress) {
-    b_engine.update_progress(progress);
+    b_engine.update_progress((float)progress);
     last_progress = progress;
   }
 
