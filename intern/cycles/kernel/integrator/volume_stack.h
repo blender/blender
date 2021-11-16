@@ -18,6 +18,14 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Volumetric read/write lambda functions - default implementations */
+#ifndef VOLUME_READ_LAMBDA
+#  define VOLUME_READ_LAMBDA(function_call) \
+    auto volume_read_lambda_pass = [=](const int i) { return function_call; };
+#  define VOLUME_WRITE_LAMBDA(function_call) \
+    auto volume_write_lambda_pass = [=](const int i, VolumeStack entry) { function_call; };
+#endif
+
 /* Volume Stack
  *
  * This is an array of object/shared ID's that the current segment of the path
@@ -88,26 +96,18 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         IntegratorState state,
                                         ccl_private const ShaderData *sd)
 {
-  volume_stack_enter_exit(
-      kg,
-      sd,
-      [=](const int i) { return integrator_state_read_volume_stack(state, i); },
-      [=](const int i, const VolumeStack entry) {
-        integrator_state_write_volume_stack(state, i, entry);
-      });
+  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
+  VOLUME_WRITE_LAMBDA(integrator_state_write_volume_stack(state, i, entry))
+  volume_stack_enter_exit(kg, sd, volume_read_lambda_pass, volume_write_lambda_pass);
 }
 
 ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
                                                IntegratorShadowState state,
                                                ccl_private const ShaderData *sd)
 {
-  volume_stack_enter_exit(
-      kg,
-      sd,
-      [=](const int i) { return integrator_state_read_shadow_volume_stack(state, i); },
-      [=](const int i, const VolumeStack entry) {
-        integrator_state_write_shadow_volume_stack(state, i, entry);
-      });
+  VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
+  VOLUME_WRITE_LAMBDA(integrator_state_write_shadow_volume_stack(state, i, entry))
+  volume_stack_enter_exit(kg, sd, volume_read_lambda_pass, volume_write_lambda_pass);
 }
 
 /* Clean stack after the last bounce.

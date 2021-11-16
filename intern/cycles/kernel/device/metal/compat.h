@@ -150,6 +150,31 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 // clang-format on
 
+/* volumetric lambda functions - use function objects for lambda-like functionality */
+#define VOLUME_READ_LAMBDA(function_call) \
+  struct FnObjectRead { \
+    KernelGlobals kg; \
+    ccl_private MetalKernelContext *context; \
+    int state; \
+\
+    VolumeStack operator()(const int i) const \
+    { \
+      return context->function_call; \
+    } \
+  } volume_read_lambda_pass{kg, this, state};
+
+#define VOLUME_WRITE_LAMBDA(function_call) \
+  struct FnObjectWrite { \
+    KernelGlobals kg; \
+    ccl_private MetalKernelContext *context; \
+    int state; \
+\
+    void operator()(const int i, VolumeStack entry) const \
+    { \
+      context->function_call; \
+    } \
+  } volume_write_lambda_pass{kg, this, state};
+
 /* make_type definitions with Metal style element initializers */
 #ifdef make_float2
 #  undef make_float2

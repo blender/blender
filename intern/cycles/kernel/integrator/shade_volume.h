@@ -78,9 +78,8 @@ ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
                                                    ccl_private ShaderData *ccl_restrict sd,
                                                    ccl_private float3 *ccl_restrict extinction)
 {
-  shader_eval_volume<true>(kg, state, sd, PATH_RAY_SHADOW, [=](const int i) {
-    return integrator_state_read_shadow_volume_stack(state, i);
-  });
+  VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
+  shader_eval_volume<true>(kg, state, sd, PATH_RAY_SHADOW, volume_read_lambda_pass);
 
   if (!(sd->flag & SD_EXTINCTION)) {
     return false;
@@ -98,9 +97,8 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
                                             ccl_private VolumeShaderCoefficients *coeff)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-  shader_eval_volume<false>(kg, state, sd, path_flag, [=](const int i) {
-    return integrator_state_read_volume_stack(state, i);
-  });
+  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
+  shader_eval_volume<false>(kg, state, sd, path_flag, volume_read_lambda_pass);
 
   if (!(sd->flag & (SD_EXTINCTION | SD_SCATTER | SD_EMISSION))) {
     return false;
@@ -921,8 +919,8 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                                 VOLUME_SAMPLE_DISTANCE;
 
   /* Step through volume. */
-  const float step_size = volume_stack_step_size(
-      kg, [=](const int i) { return integrator_state_read_volume_stack(state, i); });
+  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
+  const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
 
   /* TODO: expensive to zero closures? */
   VolumeIntegrateResult result = {};

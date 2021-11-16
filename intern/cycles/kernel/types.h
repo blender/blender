@@ -36,13 +36,6 @@
 #  define __KERNEL_CPU__
 #endif
 
-/* TODO(sergey): This is only to make it possible to include this header
- * from outside of the kernel. but this could be done somewhat cleaner?
- */
-#ifndef ccl_addr_space
-#  define ccl_addr_space
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 /* Constants */

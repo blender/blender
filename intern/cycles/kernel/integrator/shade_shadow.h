@@ -95,8 +95,8 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
 
   shader_setup_from_volume(kg, shadow_sd, &ray);
 
-  const float step_size = volume_stack_step_size(
-      kg, [=](const int i) { return integrator_state_read_shadow_volume_stack(state, i); });
+  VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i));
+  const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
 
   volume_shadow_heterogeneous(kg, state, &ray, shadow_sd, throughput, step_size);
 }
