@@ -47,6 +47,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   const float time = INTEGRATOR_STATE(state, ray, time);
   const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
   const int object = INTEGRATOR_STATE(state, isect, object);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Read subsurface scattering parameters. */
   const float3 radius = INTEGRATOR_STATE(state, subsurface, radius);
@@ -123,6 +124,9 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
     const int object = ss_isect.hits[hit].object;
     const int object_flag = kernel_tex_fetch(__object_flag, object);
     float3 hit_Ng = ss_isect.Ng[hit];
+    if (path_flag & PATH_RAY_SUBSURFACE_BACKFACING) {
+      hit_Ng = -hit_Ng;
+    }
     if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
       hit_Ng = -hit_Ng;
     }
