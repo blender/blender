@@ -601,8 +601,15 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
         return false;
       }
-      if (!validSnap(t)) {
-        return false;
+      if (value == TFM_MODAL_ADD_SNAP) {
+        if (!validSnap(t)) {
+          return false;
+        }
+      }
+      else {
+        if (!t->tsnap.selectedPoint) {
+          return false;
+        }
       }
       break;
     }
