@@ -707,7 +707,8 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         asset_library_ref = context.asset_library_ref
         asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
 
-        show_developer_ui = context.preferences.view.show_developer_ui
+        prefs = context.preferences
+        show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -716,7 +717,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             # If the active file is an ID, use its name directly so renaming is possible from right here.
             layout.prop(asset_file_handle.local_id, "name")
 
-            if show_developer_ui:
+            if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.label(text="Asset Catalog:")
                 col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
@@ -724,7 +725,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         else:
             layout.prop(asset_file_handle, "name")
 
-            if show_developer_ui:
+            if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.enabled = False
                 col.label(text="Asset Catalog:")
