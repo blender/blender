@@ -551,6 +551,7 @@ static void update_attribute_element_size(Geometry *geom,
                                           size_t *attr_float_size,
                                           size_t *attr_float2_size,
                                           size_t *attr_float3_size,
+                                          size_t *attr_float4_size,
                                           size_t *attr_uchar4_size)
 {
   if (mattr) {
@@ -569,7 +570,10 @@ static void update_attribute_element_size(Geometry *geom,
       *attr_float2_size += size;
     }
     else if (mattr->type == TypeDesc::TypeMatrix) {
-      *attr_float3_size += size * 4;
+      *attr_float4_size += size * 4;
+    }
+    else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
+      *attr_float4_size += size;
     }
     else {
       *attr_float3_size += size;
@@ -582,8 +586,10 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
                                                       size_t &attr_float_offset,
                                                       device_vector<float2> &attr_float2,
                                                       size_t &attr_float2_offset,
-                                                      device_vector<float4> &attr_float3,
+                                                      device_vector<packed_float3> &attr_float3,
                                                       size_t &attr_float3_offset,
+                                                      device_vector<float4> &attr_float4,
+                                                      size_t &attr_float4_offset,
                                                       device_vector<uchar4> &attr_uchar4,
                                                       size_t &attr_uchar4_offset,
                                                       Attribute *mattr,
@@ -646,18 +652,30 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
     }
     else if (mattr->type == TypeDesc::TypeMatrix) {
       Transform *tfm = mattr->data_transform();
-      offset = attr_float3_offset;
+      offset = attr_float4_offset;
 
-      assert(attr_float3.size() >= offset + size * 3);
+      assert(attr_float4.size() >= offset + size * 3);
       if (mattr->modified) {
         for (size_t k = 0; k < size * 3; k++) {
-          attr_float3[offset + k] = (&tfm->x)[k];
+          attr_float4[offset + k] = (&tfm->x)[k];
         }
       }
-      attr_float3_offset += size * 3;
+      attr_float4_offset += size * 3;
+    }
+    else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
+      float4 *data = mattr->data_float4();
+      offset = attr_float4_offset;
+
+      assert(attr_float4.size() >= offset + size);
+      if (mattr->modified) {
+        for (size_t k = 0; k < size; k++) {
+          attr_float4[offset + k] = data[k];
+        }
+      }
+      attr_float4_offset += size;
     }
     else {
-      float4 *data = mattr->data_float4();
+      float3 *data = mattr->data_float3();
       offset = attr_float3_offset;
 
       assert(attr_float3.size() >= offset + size);
@@ -783,6 +801,7 @@ void GeometryManager::device_update_attributes(Device *device,
   size_t attr_float_size = 0;
   size_t attr_float2_size = 0;
   size_t attr_float3_size = 0;
+  size_t attr_float4_size = 0;
   size_t attr_uchar4_size = 0;
 
   for (size_t i = 0; i < scene->geometry.size(); i++) {
@@ -797,6 +816,7 @@ void GeometryManager::device_update_attributes(Device *device,
                                     &attr_float_size,
                                     &attr_float2_size,
                                     &attr_float3_size,
+                                    &attr_float4_size,
                                     &attr_uchar4_size);
 
       if (geom->is_mesh()) {
@@ -809,6 +829,7 @@ void GeometryManager::device_update_attributes(Device *device,
                                       &attr_float_size,
                                       &attr_float2_size,
                                       &attr_float3_size,
+                                      &attr_float4_size,
                                       &attr_uchar4_size);
       }
     }
@@ -824,6 +845,7 @@ void GeometryManager::device_update_attributes(Device *device,
                                     &attr_float_size,
                                     &attr_float2_size,
                                     &attr_float3_size,
+                                    &attr_float4_size,
                                     &attr_uchar4_size);
     }
   }
@@ -831,19 +853,22 @@ void GeometryManager::device_update_attributes(Device *device,
   dscene->attributes_float.alloc(attr_float_size);
   dscene->attributes_float2.alloc(attr_float2_size);
   dscene->attributes_float3.alloc(attr_float3_size);
+  dscene->attributes_float4.alloc(attr_float4_size);
   dscene->attributes_uchar4.alloc(attr_uchar4_size);
 
   /* The order of those flags needs to match that of AttrKernelDataType. */
-  const bool attributes_need_realloc[4] = {
+  const bool attributes_need_realloc[AttrKernelDataType::NUM] = {
       dscene->attributes_float.need_realloc(),
       dscene->attributes_float2.need_realloc(),
       dscene->attributes_float3.need_realloc(),
+      dscene->attributes_float4.need_realloc(),
       dscene->attributes_uchar4.need_realloc(),
   };
 
   size_t attr_float_offset = 0;
   size_t attr_float2_offset = 0;
   size_t attr_float3_offset = 0;
+  size_t attr_float4_offset = 0;
   size_t attr_uchar4_offset = 0;
 
   /* Fill in attributes. */
@@ -868,6 +893,8 @@ void GeometryManager::device_update_attributes(Device *device,
                                       attr_float2_offset,
                                       dscene->attributes_float3,
                                       attr_float3_offset,
+                                      dscene->attributes_float4,
+                                      attr_float4_offset,
                                       dscene->attributes_uchar4,
                                       attr_uchar4_offset,
                                       attr,
@@ -891,6 +918,8 @@ void GeometryManager::device_update_attributes(Device *device,
                                         attr_float2_offset,
                                         dscene->attributes_float3,
                                         attr_float3_offset,
+                                        dscene->attributes_float4,
+                                        attr_float4_offset,
                                         dscene->attributes_uchar4,
                                         attr_uchar4_offset,
                                         subd_attr,
@@ -923,6 +952,8 @@ void GeometryManager::device_update_attributes(Device *device,
                                       attr_float2_offset,
                                       dscene->attributes_float3,
                                       attr_float3_offset,
+                                      dscene->attributes_float4,
+                                      attr_float4_offset,
                                       dscene->attributes_uchar4,
                                       attr_uchar4_offset,
                                       attr,
@@ -954,6 +985,7 @@ void GeometryManager::device_update_attributes(Device *device,
   dscene->attributes_float.copy_to_device_if_modified();
   dscene->attributes_float2.copy_to_device_if_modified();
   dscene->attributes_float3.copy_to_device_if_modified();
+  dscene->attributes_float4.copy_to_device_if_modified();
   dscene->attributes_uchar4.copy_to_device_if_modified();
 
   if (progress.get_cancel())
@@ -1080,9 +1112,9 @@ void GeometryManager::device_update_mesh(Device *,
     /* normals */
     progress.set_status("Updating Mesh", "Computing normals");
 
-    float4 *tri_verts = dscene->tri_verts.alloc(tri_size * 3);
+    packed_float3 *tri_verts = dscene->tri_verts.alloc(tri_size * 3);
     uint *tri_shader = dscene->tri_shader.alloc(tri_size);
-    float4 *vnormal = dscene->tri_vnormal.alloc(vert_size);
+    packed_float3 *vnormal = dscene->tri_vnormal.alloc(vert_size);
     uint4 *tri_vindex = dscene->tri_vindex.alloc(tri_size);
     uint *tri_patch = dscene->tri_patch.alloc(tri_size);
     float2 *tri_patch_uv = dscene->tri_patch_uv.alloc(vert_size);
@@ -1293,18 +1325,21 @@ enum {
   ATTR_FLOAT_MODIFIED = (1 << 2),
   ATTR_FLOAT2_MODIFIED = (1 << 3),
   ATTR_FLOAT3_MODIFIED = (1 << 4),
-  ATTR_UCHAR4_MODIFIED = (1 << 5),
+  ATTR_FLOAT4_MODIFIED = (1 << 5),
+  ATTR_UCHAR4_MODIFIED = (1 << 6),
 
-  CURVE_DATA_NEED_REALLOC = (1 << 6),
-  MESH_DATA_NEED_REALLOC = (1 << 7),
+  CURVE_DATA_NEED_REALLOC = (1 << 7),
+  MESH_DATA_NEED_REALLOC = (1 << 8),
 
-  ATTR_FLOAT_NEEDS_REALLOC = (1 << 8),
-  ATTR_FLOAT2_NEEDS_REALLOC = (1 << 9),
-  ATTR_FLOAT3_NEEDS_REALLOC = (1 << 10),
-  ATTR_UCHAR4_NEEDS_REALLOC = (1 << 11),
+  ATTR_FLOAT_NEEDS_REALLOC = (1 << 9),
+  ATTR_FLOAT2_NEEDS_REALLOC = (1 << 10),
+  ATTR_FLOAT3_NEEDS_REALLOC = (1 << 11),
+  ATTR_FLOAT4_NEEDS_REALLOC = (1 << 12),
+  ATTR_UCHAR4_NEEDS_REALLOC = (1 << 13),
 
   ATTRS_NEED_REALLOC = (ATTR_FLOAT_NEEDS_REALLOC | ATTR_FLOAT2_NEEDS_REALLOC |
-                        ATTR_FLOAT3_NEEDS_REALLOC | ATTR_UCHAR4_NEEDS_REALLOC),
+                        ATTR_FLOAT3_NEEDS_REALLOC | ATTR_FLOAT4_NEEDS_REALLOC |
+                        ATTR_UCHAR4_NEEDS_REALLOC),
   DEVICE_MESH_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
   DEVICE_CURVE_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
 };
@@ -1332,8 +1367,15 @@ static void update_device_flags_attribute(uint32_t &device_update_flags,
         device_update_flags |= ATTR_FLOAT3_MODIFIED;
         break;
       }
+      case AttrKernelDataType::FLOAT4: {
+        device_update_flags |= ATTR_FLOAT4_MODIFIED;
+        break;
+      }
       case AttrKernelDataType::UCHAR4: {
         device_update_flags |= ATTR_UCHAR4_MODIFIED;
+        break;
+      }
+      case AttrKernelDataType::NUM: {
         break;
       }
     }
@@ -1351,6 +1393,9 @@ static void update_attribute_realloc_flags(uint32_t &device_update_flags,
   }
   if (attributes.modified(AttrKernelDataType::FLOAT3)) {
     device_update_flags |= ATTR_FLOAT3_NEEDS_REALLOC;
+  }
+  if (attributes.modified(AttrKernelDataType::FLOAT4)) {
+    device_update_flags |= ATTR_FLOAT4_NEEDS_REALLOC;
   }
   if (attributes.modified(AttrKernelDataType::UCHAR4)) {
     device_update_flags |= ATTR_UCHAR4_NEEDS_REALLOC;
@@ -1551,6 +1596,14 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   }
   else if (device_update_flags & ATTR_FLOAT3_MODIFIED) {
     dscene->attributes_float3.tag_modified();
+  }
+
+  if (device_update_flags & ATTR_FLOAT4_NEEDS_REALLOC) {
+    dscene->attributes_map.tag_realloc();
+    dscene->attributes_float4.tag_realloc();
+  }
+  else if (device_update_flags & ATTR_FLOAT4_MODIFIED) {
+    dscene->attributes_float4.tag_modified();
   }
 
   if (device_update_flags & ATTR_UCHAR4_NEEDS_REALLOC) {
@@ -2014,6 +2067,7 @@ void GeometryManager::device_update(Device *device,
   dscene->attributes_float.clear_modified();
   dscene->attributes_float2.clear_modified();
   dscene->attributes_float3.clear_modified();
+  dscene->attributes_float4.clear_modified();
   dscene->attributes_uchar4.clear_modified();
 }
 
@@ -2041,6 +2095,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->attributes_float.free_if_need_realloc(force_free);
   dscene->attributes_float2.free_if_need_realloc(force_free);
   dscene->attributes_float3.free_if_need_realloc(force_free);
+  dscene->attributes_float4.free_if_need_realloc(force_free);
   dscene->attributes_uchar4.free_if_need_realloc(force_free);
 
   /* Signal for shaders like displacement not to do ray tracing. */

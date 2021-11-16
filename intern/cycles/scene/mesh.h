@@ -223,8 +223,11 @@ class Mesh : public Geometry {
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
   void pack_shaders(Scene *scene, uint *shader);
-  void pack_normals(float4 *vnormal);
-  void pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, float2 *tri_patch_uv);
+  void pack_normals(packed_float3 *vnormal);
+  void pack_verts(packed_float3 *tri_verts,
+                  uint4 *tri_vindex,
+                  uint *tri_patch,
+                  float2 *tri_patch_uv);
   void pack_patches(uint *patch_data);
 
   PrimitiveType primitive_type() const override;

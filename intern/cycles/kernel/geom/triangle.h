@@ -29,9 +29,9 @@ ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderDat
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
-  const float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
-  const float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
-  const float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
+  const float3 v0 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
+  const float3 v1 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
+  const float3 v2 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
 
   /* return normal */
   if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
@@ -54,9 +54,9 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
-  float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
-  float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
+  float3 v0 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
+  float3 v1 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
+  float3 v2 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
   /* compute point */
   float t = 1.0f - u - v;
   *P = (u * v0 + v * v1 + t * v2);
@@ -78,9 +78,9 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 ccl_device_inline void triangle_vertices(KernelGlobals kg, int prim, float3 P[3])
 {
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
-  P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
-  P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
+  P[0] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
+  P[1] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
+  P[2] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
 }
 
 /* Triangle vertex locations and vertex normals */
@@ -91,12 +91,12 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
                                                      float3 N[3])
 {
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
-  P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
-  P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
-  N[0] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
-  N[1] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
-  N[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
+  P[0] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
+  P[1] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
+  P[2] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
+  N[0] = kernel_tex_fetch(__tri_vnormal, tri_vindex.x);
+  N[1] = kernel_tex_fetch(__tri_vnormal, tri_vindex.y);
+  N[2] = kernel_tex_fetch(__tri_vnormal, tri_vindex.z);
 }
 
 /* Interpolate smooth vertex normal from vertices */
@@ -106,9 +106,9 @@ triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  float3 n0 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
-  float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
-  float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
+  float3 n0 = kernel_tex_fetch(__tri_vnormal, tri_vindex.x);
+  float3 n1 = kernel_tex_fetch(__tri_vnormal, tri_vindex.y);
+  float3 n2 = kernel_tex_fetch(__tri_vnormal, tri_vindex.z);
 
   float3 N = safe_normalize((1.0f - u - v) * n2 + u * n0 + v * n1);
 
@@ -120,9 +120,9 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  float3 n0 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
-  float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
-  float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
+  float3 n0 = kernel_tex_fetch(__tri_vnormal, tri_vindex.x);
+  float3 n1 = kernel_tex_fetch(__tri_vnormal, tri_vindex.y);
+  float3 n2 = kernel_tex_fetch(__tri_vnormal, tri_vindex.z);
 
   /* ensure that the normals are in object space */
   if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
@@ -145,9 +145,9 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
 {
   /* fetch triangle vertex coordinates */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  const float3 p0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
-  const float3 p1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
-  const float3 p2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
+  const float3 p0 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
+  const float3 p1 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
+  const float3 p2 = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
 
   /* compute derivatives of P w.r.t. uv */
   *dPdu = (p0 - p2);
@@ -267,15 +267,15 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
-      f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.x));
-      f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.y));
-      f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.z));
+      f0 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.x);
+      f1 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.y);
+      f2 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.z);
     }
     else {
       const int tri = desc.offset + sd->prim * 3;
-      f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
-      f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
-      f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
+      f0 = kernel_tex_fetch(__attributes_float3, tri + 0);
+      f1 = kernel_tex_fetch(__attributes_float3, tri + 1);
+      f2 = kernel_tex_fetch(__attributes_float3, tri + 2);
     }
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -298,7 +298,7 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
     if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
       const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
                                                                desc.offset;
-      return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset));
+      return kernel_tex_fetch(__attributes_float3, offset);
     }
     else {
       return make_float3(0.0f, 0.0f, 0.0f);
@@ -318,16 +318,16 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
-      f0 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.x);
-      f1 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.y);
-      f2 = kernel_tex_fetch(__attributes_float3, desc.offset + tri_vindex.z);
+      f0 = kernel_tex_fetch(__attributes_float4, desc.offset + tri_vindex.x);
+      f1 = kernel_tex_fetch(__attributes_float4, desc.offset + tri_vindex.y);
+      f2 = kernel_tex_fetch(__attributes_float4, desc.offset + tri_vindex.z);
     }
     else {
       const int tri = desc.offset + sd->prim * 3;
       if (desc.element == ATTR_ELEMENT_CORNER) {
-        f0 = kernel_tex_fetch(__attributes_float3, tri + 0);
-        f1 = kernel_tex_fetch(__attributes_float3, tri + 1);
-        f2 = kernel_tex_fetch(__attributes_float3, tri + 2);
+        f0 = kernel_tex_fetch(__attributes_float4, tri + 0);
+        f1 = kernel_tex_fetch(__attributes_float4, tri + 1);
+        f2 = kernel_tex_fetch(__attributes_float4, tri + 2);
       }
       else {
         f0 = color_srgb_to_linear_v4(
@@ -359,7 +359,7 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
     if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
       const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
                                                                desc.offset;
-      return kernel_tex_fetch(__attributes_float3, offset);
+      return kernel_tex_fetch(__attributes_float4, offset);
     }
     else {
       return make_float4(0.0f, 0.0f, 0.0f, 0.0f);

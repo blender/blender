@@ -707,7 +707,7 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   }
 }
 
-void Mesh::pack_normals(float4 *vnormal)
+void Mesh::pack_normals(packed_float3 *vnormal)
 {
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
   if (attr_vN == NULL) {
@@ -727,11 +727,14 @@ void Mesh::pack_normals(float4 *vnormal)
     if (do_transform)
       vNi = safe_normalize(transform_direction(&ntfm, vNi));
 
-    vnormal[i] = make_float4(vNi.x, vNi.y, vNi.z, 0.0f);
+    vnormal[i] = make_float3(vNi.x, vNi.y, vNi.z);
   }
 }
 
-void Mesh::pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, float2 *tri_patch_uv)
+void Mesh::pack_verts(packed_float3 *tri_verts,
+                      uint4 *tri_vindex,
+                      uint *tri_patch,
+                      float2 *tri_patch_uv)
 {
   size_t verts_size = verts.size();
 
@@ -752,9 +755,9 @@ void Mesh::pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, flo
 
     tri_patch[i] = (!get_num_subd_faces()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
 
-    tri_verts[i * 3] = float3_to_float4(verts[t.v[0]]);
-    tri_verts[i * 3 + 1] = float3_to_float4(verts[t.v[1]]);
-    tri_verts[i * 3 + 2] = float3_to_float4(verts[t.v[2]]);
+    tri_verts[i * 3] = verts[t.v[0]];
+    tri_verts[i * 3 + 1] = verts[t.v[1]];
+    tri_verts[i * 3 + 2] = verts[t.v[2]];
   }
 }
 

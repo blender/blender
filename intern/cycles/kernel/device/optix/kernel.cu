@@ -159,9 +159,9 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 
   /* Record geometric normal. */
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0));
-  const float3 tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1));
-  const float3 tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
+  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0);
+  const float3 tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1);
+  const float3 tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */

@@ -126,8 +126,8 @@ ccl_device float3 curve_attribute_float3(KernelGlobals kg,
     int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
 
-    float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + k0));
-    float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + k1));
+    float3 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + k0);
+    float3 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + k1);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -149,7 +149,7 @@ ccl_device float3 curve_attribute_float3(KernelGlobals kg,
     if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
       const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
                                                                 desc.offset;
-      return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset));
+      return kernel_tex_fetch(__attributes_float3, offset);
     }
     else {
       return make_float3(0.0f, 0.0f, 0.0f);
@@ -168,8 +168,8 @@ ccl_device float4 curve_attribute_float4(KernelGlobals kg,
     int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
 
-    float4 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + k0);
-    float4 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + k1);
+    float4 f0 = kernel_tex_fetch(__attributes_float4, desc.offset + k0);
+    float4 f1 = kernel_tex_fetch(__attributes_float4, desc.offset + k1);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -191,7 +191,7 @@ ccl_device float4 curve_attribute_float4(KernelGlobals kg,
     if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
       const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
                                                                 desc.offset;
-      return kernel_tex_fetch(__attributes_float3, offset);
+      return kernel_tex_fetch(__attributes_float4, offset);
     }
     else {
       return make_float4(0.0f, 0.0f, 0.0f, 0.0f);

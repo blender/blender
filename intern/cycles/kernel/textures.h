@@ -40,11 +40,11 @@ KERNEL_TEX(DecomposedTransform, __camera_motion)
 
 /* triangles */
 KERNEL_TEX(uint, __tri_shader)
-KERNEL_TEX(float4, __tri_vnormal)
+KERNEL_TEX(packed_float3, __tri_vnormal)
 KERNEL_TEX(uint4, __tri_vindex)
 KERNEL_TEX(uint, __tri_patch)
 KERNEL_TEX(float2, __tri_patch_uv)
-KERNEL_TEX(float4, __tri_verts)
+KERNEL_TEX(packed_float3, __tri_verts)
 
 /* curves */
 KERNEL_TEX(KernelCurve, __curves)
@@ -58,7 +58,8 @@ KERNEL_TEX(uint, __patches)
 KERNEL_TEX(uint4, __attributes_map)
 KERNEL_TEX(float, __attributes_float)
 KERNEL_TEX(float2, __attributes_float2)
-KERNEL_TEX(float4, __attributes_float3)
+KERNEL_TEX(packed_float3, __attributes_float3)
+KERNEL_TEX(float4, __attributes_float4)
 KERNEL_TEX(uchar4, __attributes_uchar4)
 
 /* lights */

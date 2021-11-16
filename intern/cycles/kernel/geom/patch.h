@@ -380,7 +380,7 @@ ccl_device float3 patch_eval_float3(KernelGlobals kg,
     *dv = make_float3(0.0f, 0.0f, 0.0f);
 
   for (int i = 0; i < num_control; i++) {
-    float3 v = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + indices[i]));
+    float3 v = kernel_tex_fetch(__attributes_float3, offset + indices[i]);
 
     val += v * weights[i];
     if (du)
@@ -417,7 +417,7 @@ ccl_device float4 patch_eval_float4(KernelGlobals kg,
     *dv = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
   for (int i = 0; i < num_control; i++) {
-    float4 v = kernel_tex_fetch(__attributes_float3, offset + indices[i]);
+    float4 v = kernel_tex_fetch(__attributes_float4, offset + indices[i]);
 
     val += v * weights[i];
     if (du)

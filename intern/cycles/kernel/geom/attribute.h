@@ -106,9 +106,9 @@ ccl_device Transform primitive_attribute_matrix(KernelGlobals kg,
 {
   Transform tfm;
 
-  tfm.x = kernel_tex_fetch(__attributes_float3, desc.offset + 0);
-  tfm.y = kernel_tex_fetch(__attributes_float3, desc.offset + 1);
-  tfm.z = kernel_tex_fetch(__attributes_float3, desc.offset + 2);
+  tfm.x = kernel_tex_fetch(__attributes_float4, desc.offset + 0);
+  tfm.y = kernel_tex_fetch(__attributes_float4, desc.offset + 1);
+  tfm.z = kernel_tex_fetch(__attributes_float4, desc.offset + 2);
 
   return tfm;
 }

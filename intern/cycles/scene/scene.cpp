@@ -74,6 +74,7 @@ DeviceScene::DeviceScene(Device *device)
       attributes_float(device, "__attributes_float", MEM_GLOBAL),
       attributes_float2(device, "__attributes_float2", MEM_GLOBAL),
       attributes_float3(device, "__attributes_float3", MEM_GLOBAL),
+      attributes_float4(device, "__attributes_float4", MEM_GLOBAL),
       attributes_uchar4(device, "__attributes_uchar4", MEM_GLOBAL),
       light_distribution(device, "__light_distribution", MEM_GLOBAL),
       lights(device, "__lights", MEM_GLOBAL),
