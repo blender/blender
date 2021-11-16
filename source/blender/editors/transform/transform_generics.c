@@ -152,6 +152,11 @@ static void *t_view_get(TransInfo *t)
 
 static int t_around_get(TransInfo *t)
 {
+  if (t->flag & T_OVERRIDE_CENTER) {
+    /* Avoid initialization of individual origins (#V3D_AROUND_LOCAL_ORIGINS). */
+    return V3D_AROUND_CENTER_BOUNDS;
+  }
+
   ScrArea *area = t->area;
   if (t->spacetype == SPACE_VIEW3D) {
     /* Bend always uses the cursor. */
@@ -362,6 +367,15 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
     t->options |= CTX_SEQUENCER_IMAGE;
+  }
+
+  setTransformViewAspect(t, t->aspect);
+
+  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_float_get_array(op->ptr, prop, t->center_global);
+    mul_v3_v3(t->center_global, t->aspect);
+    t->flag |= T_OVERRIDE_CENTER;
   }
 
   t->view = t_view_get(t);
@@ -662,15 +676,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* Disable cursor wrap when edge panning is enabled. */
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     t->flag |= T_NO_CURSOR_WRAP;
-  }
-
-  setTransformViewAspect(t, t->aspect);
-
-  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_float_get_array(op->ptr, prop, t->center_global);
-    mul_v3_v3(t->center_global, t->aspect);
-    t->flag |= T_OVERRIDE_CENTER;
   }
 
   setTransformViewMatrices(t);
