@@ -2036,7 +2036,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   int types[] = {CD_PROP_COLOR, CD_MLOOPCOL};
   bool has_color = false;
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < ARRAY_SIZE(types); i++) {
     bool ok = CustomData_has_layer(&orig_me->vdata, types[i]);
     ok = ok || CustomData_has_layer(&orig_me->ldata, types[i]);
 

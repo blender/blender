@@ -639,6 +639,9 @@ class UnifiedPaintPanel:
 
                     row2.label(text=name)
 
+                    #note we only expose a single icon that toggles between ALWAYS and NEVER
+                    #mode, to lessen user confusion.
+
                     #row3 = row2.row(align=True)
                     #row3.prop_enum(mp0, "inherit_mode", "ALWAYS", icon="BRUSHES_ALL", text="")
                     #row3.prop_enum(mp0, "inherit_mode", "NEVER", icon="FORWARD", text="")
