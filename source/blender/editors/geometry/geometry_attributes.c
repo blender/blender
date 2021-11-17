@@ -156,12 +156,13 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static void next_color_attr(struct ID *id, bool is_render)
+static void next_color_attr(struct ID *id, CustomDataLayer *layer, bool is_render)
 {
   AttributeRef *ref = is_render ? BKE_id_attributes_render_color_ref_p(id) :
                                   BKE_id_attributes_active_color_ref_p(id);
 
-  if (!ref) {
+  if (!ref || layer != (is_render ? BKE_id_attributes_render_color_get(id) :
+                                    BKE_id_attributes_active_color_get(id))) {
     return;
   }
 
@@ -181,11 +182,12 @@ static void next_color_attr(struct ID *id, bool is_render)
   BKE_id_attribute_ref_from_index(id, idx, domain_mask, type_mask, ref);
 }
 
-static void next_color_attrs(struct ID *id)
+static void next_color_attrs(struct ID *id, CustomDataLayer *layer)
 {
-  next_color_attr(id, false); /* active */
-  next_color_attr(id, true);  /* render */
+  next_color_attr(id, layer, false); /* active */
+  next_color_attr(id, layer, true);  /* render */
 }
+
 
 static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   {
@@ -274,7 +276,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   }
 
   if (layer == BKE_id_attributes_active_color_get(id)) {
-    next_color_attrs(id);
+    next_color_attrs(id, layer);
   }
 
   if (!BKE_id_attribute_remove(id, layer, op->reports)) {
@@ -322,7 +324,7 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  next_color_attrs(id);
+  next_color_attrs(id, layer);
 
   if (!BKE_id_attribute_remove(id, layer, op->reports)) {
     return OPERATOR_CANCELLED;
