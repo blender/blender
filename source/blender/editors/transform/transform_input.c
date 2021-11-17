@@ -418,6 +418,10 @@ void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float val
 
 void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
 {
+  if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
+    return;
+  }
+
   double mval_db[2];
 
   if (mi->use_virtual_mval) {
@@ -452,6 +456,17 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 
   if (mi->post) {
     mi->post(t, output);
+  }
+}
+
+void transform_input_reset(MouseInput *mi, const int mval[2])
+{
+  copy_v2_v2_int(mi->imval, mval);
+  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    struct InputAngle_Data *data = mi->data;
+    data->mval_prev[0] = mi->imval[0];
+    data->mval_prev[1] = mi->imval[1];
+    data->angle = 0.0f;
   }
 }
 
