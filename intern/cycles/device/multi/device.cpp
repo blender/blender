@@ -109,14 +109,6 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual bool show_samples() const override
-  {
-    if (devices.size() > 1) {
-      return false;
-    }
-    return devices.front().device->show_samples();
-  }
-
   virtual BVHLayoutMask get_bvh_layout_mask() const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;

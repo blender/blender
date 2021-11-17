@@ -47,12 +47,6 @@ bool HIPDevice::have_precompiled_kernels()
   return path_exists(fatbins_path);
 }
 
-bool HIPDevice::show_samples() const
-{
-  /* The HIPDevice only processes one tile at a time, so showing samples is fine. */
-  return true;
-}
-
 BVHLayoutMask HIPDevice::get_bvh_layout_mask() const
 {
   return BVH_LAYOUT_BVH2;

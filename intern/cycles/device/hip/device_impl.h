@@ -75,8 +75,6 @@ class HIPDevice : public Device {
 
   static bool have_precompiled_kernels();
 
-  virtual bool show_samples() const override;
-
   virtual BVHLayoutMask get_bvh_layout_mask() const override;
 
   void set_error(const string &error) override;

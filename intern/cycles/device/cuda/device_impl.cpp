@@ -46,12 +46,6 @@ bool CUDADevice::have_precompiled_kernels()
   return path_exists(cubins_path);
 }
 
-bool CUDADevice::show_samples() const
-{
-  /* The CUDADevice only processes one tile at a time, so showing samples is fine. */
-  return true;
-}
-
 BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
 {
   return BVH_LAYOUT_BVH2;

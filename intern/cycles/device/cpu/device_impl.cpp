@@ -93,11 +93,6 @@ CPUDevice::~CPUDevice()
   texture_info.free();
 }
 
-bool CPUDevice::show_samples() const
-{
-  return (info.cpu_threads == 1);
-}
-
 BVHLayoutMask CPUDevice::get_bvh_layout_mask() const
 {
   BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
