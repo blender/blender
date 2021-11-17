@@ -112,6 +112,8 @@ static bool brush_mapping_inherits(BrushChannel *ch, BrushMapping *mp)
     case BRUSH_MAPPING_INHERIT_CHANNEL:
       return ch->flag & BRUSH_CHANNEL_INHERIT;
   }
+
+  return false;
 }
 
 void BKE_brush_channel_system_init()
