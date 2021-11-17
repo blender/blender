@@ -634,6 +634,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
       }
     }
   }
+  /* Get rid of those very short "zig-zag" lines that jumps around visibility. */
+  MOD_lineart_chain_discard_short(rb, DBL_EDGE_LIM);
   LISTBASE_FOREACH (LineartEdgeChain *, iec, &rb->chains) {
     lineart_bounding_area_link_chain(rb, iec);
   }
@@ -890,6 +892,9 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
   float last_point[2];
 
   eci = ec->chain.first;
+  if (!eci) {
+    return 0;
+  }
   copy_v2_v2(last_point, eci->pos);
   for (eci = ec->chain.first; eci; eci = eci->next) {
     dist = len_v2v2(eci->pos, last_point);

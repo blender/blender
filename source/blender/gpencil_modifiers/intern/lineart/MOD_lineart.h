@@ -476,11 +476,32 @@ typedef struct LineartBoundingArea {
 #define LRT_MIN3_INDEX_ABC(x, y, z) (x < y ? (x < z ? a : (y < z ? b : c)) : (y < z ? b : c))
 
 #define LRT_ABC(index) (index == 0 ? a : (index == 1 ? b : c))
+#define LRT_PABC(index) (index == 0 ? pa : (index == 1 ? pb : pc))
 
+#define DBL_LOOSER 1e-5
+#define LRT_DOUBLE_CLOSE_LOOSER(a, b) (((a) + DBL_LOOSER) >= (b) && ((a)-DBL_LOOSER) <= (b))
 #define LRT_DOUBLE_CLOSE_ENOUGH(a, b) (((a) + DBL_EDGE_LIM) >= (b) && ((a)-DBL_EDGE_LIM) <= (b))
+#define LRT_DOUBLE_CLOSE_ENOUGH_TRI(a, b) \
+  (((a) + DBL_TRIANGLE_LIM) >= (b) && ((a)-DBL_TRIANGLE_LIM) <= (b))
 
-BLI_INLINE int lineart_LineIntersectTest2d(
-    const double *a1, const double *a2, const double *b1, const double *b2, double *aRatio)
+/* Notes on this function:
+
+ * r_ratio: The ratio on segment a1-a2. When r_ratio is very close to zero or one, it
+ * fixes the value to zero or one, this makes it easier to identify "on the tip" situations.
+ *
+ * r_aligned: True when 1) a and b is exactly on the same straight line and 2) a and b share a
+ * common end-point.
+ *
+ * Important: if r_aligned is true, r_ratio will be either 0 or 1 depending on which point from
+ * segment a is shared with segment b. If it's a1 then r_ratio is 0, else then r_ratio is 1. This
+ * extra information is needed for line art occlusion stage to work correctly in such cases.
+ */
+BLI_INLINE int lineart_intersect_seg_seg(const double *a1,
+                                         const double *a2,
+                                         const double *b1,
+                                         const double *b2,
+                                         double *r_ratio,
+                                         bool *r_aligned)
 {
 /* Legacy intersection math aligns better with occlusion function quirks. */
 /* #define USE_VECTOR_LINE_INTERSECTION */
@@ -504,27 +525,27 @@ BLI_INLINE int lineart_LineIntersectTest2d(
     double rr;
 
     if (fabs(a2[0] - a1[0]) > fabs(a2[1] - a1[1])) {
-      *aRatio = ratiod(a1[0], a2[0], rx);
+      *r_ratio = ratiod(a1[0], a2[0], rx);
       if (fabs(b2[0] - b1[0]) > fabs(b2[1] - b1[1])) {
         rr = ratiod(b1[0], b2[0], rx);
       }
       else {
         rr = ratiod(b1[1], b2[1], ry);
       }
-      if ((*aRatio) > 0 && (*aRatio) < 1 && rr > 0 && rr < 1) {
+      if ((*r_ratio) > 0 && (*r_ratio) < 1 && rr > 0 && rr < 1) {
         return 1;
       }
       return 0;
     }
 
-    *aRatio = ratiod(a1[1], a2[1], ry);
+    *r_ratio = ratiod(a1[1], a2[1], ry);
     if (fabs(b2[0] - b1[0]) > fabs(b2[1] - b1[1])) {
       rr = ratiod(b1[0], b2[0], rx);
     }
     else {
       rr = ratiod(b1[1], b2[1], ry);
     }
-    if ((*aRatio) > 0 && (*aRatio) < 1 && rr > 0 && rr < 1) {
+    if ((*r_ratio) > 0 && (*r_ratio) < 1 && rr > 0 && rr < 1) {
       return 1;
     }
     return 0;
@@ -539,34 +560,62 @@ BLI_INLINE int lineart_LineIntersectTest2d(
   double x_diff = (a2[0] - a1[0]);
   double x_diff2 = (b2[0] - b1[0]);
 
+  *r_aligned = false;
+
   if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff, 0)) {
     if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff2, 0)) {
-      *aRatio = 0;
+      /* This means two segments are both vertical. */
+      if ((LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b1[1])) ||
+          (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1]))) {
+        *r_aligned = true;
+        *r_ratio = 1;
+      }
+      else if ((LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b1[1])) ||
+               (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1]))) {
+        *r_aligned = true;
+        *r_ratio = 0;
+      }
       return 0;
     }
     double r2 = ratiod(b1[0], b2[0], a1[0]);
     x = interpd(b2[0], b1[0], r2);
     y = interpd(b2[1], b1[1], r2);
-    *aRatio = ratio = ratiod(a1[1], a2[1], y);
+    *r_ratio = ratio = ratiod(a1[1], a2[1], y);
   }
   else {
     if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff2, 0)) {
       ratio = ratiod(a1[0], a2[0], b1[0]);
       x = interpd(a2[0], a1[0], ratio);
-      *aRatio = ratio;
+      *r_ratio = ratio;
     }
     else {
-      k1 = (a2[1] - a1[1]) / x_diff;
-      k2 = (b2[1] - b1[1]) / x_diff2;
+      double y_diff = a2[1] - a1[1], y_diff2 = b2[1] - b1[1];
+      k1 = y_diff / x_diff;
+      k2 = y_diff2 / x_diff2;
 
-      if (k1 == k2)
+      if (LRT_DOUBLE_CLOSE_ENOUGH_TRI(k2, k1)) {
+        /* This means two segments are parallel. This also handles k==0 (both completely
+         * horizontal) cases. */
+        if ((LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b1[1])) ||
+            (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1]))) {
+          *r_aligned = true;
+          *r_ratio = 1;
+        }
+        else if ((LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b1[0]) &&
+                  LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b1[1])) ||
+                 (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) &&
+                  LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1]))) {
+          *r_aligned = true;
+          *r_ratio = 0;
+        }
         return 0;
+      }
 
       x = (a1[1] - b1[1] - k1 * a1[0] + k2 * b1[0]) / (k2 - k1);
 
       ratio = (x - a1[0]) / x_diff;
 
-      *aRatio = ratio;
+      *r_ratio = ratio;
     }
   }
 
@@ -579,6 +628,13 @@ BLI_INLINE int lineart_LineIntersectTest2d(
            (b1[0] < b2[0] && x < b1[0]) || (b2[0] > b1[0] && x > b2[0]) ||
            (b2[0] < b1[0] && x < b2[0]))
     return 0;
+
+  if (LRT_DOUBLE_CLOSE_ENOUGH_TRI(*r_ratio, 1)) {
+    *r_ratio = 1;
+  }
+  else if (LRT_DOUBLE_CLOSE_ENOUGH_TRI(*r_ratio, 0)) {
+    *r_ratio = 0;
+  }
 
   return 1;
 #endif
