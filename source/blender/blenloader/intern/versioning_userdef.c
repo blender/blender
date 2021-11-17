@@ -334,6 +334,9 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
+  if (!USER_VERSION_ATLEAST(301, 2)) {
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
