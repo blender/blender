@@ -47,7 +47,7 @@ static void geo_node_attribute_fill_init(bNodeTree *UNUSED(tree), bNode *node)
   node->custom2 = ATTR_DOMAIN_AUTO;
 }
 
-static void geo_node_attribute_fill_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_fill_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *socket_value_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *socket_value_float = socket_value_vector->next;
@@ -57,11 +57,11 @@ static void geo_node_attribute_fill_update(bNodeTree *UNUSED(ntree), bNode *node
 
   const CustomDataType data_type = static_cast<CustomDataType>(node->custom1);
 
-  nodeSetSocketAvailability(socket_value_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_value_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_value_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(socket_value_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(socket_value_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, socket_value_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_value_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_value_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, socket_value_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, socket_value_int32, data_type == CD_PROP_INT32);
 }
 
 static AttributeDomain get_result_domain(const GeometryComponent &component, const StringRef name)

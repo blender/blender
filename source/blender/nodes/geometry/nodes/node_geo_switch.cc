@@ -95,7 +95,7 @@ static void geo_node_switch_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_switch_update(bNodeTree *ntree, bNode *node)
 {
   NodeSwitch *node_storage = (NodeSwitch *)node->storage;
   int index = 0;
@@ -110,20 +110,20 @@ static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
                                 SOCK_RGBA,
                                 SOCK_STRING);
 
-  nodeSetSocketAvailability(field_switch, fields_type);
-  nodeSetSocketAvailability(non_field_switch, !fields_type);
+  nodeSetSocketAvailability(ntree, field_switch, fields_type);
+  nodeSetSocketAvailability(ntree, non_field_switch, !fields_type);
 
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
     if (index <= 1) {
       continue;
     }
-    nodeSetSocketAvailability(socket,
-                              socket->type == (eNodeSocketDatatype)node_storage->input_type);
+    nodeSetSocketAvailability(
+        ntree, socket, socket->type == (eNodeSocketDatatype)node_storage->input_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(socket,
-                              socket->type == (eNodeSocketDatatype)node_storage->input_type);
+    nodeSetSocketAvailability(
+        ntree, socket, socket->type == (eNodeSocketDatatype)node_storage->input_type);
   }
 }
 

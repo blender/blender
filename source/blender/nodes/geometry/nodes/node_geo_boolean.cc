@@ -41,7 +41,7 @@ static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), Point
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void geo_node_boolean_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_boolean_update(bNodeTree *ntree, bNode *node)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)node->custom1;
 
@@ -51,13 +51,13 @@ static void geo_node_boolean_update(bNodeTree *UNUSED(ntree), bNode *node)
   switch (operation) {
     case GEO_NODE_BOOLEAN_INTERSECT:
     case GEO_NODE_BOOLEAN_UNION:
-      nodeSetSocketAvailability(geometry_1_socket, false);
-      nodeSetSocketAvailability(geometry_2_socket, true);
+      nodeSetSocketAvailability(ntree, geometry_1_socket, false);
+      nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, N_("Mesh"));
       break;
     case GEO_NODE_BOOLEAN_DIFFERENCE:
-      nodeSetSocketAvailability(geometry_1_socket, true);
-      nodeSetSocketAvailability(geometry_2_socket, true);
+      nodeSetSocketAvailability(ntree, geometry_1_socket, true);
+      nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, N_("Mesh 2"));
       break;
   }

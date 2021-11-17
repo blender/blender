@@ -73,7 +73,7 @@ static void geo_node_curve_primitive_circle_init(bNodeTree *UNUSED(tree), bNode 
   node->storage = data;
 }
 
-static void geo_node_curve_primitive_circle_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_curve_primitive_circle_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurvePrimitiveCircle *node_storage = (NodeGeometryCurvePrimitiveCircle *)
                                                              node->storage;
@@ -87,11 +87,16 @@ static void geo_node_curve_primitive_circle_update(bNodeTree *UNUSED(ntree), bNo
 
   bNodeSocket *center_socket = ((bNodeSocket *)node->outputs.first)->next;
 
-  nodeSetSocketAvailability(start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(middle_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(end_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(center_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(radius_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS);
+  nodeSetSocketAvailability(
+      ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, middle_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, end_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, center_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, radius_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS);
 }
 
 static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)

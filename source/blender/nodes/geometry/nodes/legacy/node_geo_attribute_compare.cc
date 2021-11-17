@@ -65,16 +65,16 @@ static bool operation_tests_equality(const NodeAttributeCompare &node_storage)
   return ELEM(node_storage.operation, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL);
 }
 
-static void geo_node_attribute_compare_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_compare_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeCompare *node_storage = (NodeAttributeCompare *)node->storage;
   update_attribute_input_socket_availabilities(
-      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
+      *ntree, *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
   update_attribute_input_socket_availabilities(
-      *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
+      *ntree, *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
 
   bNodeSocket *socket_threshold = (bNodeSocket *)BLI_findlink(&node->inputs, 9);
-  nodeSetSocketAvailability(socket_threshold, operation_tests_equality(*node_storage));
+  nodeSetSocketAvailability(ntree, socket_threshold, operation_tests_equality(*node_storage));
 }
 
 static void do_math_operation(const VArray<float> &input_a,

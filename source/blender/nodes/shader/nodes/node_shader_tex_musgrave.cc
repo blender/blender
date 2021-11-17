@@ -104,7 +104,7 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out);
 }
 
-static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
 {
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
 
@@ -113,12 +113,14 @@ static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *nod
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
-  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
-  nodeSetSocketAvailability(inOffsetSock,
+  nodeSetSocketAvailability(ntree, inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree,
+                            inOffsetSock,
                             tex->musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
                                 tex->musgrave_type != SHD_MUSGRAVE_FBM);
-  nodeSetSocketAvailability(inGainSock,
+  nodeSetSocketAvailability(ntree,
+                            inGainSock,
                             tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
                                 tex->musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 

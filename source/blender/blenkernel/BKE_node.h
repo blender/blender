@@ -731,7 +731,9 @@ void nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 
 int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void ntreeTagUsedSockets(struct bNodeTree *ntree);
-void nodeSetSocketAvailability(struct bNodeSocket *sock, bool is_available);
+void nodeSetSocketAvailability(struct bNodeTree *ntree,
+                               struct bNodeSocket *sock,
+                               bool is_available);
 
 int nodeSocketLinkLimit(const struct bNodeSocket *sock);
 

@@ -70,27 +70,30 @@ static void geo_node_attribute_vector_rotate_layout(uiLayout *layout,
   }
 }
 
-static void geo_node_attribute_vector_rotate_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_vector_rotate_update(bNodeTree *ntree, bNode *node)
 {
   const NodeAttributeVectorRotate *node_storage = (NodeAttributeVectorRotate *)node->storage;
   const GeometryNodeAttributeVectorRotateMode mode = (const GeometryNodeAttributeVectorRotateMode)
                                                          node_storage->mode;
 
   update_attribute_input_socket_availabilities(
-      *node, "Vector", (GeometryNodeAttributeInputMode)node_storage->input_type_vector);
+      *ntree, *node, "Vector", (GeometryNodeAttributeInputMode)node_storage->input_type_vector);
   update_attribute_input_socket_availabilities(
-      *node, "Center", (GeometryNodeAttributeInputMode)node_storage->input_type_center);
+      *ntree, *node, "Center", (GeometryNodeAttributeInputMode)node_storage->input_type_center);
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Axis",
       (GeometryNodeAttributeInputMode)node_storage->input_type_axis,
       (mode == GEO_NODE_VECTOR_ROTATE_TYPE_AXIS));
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Angle",
       (GeometryNodeAttributeInputMode)node_storage->input_type_angle,
       (mode != GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Rotation",
       (GeometryNodeAttributeInputMode)node_storage->input_type_rotation,

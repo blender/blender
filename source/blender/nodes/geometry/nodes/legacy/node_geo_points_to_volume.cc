@@ -65,19 +65,22 @@ static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node
   STRNCPY(radius_attribute_socket_value->value, "radius");
 }
 
-static void geo_node_points_to_volume_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_points_to_volume_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(voxel_amount_socket,
+  nodeSetSocketAvailability(ntree,
+                            voxel_amount_socket,
                             data->resolution_mode ==
                                 GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
-  nodeSetSocketAvailability(
-      voxel_size_socket, data->resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
+  nodeSetSocketAvailability(ntree,
+                            voxel_size_socket,
+                            data->resolution_mode ==
+                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
 
   update_attribute_input_socket_availabilities(
-      *node, "Radius", (GeometryNodeAttributeInputMode)data->input_type_radius);
+      *ntree, *node, "Radius", (GeometryNodeAttributeInputMode)data->input_type_radius);
 }
 
 #ifdef WITH_OPENVDB

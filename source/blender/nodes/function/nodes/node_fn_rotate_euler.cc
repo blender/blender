@@ -36,18 +36,18 @@ static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Rotation"));
 };
 
-static void fn_node_rotate_euler_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *rotate_by_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *axis_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
   bNodeSocket *angle_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 3));
 
-  nodeSetSocketAvailability(rotate_by_socket,
-                            ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_EULER));
-  nodeSetSocketAvailability(axis_socket,
-                            ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
-  nodeSetSocketAvailability(angle_socket,
-                            ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
+  nodeSetSocketAvailability(
+      ntree, rotate_by_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_EULER));
+  nodeSetSocketAvailability(
+      ntree, axis_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
+  nodeSetSocketAvailability(
+      ntree, angle_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
 }
 
 static void fn_node_rotate_euler_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

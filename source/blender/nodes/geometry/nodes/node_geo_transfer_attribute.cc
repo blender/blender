@@ -86,7 +86,7 @@ static void geo_node_transfer_attribute_init(bNodeTree *UNUSED(tree), bNode *nod
   node->storage = data;
 }
 
-static void geo_node_transfer_attribute_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_transfer_attribute_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryTransferAttribute &data = *(const NodeGeometryTransferAttribute *)
                                                    node->storage;
@@ -103,14 +103,14 @@ static void geo_node_transfer_attribute_update(bNodeTree *UNUSED(ntree), bNode *
   bNodeSocket *socket_positions = socket_int32->next;
   bNodeSocket *socket_indices = socket_positions->next;
 
-  nodeSetSocketAvailability(socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
-  nodeSetSocketAvailability(socket_positions, mapping != GEO_NODE_ATTRIBUTE_TRANSFER_INDEX);
-  nodeSetSocketAvailability(socket_indices, mapping == GEO_NODE_ATTRIBUTE_TRANSFER_INDEX);
+  nodeSetSocketAvailability(ntree, socket_positions, mapping != GEO_NODE_ATTRIBUTE_TRANSFER_INDEX);
+  nodeSetSocketAvailability(ntree, socket_indices, mapping == GEO_NODE_ATTRIBUTE_TRANSFER_INDEX);
 
   bNodeSocket *out_socket_vector = (bNodeSocket *)node->outputs.first;
   bNodeSocket *out_socket_float = out_socket_vector->next;
@@ -118,11 +118,11 @@ static void geo_node_transfer_attribute_update(bNodeTree *UNUSED(ntree), bNode *
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
 
-  nodeSetSocketAvailability(out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(out_socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(out_socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,

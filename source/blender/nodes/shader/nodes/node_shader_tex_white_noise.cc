@@ -58,13 +58,13 @@ static int gpu_shader_tex_white_noise(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out);
 }
 
-static void node_shader_update_tex_white_noise(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_white_noise(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
 
-  nodeSetSocketAvailability(sockVector, node->custom1 != 1);
-  nodeSetSocketAvailability(sockW, node->custom1 == 1 || node->custom1 == 4);
+  nodeSetSocketAvailability(ntree, sockVector, node->custom1 != 1);
+  nodeSetSocketAvailability(ntree, sockW, node->custom1 == 1 || node->custom1 == 4);
 }
 
 namespace blender::nodes {

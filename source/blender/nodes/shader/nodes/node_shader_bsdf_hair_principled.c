@@ -59,59 +59,34 @@ static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *no
 }
 
 /* Triggers (in)visibility of some sockets when changing Parametrization. */
-static void node_shader_update_hair_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock;
   int parametrization = node->custom1;
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (STREQ(sock->name, "Color")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
     }
     else if (STREQ(sock->name, "Melanin")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Melanin Redness")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Tint")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Absorption Coefficient")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
     }
     else if (STREQ(sock->name, "Random Color")) {
-      if (parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
   }
 }

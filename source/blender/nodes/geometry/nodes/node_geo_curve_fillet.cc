@@ -76,14 +76,14 @@ struct FilletData {
   Array<int> counts;
 };
 
-static void geo_node_curve_fillet_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_curve_fillet_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)node->storage;
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
 
   bNodeSocket *poly_socket = ((bNodeSocket *)node->inputs.first)->next;
 
-  nodeSetSocketAvailability(poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 /* Function to get the center of a fillet. */

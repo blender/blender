@@ -70,15 +70,15 @@ static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_attribute_mix_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_mix_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeMix *node_storage = (NodeAttributeMix *)node->storage;
   update_attribute_input_socket_availabilities(
-      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage->input_type_factor);
+      *ntree, *node, "Factor", (GeometryNodeAttributeInputMode)node_storage->input_type_factor);
   update_attribute_input_socket_availabilities(
-      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
+      *ntree, *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
   update_attribute_input_socket_availabilities(
-      *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
+      *ntree, *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
 }
 
 static void do_mix_operation_float(const int blend_mode,

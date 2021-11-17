@@ -91,17 +91,19 @@ static void geo_node_string_to_curves_init(bNodeTree *UNUSED(ntree), bNode *node
   node->id = (ID *)BKE_vfont_builtin_get();
 }
 
-static void geo_node_string_to_curves_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_string_to_curves_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryStringToCurves *storage = (const NodeGeometryStringToCurves *)node->storage;
   const GeometryNodeStringToCurvesOverflowMode overflow = (GeometryNodeStringToCurvesOverflowMode)
                                                               storage->overflow;
   bNodeSocket *socket_remainder = ((bNodeSocket *)node->outputs.first)->next;
-  nodeSetSocketAvailability(socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
+  nodeSetSocketAvailability(
+      ntree, socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
 
   bNodeSocket *height_socket = (bNodeSocket *)node->inputs.last;
   bNodeSocket *width_socket = height_socket->prev;
-  nodeSetSocketAvailability(height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
+  nodeSetSocketAvailability(
+      ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
   node_sock_label(width_socket,
                   overflow == GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW ? N_("Max Width") :
                                                                         N_("Text Box Width"));

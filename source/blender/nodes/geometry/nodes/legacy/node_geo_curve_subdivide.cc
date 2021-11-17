@@ -51,12 +51,12 @@ static void geo_node_curve_subdivide_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_curve_subdivide_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_curve_subdivide_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointTranslate &node_storage = *(NodeGeometryPointTranslate *)node->storage;
 
   update_attribute_input_socket_availabilities(
-      *node, "Cuts", (GeometryNodeAttributeInputMode)node_storage.input_type);
+      *ntree, *node, "Cuts", (GeometryNodeAttributeInputMode)node_storage.input_type);
 }
 
 static Array<int> get_subdivided_offsets(const Spline &spline,

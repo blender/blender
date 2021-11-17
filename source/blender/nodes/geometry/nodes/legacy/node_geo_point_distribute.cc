@@ -61,11 +61,12 @@ static void geo_node_point_distribute_layout(uiLayout *layout,
   uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
 }
 
-static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_point_distribute_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_min_dist = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
 
-  nodeSetSocketAvailability(sock_min_dist, ELEM(node->custom1, GEO_NODE_POINT_DISTRIBUTE_POISSON));
+  nodeSetSocketAvailability(
+      ntree, sock_min_dist, ELEM(node->custom1, GEO_NODE_POINT_DISTRIBUTE_POISSON));
 }
 
 /**

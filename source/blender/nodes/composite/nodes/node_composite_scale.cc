@@ -32,7 +32,7 @@ static bNodeSocketTemplate cmp_node_scale_in[] = {
     {-1, ""}};
 static bNodeSocketTemplate cmp_node_scale_out[] = {{SOCK_RGBA, N_("Image")}, {-1, ""}};
 
-static void node_composite_update_scale(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock;
   bool use_xy_scale = ELEM(node->custom1, CMP_SCALE_RELATIVE, CMP_SCALE_ABSOLUTE);
@@ -40,12 +40,7 @@ static void node_composite_update_scale(bNodeTree *UNUSED(ntree), bNode *node)
   /* Only show X/Y scale factor inputs for modes using them! */
   for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
     if (STR_ELEM(sock->name, "X", "Y")) {
-      if (use_xy_scale) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(ntree, sock, use_xy_scale);
     }
   }
 }

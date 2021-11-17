@@ -167,7 +167,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                         sss_scale);
 }
 
-static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock;
   int distribution = node->custom1;
@@ -175,21 +175,11 @@ static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (STREQ(sock->name, "Transmission Roughness")) {
-      if (distribution == SHD_GLOSSY_GGX) {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag |= SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
     }
 
     if (STR_ELEM(sock->name, "Subsurface IOR", "Subsurface Anisotropy")) {
-      if (sss_method == SHD_SUBSURFACE_BURLEY) {
-        sock->flag |= SOCK_UNAVAIL;
-      }
-      else {
-        sock->flag &= ~SOCK_UNAVAIL;
-      }
+      nodeSetSocketAvailability(ntree, sock, sss_method == SHD_SUBSURFACE_BURLEY);
     }
   }
 }

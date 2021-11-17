@@ -68,15 +68,17 @@ static void geo_node_volume_to_mesh_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_volume_to_mesh_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_volume_to_mesh_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryVolumeToMesh *data = (NodeGeometryVolumeToMesh *)node->storage;
 
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(voxel_amount_socket,
+  nodeSetSocketAvailability(ntree,
+                            voxel_amount_socket,
                             data->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT);
-  nodeSetSocketAvailability(voxel_size_socket,
+  nodeSetSocketAvailability(ntree,
+                            voxel_size_socket,
                             data->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE);
 }
 

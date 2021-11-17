@@ -71,20 +71,23 @@ static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = node_storage;
 }
 
-static void geo_node_point_rotate_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_point_rotate_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)node->storage;
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Axis",
       (GeometryNodeAttributeInputMode)node_storage->input_type_axis,
       node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Angle",
       (GeometryNodeAttributeInputMode)node_storage->input_type_angle,
       node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Rotation",
       (GeometryNodeAttributeInputMode)node_storage->input_type_rotation,

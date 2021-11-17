@@ -50,12 +50,12 @@ static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_point_scale_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_point_scale_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointScale &node_storage = *(NodeGeometryPointScale *)node->storage;
 
   update_attribute_input_socket_availabilities(
-      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage.input_type);
+      *ntree, *node, "Factor", (GeometryNodeAttributeInputMode)node_storage.input_type);
 }
 
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)

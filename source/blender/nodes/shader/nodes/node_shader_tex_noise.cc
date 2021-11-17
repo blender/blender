@@ -76,14 +76,14 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out);
 }
 
-static void node_shader_update_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
 
   NodeTexNoise *tex = (NodeTexNoise *)node->storage;
-  nodeSetSocketAvailability(sockVector, tex->dimensions != 1);
-  nodeSetSocketAvailability(sockW, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree, sockVector, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, sockW, tex->dimensions == 1 || tex->dimensions == 4);
 }
 
 namespace blender::nodes {

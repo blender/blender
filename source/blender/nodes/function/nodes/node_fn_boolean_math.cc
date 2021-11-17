@@ -39,12 +39,12 @@ static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void node_boolean_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_boolean_math_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
 
-  nodeSetSocketAvailability(sockB,
-                            ELEM(node->custom1, NODE_BOOLEAN_MATH_AND, NODE_BOOLEAN_MATH_OR));
+  nodeSetSocketAvailability(
+      ntree, sockB, ELEM(node->custom1, NODE_BOOLEAN_MATH_AND, NODE_BOOLEAN_MATH_OR));
 }
 
 static void node_boolean_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)

@@ -63,7 +63,7 @@ static eNodeSocketDatatype custom_data_type_to_socket_type(const CustomDataType 
   }
 }
 
-static void geo_node_viewer_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_viewer_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryViewer &storage = *(const NodeGeometryViewer *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
@@ -73,7 +73,7 @@ static void geo_node_viewer_update(bNodeTree *UNUSED(ntree), bNode *node)
     if (socket->type == SOCK_GEOMETRY) {
       continue;
     }
-    nodeSetSocketAvailability(socket, socket->type == socket_type);
+    nodeSetSocketAvailability(ntree, socket, socket->type == socket_type);
   }
 }
 

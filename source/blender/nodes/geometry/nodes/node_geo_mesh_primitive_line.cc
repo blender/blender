@@ -74,7 +74,7 @@ static void geo_node_mesh_primitive_line_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = node_storage;
 }
 
-static void geo_node_mesh_primitive_line_update(bNodeTree *UNUSED(tree), bNode *node)
+static void geo_node_mesh_primitive_line_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *count_socket = (bNodeSocket *)node->inputs.first;
   bNodeSocket *resolution_socket = count_socket->next;
@@ -90,10 +90,12 @@ static void geo_node_mesh_primitive_line_update(bNodeTree *UNUSED(tree), bNode *
                   (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
                                                                  N_("Offset"));
 
-  nodeSetSocketAvailability(resolution_socket,
+  nodeSetSocketAvailability(ntree,
+                            resolution_socket,
                             mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  nodeSetSocketAvailability(count_socket,
+  nodeSetSocketAvailability(ntree,
+                            count_socket,
                             mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }

@@ -53,7 +53,7 @@ static void geo_node_attribute_clamp_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_attribute_clamp_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_clamp_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_min_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 3);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -66,14 +66,14 @@ static void geo_node_attribute_clamp_update(bNodeTree *UNUSED(ntree), bNode *nod
 
   const NodeAttributeClamp &storage = *(const NodeAttributeClamp *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  nodeSetSocketAvailability(sock_min_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_max_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_min_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_max_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_min_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_max_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_min_color, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(sock_max_color, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, sock_min_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_max_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_min_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_max_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_min_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_max_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_min_color, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, sock_max_color, data_type == CD_PROP_COLOR);
 }
 
 template<typename T> T clamp_value(const T val, const T min, const T max);

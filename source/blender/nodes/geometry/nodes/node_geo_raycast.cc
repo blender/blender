@@ -78,7 +78,7 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_raycast_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
@@ -89,11 +89,11 @@ static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_vector = (bNodeSocket *)BLI_findlink(&node->outputs, 4);
   bNodeSocket *out_socket_float = out_socket_vector->next;
@@ -101,11 +101,11 @@ static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
 
-  nodeSetSocketAvailability(out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(out_socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(out_socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static eAttributeMapMode get_map_mode(GeometryNodeRaycastMapMode map_mode)

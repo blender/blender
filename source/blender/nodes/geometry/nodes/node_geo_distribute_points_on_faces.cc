@@ -67,19 +67,21 @@ static void geo_node_point_distribute_points_on_faces_layout(uiLayout *layout,
   uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
 }
 
-static void node_point_distribute_points_on_faces_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_distance_min = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sock_density_max = (bNodeSocket *)sock_distance_min->next;
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
-  nodeSetSocketAvailability(sock_distance_min,
+  nodeSetSocketAvailability(ntree,
+                            sock_distance_min,
                             node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  nodeSetSocketAvailability(sock_density_max,
-                            node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  nodeSetSocketAvailability(sock_density,
-                            node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
-  nodeSetSocketAvailability(sock_density_factor,
+  nodeSetSocketAvailability(
+      ntree, sock_density_max, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
+  nodeSetSocketAvailability(
+      ntree, sock_density, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
+  nodeSetSocketAvailability(ntree,
+                            sock_density_factor,
                             node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
 }
 

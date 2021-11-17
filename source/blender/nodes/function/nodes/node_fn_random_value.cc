@@ -63,7 +63,7 @@ static void fn_node_random_value_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void fn_node_random_value_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
 {
   const NodeRandomValue &storage = *(const NodeRandomValue *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
@@ -81,18 +81,18 @@ static void fn_node_random_value_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *sock_out_int = sock_out_float->next;
   bNodeSocket *sock_out_bool = sock_out_int->next;
 
-  nodeSetSocketAvailability(sock_min_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_max_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_min_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_max_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_min_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_max_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_probability, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, sock_min_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_max_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_min_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_max_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_min_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_max_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_probability, data_type == CD_PROP_BOOL);
 
-  nodeSetSocketAvailability(sock_out_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_out_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_out_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_out_bool, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_out_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
 }
 
 class RandomVectorFunction : public fn::MultiFunction {

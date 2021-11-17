@@ -141,19 +141,21 @@ static void geo_node_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *lab
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static void geo_node_attribute_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_math_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeMath &node_storage = *(NodeAttributeMath *)node->storage;
   NodeMathOperation operation = static_cast<NodeMathOperation>(node_storage.operation);
 
   update_attribute_input_socket_availabilities(
-      *node, "A", (GeometryNodeAttributeInputMode)node_storage.input_type_a);
+      *ntree, *node, "A", (GeometryNodeAttributeInputMode)node_storage.input_type_a);
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "B",
       (GeometryNodeAttributeInputMode)node_storage.input_type_b,
       operation_use_input_b(operation));
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "C",
       (GeometryNodeAttributeInputMode)node_storage.input_type_c,

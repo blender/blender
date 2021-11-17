@@ -57,7 +57,7 @@ static void geo_node_legacy_attribute_randomize_init(bNodeTree *UNUSED(tree), bN
   node->storage = data;
 }
 
-static void geo_node_legacy_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_legacy_attribute_randomize_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_min_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -68,12 +68,12 @@ static void geo_node_legacy_attribute_randomize_update(bNodeTree *UNUSED(ntree),
 
   const NodeAttributeRandomize &storage = *(const NodeAttributeRandomize *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  nodeSetSocketAvailability(sock_min_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_max_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(sock_min_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_max_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(sock_min_int, data_type == CD_PROP_INT32);
-  nodeSetSocketAvailability(sock_max_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_min_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_max_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, sock_min_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_max_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, sock_min_int, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, sock_max_int, data_type == CD_PROP_INT32);
 }
 
 template<typename T>

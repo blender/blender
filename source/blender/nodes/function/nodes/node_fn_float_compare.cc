@@ -42,12 +42,14 @@ static void geo_node_float_compare_layout(uiLayout *layout, bContext *UNUSED(C),
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void node_float_compare_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_float_compare_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockEpsilon = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
 
   nodeSetSocketAvailability(
-      sockEpsilon, ELEM(node->custom1, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL));
+      ntree,
+      sockEpsilon,
+      ELEM(node->custom1, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL));
 }
 
 static void node_float_compare_label(bNodeTree *UNUSED(ntree),

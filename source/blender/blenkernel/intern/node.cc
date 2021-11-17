@@ -3992,8 +3992,10 @@ int nodeSocketIsHidden(const bNodeSocket *sock)
   return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
 }
 
-void nodeSetSocketAvailability(bNodeSocket *sock, bool is_available)
+void nodeSetSocketAvailability(bNodeTree *UNUSED(ntree), bNodeSocket *sock, bool is_available)
 {
+  /* #ntree is not needed right now, but it's generally necessary when changing the tree because we
+   * want to tag it as changed in the future. */
   if (is_available) {
     sock->flag &= ~SOCK_UNAVAIL;
   }

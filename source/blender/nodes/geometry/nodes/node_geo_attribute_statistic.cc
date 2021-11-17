@@ -65,7 +65,7 @@ static void geo_node_attribute_statistic_init(bNodeTree *UNUSED(tree), bNode *no
   node->custom2 = ATTR_DOMAIN_POINT;
 }
 
-static void geo_node_attribute_statistic_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_statistic_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *socket_geo = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_float_attr = socket_geo->next;
@@ -91,25 +91,25 @@ static void geo_node_attribute_statistic_update(bNodeTree *UNUSED(ntree), bNode 
 
   const CustomDataType data_type = static_cast<CustomDataType>(node->custom1);
 
-  nodeSetSocketAvailability(socket_float_attr, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_mean, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_median, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_sum, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_min, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_max, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_range, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_std, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_float_variance, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_attr, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_mean, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_median, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_sum, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_min, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_max, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_range, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_std, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_float_variance, data_type == CD_PROP_FLOAT);
 
-  nodeSetSocketAvailability(socket_float3_attr, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_mean, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_median, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_sum, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_min, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_max, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_range, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_std, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_vector_variance, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_float3_attr, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_mean, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_median, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_sum, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_min, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_max, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_range, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_std, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
 }
 
 template<typename T> static T compute_sum(const Span<T> data)

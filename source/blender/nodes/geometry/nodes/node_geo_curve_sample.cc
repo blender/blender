@@ -51,7 +51,7 @@ static void geo_node_curve_sample_type_init(bNodeTree *UNUSED(tree), bNode *node
   node->storage = data;
 }
 
-static void geo_node_curve_sample_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_curve_sample_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurveSample &node_storage = *(NodeGeometryCurveSample *)node->storage;
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
@@ -59,8 +59,8 @@ static void geo_node_curve_sample_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *factor = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length = factor->next;
 
-  nodeSetSocketAvailability(factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  nodeSetSocketAvailability(length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 template<typename T> static T sample_with_lookup(const Spline::LookupResult lookup, Span<T> data)

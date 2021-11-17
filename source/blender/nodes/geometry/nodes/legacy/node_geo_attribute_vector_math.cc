@@ -166,19 +166,21 @@ static void geo_node_vector_math_label(bNodeTree *UNUSED(ntree),
   BLI_snprintf(label, maxlen, IFACE_("Vector %s"), IFACE_(name));
 }
 
-static void geo_node_attribute_vector_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_vector_math_update(bNodeTree *ntree, bNode *node)
 {
   const NodeAttributeVectorMath *node_storage = (NodeAttributeVectorMath *)node->storage;
   const NodeVectorMathOperation operation = (const NodeVectorMathOperation)node_storage->operation;
 
   update_attribute_input_socket_availabilities(
-      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
+      *ntree, *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "B",
       (GeometryNodeAttributeInputMode)node_storage->input_type_b,
       operation_use_input_b(operation));
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "C",
       (GeometryNodeAttributeInputMode)node_storage->input_type_c,

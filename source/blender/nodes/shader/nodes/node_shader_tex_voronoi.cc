@@ -123,7 +123,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out, GPU_constant(&metric));
 }
 
-static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
@@ -138,27 +138,31 @@ static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node
 
   NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
 
-  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
-  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree, inVectorSock, tex->dimensions != 1);
   nodeSetSocketAvailability(
+      ntree,
       inExponentSock,
       tex->distance == SHD_VORONOI_MINKOWSKI && tex->dimensions != 1 &&
           !ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  nodeSetSocketAvailability(inSmoothnessSock, tex->feature == SHD_VORONOI_SMOOTH_F1);
+  nodeSetSocketAvailability(ntree, inSmoothnessSock, tex->feature == SHD_VORONOI_SMOOTH_F1);
 
-  nodeSetSocketAvailability(outDistanceSock, tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outColorSock,
+  nodeSetSocketAvailability(ntree, outDistanceSock, tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree,
+                            outColorSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outPositionSock,
+  nodeSetSocketAvailability(ntree,
+                            outPositionSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                 tex->dimensions != 1);
-  nodeSetSocketAvailability(outWSock,
+  nodeSetSocketAvailability(ntree,
+                            outWSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                 (ELEM(tex->dimensions, 1, 4)));
-  nodeSetSocketAvailability(outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree, outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
 namespace blender::nodes {

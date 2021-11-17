@@ -49,11 +49,11 @@ static void geo_node_attribute_separate_xyz_init(bNodeTree *UNUSED(tree), bNode 
   node->storage = data;
 }
 
-static void geo_node_attribute_separate_xyz_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_attribute_separate_xyz_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeSeparateXYZ *node_storage = (NodeAttributeSeparateXYZ *)node->storage;
   update_attribute_input_socket_availabilities(
-      *node, "Vector", (GeometryNodeAttributeInputMode)node_storage->input_type);
+      *ntree, *node, "Vector", (GeometryNodeAttributeInputMode)node_storage->input_type);
 }
 
 static void extract_input(const int index, const Span<float3> &input, MutableSpan<float> result)

@@ -65,15 +65,19 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_raycast_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryRaycast *node_storage = (NodeGeometryRaycast *)node->storage;
   update_attribute_input_socket_availabilities(
+      *ntree,
       *node,
       "Ray Direction",
       (GeometryNodeAttributeInputMode)node_storage->input_type_ray_direction);
   update_attribute_input_socket_availabilities(
-      *node, "Ray Length", (GeometryNodeAttributeInputMode)node_storage->input_type_ray_length);
+      *ntree,
+      *node,
+      "Ray Length",
+      (GeometryNodeAttributeInputMode)node_storage->input_type_ray_length);
 }
 
 static void raycast_to_mesh(const Mesh &mesh,

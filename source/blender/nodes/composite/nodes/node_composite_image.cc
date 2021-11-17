@@ -372,7 +372,8 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
   for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock_next, sock_index++) {
     sock_next = sock->next;
     if (BLI_linklist_index(available_sockets.list, sock) >= 0) {
-      sock->flag &= ~(SOCK_UNAVAIL | SOCK_HIDDEN);
+      sock->flag &= ~SOCK_HIDDEN;
+      nodeSetSocketAvailability(ntree, sock, true);
     }
     else {
       bNodeLink *link;
@@ -386,7 +387,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
         nodeRemoveSocket(ntree, node, sock);
       }
       else {
-        sock->flag |= SOCK_UNAVAIL;
+        nodeSetSocketAvailability(ntree, sock, false);
       }
     }
   }

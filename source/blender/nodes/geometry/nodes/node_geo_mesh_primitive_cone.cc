@@ -76,7 +76,7 @@ static void geo_node_mesh_primitive_cone_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = node_storage;
 }
 
-static void geo_node_mesh_primitive_cone_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_mesh_primitive_cone_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
   bNodeSocket *rings_socket = vertices_socket->next;
@@ -86,7 +86,7 @@ static void geo_node_mesh_primitive_cone_update(bNodeTree *UNUSED(ntree), bNode 
   const GeometryNodeMeshCircleFillType fill_type =
       static_cast<const GeometryNodeMeshCircleFillType>(storage.fill_type);
   const bool has_fill = fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  nodeSetSocketAvailability(fill_subdiv_socket, has_fill);
+  nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void geo_node_mesh_primitive_cone_layout(uiLayout *layout,

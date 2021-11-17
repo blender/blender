@@ -59,7 +59,7 @@ static void geo_node_curve_primitive_line_init(bNodeTree *UNUSED(tree), bNode *n
   node->storage = data;
 }
 
-static void geo_node_curve_primitive_line_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_curve_primitive_line_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurvePrimitiveLine *node_storage = (NodeGeometryCurvePrimitiveLine *)
                                                            node->storage;
@@ -70,10 +70,11 @@ static void geo_node_curve_primitive_line_update(bNodeTree *UNUSED(ntree), bNode
   bNodeSocket *direction_socket = p2_socket->next;
   bNodeSocket *length_socket = direction_socket->next;
 
-  nodeSetSocketAvailability(p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
-  nodeSetSocketAvailability(direction_socket,
-                            mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
-  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(ntree, p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, direction_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(
+      ntree, length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
 }
 
 static std::unique_ptr<CurveEval> create_point_line_curve(const float3 start, const float3 end)

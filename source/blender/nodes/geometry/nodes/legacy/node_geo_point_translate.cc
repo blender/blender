@@ -81,12 +81,12 @@ static void geo_node_point_translate_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_point_translate_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_point_translate_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointTranslate &node_storage = *(NodeGeometryPointTranslate *)node->storage;
 
   update_attribute_input_socket_availabilities(
-      *node, "Translation", (GeometryNodeAttributeInputMode)node_storage.input_type);
+      *ntree, *node, "Translation", (GeometryNodeAttributeInputMode)node_storage.input_type);
 }
 
 }  // namespace blender::nodes

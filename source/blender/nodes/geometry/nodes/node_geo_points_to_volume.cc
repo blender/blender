@@ -61,16 +61,19 @@ static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
-static void geo_node_points_to_volume_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void geo_node_points_to_volume_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(voxel_amount_socket,
+  nodeSetSocketAvailability(ntree,
+                            voxel_amount_socket,
                             data->resolution_mode ==
                                 GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
-  nodeSetSocketAvailability(
-      voxel_size_socket, data->resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
+  nodeSetSocketAvailability(ntree,
+                            voxel_size_socket,
+                            data->resolution_mode ==
+                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
 }
 
 #ifdef WITH_OPENVDB

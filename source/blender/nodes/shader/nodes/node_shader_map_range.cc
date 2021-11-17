@@ -41,10 +41,10 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-static void node_shader_update_map_range(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockSteps = nodeFindSocket(node, SOCK_IN, "Steps");
-  nodeSetSocketAvailability(sockSteps, node->custom2 == NODE_MAP_RANGE_STEPPED);
+  nodeSetSocketAvailability(ntree, sockSteps, node->custom2 == NODE_MAP_RANGE_STEPPED);
 }
 
 static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)

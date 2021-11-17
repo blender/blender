@@ -97,12 +97,13 @@ void node_sock_label_clear(bNodeSocket *sock)
   }
 }
 
-void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+void node_math_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock1 = BLI_findlink(&node->inputs, 0);
   bNodeSocket *sock2 = BLI_findlink(&node->inputs, 1);
   bNodeSocket *sock3 = BLI_findlink(&node->inputs, 2);
-  nodeSetSocketAvailability(sock2,
+  nodeSetSocketAvailability(ntree,
+                            sock2,
                             !ELEM(node->custom1,
                                   NODE_MATH_SQRT,
                                   NODE_MATH_SIGN,
@@ -126,7 +127,8 @@ void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
                                       NODE_MATH_COSH,
                                       NODE_MATH_SINH,
                                       NODE_MATH_TANH));
-  nodeSetSocketAvailability(sock3,
+  nodeSetSocketAvailability(ntree,
+                            sock3,
                             ELEM(node->custom1,
                                  NODE_MATH_COMPARE,
                                  NODE_MATH_MULTIPLY_ADD,
