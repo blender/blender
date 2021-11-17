@@ -2194,5 +2194,24 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Change minimum zoom to 0.05f in the node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                if (region->v2d.minzoom > 0.05f) {
+                  region->v2d.minzoom = 0.05f;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -285,7 +285,7 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->v2d.max[0] = 32000.0f;
   region->v2d.max[1] = 32000.0f;
 
-  region->v2d.minzoom = 0.09f;
+  region->v2d.minzoom = 0.05f;
   region->v2d.maxzoom = 2.31f;
 
   region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
