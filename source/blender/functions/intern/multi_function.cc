@@ -18,28 +18,4 @@
 
 namespace blender::fn {
 
-class DummyMultiFunction : public MultiFunction {
- public:
-  DummyMultiFunction()
-  {
-    static MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static MFSignature create_signature()
-  {
-    MFSignatureBuilder signature{"Dummy"};
-    return signature.build();
-  }
-
-  void call(IndexMask UNUSED(mask),
-            MFParams UNUSED(params),
-            MFContext UNUSED(context)) const override
-  {
-  }
-};
-
-static DummyMultiFunction dummy_multi_function_;
-const MultiFunction &dummy_multi_function = dummy_multi_function_;
-
 }  // namespace blender::fn
