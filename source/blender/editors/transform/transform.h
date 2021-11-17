@@ -163,9 +163,7 @@ typedef enum {
   MOD_PRECISION = 1 << 1,
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
-  MOD_SNAP_TEMP = 1 << 4,
-  MOD_CONSTRAINT_SELECT_PLANE = 1 << 5,
-  MOD_EDIT_SNAP_SOURCE = 1 << 6,
+  MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
 } eTModifier;
 
 /** #TransSnap.status */
@@ -296,8 +294,6 @@ enum {
   TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
 
   TFM_MODAL_PRECISION = 30,
-
-  TFM_MODAL_EDIT_SNAP_SOURCE = 31,
 };
 
 /** \} */
@@ -765,7 +761,6 @@ void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
                      const int mval[2],
                      float output[3]);
-void transform_input_reset(MouseInput *mi, const int mval[2]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);

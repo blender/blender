@@ -654,32 +654,3 @@ void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], ui
   }
   immEnd();
 }
-
-void imm_drawX(const float cent[3], float size, const float tmat[4][4], uint pos)
-{
-  /* Draw an "X" indicating where the previous snap point is.
-   * This is useful for indicating perpendicular snap. */
-
-  /* v1, v2, v3 and v4 indicate the coordinates of the ends of the "X". */
-  float vx[3], vy[3], v1[3], v2[3], v3[3], v4[4];
-
-  mul_v3_v3fl(vx, tmat[0], size);
-  mul_v3_v3fl(vy, tmat[1], size);
-
-  add_v3_v3v3(v1, vx, vy);
-  sub_v3_v3v3(v2, vx, vy);
-  negate_v3_v3(v3, v1);
-  negate_v3_v3(v4, v2);
-
-  add_v3_v3(v1, cent);
-  add_v3_v3(v2, cent);
-  add_v3_v3(v3, cent);
-  add_v3_v3(v4, cent);
-
-  immBegin(GPU_PRIM_LINES, 4);
-  immVertex3fv(pos, v3);
-  immVertex3fv(pos, v1);
-  immVertex3fv(pos, v4);
-  immVertex3fv(pos, v2);
-  immEnd();
-}

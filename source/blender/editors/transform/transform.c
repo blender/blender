@@ -578,21 +578,6 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 static bool transform_modal_item_poll(const wmOperator *op, int value)
 {
   const TransInfo *t = op->customdata;
-  if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
-    if (value == TFM_MODAL_EDIT_SNAP_SOURCE) {
-      return true;
-    }
-    else if (!ELEM(value,
-                   TFM_MODAL_CANCEL,
-                   TFM_MODAL_CONFIRM,
-                   TFM_MODAL_SNAP_INV_ON,
-                   TFM_MODAL_SNAP_INV_OFF,
-                   TFM_MODAL_ADD_SNAP,
-                   TFM_MODAL_REMOVE_SNAP)) {
-      return false;
-    }
-  }
-
   switch (value) {
     case TFM_MODAL_CANCEL: {
       /* TODO: Canceling with LMB is not possible when the operator is activated
@@ -604,13 +589,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     case TFM_MODAL_PROPSIZE_UP:
     case TFM_MODAL_PROPSIZE_DOWN: {
       if ((t->flag & T_PROP_EDIT) == 0) {
-        return false;
-      }
-      break;
-    }
-    case TFM_MODAL_SNAP_INV_ON:
-    case TFM_MODAL_SNAP_INV_OFF: {
-      if (t->modifiers & MOD_SNAP_TEMP) {
         return false;
       }
       break;
@@ -686,19 +664,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_EDIT_SNAP_SOURCE: {
-      if (t->spacetype != SPACE_VIEW3D) {
-        return false;
-      }
-      if (t->flag & T_RELEASE_CONFIRM) {
-        return false;
-      }
-      if (!ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-        /* More modes can be added over time if this feature proves useful for them. */
-        return false;
-      }
-      break;
-    }
   }
   return true;
 }
@@ -749,7 +714,6 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
-      {TFM_MODAL_EDIT_SNAP_SOURCE, "EDIT_SNAP_SOURCE", 0, "Snap Source Toggle", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -927,12 +891,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         handled = true;
         break;
       case TFM_MODAL_CONFIRM:
-        if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
-          tranform_snap_source_mod_confirm(t);
-        }
-        else {
-          t->state = TRANS_CONFIRM;
-        }
+        t->state = TRANS_CONFIRM;
         handled = true;
         break;
       case TFM_MODAL_TRANSLATE:
@@ -1196,9 +1155,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->mouse.precision = 0;
           t->redraw |= TREDRAW_HARD;
         }
-        break;
-      case TFM_MODAL_EDIT_SNAP_SOURCE:
-        tranform_snap_source_mod_toggle(t);
         break;
       /* Those two are only handled in transform's own handler, see T44634! */
       case TFM_MODAL_EDGESLIDE_UP:
@@ -1576,7 +1532,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
   if (t->flag & T_MODAL) {
     /* do we check for parameter? */
-    if (transformModeUseSnap(t) && !(t->modifiers & MOD_SNAP_TEMP)) {
+    if (transformModeUseSnap(t)) {
       if (!(t->modifiers & MOD_SNAP) != !(ts->snap_flag & SCE_SNAP)) {
         if (t->modifiers & MOD_SNAP) {
           ts->snap_flag |= SCE_SNAP;
@@ -1964,17 +1920,14 @@ void transformApply(bContext *C, TransInfo *t)
 
   if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
     selectConstraint(t);
-    if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
-      tranform_snap_source_mod_update(t);
-    }
-    else if (t->transform) {
+    if (t->transform) {
       t->transform(t, t->mval); /* calls recalcData() */
+      viewRedrawForce(C, t);
     }
-  }
-
-  if (t->redraw & (TREDRAW_HARD | TREDRAW_SOFT)) {
-    viewRedrawForce(C, t);
     t->redraw = TREDRAW_NOTHING;
+  }
+  else if (t->redraw & TREDRAW_SOFT) {
+    viewRedrawForce(C, t);
   }
 
   /* If auto confirm is on, break after one pass */
