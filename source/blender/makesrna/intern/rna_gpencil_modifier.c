@@ -167,14 +167,14 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem modifier_modify_color_items[] = {
-    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke and Fill", "Modify fill and stroke colors"},
+    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
     {GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
     {GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem modifier_modify_opacity_items[] = {
-    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke and Fill", "Modify fill and stroke colors"},
+    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
     {GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
     {GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
     {GP_MODIFY_COLOR_HARDNESS, "HARDNESS", 0, "Hardness", "Modify stroke hardness"},
@@ -1450,7 +1450,7 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
   static EnumPropertyItem tint_mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Vertex Color affects to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Vertex Color affects to Fill only"},
-      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke and Fill", "Vertex Color affects to Stroke and Fill"},
+      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Vertex Color affects to Stroke and Fill"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2677,7 +2677,7 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
       {STROKE_AND_FILL,
        "STROKE_AND_FILL",
        0,
-       "Stroke and Fill",
+       "Stroke & Fill",
        "Manipulate both stroke and fill texture coordinates"},
       {0, NULL, 0, NULL, NULL},
   };
