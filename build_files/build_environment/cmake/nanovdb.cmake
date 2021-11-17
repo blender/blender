@@ -42,6 +42,7 @@ ExternalProject_Add(nanovdb
   URL_HASH ${NANOVDB_HASH_TYPE}=${NANOVDB_HASH}
   PREFIX ${BUILD_DIR}/nanovdb
   SOURCE_SUBDIR nanovdb
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/nanovdb/src/nanovdb < ${PATCH_DIR}/nanovdb.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/nanovdb ${DEFAULT_CMAKE_FLAGS} ${NANOVDB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/nanovdb
 )
