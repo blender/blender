@@ -24,6 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
+#include "BKE_object.h"
 
 #include "extract_mesh.h"
 
@@ -33,7 +34,7 @@ namespace blender::draw {
 /** \name Extract VCol
  * \{ */
 
-static void extract_vcol_init(const MeshRenderData *mr,
+ATTR_NO_OPT static void extract_vcol_init(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buf,
                               void *UNUSED(tls_data))
@@ -41,7 +42,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
-
+  
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 

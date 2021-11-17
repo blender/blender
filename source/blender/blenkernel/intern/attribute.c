@@ -301,7 +301,9 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return NULL;
 }
 
-CustomDataLayer *BKE_id_attribute_from_index(const ID *id, int lookup_index)
+CustomDataLayer *BKE_id_attribute_from_index(const ID *id,
+                                             int lookup_index,
+                                             const AttributeDomainMask domain_mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -310,7 +312,7 @@ CustomDataLayer *BKE_id_attribute_from_index(const ID *id, int lookup_index)
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
 
-    if (!customdata) {
+    if (!customdata || !((1 << (int)domain) & domain_mask)) {
       continue;
     }
 
@@ -486,7 +488,7 @@ void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
 {
   AttributeRef *ref = BKE_id_attributes_active_color_ref_p(id);
 
-  if (!ref) {
+  if (!ref || !ref->type) {
     fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
     return;
   }
@@ -535,7 +537,7 @@ CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
 {
   AttributeRef *ref = BKE_id_attributes_render_color_ref_p(id);
 
-  if (!ref) {
+  if (!ref || !ref->type) {
     fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
     return NULL;
   }

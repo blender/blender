@@ -1020,11 +1020,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   /* Color data is not available in Multires. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (!ss->vcol) {
+  if (!ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -153,6 +153,9 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }
+
+  mesh_dst->attr_color_active = mesh_src->attr_color_active;
+  mesh_dst->attr_color_render = mesh_src->attr_color_render;
 }
 
 static void mesh_free_data(ID *id)
@@ -1015,6 +1018,9 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
 
   me_dst->face_sets_color_seed = me_src->face_sets_color_seed;
   me_dst->face_sets_color_default = me_src->face_sets_color_default;
+
+  me_dst->attr_color_active = me_src->attr_color_active;
+  me_dst->attr_color_render = me_src->attr_color_render;
 
   /* Copy texture space. */
   me_dst->texflag = me_src->texflag;

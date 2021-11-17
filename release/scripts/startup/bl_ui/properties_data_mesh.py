@@ -450,6 +450,7 @@ class MESH_UL_color_attributes(UIList):
         for item in attrs:
             bad = item.domain not in ["POINT", "CORNER"]
             bad = bad or item.data_type not in ["FLOAT_COLOR", "BYTE_COLOR"]
+            bad = bad or item.temporary
 
             #if not bad:
             #print(bad, idx, item.name, item.domain, item.data_type)
@@ -501,7 +502,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
 
         col = row.column(align=True)
         col.operator("geometry.color_attribute_add", icon='ADD', text="")
-        col.operator("geometry.attribute_remove", icon='REMOVE', text="")
+        col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
         active = mesh.attributes.active
         
@@ -615,6 +616,20 @@ class MESH_UL_attributes(UIList):
         'FACE': "Face",
         'CORNER': "Face Corner",
     }
+
+    def filter_items(self, context, data, property):
+        attrs = getattr(data, property)
+        ret = []
+        idxs = []
+        idx = 0
+
+        for item in attrs:
+            ret.append(self.bitflag_filter_item if not item.temporary else 0)
+            idxs.append(idx)
+
+            idx += 1
+
+        return ret, idxs
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
