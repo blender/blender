@@ -88,9 +88,11 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
+
   CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
   AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
-  CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
+  CustomDataLayer *layer = BKE_id_attribute_new(
+      id, name, type, CD_MASK_PROP_ALL, domain, op->reports);
 
   if (layer == NULL) {
     return OPERATOR_CANCELLED;

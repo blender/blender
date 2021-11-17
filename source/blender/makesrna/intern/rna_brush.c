@@ -724,7 +724,7 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Brush_dyntopo_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  //Brush *br = (Brush *)ptr->data;
 }
 
 static void rna_Brush_material_update(bContext *UNUSED(C), PointerRNA *UNUSED(ptr))

@@ -211,7 +211,7 @@ struct StructRNA *rna_BrushChannel_refine(PointerRNA *ptr)
 
 BrushChannelSet *rna_BrushChannelSet_get_set(struct PointerRNA *ptr)
 {
-  BrushChannelSet *chset = NULL;
+  BrushChannelSet *chset;
   ID *id = ptr->owner_id;
 
   switch (GS(id->name)) {
@@ -228,6 +228,8 @@ BrushChannelSet *rna_BrushChannelSet_get_set(struct PointerRNA *ptr)
       chset = scene->toolsettings->sculpt->channels;
       break;
     }
+    default:
+      return NULL;
   }
 
   return chset;
@@ -577,7 +579,6 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
 char *rna_BrushChannel_rnapath(PointerRNA *ptr)
 {
   BrushChannel *ch = (BrushChannel *)ptr->data;
-  char buf[512];
 
   if (!ptr->owner_id) {
     return NULL;
@@ -626,7 +627,7 @@ int rna_BrushChannel_category_length(PointerRNA *ptr)
   return strlen(BKE_brush_channel_category_get((BrushChannel *)ptr->data));
 }
 
-int rna_BrushChannel_factor_value_editable(PointerRNA *ptr)
+int rna_BrushChannel_factor_value_editable(PointerRNA *ptr, const char **r_info)
 {
   return 1;
 }

@@ -1068,16 +1068,8 @@ void BM_mesh_bm_to_me(
 #endif
   }
 
-  int active_domains[4] = {
-      ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
-  CustomDataMergeState attr_states[4];
-
-  // undo mesh?
-  bool non_id_mesh = GS(me->id.name) != ID_ME;
-
-  for (int i = 0; !non_id_mesh && i < 4; i++) {
-    BKE_mesh_attributes_update_pre(me, active_domains[i], attr_states + i);
-  }
+  //undo mesh?
+  //bool non_id_mesh = GS(me->id.name) != ID_ME;
 
   /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
@@ -1135,11 +1127,6 @@ void BM_mesh_bm_to_me(
 
   /* This is called again, 'dotess' arg is used there. */
   BKE_mesh_update_customdata_pointers(me, 0);
-
-  for (int i = 0; !non_id_mesh && i < 4; i++) {
-    CustomData *dst;
-    BKE_mesh_attributes_update_post(me, active_domains[i], attr_states + i);
-  }
 
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1548,11 +1535,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   }
   mask.vmask &= ~CD_MASK_SHAPEKEY;
 
-  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_POINT, &bm->vdata, mask.vmask, CD_CALLOC, me->totvert);
-  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_EDGE, &bm->edata, mask.emask, CD_CALLOC, me->totedge);
-  BKE_mesh_customdata_merge(
-      me, ATTR_DOMAIN_CORNER, &bm->ldata, mask.lmask, CD_CALLOC, me->totloop);
-  BKE_mesh_customdata_merge(me, ATTR_DOMAIN_FACE, &bm->pdata, mask.pmask, CD_CALLOC, me->totpoly);
+  CustomData_merge(&bm->vdata, &me->vdata, mask.vmask, CD_CALLOC, me->totvert);
+  CustomData_merge(&bm->edata, &me->edata, mask.emask, CD_CALLOC, me->totedge);
+  CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_CALLOC, me->totloop);
+  CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_CALLOC, me->totpoly);
 
   BKE_mesh_update_customdata_pointers(me, false);
 

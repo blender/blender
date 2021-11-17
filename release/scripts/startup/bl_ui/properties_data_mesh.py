@@ -451,9 +451,13 @@ class MESH_UL_color_attributes(UIList):
             bad = item.domain not in ["POINT", "CORNER"]
             bad = bad or item.data_type not in ["FLOAT_COLOR", "BYTE_COLOR"]
 
+            #if not bad:
+            #print(bad, idx, item.name, item.domain, item.data_type)
+
             ret.append(self.bitflag_filter_item if not bad else 0)
             idxs.append(idx)
 
+            # note this is index in full attribute list, not color list
             idx += 1
 
         return ret, idxs

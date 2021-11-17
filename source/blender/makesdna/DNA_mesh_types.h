@@ -133,6 +133,11 @@ typedef struct Mesh_Runtime {
 
 } Mesh_Runtime;
 
+typedef struct AttributeRef {
+  int domain, type;
+  char name[64];
+} AttributeRef;
+
 typedef struct Mesh {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
@@ -197,11 +202,14 @@ typedef struct Mesh {
   int attributes_active_index;
   int vertex_group_active_index;
 
+  int active_color_index DNA_DEPRECATED;
+  int render_color_index DNA_DEPRECATED;
+
   /* note that this can be inside of either vdata or ldata,
      and can reference a layer of type CD_PROP_COLOR or
      CD_MLOOPCOL */
-  int active_color_index;
-  int render_color_index;
+  AttributeRef attr_color_active;
+  AttributeRef attr_color_render;
 
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track

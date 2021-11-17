@@ -3345,7 +3345,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
   if (use_speedvectors) {
     CustomDataLayer *velocity_layer = BKE_id_attribute_new(
-        &me->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, NULL);
+        &me->id, "velocity", CD_PROP_FLOAT3, CD_MASK_PROP_ALL, ATTR_DOMAIN_POINT, NULL);
     velarray = velocity_layer->data;
   }
 

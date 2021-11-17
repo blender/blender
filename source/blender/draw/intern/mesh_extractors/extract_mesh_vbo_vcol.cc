@@ -51,7 +51,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   */
   int vcol_types[2] = {CD_MLOOPCOL, CD_PROP_COLOR};
 
-  CustomDataLayer *actlayer = BKE_id_attributes_active_get((ID *)mr->me);
+  CustomDataLayer *actlayer = BKE_id_attributes_active_color_get((ID *)mr->me);
   AttributeDomain actdomain = actlayer ? BKE_id_attribute_domain((ID *)mr->me, actlayer) :
                                          ATTR_DOMAIN_AUTO;
   int actn = -1;
