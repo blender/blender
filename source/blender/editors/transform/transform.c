@@ -108,6 +108,9 @@ void setTransformViewMatrices(TransInfo *t)
     unit_m4(t->persinv);
     t->persp = RV3D_ORTHO;
   }
+
+  calculateCenter2D(t);
+  calculateCenterLocal(t, t->center_global);
 }
 
 void setTransformViewAspect(TransInfo *t, float r_aspect[3])
@@ -898,6 +901,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
       t->con.mode |= CON_SELECT;
     }
+
+    copy_v2_v2_int(t->mval, event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
     // t->redraw |= TREDRAW_SOFT;

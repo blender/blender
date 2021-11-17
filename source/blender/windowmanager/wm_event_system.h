@@ -147,7 +147,6 @@ typedef struct wmEventHandler_Dropbox {
 void wm_event_free_all(wmWindow *win);
 void wm_event_free(wmEvent *event);
 void wm_event_free_handler(wmEventHandler *handler);
-bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi);
 
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C);
