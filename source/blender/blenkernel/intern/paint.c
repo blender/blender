@@ -2704,8 +2704,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Regular mesh only draws from PBVH without modifiers and shape keys. */
-    const bool full_shading = (v3d && (v3d->shading.type > OB_SOLID));
-    return !(ss->shapekey_active || ss->deform_modifiers_active || full_shading);
+    return !(ss->shapekey_active || ss->deform_modifiers_active);
   }
 
   /* Multires and dyntopo always draw directly from the PBVH. */

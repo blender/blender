@@ -104,12 +104,12 @@ static struct GPUBatch **workbench_object_surface_material_get(Object *ob)
   return DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
 }
 
-static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
+ATTR_NO_OPT static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
                                             Object *ob,
                                             eV3DShadingColorType color_type)
 {
-  const bool use_single_drawcall = !ELEM(color_type, V3D_SHADING_MATERIAL_COLOR);
-  BLI_assert(color_type != V3D_SHADING_TEXTURE_COLOR);
+  const bool use_single_drawcall = !ELEM(
+      color_type, V3D_SHADING_MATERIAL_COLOR, V3D_SHADING_TEXTURE_COLOR);
 
   if (use_single_drawcall) {
     DRWShadingGroup *grp = workbench_material_setup(wpd, ob, 0, color_type, NULL);
@@ -121,6 +121,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
     for (int i = 0; i < materials_len; i++) {
       shgrps[i] = workbench_material_setup(wpd, ob, i + 1, color_type, NULL);
     }
+
     DRW_shgroup_call_sculpt_with_materials(shgrps, materials_len, ob);
   }
 }
@@ -240,7 +241,7 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
  * Decide what color-type to draw the object with.
  * In some cases it can be overwritten by #workbench_material_setup().
  */
-static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
+ATTR_NO_OPT static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
                                                      Object *ob,
                                                      bool *r_sculpt_pbvh,
                                                      bool *r_texpaint_mode,
@@ -295,11 +296,6 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     else if (is_vertpaint_mode && me && me->mloopcol) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
-  }
-
-  if (is_sculpt_pbvh && color_type == V3D_SHADING_TEXTURE_COLOR) {
-    /* Force use of material color for sculpt. */
-    color_type = V3D_SHADING_MATERIAL_COLOR;
   }
 
   if (r_draw_shadow) {

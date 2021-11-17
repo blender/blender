@@ -489,7 +489,8 @@ void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
                                    char *base_name,
                                    CustomData *data,
                                    CustomDataLayer *cl,
-                                   bool is_active_render)
+                                   bool is_active_render,
+                                   bool is_active_layer)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
   const char *layer_name = cl->name;
@@ -512,7 +513,7 @@ void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
   }
 
   /* Active display layer name. */
-  if (i == CustomData_get_active_layer(data, cl->type)) {
+  if (is_active_layer) {
     BLI_snprintf(attr_name, sizeof(attr_name), "a%s", base_name);
     GPU_vertformat_alias_add(format, attr_name);
   }

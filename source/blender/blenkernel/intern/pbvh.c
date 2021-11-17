@@ -1445,7 +1445,7 @@ bool BKE_pbvh_get_color_layer(PBVH *pbvh,
   }
 }
 
-static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
+ATTR_NO_OPT static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -1461,19 +1461,25 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   AttributeDomain vcol_domain;
 
   BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
-  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get((ID *)me);
+  CustomDataLayer *render_vcol_layer = NULL;
+  AttributeRef *render_ref = BKE_id_attributes_render_color_ref_p(&me->id);
 
-  if (pbvh->bm && render_vcol_layer) {
-    AttributeDomain domain = BKE_id_attribute_domain((ID *)me, render_vcol_layer);
-    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
+  CustomData *vdata, *ldata;
 
-    int idx = CustomData_get_named_layer_index(
-        cdata, render_vcol_layer->type, render_vcol_layer->name);
+  if (!pbvh->bm) {
+    vdata = pbvh->vdata ? pbvh->vdata : &me->vdata;
+    ldata = pbvh->ldata ? pbvh->ldata : &me->ldata;
+  }
+  else {
+    vdata = &pbvh->bm->vdata;
+    ldata = &pbvh->bm->ldata;
+  }
 
-    if (idx == -1) {
-      render_vcol_layer = NULL; /* layers hasn't been synced over yet */
-    }
-    else {
+  if (render_ref) {
+    CustomData *cdata = render_ref->domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+
+    int idx = CustomData_get_named_layer_index(cdata, render_ref->type, render_ref->name);
+    if (idx != -1) {
       render_vcol_layer = cdata->layers + idx;
     }
   }
@@ -1539,13 +1545,15 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         AttributeDomain domain;
 
         BKE_pbvh_get_color_layer(pbvh, pbvh->mesh, &cl, &domain);
-
+        
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      pbvh->verts,
+                                     vdata,
+                                     ldata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     cl ? cl->data : NULL,
-                                     cl ? cl->type : -1,
-                                     cl ? domain : ATTR_DOMAIN_AUTO,
+                                     cl,
+                                     render_vcol_layer,
+                                     domain, 
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
@@ -1735,7 +1743,7 @@ static void pbvh_update_draw_buffers(
       .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading, .mesh = me};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, false /*XXX*/, totnode);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_draw_buffer_cb, &settings);
 
   for (int i = 0; i < totnode; i++) {
@@ -3283,7 +3291,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     // check that need_full_render is set to GPU_pbvh_need_full_render_get(),
     // but only if nodes need updating
 
-    if (pbvh->type == PBVH_BMESH && pbvh->need_full_render != GPU_pbvh_need_full_render_get()) {
+    if (pbvh->type != PBVH_GRIDS && pbvh->need_full_render != GPU_pbvh_need_full_render_get()) {
       // update all nodes
       MEM_SAFE_FREE(nodes);
 

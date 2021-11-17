@@ -84,7 +84,8 @@ void DRW_make_cdlayer_attr_aliases(struct GPUVertFormat *format,
                                    char *base_name,
                                    struct CustomData *data,
                                    struct CustomDataLayer *cl,
-                                   bool is_active_render);
+                                   bool is_active_render,
+                                   bool is_active_layer);
 
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              struct RenderEngineType *engine_type,

@@ -139,7 +139,7 @@ void workbench_shader_library_ensure(void)
   }
 }
 
-static char *workbench_build_defines(
+ATTR_NO_OPT static char *workbench_build_defines(
     WORKBENCH_PrivateData *wpd, bool textured, bool tiled, bool cavity, bool curvature)
 {
   char *str = NULL;

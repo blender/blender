@@ -3637,6 +3637,8 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
     }
 
+    float (*uv)[2] = BLI_array_alloca(uv, 4*totuv);
+
     do {
       const void *ls2[2] = {l->head.data, l->next->head.data};
       float ws2[2] = {0.5f, 0.5f};
@@ -3648,7 +3650,6 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
         ws2[axis ^ 1] = 1.0f;
       }
 
-      float uv[2][2];
       for (int step = 0; uv_layer && step < 2; step++) {
         BMLoop *l1 = step ? l : l->next;
 

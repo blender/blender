@@ -488,9 +488,11 @@ void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
 {
   AttributeRef *ref = BKE_id_attributes_active_color_ref_p(id);
 
-  if (!ref || !ref->type) {
+  if (!ref) {
     fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
-    return;
+  }
+  if (!ref || !ref->type) {
+    return NULL;
   }
 
   DomainInfo info[ATTR_DOMAIN_NUM];
@@ -537,8 +539,10 @@ CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
 {
   AttributeRef *ref = BKE_id_attributes_render_color_ref_p(id);
 
-  if (!ref || !ref->type) {
+  if (!ref) {
     fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
+  }
+  if (!ref || !ref->type) {
     return NULL;
   }
 
