@@ -38,10 +38,13 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -82,12 +85,8 @@
 #include "bmesh.h"
 
 // TODO: figure out bad cross module refs
-void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob);
-BMesh *SCULPT_dyntopo_empty_bmesh();
 void SCULPT_undo_ensure_bmlog(Object *ob);
-void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);
 
 static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
@@ -1899,7 +1898,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
           if (idx == -1) {
             BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, key->name);
-            SCULPT_update_customdata_refs(ss, ob);
+            BKE_sculptsession_update_attr_refs(ob);
 
             idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
             ss->bm->vdata.layers[idx].uid = key->uid;
@@ -1945,7 +1944,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
         int cd_co = ss->bm->vdata.layers[idx].offset;
         ss->bm->vdata.layers[idx].uid = newkey->uid;
 
-        SCULPT_update_customdata_refs(ss, ob);
+        BKE_sculptsession_update_attr_refs(ob);
 
         BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
           float *keyco = BM_ELEM_CD_GET_VOID_P(v, cd_co);
@@ -2026,7 +2025,7 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 
   BLI_assert(me_eval != NULL);
   sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
-  SCULPT_dynamic_topology_sync_layers(ob_orig, me_orig);
+  BKE_sculptsession_sync_attributes(ob_orig, me_orig);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
@@ -2603,7 +2602,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
       // Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
 
-      SCULPT_dynamic_topology_sync_layers(ob, BKE_object_get_original_mesh(ob));
+      BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob));
     }
     return pbvh;
   }
@@ -2621,7 +2620,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
 
     if (is_dyntopo) {
-      BMesh *bm = SCULPT_dyntopo_empty_bmesh();
+      BMesh *bm = BKE_sculptsession_empty_bmesh_create();
 
       ob->sculpt->bm = bm;
 
@@ -2636,12 +2635,12 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                                                         .copy_temp_cdlayers = true,
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
-      SCULPT_dyntopo_node_layers_add(ob->sculpt, ob);
+      BKE_sculptsession_bmesh_add_layers(ob);
       SCULPT_undo_ensure_bmlog(ob);
 
       pbvh = build_pbvh_for_dynamic_topology(ob, true);
 
-      SCULPT_update_customdata_refs(ob->sculpt, ob);
+      BKE_sculptsession_update_attr_refs(ob);
     }
     else {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -2729,4 +2728,576 @@ void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uc
              &rgba[1],
              &rgba[2]);
   rgba_float_to_uchar(r_color, rgba);
+}
+
+int BKE_sculptsession_get_totvert(const SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return ss->totvert;
+    case PBVH_BMESH:
+      return BM_mesh_elem_count(BKE_pbvh_get_bmesh(ss->pbvh), BM_VERT);
+    case PBVH_GRIDS:
+      return BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+  }
+
+  return 0;
+}
+
+/**
+  Syncs customdata layers with internal bmesh, but ignores deleted layers.
+*/
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss || !ss->bm) {
+    return;
+  }
+
+  bool modified = false;
+  BMesh *bm = ss->bm;
+
+  CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+  CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX |
+                CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+
+  for (int i = 0; i < 4; i++) {
+    CustomDataLayer **newlayers = NULL;
+    BLI_array_declare(newlayers);
+
+    CustomData *data1 = cd1[i];
+    CustomData *data2 = cd2[i];
+
+    if (!data1->layers) {
+      modified |= data2->layers != NULL;
+      continue;
+    }
+
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
+
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      if (idx < 0) {
+        BLI_array_append(newlayers, cl1);
+      }
+    }
+
+    for (int j = 0; j < BLI_array_len(newlayers); j++) {
+      BM_data_layer_add_named(bm, data2, newlayers[j]->type, newlayers[j]->name);
+      modified = true;
+    }
+
+    /* sync various ids */
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
+
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+
+      if (idx == -1) {
+        continue;
+      }
+
+      CustomDataLayer *cl2 = data2->layers + idx;
+
+      cl2->anonymous_id = cl1->anonymous_id;
+      cl2->uid = cl1->uid;
+    }
+
+    bool typemap[CD_NUMTYPES] = {0};
+
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
+
+      if (typemap[cl1->type]) {
+        continue;
+      }
+
+      typemap[cl1->type] = true;
+
+      // find first layer
+      int baseidx = CustomData_get_layer_index(data2, cl1->type);
+
+      if (baseidx < 0) {
+        modified |= true;
+        continue;
+      }
+
+      CustomDataLayer *cl2 = data2->layers + baseidx;
+
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active;
+        cl2->active = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_rnd].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_rnd;
+        cl2->active_rnd = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_mask].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_mask;
+        cl2->active_mask = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_clone].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_clone;
+        cl2->active_clone = idx - baseidx;
+      }
+    }
+
+    BLI_array_free(newlayers);
+  }
+
+  if (modified && ss->bm) {
+    CustomData_regen_active_refs(&ss->bm->vdata);
+    CustomData_regen_active_refs(&ss->bm->edata);
+    CustomData_regen_active_refs(&ss->bm->ldata);
+    CustomData_regen_active_refs(&ss->bm->pdata);
+  }
+
+  BKE_sculptsession_update_attr_refs(ob);
+}
+
+BMesh *BKE_sculptsession_empty_bmesh_create()
+{
+  const BMAllocTemplate allocsize = {
+      .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
+
+  BMesh *bm = BM_mesh_create(
+      &allocsize,
+      &((struct BMeshCreateParams){.use_toolflags = false,
+                                   .create_unique_ids = true,
+                                   .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .id_map = true,
+                                   .temporary_ids = false,
+                                   .no_reuse_ids = false}));
+
+  return bm;
+}
+
+char dyntopop_node_idx_layer_id[] = "_dyntopo_node_id";
+char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
+
+void BKE_sculptsession_bmesh_add_layers(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  int cd_node_layer_index, cd_face_node_layer_index;
+
+  BMCustomLayerReq vlayers[] = {
+      {CD_PAINT_MASK, NULL, 0},
+      {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+
+  BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
+
+  ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+
+  BMCustomLayerReq flayers[] = {
+      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+  };
+  BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, 2);
+
+  // get indices again, as they might have changed after adding new layers
+  cd_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+  cd_face_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+
+  ss->cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
+
+  ss->cd_vert_node_offset = CustomData_get_n_offset(
+      &ss->bm->vdata,
+      CD_PROP_INT32,
+      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT32));
+
+  ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+
+  ss->cd_face_node_offset = CustomData_get_n_offset(
+      &ss->bm->pdata,
+      CD_PROP_INT32,
+      cd_face_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
+
+  ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+  ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+
+  ss->cd_face_areas = CustomData_get_named_layer(
+      &ss->bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+  ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
+
+  AttributeDomain domain;
+  CustomDataLayer *cl;
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
+    ss->vcol_domain = (int)domain;
+    ss->vcol_type = cl->type;
+    ss->cd_vcol_offset = cl->offset;
+  }
+  else {
+    ss->cd_vcol_offset = -1;
+    ss->vcol_type = -1;
+    ss->vcol_domain = (int)ATTR_DOMAIN_NUM;
+  }
+}
+
+static bool sculpt_temp_customlayer_get(SculptSession *ss,
+                                        Object *ob,
+                                        AttributeDomain domain,
+                                        int proptype,
+                                        const char *name,
+                                        SculptCustomLayer *out,
+                                        bool autocreate,
+                                        SculptLayerParams *params)
+{
+  if (ss->save_temp_layers && !params->simple_array) {
+    params->permanent = true;
+  }
+
+  bool simple_array = params->simple_array;
+  bool permanent = params->permanent;
+  bool nocopy = params->nocopy;
+  bool nointerp = params->nointerp;
+
+  out->params = *params;
+  out->proptype = proptype;
+  out->domain = domain;
+  BLI_strncpy_utf8(out->name, name, sizeof(out->name));
+
+  if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    if (permanent) {
+      printf(
+          "%s: error: tried to make permanent customdata in multires mode; will make local "
+          "array "
+          "instead.\n",
+          __func__);
+      permanent = false;
+    }
+
+    // customdata attribute layers not supported for grids
+    simple_array = true;
+    out->params.simple_array = true;
+  }
+
+  BLI_assert(!(simple_array && permanent));
+
+  if (simple_array) {
+    CustomData *cdata = NULL;
+    int totelem = 0;
+
+    PBVHType pbvhtype = ss->pbvh ? BKE_pbvh_type(ss->pbvh) : (ss->bm ? PBVH_BMESH : PBVH_FACES);
+
+    switch (pbvhtype) {
+      case PBVH_BMESH: {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            cdata = &ss->bm->vdata;
+            totelem = ss->bm->totvert;
+            break;
+          case ATTR_DOMAIN_FACE:
+            cdata = &ss->bm->pdata;
+            totelem = ss->bm->totface;
+            break;
+          default:
+            return false;
+        }
+        break;
+      }
+      case PBVH_GRIDS: {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            cdata = ss->vdata;
+            totelem = BKE_sculptsession_get_totvert(ss);
+            break;
+          case ATTR_DOMAIN_FACE:
+            cdata = ss->pdata;
+            totelem = ss->totfaces;
+            break;
+          default:
+            return false;
+        }
+        break;
+      }
+      case PBVH_FACES: {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            cdata = ss->vdata;
+            totelem = ss->totvert;
+            break;
+          case ATTR_DOMAIN_FACE:
+            cdata = ss->pdata;
+            totelem = ss->totfaces;
+            break;
+          default:
+            return false;
+        }
+        break;
+      }
+    }
+
+    CustomData dummy = {0};
+    CustomData_reset(&dummy);
+    CustomData_add_layer(&dummy, proptype, CD_ASSIGN, NULL, 0);
+    int elemsize = (int)CustomData_get_elem_size(dummy.layers);
+
+    CustomData_free(&dummy, 0);
+
+    out->data = MEM_calloc_arrayN(totelem, elemsize, name);
+
+    out->is_cdlayer = false;
+    out->from_bmesh = ss->bm != NULL;
+    out->cd_offset = -1;
+    out->layer = NULL;
+    out->domain = domain;
+    out->proptype = proptype;
+    out->elemsize = elemsize;
+
+    /*grids cannot store normal customdata layers, and thus
+      we cannot rely on the customdata api to keep track of
+      and free their memory for us.
+
+      so instead we queue them in a dynamic array inside of
+      SculptSession.
+      */
+    if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+      ss->tot_layers_to_free++;
+
+      if (!ss->layers_to_free) {
+        ss->layers_to_free = MEM_calloc_arrayN(
+            ss->tot_layers_to_free, sizeof(void *), "ss->layers_to_free");
+      }
+      else {
+        ss->layers_to_free = MEM_recallocN(ss->layers_to_free,
+                                           sizeof(void *) * ss->tot_layers_to_free);
+      }
+
+      SculptCustomLayer *cpy = MEM_callocN(sizeof(SculptCustomLayer), "SculptCustomLayer cpy");
+      *cpy = *out;
+
+      ss->layers_to_free[ss->tot_layers_to_free - 1] = cpy;
+    }
+
+    return true;
+  }
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      CustomData *cdata = NULL;
+      out->from_bmesh = true;
+
+      if (!ss->bm) {
+        return false;
+      }
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          cdata = &ss->bm->vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          cdata = &ss->bm->pdata;
+          break;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        BM_data_layer_add_named(ss->bm, cdata, proptype, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+        BKE_sculptsession_bmesh_attr_update_internal(ob);
+
+        if (!permanent) {
+          cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+        }
+      }
+
+      if (nocopy) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOCOPY;
+      }
+      if (nointerp) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP;
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = out->layer->offset;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+
+      break;
+    }
+    case PBVH_FACES: {
+      CustomData *cdata = NULL;
+      int totelem = 0;
+
+      out->from_bmesh = false;
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          totelem = ss->totvert;
+          cdata = ss->vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          totelem = ss->totfaces;
+          cdata = ss->pdata;
+          break;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+      }
+
+      if (!permanent) {
+        cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = -1;
+      out->data = out->layer->data;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+      break;
+    }
+    case PBVH_GRIDS: {
+      CustomData *cdata = NULL;
+      int totelem = 0;
+
+      out->from_bmesh = false;
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          totelem = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+          cdata = &ss->temp_vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          // not supported
+          return false;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+        if (!permanent) {
+          cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+        }
+      }
+
+      if (nocopy) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOCOPY;
+      }
+      if (nointerp) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP;
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = -1;
+      out->data = out->layer->data;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+
+      break;
+    }
+  }
+
+  return true;
+}
+
+bool BKE_sculptsession_customlayer_get(Object *ob,
+                                       AttributeDomain domain,
+                                       int proptype,
+                                       const char *name,
+                                       SculptCustomLayer *scl,
+                                       SculptLayerParams *params)
+{
+  SculptSession *ss = ob->sculpt;
+
+  bool ret = sculpt_temp_customlayer_get(ss, ob, domain, proptype, name, scl, true, params);
+  BKE_sculptsession_update_attr_refs(ob);
+
+  return ret;
+}
+
+void BKE_sculptsession_bmesh_attr_update_internal(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  BKE_sculptsession_bmesh_add_layers(ob);
+
+  if (ss->pbvh) {
+    BKE_pbvh_update_offsets(ss->pbvh,
+                            ss->cd_vert_node_offset,
+                            ss->cd_face_node_offset,
+                            ss->cd_sculpt_vert,
+                            ss->cd_face_areas);
+  }
+  if (ss->bm_log) {
+    BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
+  }
+}
+
+void BKE_sculptsession_update_attr_refs(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  /* run twice, in case sculpt_temp_customlayer_get had to recreate a layer and
+     messed up the ordering. */
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < SCULPT_SCL_LAYER_MAX; j++) {
+      SculptCustomLayer *scl = ss->custom_layers[j];
+
+      if (scl && !scl->released && !scl->params.simple_array) {
+        sculpt_temp_customlayer_get(
+            ss, ob, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
+      }
+    }
+  }
+
+  if (ss->bm) {
+    BKE_sculptsession_bmesh_attr_update_internal(ob);
+  }
 }

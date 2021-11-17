@@ -25,6 +25,7 @@
 
 #include "BKE_brush_engine.h"
 #include "BKE_pbvh.h"
+#include "BKE_attribute.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
@@ -604,6 +605,32 @@ typedef struct SculptFakeNeighbors {
 
 /* Session data (mode-specific) */
 
+/* Custom Temporary Attributes */
+
+typedef struct SculptLayerParams {
+  int simple_array : 1;  // cannot be combined with permanent
+  int permanent : 1;     // cannot be combined with simple_array
+  int nocopy : 1;
+  int nointerp : 1;
+} SculptLayerParams;
+
+typedef struct SculptCustomLayer {
+  AttributeDomain domain;
+  int proptype;
+  SculptLayerParams params;
+
+  char name[512];
+
+  bool is_cdlayer;  // false for multires data
+  void *data;       // only valid for multires and face
+  int elemsize;
+  int cd_offset;                  // for bmesh
+  struct CustomDataLayer *layer;  // not for multires
+  bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
+                    // laplacian smooth
+  bool released;
+} SculptCustomLayer;
+
 /* These custom attributes have references
   (SculptCustomLayer pointers) inside of ss->custom_layers
   that are kept up to date with SCULPT_update_customdata_refs.
@@ -851,8 +878,20 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, struct PBVH *pbvh, int totvert);
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
+struct BMesh *BKE_sculptsession_empty_bmesh_create();
+void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
+bool BKE_sculptsession_customlayer_get(struct Object *ob,
+                                       AttributeDomain domain,
+                                       int proptype,
+                                       const char *name,
+                                       SculptCustomLayer *scl,
+                                       SculptLayerParams *params);
+void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
+void BKE_sculptsession_update_attr_refs(struct Object *ob);
+int BKE_sculptsession_get_totvert(const SculptSession *ss);
 
-/* Create new color layer on object if it doesn't have one and if experimental feature set has
+    /* Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise. */
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object);
 

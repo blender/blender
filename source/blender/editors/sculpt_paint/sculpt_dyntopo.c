@@ -85,19 +85,7 @@
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
 {
-  const BMAllocTemplate allocsize = {
-      .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
-
-  BMesh *bm = BM_mesh_create(
-      &allocsize,
-      &((struct BMeshCreateParams){.use_toolflags = false,
-                                   .create_unique_ids = true,
-                                   .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                   .id_map = true,
-                                   .temporary_ids = false,
-                                   .no_reuse_ids = false}));
-
-  return bm;
+  return BKE_sculptsession_empty_bmesh_create();
 }
 // TODO: check if (mathematically speaking) is it really necassary
 // to sort the edge lists around verts
@@ -540,29 +528,20 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   }
 }
 
-char dyntopop_node_idx_layer_id[] = "_dyntopo_node_id";
+extern char dyntopop_node_idx_layer_id[];
 
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob)
 {
-  SCULPT_dyntopo_node_layers_add(ss, ob);
-
-  if (ss->pbvh) {
-    BKE_pbvh_update_offsets(ss->pbvh,
-                            ss->cd_vert_node_offset,
-                            ss->cd_face_node_offset,
-                            ss->cd_sculpt_vert,
-                            ss->cd_face_areas);
-  }
-  if (ss->bm_log) {
-    BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
-  }
+  BKE_sculptsession_bmesh_attr_update_internal(ob);
 }
 
+/* DEPRECATED */
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
 {
   return CustomData_get_named_layer_index(&ss->bm->vdata, type, name) >= 0;
 }
 
+/* DEPRECATED */
 void SCULPT_dyntopo_ensure_templayer(
     SculptSession *ss, Object *ob, int type, const char *name, bool not_temporary)
 {
@@ -581,6 +560,7 @@ void SCULPT_dyntopo_ensure_templayer(
   }
 }
 
+/* DEPRECATED */
 int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
 {
   int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
@@ -593,68 +573,11 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
       &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
 }
 
-char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
+extern char dyntopop_faces_areas_layer_id[];
 
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob)
 {
-  int cd_node_layer_index, cd_face_node_layer_index;
-
-  BMCustomLayerReq vlayers[] = {
-      {CD_PAINT_MASK, NULL, 0},
-      {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
-
-  BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
-
-  ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
-
-  BMCustomLayerReq flayers[] = {
-      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-  };
-  BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, 2);
-
-  // get indices again, as they might have changed after adding new layers
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-  cd_face_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-
-  ss->cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
-
-  ss->cd_vert_node_offset = CustomData_get_n_offset(
-      &ss->bm->vdata,
-      CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT32));
-
-  ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-
-  ss->cd_face_node_offset = CustomData_get_n_offset(
-      &ss->bm->pdata,
-      CD_PROP_INT32,
-      cd_face_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
-
-  ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-  ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
-
-  ss->cd_face_areas = CustomData_get_named_layer(
-      &ss->bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
-  ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
-
-  AttributeDomain domain;
-  CustomDataLayer *cl;
-  Mesh *me = BKE_object_get_original_mesh(ob);
-
-  if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
-    ss->vcol_domain = (int)domain;
-    ss->vcol_type = cl->type;
-    ss->cd_vcol_offset = cl->offset;
-  }
-  else {
-    ss->cd_vcol_offset = -1;
-    ss->vcol_type = -1;
-    ss->vcol_domain = (int)ATTR_DOMAIN_NUM;
-  }
+  BKE_sculptsession_bmesh_add_layers(ob);
 }
 
 /**
@@ -662,131 +585,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob)
 */
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 {
-  SculptSession *ss = ob->sculpt;
-
-  if (!ss || !ss->bm) {
-    return;
-  }
-
-  bool modified = false;
-  BMesh *bm = ss->bm;
-
-  CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
-  CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX |
-                CD_MASK_ORIGSPACE | CD_MASK_MFACE;
-
-  for (int i = 0; i < 4; i++) {
-    CustomDataLayer **newlayers = NULL;
-    BLI_array_declare(newlayers);
-
-    CustomData *data1 = cd1[i];
-    CustomData *data2 = cd2[i];
-
-    if (!data1->layers) {
-      modified |= data2->layers != NULL;
-      continue;
-    }
-
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-      if (idx < 0) {
-        BLI_array_append(newlayers, cl1);
-      }
-    }
-
-    for (int j = 0; j < BLI_array_len(newlayers); j++) {
-      BM_data_layer_add_named(bm, data2, newlayers[j]->type, newlayers[j]->name);
-      modified = true;
-    }
-
-    /* sync various ids */
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-
-      if (idx == -1) {
-        continue;
-      }
-
-      CustomDataLayer *cl2 = data2->layers + idx;
-
-      cl2->anonymous_id = cl1->anonymous_id;
-      cl2->uid = cl1->uid;
-    }
-
-    bool typemap[CD_NUMTYPES] = {0};
-
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      if (typemap[cl1->type]) {
-        continue;
-      }
-
-      typemap[cl1->type] = true;
-
-      // find first layer
-      int baseidx = CustomData_get_layer_index(data2, cl1->type);
-
-      if (baseidx < 0) {
-        modified |= true;
-        continue;
-      }
-
-      CustomDataLayer *cl2 = data2->layers + baseidx;
-
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active;
-        cl2->active = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_rnd].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_rnd;
-        cl2->active_rnd = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_mask].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_mask;
-        cl2->active_mask = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_clone].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_clone;
-        cl2->active_clone = idx - baseidx;
-      }
-    }
-
-    BLI_array_free(newlayers);
-  }
-
-  if (modified && ss->bm) {
-    CustomData_regen_active_refs(&ss->bm->vdata);
-    CustomData_regen_active_refs(&ss->bm->edata);
-    CustomData_regen_active_refs(&ss->bm->ldata);
-    CustomData_regen_active_refs(&ss->bm->pdata);
-  }
-
-  SCULPT_update_customdata_refs(ss, ob);
+  BKE_sculptsession_sync_attributes(ob, me);
 }
 
 BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,

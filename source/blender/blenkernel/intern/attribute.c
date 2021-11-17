@@ -608,8 +608,7 @@ int BKE_id_attribute_index_from_ref(ID *id,
     for (int i = 0; i < data->totlayer; i++) {
       CustomDataLayer *layer = data->layers + i;
 
-      if (layer->type == ref->type &&
-          STREQ(layer->name, ref->name)) {
+      if (layer->type == ref->type && STREQ(layer->name, ref->name)) {
         return index;
       }
 
@@ -643,15 +642,15 @@ bool BKE_id_attribute_ref_from_index(ID *id,
     for (int i = 0; i < data->totlayer; i++) {
       CustomDataLayer *layer = data->layers + i;
 
-      if (index == attr_index) {
-        r_ref->domain = domain;
-        r_ref->type = layer->type;
-        BLI_strncpy_utf8(r_ref->name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
-
-        return true;
-      }
-
       if (CD_TYPE_AS_MASK(layer->type) & type_filter) {
+        if (index == attr_index) {
+          r_ref->domain = domain;
+          r_ref->type = layer->type;
+          BLI_strncpy_utf8(r_ref->name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
+
+          return true;
+        }
+
         index++;
       }
     }

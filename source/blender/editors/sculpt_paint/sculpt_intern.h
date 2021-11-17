@@ -52,30 +52,6 @@ struct BrushChannelSet;
 
 enum ePaintSymmetryFlags;
 
-typedef struct SculptLayerParams {
-  int simple_array : 1;  // cannot be combined with permanent
-  int permanent : 1;     // cannot be combined with simple_array
-  int nocopy : 1;
-  int nointerp : 1;
-} SculptLayerParams;
-
-typedef struct SculptCustomLayer {
-  AttributeDomain domain;
-  int proptype;
-  SculptLayerParams params;
-
-  char name[512];
-
-  bool is_cdlayer;  // false for multires data
-  void *data;       // only valid for multires and face
-  int elemsize;
-  int cd_offset;           // for bmesh
-  CustomDataLayer *layer;  // not for multires
-  bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
-                    // laplacian smooth
-  bool released;
-} SculptCustomLayer;
-
 void SCULPT_clear_scl_pointers(SculptSession *ss);
 
 /*

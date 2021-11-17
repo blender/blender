@@ -34,7 +34,7 @@ namespace blender::draw {
 /** \name Extract VCol
  * \{ */
 
-ATTR_NO_OPT static void extract_vcol_init(const MeshRenderData *mr,
+static void extract_vcol_init(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buf,
                               void *UNUSED(tls_data))

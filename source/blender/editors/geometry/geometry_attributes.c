@@ -35,6 +35,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "DNA_mesh_types.h"
+
 #include "ED_object.h"
 
 #include "geometry_intern.h"
@@ -154,6 +156,66 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static void next_color_attr(struct ID *id, bool is_render)
+{
+  AttributeRef *ref = is_render ? BKE_id_attributes_render_color_ref_p(id) :
+                                  BKE_id_attributes_active_color_ref_p(id);
+
+  if (!ref) {
+    return;
+  }
+
+  AttributeDomainMask domain_mask = ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER;
+  CustomDataMask type_mask = CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL;
+
+  int length = BKE_id_attributes_length(id, domain_mask, type_mask);
+  int idx = BKE_id_attribute_index_from_ref(id, ref, domain_mask, type_mask);
+
+  if (idx == length - 1) {
+    idx = MAX2(idx - 1, 0);
+  }
+  else {
+    idx++;
+  }
+
+  BKE_id_attribute_ref_from_index(id, idx, domain_mask, type_mask, ref);
+}
+
+static void next_color_attrs(struct ID *id)
+{
+  next_color_attr(id, false); /* active */
+  next_color_attr(id, true);  /* render */
+}
+
+static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
+  {
+  Object *ob = ED_object_context(C);
+  ID *id = ob->data;
+
+  char name[MAX_NAME];
+  RNA_string_get(op->ptr, "name", name);
+  CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
+  AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
+  CustomDataLayer *layer = BKE_id_attribute_new(
+      id, name, type, CD_MASK_PROP_ALL, domain, op->reports);
+
+  if (layer == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_id_attributes_active_color_set(id, layer);
+
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_update_object_for_edit(
+        CTX_data_ensure_evaluated_depsgraph(C), ob, false, false, false);
+  }
+
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+  return OPERATOR_FINISHED;
+}
+
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -163,7 +225,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->poll = geometry_attributes_poll;
-  ot->exec = geometry_attribute_add_exec;
+  ot->exec = geometry_color_attribute_add_exec;
   ot->invoke = WM_operator_props_popup_confirm;
 
   /* flags */
@@ -211,6 +273,10 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (layer == BKE_id_attributes_active_color_get(id)) {
+    next_color_attrs(id);
+  }
+
   if (!BKE_id_attribute_remove(id, layer, op->reports)) {
     return OPERATOR_CANCELLED;
   }
@@ -218,6 +284,11 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   int *active_index = BKE_id_attributes_active_index_p(id);
   if (*active_index > 0) {
     *active_index -= 1;
+  }
+
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_update_object_for_edit(
+        CTX_data_ensure_evaluated_depsgraph(C), ob, false, false, false);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -241,7 +312,6 @@ void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-
 static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
@@ -252,13 +322,15 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  next_color_attrs(id);
+
   if (!BKE_id_attribute_remove(id, layer, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
-  int *active_index = BKE_id_attributes_active_index_p(id);
-  if (*active_index > 0) {
-    *active_index -= 1;
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_update_object_for_edit(
+        CTX_data_ensure_evaluated_depsgraph(C), ob, false, false, false);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -281,6 +353,7 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
 
   return false;
 }
+
 void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
 {
   /* identifiers */
