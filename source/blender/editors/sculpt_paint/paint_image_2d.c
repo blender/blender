@@ -381,18 +381,17 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
 }
 
 /* create a mask with the falloff strength */
-static ushort *brush_painter_curve_mask_new(BrushPainter *painter,
-                                            int diameter,
-                                            float radius,
-                                            const float pos[2])
+static ushort *brush_painter_curve_mask_init(
+    ushort *mask, BrushPainter *painter, int diameter, float radius, const float pos[2])
 {
+  BLI_assert_msg(MEM_allocN_len(mask) == diameter * diameter * sizeof(ushort),
+                 "Allocated size of mask doesn't match.");
+
   Brush *brush = painter->brush;
 
   int offset = (int)floorf(diameter / 2.0f);
 
-  ushort *mask, *m;
-
-  mask = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
+  ushort *m;
   m = mask;
 
   int aa_samples = 1.0f / (radius * 0.20f);
@@ -451,6 +450,20 @@ static ushort *brush_painter_curve_mask_new(BrushPainter *painter,
   }
 
   return mask;
+}
+
+static void brush_painter_curve_mask_refresh(
+    BrushPainter *painter, ImagePaintTile *tile, int diameter, float radius, const float pos[2])
+{
+  BrushPainterCache *cache = &tile->cache;
+
+  if (diameter != cache->lastdiameter) {
+    if (cache->curve_mask != NULL) {
+      MEM_freeN(cache->curve_mask);
+    }
+    cache->curve_mask = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
+  }
+  brush_painter_curve_mask_init(cache->curve_mask, painter, diameter, radius, pos);
 }
 
 /* create imbuf with brush color */
@@ -858,10 +871,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     }
   }
 
-  /* curve mask can only change if the size changes */
-  MEM_SAFE_FREE(cache->curve_mask);
-
-  cache->curve_mask = brush_painter_curve_mask_new(painter, diameter, size, pos);
+  /* Re-initialize the curve mask. Mask is always recreated due to the change of position. */
+  brush_painter_curve_mask_refresh(painter, tile, diameter, size, pos);
 
   /* detect if we need to recreate image brush buffer */
   if (diameter != cache->lastdiameter || (tex_rotation != cache->last_tex_rotation) || do_random ||
