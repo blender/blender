@@ -27,8 +27,6 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
-#include "kernel/sample/mis.h"
-
 CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME__
@@ -759,7 +757,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const float phase_pdf = shader_volume_phase_eval(kg, sd, phases, ls->D, &phase_eval);
 
   if (ls->shader & SHADER_USE_MIS) {
-    float mis_weight = power_heuristic(ls->pdf, phase_pdf);
+    float mis_weight = light_sample_mis_weight_nee(kg, ls->pdf, phase_pdf);
     bsdf_eval_mul(&phase_eval, mis_weight);
   }
 

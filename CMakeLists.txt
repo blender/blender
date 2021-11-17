@@ -411,6 +411,7 @@ option(WITH_CYCLES                   "Enable Cycles Render Engine" ON)
 option(WITH_CYCLES_OSL               "Build Cycles with OpenShadingLanguage support" ON)
 option(WITH_CYCLES_EMBREE            "Build Cycles with Embree support" ON)
 option(WITH_CYCLES_LOGGING           "Build Cycles with logging support" ON)
+option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debugging (e.g., MIS)" OFF)
 
 option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
 option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)

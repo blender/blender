@@ -392,6 +392,12 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     integrator->set_ao_bounces(0);
   }
 
+#ifdef WITH_CYCLES_DEBUG
+  DirectLightSamplingType direct_light_sampling_type = (DirectLightSamplingType)get_enum(
+      cscene, "direct_light_sampling_type", DIRECT_LIGHT_SAMPLING_NUM, DIRECT_LIGHT_SAMPLING_MIS);
+  integrator->set_direct_light_sampling_type(direct_light_sampling_type);
+#endif
+
   const DenoiseParams denoise_params = get_denoise_params(b_scene, b_view_layer, background);
   integrator->set_use_denoise(denoise_params.use);
 

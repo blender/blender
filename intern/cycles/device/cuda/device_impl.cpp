@@ -236,6 +236,10 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
   cflags += " -DWITH_NANOVDB";
 #  endif
 
+#  ifdef WITH_CYCLES_DEBUG
+  cflags += " -DWITH_CYCLES_DEBUG";
+#  endif
+
   return cflags;
 }
 

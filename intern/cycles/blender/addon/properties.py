@@ -218,6 +218,12 @@ enum_denoising_prefilter = (
     ('ACCURATE', "Accurate", "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time", 3),
 )
 
+enum_direct_light_sampling_type = (
+    ('MULTIPLE_IMPORTANCE_SAMPLING', "Multiple Importance Sampling", "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing", 0),
+    ('FORWARD_PATH_TRACING', "Forward Path Tracing", "Direct light contributions are only sampled using forward path tracing", 1),
+    ('NEXT_EVENT_ESTIMATION', "Next-Event Estimation", "Direct light contributions are only sampled using next-event estimation", 2),
+)
+
 def update_render_passes(self, context):
     scene = context.scene
     view_layer = context.view_layer
@@ -420,6 +426,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Minimum AA samples for adaptive sampling, to discover noisy features before stopping sampling. Zero for automatic setting based on noise threshold, for viewport renders",
         min=0, max=4096,
         default=0,
+    )
+
+    direct_light_sampling_type: EnumProperty(
+        name="Direct Light Sampling Type",
+        description="The type of strategy used for sampling direct light contributions",
+        items=enum_direct_light_sampling_type,
+        default='MULTIPLE_IMPORTANCE_SAMPLING',
     )
 
     min_light_bounces: IntProperty(

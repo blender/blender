@@ -481,6 +481,16 @@ enum PanoramaType {
   PANORAMA_NUM_TYPES,
 };
 
+/* Direct Light Sampling */
+
+enum DirectLightSamplingType {
+  DIRECT_LIGHT_SAMPLING_MIS = 0,
+  DIRECT_LIGHT_SAMPLING_FORWARD = 1,
+  DIRECT_LIGHT_SAMPLING_NEE = 2,
+
+  DIRECT_LIGHT_SAMPLING_NUM,
+};
+
 /* Differential */
 
 typedef struct differential3 {
@@ -1193,8 +1203,11 @@ typedef struct KernelIntegrator {
   /* Closure filter. */
   int filter_closures;
 
+  /* MIS debuging */
+  int direct_light_sampling_type;
+
   /* padding */
-  int pad1, pad2, pad3;
+  int pad1, pad2;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

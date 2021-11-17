@@ -20,7 +20,6 @@
 #include "kernel/integrator/shader_eval.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
-#include "kernel/sample/mis.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -81,8 +80,7 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
     const float pdf = background_light_pdf(kg, ray_P - ray_D * mis_ray_t, ray_D);
-    const float mis_weight = power_heuristic(mis_ray_pdf, pdf);
-
+    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
     L *= mis_weight;
   }
 #  endif
@@ -169,7 +167,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
         /* multiple importance sampling, get regular light pdf,
          * and compute weight with respect to BSDF pdf */
         const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-        const float mis_weight = power_heuristic(mis_ray_pdf, ls.pdf);
+        const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
         light_eval *= mis_weight;
       }
 

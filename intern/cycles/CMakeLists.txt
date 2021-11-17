@@ -226,6 +226,9 @@ add_definitions(
   -DCCL_NAMESPACE_END=}
 )
 
+if(WITH_CYCLES_DEBUG)
+  add_definitions(-DWITH_CYCLES_DEBUG)
+endif()
 if(WITH_CYCLES_STANDALONE_GUI)
   add_definitions(-DWITH_CYCLES_STANDALONE_GUI)
 endif()

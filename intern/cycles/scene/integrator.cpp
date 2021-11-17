@@ -52,6 +52,18 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(transparent_min_bounce, "Transparent Min Bounce", 0);
   SOCKET_INT(transparent_max_bounce, "Transparent Max Bounce", 7);
 
+#ifdef WITH_CYCLES_DEBUG
+  static NodeEnum direct_light_sampling_type_enum;
+  direct_light_sampling_type_enum.insert("multiple_importance_sampling",
+                                         DIRECT_LIGHT_SAMPLING_MIS);
+  direct_light_sampling_type_enum.insert("forward_path_tracing", DIRECT_LIGHT_SAMPLING_FORWARD);
+  direct_light_sampling_type_enum.insert("next_event_estimation", DIRECT_LIGHT_SAMPLING_NEE);
+  SOCKET_ENUM(direct_light_sampling_type,
+              "Direct Light Sampling Type",
+              direct_light_sampling_type_enum,
+              DIRECT_LIGHT_SAMPLING_MIS);
+#endif
+
   SOCKET_INT(ao_bounces, "AO Bounces", 0);
   SOCKET_FLOAT(ao_factor, "AO Factor", 0.0f);
   SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
@@ -170,6 +182,12 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->ao_bounces_distance = ao_distance;
   kintegrator->ao_bounces_factor = ao_factor;
   kintegrator->ao_additive_factor = ao_additive_factor;
+
+#ifdef WITH_CYCLES_DEBUG
+  kintegrator->direct_light_sampling_type = direct_light_sampling_type;
+#else
+  kintegrator->direct_light_sampling_type = DIRECT_LIGHT_SAMPLING_MIS;
+#endif
 
   /* Transparent Shadows
    * We only need to enable transparent shadows, if we actually have

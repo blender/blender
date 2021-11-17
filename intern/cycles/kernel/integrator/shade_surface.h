@@ -27,8 +27,6 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
-#include "kernel/sample/mis.h"
-
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
@@ -95,8 +93,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
     /* Multiple importance sampling, get triangle light pdf,
      * and compute weight with respect to BSDF pdf. */
     float pdf = triangle_light_pdf(kg, sd, t);
-    float mis_weight = power_heuristic(bsdf_pdf, pdf);
-
+    float mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
     L *= mis_weight;
   }
 
@@ -155,7 +152,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   bsdf_eval_mul3(&bsdf_eval, light_eval / ls.pdf);
 
   if (ls.shader & SHADER_USE_MIS) {
-    const float mis_weight = power_heuristic(ls.pdf, bsdf_pdf);
+    const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
     bsdf_eval_mul(&bsdf_eval, mis_weight);
   }
 
