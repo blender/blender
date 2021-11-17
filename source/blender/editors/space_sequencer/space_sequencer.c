@@ -184,7 +184,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.cur = region->v2d.tot;
 
   region->v2d.min[0] = 10.0f;
-  region->v2d.min[1] = 4.0f;
+  region->v2d.min[1] = 1.0f;
 
   region->v2d.max[0] = MAXFRAMEF;
   region->v2d.max[1] = MAXSEQ;
