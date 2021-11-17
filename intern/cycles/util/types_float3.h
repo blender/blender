@@ -88,7 +88,7 @@ struct packed_float3 {
 };
 #endif
 
-static_assert(sizeof(packed_float3) == 12);
+static_assert(sizeof(packed_float3) == 12, "packed_float3 expected to be exactly 12 bytes");
 
 CCL_NAMESPACE_END
 

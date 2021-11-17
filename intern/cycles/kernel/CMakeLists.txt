@@ -410,7 +410,8 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
       --use_fast_math
-      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
+      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file}
+      -Wno-deprecated-gpu-targets)
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
