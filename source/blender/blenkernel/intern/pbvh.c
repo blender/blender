@@ -1698,14 +1698,24 @@ static void pbvh_update_draw_buffers(
     }
   }
 
-  GPU_pbvh_update_attribute_names(vdata,
-                                  ldata,
-                                  GPU_pbvh_need_full_render_get(),
-                                  pbvh->flags & PBVH_FAST_DRAW,
-                                  pbvh->vcol_type,
-                                  pbvh->vcol_domain,
-                                  vcol_layer,
-                                  render_vcol_layer);
+  /* rebuild all draw buffers if attribute layout changed */
+  if (GPU_pbvh_update_attribute_names(vdata,
+                                      ldata,
+                                      GPU_pbvh_need_full_render_get(),
+                                      pbvh->flags & PBVH_FAST_DRAW,
+                                      pbvh->vcol_type,
+                                      pbvh->vcol_domain,
+                                      vcol_layer,
+                                      render_vcol_layer)) {
+    // attribute layout changed; force rebuild
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+
+      if (node->flag & PBVH_Leaf) {
+        node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+      }
+    }
+  }
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -3318,10 +3328,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 // bad global from gpu_buffers.c
 extern bool pbvh_show_orig_co;
 
-void BKE_pbvh_draw_debug_cb(
-    PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth),
-    void *user_data)
+void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
+                            void (*draw_fn)(void *user_data,
+                                            const float bmin[3],
+                                            const float bmax[3],
+                                            PBVHNodeFlags flag,
+                                            int depth),
+                            void *user_data)
 {
   for (int a = 0; a < pbvh->totnode; a++) {
     PBVHNode *node = &pbvh->nodes[a];

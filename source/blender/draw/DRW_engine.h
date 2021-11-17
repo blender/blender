@@ -83,7 +83,8 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height);
 void DRW_make_cdlayer_attr_aliases(struct GPUVertFormat *format,
                                    char *base_name,
                                    struct CustomData *data,
-                                   struct CustomDataLayer *cl);
+                                   struct CustomDataLayer *cl,
+                                   bool is_active_render);
 
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              struct RenderEngineType *engine_type,

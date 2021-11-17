@@ -151,7 +151,7 @@ typedef struct ColorRef {
 
 #define MAX_GPU_MCOL 256
 
-static struct {
+typedef struct PBVHGPUFormat {
   GPUVertFormat format;
   uint pos, nor, msk, fset, uv;
   uint col[MAX_GPU_MCOL];
@@ -167,7 +167,9 @@ static struct {
   bool active_vcol_only;
   bool need_full_render;
   bool fast_mode;
-} g_vbo_id = {{0}};
+} PBVHGPUFormat;
+
+static PBVHGPUFormat g_vbo_id = {{0}};
 
 #ifdef NEW_ATTR_SYSTEM
 static CDLayerType cd_vert_layers[] = {
@@ -1387,7 +1389,30 @@ bool GPU_pbvh_need_full_render_get()
   return g_vbo_id.need_full_render;
 }
 
-void GPU_pbvh_update_attribute_names(CustomData *vdata,
+static bool gpu_pbvh_format_equals(PBVHGPUFormat *a, PBVHGPUFormat *b)
+{
+  bool bad = false;
+
+  bad |= a->active_vcol_only != b->active_vcol_only;
+  bad |= a->fast_mode != b->fast_mode;
+  bad |= a->need_full_render != b->need_full_render;
+
+#ifdef NEW_ATTR_SYSTEM
+  bad |= a->vertex_attrs_len != b->vertex_attrs_len;
+  bad |= a->loop_attrs_len != b->loop_attrs_len;
+#endif
+
+  bad |= a->totcol != b->totcol;
+  bad |= a->pos != b->pos;
+  bad |= a->uv != b->uv;
+  bad |= a->fset != b->fset;
+  bad |= a->msk != b->msk;
+  bad |= a->nor != b->nor;
+
+  return !bad;
+}
+
+bool GPU_pbvh_update_attribute_names(CustomData *vdata,
                                      CustomData *ldata,
                                      bool need_full_render,
                                      bool fast_mode,
@@ -1397,6 +1422,7 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata,
                                      CustomDataLayer *render_vcol_layer)
 {
   const bool active_only = !need_full_render;
+  PBVHGPUFormat old_format = g_vbo_id;
 
   debug_pass++;
 
@@ -1484,7 +1510,9 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata,
               &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
           g_vbo_id.totcol++;
 
-          DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", cdata, cl);
+          bool is_render = cl == render_vcol_layer;
+
+          DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", cdata, cl, is_render);
 
           if (cl == active_vcol_layer) {
             GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
@@ -1526,12 +1554,22 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata,
 
       const int cd_uv_index = CustomData_get_layer_index(ldata, CD_MLOOPUV);
       CustomDataLayer *cl = ldata->layers + cd_uv_index;
+
+      bool is_render = cl->active == cl->active_rnd;
+
       cl += cl->active;
 
-      DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "u", ldata, cl);
+      DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "u", ldata, cl, is_render);
     }
 #endif
   }
+
+  if (!gpu_pbvh_format_equals(&old_format, &g_vbo_id)) {
+    printf("gpu format update detected\n");
+    return true;
+  }
+
+  return false;
 }
 
 static void gpu_flat_vcol_make_vert(float co[3],

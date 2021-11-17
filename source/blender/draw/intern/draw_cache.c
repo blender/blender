@@ -243,7 +243,7 @@ static void UNUSED_FUNCTION(add_fancy_edge)(GPUVertBuf *vbo,
   GPU_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, co2);
 }
 
-#if 0 /* UNUSED */
+#if 0  /* UNUSED */
 static void add_lat_lon_vert(GPUVertBuf *vbo,
                              uint pos_id,
                              uint nor_id,
@@ -488,7 +488,8 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
 void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
                                    char *base_name,
                                    CustomData *data,
-                                   CustomDataLayer *cl)
+                                   CustomDataLayer *cl,
+                                   bool is_active_render)
 {
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
   const char *layer_name = cl->name;
@@ -506,9 +507,10 @@ void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
   GPU_vertformat_alias_add(format, attr_name);
 
   /* Active render layer name. */
-  if (i == CustomData_get_render_layer(data, cl->type)) {
+  if (is_active_render) {
     GPU_vertformat_alias_add(format, base_name);
   }
+
   /* Active display layer name. */
   if (i == CustomData_get_active_layer(data, cl->type)) {
     BLI_snprintf(attr_name, sizeof(attr_name), "a%s", base_name);

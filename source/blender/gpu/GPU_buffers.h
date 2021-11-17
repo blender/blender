@@ -110,7 +110,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int face_sets_color_default,
                                   const int update_flags);
 
-void GPU_pbvh_update_attribute_names(
+bool GPU_pbvh_update_attribute_names(
     CustomData *vdata,
     CustomData *ldata,
     bool need_full_render,

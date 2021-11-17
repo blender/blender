@@ -3295,9 +3295,27 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
             ss, ob, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
     }
+
+    if (ss->bm) {
+      BKE_sculptsession_bmesh_attr_update_internal(ob);
+    }
   }
 
-  if (ss->bm) {
-    BKE_sculptsession_bmesh_attr_update_internal(ob);
+  if (ss->pbvh) {
+    Mesh *me = BKE_object_get_original_mesh(ob);
+    AttributeDomain domain;
+    CustomDataLayer *layer = NULL;
+
+    BKE_pbvh_get_color_layer(ss->pbvh, me, &layer, &domain);
+
+    ss->vcol_domain = domain;
+    ss->vcol_type = layer->type;
+    
+    if (ss->bm) {
+      ss->cd_vcol_offset = layer->offset;
+    }
+    else {
+      ss->vcol = layer->data;
+    }
   }
 }

@@ -1544,7 +1544,13 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
 
   bool has_visible = false;
 
-  n->flag = PBVH_Leaf | PBVH_UpdateTris;
+  /* Build GPU buffers for new node */
+
+  n->flag = PBVH_Leaf | PBVH_UpdateTris | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
+            PBVH_UpdateTriAreas | PBVH_UpdateColor | PBVH_UpdateVisibility |
+            PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateCurvatureDir | PBVH_UpdateTriAreas
+            | PBVH_UpdateMask | PBVH_UpdateRedraw;
+
   n->bm_faces = BLI_table_gset_new_ex("bm_faces", node->totface);
 
   /* Create vert hash sets */
@@ -1590,9 +1596,6 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
              n->vb.bmin[2] <= n->vb.bmax[2]);
 
   n->orig_vb = n->vb;
-
-  /* Build GPU buffers for new node and update vertex normals */
-  BKE_pbvh_node_mark_rebuild_draw(n);
 
   BKE_pbvh_node_fully_hidden_set(n, !has_visible);
   n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
