@@ -149,7 +149,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   bool do_snap = RNA_boolean_get(op->ptr, "snap");
 
   if (do_snap) {
-    if (CTX_wm_space_seq(C)) {
+    if (CTX_wm_space_seq(C) && SEQ_editing_get(scene) != NULL) {
       frame = seq_frame_apply_snap(C, scene, frame);
     }
     else {
