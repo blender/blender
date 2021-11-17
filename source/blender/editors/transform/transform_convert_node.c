@@ -164,6 +164,7 @@ void createTransNodeData(TransInfo *t)
 void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
+  float offset[2] = {0.0f, 0.0f};
 
   View2DEdgePanData *customdata = (View2DEdgePanData *)t->custom.type.data;
 
@@ -177,13 +178,15 @@ void flushTransNodes(TransInfo *t)
           t->region->winrct.xmin + t->mval[0],
           t->region->winrct.ymin + t->mval[1],
       };
+      const rctf rect = t->region->v2d.cur;
       UI_view2d_edge_pan_apply(t->context, customdata, xy);
+      if (!BLI_rctf_compare(&rect, &t->region->v2d.cur, FLT_EPSILON)) {
+        /* Additional offset due to change in view2D rect. */
+        BLI_rctf_transform_pt_v(&t->region->v2d.cur, &rect, offset, offset);
+        t->flag |= T_VIEW_DIRTY;
+      }
     }
   }
-
-  /* Initial and current view2D rects for additional transform due to view panning and zooming */
-  const rctf *rect_src = &customdata->initial_rect;
-  const rctf *rect_dst = &t->region->v2d.cur;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     applyGridAbsolute(t);
@@ -195,10 +198,7 @@ void flushTransNodes(TransInfo *t)
       bNode *node = td->extra;
 
       float loc[2];
-      copy_v2_v2(loc, td2d->loc);
-
-      /* additional offset due to change in view2D rect */
-      BLI_rctf_transform_pt_v(rect_dst, rect_src, loc, loc);
+      add_v2_v2v2(loc, td2d->loc, offset);
 
 #ifdef USE_NODE_CENTER
       loc[0] -= 0.5f * BLI_rctf_size_x(&node->totr);
