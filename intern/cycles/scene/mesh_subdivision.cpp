@@ -331,7 +331,8 @@ struct OsdPatch : Patch {
 
   void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
   {
-    const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(patch_index, u, v);
+    const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
+        patch_index, (double)u, (double)v);
     assert(handle);
 
     float p_weights[20], du_weights[20], dv_weights[20];

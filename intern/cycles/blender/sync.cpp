@@ -872,7 +872,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   /* Time limit. */
   if (background) {
-    params.time_limit = get_float(cscene, "time_limit");
+    params.time_limit = (double)get_float(cscene, "time_limit");
   }
   else {
     /* For the viewport it kind of makes more sense to think in terms of the noise floor, which is

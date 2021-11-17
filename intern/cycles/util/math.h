@@ -801,7 +801,7 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
  * https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
 
-ccl_device_inline float compare_floats(float a, float b, float abs_diff, int ulp_diff)
+ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_diff)
 {
   if (fabsf(a - b) < abs_diff) {
     return true;

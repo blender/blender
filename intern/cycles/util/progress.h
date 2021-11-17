@@ -207,7 +207,7 @@ class Progress {
     if (total_pixel_samples > 0) {
       return ((double)pixel_samples) / (double)total_pixel_samples;
     }
-    return 0.0f;
+    return 0.0;
   }
 
   void add_samples(uint64_t pixel_samples_, int tile_sample)
