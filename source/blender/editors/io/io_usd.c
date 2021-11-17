@@ -158,17 +158,13 @@ const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
      "User",
      "Import attributes in the 'userProperties' namespace as "
      "Blender custom properties.  The namespace will "
-     "be stripped from the property names. "
-     "Note that attributes in the 'usdProperties:blenderName' namespace "
-     "will not be imported, as use of these attributes is deprecated"},
+     "be stripped from the property names"},
     {USD_ATTR_IMPORT_ALL,
      "ALL",
      0,
      "All Custom",
-     "Import all custom attributes as Blender custom properties. "
-     "Attribute namespaces will be retained in the property names. "
-     "Note that attributes in the 'usdProperties:blenderName' namespace "
-     "will not be imported, as use of these attributes is deprecated"},
+     "Import all USD custom attributes as Blender custom properties. "
+     "Namespaces will be retained in the property names"},
     {0, NULL, 0, NULL, NULL},
 };
 
