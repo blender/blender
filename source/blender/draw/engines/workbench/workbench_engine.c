@@ -104,7 +104,7 @@ static struct GPUBatch **workbench_object_surface_material_get(Object *ob)
   return DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
 }
 
-ATTR_NO_OPT static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
+static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
                                             Object *ob,
                                             eV3DShadingColorType color_type)
 {
@@ -241,7 +241,7 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
  * Decide what color-type to draw the object with.
  * In some cases it can be overwritten by #workbench_material_setup().
  */
-ATTR_NO_OPT static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
+static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
                                                      Object *ob,
                                                      bool *r_sculpt_pbvh,
                                                      bool *r_texpaint_mode,

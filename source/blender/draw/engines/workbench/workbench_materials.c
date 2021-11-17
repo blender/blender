@@ -158,7 +158,7 @@ BLI_INLINE bool workbench_material_chunk_select(WORKBENCH_PrivateData *wpd,
   return resource_changed;
 }
 
-ATTR_NO_OPT DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
+DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
                                              Object *ob,
                                              int mat_nr,
                                              eV3DShadingColorType color_type,

@@ -1445,7 +1445,7 @@ bool BKE_pbvh_get_color_layer(PBVH *pbvh,
   }
 }
 
-ATTR_NO_OPT static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
+static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -1545,7 +1545,7 @@ ATTR_NO_OPT static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         AttributeDomain domain;
 
         BKE_pbvh_get_color_layer(pbvh, pbvh->mesh, &cl, &domain);
-        
+
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      pbvh->verts,
                                      vdata,
@@ -1553,7 +1553,7 @@ ATTR_NO_OPT static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
                                      cl,
                                      render_vcol_layer,
-                                     domain, 
+                                     domain,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
@@ -1743,7 +1743,7 @@ static void pbvh_update_draw_buffers(
       .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading, .mesh = me};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, false /*XXX*/, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_draw_buffer_cb, &settings);
 
   for (int i = 0; i < totnode; i++) {

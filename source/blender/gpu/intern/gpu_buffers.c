@@ -481,7 +481,7 @@ static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
 }
 
 /* Threaded - do not call any functions that use OpenGL calls! */
-ATTR_NO_OPT void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
+void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
                                   const CustomData *vdata,
                                   const CustomData *ldata,
@@ -496,7 +496,7 @@ ATTR_NO_OPT void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 {
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
-  
+
   int totcol = gpu_pbvh_gpu_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
                                            CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
                                            vdata,
@@ -1413,18 +1413,18 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
   GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
 }
 
-ATTR_NO_OPT static int gpu_pbvh_gpu_make_attr_offs(AttributeDomainMask domain_mask,
-                                                   CustomDataMask type_mask,
-                                                   const CustomData *vdata,
-                                                   const CustomData *edata,
-                                                   const CustomData *ldata,
-                                                   const CustomData *pdata,
-                                                   GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
-                                                   bool active_only,
-                                                   int active_type,
-                                                   int active_domain,
-                                                   const CustomDataLayer *active_vcol_layer,
-                                                   const CustomDataLayer *render_vcol_layer)
+static int gpu_pbvh_gpu_make_attr_offs(AttributeDomainMask domain_mask,
+                                       CustomDataMask type_mask,
+                                       const CustomData *vdata,
+                                       const CustomData *edata,
+                                       const CustomData *ldata,
+                                       const CustomData *pdata,
+                                       GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
+                                       bool active_only,
+                                       int active_type,
+                                       int active_domain,
+                                       const CustomDataLayer *active_vcol_layer,
+                                       const CustomDataLayer *render_vcol_layer)
 {
   if (active_only) {
     const CustomData *cdata = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
@@ -1529,7 +1529,7 @@ static bool gpu_pbvh_format_equals(PBVHGPUFormat *a, PBVHGPUFormat *b)
   return !bad;
 }
 
-ATTR_NO_OPT bool GPU_pbvh_update_attribute_names(CustomData *vdata,
+bool GPU_pbvh_update_attribute_names(CustomData *vdata,
                                      CustomData *ldata,
                                      bool need_full_render,
                                      bool fast_mode,
