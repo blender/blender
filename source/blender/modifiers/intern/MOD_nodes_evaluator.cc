@@ -723,7 +723,7 @@ class GeometryNodesEvaluator {
       this->execute_node(node, node_state);
     }
 
-    this->node_task_postprocessing(node, node_state);
+    this->node_task_postprocessing(node, node_state, do_execute_node);
   }
 
   bool node_task_preprocessing(const DNode node, NodeState &node_state)
@@ -1006,7 +1006,7 @@ class GeometryNodesEvaluator {
     }
   }
 
-  void node_task_postprocessing(const DNode node, NodeState &node_state)
+  void node_task_postprocessing(const DNode node, NodeState &node_state, bool was_executed)
   {
     this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
       const bool node_has_finished = this->finish_node_if_possible(locked_node);
@@ -1017,8 +1017,9 @@ class GeometryNodesEvaluator {
         /* Either the node rescheduled itself or another node tried to schedule it while it ran. */
         this->schedule_node(locked_node);
       }
-
-      this->assert_expected_outputs_have_been_computed(locked_node);
+      if (was_executed) {
+        this->assert_expected_outputs_have_been_computed(locked_node);
+      }
     });
   }
 
