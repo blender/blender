@@ -21,7 +21,9 @@
  */
 
 #include <math.h>
+#include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -34,6 +36,8 @@
 
 #include "WM_api.h" /* Own include. */
 #include "WM_types.h"
+
+#include "wm_event_system.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -356,6 +360,103 @@ void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+bool WM_operator_do_navigation(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const char *op_names[] = {
+      /* 3D View. */
+      "VIEW3D_OT_zoom",
+      "VIEW3D_OT_rotate",
+      "VIEW3D_OT_move",
+      "VIEW3D_OT_view_pan",
+      "VIEW3D_OT_dolly",
+      "VIEW3D_OT_view_orbit",
+      "VIEW3D_OT_view_roll",
+#ifdef WITH_INPUT_NDOF
+      "VIEW3D_OT_ndof_orbit_zoom",
+      "VIEW3D_OT_ndof_orbit",
+      "VIEW3D_OT_ndof_pan",
+      "VIEW3D_OT_ndof_all",
+#endif
+      /* Image. */
+      "IMAGE_OT_view_pan",
+      "IMAGE_OT_view_zoom_in",
+      "IMAGE_OT_view_zoom_out",
+#ifdef WITH_INPUT_NDOF
+      "IMAGE_OT_view_ndof",
+#endif
+      /* View2D. */
+      "VIEW2D_OT_pan",
+      "VIEW2D_OT_zoom_in",
+      "VIEW2D_OT_zoom_out",
+#ifdef WITH_INPUT_NDOF
+      "VIEW2D_OT_ndof",
+#endif
+  };
+
+  static struct {
+    wmKeyMapItem *kmi;
+    wmOperatorType *ot;
+  } kmi_ot[70];
+  static int kmi_ot_len;
+
+  /* Lazy initialization (avoids having to allocating a context). */
+  static wmOperatorType *ot_last = NULL;
+  static char spacetype_last = SPACE_EMPTY;
+  SpaceLink *sl = CTX_wm_space_data(C);
+  if ((ot_last != op->type) || (spacetype_last != sl->spacetype)) {
+    ot_last = op->type;
+    spacetype_last = sl->spacetype;
+
+    wmWindowManager *wm = CTX_wm_manager(C);
+    wmKeyMap *km;
+    if (sl->spacetype == SPACE_VIEW3D) {
+      km = WM_keymap_find_all(wm, "3D View", SPACE_VIEW3D, 0);
+    }
+    else if (sl->spacetype == SPACE_IMAGE) {
+      km = WM_keymap_find_all(wm, "Image", SPACE_IMAGE, 0);
+    }
+    else {
+      km = WM_keymap_find_all(wm, "View2D", 0, 0);
+    }
+
+    kmi_ot_len = 0;
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
+      if (!(STRPREFIX(kmi->idname, "VIEW") || STRPREFIX(kmi->idname, "IMAGE"))) {
+        continue;
+      }
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+      for (int i = 0; i < ARRAY_SIZE(op_names); i++) {
+        if (STREQ(kmi->idname, op_names[i])) {
+          kmi_ot[kmi_ot_len].kmi = kmi;
+          kmi_ot[kmi_ot_len].ot = WM_operatortype_find(op_names[i], true);
+          kmi_ot_len++;
+          break;
+        }
+      }
+      if (kmi_ot_len == ARRAY_SIZE(kmi_ot)) {
+        BLI_assert(false);
+        break;
+      }
+    }
+  }
+
+  if (event->type == EVT_MODAL_MAP) {
+    wmWindow *win = CTX_wm_window(C);
+    event = win->eventstate;
+  }
+
+  for (int i = 0; i < kmi_ot_len; i++) {
+    if (wm_eventmatch(event, kmi_ot[i].kmi)) {
+      return WM_operator_name_call_ptr(
+                 C, kmi_ot[i].ot, WM_OP_INVOKE_DEFAULT, kmi_ot[i].kmi->ptr) != OPERATOR_CANCELLED;
+    }
+  }
+
+  return false;
 }
 
 /** \} */

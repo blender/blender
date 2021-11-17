@@ -155,6 +155,9 @@ typedef enum {
 
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
+
+  /** To indicate that V3D matrices have changed due to navigation. */
+  T_VIEW_DIRTY = 1 << 24,
 } eTFlag;
 
 /** #TransInfo.modifiers */
@@ -766,6 +769,7 @@ void applyMouseInput(struct TransInfo *t,
                      const int mval[2],
                      float output[3]);
 void transform_input_reset(MouseInput *mi, const int mval[2]);
+void transform_input_update(TransInfo *t, const float fac);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
@@ -798,6 +802,7 @@ void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 void calculateCenter(TransInfo *t);
+void tranformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points */
 void calculateCenterBound(TransInfo *t, float r_center[3]);

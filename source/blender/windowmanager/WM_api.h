@@ -640,6 +640,9 @@ char *WM_operatortype_description_or_name(struct bContext *C,
 
 /* wm_operator_utils.c */
 void WM_operator_type_modal_from_exec_for_object_edit_coords(struct wmOperatorType *ot);
+bool WM_operator_do_navigation(struct bContext *C,
+                               struct wmOperator *op,
+                               const struct wmEvent *event);
 
 /* wm_uilist_type.c */
 void WM_uilisttype_init(void);
