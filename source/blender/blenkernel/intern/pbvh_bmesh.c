@@ -1548,8 +1548,8 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
 
   n->flag = PBVH_Leaf | PBVH_UpdateTris | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
             PBVH_UpdateTriAreas | PBVH_UpdateColor | PBVH_UpdateVisibility |
-            PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateCurvatureDir | PBVH_UpdateTriAreas
-            | PBVH_UpdateMask | PBVH_UpdateRedraw;
+            PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateCurvatureDir |
+            PBVH_UpdateTriAreas | PBVH_UpdateMask | PBVH_UpdateRedraw;
 
   n->bm_faces = BLI_table_gset_new_ex("bm_faces", node->totface);
 

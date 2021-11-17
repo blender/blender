@@ -3310,7 +3310,7 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
 
     ss->vcol_domain = domain;
     ss->vcol_type = layer->type;
-    
+
     if (ss->bm) {
       ss->cd_vcol_offset = layer->offset;
     }
