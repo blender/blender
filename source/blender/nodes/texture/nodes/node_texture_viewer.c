@@ -60,8 +60,7 @@ void register_node_type_tex_viewer(void)
   node_type_socket_templates(&ntype, inputs, outputs);
   node_type_exec(&ntype, NULL, NULL, exec);
 
-  /* Do not allow muting viewer node. */
-  node_type_internal_links(&ntype, NULL);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }

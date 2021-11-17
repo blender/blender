@@ -5237,9 +5237,8 @@ bool nodeUpdateID(bNodeTree *ntree, ID *id)
 void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 {
   BLI_freelistN(&node->internal_links);
-
-  if (node->typeinfo && node->typeinfo->update_internal_links) {
-    node->typeinfo->update_internal_links(ntree, node);
+  if (!node->typeinfo->no_muting) {
+    node_internal_links_create(ntree, node);
   }
 }
 
@@ -5502,12 +5501,6 @@ void node_type_exec(struct bNodeType *ntype,
 void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn)
 {
   ntype->gpu_fn = gpu_fn;
-}
-
-void node_type_internal_links(bNodeType *ntype,
-                              void (*update_internal_links)(bNodeTree *, bNode *))
-{
-  ntype->update_internal_links = update_internal_links;
 }
 
 /* callbacks for undefined types */

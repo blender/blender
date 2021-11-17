@@ -59,7 +59,7 @@ void register_node_type_cmp_viewer(void)
   node_type_init(&ntype, node_composit_init_viewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 
-  node_type_internal_links(&ntype, nullptr);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }

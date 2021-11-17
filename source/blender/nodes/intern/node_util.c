@@ -41,6 +41,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "NOD_common.h"
+
 #include "node_util.h"
 
 /* -------------------------------------------------------------------- */
@@ -493,6 +495,10 @@ static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype 
 /* select a suitable input socket for an output */
 static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
 {
+  if (node->type == NODE_REROUTE) {
+    return node->inputs.first;
+  }
+
   bNodeSocket *selected = NULL, *input;
   int i;
   int sel_priority = -1;
@@ -526,7 +532,7 @@ static bNodeSocket *select_internal_link_input(bNode *node, bNodeSocket *output)
   return selected;
 }
 
-void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
+void node_internal_links_create(bNodeTree *ntree, bNode *node)
 {
   bNodeLink *link;
   bNodeSocket *output, *input;

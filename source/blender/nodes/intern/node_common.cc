@@ -251,26 +251,6 @@ void register_node_type_frame(void)
 /** \name Node Re-Route
  * \{ */
 
-/* simple, only a single input and output here */
-static void node_reroute_update_internal_links(bNodeTree *ntree, bNode *node)
-{
-  bNodeLink *link;
-
-  /* Security check! */
-  if (!ntree) {
-    return;
-  }
-
-  link = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "internal node link");
-  link->fromnode = node;
-  link->fromsock = (bNodeSocket *)node->inputs.first;
-  link->tonode = node;
-  link->tosock = (bNodeSocket *)node->outputs.first;
-  /* internal link is always valid */
-  link->flag |= NODE_LINK_VALID;
-  BLI_addtail(&node->internal_links, link);
-}
-
 static void node_reroute_init(bNodeTree *ntree, bNode *node)
 {
   /* NOTE: Cannot use socket templates for this, since it would reset the socket type
@@ -288,7 +268,6 @@ void register_node_type_reroute(void)
 
   node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
   node_type_init(ntype, node_reroute_init);
-  node_type_internal_links(ntype, node_reroute_update_internal_links);
 
   nodeRegisterType(ntype);
 }

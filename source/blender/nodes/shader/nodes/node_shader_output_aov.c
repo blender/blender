@@ -64,8 +64,7 @@ void register_node_type_sh_output_aov(void)
       &ntype, "NodeShaderOutputAOV", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_output_aov);
 
-  /* Do not allow muting output node. */
-  node_type_internal_links(&ntype, NULL);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }

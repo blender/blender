@@ -73,6 +73,5 @@ void geo_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
 {
   node_type_base(ntype, type, name, nclass, flag);
   ntype->poll = geo_node_poll_default;
-  ntype->update_internal_links = node_update_internal_links_default;
   ntype->insert_link = node_insert_link_default;
 }

@@ -57,7 +57,6 @@ void tex_node_type_base(
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;
-  ntype->update_internal_links = node_update_internal_links_default;
 }
 
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)

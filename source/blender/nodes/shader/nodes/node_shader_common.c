@@ -237,7 +237,6 @@ void register_node_type_sh_group(void)
   ntype.poll = sh_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
-  ntype.update_internal_links = node_update_internal_links_default;
   ntype.rna_ext.srna = RNA_struct_find("ShaderNodeGroup");
   BLI_assert(ntype.rna_ext.srna != NULL);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
@@ -260,9 +259,6 @@ void register_node_type_sh_custom_group(bNodeType *ntype)
   }
   if (ntype->insert_link == NULL) {
     ntype->insert_link = node_insert_link_default;
-  }
-  if (ntype->update_internal_links == NULL) {
-    ntype->update_internal_links = node_update_internal_links_default;
   }
 
   node_type_exec(ntype, group_initexec, group_freeexec, group_execute);

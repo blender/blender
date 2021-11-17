@@ -1775,8 +1775,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    /* Only allow muting of nodes having a mute func! */
-    if ((node->flag & SELECT) && node->typeinfo->update_internal_links) {
+    if ((node->flag & SELECT) && !node->typeinfo->no_muting) {
       node->flag ^= NODE_MUTED;
       snode_update(snode, node);
       do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, node));

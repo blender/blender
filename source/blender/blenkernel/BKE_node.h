@@ -318,8 +318,6 @@ typedef struct bNodeType {
 
   /* optional handling of link insertion */
   void (*insert_link)(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
-  /* Update the internal links list, for muting and disconnect operators. */
-  void (*update_internal_links)(struct bNodeTree *, struct bNode *node);
 
   void (*free_self)(struct bNodeType *ntype);
 
@@ -343,6 +341,9 @@ typedef struct bNodeType {
   bool declaration_is_dynamic;
   /* Declaration to be used when it is not dynamic. */
   NodeDeclarationHandle *fixed_declaration;
+
+  /** True when the node cannot be muted. */
+  bool no_muting;
 
   /* RNA integration */
   ExtensionRNA rna_ext;
@@ -891,8 +892,6 @@ void node_type_exec(struct bNodeType *ntype,
                     NodeFreeExecFunction free_exec_fn,
                     NodeExecFunction exec_fn);
 void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn);
-void node_type_internal_links(struct bNodeType *ntype,
-                              void (*update_internal_links)(struct bNodeTree *, struct bNode *));
 
 /** \} */
 

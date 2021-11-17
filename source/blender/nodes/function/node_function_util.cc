@@ -33,6 +33,5 @@ void fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
 {
   node_type_base(ntype, type, name, nclass, flag);
   ntype->poll = fn_node_poll_default;
-  ntype->update_internal_links = node_update_internal_links_default;
   ntype->insert_link = node_insert_link_default;
 }

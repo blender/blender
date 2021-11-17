@@ -172,8 +172,7 @@ void register_node_type_tex_output(void)
   node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
   node_type_exec(&ntype, NULL, NULL, exec);
 
-  /* Do not allow muting output. */
-  node_type_internal_links(&ntype, NULL);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }
