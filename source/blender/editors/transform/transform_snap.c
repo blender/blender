@@ -237,44 +237,12 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
         }
 
         if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
-          /* Indicate the new snap source position. */
-
           float snap_point[3];
           getSnapPoint(t, snap_point);
 
-          float vx[3], vy[3], v[3];
-          float size_tmp = ED_view3d_pixel_size(rv3d, snap_point) * size;
-          float size_fac = 0.5f;
-
-          mul_v3_v3fl(vx, view_inv[0], size_tmp);
-          mul_v3_v3fl(vy, view_inv[1], size_tmp);
-
           immUniformColor4ubv(col);
-
-          imm_drawcircball(snap_point, size_tmp, view_inv, pos);
-
-          immBegin(GPU_PRIM_LINES, 8);
-          add_v3_v3v3(v, snap_point, vx);
-          immVertex3fv(pos, v);
-          madd_v3_v3fl(v, vx, size_fac);
-          immVertex3fv(pos, v);
-
-          sub_v3_v3v3(v, snap_point, vx);
-          immVertex3fv(pos, v);
-          madd_v3_v3fl(v, vx, -size_fac);
-          immVertex3fv(pos, v);
-
-          add_v3_v3v3(v, snap_point, vy);
-          immVertex3fv(pos, v);
-          madd_v3_v3fl(v, vy, size_fac);
-          immVertex3fv(pos, v);
-
-          sub_v3_v3v3(v, snap_point, vy);
-          immVertex3fv(pos, v);
-          madd_v3_v3fl(v, vy, -size_fac);
-          immVertex3fv(pos, v);
-
-          immEnd();
+          imm_drawX(
+              snap_point, 0.75f * size * ED_view3d_pixel_size(rv3d, snap_point), view_inv, pos);
         }
 
         immUnbindProgram();
