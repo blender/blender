@@ -827,6 +827,26 @@ int RenderScheduler::get_num_samples_to_path_trace() const
       num_samples_to_occupy = lround(state_.occupancy_num_samples * 0.7f / state_.occupancy);
     }
 
+    /* When time limit is used clamp the calculated number of samples to keep occupancy.
+     * This is because time limit causes the last render iteration to happen with less number of
+     * samples, which conflicts with the occupancy (lower number of samples causes lower
+     * occupancy, also the calculation is based on number of previously rendered samples).
+     *
+     * When time limit is not used the number of samples per render iteration is either increasing
+     * or stays the same, so there is no need to clamp number of samples calculated for occupancy.
+     */
+    if (time_limit_ && state_.start_render_time) {
+      const double remaining_render_time = max(
+          0.0, time_limit_ - (time_dt() - state_.start_render_time));
+      const double time_per_sample_average = path_trace_time_.get_average();
+      const double predicted_render_time = num_samples_to_occupy * time_per_sample_average;
+
+      if (predicted_render_time > remaining_render_time) {
+        num_samples_to_occupy = lround(num_samples_to_occupy *
+                                       (remaining_render_time / predicted_render_time));
+      }
+    }
+
     num_samples_to_render = max(num_samples_to_render,
                                 min(num_samples_to_occupy, max_num_samples_to_render));
   }
