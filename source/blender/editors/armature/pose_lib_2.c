@@ -562,7 +562,7 @@ static bool poselib_blend_poll(bContext *C)
 void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
 {
   /* Identifiers: */
-  ot->name = "Apply Pose Library Pose";
+  ot->name = "Apply Pose Asset";
   ot->idname = "POSELIB_OT_apply_pose_asset";
   ot->description = "Apply the given Pose Action to the rig";
 
@@ -595,7 +595,7 @@ void POSELIB_OT_blend_pose_asset(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* Identifiers: */
-  ot->name = "Blend Pose Library Pose";
+  ot->name = "Blend Pose Asset";
   ot->idname = "POSELIB_OT_blend_pose_asset";
   ot->description = "Blend the given Pose Action to the rig";
 
