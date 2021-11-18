@@ -391,8 +391,9 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
     }
     else if (sod->mesh_runtime) {
       if (sod->mesh_runtime != snap_object_data_editmesh_runtime_get(ob_eval)) {
-        if (G.moving && !sod->treedata_editmesh.cached && !sod->cached[0] && !sod->cached[1]) {
+        if (G.moving) {
           /* Hack to avoid updating while transforming. */
+          BLI_assert(!sod->treedata_editmesh.cached && !sod->cached[0] && !sod->cached[1]);
           sod->mesh_runtime = snap_object_data_editmesh_runtime_get(ob_eval);
         }
         else {
@@ -2829,15 +2830,6 @@ void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx)
   MEM_freeN(sctx);
 }
 
-static void transform_snap_object_context_cache_clear(SnapObjectContext *sctx)
-{
-  BLI_ghash_clear(sctx->cache.object_map, NULL, snap_object_data_free);
-  if (sctx->cache.data_to_object_map != NULL) {
-    BLI_ghash_clear(sctx->cache.data_to_object_map, NULL, NULL);
-  }
-  BLI_memarena_clear(sctx->cache.mem_arena);
-}
-
 void ED_transform_snap_object_context_set_editmesh_callbacks(
     SnapObjectContext *sctx,
     bool (*test_vert_fn)(BMVert *, void *user_data),
@@ -2845,27 +2837,11 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
     bool (*test_face_fn)(BMFace *, void *user_data),
     void *user_data)
 {
-  bool is_cache_dirty = false;
-  if (sctx->callbacks.edit_mesh.test_vert_fn != test_vert_fn) {
-    sctx->callbacks.edit_mesh.test_vert_fn = test_vert_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.test_edge_fn != test_edge_fn) {
-    sctx->callbacks.edit_mesh.test_edge_fn = test_edge_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.test_face_fn != test_face_fn) {
-    sctx->callbacks.edit_mesh.test_face_fn = test_face_fn;
-    is_cache_dirty = true;
-  }
-  if (sctx->callbacks.edit_mesh.user_data != user_data) {
-    sctx->callbacks.edit_mesh.user_data = user_data;
-    is_cache_dirty = true;
-  }
+  sctx->callbacks.edit_mesh.test_vert_fn = test_vert_fn;
+  sctx->callbacks.edit_mesh.test_edge_fn = test_edge_fn;
+  sctx->callbacks.edit_mesh.test_face_fn = test_face_fn;
 
-  if (is_cache_dirty) {
-    transform_snap_object_context_cache_clear(sctx);
-  }
+  sctx->callbacks.edit_mesh.user_data = user_data;
 }
 
 bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
