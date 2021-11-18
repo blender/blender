@@ -678,8 +678,11 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
         load_data->start_frame += audio_frame_offset;
         seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, audio_skip);
 
-        int min_startdisp = MIN2(seq_movie->startdisp, seq_sound->startdisp);
-        int max_enddisp = MAX2(seq_movie->enddisp, seq_sound->enddisp);
+        int min_startdisp = 0, max_enddisp = 0;
+        if (seq_sound != NULL) {
+          min_startdisp = MIN2(seq_movie->startdisp, seq_sound->startdisp);
+          max_enddisp = MAX2(seq_movie->enddisp, seq_sound->enddisp);
+        }
 
         load_data->start_frame += max_enddisp - min_startdisp - audio_frame_offset;
       }
