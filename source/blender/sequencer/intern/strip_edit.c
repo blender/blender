@@ -221,6 +221,40 @@ static bool seq_exists_in_seqbase(Sequence *seq, ListBase *seqbase)
   return false;
 }
 
+/**
+ * Move sequence to seqbase.
+ *
+ * \param scene: Scene containing the editing
+ * \param dst_seqbase: seqbase where `seq` is located
+ * \param seq: Sequence to move
+ * \param dst_seqbase: Target seqbase
+ */
+bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
+                                    ListBase *seqbase,
+                                    Sequence *seq,
+                                    ListBase *dst_seqbase)
+{
+  /* Move to meta. */
+  BLI_remlink(seqbase, seq);
+  BLI_addtail(dst_seqbase, seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+
+  /* Update meta. */
+  if (SEQ_transform_test_overlap(dst_seqbase, seq)) {
+    SEQ_transform_seqbase_shuffle(dst_seqbase, seq, scene);
+  }
+
+  return true;
+}
+
+/**
+ * Move sequence to meta sequence.
+ *
+ * \param scene: Scene containing the editing
+ * \param src_seq: Sequence to move
+ * \param dst_seqm: Target Meta sequence
+ * \param error_str: Error message
+ */
 bool SEQ_edit_move_strip_to_meta(Scene *scene,
                                  Sequence *src_seq,
                                  Sequence *dst_seqm,
@@ -262,17 +296,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, collection) {
     /* Move to meta. */
-    BLI_remlink(seqbase, seq);
-    BLI_addtail(&dst_seqm->seqbase, seq);
-    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
-
-    /* Update meta. */
-    ListBase *meta_seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, dst_seqm);
-    SEQ_time_update_meta_strip_range(scene, dst_seqm);
-    SEQ_time_update_sequence(scene, meta_seqbase, dst_seqm);
-    if (SEQ_transform_test_overlap(&dst_seqm->seqbase, seq)) {
-      SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, seq, scene);
-    }
+    SEQ_edit_move_strip_to_seqbase(scene, seqbase, seq, &dst_seqm->seqbase);
   }
 
   SEQ_collection_free(collection);
