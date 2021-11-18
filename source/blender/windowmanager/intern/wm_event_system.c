@@ -2003,7 +2003,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
   }
 }
 
-static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
+bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 {
   if (kmi->flag & KMI_INACTIVE) {
     return false;
