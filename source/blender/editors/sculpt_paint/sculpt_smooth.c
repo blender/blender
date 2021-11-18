@@ -368,7 +368,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   slide_fset = MAX2(slide_fset, bound_smooth);
 
   if (check_fsets) {
-    bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM;
+    bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
   }
 
   const SculptBoundaryType is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
@@ -396,7 +396,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
-    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
+    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV;
   }
 
   // bool have_bmesh = ss->bm;
@@ -512,7 +512,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       */
 
       bool slide = (slide_fset > 0.0f &&
-                    (is_boundary & (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM))) ||
+                    (is_boundary & (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV))) ||
                    bound_smooth > 0.0f;
       slide = slide && !final_boundary;
 
@@ -719,7 +719,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     return;
   }
 
-  if (c & (SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM)) {
+  if (c & (SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV)) {
     corner_smooth = MAX2(slide_fset, bound_smooth);
   }
   else {
@@ -890,7 +890,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     //               (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY));
 
     SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
-                               SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM;
+                               SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
     int bound = SCULPT_edge_is_boundary(ss, (SculptEdgeRef){.i = (intptr_t)e}, bflag);
     float dirw = 1.0f;

@@ -3317,4 +3317,11 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
       ss->vcol = layer->data;
     }
   }
+
+  if (ss->bm) {
+    ss->totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_MLOOPUV);
+  }
+  else {
+    ss->totuv = ss->ldata ? CustomData_number_of_layers(ss->ldata, CD_MLOOPUV) : 0;
+  }
 }

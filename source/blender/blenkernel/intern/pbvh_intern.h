@@ -27,6 +27,7 @@
  * \ingroup bke
  */
 struct MSculptVert;
+struct CustomData;
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -207,6 +208,8 @@ struct PBVH {
   int cd_face_area;
   int cd_vcol_offset;
 
+  int totuv;
+
   int vcol_type;
   int vcol_domain;
 
@@ -356,7 +359,9 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol_offset,
                                    BMVert *v,
-                                   int bound_symmetry);
+                                   int bound_symmetry,
+                                   const struct CustomData *ldata,
+                                   const int totuv);
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
@@ -369,7 +374,9 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
                                   v,
-                                  pbvh->boundary_symmetry);
+                                  pbvh->boundary_symmetry,
+                                  &pbvh->bm->ldata,
+                                  pbvh->totuv);
     return true;
   }
 

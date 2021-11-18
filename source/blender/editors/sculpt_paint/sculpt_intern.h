@@ -256,7 +256,8 @@ typedef enum SculptCornerType {
   SCULPT_CORNER_MESH = 1 << 0,
   SCULPT_CORNER_FACE_SET = 1 << 1,
   SCULPT_CORNER_SEAM = 1 << 2,
-  SCULPT_CORNER_SHARP = 1 << 3
+  SCULPT_CORNER_SHARP = 1 << 3,
+  SCULPT_CORNER_UV = 1 << 4,
 } SculptCornerType;
 
 int SCULPT_get_tool(const SculptSession *ss, const struct Brush *br);
@@ -303,8 +304,9 @@ typedef enum SculptBoundaryType {
   SCULPT_BOUNDARY_FACE_SET = 1 << 1,
   SCULPT_BOUNDARY_SEAM = 1 << 2,
   SCULPT_BOUNDARY_SHARP = 1 << 3,
-  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
-  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3)  // mesh and sharp
+  SCULPT_BOUNDARY_UV = 1 << 4,
+  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
 } SculptBoundaryType;
 
 /* Boundary Info needs to be initialized in order to use this function. */

@@ -1717,7 +1717,9 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    BMVert *v,
-                                   int bound_symmetry)
+                                   int bound_symmetry,
+                                   const CustomData *ldata,
+                                   const int totuv)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
@@ -1727,7 +1729,8 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
                 SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER |
                 SCULPTVERT_NEED_VALENCE | SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY |
-                SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY);
+                SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY |
+                SCULPTVERT_UV_BOUNDARY | SCULPTVERT_UV_CORNER);
 
   if (!e) {
     mv->flag |= SCULPTVERT_BOUNDARY;
@@ -1756,6 +1759,20 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 #endif
   int *fsets = NULL;
   BLI_array_staticdeclare(fsets, 16);
+
+  float(*lastuv)[2] = BLI_array_alloca(lastuv, totuv);
+  float(*lastuv2)[2] = BLI_array_alloca(lastuv2, totuv);
+
+  int *disjount_uv_count = BLI_array_alloca(disjount_uv_count, totuv);
+  int *cd_uvs = BLI_array_alloca(cd_uvs, totuv);
+  int base_uv_idx = ldata->typemap[CD_MLOOPUV];
+  bool uv_first = true;
+
+  for (int i = 0; i < totuv; i++) {
+    CustomDataLayer *layer = ldata->layers + base_uv_idx + i;
+    cd_uvs[i] = layer->offset;
+    disjount_uv_count[i] = 0;
+  }
 
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
@@ -1812,6 +1829,49 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     }
 
     if (e->l) {
+      /* deal with uv island boundaries */
+      if (totuv) {
+        BMLoop *l_iter = e->l;
+        do {
+          BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
+
+          for (int i = 0; i < totuv; i++) {
+            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
+
+            if (uv_first) {
+              copy_v2_v2(lastuv[i], luv->uv);
+              copy_v2_v2(lastuv2[i], luv->uv);
+
+              continue;
+            }
+
+            const float uv_snap_limit = 0.01f * 0.01f;
+
+            float dist = len_squared_v2v2(luv->uv, lastuv[i]);
+            bool same = dist <= uv_snap_limit;
+
+            bool corner = len_squared_v2v2(lastuv[i], lastuv2[i]) > uv_snap_limit &&
+                          len_squared_v2v2(lastuv[i], luv->uv) > uv_snap_limit &&
+                          len_squared_v2v2(lastuv2[i], luv->uv) > uv_snap_limit;
+
+            if (!same) {
+              mv->flag |= SCULPTVERT_UV_BOUNDARY;
+            }
+
+            if (corner) {
+              mv->flag |= SCULPTVERT_UV_CORNER;
+            }
+
+            if (!same) {
+              copy_v2_v2(lastuv2[i], lastuv[i]);
+              copy_v2_v2(lastuv[i], luv->uv);
+            }
+          }
+
+          uv_first = false;
+        } while ((l_iter = l_iter->next) != e->l);
+      }
+
       if (BM_ELEM_CD_GET_INT(e->l->f, cd_face_node_offset) != ni) {
         mv->flag |= SCULPTVERT_PBVH_BOUNDARY;
       }
@@ -1942,7 +2002,9 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    BMVert *v,
-                                   int bound_symmetry)
+                                   int bound_symmetry,
+                                   const CustomData *ldata,
+                                   const int totuv)
 {
   bke_pbvh_update_vert_boundary(cd_sculpt_vert,
                                 cd_faceset_offset,
@@ -1950,7 +2012,9 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                 cd_face_node_offset,
                                 cd_vcol,
                                 v,
-                                bound_symmetry);
+                                bound_symmetry,
+                                ldata,
+                                totuv);
 }
 
 /*Used by symmetrize to update boundary flags*/
@@ -1966,7 +2030,9 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
                                   v,
-                                  pbvh->boundary_symmetry);
+                                  pbvh->boundary_symmetry,
+                                  &pbvh->bm->ldata,
+                                  pbvh->totuv);
   }
 }
 
@@ -2198,6 +2264,8 @@ void BKE_pbvh_update_sculpt_verts(BMesh *bm,
   BMVert *v;
   BMIter iter;
 
+  int totuv = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
@@ -2209,7 +2277,9 @@ void BKE_pbvh_update_sculpt_verts(BMesh *bm,
                                   cd_face_node_offset,
                                   -1,
                                   v,
-                                  boundary_symmetry);
+                                  boundary_symmetry,
+                                  &bm->ldata,
+                                  totuv);
 
     BKE_pbvh_bmesh_update_valence(cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
 
@@ -3938,6 +4008,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
+
+  pbvh->totuv = CustomData_number_of_layers(&pbvh->bm->ldata, CD_MLOOPUV);
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)

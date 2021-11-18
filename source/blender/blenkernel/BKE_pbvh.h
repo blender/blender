@@ -121,6 +121,7 @@ struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
+struct Scene;
 struct CCGElem;
 struct MeshElemMap;
 struct CCGKey;
@@ -429,10 +430,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
                       void *user_data);
 
-void BKE_pbvh_draw_debug_cb(
-    PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth),
-    void *user_data);
+void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
+                            void (*draw_fn)(void *user_data,
+                                            const float bmin[3],
+                                            const float bmax[3],
+                                            PBVHNodeFlags flag,
+                                            int depth),
+                            void *user_data);
 
 /* PBVH Access */
 typedef enum {
@@ -854,7 +858,9 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    struct BMVert *v,
-                                   int symmetry);
+                                   int bound_symmetry,
+                                   const CustomData *ldata,
+                                   const int totuv);
 
 #define DYNTOPO_DYNAMIC_TESS
 

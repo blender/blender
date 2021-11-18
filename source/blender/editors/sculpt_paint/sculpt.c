@@ -2121,9 +2121,7 @@ static bool neighbor_cache_begin(const SculptSession *ss)
 
   ncache->totvert = totvert;
 
-  atomic_cas_ptr((void **)&ss->cache->ncache, NULL, ncache);
-
-  if (ss->cache->ncache != ncache) {
+  if (atomic_cas_ptr((void **)&ss->cache->ncache, NULL, ncache) != NULL) {
     // another thread got here first?
 
     neighbor_cache_free(ncache);
@@ -2143,7 +2141,13 @@ static NeighborCacheItem *neighbor_cache_get(const SculptSession *ss,
   NeighborCache *ncache = ss->cache->ncache;
 
   if (include_duplicates && !ncache->duplicates) {
-    ncache->duplicates = MEM_calloc_arrayN(ncache->totvert, sizeof(void *), "ncache->duplicages");
+    NeighborCacheItem **duplicates = MEM_calloc_arrayN(
+        ncache->totvert, sizeof(void *), "ncache->duplicages");
+
+    if (atomic_cas_ptr(&ncache->duplicates, NULL, duplicates) != NULL) {
+      /* some other thread got here first */
+      MEM_freeN(duplicates);
+    }
   }
 
   NeighborCacheItem **cache = include_duplicates ? ncache->duplicates : ncache->cache;
@@ -2264,7 +2268,8 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
           MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v1);
           MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v2);
 
-          return (mv1->flag & SCULPTVERT_FSET_BOUNDARY) && (mv2->flag & SCULPTVERT_FSET_BOUNDARY);
+          bool ok = (mv1->flag & SCULPTVERT_FSET_BOUNDARY) && (mv2->flag & SCULPTVERT_FSET_BOUNDARY);
+          ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
         }
         else {
           int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
@@ -2276,6 +2281,14 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
 
           ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
         }
+      }
+
+      if (typemask & SCULPT_BOUNDARY_UV) {
+        MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v1);
+        MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v2);
+
+        bool ok = (mv1->flag & SCULPTVERT_UV_BOUNDARY) && (mv2->flag & SCULPTVERT_UV_BOUNDARY);
+        ret |= ok ? SCULPT_BOUNDARY_UV : 0;
       }
 
       if (typemask & SCULPT_BOUNDARY_SHARP) {
@@ -2462,7 +2475,9 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->cd_face_node_offset,
                                       -1,
                                       (BMVert *)vertex.i,
-                                      ss->boundary_symmetry);
+                                      ss->boundary_symmetry,
+                                      &ss->bm->ldata,
+                                      ss->totuv);
       }
 
       break;
@@ -2498,6 +2513,9 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
   if (cornertype & SCULPT_CORNER_SHARP) {
     ret |= (mv->flag & SCULPTVERT_SHARP_CORNER) ? SCULPT_CORNER_SHARP : 0;
   }
+  if (cornertype & SCULPT_CORNER_UV) {
+    ret |= (mv->flag & SCULPTVERT_UV_CORNER) ? SCULPT_CORNER_UV : 0;
+  }
 
   return ret;
 }
@@ -2519,7 +2537,9 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->cd_face_node_offset,
                                       -1,
                                       (BMVert *)vertex.i,
-                                      ss->boundary_symmetry);
+                                      ss->boundary_symmetry,
+                                      &ss->bm->ldata,
+                                      ss->totuv);
       }
 
       break;
@@ -2573,6 +2593,9 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
   }
   if (boundary_types & SCULPT_BOUNDARY_SEAM) {
     flag |= (mv->flag & SCULPTVERT_SEAM_BOUNDARY) ? SCULPT_BOUNDARY_SEAM : 0;
+  }
+  if (boundary_types & SCULPT_BOUNDARY_UV) {
+    flag |= (mv->flag & SCULPTVERT_UV_BOUNDARY) ? SCULPT_BOUNDARY_UV : 0;
   }
 
   return flag;

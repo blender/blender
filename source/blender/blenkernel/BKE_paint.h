@@ -719,6 +719,8 @@ typedef struct SculptSession {
   int cd_faceset_offset;
   int cd_face_areas;
 
+  int totuv;
+
   bool bm_smooth_shading;
   /* Undo/redo log for dynamic topology sculpting */
   struct BMLog *bm_log;
