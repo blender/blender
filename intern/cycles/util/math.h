@@ -30,9 +30,11 @@
 #  include <hip/hip_vector_types.h>
 #endif
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
+#if !defined(__KERNEL_METAL__)
+#  include <float.h>
+#  include <math.h>
+#  include <stdio.h>
+#endif /* !defined(__KERNEL_METAL__) */
 
 #include "util/types.h"
 
@@ -174,6 +176,7 @@ ccl_device_inline float max4(float a, float b, float c, float d)
   return max(max(a, b), max(c, d));
 }
 
+#if !defined(__KERNEL_METAL__)
 /* Int/Float conversion */
 
 ccl_device_inline int as_int(uint i)
@@ -206,7 +209,7 @@ ccl_device_inline uint as_uint(float f)
   return u.i;
 }
 
-#ifndef __HIP__
+#  ifndef __HIP__
 ccl_device_inline int __float_as_int(float f)
 {
   union {
@@ -246,28 +249,33 @@ ccl_device_inline float __uint_as_float(uint i)
   u.i = i;
   return u.f;
 }
-#endif
+#  endif
 
 ccl_device_inline int4 __float4_as_int4(float4 f)
 {
-#ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(f.m128));
-#else
+#  else
   return make_int4(
       __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z), __float_as_int(f.w));
-#endif
+#  endif
 }
 
 ccl_device_inline float4 __int4_as_float4(int4 i)
 {
-#ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_SSE__
   return float4(_mm_castsi128_ps(i.m128));
-#else
+#  else
   return make_float4(
       __int_as_float(i.x), __int_as_float(i.y), __int_as_float(i.z), __int_as_float(i.w));
-#endif
+#  endif
 }
+#endif /* !defined(__KERNEL_METAL__) */
 
+#if defined(__KERNEL_METAL__)
+#  define isnan_safe(v) isnan(v)
+#  define isfinite_safe(v) isfinite(v)
+#else
 template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
 {
   return ((uint64_t)ptr) & 0xFFFFFFFF;
@@ -311,12 +319,14 @@ ccl_device_inline bool isfinite_safe(float f)
   unsigned int x = __float_as_uint(f);
   return (f == f) && (x == 0 || x == (1u << 31) || (f != 2.0f * f)) && !((x << 1) > 0xff000000u);
 }
+#endif
 
 ccl_device_inline float ensure_finite(float v)
 {
   return isfinite_safe(v) ? v : 0.0f;
 }
 
+#if !defined(__KERNEL_METAL__)
 ccl_device_inline int clamp(int a, int mn, int mx)
 {
   return min(max(a, mn), mx);
@@ -346,15 +356,17 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
   return result;
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device_inline float saturatef(float a)
-{
-  return clamp(a, 0.0f, 1.0f);
-}
-#else
+#endif /* !defined(__KERNEL_METAL__) */
+
+#if defined(__KERNEL_CUDA__)
 ccl_device_inline float saturatef(float a)
 {
   return __saturatef(a);
+}
+#elif !defined(__KERNEL_METAL__)
+ccl_device_inline float saturatef(float a)
+{
+  return clamp(a, 0.0f, 1.0f);
 }
 #endif /* __KERNEL_CUDA__ */
 
@@ -491,12 +503,15 @@ CCL_NAMESPACE_END
 
 CCL_NAMESPACE_BEGIN
 
+#if !defined(__KERNEL_METAL__)
 /* Interpolation */
 
 template<class A, class B> A lerp(const A &a, const A &b, const B &t)
 {
   return (A)(a * ((B)1 - t) + b * t);
 }
+
+#endif /* __KERNEL_METAL__ */
 
 /* Triangle */
 
@@ -627,7 +642,11 @@ ccl_device_inline float safe_sqrtf(float f)
 
 ccl_device_inline float inversesqrtf(float f)
 {
+#if defined(__KERNEL_METAL__)
+  return (f > 0.0f) ? rsqrt(f) : 0.0f;
+#else
   return (f > 0.0f) ? 1.0f / sqrtf(f) : 0.0f;
+#endif
 }
 
 ccl_device float safe_asinf(float a)
@@ -715,10 +734,30 @@ ccl_device float bits_to_01(uint bits)
   return bits * (1.0f / (float)0xFFFFFFFF);
 }
 
+#if !defined(__KERNEL_GPU__)
+#  if defined(__GNUC__)
+#    define popcount(x) __builtin_popcount(x)
+#  else
+ccl_device_inline uint popcount(uint x)
+{
+  /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
+  uint i = x & 0xaaaaaaaa;
+  i = i - ((i >> 1) & 0x55555555);
+  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+  i = (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+  return i & 1;
+}
+#  endif
+#elif !defined(__KERNEL_METAL__)
+#  define popcount(x) __popc(x)
+#endif
+
 ccl_device_inline uint count_leading_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __clz(x);
+#elif defined(__KERNEL_METAL__)
+  return clz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -735,6 +774,8 @@ ccl_device_inline uint count_trailing_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return (__ffs(x) - 1);
+#elif defined(__KERNEL_METAL__)
+  return ctz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -751,6 +792,8 @@ ccl_device_inline uint find_first_set(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __ffs(x);
+#elif defined(__KERNEL_METAL__)
+  return (x != 0) ? ctz(x) + 1 : 0;
 #else
 #  ifdef _MSC_VER
   return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
@@ -849,6 +892,8 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
   return x;
 #elif defined(__KERNEL_CUDA__)
   return __brev(x);
+#elif defined(__KERNEL_METAL__)
+  return reverse_bits(x);
 #elif __has_builtin(__builtin_bitreverse32)
   return __builtin_bitreverse32(x);
 #else

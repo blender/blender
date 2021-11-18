@@ -34,6 +34,7 @@ using namespace metal;
 
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
+#pragma clang diagnostic ignored "-Wuninitialized"
 
 /* Qualifiers */
 
@@ -65,7 +66,7 @@ using namespace metal;
 #define ccl_gpu_thread_mask(thread_warp) uint64_t((1ull << thread_warp) - 1)
 
 #define ccl_gpu_ballot(predicate) ((uint64_t)((simd_vote::vote_t)simd_ballot(predicate)))
-#define ccl_gpu_popc(x) popcount(x)
+#define ccl_gpu_syncthreads() threadgroup_barrier(mem_flags::mem_threadgroup);
 
 // clang-format off
 
@@ -124,7 +125,6 @@ kernel void kernel_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
                                 uint num_simd_groups [[simdgroups_per_threadgroup]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
-  INIT_DEBUG_BUFFER \
   params_struct->run(context, simdgroup_offset, metal_global_id, metal_local_id, metal_local_size, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
 void kernel_gpu_##name::run(thread MetalKernelContext& context, \
@@ -230,6 +230,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #define sinhf(x) sinh(float(x))
 #define coshf(x) cosh(float(x))
 #define tanhf(x) tanh(float(x))
+#define saturatef(x) saturate(float(x))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */
@@ -242,6 +243,8 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #define logf(x) trigmode::log(float(x))
 
 #define NULL 0
+
+#define __device__
 
 /* texture bindings and sampler setup */
 
@@ -256,6 +259,9 @@ struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
 };
+
+#include "util/half.h"
+#include "util/types.h"
 
 enum SamplerType {
   SamplerFilterNearest_AddressRepeat,

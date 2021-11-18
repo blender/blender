@@ -20,13 +20,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Patch index for triangle, -1 if not subdivision triangle */
-
-ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd)
-{
-  return (sd->prim != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, sd->prim) : ~0;
-}
-
 /* UV coords of triangle within patch */
 
 ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,

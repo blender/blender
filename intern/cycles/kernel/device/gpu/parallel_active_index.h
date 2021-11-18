@@ -85,8 +85,8 @@ __device__ void gpu_parallel_active_index_array(const uint num_states,
     const uint is_active = (state_index < num_states) ? is_active_op(state_index) : 0;
 
     /* For each thread within a warp compute how many other active states precede it. */
-    const uint thread_offset = ccl_gpu_popc(ccl_gpu_ballot(is_active) &
-                                            ccl_gpu_thread_mask(thread_warp));
+    const uint thread_offset = popcount(ccl_gpu_ballot(is_active) &
+                                        ccl_gpu_thread_mask(thread_warp));
 
     /* Last thread in warp stores number of active states for each warp. */
     if (thread_warp == ccl_gpu_warp_size - 1) {

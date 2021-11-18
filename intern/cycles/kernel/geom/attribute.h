@@ -27,7 +27,12 @@ CCL_NAMESPACE_BEGIN
  * Lookup of attributes is different between OSL and SVM, as OSL is ustring
  * based while for SVM we use integer ids. */
 
-ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd);
+/* Patch index for triangle, -1 if not subdivision triangle */
+
+ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd)
+{
+  return (sd->prim != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, sd->prim) : ~0;
+}
 
 ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, ccl_private const ShaderData *sd)
 {

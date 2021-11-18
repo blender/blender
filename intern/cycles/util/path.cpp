@@ -313,7 +313,7 @@ static char *path_specials(const string &sub)
   if (env_shader_path != NULL && sub == "shader") {
     return env_shader_path;
   }
-  else if (env_shader_path != NULL && sub == "source") {
+  else if (env_source_path != NULL && sub == "source") {
     return env_source_path;
   }
   return NULL;

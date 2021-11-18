@@ -464,7 +464,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const auto num_active_pixels_mask = ccl_gpu_ballot(!converged);
   const int lane_id = ccl_gpu_thread_idx_x % ccl_gpu_warp_size;
   if (lane_id == 0) {
-    atomic_fetch_and_add_uint32(num_active_pixels, ccl_gpu_popc(num_active_pixels_mask));
+    atomic_fetch_and_add_uint32(num_active_pixels, popcount(num_active_pixels_mask));
   }
 }
 
@@ -892,6 +892,6 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const auto can_split_mask = ccl_gpu_ballot(can_split);
   const int lane_id = ccl_gpu_thread_idx_x % ccl_gpu_warp_size;
   if (lane_id == 0) {
-    atomic_fetch_and_add_uint32(num_possible_splits, ccl_gpu_popc(can_split_mask));
+    atomic_fetch_and_add_uint32(num_possible_splits, popcount(can_split_mask));
   }
 }

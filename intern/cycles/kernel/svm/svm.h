@@ -220,7 +220,7 @@ CCL_NAMESPACE_BEGIN
 template<uint node_feature_mask, ShaderType type, typename ConstIntegratorGenericState>
 ccl_device void svm_eval_nodes(KernelGlobals kg,
                                ConstIntegratorGenericState state,
-                               ShaderData *sd,
+                               ccl_private ShaderData *sd,
                                ccl_global float *render_buffer,
                                uint32_t path_flag)
 {

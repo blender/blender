@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 typedef struct KernelParamsMetal {
 
-#define KERNEL_TEX(type, name) ccl_constant type *name;
+#define KERNEL_TEX(type, name) ccl_global const type *name;
 #include "kernel/textures.h"
 #undef KERNEL_TEX
 
