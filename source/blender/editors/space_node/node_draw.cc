@@ -1842,7 +1842,13 @@ static void node_draw_basis(const bContext *C,
     UI_draw_roundbox_4fv(&rect, false, BASIS_RAD, color_outline);
   }
 
-  node_draw_sockets(v2d, C, ntree, node, true, false);
+  float scale;
+  UI_view2d_scale_get(v2d, &scale, nullptr);
+
+  /* Skip slow socket drawing if zoom is small. */
+  if (scale > 0.2f) {
+    node_draw_sockets(v2d, C, ntree, node, true, false);
+  }
 
   /* Preview. */
   bNodeInstanceHash *previews = (bNodeInstanceHash *)CTX_data_pointer_get(C, "node_previews").data;
