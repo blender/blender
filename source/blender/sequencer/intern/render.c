@@ -2047,7 +2047,7 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
   /* Arbitrary, but due to performance reasons should be as low as possible. */
   const int thumbnails_base_set_count = min_ii(content_len / 100, 30);
   if (thumbnails_base_set_count <= 0) {
-    return 0;
+    return content_len;
   }
   return content_len / thumbnails_base_set_count;
 }
