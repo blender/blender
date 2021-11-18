@@ -72,7 +72,7 @@
 
 /* Address spaces for GPU. */
 #  define ccl_global
-#  define ccl_static_constant static const
+#  define ccl_inline_constant inline constexpr
 #  define ccl_constant const
 #  define ccl_private
 

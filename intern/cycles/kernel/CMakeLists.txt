@@ -273,6 +273,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 )
 
 set(SRC_KERNEL_TYPES_HEADERS
+  tables.h
   textures.h
   types.h
 )

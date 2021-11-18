@@ -45,7 +45,7 @@ using namespace metal;
 #define ccl_device_noinline_cpu ccl_device
 #define ccl_device_inline_method ccl_device
 #define ccl_global device
-#define ccl_static_constant static constant constexpr
+#define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
 #define ccl_constant const device
 #define ccl_gpu_shared threadgroup

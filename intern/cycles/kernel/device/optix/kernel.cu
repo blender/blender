@@ -21,6 +21,8 @@
 
 #include "kernel/device/gpu/image.h"  /* Texture lookup uses normal CUDA intrinsics. */
 
+#include "kernel/tables.h"
+
 #include "kernel/integrator/state.h"
 #include "kernel/integrator/state_flow.h"
 #include "kernel/integrator/state_util.h"

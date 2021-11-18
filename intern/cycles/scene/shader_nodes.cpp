@@ -34,6 +34,8 @@
 #include "util/log.h"
 #include "util/transform.h"
 
+#include "kernel/tables.h"
+
 #include "kernel/svm/color_util.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
