@@ -206,8 +206,8 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
   BLI_addtail(&rr->layers, rl);
 
   /* Add render passes. */
-  RenderPass *result_pass = render_layer_add_pass(
-      rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA", true);
+  render_layer_add_pass(rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA", true);
+
   RenderPass *primitive_pass = render_layer_add_pass(rr, rl, 4, "BakePrimitive", "", "RGBA", true);
   RenderPass *differential_pass = render_layer_add_pass(
       rr, rl, 4, "BakeDifferential", "", "RGBA", true);
@@ -244,15 +244,6 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
     }
   }
 
-  /* Initialize tile render result from full image bake result. */
-  for (int ty = 0; ty < h; ty++) {
-    size_t offset = ty * w * engine->bake.depth;
-    size_t bake_offset = ((y + ty) * engine->bake.width + x) * engine->bake.depth;
-    size_t size = w * engine->bake.depth * sizeof(float);
-
-    memcpy(result_pass->rect + offset, engine->bake.result + bake_offset, size);
-  }
-
   return rr;
 }
 
@@ -264,18 +255,31 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
     return;
   }
 
-  /* Copy from tile render result to full image bake result. */
-  int x = rr->tilerect.xmin;
-  int y = rr->tilerect.ymin;
-  int w = rr->tilerect.xmax - rr->tilerect.xmin;
-  int h = rr->tilerect.ymax - rr->tilerect.ymin;
+  /* Copy from tile render result to full image bake result. Just the pixels for the
+   * object currently being baked, to preserve other objects when baking multiple. */
+  const int x = rr->tilerect.xmin;
+  const int y = rr->tilerect.ymin;
+  const int w = rr->tilerect.xmax - rr->tilerect.xmin;
+  const int h = rr->tilerect.ymax - rr->tilerect.ymin;
+  const size_t pixel_depth = engine->bake.depth;
+  const size_t pixel_size = pixel_depth * sizeof(float);
 
   for (int ty = 0; ty < h; ty++) {
-    size_t offset = ty * w * engine->bake.depth;
-    size_t bake_offset = ((y + ty) * engine->bake.width + x) * engine->bake.depth;
-    size_t size = w * engine->bake.depth * sizeof(float);
+    const size_t offset = ty * w;
+    const size_t bake_offset = (y + ty) * engine->bake.width + x;
 
-    memcpy(engine->bake.result + bake_offset, rpass->rect + offset, size);
+    const float *pass_rect = rpass->rect + offset * pixel_depth;
+    const BakePixel *bake_pixel = engine->bake.pixels + bake_offset;
+    float *bake_result = engine->bake.result + bake_offset * pixel_depth;
+
+    for (int tx = 0; tx < w; tx++) {
+      if (bake_pixel->object_id == engine->bake.object_id) {
+        memcpy(bake_result, pass_rect, pixel_size);
+      }
+      pass_rect += pixel_depth;
+      bake_result += pixel_depth;
+      bake_pixel++;
+    }
   }
 }
 
