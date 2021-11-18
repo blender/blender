@@ -6239,6 +6239,16 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
 }
 
 /**
+ * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
+ * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
+ */
+void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
+{
+  but->imb = imb;
+  but->imb_scale = scale;
+}
+
+/**
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
  */
 void UI_but_drag_set_asset(uiBut *but,
@@ -6266,8 +6276,7 @@ void UI_but_drag_set_asset(uiBut *but,
   }
   but->dragpoin = asset_drag;
   but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  but->imb = imb;
-  but->imb_scale = scale;
+  UI_but_drag_attach_image(but, imb, scale);
 }
 
 void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
@@ -6322,8 +6331,7 @@ void UI_but_drag_set_image(
   if (use_free) {
     but->dragflag |= UI_BUT_DRAGPOIN_FREE;
   }
-  but->imb = imb;
-  but->imb_scale = scale;
+  UI_but_drag_attach_image(but, imb, scale);
 }
 
 PointerRNA *UI_but_operator_ptr_get(uiBut *but)

@@ -767,6 +767,12 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
                               const int xy[2])
 {
   int x, y;
+
+  /* This could also get the preview image of an ID when dragging one. But the big preview icon may
+   * actually not always be wanted, for example when dragging objects in the Outliner it gets in
+   * the way). So make the drag user set an image buffer explicitly (e.g. through
+   * #UI_but_drag_attach_image()). */
+
   if (drag->imb) {
     x = xy[0] - drag->sx / 2;
     y = xy[1] - drag->sy / 2;
