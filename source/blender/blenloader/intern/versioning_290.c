@@ -1435,6 +1435,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           view_layer->cryptomatte_levels = 6;
+          view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
         }
       }
     }

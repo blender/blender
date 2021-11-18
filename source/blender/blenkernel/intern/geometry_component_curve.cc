@@ -555,7 +555,8 @@ static void point_attribute_materialize(Span<Span<T>> data,
   else {
     int spline_index = 0;
     for (const int dst_index : mask) {
-      while (offsets[spline_index] < dst_index) {
+      /* Skip splines that don't have any control points in the mask. */
+      while (dst_index >= offsets[spline_index + 1]) {
         spline_index++;
       }
 
@@ -599,7 +600,8 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
   else {
     int spline_index = 0;
     for (const int dst_index : mask) {
-      while (offsets[spline_index] < dst_index) {
+      /* Skip splines that don't have any control points in the mask. */
+      while (dst_index >= offsets[spline_index + 1]) {
         spline_index++;
       }
 

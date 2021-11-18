@@ -215,6 +215,7 @@ url_manual_mapping = (
 	("bpy.types.toolsettings.use_proportional_connected*", "editors/3dview/controls/proportional_editing.html#bpy-types-toolsettings-use-proportional-connected"),
 	("bpy.types.toolsettings.use_proportional_projected*", "editors/3dview/controls/proportional_editing.html#bpy-types-toolsettings-use-proportional-projected"),
 	("bpy.types.view3doverlay.vertex_paint_mode_opacity*", "editors/3dview/display/overlays.html#bpy-types-view3doverlay-vertex-paint-mode-opacity"),
+	("bpy.types.viewlayer.use_pass_cryptomatte_accurate*", "render/layers/passes.html#bpy-types-viewlayer-use-pass-cryptomatte-accurate"),
 	("bpy.types.viewlayer.use_pass_cryptomatte_material*", "render/layers/passes.html#bpy-types-viewlayer-use-pass-cryptomatte-material"),
 	("bpy.ops.gpencil.vertex_color_brightness_contrast*", "grease_pencil/modes/vertex_paint/editing.html#bpy-ops-gpencil-vertex-color-brightness-contrast"),
 	("bpy.ops.view3d.edit_mesh_extrude_individual_move*", "modeling/meshes/editing/face/extrude_faces.html#bpy-ops-view3d-edit-mesh-extrude-individual-move"),
