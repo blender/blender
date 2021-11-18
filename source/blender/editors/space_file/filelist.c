@@ -922,19 +922,6 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
 }
 
 /**
- * Copy a string from source to `dest`, but prefix and suffix it with a single space.
- * Assumes `dest` has at least space enough for the two spaces.
- */
-static void tag_copy_with_spaces(char *dest, const char *source, const size_t dest_size)
-{
-  BLI_assert(dest_size > 2);
-  const size_t source_length = BLI_strncpy_rlen(dest + 1, source, dest_size - 2);
-  dest[0] = ' ';
-  dest[source_length + 1] = ' ';
-  dest[source_length + 2] = '\0';
-}
-
-/**
  * Return whether at least one tag matches the search filter.
  * Tags are searched as "entire words", so instead of searching for "tag" in the
  * filter string, this function searches for " tag ". Assumes the search filter
@@ -949,9 +936,7 @@ static void tag_copy_with_spaces(char *dest, const char *source, const size_t de
 static bool asset_tag_matches_filter(const char *filter_search, const AssetMetaData *asset_data)
 {
   LISTBASE_FOREACH (const AssetTag *, asset_tag, &asset_data->tags) {
-    char tag_name[MAX_NAME + 2]; /* sizeof(AssetTag::name) + 2 */
-    tag_copy_with_spaces(tag_name, asset_tag->name, sizeof(tag_name));
-    if (BLI_strcasestr(filter_search, tag_name) != NULL) {
+    if (BLI_strcasestr(asset_tag->name, filter_search) != NULL) {
       return true;
     }
   }
@@ -982,13 +967,7 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   if (BLI_strcasestr(file->name, filter_search + 1) != NULL) {
     return true;
   }
-
-  /* Replace the asterisks with spaces, so that we can do matching on " sometag "; that way
-   * an artist searching for "redder" doesn't result in a match for the tag "red". */
-  filter_search[string_length - 1] = ' ';
-  filter_search[0] = ' ';
-
-  return asset_tag_matches_filter(filter_search, asset_data);
+  return asset_tag_matches_filter(filter_search + 1, asset_data);
 }
 
 static bool is_filtered_lib_type(FileListInternEntry *file,
