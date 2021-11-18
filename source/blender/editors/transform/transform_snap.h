@@ -52,6 +52,10 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
 bool transform_snap_increment(const TransInfo *t, float *val);
 bool transform_snap_grid(TransInfo *t, float *val);
 
+void tranform_snap_source_mod_toggle(TransInfo *t);
+void tranform_snap_source_mod_update(TransInfo *t);
+void tranform_snap_source_mod_confirm(TransInfo *t);
+
 bool activeSnap(const TransInfo *t);
 bool activeSnap_with_project(const TransInfo *t);
 

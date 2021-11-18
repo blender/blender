@@ -414,37 +414,13 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
   }
 
   if (loc_prev) {
-    /* Draw an "X" indicating where the previous snap point is.
-     * This is useful for indicating perpendicular snap. */
-
-    /* v1, v2, v3 and v4 indicate the coordinates of the ends of the "X". */
-    float vx[3], vy[3], v1[3], v2[3], v3[3], v4[4];
-
     /* Multiply by 0.75f so that the final size of the "X" is close to that of
      * the circle.
      * (A closer value is 0.7071f, but we don't need to be exact here). */
     float x_size = 0.75f * radius * ED_view3d_pixel_size(rv3d, loc_prev);
 
-    mul_v3_v3fl(vx, view_inv[0], x_size);
-    mul_v3_v3fl(vy, view_inv[1], x_size);
-
-    add_v3_v3v3(v1, vx, vy);
-    sub_v3_v3v3(v2, vx, vy);
-    negate_v3_v3(v3, v1);
-    negate_v3_v3(v4, v2);
-
-    add_v3_v3(v1, loc_prev);
-    add_v3_v3(v2, loc_prev);
-    add_v3_v3(v3, loc_prev);
-    add_v3_v3(v4, loc_prev);
-
     immUniformColor4ubv(color_line);
-    immBegin(GPU_PRIM_LINES, 4);
-    immVertex3fv(pos, v3);
-    immVertex3fv(pos, v1);
-    immVertex3fv(pos, v4);
-    immVertex3fv(pos, v2);
-    immEnd();
+    imm_drawX(loc_prev, x_size, view_inv, pos);
 
     if (loc_curr && (snap_elem_type & SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
       /* Dashed line. */
