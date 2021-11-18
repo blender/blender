@@ -70,14 +70,16 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   /* Setup render buffers. */
   const int index = INTEGRATOR_STATE(state, path, render_pixel_index);
   const int pass_stride = kernel_data.film.pass_stride;
-  render_buffer += index * pass_stride;
+  ccl_global float *buffer = render_buffer + index * pass_stride;
 
-  ccl_global float *primitive = render_buffer + kernel_data.film.pass_bake_primitive;
-  ccl_global float *differential = render_buffer + kernel_data.film.pass_bake_differential;
+  ccl_global float *primitive = buffer + kernel_data.film.pass_bake_primitive;
+  ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;
 
   const int seed = __float_as_uint(primitive[0]);
   int prim = __float_as_uint(primitive[1]);
   if (prim == -1) {
+    /* Accumulate transparency for empty pixels. */
+    kernel_accum_transparent(kg, state, 0, 1.0f, buffer);
     return false;
   }
 

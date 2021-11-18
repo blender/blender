@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-#include "scene/integrator.h"
 #include "device/device.h"
+
 #include "scene/background.h"
+#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/film.h"
+#include "scene/integrator.h"
 #include "scene/jitter.h"
 #include "scene/light.h"
 #include "scene/object.h"
@@ -211,6 +213,11 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
   if (!use_emission) {
     kintegrator->filter_closures |= FILTER_CLOSURE_EMISSION;
+  }
+  if (scene->bake_manager->get_baking()) {
+    /* Baking does not need to trace through transparency, we only want to bake
+     * the object itself. */
+    kintegrator->filter_closures |= FILTER_CLOSURE_TRANSPARENT;
   }
 
   kintegrator->seed = seed;

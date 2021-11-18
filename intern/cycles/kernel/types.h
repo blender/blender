@@ -438,7 +438,8 @@ typedef enum FilterClosures {
   FILTER_CLOSURE_DIFFUSE = (1 << 1),
   FILTER_CLOSURE_GLOSSY = (1 << 2),
   FILTER_CLOSURE_TRANSMISSION = (1 << 3),
-  FILTER_CLOSURE_DIRECT_LIGHT = (1 << 4),
+  FILTER_CLOSURE_TRANSPARENT = (1 << 4),
+  FILTER_CLOSURE_DIRECT_LIGHT = (1 << 5),
 } FilterClosures;
 
 /* Shader Flag */

@@ -606,19 +606,6 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   pass->set_type(bake_type_to_pass(bake_type, bake_filter));
   pass->set_include_albedo((bake_filter & BL::BakeSettings::pass_filter_COLOR));
 
-  if (pass->get_type() == PASS_COMBINED) {
-    /* Filtering settings for combined pass. */
-    Integrator *integrator = scene->integrator;
-    integrator->set_use_direct_light((bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0);
-    integrator->set_use_indirect_light((bake_filter & BL::BakeSettings::pass_filter_INDIRECT) !=
-                                       0);
-    integrator->set_use_diffuse((bake_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0);
-    integrator->set_use_glossy((bake_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0);
-    integrator->set_use_transmission((bake_filter & BL::BakeSettings::pass_filter_TRANSMISSION) !=
-                                     0);
-    integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
-  }
-
   session->set_display_driver(nullptr);
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
 
@@ -628,6 +615,24 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     sync->sync_camera(b_render, b_camera_override, width, height, "");
     sync->sync_data(
         b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
+
+    /* Filtering settings for combined pass. */
+    if (pass->get_type() == PASS_COMBINED) {
+      Integrator *integrator = scene->integrator;
+      integrator->set_use_direct_light((bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0);
+      integrator->set_use_indirect_light((bake_filter & BL::BakeSettings::pass_filter_INDIRECT) !=
+                                         0);
+      integrator->set_use_diffuse((bake_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0);
+      integrator->set_use_glossy((bake_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0);
+      integrator->set_use_transmission(
+          (bake_filter & BL::BakeSettings::pass_filter_TRANSMISSION) != 0);
+      integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
+    }
+
+    /* Always use transpanent background for baking. */
+    scene->background->set_transparent(true);
+
+    /* Load built-in images from Blender. */
     builtin_images_load();
   }
 
