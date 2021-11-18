@@ -2292,16 +2292,8 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
-                ({"property": "use_navigate_while_transform"}, ("T73993", "Milestone 2")),
             ),
         )
-        experimental = context.preferences.experimental
-
-        if experimental.use_navigate_while_transform:
-            split = self.layout.split(factor=0.66)
-            row = split.split()
-            row.operator("transform.modalkeymap_update")
-            row.operator("transform.modalkeymap_restore")
 
 
 class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):

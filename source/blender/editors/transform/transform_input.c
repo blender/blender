@@ -459,32 +459,6 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
   }
 }
 
-void transform_input_update(TransInfo *t, const float fac)
-{
-  MouseInput *mi = &t->mouse;
-  int offset[2], center_2d_int[2] = {mi->center[0], mi->center[1]};
-  sub_v2_v2v2_int(offset, mi->imval, center_2d_int);
-  offset[0] *= fac;
-  offset[1] *= fac;
-  t->mouse.factor *= fac;
-
-  center_2d_int[0] = t->center2d[0];
-  center_2d_int[1] = t->center2d[1];
-  add_v2_v2v2_int(mi->imval, center_2d_int, offset);
-
-  float center_old[2];
-  copy_v2_v2(center_old, mi->center);
-  copy_v2_v2(mi->center, t->center2d);
-
-  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
-    float offset_center[2];
-    sub_v2_v2v2(offset_center, mi->center, center_old);
-    struct InputAngle_Data *data = mi->data;
-    data->mval_prev[0] += offset_center[0];
-    data->mval_prev[1] += offset_center[1];
-  }
-}
-
 void transform_input_reset(MouseInput *mi, const int mval[2])
 {
   copy_v2_v2_int(mi->imval, mval);
