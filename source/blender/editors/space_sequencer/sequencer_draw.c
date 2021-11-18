@@ -1389,7 +1389,8 @@ static void draw_seq_strip(const bContext *C,
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
       (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))) {
-    draw_seq_strip_thumbnail(v2d, C, scene, seq, y1, y2, pixelx, pixely);
+    draw_seq_strip_thumbnail(
+        v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
