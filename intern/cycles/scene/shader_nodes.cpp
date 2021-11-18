@@ -1503,18 +1503,21 @@ void WaveTextureNode::compile(SVMCompiler &compiler)
 
   int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
+  int scale_ofs = compiler.stack_assign_if_linked(scale_in);
+  int distortion_ofs = compiler.stack_assign_if_linked(distortion_in);
+  int detail_ofs = compiler.stack_assign_if_linked(detail_in);
+  int dscale_ofs = compiler.stack_assign_if_linked(dscale_in);
+  int droughness_ofs = compiler.stack_assign_if_linked(droughness_in);
+  int phase_ofs = compiler.stack_assign_if_linked(phase_in);
+  int color_ofs = compiler.stack_assign_if_linked(color_out);
+  int fac_ofs = compiler.stack_assign_if_linked(fac_out);
+
   compiler.add_node(NODE_TEX_WAVE,
                     compiler.encode_uchar4(wave_type, bands_direction, rings_direction, profile),
-                    compiler.encode_uchar4(vector_offset,
-                                           compiler.stack_assign_if_linked(scale_in),
-                                           compiler.stack_assign_if_linked(distortion_in)),
-                    compiler.encode_uchar4(compiler.stack_assign_if_linked(detail_in),
-                                           compiler.stack_assign_if_linked(dscale_in),
-                                           compiler.stack_assign_if_linked(droughness_in),
-                                           compiler.stack_assign_if_linked(phase_in)));
+                    compiler.encode_uchar4(vector_offset, scale_ofs, distortion_ofs),
+                    compiler.encode_uchar4(detail_ofs, dscale_ofs, droughness_ofs, phase_ofs));
 
-  compiler.add_node(compiler.encode_uchar4(compiler.stack_assign_if_linked(color_out),
-                                           compiler.stack_assign_if_linked(fac_out)),
+  compiler.add_node(compiler.encode_uchar4(color_ofs, fac_ofs),
                     __float_as_int(scale),
                     __float_as_int(distortion),
                     __float_as_int(detail));
@@ -3572,45 +3575,54 @@ void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
   int tint_ofs = compiler.stack_assign(input("Tint"));
   int absorption_coefficient_ofs = compiler.stack_assign(input("Absorption Coefficient"));
 
+  int roughness_ofs = compiler.stack_assign_if_linked(roughness_in);
+  int radial_roughness_ofs = compiler.stack_assign_if_linked(radial_roughness_in);
+
+  int normal_ofs = compiler.stack_assign_if_linked(input("Normal"));
+  int offset_ofs = compiler.stack_assign_if_linked(offset_in);
+  int ior_ofs = compiler.stack_assign_if_linked(ior_in);
+
+  int coat_ofs = compiler.stack_assign_if_linked(coat_in);
+  int melanin_ofs = compiler.stack_assign_if_linked(melanin_in);
+  int melanin_redness_ofs = compiler.stack_assign_if_linked(melanin_redness_in);
+
   ShaderInput *random_in = input("Random");
   int attr_random = random_in->link ? SVM_STACK_INVALID :
                                       compiler.attribute(ATTR_STD_CURVE_RANDOM);
+  int random_in_ofs = compiler.stack_assign_if_linked(random_in);
+  int random_color_ofs = compiler.stack_assign_if_linked(random_color_in);
+  int random_roughness_ofs = compiler.stack_assign_if_linked(random_roughness_in);
 
   /* Encode all parameters into data nodes. */
-  compiler.add_node(NODE_CLOSURE_BSDF,
-                    /* Socket IDs can be packed 4 at a time into a single data packet */
-                    compiler.encode_uchar4(closure,
-                                           compiler.stack_assign_if_linked(roughness_in),
-                                           compiler.stack_assign_if_linked(radial_roughness_in),
-                                           compiler.closure_mix_weight_offset()),
-                    /* The rest are stored as unsigned integers */
-                    __float_as_uint(roughness),
-                    __float_as_uint(radial_roughness));
-
-  compiler.add_node(compiler.stack_assign_if_linked(input("Normal")),
-                    compiler.encode_uchar4(compiler.stack_assign_if_linked(offset_in),
-                                           compiler.stack_assign_if_linked(ior_in),
-                                           color_ofs,
-                                           parametrization),
+  /* node */
+  compiler.add_node(
+      NODE_CLOSURE_BSDF,
+      /* Socket IDs can be packed 4 at a time into a single data packet */
+      compiler.encode_uchar4(
+          closure, roughness_ofs, radial_roughness_ofs, compiler.closure_mix_weight_offset()),
+      /* The rest are stored as unsigned integers */
+      __float_as_uint(roughness),
+      __float_as_uint(radial_roughness));
+  /* data node */
+  compiler.add_node(normal_ofs,
+                    compiler.encode_uchar4(offset_ofs, ior_ofs, color_ofs, parametrization),
                     __float_as_uint(offset),
                     __float_as_uint(ior));
-
-  compiler.add_node(compiler.encode_uchar4(compiler.stack_assign_if_linked(coat_in),
-                                           compiler.stack_assign_if_linked(melanin_in),
-                                           compiler.stack_assign_if_linked(melanin_redness_in),
-                                           absorption_coefficient_ofs),
+  /* data node 2 */
+  compiler.add_node(compiler.encode_uchar4(
+                        coat_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs),
                     __float_as_uint(coat),
                     __float_as_uint(melanin),
                     __float_as_uint(melanin_redness));
 
-  compiler.add_node(compiler.encode_uchar4(tint_ofs,
-                                           compiler.stack_assign_if_linked(random_in),
-                                           compiler.stack_assign_if_linked(random_color_in),
-                                           compiler.stack_assign_if_linked(random_roughness_in)),
-                    __float_as_uint(random),
-                    __float_as_uint(random_color),
-                    __float_as_uint(random_roughness));
+  /* data node 3 */
+  compiler.add_node(
+      compiler.encode_uchar4(tint_ofs, random_in_ofs, random_color_ofs, random_roughness_ofs),
+      __float_as_uint(random),
+      __float_as_uint(random_color),
+      __float_as_uint(random_roughness));
 
+  /* data node 4 */
   compiler.add_node(
       compiler.encode_uchar4(
           SVM_STACK_INVALID, SVM_STACK_INVALID, SVM_STACK_INVALID, SVM_STACK_INVALID),
