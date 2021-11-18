@@ -208,9 +208,7 @@ ccl_device_inline bool path_state_volume_next(IntegratorState state)
   }
 
   /* Random number generator next bounce. */
-  if (volume_bounds_bounce > 1) {
-    INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
-  }
+  INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   return true;
 }
