@@ -187,9 +187,9 @@ void nodelink_batch_start(struct SpaceNode *snode);
 void nodelink_batch_end(struct SpaceNode *snode);
 
 void node_draw_link(const struct bContext *C,
-                    struct View2D *v2d,
-                    struct SpaceNode *snode,
-                    struct bNodeLink *link);
+                    const struct View2D *v2d,
+                    const struct SpaceNode *snode,
+                    const struct bNodeLink *link);
 void node_draw_link_bezier(const struct bContext *C,
                            const struct View2D *v2d,
                            const struct SpaceNode *snode,
