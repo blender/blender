@@ -2056,7 +2056,8 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
   }
 }
 
-#define SCULPT_NEIGHBORS_CACHE
+/* still a bit buggy */
+/* #define SCULPT_NEIGHBORS_CACHE */
 
 #ifdef SCULPT_NEIGHBORS_CACHE
 typedef struct NeighborCacheItem {
@@ -2268,7 +2269,8 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
           MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v1);
           MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, e->v2);
 
-          bool ok = (mv1->flag & SCULPTVERT_FSET_BOUNDARY) && (mv2->flag & SCULPTVERT_FSET_BOUNDARY);
+          bool ok = (mv1->flag & SCULPTVERT_FSET_BOUNDARY) &&
+                    (mv2->flag & SCULPTVERT_FSET_BOUNDARY);
           ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
         }
         else {
