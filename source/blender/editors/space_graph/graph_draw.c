@@ -1060,21 +1060,21 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
     const uint shdr_pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-    immUniform1i("colors_len", 0); /* Simple dashes. */
 
     if (BKE_fcurve_is_protected(fcu)) {
-      /* protected curves (non editable) are drawn with dotted lines */
-      immUniform1f("dash_width", 4.0f);
+      /* Protected curves (non editable) are drawn with dotted lines. */
+      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+      immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+      immUniform1i("colors_len", 0); /* Simple dashes. */
+      immUniform1f("dash_width", 4.0f * U.pixelsize);
       immUniform1f("dash_factor", 0.5f);
     }
     else {
-      immUniform1f("dash_factor", 2.0f); /* solid line */
+      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+      immUniform2fv("viewportSize", &viewport_size[2]);
+      immUniform1f("lineWidth", GPU_line_width_get());
     }
 
     if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
