@@ -1164,7 +1164,10 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
 
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
   BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, params);
-  BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+
+  if (me_settings) {
+    BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+  }
 
   return mesh;
 }
@@ -1175,7 +1178,11 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
 {
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
-  BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+
+  if (me_settings) {
+    BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+  }
+
   return mesh;
 }
 
