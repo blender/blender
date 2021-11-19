@@ -68,6 +68,7 @@
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "RNA_access.h"
 
@@ -1272,6 +1273,15 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
   }
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -2192,6 +2202,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
         }
       }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      /* Make sure range of meta strips is correct.
+       * It was possible to save .blend file with incorrect state of meta strip
+       * range. The root cause is expected to be fixed, but need to ensure files
+       * with invalid meta strip range are corrected. */
+      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 }
