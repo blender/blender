@@ -34,8 +34,11 @@ static void set_position_in_component(GeometryComponent &component,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  AttributeDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ?
+                               ATTR_DOMAIN_INSTANCE :
+                               ATTR_DOMAIN_POINT;
+  GeometryComponentFieldContext field_context{component, domain};
+  const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;
   }
@@ -57,7 +60,7 @@ static void set_position_in_component(GeometryComponent &component,
   const VArray<float3> &offsets_input = position_evaluator.get_evaluated<float3>(1);
 
   OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output<float3>(
-      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
+      "position", domain, {0, 0, 0});
   MutableSpan<float3> position_mutable = positions.as_span();
 
   for (int i : selection) {

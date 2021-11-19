@@ -363,10 +363,20 @@ blender::Span<int> InstancesComponent::almost_unique_ids() const
 
 int InstancesComponent::attribute_domain_size(const AttributeDomain domain) const
 {
-  if (domain != ATTR_DOMAIN_POINT) {
+  if (domain != ATTR_DOMAIN_INSTANCE) {
     return 0;
   }
   return this->instances_amount();
+}
+
+blender::bke::CustomDataAttributes &InstancesComponent::attributes()
+{
+  return this->attributes_;
+}
+
+const blender::bke::CustomDataAttributes &InstancesComponent::attributes() const
+{
+  return this->attributes_;
 }
 
 namespace blender::bke {
@@ -385,7 +395,7 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
  public:
   InstancePositionAttributeProvider()
       : BuiltinAttributeProvider(
-            "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, NonCreatable, Writable, NonDeletable)
+            "position", ATTR_DOMAIN_INSTANCE, CD_PROP_FLOAT3, NonCreatable, Writable, NonDeletable)
   {
   }
 
@@ -428,7 +438,7 @@ class InstanceIDAttributeProvider final : public BuiltinAttributeProvider {
  public:
   InstanceIDAttributeProvider()
       : BuiltinAttributeProvider(
-            "id", ATTR_DOMAIN_POINT, CD_PROP_INT32, Creatable, Writable, Deletable)
+            "id", ATTR_DOMAIN_INSTANCE, CD_PROP_INT32, Creatable, Writable, Deletable)
   {
   }
 
@@ -499,7 +509,21 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static InstancePositionAttributeProvider position;
   static InstanceIDAttributeProvider id;
 
-  return ComponentAttributeProviders({&position, &id}, {});
+  static CustomDataAccessInfo instance_custom_data_access = {
+      [](GeometryComponent &component) -> CustomData * {
+        InstancesComponent &inst = static_cast<InstancesComponent &>(component);
+        return &inst.attributes().data;
+      },
+      [](const GeometryComponent &component) -> const CustomData * {
+        const InstancesComponent &inst = static_cast<const InstancesComponent &>(component);
+        return &inst.attributes().data;
+      },
+      nullptr};
+
+  static CustomDataAttributeProvider instance_custom_data(ATTR_DOMAIN_INSTANCE,
+                                                          instance_custom_data_access);
+
+  return ComponentAttributeProviders({&position, &id}, {&instance_custom_data});
 }
 }  // namespace blender::bke
 

@@ -43,12 +43,13 @@ struct ReportList;
  * Arrays may be initialized from this (e.g. #DATASET_layout_hierarchy).
  */
 typedef enum AttributeDomain {
-  ATTR_DOMAIN_AUTO = -1,  /* Use for nodes to choose automatically based on other data. */
-  ATTR_DOMAIN_POINT = 0,  /* Mesh, Hair or PointCloud Point */
-  ATTR_DOMAIN_EDGE = 1,   /* Mesh Edge */
-  ATTR_DOMAIN_FACE = 2,   /* Mesh Face */
-  ATTR_DOMAIN_CORNER = 3, /* Mesh Corner */
-  ATTR_DOMAIN_CURVE = 4,  /* Hair Curve */
+  ATTR_DOMAIN_AUTO = -1,    /* Use for nodes to choose automatically based on other data. */
+  ATTR_DOMAIN_POINT = 0,    /* Mesh, Hair or PointCloud Point */
+  ATTR_DOMAIN_EDGE = 1,     /* Mesh Edge */
+  ATTR_DOMAIN_FACE = 2,     /* Mesh Face */
+  ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
+  ATTR_DOMAIN_CURVE = 4,    /* Hair Curve */
+  ATTR_DOMAIN_INSTANCE = 5, /* Instance */
 
   ATTR_DOMAIN_NUM
 } AttributeDomain;

@@ -651,6 +651,8 @@ class InstancesComponent : public GeometryComponent {
   mutable std::mutex almost_unique_ids_mutex_;
   mutable blender::Array<int> almost_unique_ids_;
 
+  blender::bke::CustomDataAttributes attributes_;
+
  public:
   InstancesComponent();
   ~InstancesComponent() = default;
@@ -684,6 +686,9 @@ class InstancesComponent : public GeometryComponent {
   int references_amount() const;
 
   blender::Span<int> almost_unique_ids() const;
+
+  blender::bke::CustomDataAttributes &attributes();
+  const blender::bke::CustomDataAttributes &attributes() const;
 
   int attribute_domain_size(const AttributeDomain domain) const final;
 

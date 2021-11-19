@@ -3090,7 +3090,7 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
       break;
     }
     case GEO_COMPONENT_TYPE_INSTANCES: {
-      sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      sspreadsheet->attribute_domain = ATTR_DOMAIN_INSTANCE;
       break;
     }
     case GEO_COMPONENT_TYPE_VOLUME: {
