@@ -41,9 +41,10 @@ namespace blender::nodes {
 static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
-      .only_realized_data()
-      .supported_type(
-          {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE});
+      .supported_type({GEO_COMPONENT_TYPE_MESH,
+                       GEO_COMPONENT_TYPE_POINT_CLOUD,
+                       GEO_COMPONENT_TYPE_CURVE,
+                       GEO_COMPONENT_TYPE_INSTANCES});
 
   b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
   b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
@@ -593,8 +594,10 @@ static const GeometryComponent *find_target_component(const GeometrySet &geometr
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
-  static const Array<GeometryComponentType> supported_types = {
-      GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
+  static const Array<GeometryComponentType> supported_types = {GEO_COMPONENT_TYPE_MESH,
+                                                               GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                               GEO_COMPONENT_TYPE_CURVE,
+                                                               GEO_COMPONENT_TYPE_INSTANCES};
   for (const GeometryComponentType src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
       return geometry.get_component_for_read(src_type);
@@ -736,10 +739,6 @@ static void geo_node_transfer_attribute_exec(GeoNodeExecParams params)
       output_attribute_field(params, fn::make_constant_field<T>(T()));
     });
   };
-
-  /* Since the instances are not used, there is no point in keeping
-   * a reference to them while the field is passed around. */
-  geometry.remove(GEO_COMPONENT_TYPE_INSTANCES);
 
   GField output_field;
   switch (mapping) {
