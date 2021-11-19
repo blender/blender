@@ -268,28 +268,28 @@ static bool eyedropper_cryptomatte_sample_fl(
     return false;
   }
 
-  ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
-  if (!ar) {
+  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+  if (!region) {
     return false;
   }
 
-  int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+  int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
   float fpos[2] = {-1.0f, -1.0};
   switch (sa->spacetype) {
     case SPACE_IMAGE: {
       SpaceImage *sima = sa->spacedata.first;
-      ED_space_image_get_position(sima, ar, mval, fpos);
+      ED_space_image_get_position(sima, region, mval, fpos);
       break;
     }
     case SPACE_NODE: {
       Main *bmain = CTX_data_main(C);
       SpaceNode *snode = sa->spacedata.first;
-      ED_space_node_get_position(bmain, snode, ar, mval, fpos);
+      ED_space_node_get_position(bmain, snode, region, mval, fpos);
       break;
     }
     case SPACE_CLIP: {
       SpaceClip *sc = sa->spacedata.first;
-      ED_space_clip_get_position(sc, ar, mval, fpos);
+      ED_space_clip_get_position(sc, region, mval, fpos);
       break;
     }
     default: {

@@ -65,7 +65,7 @@ struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc,
                                               float *angle);
 
 bool ED_space_clip_get_position(struct SpaceClip *sc,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 int mval[2],
                                 float fpos[2]);
 bool ED_space_clip_color_sample(struct SpaceClip *sc,

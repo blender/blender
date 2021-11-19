@@ -272,7 +272,7 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 }
 
 bool ED_space_clip_get_position(struct SpaceClip *sc,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 int mval[2],
                                 float fpos[2])
 {
@@ -282,7 +282,7 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
   }
 
   /* map the mouse coords to the backdrop image space */
-  ED_clip_mouse_pos(sc, ar, mval, fpos);
+  ED_clip_mouse_pos(sc, region, mval, fpos);
 
   IMB_freeImBuf(ibuf);
   return true;
