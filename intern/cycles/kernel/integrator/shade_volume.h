@@ -263,6 +263,12 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
 
+/* Below this pdf we ignore samples, as they tend to lead to very long distances.
+ * This can cause performance issues with BVH traversal in OptiX, leading it to
+ * traverse many nodes. Since these contribute very little to the image, just ignore
+ * those samples. */
+#  define VOLUME_SAMPLE_PDF_CUTOFF 1e-8f
+
 ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict ray,
                                            const float3 light_P,
                                            const float xi,
@@ -437,7 +443,8 @@ ccl_device_forceinline void volume_integrate_step_scattering(
 
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
-    if (result.direct_t >= vstate.start_t && result.direct_t <= vstate.end_t) {
+    if (result.direct_t >= vstate.start_t && result.direct_t <= vstate.end_t &&
+        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
       const float new_dt = result.direct_t - vstate.start_t;
       const float3 new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
@@ -474,26 +481,28 @@ ccl_device_forceinline void volume_integrate_step_scattering(
       const float3 new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
       const float distance_pdf = dot(channel_pdf, coeff.sigma_t * new_transmittance);
 
-      /* throughput */
-      result.indirect_scatter = true;
-      result.indirect_t = new_t;
-      result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
-      shader_copy_volume_phases(&result.indirect_phases, sd);
+      if (vstate.distance_pdf * distance_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+        /* throughput */
+        result.indirect_scatter = true;
+        result.indirect_t = new_t;
+        result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
+        shader_copy_volume_phases(&result.indirect_phases, sd);
 
-      if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
-        /* If using distance sampling for direct light, just copy parameters
-         * of indirect light since we scatter at the same point then. */
-        result.direct_scatter = true;
-        result.direct_t = result.indirect_t;
-        result.direct_throughput = result.indirect_throughput;
-        shader_copy_volume_phases(&result.direct_phases, sd);
+        if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
+          /* If using distance sampling for direct light, just copy parameters
+           * of indirect light since we scatter at the same point then. */
+          result.direct_scatter = true;
+          result.direct_t = result.indirect_t;
+          result.direct_throughput = result.indirect_throughput;
+          shader_copy_volume_phases(&result.direct_phases, sd);
 
-        /* Multiple importance sampling. */
-        if (vstate.use_mis) {
-          const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_light_P, new_t);
-          const float mis_weight = power_heuristic(vstate.distance_pdf * distance_pdf,
-                                                   equiangular_pdf);
-          result.direct_throughput *= 2.0f * mis_weight;
+          /* Multiple importance sampling. */
+          if (vstate.use_mis) {
+            const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_light_P, new_t);
+            const float mis_weight = power_heuristic(vstate.distance_pdf * distance_pdf,
+                                                     equiangular_pdf);
+            result.direct_throughput *= 2.0f * mis_weight;
+          }
         }
       }
     }
