@@ -826,6 +826,37 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
 }
 
 /**
+ * Find the first item in the list that matches the given string, or the given index as fallback.
+ *
+ * \note The string is only used is non-NULL and non-empty.
+ *
+ * \return The found item, or NULL.
+ */
+void *BLI_listbase_string_or_index_find(const ListBase *listbase,
+                                        const char *string,
+                                        const size_t string_offset,
+                                        const int index)
+{
+  Link *link = NULL;
+  Link *link_at_index = NULL;
+
+  int index_iter;
+  for (link = listbase->first, index_iter = 0; link; link = link->next, index_iter++) {
+    if (string != NULL && string[0] != '\0') {
+      const char *string_iter = ((const char *)link) + string_offset;
+
+      if (string[0] == string_iter[0] && STREQ(string, string_iter)) {
+        return link;
+      }
+    }
+    if (index_iter == index) {
+      link_at_index = link;
+    }
+  }
+  return link_at_index;
+}
+
+/**
  * Returns the 0-based index of the first element of listbase which contains the specified
  * null-terminated string at the specified offset, or -1 if not found.
  */

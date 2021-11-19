@@ -22,6 +22,8 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -46,6 +48,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_asset.h"
@@ -55,6 +58,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -73,6 +77,8 @@
 #include "RNA_access.h"
 
 #include "versioning_common.h"
+
+static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
 static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
 {
@@ -1294,6 +1300,140 @@ static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
   return true;
 }
 
+/* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
+ * anchor and source items in the given list of modifiers, constraints etc., using only the
+ * `subitem_local` data of the override property operation.
+ *
+ * Then they convert it into the new, proper `subitem_reference` data for the anchor, and
+ * `subitem_local` for the source.
+ *
+ * NOTE: Here only the stored override ID is available, unlike in the `override_apply` functions.
+ */
+
+static void version_liboverride_rnacollections_insertion_object_constraints(
+    ListBase *constraints, IDOverrideLibraryProperty *op)
+{
+  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+    if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      continue;
+    }
+    bConstraint *constraint_anchor = BLI_listbase_string_or_index_find(constraints,
+                                                                       opop->subitem_local_name,
+                                                                       offsetof(bConstraint, name),
+                                                                       opop->subitem_local_index);
+    if (constraint_anchor == NULL || constraint_anchor->next == NULL) {
+      /* Invalid case, just remove that override property operation. */
+      CLOG_ERROR(&LOG, "Could not find anchor or source constraints in stored override data");
+      BKE_lib_override_library_property_operation_delete(op, opop);
+      continue;
+    }
+    bConstraint *constraint_src = constraint_anchor->next;
+    opop->subitem_reference_name = opop->subitem_local_name;
+    opop->subitem_local_name = BLI_strdup(constraint_src->name);
+    opop->subitem_reference_index = opop->subitem_local_index;
+    opop->subitem_local_index++;
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_object(Object *object)
+{
+  IDOverrideLibrary *liboverride = object->id.override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&object->modifiers,
+                                                                   opop->subitem_local_name,
+                                                                   offsetof(ModifierData, name),
+                                                                   opop->subitem_local_index);
+      if (mod_anchor == NULL || mod_anchor->next == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find anchor or source modifiers in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+      ModifierData *mod_src = mod_anchor->next;
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "grease_pencil_modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      GpencilModifierData *gp_mod_anchor = BLI_listbase_string_or_index_find(
+          &object->greasepencil_modifiers,
+          opop->subitem_local_name,
+          offsetof(GpencilModifierData, name),
+          opop->subitem_local_index);
+      if (gp_mod_anchor == NULL || gp_mod_anchor->next == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find anchor GP modifier in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+      GpencilModifierData *gp_mod_src = gp_mod_anchor->next;
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(gp_mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "constraints");
+  if (op != NULL) {
+    version_liboverride_rnacollections_insertion_object_constraints(&object->constraints, op);
+  }
+
+  if (object->pose != NULL) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+      char rna_path[FILE_MAXFILE];
+      BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].constraints", pchan->name);
+      op = BKE_lib_override_library_property_find(liboverride, rna_path);
+      if (op != NULL) {
+        version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
+      }
+    }
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_animdata(ID *id)
+{
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data == NULL) {
+    return;
+  }
+
+  IDOverrideLibrary *liboverride = id->override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "animation_data.nla_tracks");
+  if (op != NULL) {
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      /* NLA tracks are only referenced by index, which limits possibilities, basically they are
+       * always added at the end of the list, see #rna_NLA_tracks_override_apply.
+       *
+       * This makes things simple here. */
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = NULL;
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -2170,18 +2310,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42)) {
+    /* Use consistent socket identifiers for the math node.
+     * The code to make unique identifiers from the names was inconsistent. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_CUSTOM) {
         version_node_tree_socket_id_delim(ntree);
@@ -2234,5 +2365,36 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
       }
     }
+  }
+
+  /* Special case to handle older in-dev 3.1 files, before change from 3.0 branch gets merged in
+   * master. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42) ||
+      (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3))) {
+    /* Update LibOverride operations regarding insertions in RNA collections (i.e. modifiers,
+     * constraints and NLA tracks). */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+        version_liboverride_rnacollections_insertion_animdata(id_iter);
+        if (GS(id_iter->name) == ID_OB) {
+          version_liboverride_rnacollections_insertion_object((Object *)id_iter);
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

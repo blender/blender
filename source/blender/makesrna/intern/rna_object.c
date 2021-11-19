@@ -1705,27 +1705,20 @@ bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' constraint in both _src *and* _dst. */
-  bConstraint *con_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_anchor = BLI_findstring(
-        &ob_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_anchor == NULL && opop->subitem_local_index >= 0) {
-    con_anchor = BLI_findlink(&ob_dst->constraints, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(bConstraint, name);
+  bConstraint *con_anchor = BLI_listbase_string_or_index_find(&ob_dst->constraints,
+                                                              opop->subitem_reference_name,
+                                                              name_offset,
+                                                              opop->subitem_reference_index);
+  /* If `con_anchor` is NULL, `con_src` will be inserted in first position. */
 
-  bConstraint *con_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_src = BLI_findstring(
-        &ob_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_src == NULL && opop->subitem_local_index >= 0) {
-    con_src = BLI_findlink(&ob_src->constraints, opop->subitem_local_index);
-  }
-  con_src = con_src ? con_src->next : ob_src->constraints.first;
+  bConstraint *con_src = BLI_listbase_string_or_index_find(
+      &ob_src->constraints, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
-  BLI_assert(con_src != NULL);
+  if (con_src == NULL) {
+    BLI_assert(con_src != NULL);
+    return false;
+  }
 
   bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
 
@@ -1827,25 +1820,15 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' modifier in both _src *and* _dst. */
-  ModifierData *mod_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_anchor = BLI_findstring(
-        &ob_dst->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
-    mod_anchor = BLI_findlink(&ob_dst->modifiers, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(ModifierData, name);
+  ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&ob_dst->modifiers,
+                                                               opop->subitem_reference_name,
+                                                               name_offset,
+                                                               opop->subitem_reference_index);
+  /* If `mod_anchor` is NULL, `mod_src` will be inserted in first position. */
 
-  ModifierData *mod_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_src = BLI_findstring(
-        &ob_src->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_src == NULL && opop->subitem_local_index >= 0) {
-    mod_src = BLI_findlink(&ob_src->modifiers, opop->subitem_local_index);
-  }
-  mod_src = mod_src ? mod_src->next : ob_src->modifiers.first;
+  ModifierData *mod_src = BLI_listbase_string_or_index_find(
+      &ob_src->modifiers, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
   if (mod_src == NULL) {
     BLI_assert(mod_src != NULL);
@@ -1934,25 +1917,18 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' modifier in both _src *and* _dst. */
-  GpencilModifierData *mod_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_anchor = BLI_findstring(
-        &ob_dst->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
-    mod_anchor = BLI_findlink(&ob_dst->greasepencil_modifiers, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(GpencilModifierData, name);
+  GpencilModifierData *mod_anchor = BLI_listbase_string_or_index_find(
+      &ob_dst->greasepencil_modifiers,
+      opop->subitem_reference_name,
+      name_offset,
+      opop->subitem_reference_index);
+  /* If `mod_anchor` is NULL, `mod_src` will be inserted in first position. */
 
-  GpencilModifierData *mod_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_src = BLI_findstring(
-        &ob_src->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_src == NULL && opop->subitem_local_index >= 0) {
-    mod_src = BLI_findlink(&ob_src->greasepencil_modifiers, opop->subitem_local_index);
-  }
-  mod_src = mod_src ? mod_src->next : ob_src->greasepencil_modifiers.first;
+  GpencilModifierData *mod_src = BLI_listbase_string_or_index_find(&ob_src->greasepencil_modifiers,
+                                                                   opop->subitem_local_name,
+                                                                   name_offset,
+                                                                   opop->subitem_local_index);
 
   if (mod_src == NULL) {
     BLI_assert(mod_src != NULL);
