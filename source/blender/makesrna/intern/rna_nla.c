@@ -885,6 +885,15 @@ static void rna_def_nlatrack(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "NLA Strips", "NLA Strips on this NLA-track");
 
+  prop = RNA_def_boolean(srna,
+                         "is_override_data",
+                         false,
+                         "Override Track",
+                         "In a local override data, whether this NLA track comes from the linked "
+                         "reference data, or is local to the override");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", NLATRACK_OVERRIDELIBRARY_LOCAL);
+
   rna_api_nlatrack_strips(brna, prop);
 
   RNA_define_lib_overridable(true);

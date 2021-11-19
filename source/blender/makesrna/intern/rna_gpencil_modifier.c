@@ -3738,6 +3738,16 @@ void RNA_def_greasepencil_modifier(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 
+  prop = RNA_def_boolean(srna,
+                         "is_override_data",
+                         false,
+                         "Override Modifier",
+                         "In a local override object, whether this modifier comes from the linked "
+                         "reference object, or is local to the override");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, NULL, "flag", eGpencilModifierFlag_OverrideLibrary_Local);
+
   /* types */
   rna_def_modifier_gpencilnoise(brna);
   rna_def_modifier_gpencilsmooth(brna);

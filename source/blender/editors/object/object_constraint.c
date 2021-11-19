@@ -1449,7 +1449,9 @@ void ED_object_constraint_link(Main *bmain, Object *ob_dst, ListBase *dst, ListB
 
 void ED_object_constraint_copy_for_object(Main *bmain, Object *ob_dst, bConstraint *con)
 {
-  BKE_constraint_copy_for_object(ob_dst, con);
+  bConstraint *copy_con = BKE_constraint_copy_for_object(ob_dst, con);
+  copy_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+
   ED_object_constraint_dependency_tag_update(bmain, ob_dst, con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob_dst);
 }
@@ -1459,7 +1461,9 @@ void ED_object_constraint_copy_for_pose(Main *bmain,
                                         bPoseChannel *pchan,
                                         bConstraint *con)
 {
-  BKE_constraint_copy_for_pose(ob_dst, pchan, con);
+  bConstraint *copy_con = BKE_constraint_copy_for_pose(ob_dst, pchan, con);
+  copy_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+
   ED_object_constraint_dependency_tag_update(bmain, ob_dst, con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob_dst);
 }
@@ -1654,6 +1658,8 @@ static int constraint_copy_exec(bContext *C, wmOperator *op)
     /* Couldn't remove due to some invalid data. */
     return OPERATOR_CANCELLED;
   }
+  copy_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+
   /* Move constraint to correct position. */
   const int new_index = BLI_findindex(constraints, con) + 1;
   const int current_index = BLI_findindex(constraints, copy_con);
@@ -1731,7 +1737,9 @@ static int constraint_copy_to_selected_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      BKE_constraint_copy_for_pose(ob, chan, con);
+      bConstraint *copy_con = BKE_constraint_copy_for_pose(ob, chan, con);
+      copy_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+
       /* Update flags (need to add here, not just copy). */
       chan->constflag |= pchan->constflag;
 
@@ -1753,7 +1761,9 @@ static int constraint_copy_to_selected_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      BKE_constraint_copy_for_object(ob, con);
+      bConstraint *copy_con = BKE_constraint_copy_for_object(ob, con);
+      copy_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
     }
     CTX_DATA_END;

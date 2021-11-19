@@ -4313,9 +4313,7 @@ void node_draw_link_bezier(const bContext *C,
     }
 
     if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS &&
-        ((link->fromsock == nullptr || link->fromsock->typeinfo->type >= 0) &&
-         (link->tosock == nullptr || link->tosock->typeinfo->type >= 0))) {
+        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
       PointerRNA from_node_ptr, to_node_ptr;
       RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->fromnode, &from_node_ptr);
       RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->tonode, &to_node_ptr);
