@@ -46,7 +46,7 @@ template<typename T> ccl_device_forceinline T *get_payload_ptr_2()
 ccl_device_forceinline int get_object_id()
 {
 #ifdef __OBJECT_MOTION__
-  /* Always get the the instance ID from the TLAS
+  /* Always get the instance ID from the TLAS
    * There might be a motion transform node between TLAS and BLAS which does not have one. */
   return optixGetInstanceIdFromHandle(optixGetTransformListHandle(0));
 #else

@@ -541,7 +541,7 @@ static string path_make_compatible(const string &path)
   if ((path.size() >= 3) && (path[0] == DIR_SEP) && (path[1] == DIR_SEP)) {
     result = path_cleanup_unc(result);
   }
-  /* Make sure volume-only path ends up wit ha directory separator. */
+  /* Make sure volume-only path ends up wit a directory separator. */
   if (result.size() == 2 && result[1] == ':') {
     result += DIR_SEP;
   }

@@ -334,7 +334,7 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
 
   /* Update PBO dimensions if needed.
    *
-   * NOTE: Allocate the PBO for the the size which will fit the final render resolution (as in,
+   * NOTE: Allocate the PBO for the size which will fit the final render resolution (as in,
    * at a resolution divider 1. This was we don't need to recreate graphics interoperability
    * objects which are costly and which are tied to the specific underlying buffer size.
    * The downside of this approach is that when graphics interoperability is not used we are

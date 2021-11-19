@@ -712,7 +712,7 @@ if(WITH_COMPILER_ASAN)
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
   elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    # With OSL, Cycles disables rtti in some modules, wich then breaks at linking
+    # With OSL, Cycles disables rtti in some modules, which then breaks at linking
     # when trying to use vptr sanitizer (included into 'undefined' general option).
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=vptr")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")

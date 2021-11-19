@@ -178,7 +178,7 @@ class InnerNode : public BVHNode {
     reset_unused_children();
   }
 
-  /* NOTE: This function is only used during binary BVH builder, and it
+  /* NOTE: This function is only used during binary BVH builder, and it's
    * supposed to be configured to have 2 children which will be filled-in in a
    * bit. But this is important to have children reset to NULL. */
   explicit InnerNode(const BoundBox &bounds) : BVHNode(bounds), num_children_(0)

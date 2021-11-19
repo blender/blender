@@ -153,7 +153,7 @@ void BVHNode::update_time()
 namespace {
 
 struct DumpTraversalContext {
-  /* Descriptor of wile where writing is happening. */
+  /* Descriptor of while where writing is happening. */
   FILE *stream;
   /* Unique identifier of the node current. */
   int id;
