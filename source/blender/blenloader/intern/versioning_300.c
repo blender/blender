@@ -2210,7 +2210,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
        * It was possible to save .blend file with incorrect state of meta strip
        * range. The root cause is expected to be fixed, but need to ensure files
        * with invalid meta strip range are corrected. */
-      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      if (ed != NULL) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      }
     }
   }
 }
