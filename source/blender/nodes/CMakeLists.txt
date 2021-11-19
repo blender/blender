@@ -18,6 +18,8 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
+add_subdirectory(geometry)
+
 set(INC
   .
   composite
@@ -154,148 +156,6 @@ set(SRC
   function/nodes/node_fn_string_length.cc
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
-
-  geometry/nodes/legacy/node_geo_align_rotation_to_vector.cc
-  geometry/nodes/legacy/node_geo_attribute_clamp.cc
-  geometry/nodes/legacy/node_geo_attribute_color_ramp.cc
-  geometry/nodes/legacy/node_geo_attribute_combine_xyz.cc
-  geometry/nodes/legacy/node_geo_attribute_compare.cc
-  geometry/nodes/legacy/node_geo_attribute_convert.cc
-  geometry/nodes/legacy/node_geo_attribute_curve_map.cc
-  geometry/nodes/legacy/node_geo_attribute_fill.cc
-  geometry/nodes/legacy/node_geo_attribute_map_range.cc
-  geometry/nodes/legacy/node_geo_attribute_math.cc
-  geometry/nodes/legacy/node_geo_attribute_mix.cc
-  geometry/nodes/legacy/node_geo_attribute_proximity.cc
-  geometry/nodes/legacy/node_geo_attribute_randomize.cc
-  geometry/nodes/legacy/node_geo_attribute_sample_texture.cc
-  geometry/nodes/legacy/node_geo_attribute_separate_xyz.cc
-  geometry/nodes/legacy/node_geo_attribute_transfer.cc
-  geometry/nodes/legacy/node_geo_attribute_vector_math.cc
-  geometry/nodes/legacy/node_geo_attribute_vector_rotate.cc
-  geometry/nodes/legacy/node_geo_curve_endpoints.cc
-  geometry/nodes/legacy/node_geo_curve_reverse.cc
-  geometry/nodes/legacy/node_geo_curve_select_by_handle_type.cc
-  geometry/nodes/legacy/node_geo_curve_set_handles.cc
-  geometry/nodes/legacy/node_geo_curve_spline_type.cc
-  geometry/nodes/legacy/node_geo_curve_subdivide.cc
-  geometry/nodes/legacy/node_geo_curve_to_points.cc
-  geometry/nodes/legacy/node_geo_delete_geometry.cc
-  geometry/nodes/legacy/node_geo_edge_split.cc
-  geometry/nodes/legacy/node_geo_material_assign.cc
-  geometry/nodes/legacy/node_geo_mesh_to_curve.cc
-  geometry/nodes/legacy/node_geo_point_distribute.cc
-  geometry/nodes/legacy/node_geo_point_instance.cc
-  geometry/nodes/legacy/node_geo_point_rotate.cc
-  geometry/nodes/legacy/node_geo_point_scale.cc
-  geometry/nodes/legacy/node_geo_point_separate.cc
-  geometry/nodes/legacy/node_geo_point_translate.cc
-  geometry/nodes/legacy/node_geo_points_to_volume.cc
-  geometry/nodes/legacy/node_geo_raycast.cc
-  geometry/nodes/legacy/node_geo_select_by_material.cc
-  geometry/nodes/legacy/node_geo_subdivision_surface.cc
-  geometry/nodes/legacy/node_geo_volume_to_mesh.cc
-
-  geometry/nodes/node_geo_attribute_capture.cc
-  geometry/nodes/node_geo_attribute_remove.cc
-  geometry/nodes/node_geo_attribute_statistic.cc
-  geometry/nodes/node_geo_boolean.cc
-  geometry/nodes/node_geo_bounding_box.cc
-  geometry/nodes/node_geo_collection_info.cc
-  geometry/nodes/node_geo_common.cc
-  geometry/nodes/node_geo_convex_hull.cc
-  geometry/nodes/node_geo_curve_endpoint_selection.cc
-  geometry/nodes/node_geo_curve_fill.cc
-  geometry/nodes/node_geo_curve_fillet.cc
-  geometry/nodes/node_geo_curve_handle_type_selection.cc
-  geometry/nodes/node_geo_curve_length.cc
-  geometry/nodes/node_geo_curve_parameter.cc
-  geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
-  geometry/nodes/node_geo_curve_primitive_circle.cc
-  geometry/nodes/node_geo_curve_primitive_line.cc
-  geometry/nodes/node_geo_curve_primitive_quadratic_bezier.cc
-  geometry/nodes/node_geo_curve_primitive_quadrilateral.cc
-  geometry/nodes/node_geo_curve_primitive_spiral.cc
-  geometry/nodes/node_geo_curve_primitive_star.cc
-  geometry/nodes/node_geo_curve_resample.cc
-  geometry/nodes/node_geo_curve_reverse.cc
-  geometry/nodes/node_geo_curve_sample.cc
-  geometry/nodes/node_geo_curve_set_handles.cc
-  geometry/nodes/node_geo_curve_spline_type.cc
-  geometry/nodes/node_geo_curve_subdivide.cc
-  geometry/nodes/node_geo_curve_to_mesh.cc
-  geometry/nodes/node_geo_curve_to_points.cc
-  geometry/nodes/node_geo_curve_trim.cc
-  geometry/nodes/node_geo_delete_geometry.cc
-  geometry/nodes/node_geo_distribute_points_on_faces.cc
-  geometry/nodes/node_geo_edge_split.cc
-  geometry/nodes/node_geo_image_texture.cc
-  geometry/nodes/node_geo_input_curve_handles.cc
-  geometry/nodes/node_geo_input_curve_tilt.cc
-  geometry/nodes/node_geo_input_id.cc
-  geometry/nodes/node_geo_input_index.cc
-  geometry/nodes/node_geo_input_material_index.cc
-  geometry/nodes/node_geo_input_material.cc
-  geometry/nodes/node_geo_input_normal.cc
-  geometry/nodes/node_geo_input_position.cc
-  geometry/nodes/node_geo_input_radius.cc
-  geometry/nodes/node_geo_input_shade_smooth.cc
-  geometry/nodes/node_geo_input_spline_cyclic.cc
-  geometry/nodes/node_geo_input_spline_length.cc
-  geometry/nodes/node_geo_input_spline_resolution.cc
-  geometry/nodes/node_geo_input_tangent.cc
-  geometry/nodes/node_geo_instance_on_points.cc
-  geometry/nodes/node_geo_instances_to_points.cc
-  geometry/nodes/node_geo_is_viewport.cc
-  geometry/nodes/node_geo_join_geometry.cc
-  geometry/nodes/node_geo_material_replace.cc
-  geometry/nodes/node_geo_material_selection.cc
-  geometry/nodes/node_geo_mesh_primitive_circle.cc
-  geometry/nodes/node_geo_mesh_primitive_cone.cc
-  geometry/nodes/node_geo_mesh_primitive_cube.cc
-  geometry/nodes/node_geo_mesh_primitive_cylinder.cc
-  geometry/nodes/node_geo_mesh_primitive_grid.cc
-  geometry/nodes/node_geo_mesh_primitive_ico_sphere.cc
-  geometry/nodes/node_geo_mesh_primitive_line.cc
-  geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
-  geometry/nodes/node_geo_mesh_subdivide.cc
-  geometry/nodes/node_geo_mesh_to_curve.cc
-  geometry/nodes/node_geo_mesh_to_points.cc
-  geometry/nodes/node_geo_object_info.cc
-  geometry/nodes/node_geo_points_to_vertices.cc
-  geometry/nodes/node_geo_points_to_volume.cc
-  geometry/nodes/node_geo_proximity.cc
-  geometry/nodes/node_geo_raycast.cc
-  geometry/nodes/node_geo_realize_instances.cc
-  geometry/nodes/node_geo_rotate_instances.cc
-  geometry/nodes/node_geo_scale_instances.cc
-  geometry/nodes/node_geo_separate_components.cc
-  geometry/nodes/node_geo_separate_geometry.cc
-  geometry/nodes/node_geo_set_curve_handles.cc
-  geometry/nodes/node_geo_set_curve_radius.cc
-  geometry/nodes/node_geo_set_curve_tilt.cc
-  geometry/nodes/node_geo_set_id.cc
-  geometry/nodes/node_geo_set_material_index.cc
-  geometry/nodes/node_geo_set_material.cc
-  geometry/nodes/node_geo_set_point_radius.cc
-  geometry/nodes/node_geo_set_position.cc
-  geometry/nodes/node_geo_set_shade_smooth.cc
-  geometry/nodes/node_geo_set_spline_cyclic.cc
-  geometry/nodes/node_geo_set_spline_resolution.cc
-  geometry/nodes/node_geo_string_join.cc
-  geometry/nodes/node_geo_string_to_curves.cc
-  geometry/nodes/node_geo_subdivision_surface.cc
-  geometry/nodes/node_geo_switch.cc
-  geometry/nodes/node_geo_transfer_attribute.cc
-  geometry/nodes/node_geo_transform.cc
-  geometry/nodes/node_geo_translate_instances.cc
-  geometry/nodes/node_geo_triangulate.cc
-  geometry/nodes/node_geo_viewer.cc
-  geometry/nodes/node_geo_volume_to_mesh.cc
-
-  geometry/node_geometry_exec.cc
-  geometry/node_geometry_tree.cc
-  geometry/node_geometry_util.cc
 
   shader/nodes/node_shader_add_shader.c
   shader/nodes/node_shader_ambient_occlusion.c
@@ -434,7 +294,6 @@ set(SRC
   composite/node_composite_util.hh
   function/node_function_util.hh
   shader/node_shader_util.h
-  geometry/node_geometry_util.hh
   texture/node_texture_util.h
 
   NOD_common.h
@@ -463,8 +322,8 @@ set(SRC
 set(LIB
   bf_bmesh
   bf_functions
-  bf_geometry
   bf_intern_sky
+  bf_nodes_geometry
 )
 
 if(WITH_BULLET)
