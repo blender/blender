@@ -692,7 +692,7 @@ static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
-  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
 }
 
 static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)

@@ -1657,21 +1657,31 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
   PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
+  PropertyRNA *prop_session_uuid = RNA_struct_find_property(op->ptr, "session_uuid");
 
+  bool update_location_if_necessary = false;
   if (RNA_property_is_set(op->ptr, prop_name)) {
     char name[MAX_ID_NAME - 2];
     RNA_property_string_get(op->ptr, prop_name, name);
     collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
+    update_location_if_necessary = true;
+  }
+  else if (RNA_property_is_set(op->ptr, prop_session_uuid)) {
+    const uint32_t session_uuid = (uint32_t)RNA_property_int_get(op->ptr, prop_session_uuid);
+    collection = (Collection *)BKE_libblock_find_session_uuid(bmain, ID_GR, session_uuid);
+    update_location_if_necessary = true;
+  }
+  else {
+    collection = BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection"));
+  }
 
+  if (update_location_if_necessary) {
     int mval[2];
     if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, loc);
       ED_view3d_cursor3d_position(C, mval, false, loc);
       RNA_property_float_set_array(op->ptr, prop_location, loc);
     }
-  }
-  else {
-    collection = BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection"));
   }
 
   if (collection == NULL) {
@@ -1707,7 +1717,8 @@ static int object_instance_add_invoke(bContext *C, wmOperator *op, const wmEvent
     RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
 
-  if (!RNA_struct_property_is_set(op->ptr, "name")) {
+  if (!RNA_struct_property_is_set(op->ptr, "name") &&
+      !RNA_struct_property_is_set(op->ptr, "session_uuid")) {
     return WM_enum_search_invoke(C, op, event);
   }
   return op->type->exec(C, op);
@@ -1739,6 +1750,16 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
   ED_object_add_generic_props(ot, false);
+
+  RNA_def_int(ot->srna,
+              "session_uuid",
+              0,
+              INT32_MIN,
+              INT32_MAX,
+              "Session UUID",
+              "Session UUID of the collection to add",
+              INT32_MIN,
+              INT32_MAX);
 
   object_add_drop_xy_props(ot);
 }
