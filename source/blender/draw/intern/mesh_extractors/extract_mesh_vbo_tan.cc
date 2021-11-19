@@ -54,10 +54,17 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
   uint32_t tan_layers = cache->cd_used.tan;
   float(*orco)[3] = (float(*)[3])CustomData_get_layer(cd_vdata, CD_ORCO);
   bool orco_allocated = false;
-  const bool use_orco_tan = cache->cd_used.tan_orco != 0;
+  bool use_orco_tan = cache->cd_used.tan_orco != 0;
 
   int tan_len = 0;
   char tangent_names[MAX_MTFACE][MAX_CUSTOMDATA_LAYER_NAME];
+
+  /* FIXME(T91838): This is to avoid a crash when orco tangent was requested but there are valid
+   * uv layers. It would be better to fix the root cause. */
+  if (tan_layers == 0 && use_orco_tan && CustomData_get_layer_index(cd_ldata, CD_MLOOPUV) != -1) {
+    tan_layers = 1;
+    use_orco_tan = false;
+  }
 
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
