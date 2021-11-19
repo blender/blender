@@ -35,7 +35,7 @@ static void geo_node_scale_instances_declare(NodeDeclarationBuilder &b)
 
 static void scale_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
-  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_POINT};
+  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
 
   fn::FieldEvaluator selection_evaluator{field_context, instances_component.instances_amount()};
   selection_evaluator.add(params.extract_input<Field<bool>>("Selection"));

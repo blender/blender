@@ -32,7 +32,7 @@ static void geo_node_rotate_instances_declare(NodeDeclarationBuilder &b)
 
 static void rotate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
-  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_POINT};
+  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
   const int domain_size = instances_component.instances_amount();
 
   fn::FieldEvaluator selection_evaluator{field_context, domain_size};
