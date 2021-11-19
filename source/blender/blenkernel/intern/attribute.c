@@ -492,7 +492,7 @@ void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
     fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
   }
   if (!ref || !ref->type) {
-    return NULL;
+    return;
   }
 
   DomainInfo info[ATTR_DOMAIN_NUM];
