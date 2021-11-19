@@ -49,7 +49,7 @@ static int is_component_row_selected(struct uiBut *but, const void *arg)
   const bool is_domain_selected = (AttributeDomain)sspreadsheet->attribute_domain == domain;
   bool is_selected = is_component_selected && is_domain_selected;
 
-  if (ELEM(component, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
+  if (component == GEO_COMPONENT_TYPE_VOLUME) {
     is_selected = is_component_selected;
   }
 
@@ -132,16 +132,6 @@ void DatasetRegionDrawer::draw_hierarchy(const DatasetLayoutHierarchy &layout)
   }
 }
 
-static int element_count_from_instances(const GeometrySet &geometry_set)
-{
-  if (geometry_set.has_instances()) {
-    const InstancesComponent *instances_component =
-        geometry_set.get_component_for_read<InstancesComponent>();
-    return instances_component->instances_amount();
-  }
-  return 0;
-}
-
 static int element_count_from_volume(const GeometrySet &geometry_set)
 {
   if (const Volume *volume = geometry_set.get_volume_for_read()) {
@@ -176,6 +166,12 @@ static int element_count_from_component_domain(const GeometrySet &geometry_set,
     return curve_component->attribute_domain_size(domain);
   }
 
+  if (geometry_set.has_instances() && component == GEO_COMPONENT_TYPE_INSTANCES) {
+    const InstancesComponent *instances_component =
+        geometry_set.get_component_for_read<InstancesComponent>();
+    return instances_component->attribute_domain_size(domain);
+  }
+
   return 0;
 }
 
@@ -196,11 +192,7 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
                      ymin_offset};
 
   char element_count[7];
-  if (component == GEO_COMPONENT_TYPE_INSTANCES) {
-    BLI_str_format_attribute_domain_size(
-        element_count, element_count_from_instances(draw_context.current_geometry_set));
-  }
-  else if (component == GEO_COMPONENT_TYPE_VOLUME) {
+  if (component == GEO_COMPONENT_TYPE_VOLUME) {
     BLI_str_format_attribute_domain_size(
         element_count, element_count_from_volume(draw_context.current_geometry_set));
   }
@@ -250,7 +242,15 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
 
 void DatasetRegionDrawer::draw_component_row(const DatasetComponentLayoutInfo &component_info)
 {
-  if (ELEM(component_info.type, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
+  if (component_info.type == GEO_COMPONENT_TYPE_INSTANCES) {
+    draw_dataset_row(0,
+                     component_info.type,
+                     ATTR_DOMAIN_INSTANCE,
+                     component_info.icon,
+                     component_info.label,
+                     true);
+  }
+  else if (component_info.type == GEO_COMPONENT_TYPE_VOLUME) {
     draw_dataset_row(
         0, component_info.type, std::nullopt, component_info.icon, component_info.label, true);
   }
