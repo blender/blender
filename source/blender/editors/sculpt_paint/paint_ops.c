@@ -660,9 +660,17 @@ static int brush_tool(const Brush *brush, size_t tool_offset)
   return *(((char *)brush) + tool_offset);
 }
 
-static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
+static void brush_tool_set(Brush *brush, size_t tool_offset, int tool)
 {
   *(((char *)brush) + tool_offset) = tool;
+
+  if (tool_offset == offsetof(Brush, sculpt_tool)) {
+    if (!brush->channels) {
+      brush->channels = BKE_brush_channelset_create(__func__);
+    }
+
+    BKE_brush_builtin_patch(brush, tool);
+  }
 }
 
 static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, const int tool)

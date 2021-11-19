@@ -8401,6 +8401,9 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
         channels = sculpt_init_tool_override_channels(sd, ob->sculpt, tool);
       }
 
+      //paranoia check to correct corrupted brushes
+      BKE_brush_builtin_patch(brush, brush->sculpt_tool);
+
       BKE_brush_channelset_compat_load(sculpt_get_brush_channels(ob->sculpt, brush), brush, false);
 
       if (tool) {

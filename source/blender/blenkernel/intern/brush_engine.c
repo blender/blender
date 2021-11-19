@@ -1105,6 +1105,14 @@ void brush_channel_apply_mapping_flags(BrushChannel *ch, BrushChannel *child, Br
     BrushMapping *cmp = child ? child->mappings + i : NULL;
     BrushMapping *pmp = parent ? parent->mappings + i : NULL;
 
+    if (!cmp) {
+      if (pmp) {
+        *mp = *pmp;
+      }
+
+      continue;
+    }
+
     if (pmp && brush_mapping_inherits(child, cmp)) {
       *mp = *pmp;
     }
