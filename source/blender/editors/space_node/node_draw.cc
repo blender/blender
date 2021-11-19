@@ -2116,15 +2116,15 @@ static void count_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
     }
   }
   /* Count temporary links going into this socket. */
-  LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
-    LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
-      bNodeLink *link = (bNodeLink *)linkdata->data;
+  if (snode->runtime->linkdrag) {
+    for (const bNodeLink *link : snode->runtime->linkdrag->links) {
       if (link->tosock && (link->tosock->flag & SOCK_MULTI_INPUT)) {
         int &count = counts.lookup_or_add(link->tosock, 0);
         count++;
       }
     }
   }
+
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
@@ -2383,9 +2383,9 @@ void node_draw_space(const bContext *C, ARegion *region)
     /* Temporary links. */
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
-    LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
-      LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
-        node_draw_link(C, v2d, snode, (bNodeLink *)linkdata->data);
+    if (snode->runtime->linkdrag) {
+      for (const bNodeLink *link : snode->runtime->linkdrag->links) {
+        node_draw_link(C, v2d, snode, link);
       }
     }
     GPU_line_smooth(false);

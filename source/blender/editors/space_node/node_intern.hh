@@ -49,13 +49,8 @@ struct wmWindow;
 
 /* temp data to pass on to modal */
 struct bNodeLinkDrag {
-  struct bNodeLinkDrag *next, *prev;
-
-  /* List of links dragged by the operator.
-   * NOTE: This is a list of LinkData structs on top of the actual bNodeLinks.
-   * This way the links can be added to the node tree while being stored in this list.
-   */
-  ListBase links;
+  /** Links dragged by the operator. */
+  blender::Vector<bNodeLink *> links;
   bool from_multi_input_socket;
   int in_out;
 
@@ -80,7 +75,7 @@ struct SpaceNode_Runtime {
   bool recalc;
 
   /** Temporary data for modal linking operator. */
-  struct ListBase linkdrag;
+  std::unique_ptr<bNodeLinkDrag> linkdrag;
 
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
