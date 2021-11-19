@@ -24,6 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -81,6 +82,18 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
                  '.',
                  offsetof(bUserAssetLibrary, name),
                  sizeof(library->name));
+}
+
+/* Set the library path, ensuring it is pointing to a directory.
+ * Single blend files can only act as "Current File" library; libraries on disk
+ * should always be directories. If the path does not exist, that's fine; it can
+ * created as directory if necessary later. */
+void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
+{
+  BLI_strncpy_utf8(library->path, path, sizeof(library->path));
+  if (BLI_is_file(library->path)) {
+    BLI_path_parent_dir(library->path);
+  }
 }
 
 bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(const UserDef *userdef, int index)
