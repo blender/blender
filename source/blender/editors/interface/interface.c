@@ -3977,10 +3977,6 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButCurveProfile);
       alloc_str = "uiButCurveProfile";
       break;
-    case UI_BTYPE_DATASETROW:
-      alloc_size = sizeof(uiButDatasetRow);
-      alloc_str = "uiButDatasetRow";
-      break;
     case UI_BTYPE_TREEROW:
       alloc_size = sizeof(uiButTreeRow);
       alloc_str = "uiButTreeRow";
@@ -4183,7 +4179,6 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
-                UI_BTYPE_DATASETROW,
                 UI_BTYPE_TREEROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
@@ -6924,15 +6919,6 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   return but;
 }
 
-void UI_but_datasetrow_indentation_set(uiBut *but, int indentation)
-{
-  uiButDatasetRow *but_dataset = (uiButDatasetRow *)but;
-  BLI_assert(but->type == UI_BTYPE_DATASETROW);
-
-  but_dataset->indentation = indentation;
-  BLI_assert(indentation >= 0);
-}
-
 void UI_but_treerow_indentation_set(uiBut *but, int indentation)
 {
   uiButTreeRow *but_row = (uiButTreeRow *)but;
@@ -6948,38 +6934,6 @@ void UI_but_treerow_indentation_set(uiBut *but, int indentation)
 void UI_but_hint_drawstr_set(uiBut *but, const char *string)
 {
   ui_but_add_shortcut(but, string, false);
-}
-
-void UI_but_datasetrow_component_set(uiBut *but, uint8_t geometry_component_type)
-{
-  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
-  BLI_assert(but->type == UI_BTYPE_DATASETROW);
-
-  but_dataset_row->geometry_component_type = geometry_component_type;
-}
-
-void UI_but_datasetrow_domain_set(uiBut *but, uint8_t attribute_domain)
-{
-  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
-  BLI_assert(but->type == UI_BTYPE_DATASETROW);
-
-  but_dataset_row->attribute_domain = attribute_domain;
-}
-
-uint8_t UI_but_datasetrow_component_get(uiBut *but)
-{
-  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
-  BLI_assert(but->type == UI_BTYPE_DATASETROW);
-
-  return but_dataset_row->geometry_component_type;
-}
-
-uint8_t UI_but_datasetrow_domain_get(uiBut *but)
-{
-  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
-  BLI_assert(but->type == UI_BTYPE_DATASETROW);
-
-  return but_dataset_row->attribute_domain;
 }
 
 void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_color[4])

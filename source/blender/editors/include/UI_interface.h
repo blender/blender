@@ -400,9 +400,8 @@ typedef enum {
   /** Resize handle (resize uilist). */
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
-  UI_BTYPE_DATASETROW = 59 << 9,
   /* An item in a tree view. Parent items may be collapsible. */
-  UI_BTYPE_TREEROW = 60 << 9,
+  UI_BTYPE_TREEROW = 59 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1676,11 +1675,7 @@ int UI_searchbox_size_x(void);
 int UI_search_items_find_index(uiSearchItems *items, const char *name);
 
 void UI_but_hint_drawstr_set(uiBut *but, const char *string);
-void UI_but_datasetrow_indentation_set(uiBut *but, int indentation);
-void UI_but_datasetrow_component_set(uiBut *but, uint8_t geometry_component_type);
-void UI_but_datasetrow_domain_set(uiBut *but, uint8_t attribute_domain);
-uint8_t UI_but_datasetrow_component_get(uiBut *but);
-uint8_t UI_but_datasetrow_domain_get(uiBut *but);
+
 void UI_but_treerow_indentation_set(uiBut *but, int indentation);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);

@@ -217,14 +217,10 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   friend class TreeViewLayoutBuilder;
 
  public:
-  using IsActiveFn = std::function<bool()>;
-
  private:
   bool is_open_ = false;
   bool is_active_ = false;
   bool is_renaming_ = false;
-
-  IsActiveFn is_active_fn_;
 
  protected:
   /** This label is used for identifying an item (together with its parent's labels). */
@@ -239,11 +235,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_context_menu(bContext &C, uiLayout &column) const;
 
   virtual void on_activate();
-  /**
-   * Set a custom callback to check if this item should be active. There's a version without
-   * arguments for checking if the item is currently in an active state.
-   */
-  virtual void is_active(IsActiveFn is_active_fn);
 
   /**
    * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
@@ -328,6 +319,17 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
    */
   void activate();
+
+  /**
+   * If the result is not empty, it controls whether the item should be active or not,
+   * usually depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_active() const;
+
+  /**
+   * Return whether the item can be collapsed. Used to disable collapsing for items with children.
+   */
+  virtual bool supports_collapsing() const;
 
  private:
   static void rename_button_fn(bContext *, void *, char *);
@@ -416,6 +418,7 @@ class AbstractTreeViewItemDropController {
  */
 class BasicTreeViewItem : public AbstractTreeViewItem {
  public:
+  using IsActiveFn = std::function<bool()>;
   using ActivateFn = std::function<void(BasicTreeViewItem &new_active)>;
   BIFIconID icon;
 
@@ -423,7 +426,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
   void build_row(uiLayout &row) override;
   void add_label(uiLayout &layout, StringRefNull label_override = "");
-  void on_activate(ActivateFn fn);
+  void set_on_activate_fn(ActivateFn fn);
+  /**
+   * Set a custom callback to check if this item should be active.
+   */
+  void set_is_active_fn(IsActiveFn fn);
 
  protected:
   /**
@@ -433,9 +440,12 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
    */
   ActivateFn activate_fn_;
 
+  IsActiveFn is_active_fn_;
+
  private:
   static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
 
+  std::optional<bool> should_be_active() const override;
   void on_activate() override;
 };
 

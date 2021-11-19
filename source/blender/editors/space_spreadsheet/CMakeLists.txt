@@ -41,10 +41,10 @@ set(SRC
   spreadsheet_data_source.cc
   spreadsheet_data_source_geometry.cc
   spreadsheet_dataset_draw.cc
-  spreadsheet_dataset_layout.cc
   spreadsheet_draw.cc
   spreadsheet_layout.cc
   spreadsheet_ops.cc
+  spreadsheet_panels.cc
   spreadsheet_row_filter.cc
   spreadsheet_row_filter_ui.cc
 
@@ -56,7 +56,6 @@ set(SRC
   spreadsheet_data_source.hh
   spreadsheet_data_source_geometry.hh
   spreadsheet_dataset_draw.hh
-  spreadsheet_dataset_layout.hh
   spreadsheet_draw.hh
   spreadsheet_intern.hh
   spreadsheet_layout.hh

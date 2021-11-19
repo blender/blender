@@ -37,6 +37,7 @@ struct SpaceSpreadsheet_Runtime {
 };
 
 struct bContext;
+struct ARegionType;
 
 void spreadsheet_operatortypes(void);
 void spreadsheet_update_context_path(const bContext *C);
@@ -45,6 +46,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
 
 namespace blender::ed::spreadsheet {
 GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
-                                                 Object *object_eval,
-                                                 const GeometryComponentType used_component_type);
-}
+                                                 Object *object_eval);
+
+void spreadsheet_data_set_region_panels_register(ARegionType &region_type);
+
+}  // namespace blender::ed::spreadsheet

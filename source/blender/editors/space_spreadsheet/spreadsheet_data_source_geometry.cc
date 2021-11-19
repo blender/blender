@@ -582,8 +582,7 @@ int VolumeDataSource::tot_rows() const
 }
 
 GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
-                                                 Object *object_eval,
-                                                 const GeometryComponentType used_component_type)
+                                                 Object *object_eval)
 {
   GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
@@ -615,7 +614,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
     }
   }
   else {
-    if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
+    if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
       Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
       if (mesh == nullptr) {
         return geometry_set;
@@ -762,8 +761,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
-  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(
-      sspreadsheet, object_eval, component_type);
+  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
 
   if (!geometry_set.has(component_type)) {
     return {};
