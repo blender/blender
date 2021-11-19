@@ -126,7 +126,7 @@ struct BLI_mempool {
   uint flag;
   /* keeps aligned to 16 bits */
 
-  /** Free element list. Interleaved into chunk datas. */
+  /** Free element list. Interleaved into chunk data. */
   BLI_freenode *free;
   /** Use to know how many chunks to keep for #BLI_mempool_clear. */
   uint maxchunks;

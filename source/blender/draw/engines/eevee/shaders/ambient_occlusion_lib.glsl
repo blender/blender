@@ -56,7 +56,7 @@ vec2 get_ao_noise(void)
 {
   vec2 noise = texelfetch_noise_tex(gl_FragCoord.xy).xy;
   /* Decorrelate noise from AA. */
-  /* TODO(fclem) we should use a more general approach for more random number dimentions. */
+  /* TODO(fclem) we should use a more general approach for more random number dimensions. */
   noise = fract(noise * 6.1803402007);
   return noise;
 }
@@ -399,7 +399,7 @@ float specular_occlusion(
 /* Use the right occlusion. */
 OcclusionData occlusion_load(vec3 vP, float custom_occlusion)
 {
-  /* Default to fully openned cone. */
+  /* Default to fully opened cone. */
   OcclusionData data = NO_OCCLUSION_DATA;
 
 #ifdef ENABLE_DEFERED_AO

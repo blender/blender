@@ -95,7 +95,7 @@ void main()
 
 /**
  * ----------------- STEP 0.5 ------------------
- * Custom Coc aware downsampling. Quater res pass.
+ * Custom Coc aware downsampling. Quarter res pass.
  */
 #ifdef DOWNSAMPLE
 

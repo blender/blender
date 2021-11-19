@@ -549,7 +549,7 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
           param.push_back("TRANSFORM");
         }
         else {
-          /* assumes if axis isn't specified all axises are added */
+          /* assumes if axis isn't specified all axes are added */
           param.push_back("X");
           param.push_back("Y");
           param.push_back("Z");

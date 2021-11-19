@@ -199,7 +199,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
   }
 
   /* set color for normal channels
-   * - use 3 shades of color group/standard color for 3 indention level
+   * - use 3 shades of color group/standard color for 3 indentation level
    * - only use group colors if allowed to, and if actually feasible
    */
   if (showGroupColors && (grp) && (grp->customCol)) {

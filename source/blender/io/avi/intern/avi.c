@@ -591,7 +591,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
     BLI_fseek(movie->fp, size - 4, SEEK_CUR);
 
     if (GET_FCC(movie->fp) != FCC("idx1")) {
-      DEBUG_PRINT("bad index informatio\n");
+      DEBUG_PRINT("bad index information\n");
       return AVI_ERROR_FORMAT;
     }
 

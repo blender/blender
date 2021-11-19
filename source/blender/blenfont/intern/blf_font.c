@@ -582,7 +582,7 @@ void blf_font_draw_buffer(FontBLF *font,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Text Evaluation: Width to Sting Length
+/** \name Text Evaluation: Width to String Length
  *
  * Use to implement exported functions:
  * - #BLF_width_to_strlen

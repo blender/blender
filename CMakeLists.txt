@@ -1070,7 +1070,7 @@ if(MSVC)
   add_definitions(-D__LITTLE_ENDIAN__)
 
   # OSX-Note: as we do cross-compiling with specific set architecture,
-  # endianess-detection and auto-setting is counterproductive
+  # endianness-detection and auto-setting is counterproductive
   # so we just set endianness according CMAKE_OSX_ARCHITECTURES
 
 elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64 OR CMAKE_OSX_ARCHITECTURES MATCHES arm64)
@@ -1760,7 +1760,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 # If C++17 is not available, downgrading to an earlier standard is NOT OK.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Do not enable compiler specific language extentions.
+# Do not enable compiler specific language extensions.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Make MSVC properly report the value of the __cplusplus preprocessor macro

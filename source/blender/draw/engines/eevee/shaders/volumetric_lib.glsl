@@ -74,7 +74,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
     float d = l_vector.w;
     float d_sqr = sqr(d);
     float r_sqr = ld.l_volume_radius;
-    /* Using reformulation that has better numerical percision. */
+    /* Using reformulation that has better numerical precision. */
     power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
 
     if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {

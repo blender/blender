@@ -39,7 +39,7 @@ endif()
 set(DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/downloads" CACHE STRING "Path for downloaded files")
 # This path must be hard-coded like this, so that the GNUmakefile knows where it is and can pass it to make_source_archive.py:
 set(PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/packages")
-option(PACKAGE_USE_UPSTREAM_SOURCES "Use soures upstream to download the package sources, when OFF the blender mirror will be used" ON)
+option(PACKAGE_USE_UPSTREAM_SOURCES "Use sources upstream to download the package sources, when OFF the blender mirror will be used" ON)
 
 file(TO_CMAKE_PATH ${DOWNLOAD_DIR} DOWNLOAD_DIR)
 file(TO_CMAKE_PATH ${PACKAGE_DIR} PACKAGE_DIR)

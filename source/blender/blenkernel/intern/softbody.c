@@ -2633,7 +2633,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
   }
 }
 
-/* ************ convertors ********** */
+/* ************ converters ********** */
 
 /* for each object type we need;
  * - xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry

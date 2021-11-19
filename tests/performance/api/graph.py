@@ -75,7 +75,7 @@ class TestGraph:
                 revision_dates[revision] = int(entry.date)
 
         # Google Charts JSON data layout is like a spreadsheat table, with
-        # colums, rows and cells. We create one column for revision labels,
+        # columns, rows, and cells. We create one column for revision labels,
         # and one column for each test.
         cols = []
         if chart_type == 'line':

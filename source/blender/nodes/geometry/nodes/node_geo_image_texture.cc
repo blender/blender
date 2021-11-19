@@ -82,7 +82,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
 
     image_buffer_ = BKE_image_acquire_ibuf(&image_, &image_user_, &image_lock_);
     if (image_buffer_ == nullptr) {
-      throw std::runtime_error("cannot aquire image buffer");
+      throw std::runtime_error("cannot acquire image buffer");
     }
 
     if (image_buffer_->rect_float == nullptr) {

@@ -180,7 +180,7 @@ def create_nb_project_main():
         f.write('    </logicalFolder>\n')
 
         f.write('  </logicalFolder>\n')
-        # default, but this dir is infact not in blender dir so we can ignore it
+        # default, but this dir is in fact not in blender dir so we can ignore it
         # f.write('  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>\n')
         f.write(r'  <sourceFolderFilter>^(nbproject|__pycache__|.*\.py|.*\.html|.*\.blend)$</sourceFolderFilter>\n')
 

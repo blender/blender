@@ -183,13 +183,13 @@ struct anim_index *IMB_indexer_open(const char *name)
   header[12] = 0;
 
   if (memcmp(header, binary_header_str, 8) != 0) {
-    fprintf(stderr, "Error reading %s: Binary file type string missmatch\n", name);
+    fprintf(stderr, "Error reading %s: Binary file type string mismatch\n", name);
     fclose(fp);
     return NULL;
   }
 
   if (atoi(header + 9) != INDEX_FILE_VERSION) {
-    fprintf(stderr, "Error reading %s: File version missmatch\n", name);
+    fprintf(stderr, "Error reading %s: File version mismatch\n", name);
     fclose(fp);
     return NULL;
   }
@@ -222,7 +222,7 @@ struct anim_index *IMB_indexer_open(const char *name)
   }
 
   if (UNLIKELY(items_read != idx->num_entries * 5)) {
-    fprintf(stderr, "Error: Element data size missmatch in: %s\n", name);
+    fprintf(stderr, "Error: Element data size mismatch in: %s\n", name);
     MEM_freeN(idx->entries);
     MEM_freeN(idx);
     fclose(fp);

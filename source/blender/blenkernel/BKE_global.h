@@ -213,7 +213,7 @@ enum {
   /**
    * Set when transforming the cursor itself.
    * Used as a hint to draw the cursor (even when hidden).
-   * Otherwise it's not possible to see whats being transformed.
+   * Otherwise it's not possible to see what's being transformed.
    */
   G_TRANSFORM_CURSOR = (1 << 5),
 };

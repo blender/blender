@@ -2010,7 +2010,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* We must get compatible eulers from the beginning because
      * some of them can be modified below (see bug T21875).
      * Additionally, since this constraint is based on euler rotation math, it doesn't work well
-     * with shear. The Y axis is chosen as the main axis when we orthoganalize the matrix because
+     * with shear. The Y axis is chosen as the main axis when we orthogonalize the matrix because
      * constraints are used most commonly on bones. */
     float mat[4][4];
     copy_m4_m4(mat, ct->matrix);

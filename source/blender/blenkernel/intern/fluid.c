@@ -5090,7 +5090,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     copy_v4_v4(tfds->gridlines_range_color, fds->gridlines_range_color);
     tfds->gridlines_cell_filter = fds->gridlines_cell_filter;
 
-    /* -- Deprecated / unsed options (below)-- */
+    /* -- Deprecated / unused options (below)-- */
 
     /* pointcache options */
     BKE_ptcache_free_list(&(tfds->ptcaches[0]));

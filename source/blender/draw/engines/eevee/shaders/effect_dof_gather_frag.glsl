@@ -2,7 +2,7 @@
 /**
  * Gather pass: Convolve foreground and background parts in separate passes.
  *
- * Using the min&max CoC tile buffer, we select the best apropriate method to blur the scene color.
+ * Using the min&max CoC tile buffer, we select the best appropriate method to blur the scene color.
  * A fast gather path is taken if there is not many CoC variation inside the tile.
  *
  * We sample using an octaweb sampling pattern. We randomize the kernel center and each ring

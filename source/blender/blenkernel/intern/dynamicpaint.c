@@ -763,7 +763,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     copy_v3_v3(bData->dim, dim);
     min_dim = max_fff(td[0], td[1], td[2]) / 1000.0f;
 
-    /* deactivate zero axises */
+    /* deactivate zero axes */
     for (i = 0; i < 3; i++) {
       if (td[i] < min_dim) {
         td[i] = 1.0f;
@@ -784,7 +784,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     dim_factor = (float)pow((double)volume / ((double)sData->total_points / 10000.0),
                             1.0 / (double)axis);
 
-    /* define final grid size using dim_factor, use min 3 for active axises */
+    /* define final grid size using dim_factor, use min 3 for active axes */
     for (i = 0; i < 3; i++) {
       grid->dim[i] = (int)floor(td[i] / dim_factor);
       CLAMP(grid->dim[i], (dim[i] >= min_dim) ? 3 : 1, 100);

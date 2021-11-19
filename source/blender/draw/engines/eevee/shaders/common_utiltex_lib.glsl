@@ -79,7 +79,7 @@ vec2 btdf_lut(float cos_theta, float roughness, float ior)
     /* Baked IOR for GGX BRDF. */
     const float specular = 1.0;
     const float eta_brdf = (2.0 / (1.0 - sqrt(0.08 * specular))) - 1.0;
-    /* Avoid harsh transition comming from ior == 1. */
+    /* Avoid harsh transition coming from ior == 1. */
     float f90 = fast_sqrt(saturate(f0 / (f0_from_ior(eta_brdf) * 0.25)));
     float fresnel = F_brdf_single_scatter(vec3(f0), vec3(f90), split_sum).r;
     /* Setting the BTDF to one is not really important since it is only used for multiscatter

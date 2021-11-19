@@ -8,7 +8,7 @@
 
 #if defined(STEP_RESOLVE) || defined(STEP_RAYTRACE)
 /* SSR will set these global variables itself.
- * Also make false positive compiler warnings disapear by setting values. */
+ * Also make false positive compiler warnings disappear by setting values. */
 vec3 worldPosition = vec3(0);
 vec3 viewPosition = vec3(0);
 vec3 worldNormal = vec3(0);

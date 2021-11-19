@@ -902,7 +902,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
   if ((ob->id.tag & LIB_TAG_MISSING) == 0 && (id->tag & LIB_TAG_MISSING) != 0) {
     /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
      * use object's material slots amount as reference.
-     * This avoids loosing materials in a local object when its linked obdata gets missing.
+     * This avoids losing materials in a local object when its linked obdata goes missing.
      * See T92780. */
     BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
   }
