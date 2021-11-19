@@ -546,7 +546,7 @@ uiButTreeRow *AbstractTreeViewItem::tree_row_button()
 
 void AbstractTreeViewItem::change_state_delayed()
 {
-  if (is_active_fn_()) {
+  if (is_active_fn_ && is_active_fn_()) {
     activate();
   }
 }
