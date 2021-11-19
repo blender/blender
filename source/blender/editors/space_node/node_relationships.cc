@@ -63,6 +63,7 @@
 #include "node_intern.hh" /* own include */
 
 using namespace blender::nodes::node_tree_ref_types;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Relations Helpers
@@ -321,19 +322,6 @@ static void pick_input_link_by_link_intersect(const bContext *C,
   }
 }
 
-static int sort_nodes_locx(const void *a, const void *b)
-{
-  const bNodeListItem *nli1 = (const bNodeListItem *)a;
-  const bNodeListItem *nli2 = (const bNodeListItem *)b;
-  const bNode *node1 = nli1->node;
-  const bNode *node2 = nli2->node;
-
-  if (node1->locx > node2->locx) {
-    return 1;
-  }
-  return 0;
-}
-
 static bool socket_is_available(bNodeTree *UNUSED(ntree), bNodeSocket *sock, const bool allow_used)
 {
   if (nodeSocketIsHidden(sock)) {
@@ -524,30 +512,25 @@ static void snode_autoconnect(Main *bmain,
                               const bool replace)
 {
   bNodeTree *ntree = snode->edittree;
-  ListBase *nodelist = (ListBase *)MEM_callocN(sizeof(ListBase), "items_list");
+  Vector<bNode *> sorted_nodes;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->flag & NODE_SELECT) {
-      bNodeListItem *nli = (bNodeListItem *)MEM_mallocN(sizeof(bNodeListItem),
-                                                        "temporary node list item");
-      nli->node = node;
-      BLI_addtail(nodelist, nli);
+      sorted_nodes.append(node);
     }
   }
 
-  /* sort nodes left to right */
-  BLI_listbase_sort(nodelist, sort_nodes_locx);
+  /* Sort nodes left to right. */
+  std::sort(sorted_nodes.begin(), sorted_nodes.end(), [](const bNode *a, const bNode *b) {
+    return a->locx < b->locx;
+  });
 
   int numlinks = 0;
-  LISTBASE_FOREACH (bNodeListItem *, nli, nodelist) {
+  for (const int i : sorted_nodes.as_mutable_span().drop_back(1).index_range()) {
     bool has_selected_inputs = false;
 
-    if (nli->next == nullptr) {
-      break;
-    }
-
-    bNode *node_fr = nli->node;
-    bNode *node_to = nli->next->node;
+    bNode *node_fr = sorted_nodes[i];
+    bNode *node_to = sorted_nodes[i + 1];
     /* corner case: input/output node aligned the wrong way around (T47729) */
     if (BLI_listbase_is_empty(&node_to->inputs) || BLI_listbase_is_empty(&node_fr->outputs)) {
       SWAP(bNode *, node_fr, node_to);
@@ -603,9 +586,6 @@ static void snode_autoconnect(Main *bmain,
   if (numlinks > 0) {
     ntreeUpdateTree(bmain, ntree);
   }
-
-  BLI_freelistN(nodelist);
-  MEM_freeN(nodelist);
 }
 
 /** \} */
