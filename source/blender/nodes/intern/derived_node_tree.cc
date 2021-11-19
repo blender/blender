@@ -167,7 +167,11 @@ DInputSocket DOutputSocket::get_active_corresponding_group_output_socket() const
   BLI_assert(socket_ref_->node().is_group_node());
 
   const DTreeContext *child_context = context_->child_context(socket_ref_->node());
-  BLI_assert(child_context != nullptr);
+  if (child_context == nullptr) {
+    /* Can happen when the group node references a non-existant group (e.g. when the group is
+     * linked but the original file is not found). */
+    return {};
+  }
 
   const NodeTreeRef &child_tree = child_context->tree();
   Span<const NodeRef *> group_output_nodes = child_tree.nodes_by_type("NodeGroupOutput");
