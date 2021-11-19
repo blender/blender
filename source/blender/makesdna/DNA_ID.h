@@ -211,11 +211,15 @@ typedef struct IDOverrideLibraryPropertyOperation {
   char _pad0[2];
 
   /* Sub-item references, if needed (for arrays or collections only).
-   * We need both reference and local values to allow e.g. insertion into collections
+   * We need both reference and local values to allow e.g. insertion into RNA collections
    * (constraints, modifiers...).
-   * In collection case, if names are defined, they are used in priority.
-   * Names are pointers (instead of char[64]) to save some space, NULL when unset.
-   * Indices are -1 when unset. */
+   * In RNA collection case, if names are defined, they are used in priority.
+   * Names are pointers (instead of char[64]) to save some space, NULL or empty string when unset.
+   * Indices are -1 when unset.
+   *
+   * NOTE: For insertion operations in RNA collections, reference may not actually exist in the
+   * linked reference data. It is used to identify the anchor of the insertion operation (i.e. the
+   * item after or before which the new local item should be inserted), in the local override. */
   char *subitem_reference_name;
   char *subitem_local_name;
   int subitem_reference_index;

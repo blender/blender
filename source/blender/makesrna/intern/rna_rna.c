@@ -1916,16 +1916,21 @@ int rna_property_override_diff_default(Main *bmain,
 
           /* Collections do not support replacement of their data (except for collections of ID
            * pointers), since they do not support removing, only in *some* cases, insertion. We
-           * also assume then that _a data is the one where things are inserted. */
+           * also assume then that _a data is the one where things are inserted.
+           *
+           * NOTE: In insertion case, both 'local' and 'reference' (aka anchor) sub-item
+           * identifiers refer to collection items in the local override. The 'reference' may match
+           * an item in the linked reference data, but it can also be another local-only item added
+           * by a previous INSERT operation. */
           if (is_valid_for_insertion && use_collection_insertion) {
             op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
             BKE_lib_override_library_property_operation_get(op,
                                                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-                                                            NULL,
                                                             no_prop_name ? NULL : prev_propname_a,
-                                                            -1,
+                                                            no_prop_name ? NULL : propname_a,
                                                             idx_a - 1,
+                                                            idx_a,
                                                             true,
                                                             NULL,
                                                             NULL);
