@@ -91,6 +91,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     return;
   }
 
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+
   // int totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_MLOOPUV);
   CustomData *ldata = &ss->bm->ldata;
 
@@ -121,6 +123,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   isect_ray_tri_watertight_v3_precalc(&precalc, ray);
 
   float *lastuvs = BLI_array_alloca(lastuvs, totuv * 2);
+  bool *snapuvs = BLI_array_alloca(snapuvs, totuv);
 
   e = v->e;
 
@@ -145,6 +148,10 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
   bool first = true;
   bool bad = false;
+
+  for (int i = 0; i < totuv; i++) {
+    snapuvs[i] = true; //!(mv->flag & SCULPTVERT_UV_BOUNDARY);
+  }
 
   do {
     BMLoop *l = e->l;
@@ -186,9 +193,9 @@ void SCULPT_reproject_cdata(SculptSession *ss,
           const float dy = lastuvs[i * 2 + 1] - luv->uv[1];
           const float eps = 0.00001f;
 
-          if (fabsf(dx * dx + dy * dy) > eps) {
+          if (dx * dx + dy * dy > eps) {
             bad = true;
-            break;
+            snapuvs[i] = false;
           }
         }
 
@@ -196,11 +203,13 @@ void SCULPT_reproject_cdata(SculptSession *ss,
         lastuvs[i * 2 + 1] = luv->uv[1];
       }
 
+      first = false;
+
       if (bad) {
         break;
       }
     } while ((l = l->radial_next) != e->l);
-
+    
     if (bad) {
       break;
     }
@@ -214,7 +223,6 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
   const float *v_proj_axis = v->no;
   float v_proj[3][3];
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
   project_plane_normalized_v3_v3v3(v_proj[1], mv->origco, v_proj_axis);
 
@@ -317,6 +325,63 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
     CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
   }
+
+  int *tots = BLI_array_alloca(tots, totuv);
+
+  for (int i = 0; i < totuv; i++) {
+    lastuvs[i * 2] = lastuvs[i * 2 + 1] = 0.0f;
+    tots[i] = 0;
+  }
+
+  //re-snap uvs
+  v = (BMVert*)vertex.i;
+
+  e = v->e;
+  do {
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l_iter = e->l;
+    do {
+      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+
+        add_v2_v2(lastuvs + i * 2, luv->uv);
+        tots[i]++;
+      }
+    } while ((l_iter = l_iter->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  for (int i = 0; i < totuv; i++) {
+    if (tots[i]) {
+      mul_v2_fl(lastuvs + i * 2, 1.0f / (float)tots[i]);
+    }
+  }
+
+  e = v->e;
+  do {
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l_iter = e->l;
+    do {
+      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+
+        if (snapuvs[i]) {
+          copy_v2_v2(luv->uv, lastuvs + i * 2);
+        }
+      }
+    } while ((l_iter = l_iter->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
   BLI_array_free(ls);
 }
@@ -512,7 +577,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       */
 
       bool slide = (slide_fset > 0.0f &&
-                    (is_boundary & (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV))) ||
+                    (is_boundary &
+                     (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV))) ||
                    bound_smooth > 0.0f;
       slide = slide && !final_boundary;
 

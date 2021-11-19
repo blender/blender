@@ -1829,7 +1829,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     }
 
     if (e->l) {
-      /* deal with uv island boundaries */
+      /* detect uv island boundaries */
       if (totuv) {
         BMLoop *l_iter = e->l;
         do {
@@ -1869,7 +1869,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
           }
 
           uv_first = false;
-        } while ((l_iter = l_iter->next) != e->l);
+        } while ((l_iter = l_iter->radial_next) != e->l);
       }
 
       if (BM_ELEM_CD_GET_INT(e->l->f, cd_face_node_offset) != ni) {
