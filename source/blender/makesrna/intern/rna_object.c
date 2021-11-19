@@ -1673,6 +1673,7 @@ static bConstraint *rna_Object_constraints_copy(Object *object, Main *bmain, Poi
 {
   bConstraint *con = con_ptr->data;
   bConstraint *new_con = BKE_constraint_copy_for_object(object, con);
+  new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
   ED_object_constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);

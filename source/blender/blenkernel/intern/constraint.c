@@ -6022,7 +6022,6 @@ bConstraint *BKE_constraint_duplicate_ex(bConstraint *src, const int flag, const
   bConstraint *dst = MEM_dupallocN(src);
   constraint_copy_data_ex(dst, src, flag, do_extern);
   dst->next = dst->prev = NULL;
-  dst->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
   return dst;
 }
 
@@ -6057,7 +6056,9 @@ void BKE_constraints_copy_ex(ListBase *dst, const ListBase *src, const int flag,
   for (con = dst->first, srccon = src->first; con && srccon;
        srccon = srccon->next, con = con->next) {
     constraint_copy_data_ex(con, srccon, flag, do_extern);
-    con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+    if ((flag & LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG) == 0) {
+      con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+    }
   }
 }
 

@@ -650,6 +650,7 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
   Object *ob = (Object *)id;
   bConstraint *con = con_ptr->data;
   bConstraint *new_con = BKE_constraint_copy_for_pose(ob, pchan, con);
+  new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
   ED_object_constraint_dependency_tag_update(bmain, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
