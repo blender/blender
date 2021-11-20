@@ -77,6 +77,7 @@ class GLContext : public Context {
   /** Workarounds. */
   static bool debug_layer_workaround;
   static bool unused_fb_slot_workaround;
+  static bool generate_mipmap_workaround;
   static float derivative_signs[2];
 
   /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
