@@ -73,7 +73,7 @@ set(SRC
   interface_template_asset_view.cc
   interface_template_list.cc
   interface_template_attribute_search.cc
-  interface_template_search_menu.c
+  interface_template_search_menu.cc
   interface_template_search_operator.c
   interface_templates.c
   interface_undo.c
