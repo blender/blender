@@ -1068,7 +1068,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
       immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
       immUniform1i("colors_len", 0); /* Simple dashes. */
-      immUniform1f("dash_width", 4.0f * U.pixelsize);
+      immUniform1f("dash_width", 4.0f);
       immUniform1f("dash_factor", 0.5f);
     }
     else {
