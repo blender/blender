@@ -238,7 +238,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       vcolor[3] = 1.0f;
     }
     else {
-      MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+      MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
       IMB_blend_color_float(vcolor, mv->origcolor, buffer_color, brush->blend);
     }
 

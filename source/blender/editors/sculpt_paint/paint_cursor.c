@@ -1519,11 +1519,11 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
 
   int fi = BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index);
 
+  /*
   MPoly *poly = &ss->mpoly[fi];
   MLoop *loops = ss->mloop;
   const int totpoints = poly->totloop;
 
-  /*
   immBegin(GPU_PRIM_LINE_STRIP, totpoints + 1);
   for (int i = 0; i < totpoints; i++) {
     float co[3];

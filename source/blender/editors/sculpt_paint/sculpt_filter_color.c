@@ -27,7 +27,9 @@
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_rand.h"
 #include "BLI_task.h"
+#include "PIL_time.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -67,6 +69,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define COLOR_FILTER_NEEDS_RANDOM(mode) \
+  ELEM(mode, COLOR_FILTER_RANDOM_HUE, COLOR_FILTER_RANDOM_SATURATION, COLOR_FILTER_RANDOM_VALUE)
+
 typedef enum eSculptColorFilterTypes {
   COLOR_FILTER_FILL,
   COLOR_FILTER_HUE,
@@ -78,6 +83,9 @@ typedef enum eSculptColorFilterTypes {
   COLOR_FILTER_GREEN,
   COLOR_FILTER_BLUE,
   COLOR_FILTER_SMOOTH,
+  COLOR_FILTER_RANDOM_HUE,
+  COLOR_FILTER_RANDOM_SATURATION,
+  COLOR_FILTER_RANDOM_VALUE,
 } eSculptColorFilterTypes;
 
 static EnumPropertyItem prop_color_filter_types[] = {
@@ -94,24 +102,32 @@ static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_RED, "RED", 0, "Red", "Change red channel"},
     {COLOR_FILTER_GREEN, "GREEN", 0, "Green", "Change green channel"},
     {COLOR_FILTER_BLUE, "BLUE", 0, "Blue", "Change blue channel"},
+
+    {COLOR_FILTER_RANDOM_HUE, "RANDOM_HUE", 0, "Random Hue", "Randomize HSV hue"},
+    {COLOR_FILTER_RANDOM_SATURATION,
+     "RANDOM_SATURATION",
+     0,
+     "Random Saturation",
+     "Randomize HSV saturation"},
+    {COLOR_FILTER_RANDOM_VALUE, "RANDOM_VALUE", 0, "Random Value", "Randomize HSV value"},
     {0, NULL, 0, NULL, NULL},
 };
 
-static void color_filter_task_cb(void *__restrict userdata,
-                                 const int n,
-                                 const TaskParallelTLS *__restrict UNUSED(tls))
+ATTR_NO_OPT static void color_filter_task_cb(void *__restrict userdata,
+                                             const int n,
+                                             const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
 
   const int mode = data->filter_type;
-
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
+  const uint random_seed = (uint)data->mask_init_seed;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+    MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
+
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;
     float brightness, contrast, gain, delta, offset;
@@ -123,7 +139,18 @@ static void color_filter_task_cb(void *__restrict userdata,
       continue;
     }
 
-    copy_v3_v3(orig_color, orig_data.col);
+    float random_factor = 0.0f;
+
+    copy_v3_v3(orig_color, mv->origcolor);
+
+    /* Index is not unique for multires, so hash by vertex coordinates. */
+    if (COLOR_FILTER_NEEDS_RANDOM(mode)) {
+      const uint *hash_co = (const uint *)mv->origco;
+      uint seed = BLI_hash_int_3d(hash_co[0], hash_co[1], hash_co[2]);
+      seed ^= BLI_hash_int(random_seed);
+
+      random_factor = ((float)seed) / (float)0xFFFFFFFFu - 0.5f;
+    }
 
     switch (mode) {
       case COLOR_FILTER_FILL: {
@@ -132,7 +159,7 @@ static void color_filter_task_cb(void *__restrict userdata,
         fill_color_rgba[3] = 1.0f;
         fade = clamp_f(fade, 0.0f, 1.0f);
         mul_v4_fl(fill_color_rgba, fade);
-        blend_color_mix_float(final_color, orig_data.col, fill_color_rgba);
+        blend_color_mix_float(final_color, mv->origcolor, fill_color_rgba);
         break;
       }
       case COLOR_FILTER_HUE:
@@ -205,12 +232,30 @@ static void color_filter_task_cb(void *__restrict userdata,
         blend_color_interpolate_float(final_color, col, smooth_color, fade);
         break;
       }
+      case COLOR_FILTER_RANDOM_HUE:
+        fade *= random_factor;
+        rgb_to_hsv_v(orig_color, hsv_color);
+        hue = hsv_color[0] + fade;
+        hsv_color[0] = fabs((hsv_color[0] + fade) - hue);
+        hsv_to_rgb_v(hsv_color, final_color);
+        break;
+      case COLOR_FILTER_RANDOM_SATURATION:
+        fade *= random_factor;
+        rgb_to_hsv_v(orig_color, hsv_color);
+        hsv_color[1] = hsv_color[1] + fade;
+        CLAMP(hsv_color[1], 0.0f, 1.0f);
+        hsv_to_rgb_v(hsv_color, final_color);
+        break;
+      case COLOR_FILTER_RANDOM_VALUE:
+        fade *= random_factor;
+        rgb_to_hsv_v(orig_color, hsv_color);
+        hsv_color[2] = hsv_color[2] + fade;
+        CLAMP(hsv_color[2], 0.0f, 1.0f);
+        hsv_to_rgb_v(hsv_color, final_color);
+        break;
     }
 
-    float col[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
-
-    copy_v3_v3(col, final_color);
+    SCULPT_vertex_color_set(ss, vd.vertex, final_color);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -253,12 +298,13 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
       .filter_type = mode,
       .filter_strength = filter_strength,
       .filter_fill_color = fill_color,
+      .mask_init_seed = ss->filter_cache->random_seed,
   };
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
 
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, false /* XXX debug */, ss->filter_cache->totnode);
   BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, color_filter_task_cb, &settings);
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
@@ -319,6 +365,11 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
 
+  const double seed = (double)RNA_float_get(op->ptr, "seed");
+  const double scale = (double)(1ULL << 31) / 100.0; /* INT_MAX / [seed max] */
+
+  filter_cache->random_seed = (int)(seed * scale);
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -345,4 +396,6 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_float_color(
       ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+
+  RNA_def_float(ot->srna, "seed", 0.0f, 0.0f, 1000.0f, "Seed", "Random seed", 0.0f, 100.0f);
 }

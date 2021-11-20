@@ -322,7 +322,7 @@ int SCULPT_vertex_count_get(const SculptSession *ss)
   return BKE_sculptsession_get_totvert(ss);
 }
 
-MSculptVert *SCULPT_vertex_get_mdyntopo(const SculptSession *ss, SculptVertRef vertex)
+MSculptVert *SCULPT_vertex_get_sculptvert(const SculptSession *ss, SculptVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -3071,7 +3071,7 @@ bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef vertex)
 {
   // check if we need to update original data for current stroke
-  MSculptVert *mv = SCULPT_vertex_get_mdyntopo(orig_data->ss, vertex);
+  MSculptVert *mv = SCULPT_vertex_get_sculptvert(orig_data->ss, vertex);
 
   SCULPT_vertex_check_origdata(orig_data->ss, vertex);
 
@@ -3146,7 +3146,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_vertex_check_origdata(ss, vd.vertex);
-    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+    MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
 
     if (type & SCULPT_UNDO_COORDS) {
       if (len_squared_v3v3(vd.co, mv->origco) > FLT_EPSILON) {

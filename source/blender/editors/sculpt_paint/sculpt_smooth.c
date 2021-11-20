@@ -415,7 +415,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool do_origco = args->do_origco;
   SculptCustomLayer *bound_scl = args->bound_scl;
 
-  MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
+  MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vertex);
 
   float bound1[3], bound2[3];
   int totbound = 0;
@@ -503,7 +503,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    MSculptVert *mv2 = SCULPT_vertex_get_mdyntopo(ss, ni.vertex);
+    MSculptVert *mv2 = SCULPT_vertex_get_sculptvert(ss, ni.vertex);
     const float *co2;
 
     if (args->vel_scl) {

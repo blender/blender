@@ -1408,6 +1408,9 @@ class _defs_sculpt:
                 layout.prop(props, "fill_color", expand=False)
             layout.prop(props, "strength")
 
+            if (props.type in ('RANDOM_HUE', 'RANDOM_SATURATION', 'RANDOM_VALUE')):
+                layout.prop(props, "seed")
+
         return dict(idname="builtin.color_filter",
             label="Color Filter",
             icon="ops.sculpt.color_filter",
