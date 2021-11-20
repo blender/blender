@@ -2047,7 +2047,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 
   CustomDataLayer *cl;
   if (has_color) {
-    cl = BKE_id_attributes_active_get(&orig_me->id);
+    cl = BKE_id_attributes_active_color_get(&orig_me->id);
 
     if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
       cl = NULL;
@@ -2072,13 +2072,18 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
     CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
     cl = orig_me->vdata.layers + CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
 
-    BKE_mesh_update_customdata_pointers(orig_me, true);
-  }
+    BKE_id_attributes_render_color_set(&orig_me->id, cl);
+    BKE_id_attributes_active_color_set(&orig_me->id, cl);
 
-  if (cl) {
-    BKE_id_attributes_active_set(&orig_me->id, cl);
+    BKE_mesh_update_customdata_pointers(orig_me, true);
     DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   }
+  
+  if (cl) {
+    BKE_id_attributes_active_color_set(&orig_me->id, cl);
+  }
+
+  BKE_sculptsession_sync_attributes(object, orig_me);
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -2750,7 +2755,11 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (!ss || !ss->bm) {
+  if (!ss) {
+    return;
+  }
+  else if (!ss->bm) {
+    BKE_sculptsession_update_attr_refs(ob);
     return;
   }
 
@@ -3307,14 +3316,22 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
 
     BKE_pbvh_get_color_layer(ss->pbvh, me, &layer, &domain);
 
-    ss->vcol_domain = domain;
-    ss->vcol_type = layer->type;
-
-    if (ss->bm) {
-      ss->cd_vcol_offset = layer->offset;
+    if (!layer) {
+      ss->vcol_domain = ATTR_DOMAIN_NUM;
+      ss->vcol_type = -1;
+      ss->cd_vcol_offset = -1;
+      ss->vcol = NULL;
     }
     else {
-      ss->vcol = layer->data;
+      ss->vcol_domain = domain;
+      ss->vcol_type = layer->type;
+
+      if (ss->bm) {
+        ss->cd_vcol_offset = layer->offset;
+      }
+      else {
+        ss->vcol = layer->data;
+      }
     }
   }
 
