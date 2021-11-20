@@ -929,7 +929,7 @@ static int armature_parent_set_invoke(bContext *C,
         enable_connect = true;
         break;
       }
-      else if (!(ebone->flag & BONE_CONNECTED)) {
+      if (!(ebone->flag & BONE_CONNECTED)) {
         enable_connect = true;
       }
     }

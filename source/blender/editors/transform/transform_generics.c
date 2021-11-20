@@ -144,7 +144,7 @@ static void *t_view_get(TransInfo *t)
     View3D *v3d = t->area->spacedata.first;
     return (void *)v3d;
   }
-  else if (t->region) {
+  if (t->region) {
     return (void *)&t->region->v2d;
   }
   return NULL;
@@ -163,23 +163,21 @@ static int t_around_get(TransInfo *t)
     if (t->mode == TFM_BEND) {
       return V3D_AROUND_CURSOR;
     }
-    else {
-      return t->settings->transform_pivot_point;
-    }
+    return t->settings->transform_pivot_point;
   }
-  else if (t->spacetype == SPACE_IMAGE) {
+  if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
     return sima->around;
   }
-  else if (t->spacetype == SPACE_GRAPH) {
+  if (t->spacetype == SPACE_GRAPH) {
     SpaceGraph *sipo = area->spacedata.first;
     return sipo->around;
   }
-  else if (t->spacetype == SPACE_CLIP) {
+  if (t->spacetype == SPACE_CLIP) {
     SpaceClip *sclip = area->spacedata.first;
     return sclip->around;
   }
-  else if (t->spacetype == SPACE_SEQ && t->region->regiontype == RGN_TYPE_PREVIEW) {
+  if (t->spacetype == SPACE_SEQ && t->region->regiontype == RGN_TYPE_PREVIEW) {
     return SEQ_tool_settings_pivot_point_get(t->scene);
   }
 

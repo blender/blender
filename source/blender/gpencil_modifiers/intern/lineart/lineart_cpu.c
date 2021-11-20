@@ -579,9 +579,7 @@ static int lineart_point_on_line_segment(double v[2], double v0[2], double v1[2]
       c2 = ratiod(v0[1], v1[1], v[1]);
       return (c2 >= -DBL_TRIANGLE_LIM && c2 <= 1 + DBL_TRIANGLE_LIM);
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   if (!LRT_DOUBLE_CLOSE_ENOUGH(v1[1], v0[1])) {
@@ -592,9 +590,7 @@ static int lineart_point_on_line_segment(double v[2], double v0[2], double v1[2]
       c1 = ratiod(v0[0], v1[0], v[0]);
       return (c1 >= -DBL_TRIANGLE_LIM && c1 <= 1 + DBL_TRIANGLE_LIM);
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   if (LRT_DOUBLE_CLOSE_ENOUGH(c1, c2) && c1 >= 0 && c1 <= 1) {
