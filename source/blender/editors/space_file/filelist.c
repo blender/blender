@@ -2661,7 +2661,6 @@ bool filelist_cache_previews_update(FileList *filelist)
     //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 
     if (entry) {
-      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
       if (preview->icon_id) {
         /* The FILE_ENTRY_PREVIEW_LOADING flag should have prevented any other asynchronous
          * process from trying to generate the same preview icon. */
@@ -2678,6 +2677,7 @@ bool filelist_cache_previews_update(FileList *filelist)
          * preview will be retried quite often anyway. */
         entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
       }
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
     }
     else {
       BKE_icon_delete(preview->icon_id);
