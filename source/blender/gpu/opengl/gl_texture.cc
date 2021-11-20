@@ -225,6 +225,8 @@ void GLTexture::update_sub_direct_state_access(
         break;
     }
   }
+
+  has_pixels_ = true;
 }
 
 void GLTexture::update_sub(
@@ -288,6 +290,8 @@ void GLTexture::update_sub(
         break;
     }
   }
+
+  has_pixels_ = true;
 }
 
 /**
@@ -304,6 +308,16 @@ void GLTexture::generate_mipmap()
    * down-sampling. You must initialize the texture levels using other methods like
    * #GPU_framebuffer_recursive_downsample(). */
   if (format_flag_ & GPU_FORMAT_DEPTH) {
+    return;
+  }
+
+  if (GLContext::generate_mipmap_workaround) {
+    /* Broken glGenerateMipmap, don't call it and render without mipmaps.
+     * If no top level pixels have been filled in, the levels will get filled by
+     * other means and there is no need to disable mipmapping. */
+    if (has_pixels_) {
+      this->mip_range_set(0, 0);
+    }
     return;
   }
 
@@ -337,6 +351,8 @@ void GLTexture::clear(eGPUDataFormat data_format, const void *data)
 
     GPU_framebuffer_bind(prev_fb);
   }
+
+  has_pixels_ = true;
 }
 
 void GLTexture::copy_to(Texture *dst_)
@@ -363,6 +379,8 @@ void GLTexture::copy_to(Texture *dst_)
     GPU_framebuffer_blit(
         src->framebuffer_get(), 0, dst->framebuffer_get(), 0, to_framebuffer_bits(format_));
   }
+
+  has_pixels_ = true;
 }
 
 void *GLTexture::read(int mip, eGPUDataFormat type)
@@ -452,6 +470,7 @@ struct GPUFrameBuffer *GLTexture::framebuffer_get()
   GPUTexture *gputex = reinterpret_cast<GPUTexture *>(static_cast<Texture *>(this));
   framebuffer_ = GPU_framebuffer_create(name_);
   GPU_framebuffer_texture_attach(framebuffer_, gputex, 0, 0);
+  has_pixels_ = true;
   return framebuffer_;
 }
 
