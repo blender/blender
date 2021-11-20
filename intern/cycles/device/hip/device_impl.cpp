@@ -990,16 +990,16 @@ void HIPDevice::tex_alloc(device_texture &mem)
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
-    hip_assert(hipArray3DCreate(&array_3d, &desc));
+    hip_assert(hipArray3DCreate((hArray*)&array_3d, &desc));
 
     if (!array_3d) {
       return;
     }
 
     HIP_MEMCPY3D param;
-    memset(&param, 0, sizeof(param));
+    memset(&param, 0, sizeof(HIP_MEMCPY3D));
     param.dstMemoryType = hipMemoryTypeArray;
-    param.dstArray = &array_3d;
+    param.dstArray = array_3d;
     param.srcMemoryType = hipMemoryTypeHost;
     param.srcHost = mem.host_pointer;
     param.srcPitch = src_pitch;
@@ -1065,13 +1065,13 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    /* Kepler+, bindless textures. */
+    /* Bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 
     if (array_3d) {
       resDesc.resType = hipResourceTypeArray;
-      resDesc.res.array.h_Array = &array_3d;
+      resDesc.res.array.h_Array = array_3d;
       resDesc.flags = 0;
     }
     else if (mem.data_height > 0) {
