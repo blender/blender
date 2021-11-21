@@ -29,11 +29,11 @@ using fn::MFDataType;
 template<typename From, typename To, To (*ConversionF)(const From &)>
 static void add_implicit_conversion(DataTypeConversions &conversions)
 {
-  const CPPType &from_type = CPPType::get<From>();
-  const CPPType &to_type = CPPType::get<To>();
-  const std::string conversion_name = from_type.name() + " to " + to_type.name();
+  static const CPPType &from_type = CPPType::get<From>();
+  static const CPPType &to_type = CPPType::get<To>();
+  static const std::string conversion_name = from_type.name() + " to " + to_type.name();
 
-  static fn::CustomMF_SI_SO<From, To> multi_function{conversion_name, ConversionF};
+  static fn::CustomMF_SI_SO<From, To> multi_function{conversion_name.c_str(), ConversionF};
   static auto convert_single_to_initialized = [](const void *src, void *dst) {
     *(To *)dst = ConversionF(*(const From *)src);
   };

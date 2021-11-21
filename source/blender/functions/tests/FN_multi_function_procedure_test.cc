@@ -32,7 +32,7 @@ TEST(multi_function_procedure, ConstantOutput)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor executor{"My Procedure", procedure};
+  MFProcedureExecutor executor{procedure};
 
   MFParamsBuilder params{executor, 2};
   MFContextBuilder context;
@@ -73,7 +73,7 @@ TEST(multi_function_procedure, SimpleTest)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor executor{"My Procedure", procedure};
+  MFProcedureExecutor executor{procedure};
 
   MFParamsBuilder params{executor, 3};
   MFContextBuilder context;
@@ -125,7 +125,7 @@ TEST(multi_function_procedure, BranchTest)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{"Condition Test", procedure};
+  MFProcedureExecutor procedure_fn{procedure};
   MFParamsBuilder params(procedure_fn, 5);
 
   Array<int> values_a = {1, 5, 3, 6, 2};
@@ -167,7 +167,7 @@ TEST(multi_function_procedure, EvaluateOne)
   builder.add_return();
   builder.add_output_parameter(*var2);
 
-  MFProcedureExecutor procedure_fn{"Evaluate One", procedure};
+  MFProcedureExecutor procedure_fn{procedure};
   MFParamsBuilder params{procedure_fn, 5};
 
   Array<int> values_out = {1, 2, 3, 4, 5};
@@ -239,7 +239,7 @@ TEST(multi_function_procedure, SimpleLoop)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{"Simple Loop", procedure};
+  MFProcedureExecutor procedure_fn{procedure};
   MFParamsBuilder params{procedure_fn, 5};
 
   Array<int> counts = {4, 3, 7, 6, 4};
@@ -295,7 +295,7 @@ TEST(multi_function_procedure, Vectors)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{"Vectors", procedure};
+  MFProcedureExecutor procedure_fn{procedure};
   MFParamsBuilder params{procedure_fn, 5};
 
   Array<int> v1 = {5, 2, 3};
@@ -359,7 +359,7 @@ TEST(multi_function_procedure, BufferReuse)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{"Buffer Reuse", procedure};
+  MFProcedureExecutor procedure_fn{procedure};
 
   Array<int> inputs = {4, 1, 6, 2, 3};
   Array<int> results(5, -1);

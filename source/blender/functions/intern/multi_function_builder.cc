@@ -32,10 +32,8 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
   }
   value_ = value;
 
-  MFSignatureBuilder signature{"Constant " + type.name()};
-  std::stringstream ss;
-  type.print_or_default(value, ss, type.name());
-  signature.single_output(ss.str(), type);
+  MFSignatureBuilder signature{"Constant"};
+  signature.single_output("Value", type);
   signature_ = signature.build();
   this->set_signature(&signature_);
 }
@@ -73,28 +71,11 @@ bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
   return type_.is_equal(value_, _other->value_);
 }
 
-static std::string gspan_to_string(GSpan array)
-{
-  const CPPType &type = array.type();
-  std::stringstream ss;
-  ss << "[";
-  const int64_t max_amount = 5;
-  for (int64_t i : IndexRange(std::min(max_amount, array.size()))) {
-    type.print_or_default(array[i], ss, type.name());
-    ss << ", ";
-  }
-  if (max_amount < array.size()) {
-    ss << "...";
-  }
-  ss << "]";
-  return ss.str();
-}
-
 CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : array_(array)
 {
   const CPPType &type = array.type();
-  MFSignatureBuilder signature{"Constant " + type.name() + " Vector"};
-  signature.vector_output(gspan_to_string(array), type);
+  MFSignatureBuilder signature{"Constant Vector"};
+  signature.vector_output("Value", type);
   signature_ = signature.build();
   this->set_signature(&signature_);
 }
@@ -109,12 +90,11 @@ void CustomMF_GenericConstantArray::call(IndexMask mask,
   }
 }
 
-CustomMF_DefaultOutput::CustomMF_DefaultOutput(StringRef name,
-                                               Span<MFDataType> input_types,
+CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<MFDataType> input_types,
                                                Span<MFDataType> output_types)
     : output_amount_(output_types.size())
 {
-  MFSignatureBuilder signature{name};
+  MFSignatureBuilder signature{"Default Output"};
   for (MFDataType data_type : input_types) {
     signature.input("Input", data_type);
   }
@@ -140,9 +120,9 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNU
   }
 }
 
-CustomMF_GenericCopy::CustomMF_GenericCopy(StringRef name, MFDataType data_type)
+CustomMF_GenericCopy::CustomMF_GenericCopy(MFDataType data_type)
 {
-  MFSignatureBuilder signature{name};
+  MFSignatureBuilder signature{"Copy"};
   signature.input("Input", data_type);
   signature.output("Output", data_type);
   signature_ = signature.build();

@@ -31,7 +31,7 @@ class MFProcedureExecutor : public MultiFunction {
   const MFProcedure &procedure_;
 
  public:
-  MFProcedureExecutor(std::string name, const MFProcedure &procedure);
+  MFProcedureExecutor(const MFProcedure &procedure);
 
   void call(IndexMask mask, MFParams params, MFContext context) const override;
 };

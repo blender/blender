@@ -97,6 +97,8 @@ class MultiFunction {
     return signature_ref_->function_name;
   }
 
+  virtual std::string debug_name() const;
+
   bool depends_on_context() const
   {
     return signature_ref_->depends_on_context;

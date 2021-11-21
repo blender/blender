@@ -88,7 +88,8 @@ static const blender::fn::MultiFunction *get_base_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl_to_fl(
       mode, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SO<float, float> fn{info.title_case_name, function};
+        static blender::fn::CustomMF_SI_SO<float, float> fn{info.title_case_name.c_str(),
+                                                            function};
         base_fn = &fn;
       });
   if (base_fn != nullptr) {
@@ -97,7 +98,7 @@ static const blender::fn::MultiFunction *get_base_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl_fl_to_fl(
       mode, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{info.title_case_name,
+        static blender::fn::CustomMF_SI_SI_SO<float, float, float> fn{info.title_case_name.c_str(),
                                                                       function};
         base_fn = &fn;
       });
@@ -108,7 +109,7 @@ static const blender::fn::MultiFunction *get_base_multi_function(bNode &node)
   blender::nodes::try_dispatch_float_math_fl_fl_fl_to_fl(
       mode, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
         static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
-            info.title_case_name, function};
+            info.title_case_name.c_str(), function};
         base_fn = &fn;
       });
   if (base_fn != nullptr) {

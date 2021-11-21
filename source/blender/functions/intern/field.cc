@@ -237,8 +237,7 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
     if (!already_output_variables.add(variable)) {
       /* One variable can be output at most once. To output the same value twice, we have to make
        * a copy first. */
-      const MultiFunction &copy_fn = scope.construct<CustomMF_GenericCopy>("copy",
-                                                                           variable->data_type());
+      const MultiFunction &copy_fn = scope.construct<CustomMF_GenericCopy>(variable->data_type());
       variable = builder.add_call<1>(copy_fn, {variable})[0];
     }
     builder.add_output_parameter(*variable);
@@ -358,7 +357,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
     MFProcedure procedure;
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, varying_fields_to_evaluate);
-    MFProcedureExecutor procedure_executor{"Procedure", procedure};
+    MFProcedureExecutor procedure_executor{procedure};
     /* Add multi threading capabilities to the field evaluation. */
     const int grain_size = 10000;
     fn::ParallelMultiFunction parallel_procedure_executor{procedure_executor, grain_size};
@@ -415,7 +414,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
     MFProcedure procedure;
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, constant_fields_to_evaluate);
-    MFProcedureExecutor procedure_executor{"Procedure", procedure};
+    MFProcedureExecutor procedure_executor{procedure};
     MFParamsBuilder mf_params{procedure_executor, 1};
     MFContextBuilder mf_context;
 

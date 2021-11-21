@@ -18,4 +18,9 @@
 
 namespace blender::fn {
 
+std::string MultiFunction::debug_name() const
+{
+  return signature_ref_->function_name;
+}
+
 }  // namespace blender::fn
