@@ -160,9 +160,9 @@ class TwoOutputFunction : public MultiFunction {
   MFSignature signature_;
 
  public:
-  TwoOutputFunction(StringRef name)
+  TwoOutputFunction()
   {
-    MFSignatureBuilder signature{name};
+    MFSignatureBuilder signature{"Two Outputs"};
     signature.single_input<int>("In1");
     signature.single_input<int>("In2");
     signature.single_output<int>("Add");
@@ -190,8 +190,8 @@ TEST(field, FunctionTwoOutputs)
   GField index_field_1{std::make_shared<IndexFieldInput>()};
   GField index_field_2{std::make_shared<IndexFieldInput>()};
 
-  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(FieldOperation(
-      std::make_unique<TwoOutputFunction>("SI_SI_SO_SO"), {index_field_1, index_field_2}));
+  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(
+      FieldOperation(std::make_unique<TwoOutputFunction>(), {index_field_1, index_field_2}));
 
   GField result_field_1{fn, 0};
   GField result_field_2{fn, 1};
@@ -221,8 +221,8 @@ TEST(field, TwoFunctionsTwoOutputs)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(FieldOperation(
-      std::make_unique<TwoOutputFunction>("SI_SI_SO_SO"), {index_field, index_field}));
+  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(
+      FieldOperation(std::make_unique<TwoOutputFunction>(), {index_field, index_field}));
 
   Array<int64_t> mask_indices = {2, 4, 6, 8};
   IndexMask mask = mask_indices.as_span();
