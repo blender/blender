@@ -25,7 +25,7 @@ MFProcedureExecutor::MFProcedureExecutor(const MFProcedure &procedure) : procedu
   MFSignatureBuilder signature("Procedure Executor");
 
   for (const ConstMFParameter &param : procedure.params()) {
-    signature.add(param.variable->name(), MFParamType(param.type, param.variable->data_type()));
+    signature.add("Parameter", MFParamType(param.type, param.variable->data_type()));
   }
 
   signature_ = signature.build();
