@@ -51,9 +51,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 {
   const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
 
-  const AttributeDomain attribute_domain = ATTR_DOMAIN_POINT;
-  GeometryComponentFieldContext field_context{instances, attribute_domain};
-  const int domain_size = instances.attribute_domain_size(attribute_domain);
+  GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
+  const int domain_size = instances.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
 
   fn::FieldEvaluator selection_evaluator{field_context, domain_size};
   selection_evaluator.add(std::move(selection_field));
