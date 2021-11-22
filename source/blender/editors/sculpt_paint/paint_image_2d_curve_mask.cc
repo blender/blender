@@ -33,6 +33,18 @@
 
 namespace blender::ed::sculpt_paint {
 
+static int aa_samples_per_texel_axis(const Brush *brush, const float radius)
+{
+  int aa_samples = 1.0f / (radius * 0.20f);
+  if (brush->sampling_flag & BRUSH_PAINT_ANTIALIASING) {
+    aa_samples = clamp_i(aa_samples, 3, 16);
+  }
+  else {
+    aa_samples = 1;
+  }
+  return aa_samples;
+}
+
 /* create a mask with the falloff strength */
 static void update_curve_mask(CurveMaskCache *curve_mask_cache,
                               const Brush *brush,
@@ -45,58 +57,30 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
 
   unsigned short *m = curve_mask_cache->curve_mask;
 
-  int aa_samples = 1.0f / (radius * 0.20f);
-  if (brush->sampling_flag & BRUSH_PAINT_ANTIALIASING) {
-    aa_samples = clamp_i(aa_samples, 3, 16);
-  }
-  else {
-    aa_samples = 1;
-  }
-
-  /* Temporal until we have the brush properties */
-  const float hardness = 1.0f;
-  const float rotation = 0.0f;
-
-  float aa_offset = 1.0f / (2.0f * (float)aa_samples);
-  float aa_step = 1.0f / (float)aa_samples;
+  const int aa_samples = aa_samples_per_texel_axis(brush, radius);
+  const float aa_offset = 1.0f / (2.0f * (float)aa_samples);
+  const float aa_step = 1.0f / (float)aa_samples;
 
   float bpos[2];
   bpos[0] = cursor_position[0] - floorf(cursor_position[0]) + offset - aa_offset;
   bpos[1] = cursor_position[1] - floorf(cursor_position[1]) + offset - aa_offset;
 
-  const float co = cosf(DEG2RADF(rotation));
-  const float si = sinf(DEG2RADF(rotation));
-
-  float norm_factor = 65535.0f / (float)(aa_samples * aa_samples);
+  float weight_factor = 65535.0f / (float)(aa_samples * aa_samples);
 
   for (int y = 0; y < diameter; y++) {
     for (int x = 0; x < diameter; x++, m++) {
-      float total_samples = 0;
+      float total_weight = 0;
       for (int i = 0; i < aa_samples; i++) {
         for (int j = 0; j < aa_samples; j++) {
           float pixel_xy[2] = {x + (aa_step * i), y + (aa_step * j)};
-          float xy_rot[2];
           sub_v2_v2(pixel_xy, bpos);
 
-          xy_rot[0] = co * pixel_xy[0] - si * pixel_xy[1];
-          xy_rot[1] = si * pixel_xy[0] + co * pixel_xy[1];
-
-          float len = len_v2(xy_rot);
-          float p = len / radius;
-          if (hardness < 1.0f) {
-            p = (p - hardness) / (1.0f - hardness);
-            p = 1.0f - p;
-            CLAMP(p, 0.0f, 1.0f);
-          }
-          else {
-            p = 1.0;
-          }
-          float hardness_factor = 3.0f * p * p - 2.0f * p * p * p;
-          float curve = BKE_brush_curve_strength_clamped(brush, len, radius);
-          total_samples += curve * hardness_factor;
+          const float len = len_v2(pixel_xy);
+          const float sample_weight = BKE_brush_curve_strength_clamped(brush, len, radius);
+          total_weight += sample_weight;
         }
       }
-      *m = (unsigned short)(total_samples * norm_factor);
+      *m = (unsigned short)(total_weight * weight_factor);
     }
   }
 }
