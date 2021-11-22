@@ -219,8 +219,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
 
     if (use_orco) {
-      CustomData_add_layer(
-          &mesh->vdata, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob), mesh->totvert);
+      BKE_mesh_orco_ensure(ob, mesh);
     }
   }
   else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {

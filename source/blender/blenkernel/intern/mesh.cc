@@ -1332,6 +1332,18 @@ void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int 
   }
 }
 
+void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
+{
+  if (CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
+    return;
+  }
+
+  /* Orcos are stored in normalized 0..1 range by convention. */
+  float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
+  BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
+  CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_ASSIGN, orcodata, mesh->totvert);
+}
+
 /**
  * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
  * this is necessary to make the if #MFace.v4 check for quads work.
