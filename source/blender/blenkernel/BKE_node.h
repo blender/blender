@@ -121,12 +121,11 @@ class MFDataType;
 }  // namespace fn
 }  // namespace blender
 
+using CPPTypeHandle = blender::fn::CPPType;
 using NodeMultiFunctionBuildFunction = void (*)(blender::nodes::NodeMultiFunctionBuilder &builder);
 using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams params);
 using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);
-using SocketGetCPPTypeFunction = const blender::fn::CPPType *(*)();
 using SocketGetCPPValueFunction = void (*)(const struct bNodeSocket &socket, void *r_value);
-using SocketGetGeometryNodesCPPTypeFunction = const blender::fn::CPPType *(*)();
 using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket &socket,
                                                         void *r_value);
 
@@ -138,6 +137,7 @@ typedef void *SocketGetCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPValueFunction;
 typedef void *SocketGetCPPValueFunction;
+typedef struct CPPTypeHandle CPPTypeHandle;
 #endif
 
 /**
@@ -197,11 +197,11 @@ typedef struct bNodeSocketType {
   void (*free_self)(struct bNodeSocketType *stype);
 
   /* Return the CPPType of this socket. */
-  SocketGetCPPTypeFunction get_base_cpp_type;
+  const CPPTypeHandle *base_cpp_type;
   /* Get the value of this socket in a generic way. */
   SocketGetCPPValueFunction get_base_cpp_value;
   /* Get geometry nodes cpp type. */
-  SocketGetGeometryNodesCPPTypeFunction get_geometry_nodes_cpp_type;
+  const CPPTypeHandle *geometry_nodes_cpp_type;
   /* Get geometry nodes cpp value. */
   SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value;
 } bNodeSocketType;

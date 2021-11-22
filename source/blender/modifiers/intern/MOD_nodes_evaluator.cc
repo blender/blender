@@ -309,10 +309,10 @@ class LockedNode : NonCopyable, NonMovable {
 static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 {
   const bNodeSocketType *typeinfo = socket.typeinfo();
-  if (typeinfo->get_geometry_nodes_cpp_type == nullptr) {
+  if (typeinfo->geometry_nodes_cpp_type == nullptr) {
     return nullptr;
   }
-  const CPPType *type = typeinfo->get_geometry_nodes_cpp_type();
+  const CPPType *type = typeinfo->geometry_nodes_cpp_type;
   if (type == nullptr) {
     return nullptr;
   }
@@ -1466,7 +1466,6 @@ class GeometryNodesEvaluator {
       from_type.copy_construct(from_value, to_value);
       return;
     }
-
     const FieldCPPType *from_field_type = dynamic_cast<const FieldCPPType *>(&from_type);
     const FieldCPPType *to_field_type = dynamic_cast<const FieldCPPType *>(&to_type);
 
