@@ -233,9 +233,7 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string HIPDevice::compile_kernel(const uint kernel_features,
-                                 const char *name,
-                                 const char *base)
+string HIPDevice::compile_kernel(const uint kernel_features, const char *name, const char *base)
 {
   /* Compute kernel name. */
   int major, minor;
@@ -990,7 +988,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
-    hip_assert(hipArray3DCreate((hArray*)&array_3d, &desc));
+    hip_assert(hipArray3DCreate((hArray *)&array_3d, &desc));
 
     if (!array_3d) {
       return;
