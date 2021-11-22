@@ -82,6 +82,8 @@ typedef enum ePreviewRenderMethod {
 void ED_preview_ensure_dbase(void);
 void ED_preview_free_dbase(void);
 
+bool ED_preview_id_is_supported(const struct ID *id);
+
 void ED_preview_shader_job(const struct bContext *C,
                            void *owner,
                            struct ID *id,

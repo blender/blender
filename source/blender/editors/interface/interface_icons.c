@@ -2037,8 +2037,11 @@ void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
-
   if (pi == NULL) {
+    return;
+  }
+
+  if (!ED_preview_id_is_supported(id)) {
     return;
   }
 
