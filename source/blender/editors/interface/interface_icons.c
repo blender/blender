@@ -2041,6 +2041,14 @@ void UI_icon_render_id(
     return;
   }
 
+  /* For objects, first try if a preview can created via the object data. */
+  if (GS(id->name) == ID_OB) {
+    Object *ob = (Object *)id;
+    if (ED_preview_id_is_supported(ob->data)) {
+      id = ob->data;
+    }
+  }
+
   if (!ED_preview_id_is_supported(id)) {
     return;
   }
