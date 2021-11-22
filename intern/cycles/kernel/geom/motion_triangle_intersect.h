@@ -163,19 +163,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
   motion_triangle_vertices(kg, fobject, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (ray_triangle_intersect(P,
-                             dir,
-                             tmax,
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                             (ssef *)verts,
-#else
-                             verts[0],
-                             verts[1],
-                             verts[2],
-#endif
-                             &u,
-                             &v,
-                             &t)) {
+  if (ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
@@ -229,19 +217,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   motion_triangle_vertices(kg, local_object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (!ray_triangle_intersect(P,
-                              dir,
-                              tmax,
-#  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                              (ssef *)verts,
-#  else
-                              verts[0],
-                              verts[1],
-                              verts[2],
-#  endif
-                              &u,
-                              &v,
-                              &t)) {
+  if (!ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
     return false;
   }
 

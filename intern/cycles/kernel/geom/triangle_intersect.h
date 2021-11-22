@@ -37,27 +37,11 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
 {
   const int prim = kernel_tex_fetch(__prim_index, prim_addr);
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
-#else
   const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
                tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
                tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
-#endif
   float t, u, v;
-  if (ray_triangle_intersect(P,
-                             dir,
-                             tmax,
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                             ssef_verts,
-#else
-                             tri_a,
-                             tri_b,
-                             tri_c,
-#endif
-                             &u,
-                             &v,
-                             &t)) {
+  if (ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
@@ -106,27 +90,11 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
 
   const int prim = kernel_tex_fetch(__prim_index, prim_addr);
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-#  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
-#  else
   const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
                tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
                tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
-#  endif
   float t, u, v;
-  if (!ray_triangle_intersect(P,
-                              dir,
-                              tmax,
-#  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                              ssef_verts,
-#  else
-                              tri_a,
-                              tri_b,
-                              tri_c,
-#  endif
-                              &u,
-                              &v,
-                              &t)) {
+  if (!ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
     return false;
   }
 
@@ -178,11 +146,6 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
   isect->t = t;
 
   /* Record geometric normal. */
-#  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
-#  endif
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   return false;

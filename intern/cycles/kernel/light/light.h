@@ -676,19 +676,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals kg,
     ls->D = z * B + safe_sqrtf(1.0f - z * z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
-    if (!ray_triangle_intersect(P,
-                                ls->D,
-                                FLT_MAX,
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                                (ssef *)V,
-#else
-                                V[0],
-                                V[1],
-                                V[2],
-#endif
-                                &ls->u,
-                                &ls->v,
-                                &ls->t)) {
+    if (!ray_triangle_intersect(P, ls->D, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t)) {
       ls->pdf = 0.0f;
       return;
     }
