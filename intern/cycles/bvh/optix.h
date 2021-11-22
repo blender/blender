@@ -25,14 +25,16 @@
 
 #  include "device/memory.h"
 
+#  include "util/unique_ptr.h"
+
 CCL_NAMESPACE_BEGIN
 
 class BVHOptiX : public BVH {
  public:
   Device *device;
   uint64_t traversable_handle;
-  device_only_memory<char> as_data;
-  device_only_memory<char> motion_transform_data;
+  unique_ptr<device_only_memory<char>> as_data;
+  unique_ptr<device_only_memory<char>> motion_transform_data;
 
  protected:
   friend class BVH;

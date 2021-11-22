@@ -23,6 +23,7 @@
 #  include "device/optix/queue.h"
 #  include "device/optix/util.h"
 #  include "kernel/types.h"
+#  include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -76,7 +77,7 @@ class OptiXDevice : public CUDADevice {
   device_only_memory<KernelParamsOptiX> launch_params;
   OptixTraversableHandle tlas_handle = 0;
 
-  vector<device_only_memory<char>> delayed_free_bvh_memory;
+  vector<unique_ptr<device_only_memory<char>>> delayed_free_bvh_memory;
   thread_mutex delayed_free_bvh_mutex;
 
   class Denoiser {

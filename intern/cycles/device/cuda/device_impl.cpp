@@ -777,6 +777,7 @@ void CUDADevice::generic_free(device_memory &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     /* If cmem.use_mapped_host is true, reference counting is used
@@ -1145,6 +1146,7 @@ void CUDADevice::tex_free(device_texture &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     if (cmem.texobject) {

@@ -1032,7 +1032,7 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
     return false;
   }
 
-  device_only_memory<char> &out_data = bvh->as_data;
+  device_only_memory<char> &out_data = *bvh->as_data;
   if (operation == OPTIX_BUILD_OPERATION_BUILD) {
     assert(out_data.device == this);
     out_data.alloc_to_device(sizes.outputSizeInBytes);
@@ -1123,7 +1123,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       operation = OPTIX_BUILD_OPERATION_UPDATE;
     }
     else {
-      bvh_optix->as_data.free();
+      bvh_optix->as_data->free();
       bvh_optix->traversable_handle = 0;
     }
 
@@ -1344,9 +1344,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     unsigned int num_instances = 0;
     unsigned int max_num_instances = 0xFFFFFFFF;
 
-    bvh_optix->as_data.free();
+    bvh_optix->as_data->free();
     bvh_optix->traversable_handle = 0;
-    bvh_optix->motion_transform_data.free();
+    bvh_optix->motion_transform_data->free();
 
     optixDeviceContextGetProperty(context,
                                   OPTIX_DEVICE_PROPERTY_LIMIT_MAX_INSTANCE_ID,
@@ -1379,8 +1379,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
       }
 
-      assert(bvh_optix->motion_transform_data.device == this);
-      bvh_optix->motion_transform_data.alloc_to_device(total_motion_transform_size);
+      assert(bvh_optix->motion_transform_data->device == this);
+      bvh_optix->motion_transform_data->alloc_to_device(total_motion_transform_size);
     }
 
     for (Object *ob : bvh->objects) {
@@ -1441,7 +1441,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
         motion_transform_offset = align_up(motion_transform_offset,
                                            OPTIX_TRANSFORM_BYTE_ALIGNMENT);
-        CUdeviceptr motion_transform_gpu = bvh_optix->motion_transform_data.device_pointer +
+        CUdeviceptr motion_transform_gpu = bvh_optix->motion_transform_data->device_pointer +
                                            motion_transform_offset;
         motion_transform_offset += motion_transform_size;
 
