@@ -136,6 +136,10 @@ bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
+
+/* Add a CD_ORCO layer to the Mesh if there is none already. */
+void BKE_mesh_orco_ensure(struct Object *ob, struct Mesh *mesh);
+
 int BKE_mesh_mface_index_validate(struct MFace *mface,
                                   struct CustomData *mfdata,
                                   int mfindex,

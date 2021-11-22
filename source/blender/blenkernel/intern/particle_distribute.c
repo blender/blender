@@ -997,12 +997,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     BKE_mesh_tessface_ensure(mesh);
 
     /* we need orco for consistent distributions */
-    if (!CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
-      /* Orcos are stored in normalized 0..1 range by convention. */
-      float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
-      BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
-      CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_ASSIGN, orcodata, mesh->totvert);
-    }
+    BKE_mesh_orco_ensure(ob, mesh);
 
     if (from == PART_FROM_VERT) {
       MVert *mv = mesh->mvert;
