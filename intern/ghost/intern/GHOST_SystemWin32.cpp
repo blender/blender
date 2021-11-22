@@ -1472,6 +1472,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_IME_SETCONTEXT: {
           GHOST_ImeWin32 *ime = window->getImeInput();
           ime->UpdateInputLanguage();
+          ime->UpdateConversionStatus(hwnd);
           ime->CreateImeWindow(hwnd);
           ime->CleanupComposition(hwnd);
           ime->CheckFirst(hwnd);
