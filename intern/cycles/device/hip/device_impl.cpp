@@ -99,7 +99,7 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
   }
 
   /* Setup device and context. */
-  result = hipGetDevice(&hipDevice, hipDevId);
+  result = hipDeviceGet(&hipDevice, hipDevId);
   if (result != hipSuccess) {
     set_error(string_printf("Failed to get HIP device handle from ordinal (%s)",
                             hipewErrorString(result)));

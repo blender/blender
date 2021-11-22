@@ -71,6 +71,7 @@ thipDriverGetVersion *hipDriverGetVersion;
 thipGetDevice *hipGetDevice;
 thipGetDeviceCount *hipGetDeviceCount;
 thipGetDeviceProperties *hipGetDeviceProperties;
+thipDeviceGet* hipDeviceGet;
 thipDeviceGetName *hipDeviceGetName;
 thipDeviceGetAttribute *hipDeviceGetAttribute;
 thipDeviceComputeCapability *hipDeviceComputeCapability;
@@ -255,6 +256,7 @@ static int hipewHipInit(void) {
   HIP_LIBRARY_FIND_CHECKED(hipGetDevice);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceCount);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceProperties);
+  HIP_LIBRARY_FIND_CHECKED(hipDeviceGet);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceGetName);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceGetAttribute);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceComputeCapability);
