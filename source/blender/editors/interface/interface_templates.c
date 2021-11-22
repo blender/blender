@@ -2036,6 +2036,15 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
   PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
   bConstraint *con = (bConstraint *)con_ptr->data;
 
+  /* Ensure called operator does have a context with the expected "constraint" member. */
+  ListBase contexts = {NULL};
+  bContextStore *previous_context_store = CTX_store_get(C);
+  if (previous_context_store != NULL) {
+    BLI_addtail(&contexts, previous_context_store);
+  }
+  bContextStore *constraint_context_store = CTX_store_add(&contexts, "constraint", con_ptr);
+  CTX_store_set(C, constraint_context_store);
+
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("CONSTRAINT_OT_move_to_index", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -2045,6 +2054,12 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
   RNA_enum_set(&props_ptr, "owner", constraint_from_bone ? 1 : 0);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
   WM_operator_properties_free(&props_ptr);
+
+  /* Cleanup modified context. */
+  CTX_store_set(C, previous_context_store);
+  if (previous_context_store != constraint_context_store) {
+    CTX_store_free(constraint_context_store);
+  }
 }
 
 /**
