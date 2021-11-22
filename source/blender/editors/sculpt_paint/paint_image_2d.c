@@ -78,11 +78,12 @@ typedef struct BrushPainterCache {
 
   ImBuf *ibuf;
   ImBuf *texibuf;
-  ushort *curve_mask;
   ushort *tex_mask;
   ushort *tex_mask_old;
   uint tex_mask_old_w;
   uint tex_mask_old_h;
+
+  CurveMaskCache curve_mask_cache;
 
   int image_size[2];
 } BrushPainterCache;
@@ -169,9 +170,6 @@ static void brush_painter_2d_require_imbuf(
     if (cache->ibuf) {
       IMB_freeImBuf(cache->ibuf);
     }
-    if (cache->curve_mask) {
-      MEM_freeN(cache->curve_mask);
-    }
     if (cache->tex_mask) {
       MEM_freeN(cache->tex_mask);
     }
@@ -179,7 +177,6 @@ static void brush_painter_2d_require_imbuf(
       MEM_freeN(cache->tex_mask_old);
     }
     cache->ibuf = NULL;
-    cache->curve_mask = NULL;
     cache->tex_mask = NULL;
     cache->lastdiameter = -1; /* force ibuf create in refresh */
     cache->invert = invert;
@@ -200,9 +197,7 @@ static void brush_painter_cache_2d_free(BrushPainterCache *cache)
   if (cache->texibuf) {
     IMB_freeImBuf(cache->texibuf);
   }
-  if (cache->curve_mask) {
-    MEM_freeN(cache->curve_mask);
-  }
+  paint_curve_mask_cache_free_data(&cache->curve_mask_cache);
   if (cache->tex_mask) {
     MEM_freeN(cache->tex_mask);
   }
@@ -378,92 +373,6 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
   /* through with sampling, now update sizes */
   cache->tex_mask_old_w = diameter;
   cache->tex_mask_old_h = diameter;
-}
-
-/* create a mask with the falloff strength */
-static ushort *brush_painter_curve_mask_init(
-    ushort *mask, BrushPainter *painter, int diameter, float radius, const float pos[2])
-{
-  BLI_assert_msg(MEM_allocN_len(mask) == diameter * diameter * sizeof(ushort),
-                 "Allocated size of mask doesn't match.");
-
-  Brush *brush = painter->brush;
-
-  int offset = (int)floorf(diameter / 2.0f);
-
-  ushort *m;
-  m = mask;
-
-  int aa_samples = 1.0f / (radius * 0.20f);
-  if (brush->sampling_flag & BRUSH_PAINT_ANTIALIASING) {
-    aa_samples = clamp_i(aa_samples, 3, 16);
-  }
-  else {
-    aa_samples = 1;
-  }
-
-  /* Temporal until we have the brush properties */
-  const float hardness = 1.0f;
-  const float rotation = 0.0f;
-
-  float aa_offset = 1.0f / (2.0f * (float)aa_samples);
-  float aa_step = 1.0f / (float)aa_samples;
-
-  float bpos[2];
-  bpos[0] = pos[0] - floorf(pos[0]) + offset - aa_offset;
-  bpos[1] = pos[1] - floorf(pos[1]) + offset - aa_offset;
-
-  const float co = cosf(DEG2RADF(rotation));
-  const float si = sinf(DEG2RADF(rotation));
-
-  float norm_factor = 65535.0f / (float)(aa_samples * aa_samples);
-
-  for (int y = 0; y < diameter; y++) {
-    for (int x = 0; x < diameter; x++, m++) {
-      float total_samples = 0;
-      for (int i = 0; i < aa_samples; i++) {
-        for (int j = 0; j < aa_samples; j++) {
-          float pixel_xy[2] = {x + (aa_step * i), y + (aa_step * j)};
-          float xy_rot[2];
-          sub_v2_v2(pixel_xy, bpos);
-
-          xy_rot[0] = co * pixel_xy[0] - si * pixel_xy[1];
-          xy_rot[1] = si * pixel_xy[0] + co * pixel_xy[1];
-
-          float len = len_v2(xy_rot);
-          float p = len / radius;
-          if (hardness < 1.0f) {
-            p = (p - hardness) / (1.0f - hardness);
-            p = 1.0f - p;
-            CLAMP(p, 0.0f, 1.0f);
-          }
-          else {
-            p = 1.0;
-          }
-          float hardness_factor = 3.0f * p * p - 2.0f * p * p * p;
-          float curve = BKE_brush_curve_strength_clamped(brush, len, radius);
-          total_samples += curve * hardness_factor;
-        }
-      }
-      *m = (ushort)(total_samples * norm_factor);
-    }
-  }
-
-  return mask;
-}
-
-static void brush_painter_curve_mask_refresh(
-    BrushPainter *painter, ImagePaintTile *tile, int diameter, float radius, const float pos[2])
-{
-  BrushPainterCache *cache = &tile->cache;
-
-  if (diameter != cache->lastdiameter) {
-    if (cache->curve_mask != NULL) {
-      MEM_freeN(cache->curve_mask);
-    }
-    cache->curve_mask = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
-  }
-  brush_painter_curve_mask_init(cache->curve_mask, painter, diameter, radius, pos);
 }
 
 /* create imbuf with brush color */
@@ -872,7 +781,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
   }
 
   /* Re-initialize the curve mask. Mask is always recreated due to the change of position. */
-  brush_painter_curve_mask_refresh(painter, tile, diameter, size, pos);
+  paint_curve_mask_cache_update(&cache->curve_mask_cache, brush, diameter, size, pos);
 
   /* detect if we need to recreate image brush buffer */
   if (diameter != cache->lastdiameter || (tex_rotation != cache->last_tex_rotation) || do_random ||
@@ -1336,7 +1245,7 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
                     &tmpbuf,
                     frombuf,
                     mask,
-                    tile->cache.curve_mask,
+                    tile->cache.curve_mask_cache.curve_mask,
                     tile->cache.tex_mask,
                     mask_max,
                     region->destx,
@@ -1485,7 +1394,7 @@ static int paint_2d_op(void *state,
                              canvas,
                              frombuf,
                              NULL,
-                             tile->cache.curve_mask,
+                             tile->cache.curve_mask_cache.curve_mask,
                              tile->cache.tex_mask,
                              mask_max,
                              region[a].destx,

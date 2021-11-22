@@ -23,6 +23,13 @@
 
 #pragma once
 
+#include "BKE_paint.h"
+#include "DNA_scene_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct Brush;
 struct ColorManagedDisplay;
@@ -43,8 +50,6 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-enum ePaintMode;
-enum ePaintSymmetryFlags;
 
 typedef struct CoNo {
   float co[3];
@@ -245,6 +250,33 @@ void PAINT_OT_add_texture_paint_slot(struct wmOperatorType *ot);
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
 
+/* paint_image_2d_curve_mask.cc */
+/**
+ * \brief Caching structure for curve mask.
+ *
+ * When 2d painting images the curve mask is used as an input.
+ */
+typedef struct CurveMaskCache {
+  /**
+   * \brief Size in bytes of the curve_mask field.
+   *
+   * Used to determine if the curve_mask needs to be re-allocated.
+   */
+  size_t curve_mask_size;
+
+  /**
+   * \brief Curve mask that can be passed as curve_mask parameter when.
+   */
+  ushort *curve_mask;
+} CurveMaskCache;
+
+void paint_curve_mask_cache_free_data(CurveMaskCache *curve_mask_cache);
+void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
+                                   const struct Brush *brush,
+                                   const int diameter,
+                                   const float radius,
+                                   const float cursor_position[2]);
+
 /* sculpt_uv.c */
 void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 
@@ -366,3 +398,8 @@ void paint_delete_blur_kernel(BlurKernel *);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
+
+#ifdef __cplusplus
+}
+#endif
+
