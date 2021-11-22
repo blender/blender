@@ -365,8 +365,8 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
 
   int samples = get_int(cscene, "samples");
   float scrambling_distance = get_float(cscene, "scrambling_distance");
-  bool adaptive_scrambling_distance = get_boolean(cscene, "adaptive_scrambling_distance");
-  if (adaptive_scrambling_distance) {
+  bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
+  if (auto_scrambling_distance) {
     scrambling_distance *= 4.0f / sqrtf(samples);
   }
 
