@@ -2475,7 +2475,7 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
-float BKE_brush_curve_strength_clamped(Brush *br, float p, const float len)
+float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)
 {
   float strength = BKE_brush_curve_strength(br, p, len);
 
