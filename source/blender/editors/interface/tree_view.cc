@@ -111,7 +111,10 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
 
   uiTreeViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
-  BLI_assert(old_view_handle);
+  if (old_view_handle == nullptr) {
+    is_reconstructed_ = true;
+    return;
+  }
 
   AbstractTreeView &old_view = reinterpret_cast<AbstractTreeView &>(*old_view_handle);
 
