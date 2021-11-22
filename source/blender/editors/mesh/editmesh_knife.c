@@ -236,7 +236,7 @@ typedef struct KnifeTool_OpData {
   GHash *facetrimap;
 
   KnifeBVH bvh;
-  const float (**cagecos)[3];
+  float (**cagecos)[3];
 
   BLI_mempool *kverts;
   BLI_mempool *kedges;
@@ -3975,7 +3975,7 @@ static void knifetool_init_cagecos(KnifeTool_OpData *kcd, Object *ob, uint base_
 
   BM_mesh_elem_index_ensure(em_eval->bm, BM_VERT);
 
-  kcd->cagecos[base_index] = (const float(*)[3])BKE_editmesh_vert_coords_alloc(
+  kcd->cagecos[base_index] = BKE_editmesh_vert_coords_alloc(
       kcd->vc.depsgraph, em_eval, scene_eval, obedit_eval, NULL);
 }
 
