@@ -786,6 +786,11 @@ struct ObjectPreviewData {
   int sizey;
 };
 
+static bool object_preview_is_type_supported(const Object *ob)
+{
+  return OB_TYPE_IS_GEOMETRY(ob->type);
+}
+
 static Object *object_preview_camera_create(Main *preview_main,
                                             ViewLayer *view_layer,
                                             Object *preview_object)
@@ -1658,9 +1663,12 @@ static void icon_preview_startjob_all_sizes(void *customdata,
     if (ip->id != NULL) {
       switch (GS(ip->id->name)) {
         case ID_OB:
-          /* Much simpler than the ShaderPreview mess used for other ID types. */
-          object_preview_render(ip, cur_size);
-          continue;
+          if (object_preview_is_type_supported((Object *)ip->id)) {
+            /* Much simpler than the ShaderPreview mess used for other ID types. */
+            object_preview_render(ip, cur_size);
+            continue;
+          }
+          break;
         case ID_AC:
           action_preview_render(ip, cur_size);
           continue;
@@ -1747,6 +1755,17 @@ static void icon_preview_free(void *customdata)
 
   BLI_freelistN(&ip->sizes);
   MEM_freeN(ip);
+}
+
+/**
+ * Check if \a id is supported by the automatic preview render.
+ */
+bool ED_preview_id_is_supported(const ID *id)
+{
+  if (GS(id->name) == ID_OB) {
+    return object_preview_is_type_supported((const Object *)id);
+  }
+  return BKE_previewimg_id_get_p(id) != NULL;
 }
 
 void ED_preview_icon_render(

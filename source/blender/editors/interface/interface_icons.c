@@ -2037,8 +2037,19 @@ void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
-
   if (pi == NULL) {
+    return;
+  }
+
+  /* For objects, first try if a preview can created via the object data. */
+  if (GS(id->name) == ID_OB) {
+    Object *ob = (Object *)id;
+    if (ED_preview_id_is_supported(ob->data)) {
+      id = ob->data;
+    }
+  }
+
+  if (!ED_preview_id_is_supported(id)) {
     return;
   }
 
