@@ -738,6 +738,7 @@ void HIPDevice::generic_free(device_memory &mem)
   if (mem.device_pointer) {
     HIPContextScope scope(this);
     thread_scoped_lock lock(hip_mem_map_mutex);
+    DCHECK(hip_mem_map.find(&mem) != hip_mem_map.end());
     const HIPMem &cmem = hip_mem_map[&mem];
 
     /* If cmem.use_mapped_host is true, reference counting is used
@@ -980,7 +981,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
-    hip_assert(hipArray3DCreate((hArray*)&array_3d, &desc));
+    hip_assert(hipArray3DCreate((hArray *)&array_3d, &desc));
 
     if (!array_3d) {
       return;
@@ -1106,6 +1107,7 @@ void HIPDevice::tex_free(device_texture &mem)
   if (mem.device_pointer) {
     HIPContextScope scope(this);
     thread_scoped_lock lock(hip_mem_map_mutex);
+    DCHECK(hip_mem_map.find(&mem) != hip_mem_map.end());
     const HIPMem &cmem = hip_mem_map[&mem];
 
     if (cmem.texobject) {
