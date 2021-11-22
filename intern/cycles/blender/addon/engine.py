@@ -233,6 +233,7 @@ def list_render_passes(scene, srl):
     if crl.denoising_store_passes:
         yield ("Denoising Normal",          "XYZ", 'VECTOR')
         yield ("Denoising Albedo",          "RGB", 'COLOR')
+        yield ("Denoising Depth",           "Z", 'VALUE')
 
     # Custom AOV passes.
     for aov in srl.aovs:

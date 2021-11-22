@@ -252,10 +252,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
         case TH_HEADER_ACTIVE:
           cp = ts->header;
+          const int factor = 5;
           /* Lighten the header color when editor is active. */
-          header_active[0] = cp[0] > 245 ? cp[0] - 10 : cp[0] + 10;
-          header_active[1] = cp[1] > 245 ? cp[1] - 10 : cp[1] + 10;
-          header_active[2] = cp[2] > 245 ? cp[2] - 10 : cp[2] + 10;
+          header_active[0] = cp[0] > 245 ? cp[0] - factor : cp[0] + factor;
+          header_active[1] = cp[1] > 245 ? cp[1] - factor : cp[1] + factor;
+          header_active[2] = cp[2] > 245 ? cp[2] - factor : cp[2] + factor;
           header_active[3] = cp[3];
           cp = header_active;
           break;
@@ -1339,7 +1340,8 @@ void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int of
   CLAMP(g, 0, 255);
   b = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
   CLAMP(b, 0, 255);
-  a = offset + floorf((1.0f - fac) * cp1[3] + fac * cp2[3]);
+
+  a = floorf((1.0f - fac) * cp1[3] + fac * cp2[3]); /* No shading offset. */
   CLAMP(a, 0, 255);
 
   col[0] = ((float)r) / 255.0f;

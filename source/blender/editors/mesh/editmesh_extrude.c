@@ -821,8 +821,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
         float view_vec[3], cross[3];
 
         /* convert the 2D normal into 3D */
-        mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* worldspace */
-        mul_mat3_m4_v3(vc.obedit->imat, nor);  /* local space */
+        mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* World-space. */
+        mul_mat3_m4_v3(vc.obedit->imat, nor);  /* Local-space. */
 
         /* correct the normal to be aligned on the view plane */
         mul_v3_mat3_m4v3(view_vec, vc.obedit->imat, vc.rv3d->viewinv[2]);

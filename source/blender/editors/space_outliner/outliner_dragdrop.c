@@ -868,7 +868,7 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
 static char *datastack_drop_tooltip(bContext *UNUSED(C),
                                     wmDrag *drag,
-                                    const wmEvent *UNUSED(event),
+                                    const int UNUSED(xy[2]),
                                     struct wmDropBox *UNUSED(drop))
 {
   StackDropData *drop_data = drag->poin;
@@ -1201,11 +1201,13 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 
 static char *collection_drop_tooltip(bContext *C,
                                      wmDrag *drag,
-                                     const wmEvent *event,
+                                     const int UNUSED(xy[2]),
                                      wmDropBox *UNUSED(drop))
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
+  const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
   CollectionDrop data;
-  if (!event->shift && collection_drop_init(C, drag, event, &data)) {
+  if (event && !event->shift && collection_drop_init(C, drag, event, &data)) {
     TreeElement *te = data.te;
     if (!data.from || event->ctrl) {
       return BLI_strdup(TIP_("Link inside Collection"));
@@ -1309,7 +1311,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
     }
 
     if (from) {
-      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
     }
   }
 

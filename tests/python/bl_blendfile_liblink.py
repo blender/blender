@@ -370,10 +370,110 @@ class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
         assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
 
 
+class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_link_reload(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_basic()
+
+        # Simple link of a single Object, and reload.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Object")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
+
+        assert(len(bpy.data.meshes) == 1)
+        assert(len(bpy.data.objects) == 1)
+        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+
+        orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
+
+        bpy.ops.wm.lib_reload(library=bpy.data.objects[0].name)
+
+        reload_data = self.blender_data_to_tuple(bpy.data, "reload_data")
+
+        print(orig_data)
+        print(reload_data)
+        assert(orig_data == reload_data)
+
+
+
+class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_link_relocate(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_basic()
+
+        # Simple link of a single Object, and reload.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Object")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
+
+        assert(len(bpy.data.meshes) == 1)
+        assert(len(bpy.data.objects) == 1)
+        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+
+        orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
+
+        lib_path, lib_ext = os.path.splitext(output_lib_path)
+        new_lib_path = lib_path + "_relocate" + lib_ext
+        os.replace(output_lib_path, new_lib_path)
+
+        bpy.ops.wm.lib_relocate(library=bpy.data.objects[0].name, directory="", filename=new_lib_path)
+
+        relocate_data = self.blender_data_to_tuple(bpy.data, "relocate_data")
+
+        print(orig_data)
+        print(relocate_data)
+        assert(orig_data == relocate_data)
+
+
+class TestBlendLibDataLibrariesLoad(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_link_relocate(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_basic()
+
+        # Simple link of a single Object, and reload.
+        self.reset_blender()
+
+        with bpy.data.libraries.load(filepath=output_lib_path) as lib_ctx:
+            lib_src, lib_link = lib_ctx
+
+            assert(len(lib_src.meshes) == 1)
+            assert(len(lib_src.objects) == 1)
+            assert(len(lib_src.collections) == 1)
+
+            assert(len(lib_link.meshes) == 0)
+            assert(len(lib_link.objects) == 0)
+            assert(len(lib_link.collections) == 0)
+
+            lib_link.collections.append(lib_src.collections[0])
+
+        # Linking happens when living the context manager.
+
+        assert(len(bpy.data.meshes) == 1)
+        assert(len(bpy.data.objects) == 1)  # This code does no instantiation.
+        assert(len(bpy.data.collections) == 1)
+
+
 TESTS = (
     TestBlendLibLinkSaveLoadBasic,
     TestBlendLibAppendBasic,
     TestBlendLibAppendReuseID,
+    TestBlendLibLibraryReload,
+    TestBlendLibLibraryRelocate,
+    TestBlendLibDataLibrariesLoad,
 )
 
 

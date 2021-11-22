@@ -15,6 +15,7 @@
  */
 
 #include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 namespace blender::nodes {
 #define MAKE_EXTERN_SOCKET_IMPLEMENTATION(TYPE) \

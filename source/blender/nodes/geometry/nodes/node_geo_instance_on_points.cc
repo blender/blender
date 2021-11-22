@@ -28,28 +28,29 @@ namespace blender::nodes {
 
 static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points").description("Points to instance on");
-  b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
-  b.add_input<decl::Geometry>("Instance").description("Geometry that is instanced on the points");
-  b.add_input<decl::Bool>("Pick Instance")
+  b.add_input<decl::Geometry>(N_("Points")).description(N_("Points to instance on"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_input<decl::Geometry>(N_("Instance"))
+      .description(N_("Geometry that is instanced on the points"));
+  b.add_input<decl::Bool>(N_("Pick Instance"))
       .supports_field()
       .description("Place different instances on different points");
-  b.add_input<decl::Int>("Instance Index")
+  b.add_input<decl::Int>(N_("Instance Index"))
       .implicit_field()
-      .description(
+      .description(N_(
           "Index of the instance that used for each point. This is only used when Pick Instances "
-          "is on. By default the point index is used");
-  b.add_input<decl::Vector>("Rotation")
+          "is on. By default the point index is used"));
+  b.add_input<decl::Vector>(N_("Rotation"))
       .subtype(PROP_EULER)
       .supports_field()
-      .description("Rotation of the instances");
-  b.add_input<decl::Vector>("Scale")
+      .description(N_("Rotation of the instances"));
+  b.add_input<decl::Vector>(N_("Scale"))
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ)
       .supports_field()
-      .description("Scale of the instances");
+      .description(N_("Scale of the instances"));
 
-  b.add_output<decl::Geometry>("Instances");
+  b.add_output<decl::Geometry>(N_("Instances"));
 }
 
 static void add_instances_from_component(InstancesComponent &dst_component,
@@ -77,23 +78,21 @@ static void add_instances_from_component(InstancesComponent &dst_component,
                                                                                   select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
                                                                                    select_len);
-  MutableSpan<int> dst_stable_ids = dst_component.instance_ids().slice(start_len, select_len);
 
   FieldEvaluator field_evaluator{field_context, domain_size};
-  const VArray<bool> *pick_instance = nullptr;
-  const VArray<int> *indices = nullptr;
-  const VArray<float3> *rotations = nullptr;
-  const VArray<float3> *scales = nullptr;
+  VArray<bool> pick_instance;
+  VArray<int> indices;
+  VArray<float3> rotations;
+  VArray<float3> scales;
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
-  GVArray_Typed<int> stable_ids = src_component.attribute_get_for_read("id", ATTR_DOMAIN_POINT, 0);
   field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
   field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
   field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
   field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
   field_evaluator.evaluate();
 
-  GVArray_Typed<float3> positions = src_component.attribute_get_for_read<float3>(
+  VArray<float3> positions = src_component.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
 
   const InstancesComponent *src_instances = instance.get_component_for_read<InstancesComponent>();
@@ -102,7 +101,7 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   Array<int> handle_mapping;
   /* Only fill #handle_mapping when it may be used below. */
   if (src_instances != nullptr &&
-      (!pick_instance->is_single() || pick_instance->get_internal_single())) {
+      (!pick_instance.is_single() || pick_instance.get_internal_single())) {
     Span<InstanceReference> src_references = src_instances->references();
     handle_mapping.reinitialize(src_references.size());
     for (const int src_instance_handle : src_references.index_range()) {
@@ -119,21 +118,19 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
     for (const int range_i : selection_range) {
       const int64_t i = selection[range_i];
-      dst_stable_ids[range_i] = (*stable_ids)[i];
 
       /* Compute base transform for every instances. */
       float4x4 &dst_transform = dst_transforms[range_i];
-      dst_transform = float4x4::from_loc_eul_scale(
-          positions[i], rotations->get(i), scales->get(i));
+      dst_transform = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
 
       /* Reference that will be used by this new instance. */
       int dst_handle = empty_reference_handle;
 
-      const bool use_individual_instance = pick_instance->get(i);
+      const bool use_individual_instance = pick_instance[i];
       if (use_individual_instance) {
         if (src_instances != nullptr) {
           const int src_instances_amount = src_instances->instances_amount();
-          const int original_index = indices->get(i);
+          const int original_index = indices[i];
           /* Use #mod_i instead of `%` to get the desirable wrap around behavior where -1
            * refers to the last element. */
           const int index = mod_i(original_index, std::max(src_instances_amount, 1));
@@ -157,8 +154,19 @@ static void add_instances_from_component(InstancesComponent &dst_component,
     }
   });
 
-  if (pick_instance->is_single()) {
-    if (pick_instance->get_internal_single()) {
+  VArray<int> ids = src_component
+                        .attribute_try_get_for_read("id", ATTR_DOMAIN_POINT, CD_PROP_INT32)
+                        .typed<int>();
+  if (ids) {
+    VArray_Span<int> ids_span{ids};
+    MutableSpan<int> dst_ids = dst_component.instance_ids_ensure();
+    for (const int64_t i : selection.index_range()) {
+      dst_ids[i] = ids_span[selection[i]];
+    }
+  }
+
+  if (pick_instance.is_single()) {
+    if (pick_instance.get_internal_single()) {
       if (instance.has_realized_data()) {
         params.error_message_add(
             NodeWarningType::Info,
@@ -194,10 +202,14 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
           instances, *geometry_set.get_component_for_read<CurveComponent>(), instance, params);
       geometry_set.remove(GEO_COMPONENT_TYPE_CURVE);
     }
-    /* Unused references may have been added above. Remove those now so that other nodes don't
-     * process them needlessly. */
-    instances.remove_unused_references();
   });
+
+  /* Unused references may have been added above. Remove those now so that other nodes don't
+   * process them needlessly.
+   * This should eventually be moved into the loop above, but currently this is quite tricky
+   * because it might remove references that the loop still wants to iterate over. */
+  InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+  instances.remove_unused_references();
 
   params.set_output("Instances", std::move(geometry_set));
 }

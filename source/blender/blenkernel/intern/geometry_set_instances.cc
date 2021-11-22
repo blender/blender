@@ -89,8 +89,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
 static void geometry_set_collect_recursive_collection_instance(
     const Collection &collection, const float4x4 &transform, Vector<GeometryInstanceGroup> &r_sets)
 {
-  float4x4 offset_matrix;
-  unit_m4(offset_matrix.values);
+  float4x4 offset_matrix = float4x4::identity();
   sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
   const float4x4 instance_transform = transform * offset_matrix;
   geometry_set_collect_recursive_collection(collection, instance_transform, r_sets);
@@ -183,10 +182,7 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups)
 {
-  float4x4 unit_transform;
-  unit_m4(unit_transform.values);
-
-  geometry_set_collect_recursive(geometry_set, unit_transform, r_instance_groups);
+  geometry_set_collect_recursive(geometry_set, float4x4::identity(), r_instance_groups);
 }
 
 void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,
@@ -364,12 +360,12 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     result.attribute_try_create(
         entry.key, domain_output, data_type_output, AttributeInitDefault());
     WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(attribute_id);
-    if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
+    if (!write_attribute || &write_attribute.varray.type() != cpp_type ||
         write_attribute.domain != domain_output) {
       continue;
     }
 
-    fn::GVMutableArray_GSpan dst_span{*write_attribute.varray};
+    fn::GVMutableArray_GSpan dst_span{write_attribute.varray};
 
     int offset = 0;
     for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -381,11 +377,11 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
           if (domain_size == 0) {
             continue; /* Domain size is 0, so no need to increment the offset. */
           }
-          GVArrayPtr source_attribute = component.attribute_try_get_for_read(
+          GVArray source_attribute = component.attribute_try_get_for_read(
               attribute_id, domain_output, data_type_output);
 
           if (source_attribute) {
-            fn::GVArray_GSpan src_span{*source_attribute};
+            fn::GVArray_GSpan src_span{source_attribute};
             const void *src_buffer = src_span.data();
             for (const int UNUSED(i) : set_group.transforms.index_range()) {
               void *dst_buffer = dst_span[offset];
@@ -530,6 +526,27 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
+/**
+ * Curve point domain attributes must be in the same order on every spline. The order might have
+ * been different on separate instances, so ensure that all splines have the same order. Note that
+ * because #Map is used, the order is not necessarily consistent every time, but it is the same for
+ * every spline, and that's what matters.
+ */
+static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeKind> &info,
+                                        MutableSpan<SplinePtr> splines)
+{
+  Vector<AttributeIDRef> new_order;
+  for (Map<AttributeIDRef, AttributeKind>::Item item : info.items()) {
+    if (item.value.domain == ATTR_DOMAIN_POINT) {
+      /* Only sort attributes stored on splines. */
+      new_order.append(item.key);
+    }
+  }
+  for (SplinePtr &spline : splines) {
+    spline->attributes.reorder(new_order);
+  }
+}
+
 static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
 {
   CurveEval *curve = join_curve_splines_and_builtin_attributes(set_groups);
@@ -550,6 +567,8 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
                   {GEO_COMPONENT_TYPE_CURVE},
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
+  sort_curve_point_attributes(attributes, curve->splines());
+  curve->assert_valid_point_attributes();
 }
 
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)

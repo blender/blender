@@ -29,8 +29,8 @@ namespace blender::nodes {
 
 static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("ID value").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_output<decl::Float>("Alpha");
+  b.add_input<decl::Float>(N_("ID value")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Float>(N_("Alpha"));
 }
 
 }  // namespace blender::nodes

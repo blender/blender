@@ -31,7 +31,7 @@ namespace blender::nodes {
 
 static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Mask");
+  b.add_output<decl::Float>(N_("Mask"));
 }
 
 }  // namespace blender::nodes

@@ -29,11 +29,11 @@ namespace blender::nodes {
 
 static void cmp_node_sepycca_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>("Y");
-  b.add_output<decl::Float>("Cb");
-  b.add_output<decl::Float>("Cr");
-  b.add_output<decl::Float>("A");
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Float>(N_("Y"));
+  b.add_output<decl::Float>(N_("Cb"));
+  b.add_output<decl::Float>(N_("Cr"));
+  b.add_output<decl::Float>(N_("A"));
 }
 
 }  // namespace blender::nodes
@@ -60,11 +60,11 @@ namespace blender::nodes {
 
 static void cmp_node_combycca_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Y").min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Cb").default_value(0.5f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Cr").default_value(0.5f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Float>(N_("Y")).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("Cb")).default_value(0.5f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("Cr")).default_value(0.5f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("A")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 }  // namespace blender::nodes

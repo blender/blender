@@ -13,14 +13,17 @@
 
 #include "intern/draw_manager_testing.h"
 
+#include "engines/basic/basic_private.h"
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
-#include "engines/image/image_private.h"
+#include "engines/image/image_private.hh"
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
 #include "intern/draw_shader.h"
 
 namespace blender::draw {
+
+using namespace blender::draw::image_engine;
 
 static void test_workbench_glsl_shaders()
 {
@@ -393,5 +396,18 @@ static void test_draw_glsl_shaders()
   test_draw_shaders(PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND);
 }
 DRAW_TEST(draw_glsl_shaders)
+
+static void test_basic_glsl_shaders()
+{
+  for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
+    eGPUShaderConfig sh_cfg = static_cast<eGPUShaderConfig>(i);
+    BASIC_shaders_depth_sh_get(sh_cfg);
+    BASIC_shaders_pointcloud_depth_sh_get(sh_cfg);
+    BASIC_shaders_depth_conservative_sh_get(sh_cfg);
+    BASIC_shaders_pointcloud_depth_conservative_sh_get(sh_cfg);
+  }
+  BASIC_shaders_free();
+}
+DRAW_TEST(basic_glsl_shaders)
 
 }  // namespace blender::draw

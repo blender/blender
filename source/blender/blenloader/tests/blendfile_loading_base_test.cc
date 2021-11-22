@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "wm.h"
 
+#include "GHOST_Path-api.h"
+
 #include "CLG_log.h"
 
 void BlendfileLoadingBaseTest::SetUpTestCase()
@@ -65,7 +67,6 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_idtype_init();
   BKE_appdir_init();
   IMB_init();
-  BKE_images_init();
   BKE_modifier_init();
   DEG_register_node_types();
   RNA_init();
@@ -93,6 +94,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
   RNA_exit();
 
   DEG_free_node_types();
+  GHOST_DisposeSystemPaths();
   DNA_sdna_current_free();
   BLI_threadapi_exit();
 

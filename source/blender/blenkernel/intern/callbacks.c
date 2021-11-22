@@ -30,11 +30,20 @@
 
 static ListBase callback_slots[BKE_CB_EVT_TOT] = {{NULL}};
 
+static bool callbacks_initialized = false;
+
+#define ASSERT_CALLBACKS_INITIALIZED() \
+  BLI_assert_msg(callbacks_initialized, \
+                 "Callbacks should be initialized with BKE_callback_global_init() before using " \
+                 "the callback system.")
+
 void BKE_callback_exec(struct Main *bmain,
                        struct PointerRNA **pointers,
                        const int num_pointers,
                        eCbEvent evt)
 {
+  ASSERT_CALLBACKS_INITIALIZED();
+
   /* Use mutable iteration so handlers are able to remove themselves. */
   ListBase *lb = &callback_slots[evt];
   LISTBASE_FOREACH_MUTABLE (bCallbackFuncStore *, funcstore, lb) {
@@ -75,18 +84,26 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
 
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
+  ASSERT_CALLBACKS_INITIALIZED();
   ListBase *lb = &callback_slots[evt];
   BLI_addtail(lb, funcstore);
 }
 
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
-  ListBase *lb = &callback_slots[evt];
-
-  /* Be safe, as the callback may have already been removed by BKE_callback_global_finalize(), for
+  /* The callback may have already been removed by BKE_callback_global_finalize(), for
    * example when removing callbacks in response to a BKE_blender_atexit_register callback
    * function. `BKE_blender_atexit()` runs after `BKE_callback_global_finalize()`. */
-  BLI_remlink_safe(lb, funcstore);
+  if (!callbacks_initialized) {
+    return;
+  }
+
+  ListBase *lb = &callback_slots[evt];
+
+  /* Be noisy about potential programming errors. */
+  BLI_assert_msg(BLI_findindex(lb, funcstore) != -1, "To-be-removed callback not found");
+
+  BLI_remlink(lb, funcstore);
 
   if (funcstore->alloc) {
     MEM_freeN(funcstore);
@@ -95,7 +112,7 @@ void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
 
 void BKE_callback_global_init(void)
 {
-  /* do nothing */
+  callbacks_initialized = true;
 }
 
 /* call on application exit */
@@ -111,4 +128,6 @@ void BKE_callback_global_finalize(void)
       BKE_callback_remove(funcstore, evt);
     }
   }
+
+  callbacks_initialized = false;
 }

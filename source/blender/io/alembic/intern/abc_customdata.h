@@ -66,6 +66,7 @@ struct CDStreamConfig {
 
   float weight;
   float time;
+  int timesample_index;
   bool use_vertex_interpolation;
   Alembic::AbcGeom::index_t index;
   Alembic::AbcGeom::index_t ceil_index;
@@ -81,6 +82,9 @@ struct CDStreamConfig {
 
   /* ORCO coordinates, aka Generated Coordinates. */
   Alembic::AbcGeom::OV3fGeomParam abc_orco;
+
+  /* Mapping from vertex color layer name to its Alembic color data. */
+  std::map<std::string, Alembic::AbcGeom::OC4fGeomParam> abc_vertex_colors;
 
   CDStreamConfig()
       : mloop(NULL),

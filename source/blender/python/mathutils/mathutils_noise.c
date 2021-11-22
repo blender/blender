@@ -562,7 +562,7 @@ PyDoc_STRVAR(M_Noise_turbulence_vector_doc,
              "   :type octaves: int\n"
              "   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or "
              "soft (smooth transitions).\n"
-             "   :type hard: :boolean\n" BPY_NOISE_BASIS_ENUM_DOC
+             "   :type hard: boolean\n" BPY_NOISE_BASIS_ENUM_DOC
              "   :arg amplitude_scale: The amplitude scaling factor.\n"
              "   :type amplitude_scale: float\n"
              "   :arg frequency_scale: The frequency scaling factor\n"

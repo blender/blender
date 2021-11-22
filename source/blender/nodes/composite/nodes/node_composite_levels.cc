@@ -29,9 +29,9 @@ namespace blender::nodes {
 
 static void cmp_node_levels_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_output<decl::Float>("Mean");
-  b.add_output<decl::Float>("Std Dev");
+  b.add_input<decl::Color>(N_("Image")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_output<decl::Float>(N_("Mean"));
+  b.add_output<decl::Float>(N_("Std Dev"));
 }
 
 }  // namespace blender::nodes

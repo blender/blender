@@ -170,7 +170,7 @@ static int txtfmt_osl_find_preprocessor(const char *string)
 {
   if (string[0] == '#') {
     int i = 1;
-    /* Whitespace is ok '#  foo' */
+    /* White-space is ok '#  foo'. */
     while (text_check_whitespace(string[i])) {
       i++;
     }
@@ -298,7 +298,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         *fmt = FMT_TYPE_STRING;
       }
-      /* Whitespace (all ws. has been converted to spaces) */
+      /* White-space (all ws. has been converted to spaces). */
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }

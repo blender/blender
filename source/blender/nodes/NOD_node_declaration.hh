@@ -88,6 +88,8 @@ class SocketDeclaration {
   bool hide_value_ = false;
   bool is_multi_input_ = false;
   bool no_mute_links_ = false;
+  bool is_attribute_name_ = false;
+  bool is_default_link_socket_ = false;
 
   InputSocketFieldType input_field_type_ = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency_;
@@ -105,6 +107,8 @@ class SocketDeclaration {
   StringRefNull name() const;
   StringRefNull description() const;
   StringRefNull identifier() const;
+  bool is_attribute_name() const;
+  bool is_default_link_socket() const;
 
   InputSocketFieldType input_field_type() const;
   const OutputFieldDependency &output_field_dependency() const;
@@ -163,6 +167,18 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
+  Self &is_attribute_name(bool value = true)
+  {
+    decl_->is_attribute_name_ = value;
+    return *(Self *)this;
+  }
+
+  Self &is_default_link_socket(bool value = true)
+  {
+    decl_->is_default_link_socket_ = value;
+    return *(Self *)this;
+  }
+
   /** The input socket allows passing in a field. */
   Self &supports_field()
   {
@@ -212,7 +228,6 @@ class NodeDeclaration {
   friend NodeDeclarationBuilder;
 
  public:
-  void build(bNodeTree &ntree, bNode &node) const;
   bool matches(const bNode &node) const;
 
   Span<SocketDeclarationPtr> inputs() const;
@@ -349,6 +364,17 @@ inline StringRefNull SocketDeclaration::description() const
 {
   return description_;
 }
+
+inline bool SocketDeclaration::is_attribute_name() const
+{
+  return is_attribute_name_;
+}
+
+inline bool SocketDeclaration::is_default_link_socket() const
+{
+  return is_default_link_socket_;
+}
+
 inline InputSocketFieldType SocketDeclaration::input_field_type() const
 {
   return input_field_type_;

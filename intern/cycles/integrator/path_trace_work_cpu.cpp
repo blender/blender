@@ -19,17 +19,17 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
-#include "kernel/kernel_path_state.h"
+#include "kernel/integrator/path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace_display.h"
 
-#include "render/buffers.h"
-#include "render/scene.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
 
-#include "util/util_atomic.h"
-#include "util/util_logging.h"
-#include "util/util_tbb.h"
+#include "util/atomic.h"
+#include "util/log.h"
+#include "util/tbb.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -58,7 +58,7 @@ PathTraceWorkCPU::PathTraceWorkCPU(Device *device,
                                    DeviceScene *device_scene,
                                    bool *cancel_requested_flag)
     : PathTraceWork(device, film, device_scene, cancel_requested_flag),
-      kernels_(*(device->get_cpu_kernels()))
+      kernels_(Device::get_cpu_kernels())
 {
   DCHECK_EQ(device->info.type, DEVICE_CPU);
 }
@@ -71,14 +71,17 @@ void PathTraceWorkCPU::init_execution()
 
 void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
                                       int start_sample,
-                                      int samples_num)
+                                      int samples_num,
+                                      int sample_offset)
 {
   const int64_t image_width = effective_buffer_params_.width;
   const int64_t image_height = effective_buffer_params_.height;
   const int64_t total_pixels_num = image_width * image_height;
 
-  for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
-    kernel_globals.start_profiling();
+  if (device_->profiler.active()) {
+    for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
+      kernel_globals.start_profiling();
+    }
   }
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
@@ -97,6 +100,7 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
       work_tile.w = 1;
       work_tile.h = 1;
       work_tile.start_sample = start_sample;
+      work_tile.sample_offset = sample_offset;
       work_tile.num_samples = 1;
       work_tile.offset = effective_buffer_params_.offset;
       work_tile.stride = effective_buffer_params_.stride;
@@ -106,9 +110,10 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
       render_samples_full_pipeline(kernel_globals, work_tile, samples_num);
     });
   });
-
-  for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
-    kernel_globals.stop_profiling();
+  if (device_->profiler.active()) {
+    for (CPUKernelThreadGlobals &kernel_globals : kernel_thread_globals_) {
+      kernel_globals.stop_profiling();
+    }
   }
 
   statistics.occupancy = 1.0f;

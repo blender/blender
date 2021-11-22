@@ -37,6 +37,7 @@ set(INC
   ../imbuf
   ../makesdna
   ../makesrna
+  ../windowmanager
 
   ../editors/include
 
@@ -225,6 +226,7 @@ data_to_c_simple(shaders/gpu_shader_image_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_desaturate_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_overlays_merge_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_modulate_alpha_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_shuffle_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_varying_color_frag.glsl SRC)

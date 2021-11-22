@@ -391,12 +391,12 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
   imm_draw_box_checker_2d_ex(x1, y1, x2, y2, checker_primary, checker_secondary, checker_size);
 }
 
-void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3])
+void imm_draw_cube_fill_3d(uint pos, const float center[3], const float aspect[3])
 {
   float coords[ARRAY_SIZE(cube_coords)][3];
 
   for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
-    madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
   }
 
   immBegin(GPU_PRIM_TRIS, ARRAY_SIZE(cube_quad_index) * 3 * 2);
@@ -412,18 +412,48 @@ void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3])
   immEnd();
 }
 
-void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
+void imm_draw_cube_wire_3d(uint pos, const float center[3], const float aspect[3])
 {
   float coords[ARRAY_SIZE(cube_coords)][3];
 
   for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
-    madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
   }
 
   immBegin(GPU_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 2);
   for (int i = 0; i < ARRAY_SIZE(cube_line_index); i++) {
     immVertex3fv(pos, coords[cube_line_index[i][0]]);
     immVertex3fv(pos, coords[cube_line_index[i][1]]);
+  }
+  immEnd();
+}
+
+void imm_draw_cube_corners_3d(uint pos,
+                              const float center[3],
+                              const float aspect[3],
+                              const float factor)
+{
+  float coords[ARRAY_SIZE(cube_coords)][3];
+
+  for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
+    madd_v3_v3v3v3(coords[i], center, cube_coords[i], aspect);
+  }
+
+  immBegin(GPU_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 4);
+  for (int i = 0; i < ARRAY_SIZE(cube_line_index); i++) {
+    float vec[3], co[3];
+    sub_v3_v3v3(vec, coords[cube_line_index[i][1]], coords[cube_line_index[i][0]]);
+    mul_v3_fl(vec, factor);
+
+    copy_v3_v3(co, coords[cube_line_index[i][0]]);
+    immVertex3fv(pos, co);
+    add_v3_v3(co, vec);
+    immVertex3fv(pos, co);
+
+    copy_v3_v3(co, coords[cube_line_index[i][1]]);
+    immVertex3fv(pos, co);
+    sub_v3_v3(co, vec);
+    immVertex3fv(pos, co);
   }
   immEnd();
 }
@@ -569,6 +599,58 @@ void imm_draw_cylinder_fill_3d(
       immVertex3fv(pos, v4);
       immVertex3fv(pos, v1);
     }
+  }
+  immEnd();
+}
+
+/* Circle Drawing - Tables for Optimized Drawing Speed */
+#define CIRCLE_RESOL 32
+
+static void circball_array_fill(const float verts[CIRCLE_RESOL][3],
+                                const float cent[3],
+                                float rad,
+                                const float tmat[4][4])
+{
+  /* 32 values of sin function (still same result!) */
+  const float sinval[CIRCLE_RESOL] = {
+      0.00000000,  0.20129852,  0.39435585,  0.57126821,  0.72479278,  0.84864425,  0.93775213,
+      0.98846832,  0.99871650,  0.96807711,  0.89780453,  0.79077573,  0.65137248,  0.48530196,
+      0.29936312,  0.10116832,  -0.10116832, -0.29936312, -0.48530196, -0.65137248, -0.79077573,
+      -0.89780453, -0.96807711, -0.99871650, -0.98846832, -0.93775213, -0.84864425, -0.72479278,
+      -0.57126821, -0.39435585, -0.20129852, 0.00000000,
+  };
+
+  /* 32 values of cos function (still same result!) */
+  const float cosval[CIRCLE_RESOL] = {
+      1.00000000,  0.97952994,  0.91895781,  0.82076344,  0.68896691,  0.52896401,  0.34730525,
+      0.15142777,  -0.05064916, -0.25065253, -0.44039415, -0.61210598, -0.75875812, -0.87434661,
+      -0.95413925, -0.99486932, -0.99486932, -0.95413925, -0.87434661, -0.75875812, -0.61210598,
+      -0.44039415, -0.25065253, -0.05064916, 0.15142777,  0.34730525,  0.52896401,  0.68896691,
+      0.82076344,  0.91895781,  0.97952994,  1.00000000,
+  };
+
+  float vx[3], vy[3];
+  float *viter = (float *)verts;
+
+  mul_v3_v3fl(vx, tmat[0], rad);
+  mul_v3_v3fl(vy, tmat[1], rad);
+
+  for (uint a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
+    viter[0] = cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
+    viter[1] = cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
+    viter[2] = cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
+  }
+}
+
+void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], uint pos)
+{
+  float verts[CIRCLE_RESOL][3];
+
+  circball_array_fill(verts, cent, rad, tmat);
+
+  immBegin(GPU_PRIM_LINE_LOOP, CIRCLE_RESOL);
+  for (int i = 0; i < CIRCLE_RESOL; i++) {
+    immVertex3fv(pos, verts[i]);
   }
   immEnd();
 }

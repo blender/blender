@@ -41,22 +41,19 @@ HIPDeviceQueue::~HIPDeviceQueue()
 
 int HIPDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  int num_states = 0;
   const int max_num_threads = hip_device_->get_num_multiprocessors() *
                               hip_device_->get_max_num_threads_per_multiprocessor();
-  if (max_num_threads == 0) {
-    num_states = 1048576;  // 65536 * 16
-  }
-  else {
-    num_states = max_num_threads * 16;
-  }
+  int num_states = ((max_num_threads == 0) ? 65536 : max_num_threads) * 16;
 
   const char *factor_str = getenv("CYCLES_CONCURRENT_STATES_FACTOR");
   if (factor_str) {
-    float factor = (float)atof(factor_str);
-    if (!factor)
+    const float factor = (float)atof(factor_str);
+    if (factor != 0.0f) {
+      num_states = max((int)(num_states * factor), 1024);
+    }
+    else {
       VLOG(3) << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
-    num_states = max((int)(num_states * factor), 1024);
+    }
   }
 
   VLOG(3) << "GPU queue concurrent states: " << num_states << ", using up to "
@@ -116,6 +113,8 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *arg
     case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY:
     case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
       /* See parall_active_index.h for why this amount of shared memory is needed. */
       shared_mem_bytes = (num_threads_per_block + 1) * sizeof(int);
       break;

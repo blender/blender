@@ -85,7 +85,7 @@ void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem
     kg->tname.data = (type *)mem; \
     kg->tname.width = size; \
   }
-#include "kernel/kernel_textures.h"
+#include "kernel/textures.h"
   else {
     assert(0);
   }

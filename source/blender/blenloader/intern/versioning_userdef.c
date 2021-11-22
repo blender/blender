@@ -27,10 +27,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#ifdef WITH_INTERNATIONAL
-#  include "BLT_translation.h"
-#endif
-
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
@@ -53,6 +49,16 @@
 
 #include "wm_event_types.h"
 
+/* Don't use translation strings in versioning!
+ * These depend on the preferences already being read.
+ * If this is important we can set the translations as part of versioning preferences,
+ * however that should only be done if there are important use-cases. */
+#if 0
+#  include "BLT_translation.h"
+#else
+#  define N_(msgid) msgid
+#endif
+
 /* For versioning we only ever want to manipulate preferences passed in. */
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
 
@@ -60,10 +66,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
 
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
-  if (!USER_VERSION_ATLEAST(280, 20)) {
-    memcpy(btheme, &U_theme_default, sizeof(*btheme));
-  }
-
 #define FROM_DEFAULT_V4_UCHAR(member) copy_v4_v4_uchar(btheme->member, U_theme_default.member)
 
   if (!USER_VERSION_ATLEAST(280, 25)) {
@@ -308,6 +310,28 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(300, 34)) {
     btheme->tui.panel_roundness = 0.4f;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 37)) {
+    btheme->space_node.dash_alpha = 0.5f;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 39)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.grid);
+    btheme->space_node.grid_levels = 7;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 41)) {
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
+  }
+
+  /* Again reset the theme, but only if stored with an early 3.1 alpha version. Some changes were
+   * done in the release branch and then merged into the 3.1 branch (master). So the previous reset
+   * wouldn't work for people who saved their preferences with a 3.1 build meanwhile. But we still
+   * don't want to reset theme changes stored in the eventual 3.0 release once opened in a 3.1
+   * build. */
+  if (userdef->versionfile > 300 && !USER_VERSION_ATLEAST(301, 1)) {
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
   /**
@@ -685,8 +709,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 38)) {
-
-    /* (keep this block even if it becomes empty). */
     copy_v4_fl4(userdef->light_param[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
     copy_v4_fl4(userdef->light_param[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
     copy_v4_fl4(userdef->light_param[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
@@ -719,8 +741,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
-    /* (keep this block even if it becomes empty). */
-
     if (userdef->pie_tap_timeout == 0) {
       userdef->pie_tap_timeout = 20;
     }
@@ -777,7 +797,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 62)) {
-    /* (keep this block even if it becomes empty). */
     if (userdef->vbotimeout == 0) {
       userdef->vbocollectrate = 60;
       userdef->vbotimeout = 120;
@@ -910,6 +929,35 @@ void blo_do_versions_userdef(UserDef *userdef)
                                                                         USER_FILE_PREVIEW_NONE;
     /* Clear for reuse. */
     userdef->flag &= ~USER_FLAG_UNUSED_5;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 38)) {
+    /* Patch to set Dupli Lattice/Camera/Speaker. */
+    userdef->dupflag |= USER_DUP_LATTICE;
+    userdef->dupflag |= USER_DUP_CAMERA;
+    userdef->dupflag |= USER_DUP_SPEAKER;
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    /* Rename the default asset library from "Default" to "User Library". This isn't bullet proof
+     * since it doesn't handle translations and ignores user changes. But this was an alpha build
+     * (experimental) feature and the name is just for display in the UI anyway. So it doesn't have
+     * to work perfectly at all. */
+    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+      /* Ignores translations, since that would depend on the current preferences (global `U`). */
+      if (STREQ(asset_library->name, "Default")) {
+        BKE_preferences_asset_library_name_set(
+            userdef, asset_library, BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME);
+      }
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 40)) {
+    LISTBASE_FOREACH (uiStyle *, style, &userdef->uistyles) {
+      const int default_title_points = 11; /* UI_DEFAULT_TITLE_POINTS */
+      style->paneltitle.points = default_title_points;
+      style->grouplabel.points = default_title_points;
+    }
   }
 
   /**

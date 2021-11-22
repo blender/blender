@@ -1638,7 +1638,7 @@ typedef enum PredefinedExtraOpIconType {
 
 static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
                                                       wmOperatorType *optype,
-                                                      short opcontext,
+                                                      wmOperatorCallContext opcontext,
                                                       int icon)
 {
   uiButExtraOpIcon *extra_op_icon = MEM_mallocN(sizeof(*extra_op_icon), __func__);
@@ -1678,7 +1678,7 @@ void ui_but_extra_operator_icons_free(uiBut *but)
 
 PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                            const char *opname,
-                                           short opcontext,
+                                           wmOperatorCallContext opcontext,
                                            int icon)
 {
   wmOperatorType *optype = WM_operatortype_find(opname, false);
@@ -1881,7 +1881,7 @@ bool ui_but_context_poll_operator_ex(bContext *C,
 
 bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
 {
-  const int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
+  const wmOperatorCallContext opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
   return ui_but_context_poll_operator_ex(
       C, but, &(wmOperatorCallParams){.optype = ot, .opcontext = opcontext});
 }
@@ -1993,23 +1993,9 @@ void UI_block_end(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
-void ui_fontscale(short *points, float aspect)
+void ui_fontscale(float *points, float aspect)
 {
-  if (aspect < 0.9f || aspect > 1.1f) {
-    float pointsf = *points;
-
-    /* For some reason scaling fonts goes too fast compared to widget size. */
-    /* XXX(ton): not true anymore? */
-    // aspect = sqrt(aspect);
-    pointsf /= aspect;
-
-    if (aspect > 1.0f) {
-      *points = ceilf(pointsf);
-    }
-    else {
-      *points = floorf(pointsf);
-    }
-  }
+  *points /= aspect;
 }
 
 /* Project button or block (but==NULL) to pixels in region-space. */
@@ -2020,6 +2006,13 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *region, uiBlock *bloc
   ui_block_to_window_rctf(region, block, &rectf, (but) ? &but->rect : &block->rect);
   BLI_rcti_rctf_copy_round(rect, &rectf);
   BLI_rcti_translate(rect, -region->winrct.xmin, -region->winrct.ymin);
+}
+
+static bool ui_but_pixelrect_in_view(const ARegion *region, const rcti *rect)
+{
+  rcti rect_winspace = *rect;
+  BLI_rcti_translate(&rect_winspace, region->winrct.xmin, region->winrct.ymin);
+  return BLI_rcti_isect(&region->winrct, &rect_winspace, NULL);
 }
 
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
@@ -2095,14 +2088,20 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 
   /* widgets */
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (!(but->flag & (UI_HIDDEN | UI_SCROLLED))) {
-      ui_but_to_pixelrect(&rect, region, block, but);
+    if (but->flag & (UI_HIDDEN | UI_SCROLLED)) {
+      continue;
+    }
 
-      /* XXX: figure out why invalid coordinates happen when closing render window */
-      /* and material preview is redrawn in main window (temp fix for bug T23848) */
-      if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
-        ui_draw_but(C, region, &style, but, &rect);
-      }
+    ui_but_to_pixelrect(&rect, region, block, but);
+    /* Optimization: Don't draw buttons that are not visible (outside view bounds). */
+    if (!ui_but_pixelrect_in_view(region, &rect)) {
+      continue;
+    }
+
+    /* XXX: figure out why invalid coordinates happen when closing render window */
+    /* and material preview is redrawn in main window (temp fix for bug T23848) */
+    if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
+      ui_draw_but(C, region, &style, but, &rect);
     }
   }
 
@@ -4450,7 +4449,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
   }
   else {
     char msg[256];
-    SNPRINTF(msg, "Missing Panel: %s", panel_type);
+    SNPRINTF(msg, TIP_("Missing Panel: %s"), panel_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4479,7 +4478,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, "Missing Menu: %s", menu_type);
+    SNPRINTF(msg, TIP_("Missing Menu: %s"), menu_type);
     uiItemL(layout, msg, ICON_NONE);
   }
 }
@@ -4742,7 +4741,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block,
 static uiBut *ui_def_but_operator_ptr(uiBlock *block,
                                       int type,
                                       wmOperatorType *ot,
-                                      int opcontext,
+                                      wmOperatorCallContext opcontext,
                                       const char *str,
                                       int x,
                                       int y,
@@ -5280,7 +5279,7 @@ uiBut *uiDefButR_prop(uiBlock *block,
 uiBut *uiDefButO_ptr(uiBlock *block,
                      int type,
                      wmOperatorType *ot,
-                     int opcontext,
+                     wmOperatorCallContext opcontext,
                      const char *str,
                      int x,
                      int y,
@@ -5295,7 +5294,7 @@ uiBut *uiDefButO_ptr(uiBlock *block,
 uiBut *uiDefButO(uiBlock *block,
                  int type,
                  const char *opname,
-                 int opcontext,
+                 wmOperatorCallContext opcontext,
                  const char *str,
                  int x,
                  int y,
@@ -5663,7 +5662,7 @@ uiBut *uiDefIconButR_prop(uiBlock *block,
 uiBut *uiDefIconButO_ptr(uiBlock *block,
                          int type,
                          wmOperatorType *ot,
-                         int opcontext,
+                         wmOperatorCallContext opcontext,
                          int icon,
                          int x,
                          int y,
@@ -5678,7 +5677,7 @@ uiBut *uiDefIconButO_ptr(uiBlock *block,
 uiBut *uiDefIconButO(uiBlock *block,
                      int type,
                      const char *opname,
-                     int opcontext,
+                     wmOperatorCallContext opcontext,
                      int icon,
                      int x,
                      int y,
@@ -6066,7 +6065,7 @@ uiBut *uiDefIconTextButR_prop(uiBlock *block,
 uiBut *uiDefIconTextButO_ptr(uiBlock *block,
                              int type,
                              wmOperatorType *ot,
-                             int opcontext,
+                             wmOperatorCallContext opcontext,
                              int icon,
                              const char *str,
                              int x,
@@ -6083,7 +6082,7 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
 uiBut *uiDefIconTextButO(uiBlock *block,
                          int type,
                          const char *opname,
-                         int opcontext,
+                         wmOperatorCallContext opcontext,
                          int icon,
                          const char *str,
                          int x,
@@ -6231,12 +6230,13 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
 void UI_but_drag_set_asset(uiBut *but,
                            const AssetHandle *asset,
                            const char *path,
+                           struct AssetMetaData *metadata,
                            int import_type,
                            int icon,
                            struct ImBuf *imb,
                            float scale)
 {
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, path, import_type);
+  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, metadata, path, import_type);
 
   /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
    * #wmDropBox.
@@ -7013,7 +7013,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
   event.val = KM_PRESS;
   event.is_repeat = false;
   event.customdata = but;
-  event.customdatafree = false;
+  event.customdata_free = false;
 
   wm_event_add(win, &event);
 }

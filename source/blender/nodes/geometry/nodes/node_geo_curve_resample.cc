@@ -26,19 +26,19 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
-
 namespace blender::nodes {
 
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).supports_field();
-  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).supports_field().subtype(
-      PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_input<decl::Int>(N_("Count")).default_value(10).min(1).max(100000).supports_field();
+  b.add_input<decl::Float>(N_("Length"))
+      .default_value(0.1f)
+      .min(0.001f)
+      .supports_field()
+      .subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_resample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -60,7 +60,7 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)node->storage;
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
 
-  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next->next;
   bNodeSocket *length_socket = count_socket->next;
 
   nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
@@ -71,6 +71,7 @@ struct SampleModeParam {
   GeometryNodeCurveResampleMode mode;
   std::optional<Field<float>> length;
   std::optional<Field<int>> count;
+  Field<bool> selection;
 };
 
 static SplinePtr resample_spline(const Spline &src, const int count)
@@ -79,7 +80,7 @@ static SplinePtr resample_spline(const Spline &src, const int count)
   Spline::copy_base_settings(src, *dst);
 
   if (src.evaluated_edges_size() < 1 || count == 1) {
-    dst->add_point(src.positions().first(), src.tilts().first(), src.radii().first());
+    dst->add_point(src.positions().first(), src.radii().first(), src.tilts().first());
     dst->attributes.reallocate(1);
     src.attributes.foreach_attribute(
         [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
@@ -119,7 +120,7 @@ static SplinePtr resample_spline(const Spline &src, const int count)
           std::optional<GMutableSpan> output_attribute = dst->attributes.get_for_write(
               attribute_id);
           if (output_attribute) {
-            src.sample_with_index_factors(*src.interpolate_to_evaluated(*input_attribute),
+            src.sample_with_index_factors(src.interpolate_to_evaluated(*input_attribute),
                                           uniform_samples,
                                           *output_attribute);
             return true;
@@ -142,8 +143,8 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
 
   dst->positions().copy_from(src.evaluated_positions());
   dst->positions().copy_from(src.evaluated_positions());
-  src.interpolate_to_evaluated(src.radii())->materialize(dst->radii());
-  src.interpolate_to_evaluated(src.tilts())->materialize(dst->tilts());
+  src.interpolate_to_evaluated(src.radii()).materialize(dst->radii());
+  src.interpolate_to_evaluated(src.tilts()).materialize(dst->tilts());
 
   src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
@@ -151,7 +152,7 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
         if (dst->attributes.create(attribute_id, meta_data.data_type)) {
           std::optional<GMutableSpan> dst_attribute = dst->attributes.get_for_write(attribute_id);
           if (dst_attribute) {
-            src.interpolate_to_evaluated(*src_attribute)->materialize(dst_attribute->data());
+            src.interpolate_to_evaluated(*src_attribute).materialize(dst_attribute->data());
             return true;
           }
         }
@@ -171,8 +172,6 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
   GeometryComponentFieldContext field_context{*component, ATTR_DOMAIN_CURVE};
   const int domain_size = component->attribute_domain_size(ATTR_DOMAIN_CURVE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
-
   Span<SplinePtr> input_splines = input_curve->splines();
 
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
@@ -180,42 +179,66 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
   MutableSpan<SplinePtr> output_splines = output_curve->splines();
 
   if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.count);
+    evaluator.add(mode_param.selection);
     evaluator.evaluate();
     const VArray<int> &cuts = evaluator.get_evaluated<int>(0);
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(1);
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         BLI_assert(mode_param.count);
-        output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        if (selections[i]) {
+          output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(*mode_param.length);
+    evaluator.add(mode_param.selection);
     evaluator.evaluate();
     const VArray<float> &lengths = evaluator.get_evaluated<float>(0);
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(1);
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        /* Don't allow asymptotic count increase for low resolution values. */
-        const float divide_length = std::max(lengths[i], 0.0001f);
-        const float spline_length = input_splines[i]->length();
-        const int count = std::max(int(spline_length / divide_length) + 1, 1);
-        output_splines[i] = resample_spline(*input_splines[i], count);
+        if (selections[i]) {
+          /* Don't allow asymptotic count increase for low resolution values. */
+          const float divide_length = std::max(lengths[i], 0.0001f);
+          const float spline_length = input_splines[i]->length();
+          const int count = std::max(int(spline_length / divide_length) + 1, 1);
+          output_splines[i] = resample_spline(*input_splines[i], count);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_EVALUATED) {
+    fn::FieldEvaluator evaluator{field_context, domain_size};
+    evaluator.add(mode_param.selection);
+    evaluator.evaluate();
+    const VArray<bool> &selections = evaluator.get_evaluated<bool>(0);
+
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        if (selections[i]) {
+          output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
-
   output_curve->attributes = input_curve->attributes;
-
   return output_curve;
 }
 
@@ -234,17 +257,19 @@ static void geometry_set_curve_resample(GeometrySet &geometry_set,
 
 static void geo_node_resample_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)params.node().storage;
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
 
   SampleModeParam mode_param;
   mode_param.mode = mode;
+  mode_param.selection = params.extract_input<Field<bool>>("Selection");
+
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     Field<int> count = params.extract_input<Field<int>>("Count");
     if (count < 1) {
-      params.set_output("Geometry", GeometrySet());
+      params.set_output("Curve", GeometrySet());
       return;
     }
     mode_param.count.emplace(count);
@@ -257,7 +282,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets(
       [&](GeometrySet &geometry_set) { geometry_set_curve_resample(geometry_set, mode_param); });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Curve", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

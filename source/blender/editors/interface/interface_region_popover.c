@@ -90,7 +90,7 @@ struct uiPopover {
 #endif
 };
 
-static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
+static void ui_popover_create_block(bContext *C, uiPopover *pup, wmOperatorCallContext opcontext)
 {
   BLI_assert(pup->ui_size_x != 0);
 

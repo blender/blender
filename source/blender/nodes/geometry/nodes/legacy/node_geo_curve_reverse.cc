@@ -24,9 +24,9 @@ namespace blender::nodes {
 
 static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
@@ -44,7 +44,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
   MutableSpan<SplinePtr> splines = curve.splines();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
+  VArray<bool> selection = curve_component.attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {

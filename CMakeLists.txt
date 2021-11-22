@@ -30,7 +30,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
       "CMake generation for blender is not allowed within the source directory!"
       "\n Remove \"${CMAKE_SOURCE_DIR}/CMakeCache.txt\" and try again from another folder, e.g.:"
       "\n "
-      "\n rm CMakeCache.txt"
+      "\n rm -rf CMakeCache.txt CMakeFiles"
       "\n cd .."
       "\n mkdir cmake-make"
       "\n cd cmake-make"
@@ -160,8 +160,7 @@ if(APPLE)
   # Currently this causes a build error linking, disable.
   set(WITH_BLENDER_THUMBNAILER OFF)
 elseif(WIN32)
-  # Building the thumbnail extraction DLL could be made optional.
-  set(WITH_BLENDER_THUMBNAILER ON)
+  option(WITH_BLENDER_THUMBNAILER "Build \"BlendThumb.dll\" helper for Windows explorer integration" ON)
 else()
   option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" ON)
 endif()
@@ -398,44 +397,58 @@ if(WITH_PYTHON_INSTALL)
     set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
     mark_as_advanced(PYTHON_REQUESTS_PATH)
   endif()
+
+  option(WITH_PYTHON_INSTALL_ZSTANDARD "Copy zstandard into the blender install folder" ON)
+  set(PYTHON_ZSTANDARD_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'zstandard' module")
+  mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
 option(WITH_CPU_SIMD              "Enable SIMD instruction if they're detected on the host machine" ON)
 mark_as_advanced(WITH_CPU_SIMD)
 
 # Cycles
-option(WITH_CYCLES                  "Enable Cycles Render Engine" ON)
-option(WITH_CYCLES_STANDALONE       "Build Cycles standalone application" OFF)
-option(WITH_CYCLES_STANDALONE_GUI   "Build Cycles standalone with GUI" OFF)
-option(WITH_CYCLES_OSL              "Build Cycles with OSL support" ON)
-option(WITH_CYCLES_EMBREE           "Build Cycles with Embree support" ON)
-option(WITH_CYCLES_CUDA_BINARIES    "Build Cycles CUDA binaries" OFF)
-option(WITH_CYCLES_CUBIN_COMPILER   "Build cubins with nvrtc based compiler instead of nvcc" OFF)
-option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
-mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
-set(CYCLES_TEST_DEVICES CPU CACHE STRING "Run regression tests on the specified device types (CPU CUDA OPTIX)" )
-set(CYCLES_CUDA_BINARIES_ARCH sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 compute_75 CACHE STRING "CUDA architectures to build binaries for")
-mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
-option(WITH_CYCLES_HIP_BINARIES     "Build Cycles HIP binaries" OFF)
-unset(PLATFORM_DEFAULT)
-option(WITH_CYCLES_LOGGING      "Build Cycles with logging support" ON)
-option(WITH_CYCLES_DEBUG_NAN    "Build Cycles with additional asserts for detecting NaNs and invalid values" OFF)
-option(WITH_CYCLES_NATIVE_ONLY  "Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
-option(WITH_CYCLES_KERNEL_ASAN  "Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow" OFF)
+option(WITH_CYCLES                   "Enable Cycles Render Engine" ON)
+option(WITH_CYCLES_OSL               "Build Cycles with OpenShadingLanguage support" ON)
+option(WITH_CYCLES_EMBREE            "Build Cycles with Embree support" ON)
+option(WITH_CYCLES_LOGGING           "Build Cycles with logging support" ON)
+
+option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
+option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)
+
+option(WITH_CYCLES_DEBUG_NAN         "Build Cycles with additional asserts for detecting NaNs and invalid values" OFF)
+option(WITH_CYCLES_NATIVE_ONLY       "Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
+option(WITH_CYCLES_KERNEL_ASAN       "Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow" OFF)
+set(CYCLES_TEST_DEVICES CPU CACHE STRING "Run regression tests on the specified device types (CPU CUDA OPTIX HIP)" )
 mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
-mark_as_advanced(WITH_CYCLES_CUBIN_COMPILER)
 mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
 mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 
-option(WITH_CYCLES_DEVICE_CUDA              "Enable Cycles CUDA compute support" ON)
-option(WITH_CYCLES_DEVICE_OPTIX             "Enable Cycles OptiX support" ON)
-option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" ON)
-mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
+# NVIDIA CUDA & OptiX
+option(WITH_CYCLES_DEVICE_CUDA       "Enable Cycles NVIDIA CUDA compute support" ON)
+option(WITH_CYCLES_DEVICE_OPTIX      "Enable Cycles NVIDIA OptiX support" ON)
 mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
 
-option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
+option(WITH_CYCLES_CUDA_BINARIES     "Build Cycles NVIDIA CUDA binaries" OFF)
+set(CYCLES_CUDA_BINARIES_ARCH sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 compute_75 CACHE STRING "CUDA architectures to build binaries for")
+option(WITH_CYCLES_CUBIN_COMPILER    "Build cubins with nvrtc based compiler instead of nvcc" OFF)
+option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
+option(WITH_CUDA_DYNLOAD             "Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)" ON)
+mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
+mark_as_advanced(WITH_CYCLES_CUBIN_COMPILER)
+mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
 mark_as_advanced(WITH_CUDA_DYNLOAD)
+
+# AMD HIP
+if(WIN32)
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
+else()
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" OFF)
+endif()
+option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
+set(CYCLES_HIP_BINARIES_ARCH gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
+mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
+mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 
 # Draw Manager
 option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
@@ -633,7 +646,7 @@ if(WIN32)
   option(WITH_WINDOWS_PDB "Generate a pdb file for client side stacktraces" ON)
   mark_as_advanced(WITH_WINDOWS_PDB)
 
-  option(WITH_WINDOWS_STRIPPED_PDB "Use a stripped PDB file" On)
+  option(WITH_WINDOWS_STRIPPED_PDB "Use a stripped PDB file" ON)
   mark_as_advanced(WITH_WINDOWS_STRIPPED_PDB)
 
 endif()
@@ -1734,6 +1747,12 @@ if(WITH_PYTHON)
   elseif(WITH_PYTHON_INSTALL_REQUESTS)
     find_python_package(requests "")
   endif()
+
+  if(WIN32 OR APPLE)
+    # pass, we have this in lib/python/site-packages
+  elseif(WITH_PYTHON_INSTALL_ZSTANDARD)
+    find_python_package(zstandard "")
+  endif()
 endif()
 
 # Select C++17 as the standard for C++ projects.
@@ -2005,6 +2024,7 @@ if(FIRST_RUN)
   endif()
   info_cfg_option(WITH_PYTHON_INSTALL)
   info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
+  info_cfg_option(WITH_PYTHON_INSTALL_ZSTANDARD)
   info_cfg_option(WITH_PYTHON_MODULE)
   info_cfg_option(WITH_PYTHON_SAFETY)
 

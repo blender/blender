@@ -23,7 +23,6 @@
 
 #include <new>
 
-#include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_report.h"

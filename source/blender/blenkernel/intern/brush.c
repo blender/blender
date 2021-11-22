@@ -183,8 +183,8 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   }
 
   if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, &brush->id);
-    BKE_lib_id_expand_local(bmain, &brush->id);
+    BKE_lib_id_clear_library_data(bmain, &brush->id, flags);
+    BKE_lib_id_expand_local(bmain, &brush->id, flags);
 
     /* enable fake user by default */
     id_fake_user_set(&brush->id);
@@ -207,14 +207,15 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Brush *brush = (Brush *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, brush->toggle_brush, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, brush->clone.image, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS(data, brush->paint_curve, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->toggle_brush, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->clone.image, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->paint_curve, IDWALK_CB_USER);
   if (brush->gpencil_settings) {
-    BKE_LIB_FOREACHID_PROCESS(data, brush->gpencil_settings->material, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material, IDWALK_CB_USER);
   }
-  BKE_texture_mtex_foreach_id(data, &brush->mtex);
-  BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                          BKE_texture_mtex_foreach_id(data, &brush->mask_mtex));
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)

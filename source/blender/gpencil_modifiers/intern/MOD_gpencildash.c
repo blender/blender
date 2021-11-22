@@ -170,6 +170,7 @@ static bool stroke_dash(const bGPDstroke *gps,
       stroke->points[is].z = p->z;
       stroke->points[is].pressure = p->pressure * ds->radius;
       stroke->points[is].strength = p->strength * ds->opacity;
+      copy_v4_v4(stroke->points[is].vert_color, p->vert_color);
     }
     BLI_addtail(r_strokes, stroke);
 
@@ -255,7 +256,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
     BKE_gpencil_frame_active_set(depsgraph, gpd);
     bGPDframe *gpf = gpl->actframe;
     if (gpf == NULL) {
-      return;
+      continue;
     }
     apply_dash_for_frame(ob, gpl, gpd, gpf, (DashGpencilModifierData *)md);
   }

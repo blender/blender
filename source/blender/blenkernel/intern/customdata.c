@@ -2131,11 +2131,6 @@ bool CustomData_merge(const struct CustomData *source,
     if (flag & CD_FLAG_NOCOPY) {
       continue;
     }
-    if (layer->anonymous_id &&
-        !BKE_anonymous_attribute_id_has_strong_references(layer->anonymous_id)) {
-      /* This attribute is not referenced anymore, so it can be treated as if it didn't exist. */
-      continue;
-    }
     if (!(mask & CD_TYPE_AS_MASK(type))) {
       continue;
     }

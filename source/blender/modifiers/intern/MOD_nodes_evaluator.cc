@@ -126,6 +126,12 @@ struct InputState {
    * changed by others anymore.
    */
   bool was_ready_for_execution = false;
+
+  /**
+   * True when this input has to be computed for logging/debugging purposes, regardless of whether
+   * it is needed for some output.
+   */
+  bool force_compute = false;
 };
 
 struct OutputState {
@@ -497,6 +503,14 @@ class GeometryNodesEvaluator {
             this->initialize_node_state(item.node, *item.state, allocator);
           }
         });
+
+    /* Mark input sockets that have to be computed. */
+    for (const DSocket &socket : params_.force_compute_sockets) {
+      NodeState &node_state = *node_states_.lookup_key_as(socket.node()).state;
+      if (socket->is_input()) {
+        node_state.inputs[socket->index()].force_compute = true;
+      }
+    }
   }
 
   void initialize_node_state(const DNode node, NodeState &node_state, LinearAllocator<> &allocator)
@@ -554,15 +568,15 @@ class GeometryNodesEvaluator {
       }
       /* Count the number of potential users for this socket. */
       socket.foreach_target_socket(
-          [&, this](const DInputSocket target_socket) {
+          [&, this](const DInputSocket target_socket,
+                    const DOutputSocket::TargetSocketPathInfo &UNUSED(path_info)) {
             const DNode target_node = target_socket.node();
             if (!this->node_states_.contains_as(target_node)) {
               /* The target node is not computed because it is not computed to the output. */
               return;
             }
             output_state.potential_users += 1;
-          },
-          {});
+          });
       if (output_state.potential_users == 0) {
         /* If it does not have any potential users, it is unused. It might become required again in
          * `schedule_initial_nodes`. */
@@ -743,7 +757,8 @@ class GeometryNodesEvaluator {
     return do_execute_node;
   }
 
-  /* A node is finished when it has computed all outputs that may be used. */
+  /* A node is finished when it has computed all outputs that may be used have been computed and
+   * when no input is still forced to be computed. */
   bool finish_node_if_possible(LockedNode &locked_node)
   {
     if (locked_node.node_state.node_has_finished) {
@@ -752,35 +767,41 @@ class GeometryNodesEvaluator {
     }
 
     /* Check if there is any output that might be used but has not been computed yet. */
-    bool has_remaining_output = false;
     for (OutputState &output_state : locked_node.node_state.outputs) {
       if (output_state.has_been_computed) {
         continue;
       }
       if (output_state.output_usage != ValueUsage::Unused) {
-        has_remaining_output = true;
-        break;
+        return false;
       }
     }
-    if (!has_remaining_output) {
-      /* If there are no remaining outputs, all the inputs can be destructed and/or can become
-       * unused. This can also trigger a chain reaction where nodes to the left become finished
-       * too. */
-      for (const int i : locked_node.node->inputs().index_range()) {
-        const DInputSocket socket = locked_node.node.input(i);
-        InputState &input_state = locked_node.node_state.inputs[i];
-        if (input_state.usage == ValueUsage::Maybe) {
-          this->set_input_unused(locked_node, socket);
-        }
-        else if (input_state.usage == ValueUsage::Required) {
-          /* The value was required, so it cannot become unused. However, we can destruct the
-           * value. */
-          this->destruct_input_value_if_exists(locked_node, socket);
+
+    /* Check if there is an input that still has to be computed. */
+    for (InputState &input_state : locked_node.node_state.inputs) {
+      if (input_state.force_compute) {
+        if (!input_state.was_ready_for_execution) {
+          return false;
         }
       }
-      locked_node.node_state.node_has_finished = true;
     }
-    return locked_node.node_state.node_has_finished;
+
+    /* If there are no remaining outputs, all the inputs can be destructed and/or can become
+     * unused. This can also trigger a chain reaction where nodes to the left become finished
+     * too. */
+    for (const int i : locked_node.node->inputs().index_range()) {
+      const DInputSocket socket = locked_node.node.input(i);
+      InputState &input_state = locked_node.node_state.inputs[i];
+      if (input_state.usage == ValueUsage::Maybe) {
+        this->set_input_unused(locked_node, socket);
+      }
+      else if (input_state.usage == ValueUsage::Required) {
+        /* The value was required, so it cannot become unused. However, we can destruct the
+         * value. */
+        this->destruct_input_value_if_exists(locked_node, socket);
+      }
+    }
+    locked_node.node_state.node_has_finished = true;
+    return true;
   }
 
   bool prepare_node_outputs_for_execution(LockedNode &locked_node)
@@ -1236,43 +1257,61 @@ class GeometryNodesEvaluator {
   {
     BLI_assert(value_to_forward.get() != nullptr);
 
-    Vector<DSocket> sockets_to_log_to;
-    sockets_to_log_to.append(from_socket);
-
-    Vector<DInputSocket> to_sockets;
-    auto handle_target_socket_fn = [&, this](const DInputSocket to_socket) {
-      if (this->should_forward_to_socket(to_socket)) {
-        to_sockets.append(to_socket);
-      }
-    };
-    auto handle_skipped_socket_fn = [&](const DSocket socket) {
-      sockets_to_log_to.append(socket);
-    };
-    from_socket.foreach_target_socket(handle_target_socket_fn, handle_skipped_socket_fn);
-
     LinearAllocator<> &allocator = local_allocators_.local();
 
-    const CPPType &from_type = *value_to_forward.type();
-    Vector<DInputSocket> to_sockets_same_type;
-    for (const DInputSocket &to_socket : to_sockets) {
-      const CPPType &to_type = *get_socket_cpp_type(to_socket);
-      if (from_type == to_type) {
-        /* All target sockets that do not need a conversion will be handled afterwards. */
-        to_sockets_same_type.append(to_socket);
-        /* Multi input socket values are logged once all values are available. */
-        if (!to_socket->is_multi_input_socket()) {
-          sockets_to_log_to.append(to_socket);
-        }
-        continue;
-      }
-      this->forward_to_socket_with_different_type(
-          allocator, value_to_forward, from_socket, to_socket, to_type);
-    }
+    Vector<DSocket> log_original_value_sockets;
+    Vector<DInputSocket> forward_original_value_sockets;
+    log_original_value_sockets.append(from_socket);
 
-    this->log_socket_value(sockets_to_log_to, value_to_forward);
-
+    from_socket.foreach_target_socket(
+        [&](const DInputSocket to_socket, const DOutputSocket::TargetSocketPathInfo &path_info) {
+          if (!this->should_forward_to_socket(to_socket)) {
+            return;
+          }
+          BLI_assert(to_socket == path_info.sockets.last());
+          GMutablePointer current_value = value_to_forward;
+          for (const DSocket &next_socket : path_info.sockets) {
+            const DNode next_node = next_socket.node();
+            const bool is_last_socket = to_socket == next_socket;
+            const bool do_conversion_if_necessary = is_last_socket ||
+                                                    next_node->is_group_output_node() ||
+                                                    (next_node->is_group_node() &&
+                                                     !next_node->is_muted());
+            if (do_conversion_if_necessary) {
+              const CPPType &next_type = *get_socket_cpp_type(next_socket);
+              if (*current_value.type() != next_type) {
+                void *buffer = allocator.allocate(next_type.size(), next_type.alignment());
+                this->convert_value(*current_value.type(), next_type, current_value.get(), buffer);
+                if (current_value.get() != value_to_forward.get()) {
+                  current_value.destruct();
+                }
+                current_value = {next_type, buffer};
+              }
+            }
+            if (current_value.get() == value_to_forward.get()) {
+              /* Log the original value at the current socket. */
+              log_original_value_sockets.append(next_socket);
+            }
+            else {
+              /* Multi-input sockets are logged when all values are available. */
+              if (!(next_socket->is_input() && next_socket->as_input().is_multi_input_socket())) {
+                /* Log the converted value at the socket. */
+                this->log_socket_value({next_socket}, current_value);
+              }
+            }
+          }
+          if (current_value.get() == value_to_forward.get()) {
+            /* The value has not been converted, so forward the original value. */
+            forward_original_value_sockets.append(to_socket);
+          }
+          else {
+            /* The value has been converted. */
+            this->add_value_to_input_socket(to_socket, from_socket, current_value);
+          }
+        });
+    this->log_socket_value(log_original_value_sockets, value_to_forward);
     this->forward_to_sockets_with_same_type(
-        allocator, to_sockets_same_type, value_to_forward, from_socket);
+        allocator, forward_original_value_sockets, value_to_forward, from_socket);
   }
 
   bool should_forward_to_socket(const DInputSocket socket)
@@ -1289,27 +1328,6 @@ class GeometryNodesEvaluator {
     std::lock_guard lock{target_node_state.mutex};
     /* Do not forward to an input socket whose value won't be used. */
     return target_input_state.usage != ValueUsage::Unused;
-  }
-
-  void forward_to_socket_with_different_type(LinearAllocator<> &allocator,
-                                             const GPointer value_to_forward,
-                                             const DOutputSocket from_socket,
-                                             const DInputSocket to_socket,
-                                             const CPPType &to_type)
-  {
-    const CPPType &from_type = *value_to_forward.type();
-
-    /* Allocate a buffer for the converted value. */
-    void *buffer = allocator.allocate(to_type.size(), to_type.alignment());
-    GMutablePointer value{to_type, buffer};
-
-    this->convert_value(from_type, to_type, value_to_forward.get(), buffer);
-
-    /* Multi input socket values are logged once all values are available. */
-    if (!to_socket->is_multi_input_socket()) {
-      this->log_socket_value({to_socket}, value);
-    }
-    this->add_value_to_input_socket(to_socket, from_socket, value);
   }
 
   void forward_to_sockets_with_same_type(LinearAllocator<> &allocator,
@@ -1434,6 +1452,7 @@ class GeometryNodesEvaluator {
     }
     void *converted_buffer = allocator.allocate(required_type.size(), required_type.alignment());
     this->convert_value(type, required_type, buffer, converted_buffer);
+    type.destruct(buffer);
     return {required_type, converted_buffer};
   }
 

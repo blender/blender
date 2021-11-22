@@ -1235,9 +1235,15 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
   const bool use_active = RNA_boolean_get(op->ptr, "use_active");
   Scene *scene = CTX_data_scene(C);
   Object *ob_from = ED_object_active_context(C);
-  ParticleSystem *psys_from =
-      use_active ? CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data :
-                   NULL;
+
+  ParticleSystem *psys_from = NULL;
+  if (use_active) {
+    psys_from = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
+    if (psys_from == NULL) {
+      /* Particle System context pointer is only valid in the Properties Editor. */
+      psys_from = psys_get_current(ob_from);
+    }
+  }
 
   int changed_tot = 0;
   int fail = 0;

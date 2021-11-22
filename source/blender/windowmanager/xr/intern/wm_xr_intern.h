@@ -33,6 +33,8 @@ typedef struct wmXrSessionState {
   GHOST_XrPose viewer_pose;
   /** The last known view matrix, calculated from above's viewer pose. */
   float viewer_viewmat[4][4];
+  /** The last known viewer matrix, without navigation applied. */
+  float viewer_mat_base[4][4];
   float focal_len;
 
   /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
@@ -43,6 +45,8 @@ typedef struct wmXrSessionState {
   int prev_settings_flag;
   /** Copy of wmXrDrawData.base_pose. */
   GHOST_XrPose prev_base_pose;
+  /** Copy of wmXrDrawData.base_scale. */
+  float prev_base_scale;
   /** Copy of GHOST_XrDrawViewInfo.local_pose. */
   GHOST_XrPose prev_local_pose;
   /** Copy of wmXrDrawData.eye_position_ofs. */
@@ -50,6 +54,15 @@ typedef struct wmXrSessionState {
 
   bool force_reset_to_base_pose;
   bool is_view_data_set;
+
+  /** Current navigation transforms. */
+  GHOST_XrPose nav_pose;
+  float nav_scale;
+  /** Navigation transforms from the last actions sync, used to calculate the viewer/controller
+   * poses. */
+  GHOST_XrPose nav_pose_prev;
+  float nav_scale_prev;
+  bool is_navigation_dirty;
 
   /** Last known controller data. */
   ListBase controllers; /* #wmXrController */
@@ -106,6 +119,8 @@ typedef struct wmXrDrawData {
    * space). With positional tracking enabled, it should be the same as the base pose, when
    * disabled it also contains a location delta from the moment the option was toggled. */
   GHOST_XrPose base_pose;
+  /** Base scale (uniform, world space). */
+  float base_scale;
   /** Offset to _substract_ from the OpenXR eye and viewer pose to get the wanted effective pose
    * (e.g. a pose exactly at the landmark position). */
   float eye_position_ofs[3]; /* Local/view space. */
@@ -123,9 +138,11 @@ typedef struct wmXrController {
   /** Pose (in world space) that represents the user's hand when holding the controller. */
   GHOST_XrPose grip_pose;
   float grip_mat[4][4];
+  float grip_mat_base[4][4];
   /** Pose (in world space) that represents the controller's aiming source. */
   GHOST_XrPose aim_pose;
   float aim_mat[4][4];
+  float aim_mat_base[4][4];
 
   /** Controller model. */
   struct GPUBatch *model;
@@ -192,7 +209,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
 void wm_xr_session_data_free(wmXrSessionState *state);
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
                                                     const wmXrRuntimeData *runtime_data);
-void wm_xr_session_draw_data_update(const wmXrSessionState *state,
+void wm_xr_session_draw_data_update(wmXrSessionState *state,
                                     const XrSessionSettings *settings,
                                     const GHOST_XrDrawViewInfo *draw_view,
                                     wmXrDrawData *draw_data);
@@ -214,6 +231,8 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 
 /* wm_xr_draw.c */
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
+void wm_xr_pose_scale_to_mat(const GHOST_XrPose *pose, float scale, float r_mat[4][4]);
 void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4]);
+void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_imat[4][4]);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);

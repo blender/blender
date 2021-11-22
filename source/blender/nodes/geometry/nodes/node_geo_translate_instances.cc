@@ -22,11 +22,11 @@ namespace blender::nodes {
 
 static void geo_node_translate_instances_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION).supports_field();
-  b.add_input<decl::Bool>("Local Space").default_value(true).supports_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Instances")).only_instances();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION).supports_field();
+  b.add_input<decl::Bool>(N_("Local Space")).default_value(true).supports_field();
+  b.add_output<decl::Geometry>(N_("Instances"));
 };
 
 static void translate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
@@ -62,12 +62,12 @@ static void translate_instances(GeoNodeExecParams &params, InstancesComponent &i
 
 static void geo_node_translate_instances_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
   if (geometry_set.has_instances()) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
     translate_instances(params, instances);
   }
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Instances", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

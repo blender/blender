@@ -112,7 +112,7 @@ static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   MetaBall *metaball = (MetaBall *)id;
   for (int i = 0; i < metaball->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, metaball->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, metaball->mat[i], IDWALK_CB_USER);
   }
 }
 

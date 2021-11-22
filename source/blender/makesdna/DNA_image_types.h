@@ -51,16 +51,13 @@ typedef struct ImageUser {
   /** Offset within movie, start frame in global time. */
   int offset, sfra;
   /** Cyclic flag. */
-  char _pad0, cycl;
-  char ok;
+  char cycl;
 
   /** Multiview current eye - for internal use of drawing routines. */
   char multiview_eye;
   short pass;
-  char _pad1[2];
 
   int tile;
-  int _pad2;
 
   /** Listbase indices, for menu browsing or retrieve buffer. */
   short multi_index, view, layer;
@@ -112,9 +109,7 @@ typedef struct ImageTile {
 
   struct ImageTile_Runtime runtime;
 
-  char ok;
-  char _pad[3];
-
+  char _pad[4];
   int tile_number;
   char label[64];
 } ImageTile;
@@ -146,6 +141,12 @@ typedef enum eImageTextureResolution {
   /* Not an option, but holds the number of options defined for this struct. */
   IMA_TEXTURE_RESOLUTION_LEN
 } eImageTextureResolution;
+
+typedef struct Image_Runtime {
+  /* Mutex used to guarantee thread-safe access to the cached ImBuf of the corresponding image ID.
+   */
+  void *cache_mutex;
+} Image_Runtime;
 
 typedef struct Image {
   ID id;
@@ -213,6 +214,8 @@ typedef struct Image {
   /** ImageView. */
   ListBase views;
   struct Stereo3dFormat *stereo3d_format;
+
+  Image_Runtime runtime;
 } Image;
 
 /* **************** IMAGE ********************* */

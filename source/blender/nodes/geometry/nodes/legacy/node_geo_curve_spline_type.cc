@@ -27,9 +27,9 @@ namespace blender::nodes {
 
 static void geo_node_legacy_curve_spline_type_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>(N_("Curve"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static void geo_node_legacy_curve_spline_type_layout(uiLayout *layout,
@@ -255,7 +255,7 @@ static void geo_node_legacy_curve_spline_type_exec(GeoNodeExecParams params)
   const CurveEval &curve = *curve_component->get_for_read();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component->attribute_get_for_read(
+  VArray<bool> selection = curve_component->attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();

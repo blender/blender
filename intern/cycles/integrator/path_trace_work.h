@@ -17,10 +17,10 @@
 #pragma once
 
 #include "integrator/pass_accessor.h"
-#include "render/buffers.h"
-#include "render/pass.h"
-#include "util/util_types.h"
-#include "util/util_unique_ptr.h"
+#include "scene/pass.h"
+#include "session/buffers.h"
+#include "util/types.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -75,7 +75,10 @@ class PathTraceWork {
 
   /* Render given number of samples as a synchronous blocking call.
    * The samples are added to the render buffer associated with this work. */
-  virtual void render_samples(RenderStatistics &statistics, int start_sample, int samples_num) = 0;
+  virtual void render_samples(RenderStatistics &statistics,
+                              int start_sample,
+                              int samples_num,
+                              int sample_offset) = 0;
 
   /* Copy render result from this work to the corresponding place of the GPU display.
    *

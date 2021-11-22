@@ -20,23 +20,18 @@ if(WITH_GTESTS)
 endif()
 
 set(INC
-  .
   ..
-  ../device
-  ../graph
-  ../kernel
-  ../render
-  ../util
 )
 
 set(ALL_CYCLES_LIBRARIES
-  cycles_device
   cycles_kernel
   cycles_integrator
-  cycles_render
+  cycles_scene
+  cycles_session
   cycles_bvh
   cycles_graph
   cycles_subd
+  cycles_device
   cycles_util
   extern_clew
   ${CYCLES_GL_LIBRARIES}

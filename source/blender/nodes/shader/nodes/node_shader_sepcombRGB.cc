@@ -28,10 +28,10 @@ namespace blender::nodes {
 static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Float>("R");
-  b.add_output<decl::Float>("G");
-  b.add_output<decl::Float>("B");
+  b.add_input<decl::Color>(N_("Image")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_output<decl::Float>(N_("R"));
+  b.add_output<decl::Float>(N_("G"));
+  b.add_output<decl::Float>(N_("B"));
 };
 
 }  // namespace blender::nodes
@@ -121,10 +121,10 @@ namespace blender::nodes {
 static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("R").min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("G").min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("B").min(0.0f).max(1.0f);
-  b.add_output<decl::Color>("Image");
+  b.add_input<decl::Float>(N_("R")).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("G")).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("B")).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>(N_("Image"));
 };
 
 }  // namespace blender::nodes

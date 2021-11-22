@@ -630,14 +630,16 @@ endif()
 
 if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   if(NOT OPENIMAGEIO_IDIFF)
-    MESSAGE(STATUS "Disabling render tests because OIIO idiff does not exist")
+    MESSAGE(STATUS "Disabling Cycles tests because OIIO idiff does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
-    MESSAGE(STATUS "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
+    MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist at ${TEST_SRC_DIR}")
+  elseif(NOT WITH_COMPOSITOR)
+    MESSAGE(STATUS "Disabling Cycles tests because WITH_COMPOSITOR is disabled")
+  elseif(NOT WITH_OPENCOLORIO)
+    MESSAGE(STATUS "Disabling Cycles tests because WITH_OPENCOLORIO is disabled")
   else()
     set(render_tests
       bsdf
-      denoise
-      displacement
       hair
       image_colorspace
       image_data_types
@@ -646,19 +648,37 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       integrator
       light
       mesh
-      motion_blur
-      openvdb
-      render_layer
-      reports
       shader
       shadow_catcher
       sss
       volume
     )
 
+    if(WITH_OPENSUBDIV)
+      list(APPEND render_tests displacement)
+    endif()
+
+    if(WITH_FREESTYLE)
+      list(APPEND render_tests render_layer)
+    endif()
+
+    if(WITH_MOD_FLUID)
+      list(APPEND render_tests motion_blur reports)
+    endif()
+
+    if(WITH_OPENVDB)
+      list(APPEND render_tests openvdb)
+    endif()
+
+    if(WITH_OPENIMAGEDENOISE)
+      list(APPEND render_tests denoise)
+    endif()
+
     if(WITH_OPENGL_RENDER_TESTS)
       list(APPEND render_tests grease_pencil)
     endif()
+
+    list(SORT render_tests)
 
     # Cycles
     if(WITH_CYCLES)
@@ -753,20 +773,14 @@ set(geo_node_tests
 
 if(WITH_GMP)
   list(APPEND geo_node_tests mesh/boolean)
-else()
-  MESSAGE(STATUS "Disabling mesh/boolean tests because WITH_GMP is off.")
 endif()
 
 if(WITH_OPENVDB)
   list(APPEND geo_node_tests volume)
-else()
-  MESSAGE(STATUS "Disabling volume tests because WITH_OPENVDB is off.")
 endif()
 
 if(WITH_OPENSUBDIV)
   list(APPEND geo_node_tests mesh/subdivision_tests)
-else()
-  MESSAGE(STATUS "Disabling mesh/subdivision_tests because WITH_OPENSUBDIV is off.")
 endif()
 
 foreach(geo_node_test ${geo_node_tests})

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef __SVM_H__
-#define __SVM_H__
+#pragma once
 
 /* Shader Virtual Machine
  *
@@ -38,7 +37,7 @@
  * mostly taken care of in the SVM compiler.
  */
 
-#include "kernel/svm/svm_types.h"
+#include "kernel/svm/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -165,61 +164,54 @@ CCL_NAMESPACE_END
 
 /* Nodes */
 
-#include "kernel/svm/svm_noise.h"
-#include "svm_fractal_noise.h"
-
-#include "kernel/svm/svm_color_util.h"
-#include "kernel/svm/svm_mapping_util.h"
-#include "kernel/svm/svm_math_util.h"
-
-#include "kernel/svm/svm_aov.h"
-#include "kernel/svm/svm_attribute.h"
-#include "kernel/svm/svm_blackbody.h"
-#include "kernel/svm/svm_brick.h"
-#include "kernel/svm/svm_brightness.h"
-#include "kernel/svm/svm_bump.h"
-#include "kernel/svm/svm_camera.h"
-#include "kernel/svm/svm_checker.h"
-#include "kernel/svm/svm_clamp.h"
-#include "kernel/svm/svm_closure.h"
-#include "kernel/svm/svm_convert.h"
-#include "kernel/svm/svm_displace.h"
-#include "kernel/svm/svm_fresnel.h"
-#include "kernel/svm/svm_gamma.h"
-#include "kernel/svm/svm_geometry.h"
-#include "kernel/svm/svm_gradient.h"
-#include "kernel/svm/svm_hsv.h"
-#include "kernel/svm/svm_ies.h"
-#include "kernel/svm/svm_image.h"
-#include "kernel/svm/svm_invert.h"
-#include "kernel/svm/svm_light_path.h"
-#include "kernel/svm/svm_magic.h"
-#include "kernel/svm/svm_map_range.h"
-#include "kernel/svm/svm_mapping.h"
-#include "kernel/svm/svm_math.h"
-#include "kernel/svm/svm_mix.h"
-#include "kernel/svm/svm_musgrave.h"
-#include "kernel/svm/svm_noisetex.h"
-#include "kernel/svm/svm_normal.h"
-#include "kernel/svm/svm_ramp.h"
-#include "kernel/svm/svm_sepcomb_hsv.h"
-#include "kernel/svm/svm_sepcomb_vector.h"
-#include "kernel/svm/svm_sky.h"
-#include "kernel/svm/svm_tex_coord.h"
-#include "kernel/svm/svm_value.h"
-#include "kernel/svm/svm_vector_rotate.h"
-#include "kernel/svm/svm_vector_transform.h"
-#include "kernel/svm/svm_vertex_color.h"
-#include "kernel/svm/svm_voronoi.h"
-#include "kernel/svm/svm_voxel.h"
-#include "kernel/svm/svm_wave.h"
-#include "kernel/svm/svm_wavelength.h"
-#include "kernel/svm/svm_white_noise.h"
-#include "kernel/svm/svm_wireframe.h"
+#include "kernel/svm/aov.h"
+#include "kernel/svm/attribute.h"
+#include "kernel/svm/blackbody.h"
+#include "kernel/svm/brick.h"
+#include "kernel/svm/brightness.h"
+#include "kernel/svm/bump.h"
+#include "kernel/svm/camera.h"
+#include "kernel/svm/checker.h"
+#include "kernel/svm/clamp.h"
+#include "kernel/svm/closure.h"
+#include "kernel/svm/convert.h"
+#include "kernel/svm/displace.h"
+#include "kernel/svm/fresnel.h"
+#include "kernel/svm/gamma.h"
+#include "kernel/svm/geometry.h"
+#include "kernel/svm/gradient.h"
+#include "kernel/svm/hsv.h"
+#include "kernel/svm/ies.h"
+#include "kernel/svm/image.h"
+#include "kernel/svm/invert.h"
+#include "kernel/svm/light_path.h"
+#include "kernel/svm/magic.h"
+#include "kernel/svm/map_range.h"
+#include "kernel/svm/mapping.h"
+#include "kernel/svm/math.h"
+#include "kernel/svm/mix.h"
+#include "kernel/svm/musgrave.h"
+#include "kernel/svm/noisetex.h"
+#include "kernel/svm/normal.h"
+#include "kernel/svm/ramp.h"
+#include "kernel/svm/sepcomb_hsv.h"
+#include "kernel/svm/sepcomb_vector.h"
+#include "kernel/svm/sky.h"
+#include "kernel/svm/tex_coord.h"
+#include "kernel/svm/value.h"
+#include "kernel/svm/vector_rotate.h"
+#include "kernel/svm/vector_transform.h"
+#include "kernel/svm/vertex_color.h"
+#include "kernel/svm/voronoi.h"
+#include "kernel/svm/voxel.h"
+#include "kernel/svm/wave.h"
+#include "kernel/svm/wavelength.h"
+#include "kernel/svm/white_noise.h"
+#include "kernel/svm/wireframe.h"
 
 #ifdef __SHADER_RAYTRACE__
-#  include "kernel/svm/svm_ao.h"
-#  include "kernel/svm/svm_bevel.h"
+#  include "kernel/svm/ao.h"
+#  include "kernel/svm/bevel.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -607,5 +599,3 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __SVM_H__ */

@@ -7693,7 +7693,7 @@ PyObject *BPY_rna_doc(void)
 
 /**
  * This could be a static variable as we only have one `bpy.types` module,
- * it just keeps the data isolated to store in the module it's self.
+ * it just keeps the data isolated to store in the module itself.
  *
  * This data doesn't change one initialized.
  */
@@ -8786,7 +8786,7 @@ void pyrna_free_types(void)
  * - Should still be fixed - Campbell
  */
 PyDoc_STRVAR(pyrna_register_class_doc,
-             ".. method:: register_class(cls)\n"
+             ".. function:: register_class(cls)\n"
              "\n"
              "   Register a subclass of a Blender type class.\n"
              "\n"
@@ -8971,7 +8971,7 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
 }
 
 PyDoc_STRVAR(pyrna_unregister_class_doc,
-             ".. method:: unregister_class(cls)\n"
+             ".. function:: unregister_class(cls)\n"
              "\n"
              "   Unload the Python class from blender.\n"
              "\n"

@@ -17,30 +17,30 @@
 #include <stdio.h>
 
 #include "device/device.h"
-#include "render/buffers.h"
-#include "render/camera.h"
-#include "render/integrator.h"
-#include "render/scene.h"
-#include "render/session.h"
+#include "scene/camera.h"
+#include "scene/integrator.h"
+#include "scene/scene.h"
+#include "session/buffers.h"
+#include "session/session.h"
 
-#include "util/util_args.h"
-#include "util/util_foreach.h"
-#include "util/util_function.h"
-#include "util/util_image.h"
-#include "util/util_logging.h"
-#include "util/util_path.h"
-#include "util/util_progress.h"
-#include "util/util_string.h"
-#include "util/util_time.h"
-#include "util/util_transform.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_version.h"
+#include "util/args.h"
+#include "util/foreach.h"
+#include "util/function.h"
+#include "util/image.h"
+#include "util/log.h"
+#include "util/path.h"
+#include "util/progress.h"
+#include "util/string.h"
+#include "util/time.h"
+#include "util/transform.h"
+#include "util/unique_ptr.h"
+#include "util/version.h"
 
 #include "app/cycles_xml.h"
 #include "app/oiio_output_driver.h"
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
-#  include "util/util_view.h"
+#  include "util/view.h"
 #endif
 
 #include "app/cycles_xml.h"

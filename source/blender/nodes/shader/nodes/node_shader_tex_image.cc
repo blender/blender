@@ -24,9 +24,9 @@ namespace blender::nodes {
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").implicit_field();
-  b.add_output<decl::Color>("Color").no_muted_links();
-  b.add_output<decl::Float>("Alpha").no_muted_links();
+  b.add_input<decl::Vector>(N_("Vector")).implicit_field();
+  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+  b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
 };
 
 };  // namespace blender::nodes

@@ -166,15 +166,14 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Material *material = (Material *)id;
   /* Nodetrees **are owned by IDs**, treat them as mere sub-data and not real ID! */
-  if (!BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree)) {
-    return;
-  }
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data, BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree));
   if (material->texpaintslot != NULL) {
-    BKE_LIB_FOREACHID_PROCESS(data, material->texpaintslot->ima, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->texpaintslot->ima, IDWALK_CB_NOP);
   }
   if (material->gp_style != NULL) {
-    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->sima, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->ima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
   }
 }
 
@@ -900,7 +899,17 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
     return;
   }
 
-  BKE_object_material_resize(bmain, ob, *totcol, false);
+  if ((ob->id.tag & LIB_TAG_MISSING) == 0 && (id->tag & LIB_TAG_MISSING) != 0) {
+    /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
+     * use object's material slots amount as reference.
+     * This avoids loosing materials in a local object when its linked obdata gets missing.
+     * See T92780. */
+    BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
+  }
+  else {
+    /* Normal case: the use the obdata amount of materials slots to update the object's one. */
+    BKE_object_material_resize(bmain, ob, *totcol, false);
+  }
 }
 
 void BKE_objects_materials_test_all(Main *bmain, ID *id)

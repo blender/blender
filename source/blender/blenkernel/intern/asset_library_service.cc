@@ -20,15 +20,11 @@
 
 #include "asset_library_service.hh"
 
-#include "BKE_asset_library.hh"
 #include "BKE_blender.h"
-#include "BKE_callbacks.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
 #include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
 
@@ -77,7 +73,9 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
   AssetLibraryPtr *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(top_dir_trailing_slash);
   if (lib_uptr_ptr != nullptr) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_dir_trailing_slash.c_str());
-    return lib_uptr_ptr->get();
+    AssetLibrary *lib = lib_uptr_ptr->get();
+    lib->refresh();
+    return lib;
   }
 
   AssetLibraryPtr lib_uptr = std::make_unique<AssetLibrary>();

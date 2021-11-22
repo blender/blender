@@ -30,13 +30,13 @@ namespace blender::nodes {
 
 static void geo_node_curve_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Int>("Count").default_value(10).min(2).max(100000);
-  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>("Points");
-  b.add_output<decl::Vector>("Tangent").field_source();
-  b.add_output<decl::Vector>("Normal").field_source();
-  b.add_output<decl::Vector>("Rotation").field_source();
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>(N_("Count")).default_value(10).min(2).max(100000);
+  b.add_input<decl::Float>(N_("Length")).default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>(N_("Points"));
+  b.add_output<decl::Vector>(N_("Tangent")).field_source();
+  b.add_output<decl::Vector>(N_("Normal")).field_source();
+  b.add_output<decl::Vector>(N_("Rotation")).field_source();
 }
 
 static void geo_node_curve_to_points_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -113,7 +113,7 @@ static GMutableSpan ensure_point_attribute(PointCloudComponent &points,
   points.attribute_try_create(attribute_id, ATTR_DOMAIN_POINT, data_type, AttributeInitDefault());
   WriteAttributeLookup attribute = points.attribute_try_get_for_write(attribute_id);
   BLI_assert(attribute);
-  return attribute.varray->get_internal_span();
+  return attribute.varray.get_internal_span();
 }
 
 template<typename T>
@@ -194,7 +194,7 @@ static void copy_evaluated_point_attributes(const Span<SplinePtr> splines,
       const int size = offsets[i + 1] - offsets[i];
 
       data.positions.slice(offset, size).copy_from(spline.evaluated_positions());
-      spline.interpolate_to_evaluated(spline.radii())->materialize(data.radii.slice(offset, size));
+      spline.interpolate_to_evaluated(spline.radii()).materialize(data.radii.slice(offset, size));
 
       for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
@@ -203,7 +203,7 @@ static void copy_evaluated_point_attributes(const Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
 
-        spline.interpolate_to_evaluated(spline_span)->materialize(dst.slice(offset, size).data());
+        spline.interpolate_to_evaluated(spline_span).materialize(dst.slice(offset, size).data());
       }
 
       if (!data.tangents.is_empty()) {
@@ -233,7 +233,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
 
       spline.sample_with_index_factors<float3>(
           spline.evaluated_positions(), uniform_samples, data.positions.slice(offset, size));
-      spline.sample_with_index_factors<float>(*spline.interpolate_to_evaluated(spline.radii()),
+      spline.sample_with_index_factors<float>(spline.interpolate_to_evaluated(spline.radii()),
                                               uniform_samples,
                                               data.radii.slice(offset, size));
 
@@ -244,7 +244,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(attribute_id));
         GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
 
-        spline.sample_with_index_factors(*spline.interpolate_to_evaluated(spline_span),
+        spline.sample_with_index_factors(spline.interpolate_to_evaluated(spline_span),
                                          uniform_samples,
                                          dst.slice(offset, size));
       }
@@ -357,17 +357,20 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   if (attribute_outputs.tangent_id) {
     params.set_output(
         "Tangent",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.normal_id) {
     params.set_output(
         "Normal",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id),
+                                                     params.attribute_producer_name()));
   }
   if (attribute_outputs.rotation_id) {
     params.set_output(
         "Rotation",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id)));
+        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id),
+                                                     params.attribute_producer_name()));
   }
 }
 

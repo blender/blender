@@ -27,14 +27,12 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-
 namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").multi_input();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent *> src_components)
@@ -190,10 +188,10 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     if (domain_size == 0) {
       continue;
     }
-    GVArrayPtr read_attribute = component->attribute_get_for_read(
+    GVArray read_attribute = component->attribute_get_for_read(
         attribute_id, domain, data_type, nullptr);
 
-    GVArray_GSpan src_span{*read_attribute};
+    GVArray_GSpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
     cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_size);
@@ -270,17 +268,16 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
     }
 
     Span<float4x4> src_transforms = src_component->instance_transforms();
-    Span<int> src_ids = src_component->instance_ids();
     Span<int> src_reference_handles = src_component->instance_reference_handles();
 
     for (const int i : src_transforms.index_range()) {
       const int src_handle = src_reference_handles[i];
       const int dst_handle = handle_map[src_handle];
       const float4x4 &transform = src_transforms[i];
-      const int id = src_ids[i];
-      dst_component.add_instance(dst_handle, transform, id);
+      dst_component.add_instance(dst_handle, transform);
     }
   }
+  join_attributes(to_base_components(src_components), dst_component, {"position"});
 }
 
 static void join_components(Span<const VolumeComponent *> src_components, GeometrySet &result)
@@ -320,8 +317,7 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
             spline->size() * type.size(), type.alignment(), __func__);
 
         const DataTypeConversions &conversions = blender::nodes::get_implicit_type_conversions();
-        conversions.try_convert(std::make_unique<GVArray_For_GSpan>(*attribute), type)
-            ->materialize(converted_buffer);
+        conversions.try_convert(GVArray::ForSpan(*attribute), type).materialize(converted_buffer);
 
         spline->attributes.remove(attribute_id);
         spline->attributes.create_by_move(attribute_id, data_type, converted_buffer);
@@ -334,14 +330,14 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
         /* In this case the attribute did not exist, but there is a spline domain attribute
          * we can retrieve a value from, as a spline to point domain conversion. So fill the
          * new attribute with the value for this spline. */
-        GVArrayPtr current_curve_attribute = current_curve->attributes.get_for_read(
+        GVArray current_curve_attribute = current_curve->attributes.get_for_read(
             attribute_id, data_type, nullptr);
 
         BLI_assert(spline->attributes.get_for_read(attribute_id));
         std::optional<GMutableSpan> new_attribute = spline->attributes.get_for_write(attribute_id);
 
         BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
-        current_curve_attribute->get(spline_index_in_component, buffer);
+        current_curve_attribute.get(spline_index_in_component, buffer);
         type.fill_assign_n(buffer, new_attribute->data(), new_attribute->size());
       }
     }
@@ -354,6 +350,27 @@ static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
 
       current_curve = src_components[src_component_index]->get_for_read();
     }
+  }
+}
+
+/**
+ * Curve point domain attributes must be in the same order on every spline. The order might have
+ * been different on separate instances, so ensure that all splines have the same order. Note that
+ * because #Map is used, the order is not necessarily consistent every time, but it is the same for
+ * every spline, and that's what matters.
+ */
+static void sort_curve_point_attributes(const Map<AttributeIDRef, AttributeMetaData> &info,
+                                        MutableSpan<SplinePtr> splines)
+{
+  Vector<AttributeIDRef> new_order;
+  for (Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
+    if (item.value.domain == ATTR_DOMAIN_POINT) {
+      /* Only sort attributes stored on splines. */
+      new_order.append(item.key);
+    }
+  }
+  for (SplinePtr &spline : splines) {
+    spline->attributes.reorder(new_order);
   }
 }
 
@@ -377,8 +394,8 @@ static void ensure_spline_attribute(const AttributeIDRef &attribute_id,
     if (size == 0) {
       continue;
     }
-    GVArrayPtr read_attribute = curve.attributes.get_for_read(attribute_id, data_type, nullptr);
-    GVArray_GSpan src_span{*read_attribute};
+    GVArray read_attribute = curve.attributes.get_for_read(attribute_id, data_type, nullptr);
+    GVArray_GSpan src_span{read_attribute};
 
     const void *src_buffer = src_span.data();
     type.copy_assign_n(src_buffer, result_attribute[offset], size);
@@ -410,6 +427,8 @@ static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &
       ensure_control_point_attribute(attribute_id, meta_data.data_type, src_components, result);
     }
   }
+
+  sort_curve_point_attributes(info, result.splines());
 }
 
 static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, GeometrySet &result)
@@ -450,6 +469,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   dst_curve->attributes.reallocate(dst_curve->splines().size());
 
   join_curve_attributes(info, src_components, *dst_curve);
+  dst_curve->assert_valid_point_attributes();
 
   dst_component.replace(dst_curve);
 }

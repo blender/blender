@@ -27,6 +27,7 @@ set(INC
   ../../../intern/guardedalloc
   ../../../intern/numaapi/include
   ../../../extern/wcwidth
+  ../../../extern/json/include
 )
 
 set(INC_SYS
@@ -126,6 +127,7 @@ set(SRC
   intern/scanfill.c
   intern/scanfill_utils.c
   intern/session_uuid.c
+  intern/serialize.cc
   intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
@@ -163,6 +165,7 @@ set(SRC
 
   BLI_alloca.h
   BLI_allocator.hh
+  BLI_any.hh
   BLI_args.h
   BLI_array.h
   BLI_array.hh
@@ -282,6 +285,7 @@ set(SRC
   BLI_session_uuid.h
   BLI_set.hh
   BLI_set_slots.hh
+  BLI_serialize.hh
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
@@ -364,6 +368,10 @@ if(WITH_GMP)
 endif()
 
 if(WIN32)
+  if (WITH_BLENDER_THUMBNAILER)
+    # Needed for querying the thumbnailer .dll in winstuff.c
+    add_definitions(-DWITH_BLENDER_THUMBNAILER)
+  endif()
   list(APPEND INC
     ../../../intern/utfconv
   )
@@ -404,6 +412,7 @@ blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    tests/BLI_any_test.cc
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
@@ -448,6 +457,7 @@ if(WITH_GTESTS)
     tests/BLI_span_test.cc
     tests/BLI_stack_cxx_test.cc
     tests/BLI_stack_test.cc
+    tests/BLI_serialize_test.cc
     tests/BLI_string_ref_test.cc
     tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc

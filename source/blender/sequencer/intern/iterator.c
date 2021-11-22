@@ -520,3 +520,29 @@ void SEQ_filter_selected_strips(SeqCollection *collection)
     }
   }
 }
+
+static void seq_collection_to_tag(ListBase *seqbase, SeqCollection *collection)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    seq->tmp_tag = false;
+  }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    seq->tmp_tag = true;
+  }
+}
+
+/* Utilities to access these as tags. */
+int SEQ_query_rendered_strips_to_tag(ListBase *seqbase,
+                                     const int timeline_frame,
+                                     const int displayed_channel)
+{
+  SeqCollection *collection = SEQ_query_rendered_strips(
+      seqbase, timeline_frame, displayed_channel);
+
+  seq_collection_to_tag(seqbase, collection);
+
+  const int len = SEQ_collection_len(collection);
+  SEQ_collection_free(collection);
+  return len;
+}

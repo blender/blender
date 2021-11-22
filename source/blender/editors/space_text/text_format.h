@@ -75,7 +75,7 @@ typedef struct TextFormatType {
 } TextFormatType;
 
 enum {
-  /** Whitespace */
+  /** White-space */
   FMT_TYPE_WHITESPACE = '_',
   /** Comment text */
   FMT_TYPE_COMMENT = '#',
@@ -85,7 +85,7 @@ enum {
   FMT_TYPE_NUMERAL = 'n',
   /** String letters */
   FMT_TYPE_STRING = 'l',
-  /** Decorator / Preprocessor directive */
+  /** Decorator / Pre-processor directive */
   FMT_TYPE_DIRECTIVE = 'd',
   /** Special variables (class, def) */
   FMT_TYPE_SPECIAL = 'v',

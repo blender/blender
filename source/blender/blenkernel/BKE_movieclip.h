@@ -95,6 +95,7 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(struct MovieClip *clip,
                                               int *build_sizes,
                                               int build_count,
                                               bool undistorted);
+bool BKE_movieclip_proxy_enabled(struct MovieClip *clip);
 
 float BKE_movieclip_remap_scene_to_clip_frame(const struct MovieClip *clip, float framenr);
 float BKE_movieclip_remap_clip_to_scene_frame(const struct MovieClip *clip, float framenr);

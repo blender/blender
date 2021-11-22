@@ -887,11 +887,11 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 bf_reports->count.linked_proxies);
   }
 
-  if (bf_reports->count.vse_strips_skipped != 0) {
+  if (bf_reports->count.sequence_strips_skipped != 0) {
     BKE_reportf(bf_reports->reports,
                 RPT_ERROR,
                 "%d sequence strips were not read because they were in a channel larger than %d",
-                bf_reports->count.vse_strips_skipped,
+                bf_reports->count.sequence_strips_skipped,
                 MAXSEQ);
   }
 
@@ -1558,15 +1558,16 @@ static void wm_history_file_update(void)
  * Screen-shot the active window.
  * \{ */
 
-static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_thumb)
 {
-  if (*thumb_pt) {
-    /* We are given a valid thumbnail data, so just generate image from it. */
-    return BKE_main_thumbnail_to_imbuf(NULL, *thumb_pt);
+  *r_thumb = NULL;
+
+  wmWindow *win = CTX_wm_window(C);
+  if (G.background || (win == NULL)) {
+    return NULL;
   }
 
   /* The window to capture should be a main window (without parent). */
-  wmWindow *win = CTX_wm_window(C);
   while (win && win->parent) {
     win = win->parent;
   }
@@ -1595,7 +1596,7 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
 
     BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
     IMB_freeImBuf(thumb_ibuf);
-    *thumb_pt = thumb;
+    *r_thumb = thumb;
   }
 
   /* Must be freed by caller. */
@@ -1614,8 +1615,15 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
 static ImBuf *blend_file_thumb_from_camera(const bContext *C,
                                            Scene *scene,
                                            bScreen *screen,
-                                           BlendThumbnail **thumb_pt)
+                                           BlendThumbnail **r_thumb)
 {
+  *r_thumb = NULL;
+
+  /* Scene can be NULL if running a script at startup and calling the save operator. */
+  if (G.background || scene == NULL) {
+    return NULL;
+  }
+
   /* will be scaled down, but gives some nice oversampling */
   ImBuf *ibuf;
   BlendThumbnail *thumb;
@@ -1629,21 +1637,11 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
   ARegion *region = NULL;
   View3D *v3d = NULL;
 
-  /* In case we are given a valid thumbnail data, just generate image from it. */
-  if (*thumb_pt) {
-    thumb = *thumb_pt;
-    return BKE_main_thumbnail_to_imbuf(NULL, thumb);
-  }
-
-  /* scene can be NULL if running a script at startup and calling the save operator */
-  if (G.background || scene == NULL) {
-    return NULL;
-  }
-
   if (screen != NULL) {
     area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
     if (area) {
       v3d = area->spacedata.first;
+      region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     }
   }
 
@@ -1712,13 +1710,13 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     IMB_scaleImBuf(ibuf, PREVIEW_RENDER_LARGE_HEIGHT, PREVIEW_RENDER_LARGE_HEIGHT);
   }
   else {
-    /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
+    /* '*r_thumb' needs to stay NULL to prevent a bad thumbnail from being handled. */
     CLOG_WARN(&LOG, "failed to create thumbnail: %s", err_out);
     thumb = NULL;
   }
 
   /* must be freed by caller */
-  *thumb_pt = thumb;
+  *r_thumb = thumb;
 
   return ibuf;
 }
@@ -1751,7 +1749,7 @@ static bool wm_file_write(bContext *C,
   Main *bmain = CTX_data_main(C);
   int len;
   int ok = false;
-  BlendThumbnail *thumb, *main_thumb;
+  BlendThumbnail *thumb = NULL, *main_thumb = NULL;
   ImBuf *ibuf_thumb = NULL;
 
   len = strlen(filepath);
@@ -1787,45 +1785,56 @@ static bool wm_file_write(bContext *C,
   /* Call pre-save callbacks before writing preview,
    * that way you can generate custom file thumbnail. */
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
-  if (!G.background) {
-    /* Redraw to remove menus that might be open. */
+  if (!G.background && BLI_thread_is_main()) {
+    /* Redraw to remove menus that might be open.
+     * But only in the main thread otherwise this can crash, see T92704. */
     WM_redraw_windows(C);
   }
 
   /* don't forget not to return without! */
   WM_cursor_wait(true);
 
-  /* blend file thumbnail */
-  /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
-  /* Main now can store a '.blend' thumbnail, useful for background mode
-   * or thumbnail customization. */
-  main_thumb = thumb = bmain->blen_thumb;
-  if (BLI_thread_is_main() && U.file_preview_type != USER_FILE_PREVIEW_NONE) {
-
-    int file_preview_type = U.file_preview_type;
-
-    if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
-      Scene *scene = CTX_data_scene(C);
-      bool do_render = (scene != NULL && scene->camera != NULL &&
-                        (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
-      file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
+  if (U.file_preview_type != USER_FILE_PREVIEW_NONE) {
+    /* Blend file thumbnail.
+     *
+     * - Save before exiting edit-mode, otherwise evaluated-mesh for shared data gets corrupted.
+     *   See T27765.
+     * - Main can store a '.blend' thumbnail,
+     *   useful for background-mode or thumbnail customization.
+     */
+    main_thumb = thumb = bmain->blen_thumb;
+    if (thumb != NULL) {
+      /* In case we are given a valid thumbnail data, just generate image from it. */
+      ibuf_thumb = BKE_main_thumbnail_to_imbuf(NULL, thumb);
     }
+    else if (BLI_thread_is_main()) {
+      int file_preview_type = U.file_preview_type;
 
-    switch (file_preview_type) {
-      case USER_FILE_PREVIEW_SCREENSHOT: {
-        ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
-        break;
+      if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
+        Scene *scene = CTX_data_scene(C);
+        bool do_render = (scene != NULL && scene->camera != NULL &&
+                          (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
+        file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
       }
-      case USER_FILE_PREVIEW_CAMERA: {
-        ibuf_thumb = blend_file_thumb_from_camera(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
-        break;
+
+      switch (file_preview_type) {
+        case USER_FILE_PREVIEW_SCREENSHOT: {
+          ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
+          break;
+        }
+        case USER_FILE_PREVIEW_CAMERA: {
+          ibuf_thumb = blend_file_thumb_from_camera(
+              C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
       }
-      default:
-        BLI_assert_unreachable();
     }
   }
 
@@ -2104,6 +2113,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_PRE);
+  ED_assets_pre_save(bmain);
 
   /* check current window and close it if temp */
   if (win && WM_window_is_temp_screen(win)) {
@@ -2139,7 +2149,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   }
 
   printf("ok\n");
-
+  BKE_report(op->reports, RPT_INFO, "Startup file saved");
   G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);

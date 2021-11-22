@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_spline_cyclic_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Cyclic").field_source();
+  b.add_output<decl::Bool>(N_("Cyclic")).field_source();
 }
 
 static void geo_node_input_spline_cyclic_exec(GeoNodeExecParams params)

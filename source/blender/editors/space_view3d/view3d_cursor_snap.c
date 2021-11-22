@@ -37,6 +37,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -54,26 +55,24 @@
 
 #include "WM_api.h"
 
-#define STATE_LEN 3
+#define STATE_INTERN_GET(state) \
+  (SnapStateIntern *)((char *)state - offsetof(SnapStateIntern, snap_state))
 
 typedef struct SnapStateIntern {
+  struct SnapStateIntern *next, *prev;
   V3DSnapCursorState snap_state;
-  float prevpoint_stack[3];
-  int state_active_prev;
-  bool is_active;
 } SnapStateIntern;
 
 typedef struct SnapCursorDataIntern {
   V3DSnapCursorState state_default;
-  SnapStateIntern state_intern[STATE_LEN];
+  ListBase state_intern;
   V3DSnapCursorData snap_data;
-
-  int state_active_len;
-  int state_active;
 
   struct SnapObjectContext *snap_context_v3d;
   const Scene *scene;
   short snap_elem_hidden;
+
+  float prevpoint_stack[3];
 
   /* Copy of the parameters of the last event state in order to detect updates. */
   struct {
@@ -94,27 +93,15 @@ typedef struct SnapCursorDataIntern {
   bool is_initiated;
 } SnapCursorDataIntern;
 
-static void v3d_cursor_snap_state_init(V3DSnapCursorState *state)
-{
-  state->prevpoint = NULL;
-  state->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                            SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT);
-  state->plane_axis = 2;
-  rgba_uchar_args_set(state->color_point, 255, 255, 255, 255);
-  rgba_uchar_args_set(state->color_line, 255, 255, 255, 128);
-  state->draw_point = true;
-  state->draw_plane = false;
-}
 static SnapCursorDataIntern g_data_intern = {
     .state_default = {.prevpoint = NULL,
-                      .snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
-                                          SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_EDGE_PERPENDICULAR |
-                                          SCE_SNAP_MODE_EDGE_MIDPOINT),
+                      .snap_elem_force = SCE_SNAP_MODE_GEOM,
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},
                       .color_line = {255, 255, 255, 128},
-                      .draw_point = true,
-                      .draw_plane = false}};
+                      .color_box = {255, 255, 255, 128},
+                      .box_dimensions = {1.0f, 1.0f, 1.0f},
+                      .draw_point = true}};
 
 /**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
@@ -373,6 +360,24 @@ static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
   }
 }
 
+static void cursor_box_draw(const float dimensions[3], uchar color[4])
+{
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_smooth(true);
+  GPU_line_width(1.0f);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4ubv(color);
+  imm_draw_cube_corners_3d(pos_id, (const float[3]){0.0f, 0.0f, dimensions[2]}, dimensions, 0.15f);
+  immUnbindProgram();
+
+  GPU_line_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
+}
+
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const float loc_prev[3],
                                      const float loc_curr[3],
@@ -601,7 +606,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   ushort snap_elements = v3d_cursor_snap_elements(state, scene);
   data_intern->snap_elem_hidden = 0;
-  const bool draw_plane = state->draw_plane;
+  const bool draw_plane = state->draw_plane || state->draw_box;
   if (draw_plane && !(snap_elements & SCE_SNAP_MODE_FACE)) {
     data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
     snap_elements |= SCE_SNAP_MODE_FACE;
@@ -674,6 +679,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   }
 
   if (draw_plane) {
+    RegionView3D *rv3d = region->regiondata;
     bool orient_surface = snap_elem && (state->plane_orient == V3D_PLACE_ORIENT_SURFACE);
     if (orient_surface) {
       copy_m3_m4(omat, obmat);
@@ -684,9 +690,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
       ED_transform_calc_orientation_from_type_ex(
-          scene, view_layer, v3d, region->regiondata, ob, ob, orient_index, pivot_point, omat);
+          scene, view_layer, v3d, rv3d, ob, NULL, orient_index, pivot_point, omat);
 
-      RegionView3D *rv3d = region->regiondata;
       if (state->use_plane_axis_auto) {
         mat3_align_axis_to_v3(omat, state->plane_axis, rv3d->viewinv[2]);
       }
@@ -699,6 +704,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     orthogonalize_m3(omat, state->plane_axis);
 
     if (orient_surface) {
+      if (dot_v3v3(rv3d->viewinv[2], face_nor) < 0.0f) {
+        negate_v3(face_nor);
+      }
       v3d_cursor_poject_surface_normal(face_nor, obmat, omat);
     }
   }
@@ -749,14 +757,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 /** \name Callbacks
  * \{ */
 
-static bool v3d_cursor_snap_pool_fn(bContext *C)
+static bool v3d_cursor_snap_poll_fn(bContext *C)
 {
   if (G.moving) {
-    return false;
-  }
-
-  ARegion *region = CTX_wm_region(C);
-  if (region->regiontype != RGN_TYPE_WINDOW) {
     return false;
   }
 
@@ -765,11 +768,37 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
     return false;
   }
 
+  ARegion *region = CTX_wm_region(C);
+  if (region->regiontype != RGN_TYPE_WINDOW) {
+    if (!region->overlap) {
+      return false;
+    }
+    /* Sometimes the cursor may be on an invisible part of an overlapping region. */
+    const wmWindowManager *wm = CTX_wm_manager(C);
+    const wmEvent *event = wm->winactive->eventstate;
+    if (ED_region_overlap_isect_xy(region, event->xy)) {
+      return false;
+    }
+    /* Find the visible region under the cursor.
+     * TODO(Germano): Shouldn't this be the region in context? */
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  }
+
   RegionView3D *rv3d = region->regiondata;
   if (rv3d->rflag & RV3D_NAVIGATING) {
     /* Don't draw the cursor while navigating. It can be distracting. */
     return false;
   };
+
+  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
+  if (state->gzgrp_type) {
+    /* Check the respective gizmo group is in the region. */
+    wmGizmoMap *gzmap = region->gizmo_map;
+    if (WM_gizmomap_group_find_ptr(gzmap, state->gzgrp_type) == NULL) {
+      /* Wrong viewport. */
+      return false;
+    }
+  }
 
   return true;
 }
@@ -781,7 +810,8 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   V3DSnapCursorData *snap_data = &data_intern->snap_data;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   x -= region->winrct.xmin;
   y -= region->winrct.ymin;
   if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
@@ -791,7 +821,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_snap_update(state, C, wm, depsgraph, scene, region, v3d, x, y);
   }
 
-  const bool draw_plane = state->draw_plane;
+  const bool draw_plane = state->draw_plane || state->draw_box;
   if (!snap_data->snap_elem && !draw_plane) {
     return;
   }
@@ -799,12 +829,8 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   /* Setup viewport & matrix. */
   RegionView3D *rv3d = region->regiondata;
   wmViewport(&region->winrct);
-  GPU_matrix_push_projection();
-  GPU_matrix_push();
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
-
-  GPU_blend(GPU_BLEND_ALPHA);
 
   float matrix[4][4];
   if (draw_plane) {
@@ -814,7 +840,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_plane_draw(rv3d, state->plane_axis, matrix);
   }
 
-  if (snap_data->snap_elem && state->draw_point) {
+  if (snap_data->snap_elem && (state->draw_point || state->draw_box)) {
     const float *prev_point = (snap_data->snap_elem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) ?
                                   state->prevpoint :
                                   NULL;
@@ -831,21 +857,24 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
                                     snap_data->snap_elem);
   }
 
-  GPU_blend(GPU_BLEND_NONE);
+  if (state->draw_box) {
+    GPU_matrix_mul(matrix);
+    cursor_box_draw(state->box_dimensions, state->color_box);
+  }
 
   /* Restore matrix. */
-  GPU_matrix_pop();
-  GPU_matrix_pop_projection();
+  wmWindowViewport(CTX_wm_window(C));
 }
 
 /** \} */
 
 V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void)
 {
-  if (!g_data_intern.state_active_len) {
+  SnapCursorDataIntern *data_intern = &g_data_intern;
+  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     return &g_data_intern.state_default;
   }
-  return (V3DSnapCursorState *)&g_data_intern.state_intern[g_data_intern.state_active];
+  return &((SnapStateIntern *)data_intern->state_intern.last)->snap_state;
 }
 
 static void v3d_cursor_snap_activate(void)
@@ -867,7 +896,7 @@ static void v3d_cursor_snap_activate(void)
     }
 
     struct wmPaintCursor *pc = WM_paint_cursor_activate(
-        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_pool_fn, v3d_cursor_snap_draw_fn, NULL);
+        SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_poll_fn, v3d_cursor_snap_draw_fn, NULL);
     data_intern->handle = pc;
   }
 }
@@ -875,19 +904,15 @@ static void v3d_cursor_snap_activate(void)
 static void v3d_cursor_snap_free(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (data_intern->handle && G_MAIN->wm.first) {
-    WM_paint_cursor_end(data_intern->handle);
+  if (data_intern->handle) {
+    if (G_MAIN->wm.first) {
+      WM_paint_cursor_end(data_intern->handle);
+    }
     data_intern->handle = NULL;
   }
   if (data_intern->snap_context_v3d) {
     ED_transform_snap_object_context_destroy(data_intern->snap_context_v3d);
     data_intern->snap_context_v3d = NULL;
-  }
-
-  for (SnapStateIntern *state_intern = data_intern->state_intern;
-       state_intern < &data_intern->state_intern[STATE_LEN];
-       state_intern++) {
-    state_intern->is_active = false;
   }
 }
 
@@ -899,56 +924,41 @@ void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
 V3DSnapCursorState *ED_view3d_cursor_snap_active(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (!data_intern->state_active_len) {
+  if (!data_intern->handle) {
     v3d_cursor_snap_activate();
   }
 
-  data_intern->state_active_len++;
-  for (int i = 0; i < STATE_LEN; i++) {
-    SnapStateIntern *state_intern = &g_data_intern.state_intern[i];
-    if (!state_intern->is_active) {
-      state_intern->snap_state = g_data_intern.state_default;
-      state_intern->is_active = true;
-      state_intern->state_active_prev = data_intern->state_active;
-      data_intern->state_active = i;
-      return (V3DSnapCursorState *)state_intern;
-    }
-  }
+  SnapStateIntern *state_intern = MEM_mallocN(sizeof(*state_intern), __func__);
+  state_intern->snap_state = g_data_intern.state_default;
+  BLI_addtail(&g_data_intern.state_intern, state_intern);
 
-  BLI_assert(false);
-  data_intern->state_active_len--;
-  return NULL;
+  return (V3DSnapCursorState *)&state_intern->snap_state;
 }
 
 void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (!data_intern->state_active_len) {
-    BLI_assert(false);
+  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     return;
   }
 
-  SnapStateIntern *state_intern = (SnapStateIntern *)state;
-  if (!state_intern->is_active) {
-    return;
-  }
-
-  state_intern->is_active = false;
-  data_intern->state_active_len--;
-  if (!data_intern->state_active_len) {
+  SnapStateIntern *state_intern = STATE_INTERN_GET(state);
+  BLI_remlink(&data_intern->state_intern, state_intern);
+  MEM_freeN(state_intern);
+  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     v3d_cursor_snap_free();
-  }
-  else {
-    data_intern->state_active = state_intern->state_active_prev;
   }
 }
 
 void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3])
 {
-  SnapStateIntern *state_intern = (SnapStateIntern *)state;
+  SnapCursorDataIntern *data_intern = &g_data_intern;
+  if (!state) {
+    state = ED_view3d_cursor_snap_state_get();
+  }
   if (prev_point) {
-    copy_v3_v3(state_intern->prevpoint_stack, prev_point);
-    state->prevpoint = state_intern->prevpoint_stack;
+    copy_v3_v3(data_intern->prevpoint_stack, prev_point);
+    state->prevpoint = data_intern->prevpoint_stack;
   }
   else {
     state->prevpoint = NULL;
@@ -961,12 +971,13 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
                                                   const int y)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (C && data_intern->state_active_len) {
+  if (C) {
     wmWindowManager *wm = CTX_wm_manager(C);
     if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene = DEG_get_input_scene(depsgraph);
-      ARegion *region = CTX_wm_region(C);
+      ScrArea *area = CTX_wm_area(C);
+      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       View3D *v3d = CTX_wm_view3d(C);
 
       if (!state) {
@@ -984,9 +995,4 @@ struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
   SnapCursorDataIntern *data_intern = &g_data_intern;
   v3d_cursor_snap_context_ensure(scene);
   return data_intern->snap_context_v3d;
-}
-
-void ED_view3d_cursor_snap_exit(void)
-{
-  v3d_cursor_snap_free();
 }

@@ -702,6 +702,9 @@ void ACTION_OT_unlink(wmOperatorType *ot)
                          "Clear Fake User and remove "
                          "copy stashed in this data-block's NLA stack");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */

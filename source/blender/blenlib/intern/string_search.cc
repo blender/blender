@@ -24,6 +24,10 @@
 #include "BLI_string_utf8.h"
 #include "BLI_timeit.hh"
 
+/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
+#define UI_MENU_ARROW_SEP "\xe2\x96\xb6"
+#define UI_MENU_ARROW_SEP_UNICODE 0x25b6
+
 namespace blender::string_search {
 
 static int64_t count_utf8_code_points(StringRef str)
@@ -350,8 +354,11 @@ void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words)
 {
-  const uint32_t unicode_space = BLI_str_utf8_as_unicode(" ");
-  const uint32_t unicode_right_triangle = BLI_str_utf8_as_unicode("▶");
+  const uint32_t unicode_space = (uint32_t)' ';
+  const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
+
+  BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
+  BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode(UI_MENU_ARROW_SEP));
 
   auto is_separator = [&](uint32_t unicode) {
     return ELEM(unicode, unicode_space, unicode_right_triangle);

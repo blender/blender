@@ -241,9 +241,6 @@ void main()
   else if (color_id == 1u) {
     fragColor = colorSelect;
   }
-  else if (color_id == 2u) {
-    fragColor = colorDupliSelect;
-  }
   else if (color_id == 3u) {
     fragColor = colorActive;
   }

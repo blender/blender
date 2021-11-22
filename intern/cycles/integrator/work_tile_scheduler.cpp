@@ -16,11 +16,11 @@
 
 #include "integrator/work_tile_scheduler.h"
 
-#include "device/device_queue.h"
+#include "device/queue.h"
 #include "integrator/tile.h"
-#include "render/buffers.h"
-#include "util/util_atomic.h"
-#include "util/util_logging.h"
+#include "session/buffers.h"
+#include "util/atomic.h"
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -33,13 +33,18 @@ void WorkTileScheduler::set_max_num_path_states(int max_num_path_states)
   max_num_path_states_ = max_num_path_states;
 }
 
-void WorkTileScheduler::reset(const BufferParams &buffer_params, int sample_start, int samples_num)
+void WorkTileScheduler::reset(const BufferParams &buffer_params,
+                              int sample_start,
+                              int samples_num,
+                              int sample_offset,
+                              float scrambling_distance)
 {
   /* Image buffer parameters. */
   image_full_offset_px_.x = buffer_params.full_x;
   image_full_offset_px_.y = buffer_params.full_y;
 
   image_size_px_ = make_int2(buffer_params.width, buffer_params.height);
+  scrambling_distance_ = scrambling_distance;
 
   offset_ = buffer_params.offset;
   stride_ = buffer_params.stride;
@@ -47,6 +52,7 @@ void WorkTileScheduler::reset(const BufferParams &buffer_params, int sample_star
   /* Samples parameters. */
   sample_start_ = sample_start;
   samples_num_ = samples_num;
+  sample_offset_ = sample_offset;
 
   /* Initialize new scheduling. */
   reset_scheduler_state();
@@ -54,7 +60,8 @@ void WorkTileScheduler::reset(const BufferParams &buffer_params, int sample_star
 
 void WorkTileScheduler::reset_scheduler_state()
 {
-  tile_size_ = tile_calculate_best_size(image_size_px_, samples_num_, max_num_path_states_);
+  tile_size_ = tile_calculate_best_size(
+      image_size_px_, samples_num_, max_num_path_states_, scrambling_distance_);
 
   VLOG(3) << "Will schedule tiles of size " << tile_size_;
 
@@ -106,6 +113,7 @@ bool WorkTileScheduler::get_work(KernelWorkTile *work_tile_, const int max_work_
   work_tile.h = tile_size_.height;
   work_tile.start_sample = sample_start_ + start_sample;
   work_tile.num_samples = min(tile_size_.num_samples, samples_num_ - start_sample);
+  work_tile.sample_offset = sample_offset_;
   work_tile.offset = offset_;
   work_tile.stride = stride_;
 

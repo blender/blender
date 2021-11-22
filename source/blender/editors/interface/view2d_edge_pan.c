@@ -92,6 +92,8 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->delay = delay;
   vpd->zoom_influence = zoom_influence;
 
+  vpd->enabled = false;
+
   /* Calculate translation factor, based on size of view. */
   const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
   const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
@@ -217,7 +219,7 @@ static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, 
   UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
 }
 
-void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, int x, int y)
+void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[2])
 {
   ARegion *region = vpd->region;
 
@@ -227,20 +229,27 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, int x, int y)
   BLI_rcti_pad(&inside_rect, -vpd->inside_pad * U.widget_unit, -vpd->inside_pad * U.widget_unit);
   BLI_rcti_pad(&outside_rect, vpd->outside_pad * U.widget_unit, vpd->outside_pad * U.widget_unit);
 
+  /* Check if we can actually start the edge pan (e.g. adding nodes outside the view will start
+   * disabled). */
+  if (BLI_rcti_isect_pt_v(&inside_rect, xy)) {
+    /* We are inside once, can start. */
+    vpd->enabled = true;
+  }
+
   int pan_dir_x = 0;
   int pan_dir_y = 0;
-  if ((vpd->outside_pad == 0) || BLI_rcti_isect_pt(&outside_rect, x, y)) {
+  if (vpd->enabled && ((vpd->outside_pad == 0) || BLI_rcti_isect_pt_v(&outside_rect, xy))) {
     /* Find whether the mouse is beyond X and Y edges. */
-    if (x > inside_rect.xmax) {
+    if (xy[0] > inside_rect.xmax) {
       pan_dir_x = 1;
     }
-    else if (x < inside_rect.xmin) {
+    else if (xy[0] < inside_rect.xmin) {
       pan_dir_x = -1;
     }
-    if (y > inside_rect.ymax) {
+    if (xy[1] > inside_rect.ymax) {
       pan_dir_y = 1;
     }
-    else if (y < inside_rect.ymin) {
+    else if (xy[1] < inside_rect.ymin) {
       pan_dir_y = -1;
     }
   }
@@ -252,11 +261,11 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, int x, int y)
   const float dtime = (float)(current_time - vpd->edge_pan_last_time);
   float dx = 0.0f, dy = 0.0f;
   if (pan_dir_x != 0) {
-    const float speed = edge_pan_speed(vpd, x, true, current_time);
+    const float speed = edge_pan_speed(vpd, xy[0], true, current_time);
     dx = dtime * speed * (float)pan_dir_x;
   }
   if (pan_dir_y != 0) {
-    const float speed = edge_pan_speed(vpd, y, false, current_time);
+    const float speed = edge_pan_speed(vpd, xy[1], false, current_time);
     dy = dtime * speed * (float)pan_dir_y;
   }
   vpd->edge_pan_last_time = current_time;
@@ -272,7 +281,7 @@ void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const w
     return;
   }
 
-  UI_view2d_edge_pan_apply(C, vpd, event->xy[0], event->xy[1]);
+  UI_view2d_edge_pan_apply(C, vpd, event->xy);
 }
 
 void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)

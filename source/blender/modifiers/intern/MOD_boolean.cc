@@ -245,12 +245,16 @@ static BMesh *BMD_mesh_bm_create(
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_operand_ob);
 
-  BMeshCreateParams bmcp = {false};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BMeshCreateParams bmesh_create_params{};
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  BMeshFromMeshParams params{};
-  params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh_operand_ob, &params);
+  /* Needed so active layers are set based on `mesh` not `mesh_operand_ob`,
+   * otherwise the wrong active render layer is used, see T92384. */
+  BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
+
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  BM_mesh_bm_from_me(bm, mesh_operand_ob, &bmesh_from_mesh_params);
 
   if (UNLIKELY(*r_is_flip)) {
     const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -261,7 +265,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(bm, mesh, &params);
+  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   return bm;
 }
@@ -535,9 +539,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
           /* Needed for multiple objects to work. */
-          BMeshToMeshParams params{};
-          params.calc_object_remap = false;
-          BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
+          BMeshToMeshParams bmesh_to_mesh_params{};
+          bmesh_to_mesh_params.calc_object_remap = false;
+          BM_mesh_bm_to_me(nullptr, bm, mesh, &bmesh_to_mesh_params);
 
           result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
           BM_mesh_free(bm);

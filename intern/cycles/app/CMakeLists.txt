@@ -25,7 +25,8 @@ set(INC_SYS
 set(LIBRARIES
   cycles_device
   cycles_kernel
-  cycles_render
+  cycles_scene
+  cycles_session
   cycles_bvh
   cycles_subd
   cycles_graph

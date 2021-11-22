@@ -326,7 +326,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 
   float(*mat[2])[4];
 
-  /* NOTE: for now, these are all just worldspace */
+  /* NOTE: for now, these are all just world-space. */
   for (int i = 0; i < 2; i++) {
     /* Get pointer to loc values to store in. */
     DriverTarget *dtar = &dvar->targets[i];
@@ -422,7 +422,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
         }
       }
       else {
-        /* Convert to worldspace. */
+        /* Convert to world-space. */
         copy_v3_v3(tmp_loc, pchan->pose_head);
         mul_m4_v3(ob->obmat, tmp_loc);
       }

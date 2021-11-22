@@ -200,6 +200,15 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   shd->grid_distance = dist / 2.0f;
 
   ED_view3d_grid_steps(scene, v3d, rv3d, shd->grid_steps);
+
+  if ((v3d->flag & (V3D_XR_SESSION_SURFACE | V3D_XR_SESSION_MIRROR)) != 0) {
+    /* The calculations for the grid parameters assume that the view matrix has no scale component,
+     * which may not be correct if the user is "shrunk" or "enlarged" by zooming in or out.
+     * Therefore, we need to compensate the values here. */
+    float viewinvscale = len_v3(
+        viewinv[0]); /* Assumption is uniform scaling (all column vectors are of same length). */
+    shd->grid_distance *= viewinvscale;
+  }
 }
 
 void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)

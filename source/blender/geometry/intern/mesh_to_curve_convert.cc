@@ -50,23 +50,23 @@ static void copy_attributes_to_points(CurveEval &curve,
 
   /* Copy builtin control point attributes. */
   if (source_attribute_ids.contains("tilt")) {
-    const fn::GVArray_Typed<float> tilt_attribute = mesh_component.attribute_get_for_read<float>(
+    const VArray<float> tilt_attribute = mesh_component.attribute_get_for_read<float>(
         "tilt", ATTR_DOMAIN_POINT, 0.0f);
     threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
       for (const int i : range) {
         copy_attribute_to_points<float>(
-            *tilt_attribute, point_to_vert_maps[i], splines[i]->tilts());
+            tilt_attribute, point_to_vert_maps[i], splines[i]->tilts());
       }
     });
     source_attribute_ids.remove_contained("tilt");
   }
   if (source_attribute_ids.contains("radius")) {
-    const fn::GVArray_Typed<float> radius_attribute = mesh_component.attribute_get_for_read<float>(
+    const VArray<float> radius_attribute = mesh_component.attribute_get_for_read<float>(
         "radius", ATTR_DOMAIN_POINT, 1.0f);
     threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
       for (const int i : range) {
         copy_attribute_to_points<float>(
-            *radius_attribute, point_to_vert_maps[i], splines[i]->radii());
+            radius_attribute, point_to_vert_maps[i], splines[i]->radii());
       }
     });
     source_attribute_ids.remove_contained("radius");
@@ -82,7 +82,7 @@ static void copy_attributes_to_points(CurveEval &curve,
       continue;
     }
 
-    const fn::GVArrayPtr mesh_attribute = mesh_component.attribute_try_get_for_read(
+    const fn::GVArray mesh_attribute = mesh_component.attribute_try_get_for_read(
         attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
@@ -90,7 +90,7 @@ static void copy_attributes_to_points(CurveEval &curve,
       continue;
     }
 
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(mesh_attribute->type());
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(mesh_attribute.type());
 
     threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
@@ -101,10 +101,10 @@ static void copy_attributes_to_points(CurveEval &curve,
         BLI_assert(spline_attribute);
 
         /* Copy attribute based on the map for this spline. */
-        attribute_math::convert_to_static_type(mesh_attribute->type(), [&](auto dummy) {
+        attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
           using T = decltype(dummy);
           copy_attribute_to_points<T>(
-              mesh_attribute->typed<T>(), point_to_vert_maps[i], spline_attribute->typed<T>());
+              mesh_attribute.typed<T>(), point_to_vert_maps[i], spline_attribute->typed<T>());
         });
       }
     });

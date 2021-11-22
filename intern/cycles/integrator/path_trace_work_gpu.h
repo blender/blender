@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include "kernel/integrator/integrator_state.h"
+#include "kernel/integrator/state.h"
 
-#include "device/device_graphics_interop.h"
-#include "device/device_memory.h"
-#include "device/device_queue.h"
+#include "device/graphics_interop.h"
+#include "device/memory.h"
+#include "device/queue.h"
 
 #include "integrator/path_trace_work.h"
 #include "integrator/work_tile_scheduler.h"
 
-#include "util/util_vector.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -46,7 +46,8 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   virtual void render_samples(RenderStatistics &statistics,
                               int start_sample,
-                              int samples_num) override;
+                              int samples_num,
+                              int sample_offset) override;
 
   virtual void copy_to_display(PathTraceDisplay *display,
                                PassMode pass_mode,
@@ -86,7 +87,13 @@ class PathTraceWorkGPU : public PathTraceWork {
                                    DeviceKernel queued_kernel,
                                    const int num_paths_limit);
 
-  void compact_states(const int num_active_paths);
+  void compact_main_paths(const int num_active_paths);
+  void compact_shadow_paths();
+  void compact_paths(const int num_active_paths,
+                     const int max_active_path_index,
+                     DeviceKernel terminated_paths_kernel,
+                     DeviceKernel compact_paths_kernel,
+                     DeviceKernel compact_kernel);
 
   int num_active_main_paths_paths();
 

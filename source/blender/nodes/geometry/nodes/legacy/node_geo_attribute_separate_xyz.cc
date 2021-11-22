@@ -23,13 +23,13 @@ namespace blender::nodes {
 
 static void geo_node_attribute_separate_xyz_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Vector");
-  b.add_input<decl::Vector>("Vector", "Vector_001");
-  b.add_input<decl::String>("Result X");
-  b.add_input<decl::String>("Result Y");
-  b.add_input<decl::String>("Result Z");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Vector"));
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_001");
+  b.add_input<decl::String>(N_("Result X"));
+  b.add_input<decl::String>(N_("Result Y"));
+  b.add_input<decl::String>(N_("Result Z"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_separate_xyz_layout(uiLayout *layout,
@@ -106,9 +106,9 @@ static void separate_attribute(GeometryComponent &component, const GeoNodeExecPa
   const AttributeDomain result_domain = get_result_domain(
       component, params, result_name_x, result_name_y, result_name_z);
 
-  GVArray_Typed<float3> attribute_input = params.get_input_attribute<float3>(
+  VArray<float3> attribute_input = params.get_input_attribute<float3>(
       "Vector", component, result_domain, {0, 0, 0});
-  VArray_Span<float3> input_span{*attribute_input};
+  VArray_Span<float3> input_span{attribute_input};
 
   OutputAttribute_Typed<float> attribute_result_x =
       component.attribute_try_get_for_output_only<float>(result_name_x, result_domain);

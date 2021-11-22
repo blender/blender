@@ -63,19 +63,19 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   char str[FILE_MAX];
   int num_copied = 0;
 
-  BKE_copybuffer_begin(bmain);
+  BKE_copybuffer_copy_begin(bmain);
 
   /* context, selection, could be generalized */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
-      BKE_copybuffer_tag_ID(&ob->id);
+      BKE_copybuffer_copy_tag_ID(&ob->id);
       num_copied++;
     }
   }
   CTX_DATA_END;
 
   BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
-  BKE_copybuffer_save(bmain, str, op->reports);
+  BKE_copybuffer_copy_end(bmain, str, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected object(s)", num_copied);
 

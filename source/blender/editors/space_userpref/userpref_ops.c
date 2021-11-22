@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #ifdef WIN32
@@ -139,23 +140,51 @@ static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 /** \name Add Asset Library Operator
  * \{ */
 
-static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *op)
 {
-  BKE_preferences_asset_library_add(&U, NULL, NULL);
+  char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
+
+  /* NULL is a valid directory path here. A library without path will be created then. */
+  BKE_preferences_asset_library_add(&U, NULL, directory);
   U.runtime.is_dirty = true;
+
+  /* There's no dedicated notifier for the Preferences. */
+  WM_main_add_notifier(NC_WINDOW, NULL);
+
+  MEM_freeN(directory);
   return OPERATOR_FINISHED;
+}
+
+static int preferences_asset_library_add_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent *UNUSED(event))
+{
+  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
+    WM_event_add_fileselect(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  return preferences_asset_library_add_exec(C, op);
 }
 
 static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 {
   ot->name = "Add Asset Library";
   ot->idname = "PREFERENCES_OT_asset_library_add";
-  ot->description =
-      "Add a path to a .blend file to be used by the Asset Browser as source of assets";
+  ot->description = "Add a directory to be used by the Asset Browser as source of assets";
 
   ot->exec = preferences_asset_library_add_exec;
+  ot->invoke = preferences_asset_library_add_invoke;
 
   ot->flag = OPTYPE_INTERNAL;
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

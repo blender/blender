@@ -82,11 +82,9 @@ void ui_block_free_views(uiBlock *block)
 /**
  * \param x, y: Coordinate to find a tree-row item at, in window space.
  */
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region,
-                                                      const int x,
-                                                      const int y)
+uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region, const int xy[2])
 {
-  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, x, y);
+  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, xy);
   if (!tree_row_but) {
     return nullptr;
   }

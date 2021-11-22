@@ -32,9 +32,9 @@ namespace blender::nodes {
 
 static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Z").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Color>(N_("Image")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Alpha")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("Z")).default_value(1.0f).min(0.0f).max(1.0f);
 }
 
 }  // namespace blender::nodes
@@ -44,7 +44,6 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
   ImageUser *iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "node image user");
   node->storage = iuser;
   iuser->sfra = 1;
-  iuser->ok = 1;
   node->custom3 = 0.5f;
   node->custom4 = 0.5f;
 

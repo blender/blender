@@ -21,14 +21,14 @@
 
 #include "kernel/device/gpu/image.h"  /* Texture lookup uses normal CUDA intrinsics. */
 
-#include "kernel/integrator/integrator_state.h"
-#include "kernel/integrator/integrator_state_flow.h"
-#include "kernel/integrator/integrator_state_util.h"
+#include "kernel/integrator/state.h"
+#include "kernel/integrator/state_flow.h"
+#include "kernel/integrator/state_util.h"
 
-#include "kernel/integrator/integrator_intersect_closest.h"
-#include "kernel/integrator/integrator_intersect_shadow.h"
-#include "kernel/integrator/integrator_intersect_subsurface.h"
-#include "kernel/integrator/integrator_intersect_volume_stack.h"
+#include "kernel/integrator/intersect_closest.h"
+#include "kernel/integrator/intersect_shadow.h"
+#include "kernel/integrator/intersect_subsurface.h"
+#include "kernel/integrator/intersect_volume_stack.h"
 
 // clang-format on
 
@@ -57,7 +57,7 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_closest()
   const int global_index = optixGetLaunchIndex().x;
   const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
                                                        global_index;
-  integrator_intersect_closest(nullptr, path_index);
+  integrator_intersect_closest(nullptr, path_index, __params.render_buffer);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_shadow()

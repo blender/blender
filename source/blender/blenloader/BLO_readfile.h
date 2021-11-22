@@ -32,11 +32,13 @@ extern "C" {
 
 struct BHead;
 struct BlendThumbnail;
+struct Collection;
 struct FileData;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
+struct Object;
 struct ReportList;
 struct Scene;
 struct UserDef;
@@ -122,7 +124,7 @@ typedef struct BlendFileReadReport {
     /* Number of proxies that failed to convert to library overrides. */
     int proxies_to_lib_overrides_failures;
     /* Number of sequencer strips that were not read because were in non-supported channels. */
-    int vse_strips_skipped;
+    int sequence_strips_skipped;
   } count;
 
   /* Number of libraries which had overrides that needed to be resynced, and a single linked list
@@ -226,6 +228,8 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
   /** Try to re-use previously appended matching ID on new append. */
   BLO_LIBLINK_APPEND_LOCAL_ID_REUSE = 1 << 21,
+  /** Clear the asset data. */
+  BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR = 1 << 22,
   /** Instantiate object data IDs (i.e. create objects for them if needed). */
   BLO_LIBLINK_OBDATA_INSTANCE = 1 << 24,
   /** Instantiate collections as empties, instead of linking them into current view layer. */
@@ -332,6 +336,14 @@ void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
 
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
+
+void BLO_object_instantiate_object_base_instance_init(struct Main *bmain,
+                                                      struct Collection *collection,
+                                                      struct Object *ob,
+                                                      struct ViewLayer *view_layer,
+                                                      const struct View3D *v3d,
+                                                      const int flag,
+                                                      bool set_active);
 
 /* datafiles (generated theme) */
 extern const struct bTheme U_theme_default;

@@ -110,7 +110,8 @@ class GPENCIL_MT_layer_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.layer_merge", icon='SORT_ASC', text="Merge Down")
+        layout.operator("gpencil.layer_merge", icon='SORT_ASC', text="Merge Down").mode = 'ACTIVE'
+        layout.operator("gpencil.layer_merge", text="Merge All").mode = 'ALL'
 
         layout.separator()
         layout.operator("gpencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True

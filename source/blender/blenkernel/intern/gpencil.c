@@ -139,11 +139,11 @@ static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
   bGPdata *gpencil = (bGPdata *)id;
   /* materials */
   for (int i = 0; i < gpencil->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS(data, gpencil->mat[i], IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gpencil->mat[i], IDWALK_CB_USER);
   }
 
   LISTBASE_FOREACH (bGPDlayer *, gplayer, &gpencil->layers) {
-    BKE_LIB_FOREACHID_PROCESS(data, gplayer->parent, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gplayer->parent, IDWALK_CB_NOP);
   }
 }
 

@@ -56,22 +56,15 @@ if(WIN32)
   target_link_libraries(BlendThumb bf_blenlib dbghelp.lib Version.lib)
   set_target_properties(BlendThumb PROPERTIES LINK_FLAGS_DEBUG "/NODEFAULTLIB:msvcrt")
 
-  install(
-    FILES $<TARGET_FILE:BlendThumb>
-    COMPONENT Blender
-    DESTINATION "."
-  )
 else()
   # -----------------------------------------------------------------------------
   # Build `blender-thumbnailer` executable
 
-  add_executable(blender-thumbnailer ${SRC} src/blender_thumbnailer.cc)
+  set(SRC_CMD
+    src/blender_thumbnailer.cc
+  )
+
+  add_executable(blender-thumbnailer ${SRC} ${SRC_CMD})
   target_link_libraries(blender-thumbnailer bf_blenlib)
   target_link_libraries(blender-thumbnailer ${PTHREADS_LIBRARIES})
-
-  install(
-    FILES $<TARGET_FILE:blender-thumbnailer>
-    COMPONENT Blender
-    DESTINATION "."
-  )
 endif()

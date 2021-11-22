@@ -54,7 +54,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 using blender::StringRef;
 

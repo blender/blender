@@ -45,10 +45,6 @@
 
 #include "view3d_intern.h"
 
-#define SNAP_MODE_GEOM \
-  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE | \
-   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT)
-
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 
 /**
@@ -222,7 +218,8 @@ static int dot_v3_array_find_max_index(const float dirs[][3],
   return index_found;
 }
 
-static wmGizmoGroup *idp_gizmogroup_from_region(ARegion *region)
+static UNUSED_FUNCTION_WITH_RETURN_TYPE(wmGizmoGroup *,
+                                        idp_gizmogroup_from_region)(ARegion *region)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   return gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;
@@ -741,16 +738,19 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  ipd->snap_state = ED_view3d_cursor_snap_active();
-  ipd->snap_state->draw_point = true;
-  ipd->snap_state->draw_plane = true;
+  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_active();
+  if (snap_state_new) {
+    ipd->snap_state = snap_state = snap_state_new;
+  }
 
+  snap_state->draw_point = true;
+  snap_state->draw_plane = true;
   ipd->is_snap_found =
       view3d_interactive_add_calc_snap(
           C, event, ipd->co_src, ipd->matrix_orient, &ipd->use_snap, &ipd->is_snap_invert) != 0;
 
-  ipd->snap_state->draw_plane = false;
-  ED_view3d_cursor_snap_prevpoint_set(ipd->snap_state, ipd->co_src);
+  snap_state->draw_plane = false;
+  ED_view3d_cursor_snap_prevpoint_set(snap_state, ipd->co_src);
 
   ipd->orient_axis = plane_axis;
   for (int i = 0; i < 2; i++) {
@@ -1304,7 +1304,7 @@ static int idp_rna_snap_target_get_fn(struct PointerRNA *UNUSED(ptr),
   }
 
   /* Make sure you keep a consistent #snap_mode. */
-  snap_state->snap_elem_force = SNAP_MODE_GEOM;
+  snap_state->snap_elem_force = SCE_SNAP_MODE_GEOM;
   return PLACE_SNAP_TO_GEOMETRY;
 }
 
@@ -1315,7 +1315,7 @@ static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
   short snap_mode = 0; /* #toolsettings->snap_mode. */
   const enum ePlace_SnapTo snap_to = value;
   if (snap_to == PLACE_SNAP_TO_GEOMETRY) {
-    snap_mode = SNAP_MODE_GEOM;
+    snap_mode = SCE_SNAP_MODE_GEOM;
   }
 
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
@@ -1360,7 +1360,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* WORKAROUND: properties with `_funcs_runtime` should not be saved in keymaps.
-   *             So reasign the #PROP_IDPROPERTY flag to trick the property as not being set.
+   *             So reassign the #PROP_IDPROPERTY flag to trick the property as not being set.
    *             (See #RNA_property_is_set). */
   PropertyFlag unsalvageable = PROP_SKIP_SAVE | PROP_HIDDEN | PROP_PTR_NO_OWNERSHIP |
                                PROP_IDPROPERTY;
@@ -1514,10 +1514,13 @@ static void preview_plane_free_fn(void *customdata)
 static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
-  snap_state->draw_plane = true;
+  if (snap_state) {
+    snap_state->gzgrp_type = gzgroup->type;
+    snap_state->draw_plane = true;
 
-  gzgroup->customdata = snap_state;
-  gzgroup->customdata_free = preview_plane_free_fn;
+    gzgroup->customdata = snap_state;
+    gzgroup->customdata_free = preview_plane_free_fn;
+  }
 }
 
 void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)

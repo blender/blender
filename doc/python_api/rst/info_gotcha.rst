@@ -728,7 +728,7 @@ Abusing RNA property callbacks
 ------------------------------
 
 Python-defined RNA properties can have custom callbacks. Trying to perform complex operations
-from there, like calling an operator, may work, but is not officialy recommended nor supported.
+from there, like calling an operator, may work, but is not officially recommended nor supported.
 
 Main reason is that those callback should be very fast, but additionally, it may for example
 create issues with undo/redo system (most operators store an history step, and editing an RNA

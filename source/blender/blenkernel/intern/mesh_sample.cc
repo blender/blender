@@ -269,7 +269,7 @@ void MeshAttributeInterpolator::sample_attribute(const ReadAttributeLookup &src_
                                                  eAttributeMapMode mode)
 {
   if (src_attribute && dst_attribute) {
-    this->sample_data(*src_attribute.varray, src_attribute.domain, mode, dst_attribute.as_span());
+    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.as_span());
   }
 }
 

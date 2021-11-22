@@ -24,11 +24,11 @@ TEST(BLI_uuid, generate_random)
 {
   const bUUID uuid = BLI_uuid_generate_random();
 
-  // The 4 MSbits represent the "version" of the UUID.
+  /* The 4 MSbits represent the "version" of the UUID. */
   const uint16_t version = uuid.time_hi_and_version >> 12;
   EXPECT_EQ(version, 4);
 
-  // The 2 MSbits should be 0b10, indicating compliance with RFC4122.
+  /* The 2 MSbits should be 0b10, indicating compliance with RFC4122. */
   const uint8_t reserved = uuid.clock_seq_hi_and_reserved >> 6;
   EXPECT_EQ(reserved, 0b10);
 }
@@ -42,7 +42,7 @@ TEST(BLI_uuid, generate_many_random)
     const bUUID uuid = BLI_uuid_generate_random();
     EXPECT_NE(first_uuid, uuid);
 
-    // Check that the non-random bits are set according to RFC4122.
+    /* Check that the non-random bits are set according to RFC4122. */
     const uint16_t version = uuid.time_hi_and_version >> 12;
     EXPECT_EQ(version, 4);
     const uint8_t reserved = uuid.clock_seq_hi_and_reserved >> 6;

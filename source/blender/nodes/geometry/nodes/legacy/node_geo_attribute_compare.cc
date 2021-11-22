@@ -25,18 +25,18 @@ namespace blender::nodes {
 
 static void geo_node_attribute_compare_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("A");
-  b.add_input<decl::Float>("A", "A_001");
-  b.add_input<decl::Vector>("A", "A_002");
-  b.add_input<decl::Color>("A", "A_003").default_value({0.5, 0.5, 0.5, 1.0});
-  b.add_input<decl::String>("B");
-  b.add_input<decl::Float>("B", "B_001");
-  b.add_input<decl::Vector>("B", "B_002");
-  b.add_input<decl::Color>("B", "B_003").default_value({0.5, 0.5, 0.5, 1.0});
-  b.add_input<decl::Float>("Threshold").default_value(0.01f).min(0.0f);
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("A"));
+  b.add_input<decl::Float>(N_("A"), "A_001");
+  b.add_input<decl::Vector>(N_("A"), "A_002");
+  b.add_input<decl::Color>(N_("A"), "A_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::String>(N_("B"));
+  b.add_input<decl::Float>(N_("B"), "B_001");
+  b.add_input<decl::Vector>(N_("B"), "B_002");
+  b.add_input<decl::Color>(N_("B"), "B_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::Float>(N_("Threshold")).default_value(0.01f).min(0.0f);
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_compare_layout(uiLayout *layout,
@@ -257,9 +257,9 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
 
   const CustomDataType input_data_type = get_data_type(component, params, *node_storage);
 
-  GVArrayPtr attribute_a = params.get_input_attribute(
+  GVArray attribute_a = params.get_input_attribute(
       "A", component, result_domain, input_data_type, nullptr);
-  GVArrayPtr attribute_b = params.get_input_attribute(
+  GVArray attribute_b = params.get_input_attribute(
       "B", component, result_domain, input_data_type, nullptr);
 
   if (!attribute_a || !attribute_b) {
@@ -276,47 +276,47 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
     if (operation == NODE_FLOAT_COMPARE_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
         do_equal_operation_float(
-            attribute_a->typed<float>(), attribute_b->typed<float>(), threshold, result_span);
+            attribute_a.typed<float>(), attribute_b.typed<float>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_FLOAT3) {
         do_equal_operation_float3(
-            attribute_a->typed<float3>(), attribute_b->typed<float3>(), threshold, result_span);
+            attribute_a.typed<float3>(), attribute_b.typed<float3>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        do_equal_operation_color4f(attribute_a->typed<ColorGeometry4f>(),
-                                   attribute_b->typed<ColorGeometry4f>(),
+        do_equal_operation_color4f(attribute_a.typed<ColorGeometry4f>(),
+                                   attribute_b.typed<ColorGeometry4f>(),
                                    threshold,
                                    result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
         do_equal_operation_bool(
-            attribute_a->typed<bool>(), attribute_b->typed<bool>(), threshold, result_span);
+            attribute_a.typed<bool>(), attribute_b.typed<bool>(), threshold, result_span);
       }
     }
     else if (operation == NODE_FLOAT_COMPARE_NOT_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
         do_not_equal_operation_float(
-            attribute_a->typed<float>(), attribute_b->typed<float>(), threshold, result_span);
+            attribute_a.typed<float>(), attribute_b.typed<float>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_FLOAT3) {
         do_not_equal_operation_float3(
-            attribute_a->typed<float3>(), attribute_b->typed<float3>(), threshold, result_span);
+            attribute_a.typed<float3>(), attribute_b.typed<float3>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        do_not_equal_operation_color4f(attribute_a->typed<ColorGeometry4f>(),
-                                       attribute_b->typed<ColorGeometry4f>(),
+        do_not_equal_operation_color4f(attribute_a.typed<ColorGeometry4f>(),
+                                       attribute_b.typed<ColorGeometry4f>(),
                                        threshold,
                                        result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
         do_not_equal_operation_bool(
-            attribute_a->typed<bool>(), attribute_b->typed<bool>(), threshold, result_span);
+            attribute_a.typed<bool>(), attribute_b.typed<bool>(), threshold, result_span);
       }
     }
   }
   else {
     do_math_operation(
-        attribute_a->typed<float>(), attribute_b->typed<float>(), operation, result_span);
+        attribute_a.typed<float>(), attribute_b.typed<float>(), operation, result_span);
   }
 
   attribute_result.save();

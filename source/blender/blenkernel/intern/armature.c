@@ -161,30 +161,36 @@ static void armature_free_data(struct ID *id)
 
 static void armature_foreach_id_bone(Bone *bone, LibraryForeachIDData *data)
 {
-  IDP_foreach_property(
-      bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(
+          bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data));
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    armature_foreach_id_bone(curbone, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, armature_foreach_id_bone(curbone, data));
   }
 }
 
 static void armature_foreach_id_editbone(EditBone *edit_bone, LibraryForeachIDData *data)
 {
-  IDP_foreach_property(
-      edit_bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(edit_bone->prop,
+                           IDP_TYPE_FILTER_ID,
+                           BKE_lib_query_idpropertiesForeachIDLink_callback,
+                           data));
 }
 
 static void armature_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bArmature *arm = (bArmature *)id;
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-    armature_foreach_id_bone(bone, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, armature_foreach_id_bone(bone, data));
   }
 
   if (arm->edbo != NULL) {
     LISTBASE_FOREACH (EditBone *, edit_bone, arm->edbo) {
-      armature_foreach_id_editbone(edit_bone, data);
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, armature_foreach_id_editbone(edit_bone, data));
     }
   }
 }
@@ -2245,8 +2251,8 @@ void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
  */
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3])
 {
-  const float SAFE_THRESHOLD = 6.1e-3f;     /* theta above this value has good enough precision. */
-  const float CRITICAL_THRESHOLD = 2.5e-4f; /* true singularity if xz distance is below this. */
+  const float SAFE_THRESHOLD = 6.1e-3f;     /* Theta above this value has good enough precision. */
+  const float CRITICAL_THRESHOLD = 2.5e-4f; /* True singularity if XZ distance is below this. */
   const float THRESHOLD_SQUARED = CRITICAL_THRESHOLD * CRITICAL_THRESHOLD;
 
   const float x = nor[0];
@@ -2970,10 +2976,16 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
                                   BKE_object_boundbox_get(pchan->custom) :
                                   NULL;
         if (bb_custom) {
-          float mat[4][4], smat[4][4];
+          float mat[4][4], smat[4][4], rmat[4][4], tmp[4][4];
           scale_m4_fl(smat, PCHAN_CUSTOM_BONE_LENGTH(pchan));
           rescale_m4(smat, pchan->custom_scale_xyz);
-          mul_m4_series(mat, ob->obmat, pchan_tx->pose_mat, smat);
+          eulO_to_mat4(rmat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
+          copy_m4_m4(tmp, pchan_tx->pose_mat);
+          translate_m4(tmp,
+                       pchan->custom_translation[0],
+                       pchan->custom_translation[1],
+                       pchan->custom_translation[2]);
+          mul_m4_series(mat, ob->obmat, tmp, rmat, smat);
           BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
         }
         else {

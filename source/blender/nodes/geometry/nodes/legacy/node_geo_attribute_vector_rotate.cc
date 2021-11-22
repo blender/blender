@@ -25,21 +25,21 @@ namespace blender::nodes {
 
 static void geo_node_attribute_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Vector");
-  b.add_input<decl::Vector>("Vector", "Vector_001").min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::String>("Center");
-  b.add_input<decl::Vector>("Center", "Center_001").subtype(PROP_XYZ);
-  b.add_input<decl::String>("Axis");
-  b.add_input<decl::Vector>("Axis", "Axis_001").min(-1.0f).max(1.0f).subtype(PROP_XYZ);
-  b.add_input<decl::String>("Angle");
-  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
-  b.add_input<decl::String>("Rotation");
-  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
-  b.add_input<decl::Bool>("Invert");
-  b.add_input<decl::String>("Result");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Vector"));
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_001").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::String>(N_("Center"));
+  b.add_input<decl::Vector>(N_("Center"), "Center_001").subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Axis"));
+  b.add_input<decl::Vector>(N_("Axis"), "Axis_001").min(-1.0f).max(1.0f).subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Angle"));
+  b.add_input<decl::Float>(N_("Angle"), "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>(N_("Rotation"));
+  b.add_input<decl::Vector>(N_("Rotation"), "Rotation_001").subtype(PROP_EULER);
+  b.add_input<decl::Bool>(N_("Invert"));
+  b.add_input<decl::String>(N_("Result"));
 
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_vector_rotate_layout(uiLayout *layout,
@@ -220,12 +220,12 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   const AttributeDomain result_domain = get_result_domain(component, params, result_name);
   const bool invert = params.get_input<bool>("Invert");
 
-  GVArrayPtr attribute_vector = params.get_input_attribute(
+  GVArray attribute_vector = params.get_input_attribute(
       "Vector", component, result_domain, CD_PROP_FLOAT3, nullptr);
   if (!attribute_vector) {
     return;
   }
-  GVArrayPtr attribute_center = params.get_input_attribute(
+  GVArray attribute_center = params.get_input_attribute(
       "Center", component, result_domain, CD_PROP_FLOAT3, nullptr);
   if (!attribute_center) {
     return;
@@ -238,21 +238,21 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   }
 
   if (mode == GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ) {
-    GVArrayPtr attribute_rotation = params.get_input_attribute(
+    GVArray attribute_rotation = params.get_input_attribute(
         "Rotation", component, result_domain, CD_PROP_FLOAT3, nullptr);
     if (!attribute_rotation) {
       return;
     }
-    do_vector_rotate_euler(attribute_vector->typed<float3>(),
-                           attribute_center->typed<float3>(),
-                           attribute_rotation->typed<float3>(),
+    do_vector_rotate_euler(attribute_vector.typed<float3>(),
+                           attribute_center.typed<float3>(),
+                           attribute_rotation.typed<float3>(),
                            attribute_result.as_span<float3>(),
                            invert);
     attribute_result.save();
     return;
   }
 
-  GVArrayPtr attribute_angle = params.get_input_attribute(
+  GVArray attribute_angle = params.get_input_attribute(
       "Angle", component, result_domain, CD_PROP_FLOAT, nullptr);
   if (!attribute_angle) {
     return;
@@ -260,40 +260,40 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
 
   switch (mode) {
     case GEO_NODE_VECTOR_ROTATE_TYPE_AXIS: {
-      GVArrayPtr attribute_axis = params.get_input_attribute(
+      GVArray attribute_axis = params.get_input_attribute(
           "Axis", component, result_domain, CD_PROP_FLOAT3, nullptr);
       if (!attribute_axis) {
         return;
       }
-      do_vector_rotate_around_axis(attribute_vector->typed<float3>(),
-                                   attribute_center->typed<float3>(),
-                                   attribute_axis->typed<float3>(),
-                                   attribute_angle->typed<float>(),
+      do_vector_rotate_around_axis(attribute_vector.typed<float3>(),
+                                   attribute_center.typed<float3>(),
+                                   attribute_axis.typed<float3>(),
+                                   attribute_angle.typed<float>(),
                                    attribute_result.as_span<float3>(),
                                    invert);
     } break;
     case GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_X:
-      do_vector_rotate_around_fixed_axis(attribute_vector->typed<float3>(),
-                                         attribute_center->typed<float3>(),
+      do_vector_rotate_around_fixed_axis(attribute_vector.typed<float3>(),
+                                         attribute_center.typed<float3>(),
                                          float3(1.0f, 0.0f, 0.0f),
-                                         attribute_angle->typed<float>(),
+                                         attribute_angle.typed<float>(),
                                          attribute_result.as_span<float3>(),
                                          invert);
       break;
     case GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Y:
-      do_vector_rotate_around_fixed_axis(attribute_vector->typed<float3>(),
-                                         attribute_center->typed<float3>(),
+      do_vector_rotate_around_fixed_axis(attribute_vector.typed<float3>(),
+                                         attribute_center.typed<float3>(),
                                          float3(0.0f, 1.0f, 0.0f),
-                                         attribute_angle->typed<float>(),
+                                         attribute_angle.typed<float>(),
                                          attribute_result.as_span<float3>(),
                                          invert);
 
       break;
     case GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Z:
-      do_vector_rotate_around_fixed_axis(attribute_vector->typed<float3>(),
-                                         attribute_center->typed<float3>(),
+      do_vector_rotate_around_fixed_axis(attribute_vector.typed<float3>(),
+                                         attribute_center.typed<float3>(),
                                          float3(0.0f, 0.0f, 1.0f),
-                                         attribute_angle->typed<float>(),
+                                         attribute_angle.typed<float>(),
                                          attribute_result.as_span<float3>(),
                                          invert);
 

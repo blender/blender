@@ -132,19 +132,19 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
   MovieClip *movie_clip = (MovieClip *)id;
   MovieTracking *tracking = &movie_clip->tracking;
 
-  BKE_LIB_FOREACHID_PROCESS(data, movie_clip->gpd, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
   }
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
-      BKE_LIB_FOREACHID_PROCESS(data, track->gpd, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
     }
   }
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking->plane_tracks) {
-    BKE_LIB_FOREACHID_PROCESS(data, plane_track->image, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
   }
 }
 
@@ -842,7 +842,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int fl
       key.render_flag = 0;
     }
 
-    return IMB_moviecache_get(clip->cache->moviecache, &key);
+    return IMB_moviecache_get(clip->cache->moviecache, &key, NULL);
   }
 
   return NULL;
@@ -1923,6 +1923,11 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,
       IMB_freeImBuf(tmpibuf);
     }
   }
+}
+
+bool BKE_movieclip_proxy_enabled(MovieClip *clip)
+{
+  return clip->flag & MCLIP_USE_PROXY;
 }
 
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)

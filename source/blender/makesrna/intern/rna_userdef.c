@@ -265,6 +265,14 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_theme_text_style_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  const uiStyle *style = UI_style_get();
+  BLF_default_size(style->widgetlabel.points);
+
+  rna_userdef_update(bmain, scene, ptr);
+}
+
 static void rna_userdef_gizmo_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   WM_reinit_gizmomap_all(bmain);
@@ -1128,39 +1136,40 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font");
 
-  prop = RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 6, 24);
+  prop = RNA_def_property(srna, "points", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_range(prop, 6.0f, 32.0f);
+  RNA_def_property_ui_range(prop, 8.0f, 20.0f, 10.0f, 1);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 0, 5);
   RNA_def_property_ui_text(prop, "Shadow Size", "Shadow size (0, 3 and 5 supported)");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 
   prop = RNA_def_property(srna, "shadow_offset_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "shadx");
   RNA_def_property_range(prop, -10, 10);
   RNA_def_property_ui_text(prop, "Shadow X Offset", "Shadow offset in pixels");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 
   prop = RNA_def_property(srna, "shadow_offset_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "shady");
   RNA_def_property_range(prop, -10, 10);
   RNA_def_property_ui_text(prop, "Shadow Y Offset", "Shadow offset in pixels");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 
   prop = RNA_def_property(srna, "shadow_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "shadowalpha");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Shadow Alpha", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 
   prop = RNA_def_property(srna, "shadow_value", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "shadowcolor");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Shadow Brightness", "Shadow color in gray value");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_text_style_update");
 }
 
 static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
@@ -2844,7 +2853,7 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wire_select", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "edge_select");
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Wire Select", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -2911,10 +2920,16 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "grid_levels");
-  RNA_def_property_int_default(prop, 2);
-  RNA_def_property_range(prop, 0, 2);
+  RNA_def_property_int_default(prop, 7);
+  RNA_def_property_range(prop, 0, 9);
   RNA_def_property_ui_text(
-      prop, "Grid Levels", "Amount of grid lines displayed in the background");
+      prop, "Grid Levels", "Number of subdivisions for the dot grid displayed in the background");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "dash_alpha", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 0.5f);
+  RNA_def_property_ui_text(prop, "Dashed Lines Opacity", "Opacity for the dashed lines in wires");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "input_node", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -5010,6 +5025,14 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "Collection Instance Empty Size",
                            "Display size of the empty when new collection instances are created");
 
+  /* Text Editor */
+
+  prop = RNA_def_property(srna, "use_text_edit_auto_close", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "text_flag", USER_TEXT_EDIT_AUTO_CLOSE);
+  RNA_def_property_ui_text(
+      prop, "Auto Close", "Auto close relevant characters inside the text editor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
+
   /* Undo */
 
   prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
@@ -5175,6 +5198,11 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Curve", "Causes curve data to be duplicated with the object");
 
+  prop = RNA_def_property(srna, "use_duplicate_lattice", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LATTICE);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Lattice", "Causes lattice data to be duplicated with the object");
+
   prop = RNA_def_property(srna, "use_duplicate_text", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_FONT);
   RNA_def_property_ui_text(
@@ -5189,6 +5217,16 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ARM);
   RNA_def_property_ui_text(
       prop, "Duplicate Armature", "Causes armature data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_CAMERA);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Camera", "Causes camera data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_speaker", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_SPEAKER);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Speaker", "Causes speaker data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_light", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LAMP);
@@ -6359,6 +6397,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Extended Asset Browser",
                            "Enable Asset Browser editor and operators to manage regular "
                            "data-blocks as assets, not just poses");
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
+
+  prop = RNA_def_property(srna, "show_asset_debug_info", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Asset Debug Info",
+                           "Enable some extra fields in the Asset Browser to aid in debugging");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
   prop = RNA_def_property(srna, "use_override_templates", PROP_BOOLEAN, PROP_NONE);

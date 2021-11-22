@@ -166,9 +166,10 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
     const int quad_method = args_.export_params->quad_method;
     const int ngon_method = args_.export_params->ngon_method;
 
-    struct BMeshCreateParams bmcp = {false};
-    struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
-    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+    BMeshCreateParams bmesh_create_params{};
+    BMeshFromMeshParams bmesh_from_mesh_params{};
+    bmesh_from_mesh_params.calc_face_normal = true;
+    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
     BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);
 
@@ -189,6 +190,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
   m_custom_data_config.totvert = mesh->totvert;
+  m_custom_data_config.timesample_index = timesample_index_;
 
   try {
     if (is_subd_) {
@@ -350,7 +352,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, struct Mesh *mesh, Sc
 
 void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
 {
-  if (frame_has_been_written_ || !args_.export_params->vcolors) {
+  if (!args_.export_params->vcolors) {
     return;
   }
 

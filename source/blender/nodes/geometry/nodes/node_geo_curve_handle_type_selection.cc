@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void geo_node_curve_handle_type_selection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Selection").field_source();
+  b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
 static void geo_node_curve_handle_type_selection_layout(uiLayout *layout,
@@ -91,13 +91,14 @@ class HandleTypeFieldInput final : public fn::FieldInput {
 
  public:
   HandleTypeFieldInput(BezierSpline::HandleType type, GeometryNodeCurveHandleMode mode)
-      : FieldInput(CPPType::get<bool>(), "Selection"), type_(type), mode_(mode)
+      : FieldInput(CPPType::get<bool>(), "Handle Type Selection node"), type_(type), mode_(mode)
   {
+    category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -105,22 +106,22 @@ class HandleTypeFieldInput final : public fn::FieldInput {
       const GeometryComponent &component = geometry_context->geometry_component();
       const AttributeDomain domain = geometry_context->domain();
       if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
-        return nullptr;
+        return {};
       }
 
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
       const CurveEval *curve = curve_component.get_for_read();
       if (curve == nullptr) {
-        return nullptr;
+        return {};
       }
 
       if (domain == ATTR_DOMAIN_POINT) {
         Array<bool> selection(mask.min_array_size());
         select_by_handle_type(*curve, type_, mode_, selection);
-        return &scope.construct<fn::GVArray_For_ArrayContainer<Array<bool>>>(std::move(selection));
+        return VArray<bool>::ForContainer(std::move(selection));
       }
     }
-    return nullptr;
+    return {};
   };
 
   uint64_t hash() const override
@@ -157,11 +158,8 @@ void register_node_type_geo_curve_handle_type_selection()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     GEO_NODE_CURVE_HANDLE_TYPE_SELECTION,
-                     "Handle Type Selection",
-                     NODE_CLASS_GEOMETRY,
-                     0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, "Handle Type Selection", NODE_CLASS_INPUT, 0);
   ntype.declare = blender::nodes::geo_node_curve_handle_type_selection_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_handle_type_selection_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_handle_type_selection_init);

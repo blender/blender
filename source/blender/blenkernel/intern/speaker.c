@@ -50,7 +50,7 @@ static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Speaker *speaker = (Speaker *)id;
 
-  BKE_LIB_FOREACHID_PROCESS(data, speaker->sound, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, speaker->sound, IDWALK_CB_USER);
 }
 
 static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_address)

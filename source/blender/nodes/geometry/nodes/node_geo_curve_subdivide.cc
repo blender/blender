@@ -25,17 +25,13 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
-
 namespace blender::nodes {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Cuts").default_value(1).min(0).max(1000).supports_field();
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>(N_("Cuts")).default_value(1).min(0).max(1000).supports_field();
+  b.add_output<decl::Geometry>(N_("Curve"));
 }
 
 static Array<int> get_subdivided_offsets(const Spline &spline,
@@ -283,8 +279,12 @@ static SplinePtr subdivide_spline(const Spline &spline,
                                   const VArray<int> &cuts,
                                   const int spline_offset)
 {
-  /* Since we expect to access each value many times, it should be worth it to make sure the
-   * attribute is a real span (especially considering the note below). Using the offset at each
+  if (spline.size() <= 1) {
+    return spline.copy();
+  }
+
+  /* Since we expect to access each value many times, it should be worth it to make sure count
+   * of cuts is a real span (especially considering the note below). Using the offset at each
    * point facilitates subdividing in parallel later. */
   Array<int> offsets = get_subdivided_offsets(spline, cuts, spline_offset);
   const int result_size = offsets.last() + int(!spline.is_cyclic());
@@ -324,7 +324,7 @@ static std::unique_ptr<CurveEval> subdivide_curve(const CurveEval &input_curve,
 
 static void geo_node_subdivide_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> cuts_field = params.extract_input<Field<int>>("Cuts");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
@@ -348,7 +348,7 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
     std::unique_ptr<CurveEval> output_curve = subdivide_curve(*component.get_for_read(), cuts);
     geometry_set.replace_curve(output_curve.release());
   });
-  params.set_output("Geometry", geometry_set);
+  params.set_output("Curve", geometry_set);
 }
 
 }  // namespace blender::nodes

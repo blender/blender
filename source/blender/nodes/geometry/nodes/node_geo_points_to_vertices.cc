@@ -27,9 +27,9 @@ namespace blender::nodes {
 
 static void geo_node_points_to_vertices_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points");
-  b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
-  b.add_output<decl::Geometry>("Mesh");
+  b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
 template<typename T>
@@ -74,15 +74,15 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const CustomDataType data_type = entry.value.data_type;
-    GVArrayPtr src = point_component->attribute_get_for_read(
+    GVArray src = point_component->attribute_get_for_read(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
       attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
-        GVArray_Typed<T> src_typed{*src};
-        VArray_Span<T> src_typed_span{*src_typed};
+        VArray<T> src_typed = src.typed<T>();
+        VArray_Span<T> src_typed_span{src_typed};
         copy_attribute_to_vertices(src_typed_span, selection, dst.as_span().typed<T>());
       });
       dst.save();

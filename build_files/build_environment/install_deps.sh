@@ -371,71 +371,78 @@ NO_BUILD=false
 NO_CONFIRM=false
 USE_CXX11=true
 
-# Note about versions: Min is inclusive, Max is exclusive (i.e. XXX_VERSION_MIN <= ACTUAL_VERSION < XXX_VERSION_MAX)
+# Note about versions: Min is inclusive, Mex is 'minimum exclusive' (i.e. XXX_VERSION_MIN <= ACTUAL_VERSION < XXX_VERSION_MEX)
 # XXX_VERSION is officially supported/used version in official builds.
 # XXX_VERSION_SHORT is used for various things, like preferred version (when distribution provides several of them),
 #                   and to name shortcuts to built libraries' installation directories...
 
 CLANG_FORMAT_VERSION_MIN="6.0"
-CLANG_FORMAT_VERSION_MAX="10.0"
+CLANG_FORMAT_VERSION_MEX="10.0"
 
-PYTHON_VERSION="3.9.2"
+PYTHON_VERSION="3.9.7"
 PYTHON_VERSION_SHORT="3.9"
 PYTHON_VERSION_MIN="3.7"
-PYTHON_VERSION_MAX="3.11"
+PYTHON_VERSION_MEX="3.11"
 PYTHON_VERSION_INSTALLED=$PYTHON_VERSION_SHORT
 PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
 # Additional Python modules.
-PYTHON_IDNA_VERSION="2.9"
+PYTHON_IDNA_VERSION="3.2"
 PYTHON_IDNA_VERSION_MIN="2.0"
-PYTHON_IDNA_VERSION_MAX="3.0"
+PYTHON_IDNA_VERSION_MEX="4.0"
 PYTHON_IDNA_NAME="idna"
 
-PYTHON_CHARDET_VERSION="3.0.4"
-PYTHON_CHARDET_VERSION_MIN="3.0"
-PYTHON_CHARDET_VERSION_MAX="5.0"
-PYTHON_CHARDET_NAME="chardet"
+PYTHON_CHARSET_NORMALIZER_VERSION="2.0.6"
+PYTHON_CHARSET_NORMALIZER_VERSION_MIN="2.0.6"
+PYTHON_CHARSET_NORMALIZER_VERSION_MEX="2.1.0"  # requests uses `charset_normalizer~=2.0.0`
+PYTHON_CHARSET_NORMALIZER_NAME="charset-normalizer"
 
-PYTHON_URLLIB3_VERSION="1.25.9"
+PYTHON_URLLIB3_VERSION="1.26.7"
 PYTHON_URLLIB3_VERSION_MIN="1.0"
-PYTHON_URLLIB3_VERSION_MAX="2.0"
+PYTHON_URLLIB3_VERSION_MEX="2.0"
 PYTHON_URLLIB3_NAME="urllib3"
 
-PYTHON_CERTIFI_VERSION="2020.4.5.2"
-PYTHON_CERTIFI_VERSION_MIN="2020.0"
-PYTHON_CERTIFI_VERSION_MAX="2021.0"
+PYTHON_CERTIFI_VERSION="2021.10.8"
+PYTHON_CERTIFI_VERSION_MIN="2021.0"
+PYTHON_CERTIFI_VERSION_MEX="2023.0"
 PYTHON_CERTIFI_NAME="certifi"
 
 PYTHON_REQUESTS_VERSION="2.23.0"
 PYTHON_REQUESTS_VERSION_MIN="2.0"
-PYTHON_REQUESTS_VERSION_MAX="3.0"
+PYTHON_REQUESTS_VERSION_MEX="3.0"
 PYTHON_REQUESTS_NAME="requests"
 
-PYTHON_NUMPY_VERSION="1.19.5"
+PYTHON_ZSTANDARD_VERSION="0.15.2"
+PYTHON_ZSTANDARD_VERSION_MIN="0.15.2"
+PYTHON_ZSTANDARD_VERSION_MEX="0.16.0"
+PYTHON_ZSTANDARD_NAME="zstandard"
+
+PYTHON_NUMPY_VERSION="1.21.2"
 PYTHON_NUMPY_VERSION_MIN="1.14"
-PYTHON_NUMPY_VERSION_MAX="2.0"
+PYTHON_NUMPY_VERSION_MEX="2.0"
 PYTHON_NUMPY_NAME="numpy"
 
 # As package-ready parameters (only used with distro packages).
 PYTHON_MODULES_PACKAGES=(
-  "$PYTHON_IDNA_NAME $PYTHON_IDNA_VERSION_MIN $PYTHON_IDNA_VERSION_MAX"
-  "$PYTHON_CHARDET_NAME $PYTHON_CHARDET_VERSION_MIN $PYTHON_CHARDET_VERSION_MAX"
-  "$PYTHON_URLLIB3_NAME $PYTHON_URLLIB3_VERSION_MIN $PYTHON_URLLIB3_VERSION_MAX"
-  "$PYTHON_CERTIFI_NAME $PYTHON_CERTIFI_VERSION_MIN $PYTHON_CERTIFI_VERSION_MAX"
-  "$PYTHON_REQUESTS_NAME $PYTHON_REQUESTS_VERSION_MIN $PYTHON_REQUESTS_VERSION_MAX"
-  "$PYTHON_NUMPY_NAME $PYTHON_NUMPY_VERSION_MIN $PYTHON_NUMPY_VERSION_MAX"
+  "$PYTHON_IDNA_NAME $PYTHON_IDNA_VERSION_MIN $PYTHON_IDNA_VERSION_MEX"
+  "$PYTHON_CHARSET_NORMALIZER_NAME $PYTHON_CHARSET_NORMALIZER_VERSION_MIN $PYTHON_CHARSET_NORMALIZER_VERSION_MEX"
+  "$PYTHON_URLLIB3_NAME $PYTHON_URLLIB3_VERSION_MIN $PYTHON_URLLIB3_VERSION_MEX"
+  "$PYTHON_CERTIFI_NAME $PYTHON_CERTIFI_VERSION_MIN $PYTHON_CERTIFI_VERSION_MEX"
+  "$PYTHON_REQUESTS_NAME $PYTHON_REQUESTS_VERSION_MIN $PYTHON_REQUESTS_VERSION_MEX"
+  "$PYTHON_ZSTANDARD_NAME $PYTHON_ZSTANDARD_VERSION_MIN $PYTHON_ZSTANDARD_VERSION_MEX"
+  "$PYTHON_NUMPY_NAME $PYTHON_NUMPY_VERSION_MIN $PYTHON_NUMPY_VERSION_MEX"
 )
 
 # As pip-ready parameters (only used when building python).
 PYTHON_MODULES_PIP=(
   "$PYTHON_IDNA_NAME==$PYTHON_IDNA_VERSION"
-  "$PYTHON_CHARDET_NAME==$PYTHON_CHARDET_VERSION"
+  "$PYTHON_CHARSET_NORMALIZER_NAME==$PYTHON_CHARSET_NORMALIZER_VERSION"
   "$PYTHON_URLLIB3_NAME==$PYTHON_URLLIB3_VERSION"
   "$PYTHON_CERTIFI_NAME==$PYTHON_CERTIFI_VERSION"
   "$PYTHON_REQUESTS_NAME==$PYTHON_REQUESTS_VERSION"
+  "$PYTHON_ZSTANDARD_NAME==$PYTHON_ZSTANDARD_VERSION"
   "$PYTHON_NUMPY_NAME==$PYTHON_NUMPY_VERSION"
 )
 
@@ -443,7 +450,7 @@ PYTHON_MODULES_PIP=(
 BOOST_VERSION="1.73.0"
 BOOST_VERSION_SHORT="1.73"
 BOOST_VERSION_MIN="1.49"
-BOOST_VERSION_MAX="2.0"
+BOOST_VERSION_MEX="2.0"
 BOOST_FORCE_BUILD=false
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
@@ -452,7 +459,7 @@ TBB_VERSION="2020"
 TBB_VERSION_SHORT="2020"
 TBB_VERSION_UPDATE="_U2"  # Used for source packages...
 TBB_VERSION_MIN="2018"
-TBB_VERSION_MAX="2022"
+TBB_VERSION_MEX="2022"
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
@@ -460,7 +467,7 @@ TBB_SKIP=false
 OCIO_VERSION="2.0.0"
 OCIO_VERSION_SHORT="2.0"
 OCIO_VERSION_MIN="2.0"
-OCIO_VERSION_MAX="3.0"
+OCIO_VERSION_MEX="3.0"
 OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
@@ -468,7 +475,7 @@ OCIO_SKIP=false
 OPENEXR_VERSION="2.5.5"
 OPENEXR_VERSION_SHORT="2.5"
 OPENEXR_VERSION_MIN="2.4"
-OPENEXR_VERSION_MAX="3.0"
+OPENEXR_VERSION_MEX="3.0"
 OPENEXR_FORCE_BUILD=false
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
@@ -477,7 +484,7 @@ _with_built_openexr=false
 OIIO_VERSION="2.2.15.1"
 OIIO_VERSION_SHORT="2.2"
 OIIO_VERSION_MIN="2.1.12"
-OIIO_VERSION_MAX="2.3.0"
+OIIO_VERSION_MEX="2.3.0"
 OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -485,7 +492,7 @@ OIIO_SKIP=false
 LLVM_VERSION="12.0.0"
 LLVM_VERSION_SHORT="12.0"
 LLVM_VERSION_MIN="11.0"
-LLVM_VERSION_MAX="13.0"
+LLVM_VERSION_MEX="13.0"
 LLVM_VERSION_FOUND=""
 LLVM_FORCE_BUILD=false
 LLVM_FORCE_REBUILD=false
@@ -495,7 +502,7 @@ LLVM_SKIP=false
 OSL_VERSION="1.11.14.1"
 OSL_VERSION_SHORT="1.11"
 OSL_VERSION_MIN="1.11"
-OSL_VERSION_MAX="2.0"
+OSL_VERSION_MEX="2.0"
 OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
@@ -504,7 +511,7 @@ OSL_SKIP=false
 OSD_VERSION="3.4.3"
 OSD_VERSION_SHORT="3.4"
 OSD_VERSION_MIN="3.4"
-OSD_VERSION_MAX="4.0"
+OSD_VERSION_MEX="4.0"
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
 OSD_SKIP=false
@@ -515,7 +522,7 @@ OPENVDB_BLOSC_VERSION="1.5.0"
 OPENVDB_VERSION="8.0.1"
 OPENVDB_VERSION_SHORT="8.0"
 OPENVDB_VERSION_MIN="8.0"
-OPENVDB_VERSION_MAX="8.1"
+OPENVDB_VERSION_MEX="8.1"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -524,7 +531,7 @@ OPENVDB_SKIP=false
 ALEMBIC_VERSION="1.7.16"
 ALEMBIC_VERSION_SHORT="1.7"
 ALEMBIC_VERSION_MIN="1.7"
-ALEMBIC_VERSION_MAX="2.0"
+ALEMBIC_VERSION_MEX="2.0"
 ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
@@ -532,7 +539,7 @@ ALEMBIC_SKIP=false
 USD_VERSION="21.02"
 USD_VERSION_SHORT="21.02"
 USD_VERSION_MIN="20.05"
-USD_VERSION_MAX="22.00"
+USD_VERSION_MEX="22.00"
 USD_FORCE_BUILD=false
 USD_FORCE_REBUILD=false
 USD_SKIP=false
@@ -540,7 +547,7 @@ USD_SKIP=false
 OPENCOLLADA_VERSION="1.6.68"
 OPENCOLLADA_VERSION_SHORT="1.6"
 OPENCOLLADA_VERSION_MIN="1.6.68"
-OPENCOLLADA_VERSION_MAX="1.7"
+OPENCOLLADA_VERSION_MEX="1.7"
 OPENCOLLADA_FORCE_BUILD=false
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
@@ -548,7 +555,7 @@ OPENCOLLADA_SKIP=false
 EMBREE_VERSION="3.10.0"
 EMBREE_VERSION_SHORT="3.10"
 EMBREE_VERSION_MIN="3.10"
-EMBREE_VERSION_MAX="4.0"
+EMBREE_VERSION_MEX="4.0"
 EMBREE_FORCE_BUILD=false
 EMBREE_FORCE_REBUILD=false
 EMBREE_SKIP=false
@@ -556,7 +563,7 @@ EMBREE_SKIP=false
 OIDN_VERSION="1.4.1"
 OIDN_VERSION_SHORT="1.4"
 OIDN_VERSION_MIN="1.4.0"
-OIDN_VERSION_MAX="1.5"
+OIDN_VERSION_MEX="1.5"
 OIDN_FORCE_BUILD=false
 OIDN_FORCE_REBUILD=false
 OIDN_SKIP=false
@@ -566,7 +573,7 @@ ISPC_VERSION="1.16.0"
 FFMPEG_VERSION="4.4"
 FFMPEG_VERSION_SHORT="4.4"
 FFMPEG_VERSION_MIN="3.0"
-FFMPEG_VERSION_MAX="5.0"
+FFMPEG_VERSION_MEX="5.0"
 FFMPEG_FORCE_BUILD=false
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
@@ -575,7 +582,7 @@ _ffmpeg_list_sep=";"
 XR_OPENXR_VERSION="1.0.17"
 XR_OPENXR_VERSION_SHORT="1.0"
 XR_OPENXR_VERSION_MIN="1.0.8"
-XR_OPENXR_VERSION_MAX="2.0"
+XR_OPENXR_VERSION_MEX="2.0"
 XR_OPENXR_FORCE_BUILD=false
 XR_OPENXR_FORCE_REBUILD=false
 XR_OPENXR_SKIP=false
@@ -1141,10 +1148,11 @@ You may also want to build them yourself (optional ones are [between brackets]):
 
     * Python $PYTHON_VERSION (from $PYTHON_SOURCE).
     ** [IDNA $PYTHON_IDNA_VERSION] (use pip).
-    ** [Chardet $PYTHON_CHARDET_VERSION] (use pip).
+    ** [Charset Normalizer $PYTHON_CHARSET_NORMALIZER_VERSION] (use pip).
     ** [Urllib3 $PYTHON_URLLIB3_VERSION] (use pip).
     ** [Certifi $PYTHON_CERTIFI_VERSION] (use pip).
     ** [Requests $PYTHON_REQUESTS_VERSION] (use pip).
+    ** [ZStandard $PYTHON_ZSTANDARD_VERSION] (use pip).
     ** [NumPy $PYTHON_NUMPY_VERSION] (use pip).
     * Boost $BOOST_VERSION (from $BOOST_SOURCE, modules: $BOOST_BUILD_MODULES).
     * TBB $TBB_VERSION (from $TBB_SOURCE).
@@ -4028,7 +4036,7 @@ install_DEB() {
     INFO "Forced Python building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_ge_lt_DEB python3-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MAX
+    check_package_version_ge_lt_DEB python3-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
       PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
@@ -4041,8 +4049,8 @@ install_DEB() {
         module=($module)
         package="python3-${module[0]}"
         package_vmin=${module[1]}
-        package_vmax=${module[2]}
-        check_package_version_ge_lt_DEB "$package" $package_vmin $package_vmax
+        package_vmex=${module[2]}
+        check_package_version_ge_lt_DEB "$package" $package_vmin $package_vmex
         if [ $? -eq 0 ]; then
           install_packages_DEB "$package"
         else
@@ -4068,7 +4076,7 @@ install_DEB() {
     INFO "Forced Boost building, as requested..."
     compile_Boost
   else
-    check_package_version_ge_lt_DEB libboost-dev $BOOST_VERSION_MIN $BOOST_VERSION_MAX
+    check_package_version_ge_lt_DEB libboost-dev $BOOST_VERSION_MIN $BOOST_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libboost-dev
 
@@ -4089,7 +4097,7 @@ install_DEB() {
     INFO "Forced TBB building, as requested..."
     compile_TBB
   else
-    check_package_version_ge_lt_DEB libtbb-dev $TBB_VERSION_MIN $TBB_VERSION_MAX
+    check_package_version_ge_lt_DEB libtbb-dev $TBB_VERSION_MIN $TBB_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libtbb-dev
       clean_TBB
@@ -4106,7 +4114,7 @@ install_DEB() {
     INFO "Forced OpenColorIO building, as requested..."
     compile_OCIO
   else
-    check_package_version_ge_lt_DEB libopencolorio-dev $OCIO_VERSION_MIN $OCIO_VERSION_MAX
+    check_package_version_ge_lt_DEB libopencolorio-dev $OCIO_VERSION_MIN $OCIO_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libopencolorio-dev
       clean_OCIO
@@ -4123,7 +4131,7 @@ install_DEB() {
     INFO "Forced ILMBase/OpenEXR building, as requested..."
     compile_OPENEXR
   else
-    check_package_version_ge_lt_DEB libopenexr-dev $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MAX
+    check_package_version_ge_lt_DEB libopenexr-dev $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libopenexr-dev
       OPENEXR_VERSION=`get_package_version_DEB libopenexr-dev`
@@ -4144,7 +4152,7 @@ install_DEB() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MEX
     if [ $? -eq 0 -a "$_with_built_openexr" = false ]; then
       install_packages_DEB libopenimageio-dev openimageio-tools
       clean_OIIO
@@ -4164,7 +4172,7 @@ install_DEB() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_ge_lt_DEB llvm-dev $LLVM_VERSION_MIN $LLVM_VERSION_MAX
+    check_package_version_ge_lt_DEB llvm-dev $LLVM_VERSION_MIN $LLVM_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB llvm-dev clang libclang-dev
       have_llvm=true
@@ -4195,7 +4203,7 @@ install_DEB() {
     INFO "Forced OpenShadingLanguage building, as requested..."
     _do_compile_osl=true
   else
-    check_package_version_ge_lt_DEB  libopenshadinglanguage-dev $OSL_VERSION_MIN $OSL_VERSION_MAX
+    check_package_version_ge_lt_DEB  libopenshadinglanguage-dev $OSL_VERSION_MIN $OSL_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libopenshadinglanguage-dev
       clean_OSL
@@ -4233,7 +4241,7 @@ install_DEB() {
     INFO "Forced OpenVDB building, as requested..."
     compile_OPENVDB
   else
-    check_package_version_ge_lt_DEB libopenvdb-dev $OPENVDB_VERSION_MIN $OPENVDB_VERSION_MAX
+    check_package_version_ge_lt_DEB libopenvdb-dev $OPENVDB_VERSION_MIN $OPENVDB_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_DEB libopenvdb-dev libblosc-dev
       clean_OPENVDB
@@ -4295,7 +4303,7 @@ install_DEB() {
       _do_compile_embree=true
     else
       # There is a package, but it does not provide everything that Blender needs...
-      #~ check_package_version_ge_lt_DEB libembree-dev $EMBREE_VERSION_MIN $EMBREE_VERSION_MAX
+      #~ check_package_version_ge_lt_DEB libembree-dev $EMBREE_VERSION_MIN $EMBREE_VERSION_MEX
       #~ if [ $? -eq 0 ]; then
         #~ install_packages_DEB libembree-dev
         #~ clean_Embree
@@ -4337,7 +4345,7 @@ install_DEB() {
     # XXX Debian Testing / Ubuntu 16.04 finally includes FFmpeg, so check as usual
     check_package_DEB ffmpeg
     if [ $? -eq 0 ]; then
-      check_package_version_ge_lt_DEB ffmpeg $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MAX
+      check_package_version_ge_lt_DEB ffmpeg $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MEX
       if [ $? -eq 0 ]; then
         install_packages_DEB libavdevice-dev
         clean_FFmpeg
@@ -4671,7 +4679,7 @@ install_RPM() {
     INFO "Forced Python building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_ge_lt_RPM python3-devel $PYTHON_VERSION_MIN $PYTHON_VERSION_MAX
+    check_package_version_ge_lt_RPM python3-devel $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
       PYTHON_VERSION_INSTALLED=$(echo `get_package_version_RPM python3-devel` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
@@ -4683,8 +4691,8 @@ install_RPM() {
         module=($module)
         package="python3-${module[0]}"
         package_vmin=${module[1]}
-        package_vmax=${module[2]}
-        check_package_version_ge_lt_RPM "$package" $package_vmin $package_vmax
+        package_vmex=${module[2]}
+        check_package_version_ge_lt_RPM "$package" $package_vmin $package_vmex
         if [ $? -eq 0 ]; then
           install_packages_RPM "$package"
         else
@@ -4711,7 +4719,7 @@ install_RPM() {
     INFO "Forced Boost building, as requested..."
     _do_compile_boost=true
   else
-    check_package_version_ge_lt_RPM boost-devel $BOOST_VERSION_MIN $BOOST_VERSION_MAX
+    check_package_version_ge_lt_RPM boost-devel $BOOST_VERSION_MIN $BOOST_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM boost-devel
       clean_Boost
@@ -4738,7 +4746,7 @@ install_RPM() {
     INFO "Forced TBB building, as requested..."
     compile_TBB
   else
-    check_package_version_ge_lt_RPM tbb-devel $TBB_VERSION_MIN $TBB_VERSION_MAX
+    check_package_version_ge_lt_RPM tbb-devel $TBB_VERSION_MIN $TBB_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM tbb-devel
       clean_TBB
@@ -4756,7 +4764,7 @@ install_RPM() {
     compile_OCIO
   else
     if [ "$RPM" = "SUSE" ]; then
-      check_package_version_ge_lt_RPM OpenColorIO-devel $OCIO_VERSION_MIN $OCIO_VERSION_MAX
+      check_package_version_ge_lt_RPM OpenColorIO-devel $OCIO_VERSION_MIN $OCIO_VERSION_MEX
       if [ $? -eq 0 ]; then
         install_packages_RPM OpenColorIO-devel
         clean_OCIO
@@ -4776,7 +4784,7 @@ install_RPM() {
     INFO "Forced ILMBase/OpenEXR building, as requested..."
     compile_OPENEXR
   else
-    check_package_version_ge_lt_RPM openexr-devel $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MAX
+    check_package_version_ge_lt_RPM openexr-devel $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM openexr-devel
       OPENEXR_VERSION=`get_package_version_RPM openexr-devel`
@@ -4794,7 +4802,7 @@ install_RPM() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MEX
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_RPM OpenImageIO-devel OpenImageIO-utils
       clean_OIIO
@@ -4819,7 +4827,7 @@ install_RPM() {
     else
       CLANG_DEV="clang-devel"
     fi
-    check_package_version_ge_lt_RPM llvm-devel $LLVM_VERSION_MIN $LLVM_VERSION_MAX
+    check_package_version_ge_lt_RPM llvm-devel $LLVM_VERSION_MIN $LLVM_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM llvm-devel $CLANG_DEV
       have_llvm=true
@@ -4855,7 +4863,7 @@ install_RPM() {
     else
       OSL_DEV="openshadinglanguage-devel"
     fi
-    check_package_version_ge_lt_RPM $OSL_DEV $OSL_VERSION_MIN $OSL_VERSION_MAX
+    check_package_version_ge_lt_RPM $OSL_DEV $OSL_VERSION_MIN $OSL_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM $OSL_DEV
       clean_OSL
@@ -4950,7 +4958,7 @@ install_RPM() {
       _do_compile_embree=true
     else
       # There is a package, but it does not provide everything that Blender needs...
-      #~ check_package_version_ge_lt_RPM embree-devel $EMBREE_VERSION_MIN $EMBREE_VERSION_MAX
+      #~ check_package_version_ge_lt_RPM embree-devel $EMBREE_VERSION_MIN $EMBREE_VERSION_MEX
       #~ if [ $? -eq 0 ]; then
         #~ install_packages_RPM embree-devel
         #~ clean_Embree
@@ -4989,7 +4997,7 @@ install_RPM() {
     INFO "Forced FFMpeg building, as requested..."
     compile_FFmpeg
   else
-    check_package_version_ge_lt_RPM ffmpeg-devel $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MAX
+    check_package_version_ge_lt_RPM ffmpeg-devel $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM ffmpeg ffmpeg-devel
       clean_FFmpeg
@@ -5214,7 +5222,7 @@ install_ARCH() {
     INFO "Forced Python building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_ge_lt_ARCH python $PYTHON_VERSION_MIN $PYTHON_VERSION_MAX
+    check_package_version_ge_lt_ARCH python $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
       PYTHON_VERSION_INSTALLED=$(echo `get_package_version_ARCH python` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
@@ -5227,8 +5235,8 @@ install_ARCH() {
         module=($module)
         package="python-${module[0]}"
         package_vmin=${module[1]}
-        package_vmax=${module[2]}
-        check_package_version_ge_lt_ARCH "$package" $package_vmin $package_vmax
+        package_vmex=${module[2]}
+        check_package_version_ge_lt_ARCH "$package" $package_vmin $package_vmex
         if [ $? -eq 0 ]; then
           install_packages_ARCH "$package"
         else
@@ -5254,7 +5262,7 @@ install_ARCH() {
     INFO "Forced Boost building, as requested..."
     compile_Boost
   else
-    check_package_version_ge_lt_ARCH boost $BOOST_VERSION_MIN $BOOST_VERSION_MAX
+    check_package_version_ge_lt_ARCH boost $BOOST_VERSION_MIN $BOOST_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH boost
       clean_Boost
@@ -5271,7 +5279,7 @@ install_ARCH() {
     INFO "Forced TBB building, as requested..."
     compile_TBB
   else
-    check_package_version_ge_lt_ARCH intel-tbb $TBB_VERSION_MIN $TBB_VERSION_MAX
+    check_package_version_ge_lt_ARCH intel-tbb $TBB_VERSION_MIN $TBB_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH intel-tbb
       clean_TBB
@@ -5288,7 +5296,7 @@ install_ARCH() {
     INFO "Forced OpenColorIO building, as requested..."
     compile_OCIO
   else
-    check_package_version_ge_lt_ARCH opencolorio $OCIO_VERSION_MIN $OCIO_VERSION_MAX
+    check_package_version_ge_lt_ARCH opencolorio $OCIO_VERSION_MIN $OCIO_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH opencolorio
       clean_OCIO
@@ -5305,7 +5313,7 @@ install_ARCH() {
     INFO "Forced ILMBase/OpenEXR building, as requested..."
     compile_OPENEXR
   else
-    check_package_version_ge_lt_ARCH openexr $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MAX
+    check_package_version_ge_lt_ARCH openexr $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openexr
       OPENEXR_VERSION=`get_package_version_ARCH openexr`
@@ -5324,7 +5332,7 @@ install_ARCH() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    check_package_version_ge_lt_ARCH openimageio $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    check_package_version_ge_lt_ARCH openimageio $OIIO_VERSION_MIN $OIIO_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openimageio
       clean_OIIO
@@ -5344,7 +5352,7 @@ install_ARCH() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_ge_lt_ARCH llvm $LLVM_VERSION_MIN $LLVM_VERSION_MAX
+    check_package_version_ge_lt_ARCH llvm $LLVM_VERSION_MIN $LLVM_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH llvm clang
       have_llvm=true
@@ -5375,7 +5383,7 @@ install_ARCH() {
     INFO "Forced OpenShadingLanguage building, as requested..."
     _do_compile_osl=true
   else
-    check_package_version_ge_lt_ARCH openshadinglanguage $OSL_VERSION_MIN $OSL_VERSION_MAX
+    check_package_version_ge_lt_ARCH openshadinglanguage $OSL_VERSION_MIN $OSL_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openshadinglanguage
       clean_OSL
@@ -5401,7 +5409,7 @@ install_ARCH() {
     INFO "Forced OpenSubdiv building, as requested..."
     compile_OSD
   else
-    check_package_version_ge_lt_ARCH opensubdiv $OSD_VERSION_MIN $OSD_VERSION_MAX
+    check_package_version_ge_lt_ARCH opensubdiv $OSD_VERSION_MIN $OSD_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH opensubdiv
       clean_OSD
@@ -5418,7 +5426,7 @@ install_ARCH() {
     INFO "Forced OpenVDB building, as requested..."
     compile_OPENVDB
   else
-    check_package_version_ge_lt_ARCH openvdb $OPENVDB_VERSION_MIN $OPENVDB_VERSION_MAX
+    check_package_version_ge_lt_ARCH openvdb $OPENVDB_VERSION_MIN $OPENVDB_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openvdb
       clean_OPENVDB
@@ -5484,7 +5492,7 @@ install_ARCH() {
       _do_compile_embree=true
     else
       # There is a package, but it does not provide everything that Blender needs...
-      #~ check_package_version_ge_lt_ARCH embree $EMBREE_VERSION_MIN $EMBREE_VERSION_MAX
+      #~ check_package_version_ge_lt_ARCH embree $EMBREE_VERSION_MIN $EMBREE_VERSION_MEX
       #~ if [ $? -eq 0 ]; then
         #~ install_packages_ARCH embree
         #~ clean_Embree
@@ -5523,7 +5531,7 @@ install_ARCH() {
     INFO "Forced FFMpeg building, as requested..."
     compile_FFmpeg
   else
-    check_package_version_ge_lt_ARCH ffmpeg $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MAX
+    check_package_version_ge_lt_ARCH ffmpeg $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH ffmpeg
       clean_FFmpeg

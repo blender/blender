@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "util/util_string.h"
-#include "util/util_vector.h"
+#include "util/string.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -47,7 +47,7 @@ struct View2D;
 
 void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
-bool file_draw_hint_if_invalid(const SpaceFile *sfile, const ARegion *region);
+bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region);
 
 void file_draw_check_ex(bContext *C, struct ScrArea *area);
 void file_draw_check(bContext *C);
@@ -79,6 +79,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot);
 void FILE_OT_previous(struct wmOperatorType *ot);
 void FILE_OT_next(struct wmOperatorType *ot);
 void FILE_OT_refresh(struct wmOperatorType *ot);
+void FILE_OT_asset_library_refresh(struct wmOperatorType *ot);
 void FILE_OT_filenum(struct wmOperatorType *ot);
 void FILE_OT_delete(struct wmOperatorType *ot);
 void FILE_OT_rename(struct wmOperatorType *ot);

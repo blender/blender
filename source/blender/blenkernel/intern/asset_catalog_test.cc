@@ -24,6 +24,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "testing/testing.h"
@@ -35,10 +36,12 @@ const bUUID UUID_ID_WITHOUT_PATH("e34dd2c5-5d2e-4668-9794-1db5de2a4f71");
 const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
 const bUUID UUID_POSES_ELLIE_WHITESPACE("b06132f6-5687-4751-a6dd-392740eb3c46");
 const bUUID UUID_POSES_ELLIE_TRAILING_SLASH("3376b94b-a28d-4d05-86c1-bf30b937130d");
+const bUUID UUID_POSES_ELLIE_BACKSLASHES("a51e17ae-34fc-47d5-ba0f-64c2c9b771f7");
 const bUUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
 const bUUID UUID_POSES_RUZENA_HAND("81811c31-1a88-4bd7-bb34-c6fc2607a12e");
 const bUUID UUID_POSES_RUZENA_FACE("82162c1f-06cc-4d91-a9bf-4f72c104e348");
 const bUUID UUID_WITHOUT_SIMPLENAME("d7916a31-6ca9-4909-955f-182ca2b81fa3");
+const bUUID UUID_ANOTHER_RUZENA("00000000-d9fa-4b91-b704-e6af1f1339ef");
 
 /* UUIDs from lib/tests/asset_library/modified_assets.cats.txt */
 const bUUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
@@ -58,9 +61,19 @@ class TestableAssetCatalogService : public AssetCatalogService {
     return AssetCatalogService::get_catalog_definition_file();
   }
 
+  OwningAssetCatalogMap &get_deleted_catalogs()
+  {
+    return AssetCatalogService::get_deleted_catalogs();
+  }
+
   void create_missing_catalogs()
   {
     AssetCatalogService::create_missing_catalogs();
+  }
+
+  void delete_catalog_by_id_soft(CatalogID catalog_id)
+  {
+    AssetCatalogService::delete_catalog_by_id_soft(catalog_id);
   }
 
   int64_t count_catalogs_with_path(const CatalogFilePath &path)
@@ -290,6 +303,56 @@ TEST_F(AssetCatalogTest, load_single_file)
   EXPECT_EQ(UUID_POSES_RUZENA, poses_ruzena->catalog_id);
   EXPECT_EQ("character/Ružena/poselib", poses_ruzena->path.str());
   EXPECT_EQ("POSES_RUŽENA", poses_ruzena->simple_name);
+
+  /* Test getting a catalog that aliases an earlier-defined catalog. */
+  AssetCatalog *another_ruzena = service.find_catalog(UUID_ANOTHER_RUZENA);
+  ASSERT_NE(nullptr, another_ruzena);
+  EXPECT_EQ(UUID_ANOTHER_RUZENA, another_ruzena->catalog_id);
+  EXPECT_EQ("character/Ružena/poselib", another_ruzena->path.str());
+  EXPECT_EQ("Another Ružena", another_ruzena->simple_name);
+}
+
+TEST_F(AssetCatalogTest, load_catalog_path_backslashes)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  const AssetCatalog *found_by_id = service.find_catalog(UUID_POSES_ELLIE_BACKSLASHES);
+  ASSERT_NE(nullptr, found_by_id);
+  EXPECT_EQ(AssetCatalogPath("character/Ellie/backslashes"), found_by_id->path)
+      << "Backslashes should be normalised when loading from disk.";
+  EXPECT_EQ(StringRefNull("Windows For Life!"), found_by_id->simple_name);
+
+  const AssetCatalog *found_by_path = service.find_catalog_by_path("character/Ellie/backslashes");
+  EXPECT_EQ(found_by_id, found_by_path)
+      << "Catalog with backslashed path should be findable by the normalized path.";
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path("character\\Ellie\\backslashes"))
+      << "Nothing should be found when searching for backslashes.";
+}
+
+TEST_F(AssetCatalogTest, is_first_loaded_flag)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  AssetCatalog *new_cat = service.create_catalog("never/before/seen/path");
+  EXPECT_FALSE(new_cat->flags.is_first_loaded)
+      << "Adding a catalog at runtime should never mark it as 'first loaded'; "
+         "only loading from disk is allowed to do that.";
+
+  AssetCatalog *alias_cat = service.create_catalog("character/Ružena/poselib");
+  EXPECT_FALSE(alias_cat->flags.is_first_loaded)
+      << "Adding a new catalog with an already-loaded path should not mark it as 'first loaded'";
+
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_ELLIE)->flags.is_first_loaded);
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->flags.is_first_loaded);
+  EXPECT_TRUE(service.find_catalog(UUID_POSES_RUZENA)->flags.is_first_loaded);
+  EXPECT_FALSE(service.find_catalog(UUID_ANOTHER_RUZENA)->flags.is_first_loaded);
+
+  AssetCatalog *ruzena = service.find_catalog_by_path("character/Ružena/poselib");
+  EXPECT_EQ(UUID_POSES_RUZENA, ruzena->catalog_id)
+      << "The first-seen definition of a catalog should be returned";
 }
 
 TEST_F(AssetCatalogTest, insert_item_into_tree)
@@ -381,6 +444,7 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -727,6 +791,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -745,11 +810,11 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
 
 TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
 {
-  AssetCatalogService service(asset_library_root_);
+  TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
   /* Delete a parent catalog. */
-  service.delete_catalog_by_id(UUID_POSES_RUZENA);
+  service.delete_catalog_by_id_soft(UUID_POSES_RUZENA);
 
   /* The catalog should have been deleted, but its children should still be there. */
   EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
@@ -763,7 +828,8 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
   /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
-   * This creates some duplicates that are bound to occur in production asset libraries as well. */
+   * This creates some duplicates that are bound to occur in production asset libraries as well.
+   */
   const bUUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
   const bUUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
 
@@ -782,6 +848,7 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
   std::vector<AssetCatalogPath> expected_paths{
       "character",
       "character/Ellie",
+      "character/Ellie/backslashes",
       "character/Ellie/poselib",
       "character/Ellie/poselib/tailslash",
       "character/Ellie/poselib/white space",
@@ -801,7 +868,7 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
   service.load_from_disk(asset_library_root_ + "/" +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
-  service.delete_catalog_by_id(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id_soft(UUID_POSES_ELLIE);
 
   const CatalogFilePath save_to_path = use_temp_path();
   AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
@@ -836,8 +903,6 @@ TEST_F(AssetCatalogTest, update_catalog_path)
   const AssetCatalog *renamed_cat = service.find_catalog(UUID_POSES_RUZENA);
   ASSERT_NE(nullptr, renamed_cat);
   ASSERT_EQ(orig_cat, renamed_cat) << "Changing the path should not reallocate the catalog.";
-  EXPECT_EQ(orig_cat->simple_name, renamed_cat->simple_name)
-      << "Changing the path should not change the simple name.";
   EXPECT_EQ(orig_cat->catalog_id, renamed_cat->catalog_id)
       << "Changing the path should not change the catalog ID.";
 
@@ -847,6 +912,85 @@ TEST_F(AssetCatalogTest, update_catalog_path)
   EXPECT_EQ("charlib/Ružena/hand", service.find_catalog(UUID_POSES_RUZENA_HAND)->path.str())
       << "Changing the path should update children.";
   EXPECT_EQ("charlib/Ružena/face", service.find_catalog(UUID_POSES_RUZENA_FACE)->path.str())
+      << "Changing the path should update children.";
+}
+
+TEST_F(AssetCatalogTest, update_catalog_path_simple_name)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+  service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
+
+  /* This may not be valid forever; maybe at some point we'll expose the simple name to users &
+   * let them change it from the UI. Until then, automatically updating it is better, because
+   * otherwise all simple names would be "Catalog". */
+  EXPECT_EQ("charlib-Ružena", service.find_catalog(UUID_POSES_RUZENA)->simple_name)
+      << "Changing the path should update the simplename.";
+  EXPECT_EQ("charlib-Ružena-face", service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
+      << "Changing the path should update the simplename of children.";
+}
+
+TEST_F(AssetCatalogTest, update_catalog_path_longer_than_simplename)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+  const std::string new_path =
+      "this/is/a/very/long/path/that/exceeds/the/simple-name/length/of/assets";
+  ASSERT_GT(new_path.length(), sizeof(AssetMetaData::catalog_simple_name))
+      << "This test case should work with paths longer than AssetMetaData::catalog_simple_name";
+
+  service.update_catalog_path(UUID_POSES_RUZENA, new_path);
+
+  const std::string new_simple_name = service.find_catalog(UUID_POSES_RUZENA)->simple_name;
+  EXPECT_LT(new_simple_name.length(), sizeof(AssetMetaData::catalog_simple_name))
+      << "The new simple name should fit in the asset metadata.";
+  EXPECT_EQ("...very-long-path-that-exceeds-the-simple-name-length-of-assets", new_simple_name)
+      << "Changing the path should update the simplename.";
+  EXPECT_EQ("...long-path-that-exceeds-the-simple-name-length-of-assets-face",
+            service.find_catalog(UUID_POSES_RUZENA_FACE)->simple_name)
+      << "Changing the path should update the simplename of children.";
+}
+
+TEST_F(AssetCatalogTest, update_catalog_path_add_slashes)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+
+  const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
+  const AssetCatalogPath orig_path = orig_cat->path;
+
+  /* Original path is `character/Ružena/poselib`.
+   * This rename will also create a new catalog for `character/Ružena/poses`. */
+  service.update_catalog_path(UUID_POSES_RUZENA, "character/Ružena/poses/general");
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path(orig_path))
+      << "The original (pre-rename) path should not be associated with a catalog any more.";
+
+  const AssetCatalog *renamed_cat = service.find_catalog(UUID_POSES_RUZENA);
+  ASSERT_NE(nullptr, renamed_cat);
+  EXPECT_EQ(orig_cat->catalog_id, renamed_cat->catalog_id)
+      << "Changing the path should not change the catalog ID.";
+
+  EXPECT_EQ("character/Ružena/poses/general", renamed_cat->path.str())
+      << "When creating a new catalog by renaming + adding a slash, the renamed catalog should be "
+         "assigned the path passed to update_catalog_path()";
+
+  /* Test the newly created catalog. */
+  const AssetCatalog *new_cat = service.find_catalog_by_path("character/Ružena/poses");
+  ASSERT_NE(nullptr, new_cat) << "Renaming to .../X/Y should cause .../X to exist as well.";
+  EXPECT_EQ("character/Ružena/poses", new_cat->path.str());
+  EXPECT_EQ("character-Ružena-poses", new_cat->simple_name);
+  EXPECT_TRUE(new_cat->flags.has_unsaved_changes);
+
+  /* Test the children. */
+  EXPECT_EQ("character/Ružena/poses/general/hand",
+            service.find_catalog(UUID_POSES_RUZENA_HAND)->path.str())
+      << "Changing the path should update children.";
+  EXPECT_EQ("character/Ružena/poses/general/face",
+            service.find_catalog(UUID_POSES_RUZENA_FACE)->path.str())
       << "Changing the path should update children.";
 }
 
@@ -866,7 +1010,9 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
    * CDF after we loaded it. */
   ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
 
-  /* Overwrite the modified file. This should merge the on-disk file with our catalogs. */
+  /* Overwrite the modified file. This should merge the on-disk file with our catalogs.
+   * No catalog was marked as "has unsaved changes", so effectively this should not
+   * save anything, and reload what's on disk. */
   service.write_to_disk(cdf_dir + "phony.blend");
 
   AssetCatalogService loaded_service(cdf_dir);
@@ -874,16 +1020,90 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
 
   /* Test that the expected catalogs are there. */
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_HAND));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_FACE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_AGENT_47)); /* New in the modified file. */
 
-  /* When there are overlaps, the in-memory (i.e. last-saved) paths should win. */
+  /* Test that catalogs removed from modified CDF are gone. */
+  EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
+  EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
+  EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_HAND));
+
+  /* On-disk changed catalogs should have overridden in-memory not-changed ones. */
   const AssetCatalog *ruzena_face = loaded_service.find_catalog(UUID_POSES_RUZENA_FACE);
-  EXPECT_EQ("character/Ružena/poselib/face", ruzena_face->path.str());
+  EXPECT_EQ("character/Ružena/poselib/gezicht", ruzena_face->path.str());
+}
+
+TEST_F(AssetCatalogTest, refresh_catalogs_with_modification)
+{
+  const CatalogFilePath cdf_dir = create_temp_path();
+  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath modified_cdf_file = asset_library_root_ + "/catalog_reload_test.cats.txt";
+  const CatalogFilePath temp_cdf_file = cdf_dir + "blender_assets.cats.txt";
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str()));
+
+  /* Load the unmodified, original CDF. */
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk(cdf_dir);
+
+  /* === Perform changes that should be handled gracefully by the reloading code: */
+
+  /* 1. Delete a subtree of catalogs. */
+  service.prune_catalogs_by_id(UUID_POSES_RUZENA);
+  /* 2. Rename a catalog. */
+  service.tag_has_unsaved_changes(service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
+  service.update_catalog_path(UUID_POSES_ELLIE_TRAILING_SLASH, "character/Ellie/test-value");
+
+  /* Copy a modified file, to mimic a situation where someone changed the
+   * CDF after we loaded it. */
+  ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
+
+  AssetCatalog *const ellie_whitespace_before_reload = service.find_catalog(
+      UUID_POSES_ELLIE_WHITESPACE);
+
+  /* This should merge the on-disk file with our catalogs. */
+  service.reload_catalogs();
+
+  /* === Test that the expected catalogs are there. */
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_ELLIE));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
+
+  /* === Test changes made to the CDF: */
+
+  /* Removed from the file. */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_ELLIE_BACKSLASHES));
+  /* Added to the file. */
+  EXPECT_NE(nullptr, service.find_catalog(UUID_AGENT_47));
+  /* Path modified in file. */
+  AssetCatalog *ellie_whitespace_after_reload = service.find_catalog(UUID_POSES_ELLIE_WHITESPACE);
+  EXPECT_EQ(AssetCatalogPath("whitespace from file"), ellie_whitespace_after_reload->path);
+  EXPECT_NE(ellie_whitespace_after_reload, ellie_whitespace_before_reload);
+  /* Simple name modified in file. */
+  EXPECT_EQ(std::string("Hah simple name after all"),
+            service.find_catalog(UUID_WITHOUT_SIMPLENAME)->simple_name);
+
+  /* === Test persistence of in-memory changes: */
+
+  /* This part of the tree we deleted, but still existed in the CDF. They should remain deleted
+   * after reloading: */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_FACE));
+
+  /* This catalog had its path changed in the test and in the CDF. The change from the test (i.e.
+   * the in-memory, yet-unsaved change) should persist. */
+  EXPECT_EQ(AssetCatalogPath("character/Ellie/test-value"),
+            service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH)->path);
+
+  /* Overwrite the modified file. This should merge the on-disk file with our catalogs, and clear
+   * the "has_unsaved_changes" flags. */
+  service.write_to_disk(cdf_dir + "phony.blend");
+
+  EXPECT_FALSE(service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH)->flags.has_unsaved_changes)
+      << "The catalogs whose path we changed should now be saved";
+  EXPECT_TRUE(service.get_deleted_catalogs().is_empty())
+      << "Deleted catalogs should not be remembered after saving.";
 }
 
 TEST_F(AssetCatalogTest, backups)
@@ -894,9 +1114,9 @@ TEST_F(AssetCatalogTest, backups)
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   /* Read a CDF, modify, and write it. */
-  AssetCatalogService service(cdf_dir);
+  TestableAssetCatalogService service(cdf_dir);
   service.load_from_disk();
-  service.delete_catalog_by_id(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id_soft(UUID_POSES_ELLIE);
   service.write_to_disk(cdf_dir + "phony.blend");
 
   const CatalogFilePath backup_path = writable_cdf_file + "~";
@@ -954,6 +1174,50 @@ TEST_F(AssetCatalogTest, order_by_path)
   }
 }
 
+TEST_F(AssetCatalogTest, order_by_path_and_first_seen)
+{
+  AssetCatalogService service;
+  service.load_from_disk(asset_library_root_);
+
+  const bUUID first_seen_uuid("3d451c87-27d1-40fd-87fc-f4c9e829c848");
+  const bUUID first_sorted_uuid("00000000-0000-0000-0000-000000000001");
+  const bUUID last_sorted_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
+  AssetCatalog first_seen_cat(first_seen_uuid, "simple/path/child", "");
+  const AssetCatalog first_sorted_cat(first_sorted_uuid, "simple/path/child", "");
+  const AssetCatalog last_sorted_cat(last_sorted_uuid, "simple/path/child", "");
+
+  /* Mimic that this catalog was first-seen when loading from disk. */
+  first_seen_cat.flags.is_first_loaded = true;
+
+  /* Just an assertion of the defaults; this is more to avoid confusing errors later on than an
+   * actual test of these defaults. */
+  ASSERT_FALSE(first_sorted_cat.flags.is_first_loaded);
+  ASSERT_FALSE(last_sorted_cat.flags.is_first_loaded);
+
+  AssetCatalogOrderedSet by_path;
+  by_path.insert(&first_seen_cat);
+  by_path.insert(&first_sorted_cat);
+  by_path.insert(&last_sorted_cat);
+
+  AssetCatalogOrderedSet::const_iterator set_iter = by_path.begin();
+
+  EXPECT_EQ(1, by_path.count(&first_seen_cat));
+  EXPECT_EQ(1, by_path.count(&first_sorted_cat));
+  EXPECT_EQ(1, by_path.count(&last_sorted_cat));
+  ASSERT_EQ(3, by_path.size());
+
+  EXPECT_EQ(first_seen_uuid, (*(set_iter++))->catalog_id);
+  EXPECT_EQ(first_sorted_uuid, (*(set_iter++))->catalog_id);
+  EXPECT_EQ(last_sorted_uuid, (*(set_iter++))->catalog_id);
+
+  if (set_iter != by_path.end()) {
+    const AssetCatalog *next_cat = *set_iter;
+    FAIL() << "Did not expect more items in the set, had at least " << next_cat->catalog_id << ":"
+           << next_cat->path;
+  }
+}
+
 TEST_F(AssetCatalogTest, create_missing_catalogs)
 {
   TestableAssetCatalogService new_service;
@@ -983,6 +1247,13 @@ TEST_F(AssetCatalogTest, create_missing_catalogs_after_loading)
   ASSERT_NE(nullptr, cat_char) << "Missing parents should be created immediately after loading.";
   ASSERT_NE(nullptr, cat_ellie) << "Missing parents should be created immediately after loading.";
   ASSERT_NE(nullptr, cat_ruzena) << "Missing parents should be created immediately after loading.";
+
+  EXPECT_TRUE(cat_char->flags.has_unsaved_changes)
+      << "Missing parents should be marked as having changes.";
+  EXPECT_TRUE(cat_ellie->flags.has_unsaved_changes)
+      << "Missing parents should be marked as having changes.";
+  EXPECT_TRUE(cat_ruzena->flags.has_unsaved_changes)
+      << "Missing parents should be marked as having changes.";
 
   AssetCatalogDefinitionFile *cdf = loaded_service.get_catalog_definition_file();
   ASSERT_NE(nullptr, cdf);
@@ -1183,7 +1454,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undo should be possible after creating an undo snapshot.";
 
-  // Undo the creation of the catalog.
+  /* Undo the creation of the catalog. */
   service.undo();
   EXPECT_FALSE(service.is_undo_possbile())
       << "Undoing the only stored step should make it impossible to undo further.";
@@ -1195,7 +1466,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
   EXPECT_FALSE(service.get_catalog_definition_file()->contains(other_catalog_id))
       << "The CDF should also not contain the undone catalog.";
 
-  // Redo the creation of the catalog.
+  /* Redo the creation of the catalog. */
   service.redo();
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undoing and then redoing a step should make it possible to undo again.";

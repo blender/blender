@@ -391,7 +391,7 @@ constexpr StringRef StringRefBase::trim() const
 }
 
 /**
- * Return a new StringRef that does not contain leading and trailing whitespace.
+ * Return a new StringRef that does not contain leading and trailing white-space.
  */
 constexpr StringRef StringRefBase::trim(const char character_to_remove) const
 {
@@ -609,6 +609,10 @@ constexpr bool operator==(StringRef a, StringRef b)
 {
   if (a.size() != b.size()) {
     return false;
+  }
+  if (a.data() == b.data()) {
+    /* This also avoids passing null to the call below, which would results in an ASAN warning. */
+    return true;
   }
   return STREQLEN(a.data(), b.data(), (size_t)a.size());
 }

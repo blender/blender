@@ -28,10 +28,10 @@ namespace blender::nodes {
 
 static void geo_node_legacy_material_assign_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Material>("Material").hide_label(true);
-  b.add_input<decl::String>("Selection");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Material>(N_("Material")).hide_label(true);
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void assign_material_to_faces(Mesh &mesh, const VArray<bool> &face_mask, Material *material)
@@ -72,7 +72,7 @@ static void geo_node_legacy_material_assign_exec(GeoNodeExecParams params)
     MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh != nullptr) {
-      GVArray_Typed<bool> face_mask = mesh_component.attribute_get_for_read<bool>(
+      VArray<bool> face_mask = mesh_component.attribute_get_for_read<bool>(
           mask_name, ATTR_DOMAIN_FACE, true);
       assign_material_to_faces(*mesh, face_mask, material);
     }

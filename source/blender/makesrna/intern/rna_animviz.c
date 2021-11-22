@@ -117,7 +117,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "MotionPath", NULL);
   RNA_def_struct_sdna(srna, "bMotionPath");
   RNA_def_struct_ui_text(
-      srna, "Motion Path", "Cache of the worldspace positions of an element over a frame range");
+      srna, "Motion Path", "Cache of the world-space positions of an element over a frame range");
 
   /* Collections */
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);

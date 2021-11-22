@@ -28,12 +28,12 @@ namespace blender::nodes {
 
 static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Object>("Object").hide_label();
-  b.add_input<decl::Collection>("Collection").hide_label();
-  b.add_input<decl::Geometry>("Instance Geometry");
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Object>(N_("Object")).hide_label();
+  b.add_input<decl::Collection>(N_("Collection")).hide_label();
+  b.add_input<decl::Geometry>(N_("Instance Geometry"));
+  b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -171,20 +171,19 @@ static void add_instances_from_component(InstancesComponent &instances,
 
   const int domain_size = src_geometry.attribute_domain_size(domain);
 
-  GVArray_Typed<float3> positions = src_geometry.attribute_get_for_read<float3>(
+  VArray<float3> positions = src_geometry.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
-  GVArray_Typed<float3> rotations = src_geometry.attribute_get_for_read<float3>(
+  VArray<float3> rotations = src_geometry.attribute_get_for_read<float3>(
       "rotation", domain, {0, 0, 0});
-  GVArray_Typed<float3> scales = src_geometry.attribute_get_for_read<float3>(
-      "scale", domain, {1, 1, 1});
-  GVArray_Typed<int> id_attribute = src_geometry.attribute_get_for_read<int>("id", domain, -1);
+  VArray<float3> scales = src_geometry.attribute_get_for_read<float3>("scale", domain, {1, 1, 1});
+  VArray<int> id_attribute = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   /* The initial size of the component might be non-zero if there are two component types. */
   const int start_len = instances.instances_amount();
   instances.resize(start_len + domain_size);
   MutableSpan<int> handles = instances.instance_reference_handles().slice(start_len, domain_size);
   MutableSpan<float4x4> transforms = instances.instance_transforms().slice(start_len, domain_size);
-  MutableSpan<int> instance_ids = instances.instance_ids().slice(start_len, domain_size);
+  MutableSpan<int> instance_ids = instances.instance_ids_ensure().slice(start_len, domain_size);
 
   /* Skip all of the randomness handling if there is only a single possible instance
    * (anything except for collection mode with "Whole Collection" turned off). */

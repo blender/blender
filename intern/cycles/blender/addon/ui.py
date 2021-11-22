@@ -287,8 +287,21 @@ class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
         row.prop(cscene, "use_animated_seed", text="", icon='TIME')
 
         col = layout.column(align=True)
-        col.active = not(cscene.use_adaptive_sampling)
+        col.active = not (cscene.use_adaptive_sampling and cscene.use_preview_adaptive_sampling)
         col.prop(cscene, "sampling_pattern", text="Pattern")
+
+        col = layout.column(align=True)
+        col.prop(cscene, "sample_offset")
+
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.active = not (cscene.use_adaptive_sampling and cscene.use_preview_adaptive_sampling)
+        col.prop(cscene, "scrambling_distance", text="Scrambling Distance")
+        col.prop(cscene, "adaptive_scrambling_distance", text="Adaptive")
+        sub = col.row(align=True)
+        sub.active = not cscene.use_preview_adaptive_sampling
+        sub.prop(cscene, "preview_scrambling_distance", text="Viewport")
 
         layout.separator()
 
@@ -465,14 +478,18 @@ class CYCLES_RENDER_PT_light_paths_fast_gi(CyclesButtonsPanel, Panel):
         layout.active = cscene.use_fast_gi
 
         col = layout.column(align=True)
-        col.prop(cscene, "ao_bounces", text="Viewport Bounces")
-        col.prop(cscene, "ao_bounces_render", text="Render Bounces")
+        col.prop(cscene, "fast_gi_method", text="Method")
 
         if world:
           light = world.light_settings
           col = layout.column(align=True)
           col.prop(light, "ao_factor", text="AO Factor")
           col.prop(light, "distance", text="AO Distance")
+
+        if cscene.fast_gi_method == 'REPLACE':
+            col = layout.column(align=True)
+            col.prop(cscene, "ao_bounces", text="Viewport Bounces")
+            col.prop(cscene, "ao_bounces_render", text="Render Bounces")
 
 
 class CYCLES_RENDER_PT_motion_blur(CyclesButtonsPanel, Panel):
@@ -1037,7 +1054,7 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
 
 
 def has_geometry_visibility(ob):
-    return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT'}) or
+    return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT', 'VOLUME', 'POINTCLOUD', 'HAIR'}) or
                    (ob.instance_type == 'COLLECTION' and ob.instance_collection))
 
 

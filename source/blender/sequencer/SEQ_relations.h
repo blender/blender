@@ -35,10 +35,6 @@ struct Scene;
 struct Sequence;
 
 void SEQ_relations_sequence_free_anim(struct Sequence *seq);
-void SEQ_relations_update_changed_seq_and_deps(struct Scene *scene,
-                                               struct Sequence *changed_seq,
-                                               int len_change,
-                                               int ibuf_change);
 bool SEQ_relations_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
 bool SEQ_relations_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
 void SEQ_relations_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, bool for_render);

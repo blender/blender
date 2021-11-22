@@ -119,10 +119,21 @@ class GeometryComponent {
   /* Get a read-only attribute for the domain based on the given attribute. This can be used to
    * interpolate from one domain to another.
    * Returns null if the interpolation is not implemented. */
-  virtual std::unique_ptr<blender::fn::GVArray> attribute_try_adapt_domain(
-      std::unique_ptr<blender::fn::GVArray> varray,
-      const AttributeDomain from_domain,
-      const AttributeDomain to_domain) const;
+  blender::fn::GVArray attribute_try_adapt_domain(const blender::fn::GVArray &varray,
+                                                  const AttributeDomain from_domain,
+                                                  const AttributeDomain to_domain) const
+  {
+    return this->attribute_try_adapt_domain_impl(varray, from_domain, to_domain);
+  }
+
+  template<typename T>
+  blender::VArray<T> attribute_try_adapt_domain(const blender::VArray<T> &varray,
+                                                const AttributeDomain from_domain,
+                                                const AttributeDomain to_domain) const
+  {
+    return this->attribute_try_adapt_domain_impl(varray, from_domain, to_domain)
+        .template typed<T>();
+  }
 
   /* Returns true when the attribute has been deleted. */
   bool attribute_try_delete(const blender::bke::AttributeIDRef &attribute_id);
@@ -146,16 +157,15 @@ class GeometryComponent {
   /* Get a virtual array to read the data of an attribute on the given domain and data type.
    * Returns null when the attribute does not exist or cannot be converted to the requested domain
    * and data type. */
-  std::unique_ptr<blender::fn::GVArray> attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id,
-      const AttributeDomain domain,
-      const CustomDataType data_type) const;
+  blender::fn::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                                  const AttributeDomain domain,
+                                                  const CustomDataType data_type) const;
 
   /* Get a virtual array to read the data of an attribute on the given domain. The data type is
    * left unchanged. Returns null when the attribute does not exist or cannot be adapted to the
    * requested domain. */
-  std::unique_ptr<blender::fn::GVArray> attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id, const AttributeDomain domain) const;
+  blender::fn::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                                  const AttributeDomain domain) const;
 
   /* Get a virtual array to read data of an attribute with the given data type. The domain is
    * left unchanged. Returns null when the attribute does not exist or cannot be converted to the
@@ -165,25 +175,22 @@ class GeometryComponent {
 
   /* Get a virtual array to read the data of an attribute. If that is not possible, the returned
    * virtual array will contain a default value. This never returns null. */
-  std::unique_ptr<blender::fn::GVArray> attribute_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id,
-      const AttributeDomain domain,
-      const CustomDataType data_type,
-      const void *default_value = nullptr) const;
+  blender::fn::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                              const AttributeDomain domain,
+                                              const CustomDataType data_type,
+                                              const void *default_value = nullptr) const;
 
   /* Should be used instead of the method above when the requested data type is known at compile
    * time for better type safety. */
   template<typename T>
-  blender::fn::GVArray_Typed<T> attribute_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id,
-      const AttributeDomain domain,
-      const T &default_value) const
+  blender::VArray<T> attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                            const AttributeDomain domain,
+                                            const T &default_value) const
   {
     const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
-    std::unique_ptr varray = this->attribute_get_for_read(
-        attribute_id, domain, type, &default_value);
-    return blender::fn::GVArray_Typed<T>(std::move(varray));
+    return this->attribute_get_for_read(attribute_id, domain, type, &default_value)
+        .template typed<T>();
   }
 
   /**
@@ -234,6 +241,11 @@ class GeometryComponent {
 
  private:
   virtual const blender::bke::ComponentAttributeProviders *get_attribute_providers() const;
+
+  virtual blender::fn::GVArray attribute_try_adapt_domain_impl(
+      const blender::fn::GVArray &varray,
+      const AttributeDomain from_domain,
+      const AttributeDomain to_domain) const;
 };
 
 template<typename T>
@@ -318,6 +330,9 @@ struct GeometrySet {
       bool include_instances,
       blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const;
 
+  blender::Vector<GeometryComponentType> gather_component_types(bool include_instances,
+                                                                bool ignore_empty) const;
+
   using ForeachSubGeometryCallback = blender::FunctionRef<void(GeometrySet &geometry_set)>;
 
   void modify_geometry_sets(ForeachSubGeometryCallback callback);
@@ -388,10 +403,6 @@ class MeshComponent : public GeometryComponent {
   Mesh *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
-  std::unique_ptr<blender::fn::GVArray> attribute_try_adapt_domain(
-      std::unique_ptr<blender::fn::GVArray> varray,
-      const AttributeDomain from_domain,
-      const AttributeDomain to_domain) const final;
 
   bool is_empty() const final;
 
@@ -402,6 +413,11 @@ class MeshComponent : public GeometryComponent {
 
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
+
+  blender::fn::GVArray attribute_try_adapt_domain_impl(
+      const blender::fn::GVArray &varray,
+      const AttributeDomain from_domain,
+      const AttributeDomain to_domain) const final;
 };
 
 /** A geometry component that stores a point cloud. */
@@ -466,10 +482,6 @@ class CurveComponent : public GeometryComponent {
   CurveEval *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
-  std::unique_ptr<blender::fn::GVArray> attribute_try_adapt_domain(
-      std::unique_ptr<blender::fn::GVArray> varray,
-      const AttributeDomain from_domain,
-      const AttributeDomain to_domain) const final;
 
   bool is_empty() const final;
 
@@ -482,6 +494,11 @@ class CurveComponent : public GeometryComponent {
 
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
+
+  blender::fn::GVArray attribute_try_adapt_domain_impl(
+      const blender::fn::GVArray &varray,
+      const AttributeDomain from_domain,
+      const AttributeDomain to_domain) const final;
 };
 
 class InstanceReference {
@@ -621,7 +638,9 @@ class InstancesComponent : public GeometryComponent {
   blender::Vector<blender::float4x4> instance_transforms_;
   /**
    * IDs of the instances. They are used for consistency over multiple frames for things like
-   * motion blur.
+   * motion blur. Proper stable ID data that actually helps when rendering can only be generated
+   * in some situations, so this vector is allowed to be empty, in which case the index of each
+   * instance will be used for the final ID.
    */
   blender::Vector<int> instance_ids_;
 
@@ -643,7 +662,7 @@ class InstancesComponent : public GeometryComponent {
   void resize(int capacity);
 
   int add_reference(const InstanceReference &reference);
-  void add_instance(int instance_handle, const blender::float4x4 &transform, const int id = -1);
+  void add_instance(int instance_handle, const blender::float4x4 &transform);
 
   blender::Span<InstanceReference> references() const;
   void remove_unused_references();
@@ -657,6 +676,9 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<blender::float4x4> instance_transforms() const;
   blender::MutableSpan<int> instance_ids();
   blender::Span<int> instance_ids() const;
+
+  blender::MutableSpan<int> instance_ids_ensure();
+  void instance_ids_clear();
 
   int instances_amount() const;
   int references_amount() const;
@@ -736,6 +758,7 @@ class AttributeFieldInput : public fn::FieldInput {
   AttributeFieldInput(std::string name, const CPPType &type)
       : fn::FieldInput(type, name), name_(std::move(name))
   {
+    category_ = Category::NamedAttribute;
   }
 
   template<typename T> static fn::Field<T> Create(std::string name)
@@ -750,9 +773,9 @@ class AttributeFieldInput : public fn::FieldInput {
     return name_;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const override;
 
   std::string socket_inspection_name() const override;
 
@@ -764,13 +787,12 @@ class IDAttributeFieldInput : public fn::FieldInput {
  public:
   IDAttributeFieldInput() : fn::FieldInput(CPPType::get<int>())
   {
+    category_ = Category::Generated;
   }
 
-  static fn::Field<int> Create();
-
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const override;
 
   std::string socket_inspection_name() const override;
 
@@ -785,24 +807,31 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
    * automatically.
    */
   StrongAnonymousAttributeID anonymous_id_;
+  std::string producer_name_;
 
  public:
-  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id, const CPPType &type)
-      : fn::FieldInput(type, anonymous_id.debug_name()), anonymous_id_(std::move(anonymous_id))
+  AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id,
+                               const CPPType &type,
+                               std::string producer_name)
+      : fn::FieldInput(type, anonymous_id.debug_name()),
+        anonymous_id_(std::move(anonymous_id)),
+        producer_name_(producer_name)
   {
+    category_ = Category::AnonymousAttribute;
   }
 
-  template<typename T> static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id)
+  template<typename T>
+  static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id, std::string producer_name)
   {
     const CPPType &type = CPPType::get<T>();
-    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(std::move(anonymous_id),
-                                                                      type);
+    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(
+        std::move(anonymous_id), type, std::move(producer_name));
     return fn::Field<T>{field_input};
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const override;
 
   std::string socket_inspection_name() const override;
 

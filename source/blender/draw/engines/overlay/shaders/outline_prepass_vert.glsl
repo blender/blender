@@ -17,17 +17,7 @@ flat out uint objectId;
 uint outline_colorid_get(void)
 {
   int flag = int(abs(ObjectInfo.w));
-  bool is_from_dupli = (flag & DRW_BASE_FROM_DUPLI) != 0;
   bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
-
-  if (is_from_dupli) {
-    if (isTransform) {
-      return 0u; /* colorTransform */
-    }
-    else {
-      return 2u; /* colorDupliSelect */
-    }
-  }
 
   if (isTransform) {
     return 0u; /* colorTransform */

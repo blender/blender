@@ -728,7 +728,7 @@ typedef enum eBConstraint_Flags {
 
 /* bConstraint->ownspace/tarspace */
 typedef enum eBConstraint_SpaceTypes {
-  /** Default for all - worldspace. */
+  /** Default for all - world-space. */
   CONSTRAINT_SPACE_WORLD = 0,
   /** For all - custom space. */
   CONSTRAINT_SPACE_CUSTOM = 5,

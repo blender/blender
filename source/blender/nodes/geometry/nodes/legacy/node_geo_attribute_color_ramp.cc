@@ -27,10 +27,10 @@ namespace blender::nodes {
 
 static void geo_node_attribute_color_ramp_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
@@ -85,7 +85,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     return;
   }
 
-  GVArray_Typed<float> attribute_in = component.attribute_get_for_read<float>(
+  VArray<float> attribute_in = component.attribute_get_for_read<float>(
       input_name, result_domain, 0.0f);
 
   MutableSpan<ColorGeometry4f> results = attribute_result.as_span();

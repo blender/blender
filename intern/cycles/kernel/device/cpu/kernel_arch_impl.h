@@ -29,27 +29,28 @@
 #    include "kernel/device/cpu/globals.h"
 #    include "kernel/device/cpu/image.h"
 
-#    include "kernel/integrator/integrator_state.h"
-#    include "kernel/integrator/integrator_state_flow.h"
-#    include "kernel/integrator/integrator_state_util.h"
+#    include "kernel/integrator/state.h"
+#    include "kernel/integrator/state_flow.h"
+#    include "kernel/integrator/state_util.h"
 
-#    include "kernel/integrator/integrator_init_from_camera.h"
-#    include "kernel/integrator/integrator_init_from_bake.h"
-#    include "kernel/integrator/integrator_intersect_closest.h"
-#    include "kernel/integrator/integrator_intersect_shadow.h"
-#    include "kernel/integrator/integrator_intersect_subsurface.h"
-#    include "kernel/integrator/integrator_intersect_volume_stack.h"
-#    include "kernel/integrator/integrator_shade_background.h"
-#    include "kernel/integrator/integrator_shade_light.h"
-#    include "kernel/integrator/integrator_shade_shadow.h"
-#    include "kernel/integrator/integrator_shade_surface.h"
-#    include "kernel/integrator/integrator_shade_volume.h"
-#    include "kernel/integrator/integrator_megakernel.h"
+#    include "kernel/integrator/init_from_camera.h"
+#    include "kernel/integrator/init_from_bake.h"
+#    include "kernel/integrator/intersect_closest.h"
+#    include "kernel/integrator/intersect_shadow.h"
+#    include "kernel/integrator/intersect_subsurface.h"
+#    include "kernel/integrator/intersect_volume_stack.h"
+#    include "kernel/integrator/shade_background.h"
+#    include "kernel/integrator/shade_light.h"
+#    include "kernel/integrator/shade_shadow.h"
+#    include "kernel/integrator/shade_surface.h"
+#    include "kernel/integrator/shade_volume.h"
+#    include "kernel/integrator/megakernel.h"
 
-#    include "kernel/kernel_film.h"
-#    include "kernel/kernel_adaptive_sampling.h"
-#    include "kernel/kernel_bake.h"
-# include "kernel/kernel_id_passes.h"
+#    include "kernel/film/adaptive_sampling.h"
+#    include "kernel/film/id_passes.h"
+#    include "kernel/film/read.h"
+
+#    include "kernel/bake/bake.h"
 
 #else
 #  define STUB_ASSERT(arch, name) \
@@ -111,7 +112,7 @@ CCL_NAMESPACE_BEGIN
 
 DEFINE_INTEGRATOR_INIT_KERNEL(init_from_camera)
 DEFINE_INTEGRATOR_INIT_KERNEL(init_from_bake)
-DEFINE_INTEGRATOR_KERNEL(intersect_closest)
+DEFINE_INTEGRATOR_SHADE_KERNEL(intersect_closest)
 DEFINE_INTEGRATOR_KERNEL(intersect_subsurface)
 DEFINE_INTEGRATOR_KERNEL(intersect_volume_stack)
 DEFINE_INTEGRATOR_SHADE_KERNEL(shade_background)
@@ -230,6 +231,85 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *
   kernel_cryptomatte_post(kg, render_buffer, pixel_index);
 #endif
 }
+
+/* --------------------------------------------------------------------
+ * Film Convert.
+ */
+
+#ifdef KERNEL_STUB
+
+#  define KERNEL_FILM_CONVERT_FUNCTION(name, is_float) \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_##name)(const KernelFilmConvert *kfilm_convert, \
+                                                        const float *buffer, \
+                                                        float *pixel, \
+                                                        const int width, \
+                                                        const int buffer_stride, \
+                                                        const int pixel_stride) \
+    { \
+      STUB_ASSERT(KERNEL_ARCH, film_convert_##name); \
+    } \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_half_rgba_##name)( \
+        const KernelFilmConvert *kfilm_convert, \
+        const float *buffer, \
+        half4 *pixel, \
+        const int width, \
+        const int buffer_stride) \
+    { \
+      STUB_ASSERT(KERNEL_ARCH, film_convert_##name); \
+    }
+
+#else
+
+#  define KERNEL_FILM_CONVERT_FUNCTION(name, is_float) \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_##name)(const KernelFilmConvert *kfilm_convert, \
+                                                        const float *buffer, \
+                                                        float *pixel, \
+                                                        const int width, \
+                                                        const int buffer_stride, \
+                                                        const int pixel_stride) \
+    { \
+      for (int i = 0; i < width; i++, buffer += buffer_stride, pixel += pixel_stride) { \
+        film_get_pass_pixel_##name(kfilm_convert, buffer, pixel); \
+      } \
+    } \
+    void KERNEL_FUNCTION_FULL_NAME(film_convert_half_rgba_##name)( \
+        const KernelFilmConvert *kfilm_convert, \
+        const float *buffer, \
+        half4 *pixel, \
+        const int width, \
+        const int buffer_stride) \
+    { \
+      for (int i = 0; i < width; i++, buffer += buffer_stride, pixel++) { \
+        float pixel_rgba[4] = {0.0f, 0.0f, 0.0f, 1.0f}; \
+        film_get_pass_pixel_##name(kfilm_convert, buffer, pixel_rgba); \
+        if (is_float) { \
+          pixel_rgba[1] = pixel_rgba[0]; \
+          pixel_rgba[2] = pixel_rgba[0]; \
+        } \
+        film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel_rgba); \
+        *pixel = float4_to_half4_display( \
+            make_float4(pixel_rgba[0], pixel_rgba[1], pixel_rgba[2], pixel_rgba[3])); \
+      } \
+    }
+
+#endif
+
+KERNEL_FILM_CONVERT_FUNCTION(depth, true)
+KERNEL_FILM_CONVERT_FUNCTION(mist, true)
+KERNEL_FILM_CONVERT_FUNCTION(sample_count, true)
+KERNEL_FILM_CONVERT_FUNCTION(float, true)
+
+KERNEL_FILM_CONVERT_FUNCTION(light_path, false)
+KERNEL_FILM_CONVERT_FUNCTION(float3, false)
+
+KERNEL_FILM_CONVERT_FUNCTION(motion, false)
+KERNEL_FILM_CONVERT_FUNCTION(cryptomatte, false)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher, false)
+KERNEL_FILM_CONVERT_FUNCTION(shadow_catcher_matte_with_shadow, false)
+KERNEL_FILM_CONVERT_FUNCTION(combined, false)
+KERNEL_FILM_CONVERT_FUNCTION(float4, false)
+
+#undef KERNEL_FILM_CONVERT_FUNCTION
 
 #undef KERNEL_INVOKE
 #undef DEFINE_INTEGRATOR_KERNEL

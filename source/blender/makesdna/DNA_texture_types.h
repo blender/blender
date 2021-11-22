@@ -128,9 +128,9 @@ typedef struct PointDensity {
   struct Object *object;
   /** `index + 1` in ob.particlesystem, non-ID pointer not allowed */
   int psys;
-  /** cache points in worldspace, object space, ... ? */
+  /** cache points in world-space, object space, ... ? */
   short psys_cache_space;
-  /** cache points in worldspace, object space, ... ? */
+  /** cache points in world-space, object space, ... ? */
   short ob_cache_space;
   /** vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
   char vertex_attribute_name[64];

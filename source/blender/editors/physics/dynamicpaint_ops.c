@@ -246,7 +246,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
     /* Vertex Color Layer */
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       if (!exists) {
-        ED_mesh_color_add(ob->data, name, true, true);
+        ED_mesh_color_add(ob->data, name, true, true, op->reports);
       }
       else {
         ED_mesh_color_remove_named(ob->data, name);

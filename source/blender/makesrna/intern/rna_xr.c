@@ -892,6 +892,71 @@ static void rna_XrSessionState_viewer_pose_rotation_get(PointerRNA *ptr, float *
 #  endif
 }
 
+static void rna_XrSessionState_nav_location_get(PointerRNA *ptr, float *r_values)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_location_get(xr, r_values);
+#  else
+  UNUSED_VARS(ptr);
+  zero_v3(r_values);
+#  endif
+}
+
+static void rna_XrSessionState_nav_location_set(PointerRNA *ptr, const float *values)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_location_set(xr, values);
+#  else
+  UNUSED_VARS(ptr, values);
+#  endif
+}
+
+static void rna_XrSessionState_nav_rotation_get(PointerRNA *ptr, float *r_values)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_rotation_get(xr, r_values);
+#  else
+  UNUSED_VARS(ptr);
+  unit_qt(r_values);
+#  endif
+}
+
+static void rna_XrSessionState_nav_rotation_set(PointerRNA *ptr, const float *values)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_rotation_set(xr, values);
+#  else
+  UNUSED_VARS(ptr, values);
+#  endif
+}
+
+static float rna_XrSessionState_nav_scale_get(PointerRNA *ptr)
+{
+  float value;
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_scale_get(xr, &value);
+#  else
+  UNUSED_VARS(ptr);
+  value = 1.0f;
+#  endif
+  return value;
+}
+
+static void rna_XrSessionState_nav_scale_set(PointerRNA *ptr, float value)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  WM_xr_session_state_nav_scale_set(xr, value);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
 static void rna_XrSessionState_actionmaps_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
@@ -1615,6 +1680,13 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       "Rotation angle around the Z-Axis to apply the rotation deltas from the VR headset to");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
+  prop = RNA_def_property(srna, "base_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Base Scale", "Uniform scale to apply to VR view");
+  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
   prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_SHOW_GRIDFLOOR);
   RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid");
@@ -1675,7 +1747,9 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
                                  "rna_XrSessionSettings_use_absolute_tracking_get",
                                  "rna_XrSessionSettings_use_absolute_tracking_set");
   RNA_def_property_ui_text(
-      prop, "Absolute Tracking", "Use unadjusted location/rotation as defined by the XR runtime");
+      prop,
+      "Absolute Tracking",
+      "Allow the VR tracking origin to be defined independently of the headset location");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 }
 
@@ -1980,6 +2054,32 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
       prop,
       "Viewer Pose Rotation",
       "Last known rotation of the viewer pose (center between the eyes) in world space");
+
+  prop = RNA_def_property(srna, "navigation_location", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_funcs(
+      prop, "rna_XrSessionState_nav_location_get", "rna_XrSessionState_nav_location_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Navigation Location",
+      "Location offset to apply to base pose when determining viewer location");
+
+  prop = RNA_def_property(srna, "navigation_rotation", PROP_FLOAT, PROP_QUATERNION);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_float_funcs(
+      prop, "rna_XrSessionState_nav_rotation_get", "rna_XrSessionState_nav_rotation_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Navigation Rotation",
+      "Rotation offset to apply to base pose when determining viewer rotation");
+
+  prop = RNA_def_property(srna, "navigation_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_funcs(
+      prop, "rna_XrSessionState_nav_scale_get", "rna_XrSessionState_nav_scale_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Navigation Scale",
+      "Additional scale multiplier to apply to base scale when determining viewer scale");
 
   prop = RNA_def_property(srna, "actionmaps", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,

@@ -32,11 +32,11 @@ namespace blender::nodes {
 
 static void geo_node_attribute_sample_texture_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Texture>("Texture").hide_label();
-  b.add_input<decl::String>("Mapping");
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Texture>(N_("Texture")).hide_label();
+  b.add_input<decl::String>(N_("Mapping"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
@@ -82,7 +82,7 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
     return;
   }
 
-  GVArray_Typed<float3> mapping_attribute = component.attribute_get_for_read<float3>(
+  VArray<float3> mapping_attribute = component.attribute_get_for_read<float3>(
       mapping_name, result_domain, {0, 0, 0});
 
   MutableSpan<ColorGeometry4f> colors = attribute_out.as_span();

@@ -269,10 +269,11 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     return;
   }
   if (ntype->declare != nullptr) {
-    nodeDeclarationEnsure(ntree, node);
+    nodeDeclarationEnsureOnOutdatedNode(ntree, node);
     if (!node->declaration->matches(*node)) {
       refresh_node(*ntree, *node, *node->declaration, do_id_user);
     }
+    nodeSocketDeclarationsUpdate(node);
     return;
   }
   /* Don't try to match socket lists when there are no templates.

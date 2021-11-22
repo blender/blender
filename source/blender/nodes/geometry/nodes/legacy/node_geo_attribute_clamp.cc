@@ -24,18 +24,18 @@ namespace blender::nodes {
 
 static void geo_node_attribute_clamp_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::String>("Result");
-  b.add_input<decl::Vector>("Min");
-  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Min", "Min_001");
-  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
-  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
-  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
-  b.add_input<decl::Color>("Min", "Min_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_input<decl::Color>("Max", "Max_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_input<decl::Vector>(N_("Min"));
+  b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Min"), "Min_001");
+  b.add_input<decl::Float>(N_("Max"), "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>(N_("Min"), "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Max"), "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Color>(N_("Min"), "Min_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::Color>(N_("Max"), "Max_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_clamp_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -156,7 +156,7 @@ static void clamp_attribute(GeometryComponent &component, const GeoNodeExecParam
   const AttributeDomain domain = get_result_domain(component, attribute_name, result_name);
   const int operation = static_cast<int>(storage.operation);
 
-  GVArrayPtr attribute_input = component.attribute_try_get_for_read(
+  GVArray attribute_input = component.attribute_try_get_for_read(
       attribute_name, domain, data_type);
 
   OutputAttribute attribute_result = component.attribute_try_get_for_output_only(
@@ -185,7 +185,7 @@ static void clamp_attribute(GeometryComponent &component, const GeoNodeExecParam
         }
       }
       MutableSpan<float3> results = attribute_result.as_span<float3>();
-      clamp_attribute<float3>(attribute_input->typed<float3>(), results, min, max);
+      clamp_attribute<float3>(attribute_input.typed<float3>(), results, min, max);
       break;
     }
     case CD_PROP_FLOAT: {
@@ -193,10 +193,10 @@ static void clamp_attribute(GeometryComponent &component, const GeoNodeExecParam
       const float max = params.get_input<float>("Max_001");
       MutableSpan<float> results = attribute_result.as_span<float>();
       if (operation == NODE_CLAMP_RANGE && min > max) {
-        clamp_attribute<float>(attribute_input->typed<float>(), results, max, min);
+        clamp_attribute<float>(attribute_input.typed<float>(), results, max, min);
       }
       else {
-        clamp_attribute<float>(attribute_input->typed<float>(), results, min, max);
+        clamp_attribute<float>(attribute_input.typed<float>(), results, min, max);
       }
       break;
     }
@@ -205,10 +205,10 @@ static void clamp_attribute(GeometryComponent &component, const GeoNodeExecParam
       const int max = params.get_input<int>("Max_002");
       MutableSpan<int> results = attribute_result.as_span<int>();
       if (operation == NODE_CLAMP_RANGE && min > max) {
-        clamp_attribute<int>(attribute_input->typed<int>(), results, max, min);
+        clamp_attribute<int>(attribute_input.typed<int>(), results, max, min);
       }
       else {
-        clamp_attribute<int>(attribute_input->typed<int>(), results, min, max);
+        clamp_attribute<int>(attribute_input.typed<int>(), results, min, max);
       }
       break;
     }
@@ -231,7 +231,7 @@ static void clamp_attribute(GeometryComponent &component, const GeoNodeExecParam
       }
       MutableSpan<ColorGeometry4f> results = attribute_result.as_span<ColorGeometry4f>();
       clamp_attribute<ColorGeometry4f>(
-          attribute_input->typed<ColorGeometry4f>(), results, min, max);
+          attribute_input.typed<ColorGeometry4f>(), results, min, max);
       break;
     }
     default: {

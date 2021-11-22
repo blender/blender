@@ -29,23 +29,23 @@ namespace blender::nodes {
 
 static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Factor");
-  b.add_input<decl::Float>("Factor", "Factor_001")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Factor"));
+  b.add_input<decl::Float>(N_("Factor"), "Factor_001")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::String>("A");
-  b.add_input<decl::Float>("A", "A_001");
-  b.add_input<decl::Vector>("A", "A_002");
-  b.add_input<decl::Color>("A", "A_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_input<decl::String>("B");
-  b.add_input<decl::Float>("B", "B_001");
-  b.add_input<decl::Vector>("B", "B_002");
-  b.add_input<decl::Color>("B", "B_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::String>(N_("A"));
+  b.add_input<decl::Float>(N_("A"), "A_001");
+  b.add_input<decl::Vector>(N_("A"), "A_002");
+  b.add_input<decl::Color>(N_("A"), "A_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>(N_("B"));
+  b.add_input<decl::Float>(N_("B"), "B_001");
+  b.add_input<decl::Vector>(N_("B"), "B_002");
+  b.add_input<decl::Color>(N_("B"), "B_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -144,25 +144,28 @@ static void do_mix_operation(const CustomDataType result_type,
                              GVMutableArray &attribute_result)
 {
   if (result_type == CD_PROP_FLOAT) {
+    VMutableArray<float> result = attribute_result.typed<float>();
     do_mix_operation_float(blend_mode,
                            attribute_factor,
                            attribute_a.typed<float>(),
                            attribute_b.typed<float>(),
-                           attribute_result.typed<float>());
+                           result);
   }
   else if (result_type == CD_PROP_FLOAT3) {
+    VMutableArray<float3> result = attribute_result.typed<float3>();
     do_mix_operation_float3(blend_mode,
                             attribute_factor,
                             attribute_a.typed<float3>(),
                             attribute_b.typed<float3>(),
-                            attribute_result.typed<float3>());
+                            result);
   }
   else if (result_type == CD_PROP_COLOR) {
+    VMutableArray<ColorGeometry4f> result = attribute_result.typed<ColorGeometry4f>();
     do_mix_operation_color4f(blend_mode,
                              attribute_factor,
                              attribute_a.typed<ColorGeometry4f>(),
                              attribute_b.typed<ColorGeometry4f>(),
-                             attribute_result.typed<ColorGeometry4f>());
+                             result);
   }
 }
 
@@ -203,19 +206,19 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
     return;
   }
 
-  GVArray_Typed<float> attribute_factor = params.get_input_attribute<float>(
+  VArray<float> attribute_factor = params.get_input_attribute<float>(
       "Factor", component, result_domain, 0.5f);
-  GVArrayPtr attribute_a = params.get_input_attribute(
+  GVArray attribute_a = params.get_input_attribute(
       "A", component, result_domain, result_type, nullptr);
-  GVArrayPtr attribute_b = params.get_input_attribute(
+  GVArray attribute_b = params.get_input_attribute(
       "B", component, result_domain, result_type, nullptr);
 
   do_mix_operation(result_type,
                    node_storage->blend_type,
                    attribute_factor,
-                   *attribute_a,
-                   *attribute_b,
-                   *attribute_result);
+                   attribute_a,
+                   attribute_b,
+                   attribute_result.varray());
   attribute_result.save();
 }
 

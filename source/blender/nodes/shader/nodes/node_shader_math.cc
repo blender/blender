@@ -32,10 +32,16 @@ namespace blender::nodes {
 static void sh_node_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Value").default_value(0.5f).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Value", "Value_001").default_value(0.5f).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Value", "Value_002").default_value(0.5f).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Float>("Value");
+  b.add_input<decl::Float>(N_("Value")).default_value(0.5f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>(N_("Value"), "Value_001")
+      .default_value(0.5f)
+      .min(-10000.0f)
+      .max(10000.0f);
+  b.add_input<decl::Float>(N_("Value"), "Value_002")
+      .default_value(0.5f)
+      .min(-10000.0f)
+      .max(10000.0f);
+  b.add_output<decl::Float>(N_("Value"));
 };
 
 }  // namespace blender::nodes

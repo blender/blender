@@ -37,7 +37,7 @@ set(SRC
   info_draw.c
   info_ops.c
   info_report.c
-  info_stats.c
+  info_stats.cc
   space_info.c
   textview.c
 

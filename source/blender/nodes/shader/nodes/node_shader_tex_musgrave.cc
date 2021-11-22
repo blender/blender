@@ -26,15 +26,15 @@ namespace blender::nodes {
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").hide_value().implicit_field();
-  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>("Detail").min(0.0f).max(16.0f).default_value(2.0f);
-  b.add_input<decl::Float>("Dimension").min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>("Lacunarity").min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
-  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
+  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>(N_("Dimension")).min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>(N_("Lacunarity")).min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>(N_("Offset")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("Gain")).min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 };
 
 }  // namespace blender::nodes
@@ -199,28 +199,28 @@ class MusgraveFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_detail = [&](int param_index) -> const VArray<float> & {
+    auto get_detail = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Detail");
     };
-    auto get_dimension = [&](int param_index) -> const VArray<float> & {
+    auto get_dimension = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Dimension");
     };
-    auto get_lacunarity = [&](int param_index) -> const VArray<float> & {
+    auto get_lacunarity = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Lacunarity");
     };
-    auto get_offset = [&](int param_index) -> const VArray<float> & {
+    auto get_offset = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Offset");
     };
-    auto get_gain = [&](int param_index) -> const VArray<float> & {
+    auto get_gain = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Gain");
     };
 

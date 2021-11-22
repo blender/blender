@@ -75,6 +75,7 @@ typedef unsigned long long uint64_t;
 #define ccl_gpu_block_idx_x (blockIdx.x)
 #define ccl_gpu_grid_dim_x (gridDim.x)
 #define ccl_gpu_warp_size (warpSize)
+#define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
 
 #define ccl_gpu_global_id_x() (ccl_gpu_block_idx_x * ccl_gpu_block_dim_x + ccl_gpu_thread_idx_x)
 #define ccl_gpu_global_size_x() (ccl_gpu_grid_dim_x * ccl_gpu_block_dim_x)
@@ -128,7 +129,14 @@ __device__ half __float2half(const float f)
   return val;
 }
 
+__device__ float __half2float(const half h)
+{
+  float val;
+  asm("{  cvt.f32.f16 %0, %1;}\n" : "=f"(val) : "h"(h));
+  return val;
+}
+
 /* Types */
 
-#include "util/util_half.h"
-#include "util/util_types.h"
+#include "util/half.h"
+#include "util/types.h"

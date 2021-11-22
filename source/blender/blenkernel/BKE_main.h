@@ -244,9 +244,9 @@ void BKE_main_library_weak_reference_remove_item(struct GHash *library_weak_refe
 
 #define FOREACH_MAIN_LISTBASE_ID_BEGIN(_lb, _id) \
   { \
-    ID *_id_next = (_lb)->first; \
+    ID *_id_next = (ID *)(_lb)->first; \
     for ((_id) = _id_next; (_id) != NULL; (_id) = _id_next) { \
-      _id_next = (_id)->next;
+      _id_next = (ID *)(_id)->next;
 
 #define FOREACH_MAIN_LISTBASE_ID_END \
   } \

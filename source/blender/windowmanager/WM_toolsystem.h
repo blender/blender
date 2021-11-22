@@ -134,6 +134,7 @@ void WM_toolsystem_refresh_active(struct bContext *C);
 void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace,
                                        struct ViewLayer *view_layer,
                                        struct ScrArea *area);
+void WM_toolsystem_refresh_screen_window(struct wmWindow *win);
 void WM_toolsystem_refresh_screen_all(struct Main *bmain);
 
 #ifdef __cplusplus

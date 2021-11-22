@@ -56,7 +56,7 @@ setup_platform_linker_libs(blender_test)
 if(WIN32)
   foreach(_lib ${_test_libs})
     # Both target_link_libraries and target_link_options are required here
-    # target_link_libraries will add any dependend libraries, while just setting
+    # target_link_libraries will add any dependent libraries, while just setting
     # the wholearchive flag in target link options will not.
     target_link_libraries(blender_test ${_lib})
     target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)

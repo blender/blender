@@ -29,6 +29,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_math_base.h"
 
 #include "BLT_translation.h"
@@ -81,6 +82,30 @@ static void test_line_start(char c, bool *r_last_state)
   }
   else if (!ELEM(c, '\t', ' ')) {
     *r_last_state = false;
+  }
+}
+
+/**
+ * This function receives a character and returns its closing pair if it exists.
+ * \param character: Character to find the closing pair.
+ * \return The closing pair of the character if it exists.
+ */
+static char text_closing_character_pair_get(const char character)
+{
+
+  switch (character) {
+    case '(':
+      return ')';
+    case '[':
+      return ']';
+    case '{':
+      return '}';
+    case '"':
+      return '"';
+    case '\'':
+      return '\'';
+    default:
+      return 0;
   }
 }
 
@@ -2402,7 +2427,17 @@ static int text_delete_exec(bContext *C, wmOperator *op)
         }
       }
     }
-
+    if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
+      const char *curr = text->curl->line + text->curc;
+      if (*curr != '\0') {
+        const char *prev = BLI_str_find_prev_char_utf8(curr, text->curl->line);
+        if ((curr != prev) && /* When back-spacing from the start of the line. */
+            (*curr == text_closing_character_pair_get(*prev))) {
+          txt_move_right(text, false);
+          txt_backspace_char(text);
+        }
+      }
+    }
     txt_backspace_char(text);
   }
   else if (type == DEL_NEXT_WORD) {
@@ -2598,14 +2633,12 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* compute mouse move distance */
   if (tsc->is_first) {
-    tsc->mval_prev[0] = mval[0];
-    tsc->mval_prev[1] = mval[1];
+    copy_v2_v2_int(tsc->mval_prev, mval);
     tsc->is_first = false;
   }
 
   if (event->type != MOUSEPAN) {
-    tsc->mval_delta[0] = mval[0] - tsc->mval_prev[0];
-    tsc->mval_delta[1] = mval[1] - tsc->mval_prev[1];
+    sub_v2_v2v2_int(tsc->mval_delta, mval, tsc->mval_prev);
   }
 
   /* accumulate scroll, in float values for events that give less than one
@@ -2757,8 +2790,7 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (event->type == MOUSEPAN) {
     text_update_character_width(st);
 
-    tsc->mval_prev[0] = event->xy[0];
-    tsc->mval_prev[1] = event->xy[1];
+    copy_v2_v2_int(tsc->mval_prev, event->xy);
     /* Sensitivity of scroll set to 4pix per line/char */
     tsc->mval_delta[0] = (event->xy[0] - event->prev_xy[0]) * st->runtime.cwidth_px / 4;
     tsc->mval_delta[1] = (event->xy[1] - event->prev_xy[1]) * st->runtime.lheight_px / 4;
@@ -3445,6 +3477,12 @@ static int text_insert_exec(bContext *C, wmOperator *op)
     while (str[i]) {
       code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       done |= txt_add_char(text, code);
+      if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
+        if (text_closing_character_pair_get(code)) {
+          done |= txt_add_char(text, text_closing_character_pair_get(code));
+          txt_move_left(text, false);
+        }
+      }
     }
   }
 

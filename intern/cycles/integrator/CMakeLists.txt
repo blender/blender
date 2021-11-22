@@ -61,9 +61,11 @@ set(SRC_HEADERS
 )
 
 set(LIB
+  cycles_device
+
   # NOTE: Is required for RenderBuffers access. Might consider moving files around a bit to
   # avoid such cyclic dependency.
-  cycles_render
+  cycles_session
 
   cycles_util
 )

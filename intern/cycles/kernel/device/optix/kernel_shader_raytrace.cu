@@ -18,7 +18,8 @@
  * much longer to compiler. This is only loaded when needed by the scene. */
 
 #include "kernel/device/optix/kernel.cu"
-#include "kernel/integrator/integrator_shade_surface.h"
+
+#include "kernel/integrator/shade_surface.h"
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_shade_surface_raytrace()
 {

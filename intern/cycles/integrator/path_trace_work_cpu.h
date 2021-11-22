@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "kernel/integrator/integrator_state.h"
+#include "kernel/integrator/state.h"
 
 #include "device/cpu/kernel_thread_globals.h"
-#include "device/device_queue.h"
+#include "device/queue.h"
 
 #include "integrator/path_trace_work.h"
 
-#include "util/util_vector.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -48,7 +48,8 @@ class PathTraceWorkCPU : public PathTraceWork {
 
   virtual void render_samples(RenderStatistics &statistics,
                               int start_sample,
-                              int samples_num) override;
+                              int samples_num,
+                              int sample_offset) override;
 
   virtual void copy_to_display(PathTraceDisplay *display,
                                PassMode pass_mode,

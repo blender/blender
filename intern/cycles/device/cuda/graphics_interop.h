@@ -16,7 +16,7 @@
 
 #ifdef WITH_CUDA
 
-#  include "device/device_graphics_interop.h"
+#  include "device/graphics_interop.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
 #    include "cuew.h"

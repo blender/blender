@@ -775,6 +775,19 @@ static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *
   sseq->flag &= ~SEQ_ZOOM_TO_FIT;
 }
 
+static bool is_cursor_visible(const SpaceSeq *sseq)
+{
+  if (G.moving & G_TRANSFORM_CURSOR) {
+    return true;
+  }
+
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_2D_CURSOR) != 0) {
+    return true;
+  }
+  return false;
+}
+
 static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -809,7 +822,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 
   /* No need to show the cursor for scopes. */
-  if (draw_overlay && (is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
+  if ((is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF) && is_cursor_visible(sseq)) {
     GPU_color_mask(true, true, true, true);
     GPU_depth_mask(false);
     GPU_depth_test(GPU_DEPTH_NONE);
@@ -984,7 +997,9 @@ void ED_spacetype_sequencer(void)
   art->draw_overlay = sequencer_main_region_draw_overlay;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
-  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
+  /* NOTE: inclusion of #ED_KEYMAP_GIZMO is currently for scripts and isn't used by default. */
+  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
+                    ED_KEYMAP_ANIMATION;
   BLI_addhead(&st->regiontypes, art);
 
   /* Preview. */

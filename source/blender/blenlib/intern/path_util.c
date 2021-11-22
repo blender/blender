@@ -1730,6 +1730,9 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
 /**
  * Simple appending of filename to dir, does not check for valid path!
  * Puts result into `dst`, which may be same area as `dir`.
+ *
+ * \note Consider using #BLI_path_join for more general path joining
+ * that de-duplicates separators and can handle an arbitrary number of paths.
  */
 void BLI_join_dirfile(char *__restrict dst,
                       const size_t maxlen,
@@ -1741,8 +1744,12 @@ void BLI_join_dirfile(char *__restrict dst,
 #endif
   size_t dirlen = BLI_strnlen(dir, maxlen);
 
-  /* args can't match */
+  /* Arguments can't match. */
   BLI_assert(!ELEM(dst, dir, file));
+
+  /* Files starting with a separator cause a double-slash which could later be interpreted
+   * as a relative path where: `dir == "/"` and `file == "/file"` would result in "//file". */
+  BLI_assert(file[0] != SEP);
 
   if (dirlen == maxlen) {
     memcpy(dst, dir, dirlen);

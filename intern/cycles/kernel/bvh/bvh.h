@@ -28,13 +28,13 @@
 #pragma once
 
 #ifdef __EMBREE__
-#  include "kernel/bvh/bvh_embree.h"
+#  include "kernel/bvh/embree.h"
 #endif
 
-#include "kernel/bvh/bvh_types.h"
-#include "kernel/bvh/bvh_util.h"
+#include "kernel/bvh/types.h"
+#include "kernel/bvh/util.h"
 
-#include "kernel/integrator/integrator_state_util.h"
+#include "kernel/integrator/state_util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -42,28 +42,28 @@ CCL_NAMESPACE_BEGIN
 
 /* Regular BVH traversal */
 
-#  include "kernel/bvh/bvh_nodes.h"
+#  include "kernel/bvh/nodes.h"
 
 #  define BVH_FUNCTION_NAME bvh_intersect
 #  define BVH_FUNCTION_FEATURES 0
-#  include "kernel/bvh/bvh_traversal.h"
+#  include "kernel/bvh/traversal.h"
 
 #  if defined(__HAIR__)
 #    define BVH_FUNCTION_NAME bvh_intersect_hair
 #    define BVH_FUNCTION_FEATURES BVH_HAIR
-#    include "kernel/bvh/bvh_traversal.h"
+#    include "kernel/bvh/traversal.h"
 #  endif
 
 #  if defined(__OBJECT_MOTION__)
 #    define BVH_FUNCTION_NAME bvh_intersect_motion
 #    define BVH_FUNCTION_FEATURES BVH_MOTION
-#    include "kernel/bvh/bvh_traversal.h"
+#    include "kernel/bvh/traversal.h"
 #  endif
 
 #  if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #    define BVH_FUNCTION_NAME bvh_intersect_hair_motion
 #    define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION
-#    include "kernel/bvh/bvh_traversal.h"
+#    include "kernel/bvh/traversal.h"
 #  endif
 
 /* Subsurface scattering BVH traversal */
@@ -71,12 +71,12 @@ CCL_NAMESPACE_BEGIN
 #  if defined(__BVH_LOCAL__)
 #    define BVH_FUNCTION_NAME bvh_intersect_local
 #    define BVH_FUNCTION_FEATURES BVH_HAIR
-#    include "kernel/bvh/bvh_local.h"
+#    include "kernel/bvh/local.h"
 
 #    if defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_local_motion
 #      define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_HAIR
-#      include "kernel/bvh/bvh_local.h"
+#      include "kernel/bvh/local.h"
 #    endif
 #  endif /* __BVH_LOCAL__ */
 
@@ -85,12 +85,12 @@ CCL_NAMESPACE_BEGIN
 #  if defined(__VOLUME__)
 #    define BVH_FUNCTION_NAME bvh_intersect_volume
 #    define BVH_FUNCTION_FEATURES BVH_HAIR
-#    include "kernel/bvh/bvh_volume.h"
+#    include "kernel/bvh/volume.h"
 
 #    if defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_volume_motion
 #      define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_HAIR
-#      include "kernel/bvh/bvh_volume.h"
+#      include "kernel/bvh/volume.h"
 #    endif
 #  endif /* __VOLUME__ */
 
@@ -99,24 +99,24 @@ CCL_NAMESPACE_BEGIN
 #  if defined(__SHADOW_RECORD_ALL__)
 #    define BVH_FUNCTION_NAME bvh_intersect_shadow_all
 #    define BVH_FUNCTION_FEATURES 0
-#    include "kernel/bvh/bvh_shadow_all.h"
+#    include "kernel/bvh/shadow_all.h"
 
 #    if defined(__HAIR__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
 #      define BVH_FUNCTION_FEATURES BVH_HAIR
-#      include "kernel/bvh/bvh_shadow_all.h"
+#      include "kernel/bvh/shadow_all.h"
 #    endif
 
 #    if defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
 #      define BVH_FUNCTION_FEATURES BVH_MOTION
-#      include "kernel/bvh/bvh_shadow_all.h"
+#      include "kernel/bvh/shadow_all.h"
 #    endif
 
 #    if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
 #      define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION
-#      include "kernel/bvh/bvh_shadow_all.h"
+#      include "kernel/bvh/shadow_all.h"
 #    endif
 #  endif /* __SHADOW_RECORD_ALL__ */
 
@@ -125,12 +125,12 @@ CCL_NAMESPACE_BEGIN
 #  if defined(__VOLUME_RECORD_ALL__)
 #    define BVH_FUNCTION_NAME bvh_intersect_volume_all
 #    define BVH_FUNCTION_FEATURES BVH_HAIR
-#    include "kernel/bvh/bvh_volume_all.h"
+#    include "kernel/bvh/volume_all.h"
 
 #    if defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
 #      define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_HAIR
-#      include "kernel/bvh/bvh_volume_all.h"
+#      include "kernel/bvh/volume_all.h"
 #    endif
 #  endif /* __VOLUME_RECORD_ALL__ */
 

@@ -75,7 +75,6 @@ static void rna_Image_save_render(
     void *lock;
 
     iuser.scene = scene;
-    iuser.ok = 1;
 
     ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 

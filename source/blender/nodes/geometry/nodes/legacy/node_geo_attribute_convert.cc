@@ -23,10 +23,10 @@ namespace blender::nodes {
 
 static void geo_node_attribute_convert_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::String>("Result");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::String>(N_("Result"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_attribute_convert_layout(uiLayout *layout,
@@ -104,7 +104,7 @@ static void attribute_convert_calc(GeometryComponent &component,
     return;
   }
 
-  GVArrayPtr source_attribute = component.attribute_try_get_for_read(
+  GVArray source_attribute = component.attribute_try_get_for_read(
       source_name, result_domain, result_type);
   if (!source_attribute) {
     params.error_message_add(NodeWarningType::Error,
@@ -118,7 +118,7 @@ static void attribute_convert_calc(GeometryComponent &component,
     return;
   }
 
-  GVArray_GSpan source_span{*source_attribute};
+  GVArray_GSpan source_span{source_attribute};
   GMutableSpan result_span = result_attribute.as_span();
 
   BLI_assert(source_span.size() == result_span.size());

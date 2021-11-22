@@ -26,10 +26,10 @@ namespace blender::nodes {
 static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field();
-  b.add_input<decl::Float>("W").min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Float>("Value");
-  b.add_output<decl::Color>("Color");
+  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Float>(N_("W")).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>(N_("Value"));
+  b.add_output<decl::Color>(N_("Color"));
 };
 
 }  // namespace blender::nodes

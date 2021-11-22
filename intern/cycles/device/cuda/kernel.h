@@ -18,7 +18,7 @@
 
 #ifdef WITH_CUDA
 
-#  include "device/device_kernel.h"
+#  include "device/kernel.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
 #    include "cuew.h"

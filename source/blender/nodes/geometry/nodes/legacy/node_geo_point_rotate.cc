@@ -25,14 +25,16 @@ namespace blender::nodes {
 
 static void geo_node_point_rotate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Axis");
-  b.add_input<decl::Vector>("Axis", "Axis_001").default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
-  b.add_input<decl::String>("Angle");
-  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
-  b.add_input<decl::String>("Rotation");
-  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Axis"));
+  b.add_input<decl::Vector>(N_("Axis"), "Axis_001")
+      .default_value({0.0, 0.0, 1.0})
+      .subtype(PROP_XYZ);
+  b.add_input<decl::String>(N_("Angle"));
+  b.add_input<decl::Float>(N_("Angle"), "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>(N_("Rotation"));
+  b.add_input<decl::Vector>(N_("Rotation"), "Rotation_001").subtype(PROP_EULER);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -167,9 +169,9 @@ static void point_rotate_on_component(GeometryComponent &component,
   const int domain_size = rotations.size();
 
   if (storage.type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE) {
-    GVArray_Typed<float3> axis = params.get_input_attribute<float3>(
+    VArray<float3> axis = params.get_input_attribute<float3>(
         "Axis", component, ATTR_DOMAIN_POINT, {0, 0, 1});
-    GVArray_Typed<float> angles = params.get_input_attribute<float>(
+    VArray<float> angles = params.get_input_attribute<float>(
         "Angle", component, ATTR_DOMAIN_POINT, 0);
 
     if (storage.space == GEO_NODE_POINT_ROTATE_SPACE_OBJECT) {
@@ -180,7 +182,7 @@ static void point_rotate_on_component(GeometryComponent &component,
     }
   }
   else {
-    GVArray_Typed<float3> eulers = params.get_input_attribute<float3>(
+    VArray<float3> eulers = params.get_input_attribute<float3>(
         "Rotation", component, ATTR_DOMAIN_POINT, {0, 0, 0});
 
     if (storage.space == GEO_NODE_POINT_ROTATE_SPACE_OBJECT) {

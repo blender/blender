@@ -66,6 +66,7 @@ struct VariableValue_GVArray : public VariableValue {
 
   VariableValue_GVArray(const GVArray &data) : VariableValue(static_type), data(data)
   {
+    BLI_assert(data);
   }
 };
 
@@ -756,7 +757,7 @@ class VariableState : NonCopyable, NonMovable {
 
     switch (value_->type) {
       case ValueType::GVArray: {
-        const GVArray_Typed<bool> varray{this->value_as<VariableValue_GVArray>()->data};
+        const VArray<bool> varray = this->value_as<VariableValue_GVArray>()->data.typed<bool>();
         for (const int i : mask) {
           r_indices[varray[i]].append(i);
         }

@@ -23,7 +23,7 @@ namespace blender::nodes {
 
 static void geo_node_input_material_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Material>("Material");
+  b.add_output<decl::Material>(N_("Material"));
 }
 
 static void geo_node_input_material_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

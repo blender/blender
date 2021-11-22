@@ -22,7 +22,7 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/optix/queue.h"
 #  include "device/optix/util.h"
-#  include "kernel/kernel_types.h"
+#  include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -45,7 +45,6 @@ enum {
   PG_HITS_MOTION,
   PG_CALL_SVM_AO,
   PG_CALL_SVM_BEVEL,
-  PG_CALL_AO_PASS,
   NUM_PROGRAM_GROUPS
 };
 
@@ -83,7 +82,6 @@ class OptiXDevice : public CUDADevice {
   class Denoiser {
    public:
     explicit Denoiser(OptiXDevice *device);
-    ~Denoiser();
 
     OptiXDevice *device;
     OptiXDeviceQueue queue;

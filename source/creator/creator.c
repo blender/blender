@@ -414,7 +414,6 @@ int main(int argc,
 
   BKE_idtype_init();
   BKE_cachefiles_init();
-  BKE_images_init();
   BKE_modifier_init();
   BKE_gpencil_modifier_init();
   BKE_shaderfx_init();
@@ -552,7 +551,8 @@ int main(int argc,
     WM_exit(C);
   }
   else {
-    if (!G.file_loaded) {
+    /* When no file is loaded, show the splash screen. */
+    if (!G.relbase_valid) {
       WM_init_splash(C);
     }
     WM_main(C);

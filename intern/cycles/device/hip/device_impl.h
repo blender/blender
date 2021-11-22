@@ -21,12 +21,12 @@
 #  include "device/hip/queue.h"
 #  include "device/hip/util.h"
 
-#  include "util/util_map.h"
+#  include "util/map.h"
 
 #  ifdef WITH_HIP_DYNLOAD
 #    include "hipew.h"
 #  else
-#    include "util/util_opengl.h"
+#    include "util/opengl.h"
 #  endif
 
 CCL_NAMESPACE_BEGIN
@@ -93,10 +93,7 @@ class HIPDevice : public Device {
 
   virtual string compile_kernel_get_common_cflags(const uint kernel_features);
 
-  string compile_kernel(const uint kernel_features,
-                        const char *name,
-                        const char *base = "hip",
-                        bool force_ptx = false);
+  string compile_kernel(const uint kernel_features, const char *name, const char *base = "hip");
 
   virtual bool load_kernels(const uint kernel_features) override;
   void reserve_local_memory(const uint kernel_features);

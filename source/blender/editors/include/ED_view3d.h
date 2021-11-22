@@ -276,12 +276,16 @@ typedef struct V3DSnapCursorState {
   eV3DPlaceOrient plane_orient;
   uchar color_line[4];
   uchar color_point[4];
+  uchar color_box[4];
+  struct wmGizmoGroupType *gzgrp_type; /* Force cursor to be drawn only when gizmo is available. */
   float *prevpoint;
+  float box_dimensions[3];
   short snap_elem_force; /* If zero, use scene settings. */
   short plane_axis;
   bool use_plane_axis_auto;
   bool draw_point;
   bool draw_plane;
+  bool draw_box;
 } V3DSnapCursorState;
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
@@ -293,7 +297,6 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
                                                   const struct bContext *C,
                                                   const int x,
                                                   const int y);
-
 struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
 void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float loc_prev[3],
@@ -302,7 +305,6 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const uchar color_line[4],
                                      const uchar color_point[4],
                                      const short snap_elem_type);
-void ED_view3d_cursor_snap_exit(void);
 
 /* view3d_iterators.c */
 
@@ -586,8 +588,6 @@ float ED_view3d_radius_to_dist(const struct View3D *v3d,
                                const bool use_aspect,
                                const float radius);
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned int pos);
-
 /* Back-buffer select and draw support. */
 void ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
 int ED_view3d_backbuf_sample_size_clamp(struct ARegion *region, const float dist);
@@ -607,12 +607,8 @@ bool ED_view3d_autodist_simple(struct ARegion *region,
                                float mouse_worldloc[3],
                                int margin,
                                const float *force_depth);
-bool ED_view3d_autodist_depth(struct ARegion *region, const int mval[2], int margin, float *depth);
-bool ED_view3d_autodist_depth_seg(struct ARegion *region,
-                                  const int mval_sta[2],
-                                  const int mval_end[2],
-                                  int margin,
-                                  float *depth);
+bool ED_view3d_depth_read_cached_seg(
+    const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
 /* select */
 #define MAXPICKELEMS 2500
@@ -842,6 +838,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(struct bContext *C,
                                                struct wmGizmo *gz,
                                                struct Base **r_base,
                                                struct BMElem **r_ele);
+void ED_view3d_gizmo_mesh_preselect_clear(struct wmGizmo *gz);
 
 /* space_view3d.c */
 void ED_view3d_buttons_region_layout_ex(const struct bContext *C,

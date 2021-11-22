@@ -16,14 +16,14 @@
 
 #include "device/hip/device.h"
 
-#include "util/util_logging.h"
+#include "util/log.h"
 
 #ifdef WITH_HIP
 #  include "device/device.h"
 #  include "device/hip/device_impl.h"
 
-#  include "util/util_string.h"
-#  include "util/util_windows.h"
+#  include "util/string.h"
+#  include "util/windows.h"
 #endif /* WITH_HIP */
 
 CCL_NAMESPACE_BEGIN
@@ -131,9 +131,9 @@ void device_hip_info(vector<DeviceInfo> &devices)
       continue;
     }
 
-    int major;
-    hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, num);
-    // TODO : (Arya) What is the last major version we are supporting?
+    if (!hipSupportsDevice(num)) {
+      continue;
+    }
 
     DeviceInfo info;
 
@@ -141,7 +141,6 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
-    info.has_half_images = (major >= 3);
     info.has_nanovdb = true;
     info.denoisers = 0;
 

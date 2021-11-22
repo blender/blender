@@ -27,16 +27,16 @@ namespace blender::nodes {
 
 static void geo_node_legacy_attribute_randomize_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute");
-  b.add_input<decl::Vector>("Min");
-  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Min", "Min_001");
-  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
-  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
-  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Attribute"));
+  b.add_input<decl::Vector>(N_("Min"));
+  b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Min"), "Min_001");
+  b.add_input<decl::Float>(N_("Max"), "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>(N_("Min"), "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Max"), "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_legacy_attribute_random_layout(uiLayout *layout,
@@ -180,13 +180,13 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
   const int domain_size = component.attribute_domain_size(domain);
 
   /* Hash the reserved name attribute "id" as a (hopefully) stable seed for each point. */
-  GVArrayPtr hash_attribute = component.attribute_try_get_for_read("id", domain);
+  GVArray hash_attribute = component.attribute_try_get_for_read("id", domain);
   Array<uint32_t> hashes(domain_size);
   if (hash_attribute) {
-    BLI_assert(hashes.size() == hash_attribute->size());
-    const CPPType &cpp_type = hash_attribute->type();
+    BLI_assert(hashes.size() == hash_attribute.size());
+    const CPPType &cpp_type = hash_attribute.type();
     BLI_assert(cpp_type.is_hashable());
-    GVArray_GSpan items{*hash_attribute};
+    GVArray_GSpan items{hash_attribute};
     threading::parallel_for(hashes.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
         hashes[i] = cpp_type.hash(items[i]);

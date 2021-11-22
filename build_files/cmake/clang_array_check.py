@@ -168,7 +168,7 @@ def function_parm_wash_tokens(parm):
     # if tokens[-1].kind == To
     # remove trailing char
     if tokens[-1].kind == TokenKind.PUNCTUATION:
-        if tokens[-1].spelling in (",", ")", ";"):
+        if tokens[-1].spelling in {",", ")", ";"}:
             tokens.pop()
         # else:
         #     print(tokens[-1].spelling)
@@ -179,7 +179,7 @@ def function_parm_wash_tokens(parm):
         t_spelling = t.spelling
         ok = True
         if t_kind == TokenKind.KEYWORD:
-            if t_spelling in ("const", "restrict", "volatile"):
+            if t_spelling in {"const", "restrict", "volatile"}:
                 ok = False
             elif t_spelling.startswith("__"):
                 ok = False  # __restrict

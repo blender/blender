@@ -22,7 +22,7 @@
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/util_windows.h"
+#  include "util/windows.h"
 #  include <OSL/oslexec.h>
 #endif
 
@@ -39,27 +39,27 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/kernel.h"
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "kernel/osl/osl_shader.h"
-#include "kernel/osl/osl_globals.h"
+#include "kernel/osl/shader.h"
+#include "kernel/osl/globals.h"
 // clang-format on
 
-#include "bvh/bvh_embree.h"
+#include "bvh/embree.h"
 
-#include "render/buffers.h"
+#include "session/buffers.h"
 
-#include "util/util_debug.h"
-#include "util/util_foreach.h"
-#include "util/util_function.h"
-#include "util/util_logging.h"
-#include "util/util_map.h"
-#include "util/util_openimagedenoise.h"
-#include "util/util_optimization.h"
-#include "util/util_progress.h"
-#include "util/util_system.h"
-#include "util/util_task.h"
-#include "util/util_thread.h"
+#include "util/debug.h"
+#include "util/foreach.h"
+#include "util/function.h"
+#include "util/log.h"
+#include "util/map.h"
+#include "util/openimagedenoise.h"
+#include "util/optimization.h"
+#include "util/progress.h"
+#include "util/system.h"
+#include "util/task.h"
+#include "util/thread.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -68,8 +68,8 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
-  VLOG(1) << "Will be using " << kernels.integrator_init_from_camera.get_uarch_name()
-          << " kernels.";
+  VLOG(1) << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
+          << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
     info.cpu_threads = TaskScheduler::num_threads();
@@ -295,11 +295,6 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   else
 #endif
     Device::build_bvh(bvh, progress, refit);
-}
-
-const CPUKernels *CPUDevice::get_cpu_kernels() const
-{
-  return &kernels;
 }
 
 void CPUDevice::get_cpu_kernel_thread_globals(

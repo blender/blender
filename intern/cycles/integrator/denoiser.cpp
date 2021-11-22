@@ -19,9 +19,9 @@
 #include "device/device.h"
 #include "integrator/denoiser_oidn.h"
 #include "integrator/denoiser_optix.h"
-#include "render/buffers.h"
-#include "util/util_logging.h"
-#include "util/util_progress.h"
+#include "session/buffers.h"
+#include "util/log.h"
+#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,23 +29,14 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 {
   DCHECK(params.use);
 
-  switch (params.type) {
-    case DENOISER_OPTIX:
-      return make_unique<OptiXDenoiser>(path_trace_device, params);
-
-    case DENOISER_OPENIMAGEDENOISE:
-      return make_unique<OIDNDenoiser>(path_trace_device, params);
-
-    case DENOISER_NUM:
-    case DENOISER_NONE:
-    case DENOISER_ALL:
-      /* pass */
-      break;
+  if (params.type == DENOISER_OPTIX && Device::available_devices(DEVICE_MASK_OPTIX).size()) {
+    return make_unique<OptiXDenoiser>(path_trace_device, params);
   }
 
-  LOG(FATAL) << "Unhandled denoiser type " << params.type << ", should never happen.";
-
-  return nullptr;
+  /* Always fallback to OIDN. */
+  DenoiseParams oidn_params = params;
+  oidn_params.type = DENOISER_OPENIMAGEDENOISE;
+  return make_unique<OIDNDenoiser>(path_trace_device, oidn_params);
 }
 
 Denoiser::Denoiser(Device *path_trace_device, const DenoiseParams &params)

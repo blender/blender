@@ -1277,10 +1277,16 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
   }
 }
 
+/**
+ * \param use_virtual_modifiers: When enabled calculate virtual-modifiers before applying `md_eval`
+ * support this since virtual-modifiers are not modifiers from a user perspective,
+ * allowing shape keys to be included with the modifier being applied, see: T91923.
+ */
 Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                            Scene *scene,
                                            Object *ob_eval,
                                            ModifierData *md_eval,
+                                           const bool use_virtual_modifiers,
                                            const bool build_shapekey_layers)
 {
   Mesh *me = ob_eval->runtime.data_orig ? (Mesh *)ob_eval->runtime.data_orig :
@@ -1303,22 +1309,49 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     BKE_keyblock_convert_to_mesh(kb, me);
   }
 
-  if (mti->type == eModifierTypeType_OnlyDeform) {
-    int numVerts;
-    float(*deformedVerts)[3] = BKE_mesh_vert_coords_alloc(me, &numVerts);
+  Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  int numVerts = 0;
+  float(*deformedVerts)[3] = nullptr;
 
-    result = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  if (use_virtual_modifiers) {
+    VirtualModifierData virtualModifierData;
+    for (ModifierData *md_eval_virt =
+             BKE_modifiers_get_virtual_modifierlist(ob_eval, &virtualModifierData);
+         md_eval_virt && (md_eval_virt != ob_eval->modifiers.first);
+         md_eval_virt = md_eval_virt->next) {
+      if (!BKE_modifier_is_enabled(scene, md_eval_virt, eModifierMode_Realtime)) {
+        continue;
+      }
+      /* All virtual modifiers are deform modifiers. */
+      const ModifierTypeInfo *mti_virt = BKE_modifier_get_info((ModifierType)md_eval_virt->type);
+      BLI_assert(mti_virt->type == eModifierTypeType_OnlyDeform);
+      if (mti_virt->type != eModifierTypeType_OnlyDeform) {
+        continue;
+      }
+
+      if (deformedVerts == nullptr) {
+        deformedVerts = BKE_mesh_vert_coords_alloc(me, &numVerts);
+      }
+      mti_virt->deformVerts(md_eval_virt, &mectx, mesh_temp, deformedVerts, numVerts);
+    }
+  }
+
+  if (mti->type == eModifierTypeType_OnlyDeform) {
+    if (deformedVerts == nullptr) {
+      deformedVerts = BKE_mesh_vert_coords_alloc(me, &numVerts);
+    }
+    result = mesh_temp;
     mti->deformVerts(md_eval, &mectx, result, deformedVerts, numVerts);
     BKE_mesh_vert_coords_apply(result, deformedVerts);
 
     if (build_shapekey_layers) {
       add_shapekey_layers(result, me);
     }
-
-    MEM_freeN(deformedVerts);
   }
   else {
-    Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
+    if (deformedVerts != nullptr) {
+      BKE_mesh_vert_coords_apply(mesh_temp, deformedVerts);
+    }
 
     if (build_shapekey_layers) {
       add_shapekey_layers(mesh_temp, me);
@@ -1330,6 +1363,10 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     if (mesh_temp != result) {
       BKE_id_free(nullptr, mesh_temp);
     }
+  }
+
+  if (deformedVerts != nullptr) {
+    MEM_freeN(deformedVerts);
   }
 
   return result;

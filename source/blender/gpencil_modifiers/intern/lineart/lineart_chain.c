@@ -126,7 +126,7 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartRenderBuffer *rb,
 
   eci = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChainItem));
 
-  copy_v2_v2(eci->pos, fbcoord);
+  copy_v4_v4(eci->pos, fbcoord);
   copy_v3_v3(eci->gpos, gpos);
   eci->index = index;
   copy_v3_v3(eci->normal, normal);
@@ -156,7 +156,7 @@ static LineartEdgeChainItem *lineart_chain_prepend_point(LineartRenderBuffer *rb
 
   eci = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChainItem));
 
-  copy_v2_v2(eci->pos, fbcoord);
+  copy_v4_v4(eci->pos, fbcoord);
   copy_v3_v3(eci->gpos, gpos);
   eci->index = index;
   copy_v3_v3(eci->normal, normal);
@@ -177,15 +177,15 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
   int last_occlusion;
   unsigned char last_transparency;
   /* Used when converting from double. */
-  float use_fbcoord[2];
+  float use_fbcoord[4];
   float use_gpos[3];
 
 #define VERT_COORD_TO_FLOAT(a) \
-  copy_v2fl_v2db(use_fbcoord, (a)->fbcoord); \
+  copy_v4fl_v4db(use_fbcoord, (a)->fbcoord); \
   copy_v3fl_v3db(use_gpos, (a)->gloc);
 
 #define POS_TO_FLOAT(lpos, gpos) \
-  copy_v2fl_v2db(use_fbcoord, lpos); \
+  copy_v3fl_v3db(use_fbcoord, lpos); \
   copy_v3fl_v3db(use_gpos, gpos);
 
   LRT_ITER_ALL_LINES_BEGIN
@@ -262,6 +262,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
           double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
           interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
+          use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_prepend_point(rb,
                                       ec,
@@ -287,6 +288,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
           double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
           interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
+          use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_prepend_point(rb,
                                       ec,
@@ -340,6 +342,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
       double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
       interp_v3_v3v3_db(lpos, e->v1->fbcoord, e->v2->fbcoord, es->at);
       interp_v3_v3v3_db(gpos, e->v1->gloc, e->v2->gloc, global_at);
+      use_fbcoord[3] = interpf(e->v2->fbcoord[3], e->v1->fbcoord[3], global_at);
       POS_TO_FLOAT(lpos, gpos)
       lineart_chain_append_point(rb,
                                  ec,
@@ -403,6 +406,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
           double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
           interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
+          use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           last_occlusion = es->prev ? es->prev->occlusion : last_occlusion;
           last_transparency = es->prev ? es->prev->material_mask_bits : last_transparency;
           POS_TO_FLOAT(lpos, gpos)
@@ -430,6 +434,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
           double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
           interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
+          use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_append_point(rb,
                                      ec,
@@ -926,9 +931,9 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
 
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
 {
-  LISTBASE_FOREACH (LineartEdgeChain *, rlc, &rb->chains) {
+  LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
     LineartEdgeChainItem *next_eci;
-    for (LineartEdgeChainItem *eci = rlc->chain.first; eci; eci = next_eci) {
+    for (LineartEdgeChainItem *eci = ec->chain.first; eci; eci = next_eci) {
       next_eci = eci->next;
       LineartEdgeChainItem *eci2, *eci3, *eci4;
 
@@ -944,10 +949,120 @@ void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
       if (dist_to_line_segment_v2(eci3->pos, eci->pos, eci2->pos) < tolerance) {
         /* And if p4 is on the extension of p1-p2 , we remove p3. */
         if ((eci4 = eci3->next) && (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {
-          BLI_remlink(&rlc->chain, eci3);
+          BLI_remlink(&ec->chain, eci3);
           next_eci = eci;
         }
       }
+    }
+  }
+}
+
+static LineartEdgeChainItem *lineart_chain_create_crossing_point(LineartRenderBuffer *rb,
+                                                                 LineartEdgeChainItem *eci_inside,
+                                                                 LineartEdgeChainItem *eci_outside)
+{
+  float isec[2];
+  float LU[2] = {-1.0f, 1.0f}, LB[2] = {-1.0f, -1.0f}, RU[2] = {1.0f, 1.0f}, RB[2] = {1.0f, -1.0f};
+  bool found = false;
+  LineartEdgeChainItem *eci2 = eci_outside, *eci1 = eci_inside;
+  if (eci2->pos[0] < -1.0f) {
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LU, LB, isec) > 0);
+  }
+  if (!found && eci2->pos[0] > 1.0f) {
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, RU, RB, isec) > 0);
+  }
+  if (!found && eci2->pos[1] < -1.0f) {
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LB, RB, isec) > 0);
+  }
+  if (!found && eci2->pos[1] > 1.0f) {
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LU, RU, isec) > 0);
+  }
+
+  if (UNLIKELY(!found)) {
+    return NULL;
+  }
+
+  float ratio = (fabs(eci2->pos[0] - eci1->pos[0]) > fabs(eci2->pos[1] - eci1->pos[1])) ?
+                    ratiof(eci1->pos[0], eci2->pos[0], isec[0]) :
+                    ratiof(eci1->pos[1], eci2->pos[1], isec[1]);
+  float gratio = eci1->pos[3] * ratio / (ratio * eci1->pos[3] + (1 - ratio) * eci2->pos[3]);
+
+  LineartEdgeChainItem *eci = lineart_mem_acquire(rb->chain_data_pool,
+                                                  sizeof(LineartEdgeChainItem));
+  memcpy(eci, eci1, sizeof(LineartEdgeChainItem));
+  interp_v3_v3v3(eci->gpos, eci1->gpos, eci2->gpos, gratio);
+  interp_v3_v3v3(eci->pos, eci1->pos, eci2->pos, ratio);
+  eci->pos[3] = interpf(eci2->pos[3], eci1->pos[3], gratio);
+  eci->next = eci->prev = NULL;
+  return eci;
+}
+
+#define LRT_ECI_INSIDE(eci) \
+  ((eci)->pos[0] >= -1.0f && (eci)->pos[0] <= 1.0f && (eci)->pos[1] >= -1.0f && \
+   (eci)->pos[1] <= 1.0f)
+
+void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb)
+{
+  LineartEdgeChain *ec;
+  LineartEdgeChainItem *eci, *next_eci, *prev_eci, *new_eci;
+  bool is_inside, new_inside;
+  ListBase swap = {0};
+  swap.first = rb->chains.first;
+  swap.last = rb->chains.last;
+
+  rb->chains.last = rb->chains.first = NULL;
+  while ((ec = BLI_pophead(&swap)) != NULL) {
+    bool ec_added = false;
+    LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
+    is_inside = LRT_ECI_INSIDE(first_eci) ? true : false;
+    if (!is_inside) {
+      ec->picked = true;
+    }
+    for (eci = first_eci->next; eci; eci = next_eci) {
+      next_eci = eci->next;
+      prev_eci = eci->prev;
+
+      /* We only need to do something if the edge crossed from outside to the inside or from inside
+       * to the outside. */
+      if ((new_inside = LRT_ECI_INSIDE(eci)) != is_inside) {
+        if (new_inside == false) {
+          /* Stroke goes out. */
+          new_eci = lineart_chain_create_crossing_point(rb, prev_eci, eci);
+
+          LineartEdgeChain *new_ec = lineart_mem_acquire(rb->chain_data_pool,
+                                                         sizeof(LineartEdgeChain));
+          memcpy(new_ec, ec, sizeof(LineartEdgeChain));
+          new_ec->chain.first = next_eci;
+          eci->prev = NULL;
+          prev_eci->next = NULL;
+          ec->chain.last = prev_eci;
+          BLI_addtail(&ec->chain, new_eci);
+          BLI_addtail(&rb->chains, ec);
+          ec_added = true;
+          ec = new_ec;
+
+          next_eci = eci->next;
+          is_inside = new_inside;
+          continue;
+        }
+        /* Stroke comes in. */
+        new_eci = lineart_chain_create_crossing_point(rb, eci, prev_eci);
+
+        ec->chain.first = eci;
+        eci->prev = NULL;
+
+        BLI_addhead(&ec->chain, new_eci);
+
+        ec_added = false;
+
+        next_eci = eci->next;
+        is_inside = new_inside;
+        continue;
+      }
+    }
+
+    if ((!ec_added) && is_inside) {
+      BLI_addtail(&rb->chains, ec);
     }
   }
 }
@@ -1004,6 +1119,48 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
         new_ec->level = ec->level;
         new_ec->material_mask_bits = ec->material_mask_bits;
         ec = new_ec;
+      }
+    }
+  }
+}
+
+void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,
+                                             float dist,
+                                             bool use_custom_camera)
+{
+  float dir[3];
+  float cam[3];
+  float view[3];
+  float view_clamp[3];
+  copy_v3fl_v3db(cam, rb->camera_pos);
+  copy_v3fl_v3db(view, rb->view_vector);
+
+  if (use_custom_camera) {
+    copy_v3fl_v3db(cam, rb->camera_pos);
+  }
+  else {
+    copy_v3fl_v3db(cam, rb->active_camera_pos);
+  }
+
+  if (rb->cam_is_persp) {
+    LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
+      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
+        sub_v3_v3v3(dir, cam, eci->gpos);
+        float orig_len = len_v3(dir);
+        normalize_v3(dir);
+        mul_v3_fl(dir, MIN2(dist, orig_len - rb->near_clip));
+        add_v3_v3(eci->gpos, dir);
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
+      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
+        sub_v3_v3v3(dir, cam, eci->gpos);
+        float len_lim = dot_v3v3(view, dir) - rb->near_clip;
+        normalize_v3_v3(view_clamp, view);
+        mul_v3_fl(view_clamp, MIN2(dist, len_lim));
+        add_v3_v3(eci->gpos, view_clamp);
       }
     }
   }

@@ -228,6 +228,11 @@ typedef struct IDTypeInfo {
    * \note Currently needed for some update operation on point caches.
    */
   IDTypeLibOverrideApplyPost lib_override_apply_post;
+
+  /**
+   * Callbacks for assets, based on the type of asset.
+   */
+  struct AssetTypeInfo *asset_type_info;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */

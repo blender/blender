@@ -2451,7 +2451,6 @@ static void do_transform_effect(const SeqRenderData *context,
                                 int total_lines,
                                 ImBuf *out)
 {
-  Scene *scene = context->scene;
   TransformVars *transform = (TransformVars *)seq->effectdata;
   float scale_x, scale_y, translate_x, translate_y, rotate_radians;
 
@@ -2469,10 +2468,14 @@ static void do_transform_effect(const SeqRenderData *context,
 
   /* Translate */
   if (!transform->percent) {
-    float rd_s = (scene->r.size / 100.0f);
+    /* Compensate text size for preview render size. */
+    double proxy_size_comp = context->scene->r.size / 100.0;
+    if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
+      proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
+    }
 
-    translate_x = transform->xIni * rd_s + (x / 2.0f);
-    translate_y = transform->yIni * rd_s + (y / 2.0f);
+    translate_x = transform->xIni * proxy_size_comp + (x / 2.0f);
+    translate_y = transform->yIni * proxy_size_comp + (y / 2.0f);
   }
   else {
     translate_x = x * (transform->xIni / 100.0f) + (x / 2.0f);
@@ -2939,6 +2942,9 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
       }
     }
   }
+
+  out->planes = R_IMF_PLANES_RGB;
+
   return out;
 }
 
@@ -3738,7 +3744,7 @@ static void init_text_effect(Sequence *seq)
   data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
   data->text_font = NULL;
   data->text_blf_id = -1;
-  data->text_size = 60;
+  data->text_size = 60.0f;
 
   copy_v4_fl(data->color, 1.0f);
   data->shadow_color[3] = 0.7f;
@@ -3839,7 +3845,7 @@ static int num_inputs_text(void)
 static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
 {
   TextVars *data = seq->effectdata;
-  if (data->text[0] == 0 || data->text_size < 1 ||
+  if (data->text[0] == 0 || data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
        (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0))) {
     return EARLY_USE_INPUT_1;
@@ -4021,6 +4027,14 @@ static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
   return EARLY_DO_EFFECT;
 }
 
+static int early_out_mul_input1(Sequence *UNUSED(seq), float facf0, float facf1)
+{
+  if (facf0 == 0.0f && facf1 == 0.0f) {
+    return EARLY_USE_INPUT_2;
+  }
+  return EARLY_DO_EFFECT;
+}
+
 static void get_default_fac_noop(Sequence *UNUSED(seq),
                                  float UNUSED(timeline_frame),
                                  float *facf0,
@@ -4131,6 +4145,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.multithreaded = true;
       rval.init = init_alpha_over_or_under;
       rval.execute_slice = do_alphaover_effect;
+      rval.early_out = early_out_mul_input1;
       break;
     case SEQ_TYPE_OVERDROP:
       rval.multithreaded = true;

@@ -42,16 +42,16 @@ namespace blender::nodes {
 
 static void geo_node_point_distribute_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Distance Min").min(0.0f).max(100000.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Density Max")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Float>(N_("Distance Min")).min(0.0f).max(100000.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Density Max"))
       .default_value(1.0f)
       .min(0.0f)
       .max(100000.0f)
       .subtype(PROP_NONE);
-  b.add_input<decl::String>("Density Attribute");
-  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::String>(N_("Density Attribute"));
+  b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_distribute_layout(uiLayout *layout,
@@ -106,9 +106,9 @@ static void sample_mesh_surface(const Mesh &mesh,
 
     float looptri_density_factor = 1.0f;
     if (density_factors != nullptr) {
-      const float v0_density_factor = std::max(0.0f, density_factors->get(v0_loop));
-      const float v1_density_factor = std::max(0.0f, density_factors->get(v1_loop));
-      const float v2_density_factor = std::max(0.0f, density_factors->get(v2_loop));
+      const float v0_density_factor = std::max(0.0f, (*density_factors)[v0_loop]);
+      const float v1_density_factor = std::max(0.0f, (*density_factors)[v1_loop]);
+      const float v2_density_factor = std::max(0.0f, (*density_factors)[v2_loop]);
       looptri_density_factor = (v0_density_factor + v1_density_factor + v2_density_factor) / 3.0f;
     }
     const float area = area_tri_v3(v0_pos, v1_pos, v2_pos);
@@ -315,7 +315,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       }
 
       const AttributeDomain source_domain = attribute_info->domain;
-      GVArrayPtr source_attribute = source_component.attribute_get_for_read(
+      GVArray source_attribute = source_component.attribute_get_for_read(
           attribute_id, source_domain, output_data_type, nullptr);
       if (!source_attribute) {
         i_instance += set_group.transforms.size();
@@ -329,7 +329,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
 
         GMutableSpan instance_span = out_span.slice(offset, bary_coords.size());
         interpolate_attribute(
-            mesh, bary_coords, looptri_indices, source_domain, *source_attribute, instance_span);
+            mesh, bary_coords, looptri_indices, source_domain, source_attribute, instance_span);
 
         i_instance++;
       }
@@ -337,7 +337,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       attribute_math::convert_to_static_type(output_data_type, [&](auto dummy) {
         using T = decltype(dummy);
 
-        GVArray_Span<T> source_span{*source_attribute};
+        VArray_Span source_span{source_attribute.typed<T>()};
       });
     }
 
@@ -445,7 +445,7 @@ static void distribute_points_random(Span<GeometryInstanceGroup> set_groups,
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
     const MeshComponent &component = *set.get_component_for_read<MeshComponent>();
-    GVArray_Typed<float> density_factors = component.attribute_get_for_read<float>(
+    VArray<float> density_factors = component.attribute_get_for_read<float>(
         density_attribute_name, ATTR_DOMAIN_CORNER, use_one_default ? 1.0f : 0.0f);
     const Mesh &mesh = *component.get_for_read();
     for (const float4x4 &transform : set_group.transforms) {
@@ -455,7 +455,7 @@ static void distribute_points_random(Span<GeometryInstanceGroup> set_groups,
       sample_mesh_surface(mesh,
                           transform,
                           density,
-                          &*density_factors,
+                          &density_factors,
                           seed,
                           positions,
                           bary_coords,
@@ -514,7 +514,7 @@ static void distribute_points_poisson_disk(Span<GeometryInstanceGroup> set_group
     const GeometrySet &set = set_group.geometry_set;
     const MeshComponent &component = *set.get_component_for_read<MeshComponent>();
     const Mesh &mesh = *component.get_for_read();
-    const GVArray_Typed<float> density_factors = component.attribute_get_for_read<float>(
+    const VArray<float> density_factors = component.attribute_get_for_read<float>(
         density_attribute_name, ATTR_DOMAIN_CORNER, use_one_default ? 1.0f : 0.0f);
 
     for (const int UNUSED(i_set_instance) : set_group.transforms.index_range()) {
@@ -621,6 +621,11 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     Vector<float3> &positions = positions_all[i];
     instance_start_offsets[i] = final_points_len;
     final_points_len += positions.size();
+  }
+
+  if (final_points_len == 0) {
+    params.set_output("Geometry", GeometrySet());
+    return;
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(final_points_len);

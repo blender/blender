@@ -16,9 +16,9 @@
 
 #include "graph/node_xml.h"
 
-#include "util/util_foreach.h"
-#include "util/util_string.h"
-#include "util/util_transform.h"
+#include "util/foreach.h"
+#include "util/string.h"
+#include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
 

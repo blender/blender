@@ -28,23 +28,23 @@ namespace blender::nodes {
 
 static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Geometry>("Target Geometry");
-  b.add_input<decl::String>("Ray Direction");
-  b.add_input<decl::Vector>("Ray Direction", "Ray Direction_001")
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Geometry>(N_("Target Geometry"));
+  b.add_input<decl::String>(N_("Ray Direction"));
+  b.add_input<decl::Vector>(N_("Ray Direction"), "Ray Direction_001")
       .default_value({0.0f, 0.0f, 1.0f});
-  b.add_input<decl::String>("Ray Length");
-  b.add_input<decl::Float>("Ray Length", "Ray Length_001")
+  b.add_input<decl::String>(N_("Ray Length"));
+  b.add_input<decl::Float>(N_("Ray Length"), "Ray Length_001")
       .default_value(100.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE);
-  b.add_input<decl::String>("Target Attribute");
-  b.add_input<decl::String>("Is Hit");
-  b.add_input<decl::String>("Hit Position");
-  b.add_input<decl::String>("Hit Normal");
-  b.add_input<decl::String>("Hit Distance");
-  b.add_input<decl::String>("Hit Attribute");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::String>(N_("Target Attribute"));
+  b.add_input<decl::String>(N_("Is Hit"));
+  b.add_input<decl::String>(N_("Hit Position"));
+  b.add_input<decl::String>(N_("Hit Normal"));
+  b.add_input<decl::String>(N_("Hit Distance"));
+  b.add_input<decl::String>(N_("Hit Attribute"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -197,11 +197,11 @@ static void raycast_from_points(const GeoNodeExecParams &params,
       (GeometryNodeRaycastMapMode)storage.mapping);
   const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
 
-  GVArray_Typed<float3> ray_origins = dst_component.attribute_get_for_read<float3>(
+  VArray<float3> ray_origins = dst_component.attribute_get_for_read<float3>(
       "position", result_domain, {0, 0, 0});
-  GVArray_Typed<float3> ray_directions = params.get_input_attribute<float3>(
+  VArray<float3> ray_directions = params.get_input_attribute<float3>(
       "Ray Direction", dst_component, result_domain, {0, 0, 0});
-  GVArray_Typed<float> ray_lengths = params.get_input_attribute<float>(
+  VArray<float> ray_lengths = params.get_input_attribute<float>(
       "Ray Length", dst_component, result_domain, 0);
 
   OutputAttribute_Typed<bool> hit_attribute =
@@ -218,10 +218,10 @@ static void raycast_from_points(const GeoNodeExecParams &params,
   Array<int> hit_indices;
   Array<float3> hit_positions_internal;
   if (!hit_attribute_names.is_empty()) {
-    hit_indices.reinitialize(ray_origins->size());
+    hit_indices.reinitialize(ray_origins.size());
 
     if (!hit_position_attribute) {
-      hit_positions_internal.reinitialize(ray_origins->size());
+      hit_positions_internal.reinitialize(ray_origins.size());
     }
   }
   const MutableSpan<bool> is_hit = hit_attribute ? hit_attribute.as_span() : MutableSpan<bool>();

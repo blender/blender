@@ -34,14 +34,12 @@ class IndexFieldInput final : public FieldInput {
   {
   }
 
-  const GVArray *get_varray_for_context(const FieldContext &UNUSED(context),
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const FieldContext &UNUSED(context),
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
   {
     auto index_func = [](int i) { return i; };
-    return &scope.construct<
-        GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
-        mask.min_array_size(), mask.min_array_size(), index_func);
+    return VArray<int>::ForFunc(mask.min_array_size(), index_func);
   }
 };
 
@@ -240,20 +238,20 @@ TEST(field, TwoFunctionsTwoOutputs)
 
   FieldContext field_context;
   FieldEvaluator field_evaluator{field_context, &mask};
-  const VArray<int> *result_1 = nullptr;
-  const VArray<int> *result_2 = nullptr;
+  VArray<int> result_1;
+  VArray<int> result_2;
   field_evaluator.add(result_field_1, &result_1);
   field_evaluator.add(result_field_2, &result_2);
   field_evaluator.evaluate();
 
-  EXPECT_EQ(result_1->get(2), 4);
-  EXPECT_EQ(result_1->get(4), 8);
-  EXPECT_EQ(result_1->get(6), 12);
-  EXPECT_EQ(result_1->get(8), 16);
-  EXPECT_EQ(result_2->get(2), 24);
-  EXPECT_EQ(result_2->get(4), 28);
-  EXPECT_EQ(result_2->get(6), 32);
-  EXPECT_EQ(result_2->get(8), 36);
+  EXPECT_EQ(result_1.get(2), 4);
+  EXPECT_EQ(result_1.get(4), 8);
+  EXPECT_EQ(result_1.get(6), 12);
+  EXPECT_EQ(result_1.get(8), 16);
+  EXPECT_EQ(result_2.get(2), 24);
+  EXPECT_EQ(result_2.get(4), 28);
+  EXPECT_EQ(result_2.get(6), 32);
+  EXPECT_EQ(result_2.get(8), 36);
 }
 
 TEST(field, SameFieldTwice)
@@ -264,16 +262,16 @@ TEST(field, SameFieldTwice)
   FieldContext field_context;
   IndexMask mask{IndexRange(2)};
   ResourceScope scope;
-  Vector<const GVArray *> results = evaluate_fields(
+  Vector<GVArray> results = evaluate_fields(
       scope, {constant_field, constant_field}, mask, field_context);
 
-  GVArray_Typed<int> varray1{*results[0]};
-  GVArray_Typed<int> varray2{*results[1]};
+  VArray<int> varray1 = results[0].typed<int>();
+  VArray<int> varray2 = results[1].typed<int>();
 
-  EXPECT_EQ(varray1->get(0), 10);
-  EXPECT_EQ(varray1->get(1), 10);
-  EXPECT_EQ(varray2->get(0), 10);
-  EXPECT_EQ(varray2->get(1), 10);
+  EXPECT_EQ(varray1.get(0), 10);
+  EXPECT_EQ(varray1.get(1), 10);
+  EXPECT_EQ(varray2.get(0), 10);
+  EXPECT_EQ(varray2.get(1), 10);
 }
 
 TEST(field, IgnoredOutput)
@@ -283,12 +281,12 @@ TEST(field, IgnoredOutput)
 
   FieldContext field_context;
   FieldEvaluator field_evaluator{field_context, 10};
-  const VArray<int> *results = nullptr;
+  VArray<int> results;
   field_evaluator.add(field, &results);
   field_evaluator.evaluate();
 
-  EXPECT_EQ(results->get(0), 5);
-  EXPECT_EQ(results->get(3), 5);
+  EXPECT_EQ(results.get(0), 5);
+  EXPECT_EQ(results.get(3), 5);
 }
 
 }  // namespace blender::fn::tests

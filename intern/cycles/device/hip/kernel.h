@@ -18,7 +18,7 @@
 
 #ifdef WITH_HIP
 
-#  include "device/device_kernel.h"
+#  include "device/kernel.h"
 
 #  ifdef WITH_HIP_DYNLOAD
 #    include "hipew.h"

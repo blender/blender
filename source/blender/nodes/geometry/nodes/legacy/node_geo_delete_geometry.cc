@@ -47,10 +47,10 @@ namespace blender::nodes {
 
 static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Selection");
-  b.add_input<decl::Bool>("Invert");
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Selection"));
+  b.add_input<decl::Bool>(N_("Invert"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 template<typename T> static void copy_data(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
@@ -137,7 +137,7 @@ static std::unique_ptr<CurveEval> curve_delete(const CurveEval &input_curve,
   Vector<int64_t> copied_splines;
 
   if (input_curve.attributes.get_for_read(name)) {
-    GVArray_Typed<bool> selection = input_curve.attributes.get_for_read<bool>(name, false);
+    VArray<bool> selection = input_curve.attributes.get_for_read<bool>(name, false);
     for (const int i : input_splines.index_range()) {
       if (selection[i] == invert) {
         output_curve->add_spline(input_splines[i]->copy());
@@ -151,7 +151,7 @@ static std::unique_ptr<CurveEval> curve_delete(const CurveEval &input_curve,
 
     for (const int i : input_splines.index_range()) {
       const Spline &spline = *input_splines[i];
-      GVArray_Typed<bool> selection = spline.attributes.get_for_read<bool>(name, false);
+      VArray<bool> selection = spline.attributes.get_for_read<bool>(name, false);
 
       indices_to_copy.clear();
       for (const int i_point : IndexRange(spline.size())) {
@@ -202,7 +202,7 @@ static void delete_point_cloud_selection(const PointCloudComponent &in_component
                                          const StringRef selection_name,
                                          const bool invert)
 {
-  const GVArray_Typed<bool> selection_attribute = in_component.attribute_get_for_read<bool>(
+  const VArray<bool> selection_attribute = in_component.attribute_get_for_read<bool>(
       selection_name, ATTR_DOMAIN_POINT, false);
   VArray_Span<bool> selection{selection_attribute};
 
@@ -590,7 +590,7 @@ static void delete_mesh_selection(MeshComponent &component,
   const AttributeDomain selection_domain = get_mesh_selection_domain(component, selection_name);
 
   /* This already checks if the attribute exists, and displays a warning in that case. */
-  GVArray_Typed<bool> selection = component.attribute_get_for_read<bool>(
+  VArray<bool> selection = component.attribute_get_for_read<bool>(
       selection_name, selection_domain, false);
 
   /* Check if there is anything to delete. */

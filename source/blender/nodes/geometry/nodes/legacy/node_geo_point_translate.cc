@@ -23,10 +23,10 @@ namespace blender::nodes {
 
 static void geo_node_point_translate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Translation");
-  b.add_input<decl::Vector>("Translation", "Translation_001").subtype(PROP_TRANSLATION);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Translation"));
+  b.add_input<decl::Vector>(N_("Translation"), "Translation_001").subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -43,10 +43,10 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   if (!position_attribute) {
     return;
   }
-  GVArray_Typed<float3> attribute = params.get_input_attribute<float3>(
+  VArray<float3> attribute = params.get_input_attribute<float3>(
       "Translation", component, ATTR_DOMAIN_POINT, {0, 0, 0});
 
-  for (const int i : IndexRange(attribute.size())) {
+  for (const int i : attribute.index_range()) {
     position_attribute->set(i, position_attribute->get(i) + attribute[i]);
   }
 

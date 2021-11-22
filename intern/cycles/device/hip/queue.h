@@ -18,9 +18,9 @@
 
 #ifdef WITH_HIP
 
-#  include "device/device_kernel.h"
-#  include "device/device_memory.h"
-#  include "device/device_queue.h"
+#  include "device/kernel.h"
+#  include "device/memory.h"
+#  include "device/queue.h"
 
 #  include "device/hip/util.h"
 

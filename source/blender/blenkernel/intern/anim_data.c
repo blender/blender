@@ -294,11 +294,11 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 {
   LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    BKE_fcurve_foreach_id(fcu, data);
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
-  BKE_LIB_FOREACHID_PROCESS(data, adt->action, IDWALK_CB_USER);
-  BKE_LIB_FOREACHID_PROCESS(data, adt->tmpact, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->action, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->tmpact, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
     LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {

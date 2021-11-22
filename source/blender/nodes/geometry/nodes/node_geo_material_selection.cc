@@ -30,8 +30,8 @@ namespace blender::nodes {
 
 static void geo_node_material_selection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Material>("Material").hide_label(true);
-  b.add_output<decl::Bool>("Selection").field_source();
+  b.add_input<decl::Material>(N_("Material")).hide_label(true);
+  b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
 static void select_mesh_by_material(const Mesh &mesh,
@@ -59,40 +59,38 @@ class MaterialSelectionFieldInput final : public fn::FieldInput {
 
  public:
   MaterialSelectionFieldInput(Material *material)
-      : fn::FieldInput(CPPType::get<bool>(), "Material Selection"), material_(material)
+      : fn::FieldInput(CPPType::get<bool>(), "Material Selection node"), material_(material)
   {
+    category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
       const GeometryComponent &component = geometry_context->geometry_component();
       const AttributeDomain domain = geometry_context->domain();
       if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-        return nullptr;
+        return {};
       }
       const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
       const Mesh *mesh = mesh_component.get_for_read();
       if (mesh == nullptr) {
-        return nullptr;
+        return {};
       }
 
       if (domain == ATTR_DOMAIN_FACE) {
         Array<bool> selection(mask.min_array_size());
         select_mesh_by_material(*mesh, material_, mask, selection);
-        return &scope.construct<fn::GVArray_For_ArrayContainer<Array<bool>>>(std::move(selection));
+        return VArray<bool>::ForContainer(std::move(selection));
       }
 
       Array<bool> selection(mesh->totpoly);
       select_mesh_by_material(*mesh, material_, IndexMask(mesh->totpoly), selection);
-      GVArrayPtr face_selection = std::make_unique<fn::GVArray_For_ArrayContainer<Array<bool>>>(
-          std::move(selection));
-      GVArrayPtr final_selection = mesh_component.attribute_try_adapt_domain(
-          std::move(face_selection), ATTR_DOMAIN_FACE, domain);
-      return scope.add_value(std::move(final_selection)).get();
+      return mesh_component.attribute_try_adapt_domain<bool>(
+          VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_FACE, domain);
     }
 
     return nullptr;

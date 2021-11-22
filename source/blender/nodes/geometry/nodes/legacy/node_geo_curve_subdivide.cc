@@ -25,18 +25,14 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
-
 namespace blender::nodes {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Cuts");
-  b.add_input<decl::Int>("Cuts", "Cuts_001").default_value(1).min(0).max(1000);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Cuts"));
+  b.add_input<decl::Int>(N_("Cuts"), "Cuts_001").default_value(1).min(0).max(1000);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_curve_subdivide_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -308,8 +304,12 @@ static SplinePtr subdivide_spline(const Spline &spline,
                                   const VArray<int> &cuts,
                                   const int spline_offset)
 {
-  /* Since we expect to access each value many times, it should be worth it to make sure the
-   * attribute is a real span (especially considering the note below). Using the offset at each
+  if (spline.size() <= 1) {
+    return spline.copy();
+  }
+
+  /* Since we expect to access each value many times, it should be worth it to make sure count
+   * of cuts is a real span (especially considering the note below). Using the offset at each
    * point facilitates subdividing in parallel later. */
   Array<int> offsets = get_subdivided_offsets(spline, cuts, spline_offset);
   const int result_size = offsets.last() + int(!spline.is_cyclic());
@@ -359,14 +359,13 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
   }
 
   const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-  GVArray_Typed<int> cuts = params.get_input_attribute<int>(
-      "Cuts", component, ATTR_DOMAIN_POINT, 0);
-  if (cuts->is_single() && cuts->get_internal_single() < 1) {
+  VArray<int> cuts = params.get_input_attribute<int>("Cuts", component, ATTR_DOMAIN_POINT, 0);
+  if (cuts.is_single() && cuts.get_internal_single() < 1) {
     params.set_output("Geometry", geometry_set);
     return;
   }
 
-  std::unique_ptr<CurveEval> output_curve = subdivide_curve(*component.get_for_read(), *cuts);
+  std::unique_ptr<CurveEval> output_curve = subdivide_curve(*component.get_for_read(), cuts);
 
   params.set_output("Geometry", GeometrySet::create_with_curve(output_curve.release()));
 }

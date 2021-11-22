@@ -404,15 +404,12 @@ void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
  */
 static void bm_mesh_edges_sharp_tag(BMesh *bm,
                                     const float (*fnos)[3],
-                                    const float split_angle,
+                                    float split_angle_cos,
                                     const bool do_sharp_edges_tag)
 {
   BMIter eiter;
   BMEdge *e;
   int i;
-
-  const bool check_angle = (split_angle < (float)M_PI);
-  const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
   if (fnos) {
     BM_mesh_elem_index_ensure(bm, BM_FACE);
@@ -451,7 +448,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
     return;
   }
 
-  bm_mesh_edges_sharp_tag(bm, NULL, split_angle, true);
+  bm_mesh_edges_sharp_tag(bm, NULL, cosf(split_angle), true);
 }
 
 /** \} */
@@ -1110,11 +1107,13 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
                                                         const short (*clnors_data)[2],
                                                         const int cd_loop_clnors_offset,
                                                         const bool do_rebuild,
-                                                        const float split_angle)
+                                                        const float split_angle_cos)
 {
   BMIter fiter;
   BMFace *f_curr;
   const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
+  /* When false the caller must have already tagged the edges. */
+  const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
 
   MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
@@ -1155,7 +1154,9 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
 
   /* Always tag edges based on winding & sharp edge flag
    * (even when the auto-smooth angle doesn't need to be calculated). */
-  bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
+  if (do_edge_tag) {
+    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? -1.0f : split_angle_cos, false);
+  }
 
   /* We now know edges that can be smoothed (they are tagged),
    * and edges that will be hard (they aren't).
@@ -1308,12 +1309,9 @@ static void bm_mesh_loops_calc_normals__multi_threaded(BMesh *bm,
                                                        const short (*clnors_data)[2],
                                                        const int cd_loop_clnors_offset,
                                                        const bool do_rebuild,
-                                                       const float split_angle)
+                                                       const float split_angle_cos)
 {
   const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
-  const bool check_angle = (split_angle < (float)M_PI);
-  const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
-
   MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
   {
@@ -1387,7 +1385,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
                                        const short (*clnors_data)[2],
                                        const int cd_loop_clnors_offset,
                                        const bool do_rebuild,
-                                       const float split_angle)
+                                       const float split_angle_cos)
 {
   if (bm->totloop < BM_OMP_LIMIT) {
     bm_mesh_loops_calc_normals__single_threaded(bm,
@@ -1398,7 +1396,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
                                                 clnors_data,
                                                 cd_loop_clnors_offset,
                                                 do_rebuild,
-                                                split_angle);
+                                                split_angle_cos);
   }
   else {
     bm_mesh_loops_calc_normals__multi_threaded(bm,
@@ -1409,7 +1407,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
                                                clnors_data,
                                                cd_loop_clnors_offset,
                                                do_rebuild,
-                                               split_angle);
+                                               split_angle_cos);
   }
 }
 
@@ -1620,7 +1618,7 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
 
   /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
    * When using custom loop normals, disable the angle feature! */
-  bm_mesh_edges_sharp_tag(bm, fnos, (float)M_PI, false);
+  bm_mesh_edges_sharp_tag(bm, fnos, -1.0f, false);
 
   /* Finish computing lnos by accumulating face normals
    * in each fan of faces defined by sharp edges. */
@@ -1751,7 +1749,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                clnors_data,
                                cd_loop_clnors_offset,
                                do_rebuild,
-                               has_clnors ? (float)M_PI : split_angle);
+                               has_clnors ? -1.0f : cosf(split_angle));
   }
   else {
     BLI_assert(!r_lnors_spacearr);
@@ -2266,7 +2264,6 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   }
 
   BM_lnorspace_update(bm);
-  BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
   /* Create a loop normal layer. */
   if (!CustomData_has_layer(&bm->ldata, CD_NORMAL)) {
@@ -2278,14 +2275,15 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
 
+  int l_index = 0;
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      const int l_index = BM_elem_index_get(l);
       const short *clnors_data = BM_ELEM_CD_GET_VOID_P(l, cd_custom_normal_offset);
       float *normal = BM_ELEM_CD_GET_VOID_P(l, cd_normal_offset);
 
       BKE_lnor_space_custom_data_to_normal(
           bm->lnor_spacearr->lspacearr[l_index], clnors_data, normal);
+      l_index += 1;
     }
   }
 

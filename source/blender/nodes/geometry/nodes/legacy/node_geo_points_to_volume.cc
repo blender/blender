@@ -32,13 +32,13 @@ namespace blender::nodes {
 
 static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
-  b.add_input<decl::String>("Radius");
-  b.add_input<decl::Float>("Radius", "Radius_001").default_value(0.5f).min(0.0f);
-  b.add_output<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Voxel Size")).default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Voxel Amount")).default_value(64.0f).min(0.0f);
+  b.add_input<decl::String>(N_("Radius"));
+  b.add_input<decl::Float>(N_("Radius"), "Radius_001").default_value(0.5f).min(0.0f);
+  b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
 static void geo_node_points_to_volume_layout(uiLayout *layout,
@@ -172,12 +172,12 @@ static void gather_point_data_from_component(const GeoNodeExecParams &params,
                                              Vector<float3> &r_positions,
                                              Vector<float> &r_radii)
 {
-  GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
+  VArray<float3> positions = component.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-  GVArray_Typed<float> radii = params.get_input_attribute<float>(
+  VArray<float> radii = params.get_input_attribute<float>(
       "Radius", component, ATTR_DOMAIN_POINT, 0.0f);
 
-  for (const int i : IndexRange(positions.size())) {
+  for (const int i : positions.index_range()) {
     r_positions.append(positions[i]);
     r_radii.append(radii[i]);
   }

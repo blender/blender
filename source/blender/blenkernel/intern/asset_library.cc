@@ -18,9 +18,9 @@
  * \ingroup bke
  */
 
-#include "BKE_asset_catalog.hh"
+#include <memory>
+
 #include "BKE_asset_library.hh"
-#include "BKE_callbacks.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 
@@ -29,11 +29,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "asset_library_service.hh"
-
-#include <memory>
 
 bool blender::bke::AssetLibrary::save_catalogs_when_file_is_saved = true;
 
@@ -126,6 +122,11 @@ void AssetLibrary::load(StringRefNull library_root_directory)
   auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
   catalog_service->load_from_disk();
   this->catalog_service = std::move(catalog_service);
+}
+
+void AssetLibrary::refresh()
+{
+  this->catalog_service->reload_catalogs();
 }
 
 namespace {

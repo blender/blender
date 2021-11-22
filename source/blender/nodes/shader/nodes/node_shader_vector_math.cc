@@ -30,12 +30,12 @@ namespace blender::nodes {
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>("Vector", "Vector_001").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>("Vector", "Vector_002").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Scale").default_value(1.0f).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Vector>("Vector");
-  b.add_output<decl::Float>("Value");
+  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_001").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Vector>(N_("Vector"), "Vector_002").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>(N_("Scale")).default_value(1.0f).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Float>(N_("Value"));
 };
 
 }  // namespace blender::nodes

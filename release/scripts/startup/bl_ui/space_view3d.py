@@ -2265,6 +2265,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_asset")
         layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_object_collection")
         layout.menu("VIEW3D_MT_object_relations")
@@ -2757,6 +2758,16 @@ class VIEW3D_MT_object_cleanup(Menu):
         layout.separator()
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
+
+class VIEW3D_MT_object_asset(Menu):
+    bl_label = "Asset"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("asset.mark")
+        layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
+        layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 
 
 class VIEW3D_MT_make_single_user(Menu):
@@ -5979,7 +5990,7 @@ class VIEW3D_PT_shading_render_pass(Panel):
 class VIEW3D_PT_gizmo_display(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Gizmo"
+    bl_label = "Gizmos"
     bl_ui_units_x = 8
 
     def draw(self, context):
@@ -7541,6 +7552,7 @@ classes = (
     VIEW3D_MT_image_add,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
+    VIEW3D_MT_object_asset,
     VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_context_menu,

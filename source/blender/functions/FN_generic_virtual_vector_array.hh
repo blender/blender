@@ -100,31 +100,31 @@ class GVVectorArray {
   }
 };
 
-class GVArray_For_GVVectorArrayIndex : public GVArray {
+class GVArray_For_GVVectorArrayIndex : public GVArrayImpl {
  private:
   const GVVectorArray &vector_array_;
   const int64_t index_;
 
  public:
   GVArray_For_GVVectorArrayIndex(const GVVectorArray &vector_array, const int64_t index)
-      : GVArray(vector_array.type(), vector_array.get_vector_size(index)),
+      : GVArrayImpl(vector_array.type(), vector_array.get_vector_size(index)),
         vector_array_(vector_array),
         index_(index)
   {
   }
 
  protected:
-  void get_impl(const int64_t index_in_vector, void *r_value) const override;
-  void get_to_uninitialized_impl(const int64_t index_in_vector, void *r_value) const override;
+  void get(const int64_t index_in_vector, void *r_value) const override;
+  void get_to_uninitialized(const int64_t index_in_vector, void *r_value) const override;
 };
 
 class GVVectorArray_For_SingleGVArray : public GVVectorArray {
  private:
-  const GVArray &array_;
+  GVArray varray_;
 
  public:
-  GVVectorArray_For_SingleGVArray(const GVArray &array, const int64_t size)
-      : GVVectorArray(array.type(), size), array_(array)
+  GVVectorArray_For_SingleGVArray(GVArray varray, const int64_t size)
+      : GVVectorArray(varray.type(), size), varray_(std::move(varray))
   {
   }
 

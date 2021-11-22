@@ -19,21 +19,21 @@
 
 #include <stdlib.h>
 
-#include "bvh/bvh_params.h"
+#include "bvh/params.h"
 
-#include "device/device_denoise.h"
-#include "device/device_memory.h"
+#include "device/denoise.h"
+#include "device/memory.h"
 
-#include "util/util_function.h"
-#include "util/util_list.h"
-#include "util/util_logging.h"
-#include "util/util_stats.h"
-#include "util/util_string.h"
-#include "util/util_texture.h"
-#include "util/util_thread.h"
-#include "util/util_types.h"
-#include "util/util_unique_ptr.h"
-#include "util/util_vector.h"
+#include "util/function.h"
+#include "util/list.h"
+#include "util/log.h"
+#include "util/stats.h"
+#include "util/string.h"
+#include "util/texture.h"
+#include "util/thread.h"
+#include "util/types.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -73,7 +73,6 @@ class DeviceInfo {
   int num;
   bool display_device;        /* GPU is used as a display device. */
   bool has_nanovdb;           /* Support NanoVDB volumes. */
-  bool has_half_images;       /* Support half-float textures. */
   bool has_osl;               /* Support Open Shading Language. */
   bool has_profiling;         /* Supports runtime collection of profiling info. */
   bool has_peer_memory;       /* GPU has P2P access to memory of another GPU. */
@@ -90,7 +89,6 @@ class DeviceInfo {
     num = 0;
     cpu_threads = 0;
     display_device = false;
-    has_half_images = false;
     has_nanovdb = false;
     has_osl = false;
     has_profiling = false;
@@ -180,7 +178,7 @@ class Device {
    * These may not be used on GPU or multi-devices. */
 
   /* Get CPU kernel functions for native instruction set. */
-  virtual const CPUKernels *get_cpu_kernels() const;
+  static const CPUKernels &get_cpu_kernels();
   /* Get kernel globals to pass to kernels. */
   virtual void get_cpu_kernel_thread_globals(
       vector<CPUKernelThreadGlobals> & /*kernel_thread_globals*/);

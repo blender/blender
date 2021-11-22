@@ -18,24 +18,25 @@
 
 #pragma once
 
-#include "kernel/kernel_profiling.h"
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "kernel/integrator/integrator_state.h"
+#include "kernel/integrator/state.h"
+
+#include "kernel/util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Not actually used, just a NULL pointer that gets passed everywhere, which we
  * hope gets optimized out by the compiler. */
-struct KernelGlobals {
-  /* NOTE: Keep the size in sync with SHADOW_STACK_MAX_HITS. */
+struct KernelGlobalsGPU {
   int unused[1];
 };
+typedef ccl_global const KernelGlobalsGPU *ccl_restrict KernelGlobals;
 
 /* Global scene data and textures */
 __constant__ KernelData __data;
 #define KERNEL_TEX(type, name) __attribute__((used)) const __constant__ __device__ type *name;
-#include "kernel/kernel_textures.h"
+#include "kernel/textures.h"
 
 /* Integrator state */
 __constant__ IntegratorStateGPU __integrator_state;

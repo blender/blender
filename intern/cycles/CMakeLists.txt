@@ -295,13 +295,6 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
-if(WITH_CYCLES_STANDALONE)
-  set(WITH_CYCLES_DEVICE_CUDA TRUE)
-  set(WITH_CYCLES_DEVICE_HIP TRUE)
-endif()
-# TODO(sergey): Consider removing it, only causes confusion in interface.
-set(WITH_CYCLES_DEVICE_MULTI TRUE)
-
 # Logging capabilities using GLog library.
 if(WITH_CYCLES_LOGGING)
   add_definitions(-DWITH_CYCLES_LOGGING)
@@ -348,6 +341,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   unset(_has_cxxflag_float_conversion)
   unset(_has_cxxflag_double_promotion)
   unset(_has_no_error_unused_macros)
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_implicit_float_conversion "-Werror=implicit-float-conversion")
+  unset(_has_cxxflag_implicit_float_conversion)
 endif()
 
 if(WITH_CYCLES_CUDA_BINARIES AND (NOT WITH_CYCLES_CUBIN_COMPILER))
@@ -400,7 +396,8 @@ add_subdirectory(doc)
 add_subdirectory(graph)
 add_subdirectory(integrator)
 add_subdirectory(kernel)
-add_subdirectory(render)
+add_subdirectory(scene)
+add_subdirectory(session)
 add_subdirectory(subd)
 add_subdirectory(util)
 

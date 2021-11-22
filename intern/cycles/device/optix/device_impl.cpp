@@ -20,21 +20,22 @@
 #  include "device/optix/device_impl.h"
 
 #  include "bvh/bvh.h"
-#  include "bvh/bvh_optix.h"
-#  include "integrator/pass_accessor_gpu.h"
-#  include "render/buffers.h"
-#  include "render/hair.h"
-#  include "render/mesh.h"
-#  include "render/object.h"
-#  include "render/pass.h"
-#  include "render/scene.h"
+#  include "bvh/optix.h"
 
-#  include "util/util_debug.h"
-#  include "util/util_logging.h"
-#  include "util/util_md5.h"
-#  include "util/util_path.h"
-#  include "util/util_progress.h"
-#  include "util/util_time.h"
+#  include "integrator/pass_accessor_gpu.h"
+
+#  include "scene/hair.h"
+#  include "scene/mesh.h"
+#  include "scene/object.h"
+#  include "scene/pass.h"
+#  include "scene/scene.h"
+
+#  include "util/debug.h"
+#  include "util/log.h"
+#  include "util/md5.h"
+#  include "util/path.h"
+#  include "util/progress.h"
+#  include "util/time.h"
 
 #  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__
@@ -45,14 +46,6 @@ CCL_NAMESPACE_BEGIN
 OptiXDevice::Denoiser::Denoiser(OptiXDevice *device)
     : device(device), queue(device), state(device, "__denoiser_state")
 {
-}
-
-OptiXDevice::Denoiser::~Denoiser()
-{
-  const CUDAContextScope scope(device);
-  if (optix_denoiser != nullptr) {
-    optixDenoiserDestroy(optix_denoiser);
-  }
 }
 
 OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
@@ -90,6 +83,7 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   };
 #  endif
   if (DebugFlags().optix.use_debug) {
+    VLOG(1) << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
@@ -129,6 +123,11 @@ OptiXDevice::~OptiXDevice()
     if (pipelines[i] != NULL) {
       optixPipelineDestroy(pipelines[i]);
     }
+  }
+
+  /* Make sure denoiser is destroyed before device context! */
+  if (denoiser_.optix_denoiser != nullptr) {
+    optixDenoiserDestroy(denoiser_.optix_denoiser);
   }
 
   optixDeviceContextDestroy(context);
@@ -377,9 +376,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
     group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
         "__direct_callable__svm_node_bevel";
-    group_descs[PG_CALL_AO_PASS].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_descs[PG_CALL_AO_PASS].callables.moduleDC = optix_module;
-    group_descs[PG_CALL_AO_PASS].callables.entryFunctionNameDC = "__direct_callable__ao_pass";
   }
 
   optix_assert(optixProgramGroupCreate(
@@ -885,26 +881,30 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   optix_assert(optixDenoiserComputeMemoryResources(
       denoiser_.optix_denoiser, buffer_params.width, buffer_params.height, &sizes));
 
-  denoiser_.scratch_size = sizes.withOverlapScratchSizeInBytes;
+  /* Denoiser is invoked on whole images only, so no overlap needed (would be used for tiling). */
+  denoiser_.scratch_size = sizes.withoutOverlapScratchSizeInBytes;
   denoiser_.scratch_offset = sizes.stateSizeInBytes;
 
   /* Allocate denoiser state if tile size has changed since last setup. */
   denoiser_.state.alloc_to_device(denoiser_.scratch_offset + denoiser_.scratch_size);
 
   /* Initialize denoiser state for the current tile size. */
-  const OptixResult result = optixDenoiserSetup(denoiser_.optix_denoiser,
-                                                denoiser_.queue.stream(),
-                                                buffer_params.width,
-                                                buffer_params.height,
-                                                denoiser_.state.device_pointer,
-                                                denoiser_.scratch_offset,
-                                                denoiser_.state.device_pointer +
-                                                    denoiser_.scratch_offset,
-                                                denoiser_.scratch_size);
+  const OptixResult result = optixDenoiserSetup(
+      denoiser_.optix_denoiser,
+      0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
+            on a stream that is not the default stream */
+      buffer_params.width,
+      buffer_params.height,
+      denoiser_.state.device_pointer,
+      denoiser_.scratch_offset,
+      denoiser_.state.device_pointer + denoiser_.scratch_offset,
+      denoiser_.scratch_size);
   if (result != OPTIX_SUCCESS) {
     set_error("Failed to set up OptiX denoiser");
     return false;
   }
+
+  cuda_assert(cuCtxSynchronize());
 
   denoiser_.is_configured = true;
   denoiser_.configured_size.x = buffer_params.width;
@@ -940,8 +940,6 @@ bool OptiXDevice::denoise_run(DenoiseContext &context, const DenoisePass &pass)
     color_layer.format = OPTIX_PIXEL_FORMAT_FLOAT3;
   }
 
-  device_vector<float> fake_albedo(this, "fake_albedo", MEM_READ_WRITE);
-
   /* Optional albedo and color passes. */
   if (context.num_input_passes > 1) {
     const device_ptr d_guiding_buffer = context.guiding_params.device_pointer;
@@ -972,6 +970,7 @@ bool OptiXDevice::denoise_run(DenoiseContext &context, const DenoisePass &pass)
 
   /* Finally run denoising. */
   OptixDenoiserParams params = {}; /* All parameters are disabled/zero. */
+
   OptixDenoiserLayer image_layers = {};
   image_layers.input = color_layer;
   image_layers.output = output_layer;
@@ -1576,7 +1575,7 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
       return; \
     }
   KERNEL_TEX(IntegratorStateGPU, __integrator_state)
-#  include "kernel/kernel_textures.h"
+#  include "kernel/textures.h"
 #  undef KERNEL_TEX
 }
 

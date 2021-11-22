@@ -25,9 +25,11 @@ set(INC
   ../../depsgraph
   ../../draw
   ../../gpu
+  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna
+  ../../nodes
   ../../python
   ../../render
   ../../windowmanager
@@ -41,6 +43,7 @@ set(SRC
   interface_anim.c
   interface_button_group.c
   interface_context_menu.c
+  interface_context_path.cc
   interface_draw.c
   interface_dropboxes.cc
   interface_eyedropper.c
@@ -63,12 +66,13 @@ set(SRC
   interface_region_menu_popup.c
   interface_region_popover.c
   interface_region_popup.c
-  interface_region_search.c
+  interface_region_search.cc
   interface_region_tooltip.c
   interface_regions.c
   interface_style.c
   interface_template_asset_view.cc
   interface_template_list.cc
+  interface_template_attribute_search.cc
   interface_template_search_menu.c
   interface_template_search_operator.c
   interface_templates.c

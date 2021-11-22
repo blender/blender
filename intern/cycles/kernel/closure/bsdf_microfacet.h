@@ -32,8 +32,11 @@
 
 #pragma once
 
-#include "kernel/kernel_lookup_table.h"
-#include "kernel/kernel_random.h"
+#include "kernel/closure/bsdf_util.h"
+
+#include "kernel/sample/pattern.h"
+
+#include "kernel/util/lookup_table.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -312,8 +315,8 @@ ccl_device int bsdf_microfacet_ggx_setup(ccl_private MicrofacetBsdf *bsdf)
 {
   bsdf->extra = NULL;
 
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
+  bsdf->alpha_y = saturatef(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
@@ -333,8 +336,8 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsd
 {
   bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
 
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
+  bsdf->alpha_y = saturatef(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
 
@@ -348,7 +351,7 @@ ccl_device int bsdf_microfacet_ggx_clearcoat_setup(ccl_private MicrofacetBsdf *b
 {
   bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
 
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
@@ -362,7 +365,7 @@ ccl_device int bsdf_microfacet_ggx_refraction_setup(ccl_private MicrofacetBsdf *
 {
   bsdf->extra = NULL;
 
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
@@ -780,8 +783,8 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
 
 ccl_device int bsdf_microfacet_beckmann_setup(ccl_private MicrofacetBsdf *bsdf)
 {
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
-  bsdf->alpha_y = saturate(bsdf->alpha_y);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
+  bsdf->alpha_y = saturatef(bsdf->alpha_y);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
@@ -797,7 +800,7 @@ ccl_device int bsdf_microfacet_beckmann_isotropic_setup(ccl_private MicrofacetBs
 
 ccl_device int bsdf_microfacet_beckmann_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
 {
-  bsdf->alpha_x = saturate(bsdf->alpha_x);
+  bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;

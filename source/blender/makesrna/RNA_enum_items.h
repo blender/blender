@@ -211,6 +211,8 @@ DEF_ENUM(rna_enum_attribute_domain_items)
 DEF_ENUM(rna_enum_attribute_domain_without_corner_items)
 DEF_ENUM(rna_enum_attribute_domain_with_auto_items)
 
+DEF_ENUM(rna_enum_volume_grid_data_type_items)
+
 DEF_ENUM(rna_enum_collection_color_items)
 DEF_ENUM(rna_enum_strip_color_items)
 

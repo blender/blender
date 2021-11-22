@@ -64,7 +64,7 @@ struct wmTimer;
 /* Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
-/* Defined in `node_intern.h`. */
+/* Defined in `node_intern.hh`. */
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 
 /* Defined in `file_intern.h`. */
@@ -583,6 +583,7 @@ typedef struct SequencerPreviewOverlay {
 
 /* SequencerPreviewOverlay.flag */
 typedef enum eSpaceSeq_SequencerPreviewOverlay_Flag {
+  SEQ_PREVIEW_SHOW_2D_CURSOR = (1 << 1),
   SEQ_PREVIEW_SHOW_OUTLINE_SELECTED = (1 << 2),
   SEQ_PREVIEW_SHOW_SAFE_MARGINS = (1 << 3),
   SEQ_PREVIEW_SHOW_GPENCIL = (1 << 4),
@@ -1157,8 +1158,12 @@ typedef struct FileDirEntryArr {
 
 /* FileDirEntry.flags */
 enum {
-  FILE_ENTRY_INVALID_PREVIEW = 1 << 0, /* The preview for this entry could not be generated. */
+  /* The preview for this entry could not be generated. */
+  FILE_ENTRY_INVALID_PREVIEW = 1 << 0,
+  /* The entry name needs to be freed when clearing file list. */
   FILE_ENTRY_NAME_FREE = 1 << 1,
+  /* The preview for this entry is being loaded on another thread. */
+  FILE_ENTRY_PREVIEW_LOADING = 1 << 2,
 };
 
 /** \} */
@@ -1508,6 +1513,15 @@ typedef struct bNodeTreePath {
   char display_name[64];
 } bNodeTreePath;
 
+typedef struct SpaceNodeOverlay {
+  int flag;
+} SpaceNodeOverlay;
+
+typedef enum eSpaceNodeOverlay_Flag {
+  SN_OVERLAY_SHOW_OVERLAYS = (1 << 1),
+  SN_OVERLAY_SHOW_WIRE_COLORS = (1 << 2),
+} eSpaceNodeOverlay_Flag;
+
 typedef struct SpaceNode {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1560,6 +1574,9 @@ typedef struct SpaceNode {
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;
+
+  SpaceNodeOverlay overlay;
+  char _pad2[4];
 
   SpaceNode_Runtime *runtime;
 } SpaceNode;
@@ -1993,6 +2010,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_FLOAT3 = 4,
   SPREADSHEET_VALUE_TYPE_COLOR = 5,
   SPREADSHEET_VALUE_TYPE_INSTANCES = 6,
+  SPREADSHEET_VALUE_TYPE_STRING = 7,
 } eSpreadsheetColumnValueType;
 
 /**

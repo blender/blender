@@ -2998,7 +2998,7 @@ void MOD_lineart_destroy_render_data(LineartGpencilModifierData *lmd)
   }
 }
 
-static LineartCache *lineart_init_cache()
+static LineartCache *lineart_init_cache(void)
 {
   LineartCache *lc = MEM_callocN(sizeof(LineartCache), "Lineart Cache");
   return lc;
@@ -3016,6 +3016,8 @@ void MOD_lineart_clear_cache(struct LineartCache **lc)
 
 static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
                                                          LineartGpencilModifierData *lmd,
+                                                         Object *camera,
+                                                         Object *active_camera,
                                                          LineartCache *lc)
 {
   LineartRenderBuffer *rb = MEM_callocN(sizeof(LineartRenderBuffer), "Line Art render buffer");
@@ -3024,10 +3026,10 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   lmd->render_buffer_ptr = rb;
   lc->rb_edge_types = lmd->edge_types_override;
 
-  if (!scene || !scene->camera || !lc) {
+  if (!scene || !camera || !lc) {
     return NULL;
   }
-  Camera *c = scene->camera->data;
+  Camera *c = camera->data;
   double clipping_offset = 0;
 
   if (lmd->calculation_flags & LRT_ALLOW_CLIPPING_BOUNDARIES) {
@@ -3035,8 +3037,11 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(rb->camera_pos, scene->camera->obmat[3]);
-  copy_m4_m4(rb->cam_obmat, scene->camera->obmat);
+  copy_v3db_v3fl(rb->camera_pos, camera->obmat[3]);
+  if (active_camera) {
+    copy_v3db_v3fl(rb->active_camera_pos, active_camera->obmat[3]);
+  }
+  copy_m4_m4(rb->cam_obmat, camera->obmat);
   rb->cam_is_persp = (c->type == CAM_PERSP);
   rb->near_clip = c->clip_start + clipping_offset;
   rb->far_clip = c->clip_end - clipping_offset;
@@ -3072,6 +3077,8 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_loose_as_contour = (lmd->calculation_flags & LRT_LOOSE_AS_CONTOUR) != 0;
   rb->use_loose_edge_chain = (lmd->calculation_flags & LRT_CHAIN_LOOSE_EDGES) != 0;
   rb->use_geometry_space_chain = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
+  rb->use_image_boundary_trimming = (lmd->calculation_flags & LRT_USE_IMAGE_BOUNDARY_TRIMMING) !=
+                                    0;
 
   /* See lineart_edge_from_triangle() for how this option may impact performance. */
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
@@ -4076,11 +4083,13 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
  */
 bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
                                        LineartGpencilModifierData *lmd,
-                                       LineartCache **cached_result)
+                                       LineartCache **cached_result,
+                                       bool enable_stroke_depth_offset)
 {
   LineartRenderBuffer *rb;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
+  Object *use_camera;
 
   double t_start;
 
@@ -4090,14 +4099,24 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   BKE_scene_camera_switch_update(scene);
 
-  if (!scene->camera) {
-    return false;
+  if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA) {
+    if (!lmd->source_camera ||
+        (use_camera = DEG_get_evaluated_object(depsgraph, lmd->source_camera))->type !=
+            OB_CAMERA) {
+      return false;
+    }
+  }
+  else {
+    if (!scene->camera) {
+      return false;
+    }
+    use_camera = scene->camera;
   }
 
   LineartCache *lc = lineart_init_cache();
   *cached_result = lc;
 
-  rb = lineart_create_render_buffer(scene, lmd, lc);
+  rb = lineart_create_render_buffer(scene, lmd, use_camera, scene->camera, lc);
 
   /* Triangle thread testing data size varies depending on the thread count.
    * See definition of LineartTriangleThread for details. */
@@ -4117,7 +4136,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   /* Get view vector before loading geometries, because we detect feature lines there. */
   lineart_main_get_view_vector(rb);
   lineart_main_load_geometries(
-      depsgraph, scene, scene->camera, rb, lmd->calculation_flags & LRT_ALLOW_DUPLI_OBJECTS);
+      depsgraph, scene, use_camera, rb, lmd->calculation_flags & LRT_ALLOW_DUPLI_OBJECTS);
 
   if (!rb->vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
@@ -4185,8 +4204,17 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
       MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
     }
 
+    if (rb->use_image_boundary_trimming) {
+      MOD_lineart_chain_clip_at_border(rb);
+    }
+
     if (rb->angle_splitting_threshold > FLT_EPSILON) {
       MOD_lineart_chain_split_angle(rb, rb->angle_splitting_threshold);
+    }
+
+    if (enable_stroke_depth_offset && lmd->stroke_depth_offset > FLT_EPSILON) {
+      MOD_lineart_chain_offset_towards_camera(
+          rb, lmd->stroke_depth_offset, lmd->flags & LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA);
     }
 
     /* Finally transfer the result list into cache. */

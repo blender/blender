@@ -17,11 +17,11 @@
 #include "device/cpu/kernel_thread_globals.h"
 
 // clang-format off
-#include "kernel/osl/osl_shader.h"
-#include "kernel/osl/osl_globals.h"
+#include "kernel/osl/shader.h"
+#include "kernel/osl/globals.h"
 // clang-format on
 
-#include "util/util_profiling.h"
+#include "util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
 

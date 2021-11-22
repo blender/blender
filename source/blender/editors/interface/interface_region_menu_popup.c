@@ -640,7 +640,7 @@ void UI_popup_block_ex(bContext *C,
 }
 
 #if 0 /* UNUSED */
-void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int opcontext)
+void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, wmOperatorCallContext opcontext)
 {
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;

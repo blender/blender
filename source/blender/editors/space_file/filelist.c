@@ -817,88 +817,85 @@ static bool is_filtered_hidden(const char *filename,
   return false;
 }
 
+/**
+ * Apply the filter string as file path matching pattern.
+ * \return true when the file should be in the result set, false if it should be filtered out. */
+static bool is_filtered_file_relpath(const FileListInternEntry *file, const FileListFilter *filter)
+{
+  if (filter->filter_search[0] == '\0') {
+    return true;
+  }
+
+  /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
+  return fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) == 0;
+}
+
+/** \return true when the file should be in the result set, false if it should be filtered out. */
+static bool is_filtered_file_type(const FileListInternEntry *file, const FileListFilter *filter)
+{
+  if (is_filtered_hidden(file->relpath, filter, file)) {
+    return false;
+  }
+
+  if (FILENAME_IS_CURRPAR(file->relpath)) {
+    return false;
+  }
+
+  /* We only check for types if some type are enabled in filtering. */
+  if (filter->filter && (filter->flags & FLF_DO_FILTER)) {
+    if (file->typeflag & FILE_TYPE_DIR) {
+      if (file->typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
+        if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
+          return false;
+        }
+      }
+      else {
+        if (!(filter->filter & FILE_TYPE_FOLDER)) {
+          return false;
+        }
+      }
+    }
+    else {
+      if (!(file->typeflag & filter->filter)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/** \return true when the file should be in the result set, false if it should be filtered out. */
 static bool is_filtered_file(FileListInternEntry *file,
                              const char *UNUSED(root),
                              FileListFilter *filter)
 {
-  bool is_filtered = !is_filtered_hidden(file->relpath, filter, file);
-
-  if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
-    /* We only check for types if some type are enabled in filtering. */
-    if (filter->filter && (filter->flags & FLF_DO_FILTER)) {
-      if (file->typeflag & FILE_TYPE_DIR) {
-        if (file->typeflag &
-            (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-          if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-            is_filtered = false;
-          }
-        }
-        else {
-          if (!(filter->filter & FILE_TYPE_FOLDER)) {
-            is_filtered = false;
-          }
-        }
-      }
-      else {
-        if (!(file->typeflag & filter->filter)) {
-          is_filtered = false;
-        }
-      }
-    }
-    /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
-    if (is_filtered && (filter->filter_search[0] != '\0')) {
-      if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
-        is_filtered = false;
-      }
-    }
-  }
-
-  return is_filtered;
+  return is_filtered_file_type(file, filter) && is_filtered_file_relpath(file, filter);
 }
 
-static bool is_filtered_id_file(const FileListInternEntry *file,
-                                const char *id_group,
-                                const char *name,
-                                const FileListFilter *filter)
+static bool is_filtered_id_file_type(const FileListInternEntry *file,
+                                     const char *id_group,
+                                     const char *name,
+                                     const FileListFilter *filter)
 {
-  bool is_filtered = !is_filtered_hidden(file->relpath, filter, file);
-  if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
-    /* We only check for types if some type are enabled in filtering. */
-    if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
-      if (file->typeflag & FILE_TYPE_DIR) {
-        if (file->typeflag &
-            (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
-          if (!(filter->filter & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP))) {
-            is_filtered = false;
-          }
-        }
-        else {
-          if (!(filter->filter & FILE_TYPE_FOLDER)) {
-            is_filtered = false;
-          }
-        }
+  if (!is_filtered_file_type(file, filter)) {
+    return false;
+  }
+
+  /* We only check for types if some type are enabled in filtering. */
+  if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
+    if (id_group) {
+      if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
+        return false;
       }
-      if (is_filtered && id_group) {
-        if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
-          is_filtered = false;
-        }
-        else {
-          uint64_t filter_id = groupname_to_filter_id(id_group);
-          if (!(filter_id & filter->filter_id)) {
-            is_filtered = false;
-          }
-        }
-      }
-    }
-    /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
-    if (is_filtered && (filter->filter_search[0] != '\0')) {
-      if (fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) != 0) {
-        is_filtered = false;
+
+      uint64_t filter_id = groupname_to_filter_id(id_group);
+      if (!(filter_id & filter->filter_id)) {
+        return false;
       }
     }
   }
 
-  return is_filtered;
+  return true;
 }
 
 /**
@@ -917,44 +914,107 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
   if (!filter->asset_catalog_filter) {
     return;
   }
+  BLI_assert_msg(filelist->asset_library,
+                 "prepare_filter_asset_library() should only be called when the file browser is "
+                 "in asset browser mode");
 
   file_ensure_updated_catalog_filter_data(filter->asset_catalog_filter, filelist->asset_library);
 }
 
+/**
+ * Copy a string from source to `dest`, but prefix and suffix it with a single space.
+ * Assumes `dest` has at least space enough for the two spaces.
+ */
+static void tag_copy_with_spaces(char *dest, const char *source, const size_t dest_size)
+{
+  BLI_assert(dest_size > 2);
+  const size_t source_length = BLI_strncpy_rlen(dest + 1, source, dest_size - 2);
+  dest[0] = ' ';
+  dest[source_length + 1] = ' ';
+  dest[source_length + 2] = '\0';
+}
+
+/**
+ * Return whether at least one tag matches the search filter.
+ * Tags are searched as "entire words", so instead of searching for "tag" in the
+ * filter string, this function searches for " tag ". Assumes the search filter
+ * starts and ends with a space.
+ *
+ * Here the tags on the asset are written in set notation:
+ *
+ * `asset_tag_matches_filter(" some tags ", {"some", "blue"})` -> true
+ * `asset_tag_matches_filter(" some tags ", {"som", "tag"})` -> false
+ * `asset_tag_matches_filter(" some tags ", {})` -> false
+ */
+static bool asset_tag_matches_filter(const char *filter_search, const AssetMetaData *asset_data)
+{
+  LISTBASE_FOREACH (const AssetTag *, asset_tag, &asset_data->tags) {
+    char tag_name[MAX_NAME + 2]; /* sizeof(AssetTag::name) + 2 */
+    tag_copy_with_spaces(tag_name, asset_tag->name, sizeof(tag_name));
+    if (BLI_strcasestr(filter_search, tag_name) != NULL) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 {
+  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
+
   /* Not used yet for the asset view template. */
-  if (!filter->asset_catalog_filter) {
+  if (filter->asset_catalog_filter && !file_is_asset_visible_in_catalog_filter_settings(
+                                          filter->asset_catalog_filter, asset_data)) {
+    return false;
+  }
+
+  if (filter->filter_search[0] == '\0') {
+    /* If there is no filter text, everything matches. */
     return true;
   }
 
-  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
-  return file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter,
-                                                          asset_data);
+  /* filter->filter_search contains "*the search text*". */
+  char filter_search[66]; /* sizeof(FileListFilter::filter_search) */
+  const size_t string_length = STRNCPY_RLEN(filter_search, filter->filter_search);
+
+  /* When doing a name comparison, get rid of the leading/trailing asterisks. */
+  filter_search[string_length - 1] = '\0';
+  if (BLI_strcasestr(file->name, filter_search + 1) != NULL) {
+    return true;
+  }
+
+  /* Replace the asterisks with spaces, so that we can do matching on " sometag "; that way
+   * an artist searching for "redder" doesn't result in a match for the tag "red". */
+  filter_search[string_length - 1] = ' ';
+  filter_search[0] = ' ';
+
+  return asset_tag_matches_filter(filter_search, asset_data);
 }
 
-static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter)
+static bool is_filtered_lib_type(FileListInternEntry *file,
+                                 const char *root,
+                                 FileListFilter *filter)
 {
-  bool is_filtered;
   char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
 
   BLI_join_dirfile(path, sizeof(path), root, file->relpath);
 
   if (BLO_library_path_explode(path, dir, &group, &name)) {
-    is_filtered = is_filtered_id_file(file, group, name, filter);
+    return is_filtered_id_file_type(file, group, name, filter);
   }
-  else {
-    is_filtered = is_filtered_file(file, root, filter);
-  }
+  return is_filtered_file_type(file, filter);
+}
 
-  return is_filtered;
+static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter)
+{
+  return is_filtered_lib_type(file, root, filter) && is_filtered_file_relpath(file, filter);
 }
 
 static bool is_filtered_asset_library(FileListInternEntry *file,
                                       const char *root,
                                       FileListFilter *filter)
 {
-  return is_filtered_lib(file, root, filter) && is_filtered_asset(file, filter);
+  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
 }
 
 static bool is_filtered_main(FileListInternEntry *file,
@@ -969,7 +1029,7 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
                                     FileListFilter *filter)
 {
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
-  return is_filtered_id_file(file, file->relpath, file->name, filter) &&
+  return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
          is_filtered_asset(file, filter);
 }
 
@@ -1671,7 +1731,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
-  if (entry->flags & FILE_ENTRY_INVALID_PREVIEW) {
+  if (entry->flags & (FILE_ENTRY_INVALID_PREVIEW | FILE_ENTRY_PREVIEW_LOADING)) {
     return;
   }
 
@@ -1702,6 +1762,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
                                                                __func__);
   preview_taskdata->preview = preview;
+  entry->flags |= FILE_ENTRY_PREVIEW_LOADING;
   BLI_task_pool_push(cache->previews_pool,
                      filelist_cache_preview_runf,
                      preview_taskdata,
@@ -1819,11 +1880,13 @@ void filelist_settype(FileList *filelist, short type)
     case FILE_MAIN:
       filelist->check_dir_fn = filelist_checkdir_main;
       filelist->read_job_fn = filelist_readjob_main;
+      filelist->prepare_filter_fn = NULL;
       filelist->filter_fn = is_filtered_main;
       break;
     case FILE_LOADLIB:
       filelist->check_dir_fn = filelist_checkdir_lib;
       filelist->read_job_fn = filelist_readjob_lib;
+      filelist->prepare_filter_fn = NULL;
       filelist->filter_fn = is_filtered_lib;
       break;
     case FILE_ASSET_LIBRARY:
@@ -1843,6 +1906,7 @@ void filelist_settype(FileList *filelist, short type)
     default:
       filelist->check_dir_fn = filelist_checkdir_dir;
       filelist->read_job_fn = filelist_readjob_dir;
+      filelist->prepare_filter_fn = NULL;
       filelist->filter_fn = is_filtered_file;
       break;
   }
@@ -1854,6 +1918,7 @@ static void filelist_clear_asset_library(FileList *filelist)
 {
   /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
   filelist->asset_library = NULL;
+  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
 }
 
 void filelist_clear_ex(struct FileList *filelist,
@@ -1953,7 +2018,6 @@ void filelist_free(struct FileList *filelist)
     filelist->selection_state = NULL;
   }
 
-  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
   MEM_SAFE_FREE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
@@ -2617,24 +2681,27 @@ bool filelist_cache_previews_update(FileList *filelist)
 
     //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 
-    if (preview->icon_id) {
-      /* Due to asynchronous process, a preview for a given image may be generated several times,
-       * i.e. entry->image may already be set at this point. */
-      if (entry && !entry->preview_icon_id) {
+    if (entry) {
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+      if (preview->icon_id) {
+        /* The FILE_ENTRY_PREVIEW_LOADING flag should have prevented any other asynchronous
+         * process from trying to generate the same preview icon. */
+        BLI_assert_msg(!entry->preview_icon_id, "Preview icon should not have been generated yet");
+
         /* Move ownership over icon. */
         entry->preview_icon_id = preview->icon_id;
         preview->icon_id = 0;
         changed = true;
       }
       else {
-        BKE_icon_delete(preview->icon_id);
+        /* We want to avoid re-processing this entry continuously!
+         * Note that, since entries only live in cache,
+         * preview will be retried quite often anyway. */
+        entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
       }
     }
-    else if (entry) {
-      /* We want to avoid re-processing this entry continuously!
-       * Note that, since entries only live in cache,
-       * preview will be retried quite often anyway. */
-      entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
+    else {
+      BKE_icon_delete(preview->icon_id);
     }
 
     MEM_freeN(preview);

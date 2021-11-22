@@ -762,10 +762,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         instdata.mat[1][3] = prb->grid_resolution_y;
         instdata.mat[2][3] = prb->grid_resolution_z;
         /* Put theme id in matrix. */
-        if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
-          instdata.mat[3][3] = 0.0;
-        }
-        else if (theme_id == TH_ACTIVE) {
+        if (theme_id == TH_ACTIVE) {
           instdata.mat[3][3] = 1.0;
         }
         else /* TH_SELECT */ {

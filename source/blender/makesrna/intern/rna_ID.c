@@ -131,7 +131,7 @@ static const EnumPropertyItem rna_enum_override_library_property_operation_items
  */
 const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     /* Datablocks */
-    {FILTER_ID_AC, "filter_action", ICON_ANIM_DATA, "Actions", "Show Action data-blocks"},
+    {FILTER_ID_AC, "filter_action", ICON_ACTION, "Actions", "Show Action data-blocks"},
     {FILTER_ID_AR,
      "filter_armature",
      ICON_ARMATURE_DATA,
@@ -173,7 +173,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {FILTER_ID_MB, "filter_metaball", ICON_META_DATA, "Metaballs", "Show Metaball data-blocks"},
     {FILTER_ID_MC,
      "filter_movie_clip",
-     ICON_TRACKER_DATA,
+     ICON_TRACKER,
      "Movie Clips",
      "Show Movie Clip data-blocks"},
     {FILTER_ID_ME, "filter_mesh", ICON_MESH_DATA, "Meshes", "Show Mesh data-blocks"},

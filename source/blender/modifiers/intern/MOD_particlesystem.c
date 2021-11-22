@@ -277,7 +277,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   ModifierData *md = (ModifierData *)ptr->data;
   ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
-  uiItemL(layout, IFACE_("Settings are in the particle tab"), ICON_NONE);
+  uiItemL(layout, TIP_("Settings are in the particle tab"), ICON_NONE);
 
   if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
     if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB)) {

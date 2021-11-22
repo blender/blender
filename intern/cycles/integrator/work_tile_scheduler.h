@@ -17,7 +17,7 @@
 #pragma once
 
 #include "integrator/tile.h"
-#include "util/util_types.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -38,7 +38,11 @@ class WorkTileScheduler {
   void set_max_num_path_states(int max_num_path_states);
 
   /* Scheduling will happen for pixels within a big tile denotes by its parameters. */
-  void reset(const BufferParams &buffer_params, int sample_start, int samples_num);
+  void reset(const BufferParams &buffer_params,
+             int sample_start,
+             int samples_num,
+             int sample_offset,
+             float scrambling_distance);
 
   /* Get work for a device.
    * Returns true if there is still work to be done and initialize the work tile to all
@@ -68,11 +72,15 @@ class WorkTileScheduler {
    * Will be passed over to the KernelWorkTile. */
   int offset_, stride_;
 
+  /* Scrambling Distance requires adapted tile size */
+  float scrambling_distance_;
+
   /* Start sample of index and number of samples which are to be rendered.
    * The scheduler will cover samples range of [start, start + num] over the entire image
    * (splitting into a smaller work tiles). */
   int sample_start_ = 0;
   int samples_num_ = 0;
+  int sample_offset_ = 0;
 
   /* Tile size which be scheduled for rendering. */
   TileSize tile_size_;

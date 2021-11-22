@@ -978,6 +978,7 @@ typedef enum eLineArtGPencilModifierFlags {
   LRT_GPENCIL_BINARY_WEIGHTS = (1 << 2) /* Deprecated, this is removed for lack of use case. */,
   LRT_GPENCIL_IS_BAKED = (1 << 3),
   LRT_GPENCIL_USE_CACHE = (1 << 4),
+  LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA = (1 << 5),
 } eLineArtGPencilModifierFlags;
 
 typedef enum eLineartGpencilMaskSwitches {
@@ -1003,6 +1004,8 @@ typedef struct LineartGpencilModifierData {
   char use_multiple_levels;
   short level_start;
   short level_end;
+
+  struct Object *source_camera;
 
   struct Object *source_object;
   struct Collection *source_collection;
@@ -1042,7 +1045,6 @@ typedef struct LineartGpencilModifierData {
 
   /** Strength for smoothing jagged chains. */
   float chain_smooth_tolerance;
-  int _pad1;
 
   /* CPU mode */
   float chaining_image_threshold;
@@ -1052,6 +1054,9 @@ typedef struct LineartGpencilModifierData {
 
   /* #eLineArtGPencilModifierFlags, modifier internal state. */
   int flags;
+
+  /* Move strokes towards camera to avoid clipping while preserve depth for the viewport. */
+  float stroke_depth_offset;
 
   /* Runtime data. */
 

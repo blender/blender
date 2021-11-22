@@ -48,7 +48,7 @@
 #include "UI_interface.h"
 
 #include "ED_node.h" /* own include */
-#include "node_intern.h"
+#include "node_intern.hh"
 
 #include "ED_undo.h"
 

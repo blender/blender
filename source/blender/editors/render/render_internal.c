@@ -976,7 +976,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->anim = is_animation;
   rj->write_still = is_write_still && !is_animation;
   rj->iuser.scene = scene;
-  rj->iuser.ok = 1;
   rj->reports = op->reports;
   rj->orig_layer = 0;
   rj->last_layer = 0;

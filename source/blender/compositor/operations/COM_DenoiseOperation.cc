@@ -44,8 +44,8 @@ bool COM_is_denoise_supported()
 class DenoiseFilter {
  private:
 #ifdef WITH_OPENIMAGEDENOISE
-  oidn::DeviceRef device;
-  oidn::FilterRef filter;
+  oidn::DeviceRef device_;
+  oidn::FilterRef filter_;
 #endif
   bool initialized_ = false;
 
@@ -63,10 +63,10 @@ class DenoiseFilter {
      * nonetheless. */
     BLI_mutex_lock(&oidn_lock);
 
-    device = oidn::newDevice();
-    device.set("setAffinity", false);
-    device.commit();
-    filter = device.newFilter("RT");
+    device_ = oidn::newDevice();
+    device_.set("setAffinity", false);
+    device_.commit();
+    filter_ = device_.newFilter("RT");
     initialized_ = true;
     set_image("output", output);
   }
@@ -81,26 +81,26 @@ class DenoiseFilter {
   {
     BLI_assert(initialized_);
     BLI_assert(!buffer->is_a_single_elem());
-    filter.setImage(name.data(),
-                    buffer->get_buffer(),
-                    oidn::Format::Float3,
-                    buffer->get_width(),
-                    buffer->get_height(),
-                    0,
-                    buffer->get_elem_bytes_len());
+    filter_.setImage(name.data(),
+                     buffer->get_buffer(),
+                     oidn::Format::Float3,
+                     buffer->get_width(),
+                     buffer->get_height(),
+                     0,
+                     buffer->get_elem_bytes_len());
   }
 
   template<typename T> void set(const StringRef option_name, T value)
   {
     BLI_assert(initialized_);
-    filter.set(option_name.data(), value);
+    filter_.set(option_name.data(), value);
   }
 
   void execute()
   {
     BLI_assert(initialized_);
-    filter.commit();
-    filter.execute();
+    filter_.commit();
+    filter_.execute();
   }
 
 #else
@@ -244,7 +244,7 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
   if (settings) {
     filter.set("hdr", settings->hdr);
     filter.set("srgb", false);
-    filter.set("clean_aux", are_guiding_passes_noise_free(settings));
+    filter.set("cleanAux", are_guiding_passes_noise_free(settings));
   }
 
   filter.execute();

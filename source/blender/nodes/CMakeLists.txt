@@ -39,6 +39,7 @@ set(INC
   ../makesdna
   ../makesrna
   ../render
+  ../windowmanager
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/sky/include
@@ -140,15 +141,17 @@ set(SRC
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
+  function/nodes/node_fn_input_bool.cc
   function/nodes/node_fn_input_color.cc
+  function/nodes/node_fn_input_int.cc
   function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
   function/nodes/node_fn_random_value.cc
   function/nodes/node_fn_replace_string.cc
   function/nodes/node_fn_rotate_euler.cc
+  function/nodes/node_fn_slice_string.cc
   function/nodes/node_fn_string_length.cc
-  function/nodes/node_fn_string_substring.cc
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 
@@ -191,6 +194,8 @@ set(SRC
   geometry/nodes/legacy/node_geo_raycast.cc
   geometry/nodes/legacy/node_geo_select_by_material.cc
   geometry/nodes/legacy/node_geo_subdivision_surface.cc
+  geometry/nodes/legacy/node_geo_volume_to_mesh.cc
+
   geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_statistic.cc
@@ -224,11 +229,13 @@ set(SRC
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
   geometry/nodes/node_geo_edge_split.cc
+  geometry/nodes/node_geo_image_texture.cc
   geometry/nodes/node_geo_input_curve_handles.cc
   geometry/nodes/node_geo_input_curve_tilt.cc
+  geometry/nodes/node_geo_input_id.cc
   geometry/nodes/node_geo_input_index.cc
-  geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_material_index.cc
+  geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_normal.cc
   geometry/nodes/node_geo_input_position.cc
   geometry/nodes/node_geo_input_radius.cc
@@ -238,6 +245,7 @@ set(SRC
   geometry/nodes/node_geo_input_spline_resolution.cc
   geometry/nodes/node_geo_input_tangent.cc
   geometry/nodes/node_geo_instance_on_points.cc
+  geometry/nodes/node_geo_instances_to_points.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_replace.cc
@@ -266,8 +274,9 @@ set(SRC
   geometry/nodes/node_geo_set_curve_handles.cc
   geometry/nodes/node_geo_set_curve_radius.cc
   geometry/nodes/node_geo_set_curve_tilt.cc
-  geometry/nodes/node_geo_set_material.cc
+  geometry/nodes/node_geo_set_id.cc
   geometry/nodes/node_geo_set_material_index.cc
+  geometry/nodes/node_geo_set_material.cc
   geometry/nodes/node_geo_set_point_radius.cc
   geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_set_shade_smooth.cc
@@ -442,6 +451,7 @@ set(SRC
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
+  NOD_socket_declarations_geometry.hh
   NOD_static_types.h
   NOD_texture.h
   NOD_type_conversions.hh

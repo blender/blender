@@ -18,6 +18,7 @@ void GPUTest::SetUp()
   CLG_init();
   ghost_system = GHOST_CreateSystem();
   ghost_context = GHOST_CreateOpenGLContext(ghost_system, glSettings);
+  GHOST_ActivateOpenGLContext(ghost_context);
   context = GPU_context_create(nullptr);
   GPU_init();
 }

@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "device/device_memory.h"
+#include "device/memory.h"
 
-#include "kernel/kernel_types.h"
+#include "kernel/types.h"
 
-#include "util/util_function.h"
+#include "util/function.h"
 
 CCL_NAMESPACE_BEGIN
 

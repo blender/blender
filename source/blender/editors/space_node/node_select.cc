@@ -61,7 +61,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "node_intern.h" /* own include */
+#include "node_intern.hh" /* own include */
 
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.

@@ -3125,7 +3125,8 @@ static void project_paint_face_init(const ProjPaintState *ps,
                   uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
             }
 
-            /* a pity we need to get the worldspace pixel location here */
+            /* A pity we need to get the world-space pixel location here
+             * because it is a relatively expensive operation. */
             if (do_clip || do_3d_mapping) {
               interp_v3_v3v3v3(wco,
                                ps->mvert_eval[lt_vtri[0]].co,
@@ -3208,7 +3209,10 @@ static void project_paint_face_init(const ProjPaintState *ps,
     else {
       /* we have a seam - deal with it! */
 
-      /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in perspective view */
+      /* Inset face coords.
+       * - screen-space in orthographic view.
+       * - world-space in perspective view.
+       */
       float insetCos[3][3];
 
       /* Vertex screen-space coords. */
@@ -3373,8 +3377,8 @@ static void project_paint_face_init(const ProjPaintState *ps,
                     if ((ps->do_occlude == false) ||
                         !project_bucket_point_occluded(
                             ps, bucketFaceNodes, tri_index, pixel_on_edge)) {
-                      /* a pity we need to get the worldspace
-                       * pixel location here */
+                      /* A pity we need to get the world-space pixel location here
+                       * because it is a relatively expensive operation. */
                       if (do_clip || do_3d_mapping) {
                         interp_v3_v3v3v3(wco, vCo[0], vCo[1], vCo[2], w);
 

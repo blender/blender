@@ -405,8 +405,8 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
     /* Push instances attributes to the GPU. */
     DRW_render_instance_buffer_finish();
 
-    /* Need to be called after DRW_render_instance_buffer_finish() */
-    /* Also we weed to have a correct fbo bound for DRW_hair_update */
+    /* Need to be called after #DRW_render_instance_buffer_finish() */
+    /* Also we weed to have a correct FBO bound for #DRW_hair_update. */
     GPU_framebuffer_bind(vedata->fbl->main_fb);
     DRW_hair_update();
 

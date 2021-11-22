@@ -972,29 +972,33 @@ static void fullscreen_azone_init(ScrArea *area, ARegion *region)
 #define AZONEPAD_ICON (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *region)
 {
+  /* If region is overlapped (transparent background), move #AZone to content.
+   * Note this is an arbitrary amount that matches nicely with numbers elsewhere. */
+  int overlap_padding = (region->overlap) ? (int)(0.4f * U.widget_unit) : 0;
+
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymax - AZONEPAD_EDGE;
+      az->y1 = region->winrct.ymax - AZONEPAD_EDGE - overlap_padding;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymax + AZONEPAD_EDGE;
+      az->y2 = region->winrct.ymax + AZONEPAD_EDGE - overlap_padding;
       break;
     case AE_BOTTOM_TO_TOPLEFT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymin + AZONEPAD_EDGE;
+      az->y1 = region->winrct.ymin + AZONEPAD_EDGE + overlap_padding;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymin - AZONEPAD_EDGE;
+      az->y2 = region->winrct.ymin - AZONEPAD_EDGE + overlap_padding;
       break;
     case AE_LEFT_TO_TOPRIGHT:
-      az->x1 = region->winrct.xmin - AZONEPAD_EDGE;
+      az->x1 = region->winrct.xmin - AZONEPAD_EDGE + overlap_padding;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmin + AZONEPAD_EDGE;
+      az->x2 = region->winrct.xmin + AZONEPAD_EDGE + overlap_padding;
       az->y2 = region->winrct.ymax;
       break;
     case AE_RIGHT_TO_TOPLEFT:
-      az->x1 = region->winrct.xmax + AZONEPAD_EDGE;
+      az->x1 = region->winrct.xmax + AZONEPAD_EDGE - overlap_padding;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmax - AZONEPAD_EDGE;
+      az->x2 = region->winrct.xmax - AZONEPAD_EDGE - overlap_padding;
       az->y2 = region->winrct.ymax;
       break;
   }
@@ -1373,7 +1377,7 @@ static void region_rect_recursive(
   else if (alignment == RGN_ALIGN_FLOAT) {
     /**
      * \note Currently this window type is only used for #RGN_TYPE_HUD,
-     * We expect the panel to resize it's self to be larger.
+     * We expect the panel to resize itself to be larger.
      *
      * This aligns to the lower left of the area.
      */
@@ -1740,7 +1744,7 @@ static void ed_default_handlers(
   if (flag & ED_KEYMAP_TOOL) {
     if (flag & ED_KEYMAP_GIZMO) {
       WM_event_add_keymap_handler_dynamic(
-          &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
+          &region->handlers, WM_event_get_keymap_from_toolsystem_with_gizmos, area);
     }
     else {
       WM_event_add_keymap_handler_dynamic(
@@ -1936,7 +1940,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  /* set typedefinitions */
+  /* Set type-definitions. */
   area->type = BKE_spacetype_from_id(area->spacetype);
 
   if (area->type == NULL) {
@@ -3023,7 +3027,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                   search_filter);
   }
 
-  /* Draw "polyinstantaited" panels that don't have a 1 to 1 correspondence with their types. */
+  /* Draw "poly-instantiated" panels that don't have a 1 to 1 correspondence with their types. */
   if (has_instanced_panel) {
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       if (panel->type == NULL) {

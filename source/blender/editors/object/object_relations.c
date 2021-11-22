@@ -1677,18 +1677,28 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 /** \name Make Single User Operator
  * \{ */
 
-static void libblock_relink_collection(Collection *collection, const bool do_collection)
+static bool single_data_needs_duplication(ID *id)
+{
+  /* NOTE: When dealing with linked data, we always make a local copy of it.
+   * While in theory we could rather make it local when it only has one user, this is difficult
+   * in practice with current code of this function. */
+  return (id != NULL && (id->us > 1 || ID_IS_LINKED(id)));
+}
+
+static void libblock_relink_collection(Main *bmain,
+                                       Collection *collection,
+                                       const bool do_collection)
 {
   if (do_collection) {
-    BKE_libblock_relink_to_newid(&collection->id);
+    BKE_libblock_relink_to_newid(bmain, &collection->id, 0);
   }
 
   for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
-    BKE_libblock_relink_to_newid(&cob->ob->id);
+    BKE_libblock_relink_to_newid(bmain, &cob->ob->id, 0);
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    libblock_relink_collection(child->collection, true);
+    libblock_relink_collection(bmain, child->collection, true);
   }
 }
 
@@ -1702,7 +1712,8 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Generate new copies for objects in given collection and all its children,
    * and optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
-    Collection *collection_new = (Collection *)BKE_id_copy(bmain, &collection->id);
+    Collection *collection_new = (Collection *)BKE_id_copy_ex(
+        bmain, &collection->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     id_us_min(&collection_new->id);
     collection = ID_NEW_SET(collection, collection_new);
   }
@@ -1713,7 +1724,8 @@ static Collection *single_object_users_collection(Main *bmain,
     /* an object may be in more than one collection */
     if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
       if (!ID_IS_LINKED(ob) && BKE_object_scenes_users_get(bmain, ob) > 1) {
-        ID_NEW_SET(ob, BKE_id_copy(bmain, &ob->id));
+        ID_NEW_SET(
+            ob, BKE_id_copy_ex(bmain, &ob->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
         id_us_min(ob->id.newid);
       }
     }
@@ -1756,10 +1768,10 @@ static void single_object_users(
   single_object_users_collection(bmain, scene, master_collection, flag, copy_collections, true);
 
   /* Will also handle the master collection. */
-  BKE_libblock_relink_to_newid(&scene->id);
+  BKE_libblock_relink_to_newid(bmain, &scene->id, 0);
 
   /* Collection and object pointers in collections */
-  libblock_relink_collection(scene->master_collection, false);
+  libblock_relink_collection(bmain, scene->master_collection, false);
 
   /* We also have to handle runtime things in UI. */
   if (v3d) {
@@ -1800,66 +1812,82 @@ static void single_obdata_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       id = ob->data;
-
-      if (id && id->us > 1 && !ID_IS_LINKED(id)) {
+      if (single_data_needs_duplication(id)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
         switch (ob->type) {
           case OB_LAMP:
-            ob->data = la = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = la = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_CAMERA:
-            cam = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            cam = ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             ID_NEW_REMAP(cam->dof.focus_object);
             break;
           case OB_MESH:
             /* Needed to remap texcomesh below. */
-            me = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
-            if (me->key) { /* We do not need to set me->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)me->key);
-            }
+            me = ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_MBALL:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_CURVE:
           case OB_SURF:
           case OB_FONT:
-            ob->data = cu = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = cu = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
-            if (cu->key) { /* We do not need to set cu->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)cu->key);
-            }
             break;
           case OB_LATTICE:
-            ob->data = lat = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
-            if (lat->key) { /* We do not need to set lat->key->id.newid here... */
-              BKE_animdata_copy_id_action(bmain, (ID *)lat->key);
-            }
+            ob->data = lat = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_ARMATURE:
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             BKE_pose_rebuild(bmain, ob, ob->data, true);
             break;
           case OB_SPEAKER:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_LIGHTPROBE:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_GPENCIL:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_HAIR:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_POINTCLOUD:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_VOLUME:
-            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
@@ -1869,13 +1897,6 @@ static void single_obdata_users(
             BKE_scene_objects_iterator_end(&iter_macro);
             return;
         }
-
-        /* Copy animation data after object data became local,
-         * otherwise old and new object data will share the same
-         * AnimData structure, which is not what we want.
-         *                                             (sergey)
-         */
-        BKE_animdata_copy_id_action(bmain, (ID *)ob->data);
 
         id_us_min(id);
       }
@@ -1895,8 +1916,16 @@ static void single_object_action_users(
 {
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      BKE_animdata_copy_id_action(bmain, &ob->id);
+      AnimData *adt = BKE_animdata_from_id(&ob->id);
+      if (adt == NULL) {
+        continue;
+      }
+
+      ID *id_act = (ID *)adt->action;
+      if (single_data_needs_duplication(id_act)) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
+      }
     }
   }
   FOREACH_OBJECT_FLAG_END;
@@ -1909,10 +1938,14 @@ static void single_objectdata_action_users(
     if (!ID_IS_LINKED(ob) && ob->data != NULL) {
       ID *id_obdata = (ID *)ob->data;
       AnimData *adt = BKE_animdata_from_id(id_obdata);
+      if (adt == NULL) {
+        continue;
+      }
+
       ID *id_act = (ID *)adt->action;
-      if (id_act && id_act->us > 1) {
+      if (single_data_needs_duplication(id_act)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-        BKE_animdata_copy_id_action(bmain, id_obdata);
+        BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
       }
     }
   }
@@ -1928,18 +1961,12 @@ static void single_mat_users(
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
     if (!ID_IS_LINKED(ob)) {
       for (a = 1; a <= ob->totcol; a++) {
-        ma = BKE_object_material_get(ob, a);
-        if (ma) {
-          /* do not test for LIB_TAG_NEW or use newid:
-           * this functions guaranteed delivers single_users! */
-
-          if (ma->id.us > 1) {
-            man = (Material *)BKE_id_copy(bmain, &ma->id);
-            BKE_animdata_copy_id_action(bmain, &man->id);
-
-            man->id.us = 0;
-            BKE_object_material_assign(bmain, ob, man, a, BKE_MAT_ASSIGN_USERPREF);
-          }
+        ma = BKE_object_material_get(ob, (short)a);
+        if (single_data_needs_duplication(&ma->id)) {
+          man = (Material *)BKE_id_copy_ex(
+              bmain, &ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+          man->id.us = 0;
+          BKE_object_material_assign(bmain, ob, man, (short)a, BKE_MAT_ASSIGN_USERPREF);
         }
       }
     }
@@ -1982,9 +2009,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
   CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
     object->id.tag |= LIB_TAG_DOIT;
 
-    /* If data is also gonna to become local, mark data we're interested in
-     * as gonna-to-be-local.
-     */
+    /* If obdata is also going to become local, mark it as such too. */
     if (mode == MAKE_LOCAL_SELECT_OBDATA && object->data) {
       ID *data_id = (ID *)object->data;
       data_id->tag |= LIB_TAG_DOIT;
@@ -2566,10 +2591,10 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
-                                               const wmEvent *event)
+                                               const int mval[2])
 {
   int mat_slot = 0;
-  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);
   if (ob == NULL) {
     return BLI_strdup("");
   }
@@ -2619,8 +2644,10 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_FINISHED;
 }
 
-/* used for dropbox */
-/* assigns to object under cursor, only first material slot */
+/**
+ * Used for drop-box.
+ * Assigns to object under cursor, only first material slot.
+ */
 void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2629,7 +2656,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = drop_named_material_invoke;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = ED_operator_objectmode_poll_msg;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;

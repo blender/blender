@@ -30,15 +30,15 @@ namespace blender::nodes {
 
 static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh");
-  b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
-  b.add_input<decl::Vector>("Position").implicit_field();
-  b.add_input<decl::Float>("Radius")
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field();
+  b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
-  b.add_output<decl::Geometry>("Points");
+  b.add_output<decl::Geometry>(N_("Points"));
 }
 
 static void geo_node_mesh_to_points_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -113,14 +113,14 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const CustomDataType data_type = entry.value.data_type;
-    GVArrayPtr src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
+    GVArray src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
     OutputAttribute dst = point_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
       attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
-        GVArray_Typed<T> src_typed{*src};
-        copy_attribute_to_points(*src_typed, selection, dst.as_span().typed<T>());
+        VArray<T> src_typed = src.typed<T>();
+        copy_attribute_to_points(src_typed, selection, dst.as_span().typed<T>());
       });
       dst.save();
     }

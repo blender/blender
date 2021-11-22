@@ -225,8 +225,11 @@ static void snap_gizmo_setup(wmGizmo *gz)
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
-  snap_gizmo->snap_state->draw_point = true;
-  snap_gizmo->snap_state->draw_plane = false;
+  if (snap_gizmo->snap_state) {
+    snap_gizmo->snap_state->gzgrp_type = gz->parent_gzgroup->type;
+    snap_gizmo->snap_state->draw_point = true;
+    snap_gizmo->snap_state->draw_plane = false;
+  }
 
   rgba_float_to_uchar(snap_gizmo->snap_state->color_point, gz->color);
 }
@@ -284,7 +287,9 @@ static int snap_gizmo_invoke(bContext *UNUSED(C),
 static void snap_gizmo_free(wmGizmo *gz)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
+  if (snap_gizmo->snap_state) {
+    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
+  }
 }
 
 static void GIZMO_GT_snap_3d(wmGizmoType *gzt)

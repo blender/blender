@@ -376,6 +376,37 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
   return (int)BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
+/**
+ * Return the width of `str` with the spacing & kerning of `fs` with `aspect`
+ * (representing #uiBlock.aspect) applied.
+ *
+ * When calculating text width, the UI layout logic calculate widths without scale,
+ * only applying scale when drawing. This causes problems for fonts since kerning at
+ * smaller sizes often makes them wider than a scaled down version of the larger text.
+ * Resolve this by calculating the text at the on-screen size,
+ * returning the result scaled back to 1:1. See T92361.
+ */
+int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
+                                                const char *str,
+                                                const float aspect)
+{
+  uiFontStyle fs_buf;
+  if (aspect != 1.0f) {
+    fs_buf = *fs;
+    ui_fontscale(&fs_buf.points, aspect);
+    fs = &fs_buf;
+  }
+
+  int width = UI_fontstyle_string_width(fs, str);
+
+  if (aspect != 1.0f) {
+    /* While in most cases rounding up isn't important, it can make a difference
+     * with small fonts (3px or less), zooming out in the node-editor for e.g. */
+    width = (int)ceilf(width * aspect);
+  }
+  return width;
+}
+
 int UI_fontstyle_height_max(const uiFontStyle *fs)
 {
   UI_fontstyle_set(fs);
@@ -388,7 +419,7 @@ int UI_fontstyle_height_max(const uiFontStyle *fs)
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {
-  uiStyle *style = U.uistyles.first;
+  const uiStyle *style = U.uistyles.first;
 
   /* recover from uninitialized dpi */
   if (U.dpi == 0) {
@@ -452,15 +483,19 @@ void uiStyleInit(void)
        * Yes, this build the glyph cache and create
        * the texture.
        */
-      BLF_size(font->blf_id, 11 * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 12 * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 14 * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 11.0f * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 12.0f * U.pixelsize, U.dpi);
+      BLF_size(font->blf_id, 14.0f * U.pixelsize, U.dpi);
     }
   }
 
   if (style == NULL) {
-    ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
+    style = ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
   }
+
+  BLF_cache_flush_set_fn(UI_widgetbase_draw_cache_flush);
+
+  BLF_default_size(style->widgetlabel.points);
 
   /* XXX, this should be moved into a style,
    * but for now best only load the monospaced font once. */
@@ -475,7 +510,7 @@ void uiStyleInit(void)
     blf_mono_font = BLF_load_mono_default(unique);
   }
 
-  BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
+  BLF_size(blf_mono_font, 12.0f * U.pixelsize, 72);
 
   /* Set default flags based on UI preferences (not render fonts) */
   {
@@ -520,7 +555,7 @@ void uiStyleInit(void)
     blf_mono_font_render = BLF_load_mono_default(unique);
   }
 
-  BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);
+  BLF_size(blf_mono_font_render, 12.0f * U.pixelsize, 72);
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)
