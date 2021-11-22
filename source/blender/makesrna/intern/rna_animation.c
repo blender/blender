@@ -775,7 +775,10 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   }
   nla_track_src = nla_track_src ? nla_track_src->next : anim_data_src->nla_tracks.first;
 
-  BLI_assert(nla_track_src != NULL);
+  if (nla_track_src == NULL) {
+    BLI_assert(nla_track_src != NULL);
+    return false;
+  }
 
   NlaTrack *nla_track_dst = BKE_nlatrack_copy(bmain, nla_track_src, true, 0);
 
