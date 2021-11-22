@@ -499,7 +499,7 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 
     /* Write shadow pass. */
     if (kernel_data.film.pass_shadow != PASS_UNUSED && (path_flag & PATH_RAY_SHADOW_FOR_LIGHT) &&
-        (path_flag & PATH_RAY_CAMERA)) {
+        (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
       const float3 unshadowed_throughput = INTEGRATOR_STATE(
           state, shadow_path, unshadowed_throughput);
       const float3 shadowed_throughput = INTEGRATOR_STATE(state, shadow_path, throughput);

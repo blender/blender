@@ -177,7 +177,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals kg,
 #ifdef __PASSES__
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
-  if (!(path_flag & PATH_RAY_CAMERA)) {
+  if (!(path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     return;
   }
 

@@ -122,7 +122,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, 
     /* volume scatter */
     flag |= PATH_RAY_VOLUME_SCATTER;
     flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
-    if (bounce == 1) {
+    if (!(flag & PATH_RAY_ANY_PASS)) {
       flag |= PATH_RAY_VOLUME_PASS;
     }
 
@@ -184,7 +184,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, 
     }
 
     /* Render pass categories. */
-    if (bounce == 1) {
+    if (!(flag & PATH_RAY_ANY_PASS) && !(flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
       flag |= PATH_RAY_SURFACE_PASS;
     }
   }
