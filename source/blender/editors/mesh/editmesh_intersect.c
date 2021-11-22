@@ -114,6 +114,7 @@ static void edbm_intersect_select(BMEditMesh *em, struct Mesh *me, bool do_selec
         }
       }
     }
+    EDBM_select_flush(em);
   }
 
   EDBM_update(me,
