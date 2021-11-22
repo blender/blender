@@ -258,6 +258,18 @@ void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
  */
 typedef struct CurveMaskCache {
   /**
+   * \brief Last #CurveMapping.changed_timestamp being read.
+   *
+   * When different the input cache needs to be recalculated.
+   */
+  int last_curve_timestamp;
+
+  /**
+   * \brief sampled version of the brush curvemapping.
+   */
+  float *sampled_curve;
+
+  /**
    * \brief Size in bytes of the curve_mask field.
    *
    * Used to determine if the curve_mask needs to be re-allocated.
