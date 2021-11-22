@@ -109,6 +109,24 @@ void CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluate
   }
 }
 
+float CurveEval::total_length() const
+{
+  float length = 0.0f;
+  for (const SplinePtr &spline : this->splines()) {
+    length += spline->length();
+  }
+  return length;
+}
+
+int CurveEval::total_control_point_size() const
+{
+  int count = 0;
+  for (const SplinePtr &spline : this->splines()) {
+    count += spline->size();
+  }
+  return count;
+}
+
 /**
  * Return the start indices for each of the curve spline's control points, if they were part
  * of a flattened array. This can be used to facilitate parallelism by avoiding the need to
