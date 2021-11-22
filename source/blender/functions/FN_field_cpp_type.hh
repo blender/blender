@@ -30,19 +30,19 @@ template<typename T> struct FieldCPPTypeParam {
 
 class FieldCPPType : public CPPType {
  private:
-  const CPPType &field_type_;
+  const CPPType &base_type_;
 
  public:
   template<typename T>
   FieldCPPType(FieldCPPTypeParam<Field<T>> /* unused */, StringRef debug_name)
       : CPPType(CPPTypeParam<Field<T>, CPPTypeFlags::None>(), debug_name),
-        field_type_(CPPType::get<T>())
+        base_type_(CPPType::get<T>())
   {
   }
 
-  const CPPType &field_type() const
+  const CPPType &base_type() const
   {
-    return field_type_;
+    return base_type_;
   }
 
   /* Ensure that #GField and #Field<T> have the same layout, to enable casting between the two. */

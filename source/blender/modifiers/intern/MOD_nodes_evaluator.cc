@@ -1471,8 +1471,8 @@ class GeometryNodesEvaluator {
     const FieldCPPType *to_field_type = dynamic_cast<const FieldCPPType *>(&to_type);
 
     if (from_field_type != nullptr && to_field_type != nullptr) {
-      const CPPType &from_base_type = from_field_type->field_type();
-      const CPPType &to_base_type = to_field_type->field_type();
+      const CPPType &from_base_type = from_field_type->base_type();
+      const CPPType &to_base_type = to_field_type->base_type();
       if (conversions_.is_convertible(from_base_type, to_base_type)) {
         const MultiFunction &fn = *conversions_.get_conversion_multi_function(
             MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
@@ -1495,7 +1495,7 @@ class GeometryNodesEvaluator {
   void construct_default_value(const CPPType &type, void *r_value)
   {
     if (const FieldCPPType *field_cpp_type = dynamic_cast<const FieldCPPType *>(&type)) {
-      const CPPType &base_type = field_cpp_type->field_type();
+      const CPPType &base_type = field_cpp_type->base_type();
       auto constant_fn = std::make_unique<fn::CustomMF_GenericConstant>(
           base_type, base_type.default_value(), false);
       auto operation = std::make_shared<fn::FieldOperation>(std::move(constant_fn));
