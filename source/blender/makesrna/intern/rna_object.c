@@ -1545,7 +1545,10 @@ bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
   }
   con_src = con_src ? con_src->next : ob_src->constraints.first;
 
-  BLI_assert(con_src != NULL);
+  if (con_src == NULL) {
+    BLI_assert(con_src != NULL);
+    return false;
+  }
 
   bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
 
