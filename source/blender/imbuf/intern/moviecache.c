@@ -268,6 +268,7 @@ void IMB_moviecache_destruct(void)
 {
   if (limitor) {
     delete_MEM_CacheLimiter(limitor);
+    limitor = NULL;
   }
 }
 
