@@ -1574,7 +1574,6 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   FileListEntryPreview *preview = preview_taskdata->preview;
 
   ThumbSource source = 0;
-  bool done = false;
 
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
