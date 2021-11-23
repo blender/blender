@@ -166,7 +166,7 @@ class ScalarBlendModifier(StrokeShader):
             v1 = facm * v1 + fac * v1 / v2 if v2 != 0.0 else v1
         elif self.blend_type == 'DIFFERENCE':
             v1 = facm * v1 + fac * abs(v1 - v2)
-        elif self.blend_type == 'MININUM':
+        elif self.blend_type == 'MINIMUM':
             v1 = min(fac * v2, v1)
         elif self.blend_type == 'MAXIMUM':
             v1 = max(fac * v2, v1)
