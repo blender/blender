@@ -557,11 +557,35 @@ bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const char *name)
 
 int BKE_id_defgroup_name_index(const ID *id, const char *name)
 {
-  if (name == NULL || name[0] == '\0') {
+  int index;
+  if (!BKE_id_defgroup_name_find(id, name, &index, NULL)) {
     return -1;
   }
+  return index;
+}
+
+bool BKE_id_defgroup_name_find(const struct ID *id,
+                               const char *name,
+                               int *r_index,
+                               struct bDeformGroup **r_group)
+{
+  if (name == NULL || name[0] == '\0') {
+    return false;
+  }
   const ListBase *defbase = BKE_id_defgroup_list_get(id);
-  return BLI_findstringindex(defbase, name, offsetof(bDeformGroup, name));
+  int index;
+  LISTBASE_FOREACH_INDEX (bDeformGroup *, group, defbase, index) {
+    if (STREQ(name, group->name)) {
+      if (r_index != NULL) {
+        *r_index = index;
+      }
+      if (r_group != NULL) {
+        *r_group = group;
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 const ListBase *BKE_object_defgroup_list(const Object *ob)
