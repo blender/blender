@@ -1398,6 +1398,14 @@ class GeometryNodesEvaluator {
     });
   }
 
+  /**
+   * Loads the value of a socket that is not computed by another node. Note that the socket may
+   * still be linked to e.g. a Group Input node, but the socket on the outside is not connected to
+   * anything.
+   *
+   * \param input_socket The socket of the node that wants to use the value.
+   * \param origin_socket The socket that we want to load the value from.
+   */
   void load_unlinked_input_value(LockedNode &locked_node,
                                  const DInputSocket input_socket,
                                  InputState &input_state,
@@ -1417,7 +1425,15 @@ class GeometryNodesEvaluator {
     else {
       SingleInputValue &single_value = *input_state.value.single;
       single_value.value = value.get();
-      this->log_socket_value({input_socket}, value);
+      Vector<DSocket> sockets_to_log_to = {input_socket};
+      if (origin_socket != input_socket) {
+        /* This might log the socket value for the #origin_socket more than once, but this is
+         * handled by the logging system gracefully. */
+        sockets_to_log_to.append(origin_socket);
+      }
+      /* TODO: Log to the intermediate sockets between the group input and where the value is
+       * actually used as well. */
+      this->log_socket_value(sockets_to_log_to, value);
     }
   }
 
