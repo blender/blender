@@ -170,7 +170,7 @@ TEST(virtual_array, MutableToImmutable)
     EXPECT_TRUE(varray.is_span());
     EXPECT_EQ(varray.size(), 4);
     EXPECT_EQ(varray[1], 2);
-    EXPECT_EQ(mutable_varray.size(), 0);
+    EXPECT_EQ(mutable_varray.size(), 0); /* NOLINT: bugprone-use-after-move */
   }
   {
     VArray<int> varray = VMutableArray<int>::ForSpan(array);
