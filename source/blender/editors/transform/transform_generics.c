@@ -158,27 +158,34 @@ static int t_around_get(TransInfo *t)
   }
 
   ScrArea *area = t->area;
-  if (t->spacetype == SPACE_VIEW3D) {
-    /* Bend always uses the cursor. */
-    if (t->mode == TFM_BEND) {
-      return V3D_AROUND_CURSOR;
+  switch (t->spacetype) {
+    case SPACE_VIEW3D: {
+      if (t->mode == TFM_BEND) {
+        /* Bend always uses the cursor. */
+        return V3D_AROUND_CURSOR;
+      }
+      return t->settings->transform_pivot_point;
     }
-    return t->settings->transform_pivot_point;
-  }
-  if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = area->spacedata.first;
-    return sima->around;
-  }
-  if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = area->spacedata.first;
-    return sipo->around;
-  }
-  if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sclip = area->spacedata.first;
-    return sclip->around;
-  }
-  if (t->spacetype == SPACE_SEQ && t->region->regiontype == RGN_TYPE_PREVIEW) {
-    return SEQ_tool_settings_pivot_point_get(t->scene);
+    case SPACE_IMAGE: {
+      SpaceImage *sima = area->spacedata.first;
+      return sima->around;
+    }
+    case SPACE_GRAPH: {
+      SpaceGraph *sipo = area->spacedata.first;
+      return sipo->around;
+    }
+    case SPACE_CLIP: {
+      SpaceClip *sclip = area->spacedata.first;
+      return sclip->around;
+    }
+    case SPACE_SEQ: {
+      if (t->region->regiontype == RGN_TYPE_PREVIEW) {
+        return SEQ_tool_settings_pivot_point_get(t->scene);
+      }
+      break;
+    }
+    default:
+      break;
   }
 
   return V3D_AROUND_CENTER_BOUNDS;
