@@ -486,16 +486,23 @@ static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 }
 
 /* This region dropbox definition. */
-static void sequencer_dropboxes(void)
-{
-  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
+static void sequencer_dropboxes_add_to_lb(ListBase *lb)
+{
   WM_dropbox_add(
       lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
   WM_dropbox_add(
       lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
   WM_dropbox_add(
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
+}
+
+static void sequencer_dropboxes(void)
+{
+  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
+  sequencer_dropboxes_add_to_lb(lb);
+  lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
+  sequencer_dropboxes_add_to_lb(lb);
 }
 
 /* ************* end drop *********** */
@@ -786,6 +793,9 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+
+  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
 static void sequencer_preview_region_layout(const bContext *C, ARegion *region)
