@@ -313,8 +313,6 @@ static void panel_draw(const bContext *C, Panel *panel)
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
   uiLayout *col = uiLayoutColumn(row, false);
-  uiLayoutSetContextPointer(col, "modifier", ptr);
-
   uiLayout *sub = uiLayoutColumn(col, true);
   uiItemO(sub, "", ICON_ADD, "GPENCIL_OT_segment_add");
   uiItemO(sub, "", ICON_REMOVE, "GPENCIL_OT_segment_remove");

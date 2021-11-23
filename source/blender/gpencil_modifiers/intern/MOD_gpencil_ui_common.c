@@ -232,7 +232,7 @@ PointerRNA *gpencil_modifier_panel_get_property_pointers(Panel *panel, PointerRN
   UI_block_lock_clear(block);
   UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
@@ -312,7 +312,7 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
   GpencilModifierData *md = (GpencilModifierData *)ptr->data;
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
   bool narrow_panel = (panel->sizex < UI_UNIT_X * 9 && panel->sizex != 0);

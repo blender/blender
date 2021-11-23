@@ -2727,7 +2727,12 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   PointerRNA ptr;
   RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
 
-  uiLayoutSetContextPointer(layout, "constraint", &ptr);
+  if (block->panel) {
+    UI_panel_context_pointer_set(block->panel, "constraint", &ptr);
+  }
+  else {
+    uiLayoutSetContextPointer(layout, "constraint", &ptr);
+  }
 
   /* Constraint type icon. */
   uiLayout *sub = uiLayoutRow(layout, false);
