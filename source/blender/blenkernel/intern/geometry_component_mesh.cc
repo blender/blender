@@ -1127,16 +1127,19 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     }
 
     const std::string name = attribute_id.name();
-    const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
-    if (vertex_group_index < 0) {
+
+    int index;
+    bDeformGroup *group;
+    if (!BKE_id_defgroup_name_find(&mesh->id, name.c_str(), &index, &group)) {
       return false;
     }
+    BLI_remlink(&mesh->vertex_group_names, group);
+    MEM_freeN(group);
     if (mesh->dvert == nullptr) {
       return true;
     }
     for (MDeformVert &dvert : MutableSpan(mesh->dvert, mesh->totvert)) {
-      MDeformWeight *weight = BKE_defvert_find_index(&dvert, vertex_group_index);
+      MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
       BKE_defvert_remove_group(&dvert, weight);
     }
     return true;

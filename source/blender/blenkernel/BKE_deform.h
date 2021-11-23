@@ -50,6 +50,10 @@ void BKE_object_defgroup_active_index_set(struct Object *ob, const int new_index
 const struct ListBase *BKE_id_defgroup_list_get(const struct ID *id);
 struct ListBase *BKE_id_defgroup_list_get_mutable(struct ID *id);
 int BKE_id_defgroup_name_index(const struct ID *id, const char *name);
+bool BKE_id_defgroup_name_find(const struct ID *id,
+                               const char *name,
+                               int *r_index,
+                               struct bDeformGroup **r_group);
 
 struct bDeformGroup *BKE_object_defgroup_new(struct Object *ob, const char *name);
 void BKE_defgroup_copy_list(struct ListBase *outbase, const struct ListBase *inbase);

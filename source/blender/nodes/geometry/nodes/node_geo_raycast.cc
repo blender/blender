@@ -205,10 +205,10 @@ class RaycastFunction : public fn::MultiFunction {
   std::unique_ptr<FieldEvaluator> target_evaluator_;
   const GVArray *target_data_ = nullptr;
 
-  /* Always evaluate the target domain data on the point domain. Eventually this could be
-   * exposed as an option or determined automatically from the field inputs in order to avoid
-   * losing information if the target field is on a different domain. */
-  const AttributeDomain domain_ = ATTR_DOMAIN_POINT;
+  /* Always evaluate the target domain data on the face corner domain because it contains the most
+   * information. Eventually this could be exposed as an option or determined automatically from
+   * the field inputs for better performance. */
+  const AttributeDomain domain_ = ATTR_DOMAIN_CORNER;
 
   fn::MFSignature signature_;
 
