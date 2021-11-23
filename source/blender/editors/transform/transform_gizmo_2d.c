@@ -286,7 +286,14 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
        * In addition to this, the rotation of the bounding box can not currently be hooked up
        * properly to read the result from the transform system (when transforming multiple strips).
        */
-      mid_v2_v2v2(r_center, r_min, r_max);
+      const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
+      if (pivot_point == V3D_AROUND_CURSOR) {
+        SpaceSeq *sseq = area->spacedata.first;
+        SEQ_image_preview_unit_to_px(scene, sseq->cursor, r_center);
+      }
+      else {
+        mid_v2_v2v2(r_center, r_min, r_max);
+      }
       zero_v2(r_min);
       zero_v2(r_max);
       return has_select;
@@ -353,39 +360,59 @@ static float gizmo2d_calc_rotation(const bContext *C)
   return 0.0f;
 }
 
-static bool gizmo2d_calc_center(const bContext *C, float r_center[2])
+static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
+{
+  zero_v2(r_pivot);
+
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+  SEQ_filter_selected_strips(strips);
+  bool has_select = SEQ_collection_len(strips) != 0;
+
+  if (has_select) {
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips) {
+      float origin[2];
+      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
+      add_v2_v2(r_pivot, origin);
+    }
+    mul_v2_fl(r_pivot, 1.0f / SEQ_collection_len(strips));
+  }
+
+  SEQ_collection_free(strips);
+  return has_select;
+}
+
+static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
 {
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
   bool has_select = false;
-  zero_v2(r_center);
+
   if (area->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, sima->around, &has_select);
+    ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_pivot, sima->around, &has_select);
   }
   else if (area->spacetype == SPACE_SEQ) {
     SpaceSeq *sseq = area->spacedata.first;
     const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
-    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-    SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
-    SEQ_filter_selected_strips(strips);
-    has_select = SEQ_collection_len(strips) != 0;
 
     if (pivot_point == V3D_AROUND_CURSOR) {
-      SEQ_image_preview_unit_to_px(scene, sseq->cursor, r_center);
-    }
-    else if (has_select) {
-      Sequence *seq;
-      SEQ_ITERATOR_FOREACH (seq, strips) {
-        float origin[2];
-        SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
-        add_v2_v2(r_center, origin);
-      }
-      mul_v2_fl(r_center, 1.0f / SEQ_collection_len(strips));
-    }
+      SEQ_image_preview_unit_to_px(scene, sseq->cursor, r_pivot);
 
-    SEQ_collection_free(strips);
+      ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+      SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+      SEQ_filter_selected_strips(strips);
+      has_select = SEQ_collection_len(strips) != 0;
+      SEQ_collection_free(strips);
+    }
+    else {
+      has_select = seq_get_strip_pivot_median(scene, r_pivot);
+    }
+  }
+  else {
+    BLI_assert_msg(0, "Unhandled space type!");
   }
   return has_select;
 }
@@ -409,7 +436,7 @@ static int gizmo2d_modal(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float origin[3];
 
-  gizmo2d_calc_center(C, origin);
+  gizmo2d_calc_transform_pivot(C, origin);
   gizmo2d_origin_to_region(region, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
@@ -541,7 +568,7 @@ static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   GizmoGroup2D *ggd = gzgroup->customdata;
   bool has_select;
   if (ggd->no_cage) {
-    has_select = gizmo2d_calc_center(C, ggd->origin);
+    has_select = gizmo2d_calc_transform_pivot(C, ggd->origin);
   }
   else {
     has_select = gizmo2d_calc_bounds(C, ggd->origin, ggd->min, ggd->max);
@@ -597,7 +624,8 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
   ScrArea *area = CTX_wm_area(C);
 
   if (area->spacetype == SPACE_SEQ) {
-    gizmo2d_calc_center(C, origin);
+    Scene *scene = CTX_data_scene(C);
+    seq_get_strip_pivot_median(scene, origin);
 
     float matrix_rotate[4][4];
     unit_m4(matrix_rotate);
@@ -660,7 +688,8 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
 
   if (ggd->rotation != 0.0f && area->spacetype == SPACE_SEQ) {
     float origin[3];
-    gizmo2d_calc_center(C, origin);
+    Scene *scene = CTX_data_scene(C);
+    seq_get_strip_pivot_median(scene, origin);
     /* We need to rotate the cardinal points so they align with the rotated bounding box. */
 
     rotate_around_center_v2(n, origin, ggd->rotation);
@@ -781,7 +810,7 @@ static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Resize2D *ggd = gzgroup->customdata;
   float origin[3];
-  const bool has_select = gizmo2d_calc_center(C, origin);
+  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
 
   if (has_select == false) {
     for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
@@ -941,7 +970,7 @@ static void gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
   float origin[3];
-  const bool has_select = gizmo2d_calc_center(C, origin);
+  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
 
   if (has_select == false) {
     ggd->gizmo->flag |= WM_GIZMO_HIDDEN;
