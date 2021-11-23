@@ -352,9 +352,6 @@ typedef struct FileListEntryPreview {
   char path[FILE_MAX];
   uint flags;
   int index;
-  /* Some file types load the memory from runtime data, not from disk. We just wait until it's done
-   * generating (BKE_previewimg_is_finished()). */
-  PreviewImage *in_memory_preview;
 
   int icon_id;
 } FileListEntryPreview;
@@ -1581,53 +1578,36 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
-  if (preview->in_memory_preview) {
-    if (BKE_previewimg_is_finished(preview->in_memory_preview, ICON_SIZE_PREVIEW)) {
-      ImBuf *imbuf = BKE_previewimg_to_imbuf(preview->in_memory_preview, ICON_SIZE_PREVIEW);
-      if (imbuf) {
-        preview->icon_id = BKE_icon_imbuf_create(imbuf);
-      }
-      done = true;
-    }
+  //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+  BLI_assert(preview->flags &
+             (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
+              FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
+
+  if (preview->flags & FILE_TYPE_IMAGE) {
+    source = THB_SOURCE_IMAGE;
   }
-  else {
-    //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-    BLI_assert(preview->flags &
-               (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
-                FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
-
-    if (preview->flags & FILE_TYPE_IMAGE) {
-      source = THB_SOURCE_IMAGE;
-    }
-    else if (preview->flags &
-             (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
-      source = THB_SOURCE_BLEND;
-    }
-    else if (preview->flags & FILE_TYPE_MOVIE) {
-      source = THB_SOURCE_MOVIE;
-    }
-    else if (preview->flags & FILE_TYPE_FTFONT) {
-      source = THB_SOURCE_FONT;
-    }
-
-    IMB_thumb_path_lock(preview->path);
-    /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
-     * in case user switch to a bigger preview size. */
-    ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
-    IMB_thumb_path_unlock(preview->path);
-    if (imbuf) {
-      preview->icon_id = BKE_icon_imbuf_create(imbuf);
-    }
-
-    done = true;
+  else if (preview->flags &
+           (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
+    source = THB_SOURCE_BLEND;
+  }
+  else if (preview->flags & FILE_TYPE_MOVIE) {
+    source = THB_SOURCE_MOVIE;
+  }
+  else if (preview->flags & FILE_TYPE_FTFONT) {
+    source = THB_SOURCE_FONT;
   }
 
-  if (done) {
-    /* That way task freeing function won't free th preview, since it does not own it anymore. */
-    atomic_cas_ptr((void **)&preview_taskdata->preview, preview, NULL);
-    BLI_thread_queue_push(cache->previews_done, preview);
-    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
+  IMB_thumb_path_lock(preview->path);
+  /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
+   * in case user switch to a bigger preview size. */
+  ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
+  IMB_thumb_path_unlock(preview->path);
+  if (imbuf) {
+    preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
+
+  BLI_thread_queue_push(cache->previews_done, preview);
+  atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
 }
@@ -1635,16 +1615,6 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
   FileListEntryPreviewTaskData *preview_taskdata = taskdata;
-  FileListEntryPreview *preview = preview_taskdata->preview;
-
-  /* preview_taskdata->preview is atomically set to NULL once preview has been processed and sent
-   * to previews_done queue. */
-  if (preview != NULL) {
-    if (preview->icon_id) {
-      BKE_icon_delete(preview->icon_id);
-    }
-    MEM_freeN(preview);
-  }
   MEM_freeN(preview_taskdata);
 }
 
@@ -1719,34 +1689,51 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
-  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
   FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
-
-  if (entry->redirection_path) {
-    BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+  PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
+  if (preview_in_memory && !BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW)) {
+    /* Nothing to set yet. Wait for next call. */
+    return;
   }
-  else {
-    BLI_join_dirfile(
-        preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
-  }
-
-  preview->index = index;
-  preview->flags = entry->typeflag;
-  preview->in_memory_preview = intern_entry->local_data.preview_image;
-  preview->icon_id = 0;
-  // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
 
   filelist_cache_preview_ensure_running(cache);
-
-  FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
-                                                               __func__);
-  preview_taskdata->preview = preview;
   entry->flags |= FILE_ENTRY_PREVIEW_LOADING;
-  BLI_task_pool_push(cache->previews_pool,
-                     filelist_cache_preview_runf,
-                     preview_taskdata,
-                     true,
-                     filelist_cache_preview_freef);
+
+  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
+  preview->index = index;
+  preview->flags = entry->typeflag;
+  preview->icon_id = 0;
+
+  if (preview_in_memory) {
+    /* TODO(mano-wii): No need to use the thread API here. */
+    BLI_assert(BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW));
+    preview->path[0] = '\0';
+    ImBuf *imbuf = BKE_previewimg_to_imbuf(preview_in_memory, ICON_SIZE_PREVIEW);
+    if (imbuf) {
+      preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    }
+    BLI_thread_queue_push(cache->previews_done, preview);
+    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
+  }
+  else {
+    if (entry->redirection_path) {
+      BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+    }
+    else {
+      BLI_join_dirfile(
+          preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+    }
+    // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
+
+    FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
+                                                                 __func__);
+    preview_taskdata->preview = preview;
+    BLI_task_pool_push(cache->previews_pool,
+                       filelist_cache_preview_runf,
+                       preview_taskdata,
+                       true,
+                       filelist_cache_preview_freef);
+  }
 }
 
 static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
