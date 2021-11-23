@@ -318,6 +318,44 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
   }
 }
 
+/** Find the first segment of consecutive selected curve points, starting from \a start_index.
+ * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
+ * \param r_segment_start_idx returns the start index of the segment.
+ * \param r_segment_len returns the number of curve points in the segment.
+ * \return whether such a segment was found or not.*/
+static bool find_fcurve_segment(FCurve *fcu,
+                                const int start_index,
+                                int *r_segment_start_idx,
+                                int *r_segment_len)
+{
+  *r_segment_start_idx = 0;
+  *r_segment_len = 0;
+
+  bool in_segment = false;
+
+  for (int i = start_index; i < fcu->totvert; i++) {
+    const bool point_is_selected = fcu->bezt[i].f2 & SELECT;
+    const bool point_is_ignored = fcu->bezt[i].f2 & BEZT_FLAG_IGNORE_TAG;
+
+    if (point_is_selected && !point_is_ignored) {
+      if (!in_segment) {
+        *r_segment_start_idx = i;
+        in_segment = true;
+      }
+      (*r_segment_len)++;
+    }
+    else if (in_segment) {
+      /* If the curve point is not selected then we have reached the end of the selected curve
+       * segment. */
+      return true; /* Segment found. */
+    }
+  }
+
+  /* If the last curve point was in the segment, `r_segment_len` and `r_segment_start_idx`
+   * are already updated and true is returned. */
+  return in_segment;
+}
+
 /* ---------------- */
 
 /* Check if the keyframe interpolation type is supported */
@@ -401,7 +439,6 @@ static void decimate_fcurve_segment(FCurve *fcu,
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
-
   /* Check if the curve actually has any points. */
   if (fcu == NULL || fcu->bezt == NULL || fcu->totvert == 0) {
     return true;
@@ -409,46 +446,26 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 
   BezTriple *old_bezts = fcu->bezt;
 
-  /* Only decimate the individual selected curve segments. */
-  int bezt_segment_start_idx = 0;
-  int bezt_segment_len = 0;
-
-  bool selected;
   bool can_decimate_all_selected = true;
-  bool in_segment = false;
 
   for (int i = 0; i < fcu->totvert; i++) {
-    selected = fcu->bezt[i].f2 & SELECT;
+    /* Ignore keyframes that are not supported. */
+    if (!prepare_for_decimate(fcu, i)) {
+      can_decimate_all_selected = false;
+      fcu->bezt[i].f2 |= BEZT_FLAG_IGNORE_TAG;
+    }
     /* Make sure that the temp flag is unset as we use it to determine what to remove. */
     fcu->bezt[i].f2 &= ~BEZT_FLAG_TEMP_TAG;
-
-    if (selected && !prepare_for_decimate(fcu, i)) {
-      /* This keyframe is not supported, treat them as if they were unselected. */
-      selected = false;
-      can_decimate_all_selected = false;
-    }
-
-    if (selected) {
-      if (!in_segment) {
-        bezt_segment_start_idx = i;
-        in_segment = true;
-      }
-      bezt_segment_len++;
-    }
-    else if (in_segment) {
-      /* If the curve point is not selected then we have reached the end of the selected curve
-       * segment. */
-      decimate_fcurve_segment(
-          fcu, bezt_segment_start_idx, bezt_segment_len, remove_ratio, error_sq_max);
-      in_segment = false;
-      bezt_segment_len = 0;
-    }
   }
 
-  /* Did the segment run to the end of the curve? */
-  if (in_segment) {
-    decimate_fcurve_segment(
-        fcu, bezt_segment_start_idx, bezt_segment_len, remove_ratio, error_sq_max);
+  /* Only decimate the individual selected curve segments. */
+  int segment_start_idx = 0;
+  int segment_len = 0;
+  int current_index = 0;
+
+  while (find_fcurve_segment(fcu, current_index, &segment_start_idx, &segment_len)) {
+    decimate_fcurve_segment(fcu, segment_start_idx, segment_len, remove_ratio, error_sq_max);
+    current_index = segment_start_idx + segment_len;
   }
 
   uint old_totvert = fcu->totvert;
@@ -457,6 +474,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 
   for (int i = 0; i < old_totvert; i++) {
     BezTriple *bezt = (old_bezts + i);
+    bezt->f2 &= ~BEZT_FLAG_IGNORE_TAG;
     if ((bezt->f2 & BEZT_FLAG_TEMP_TAG) == 0) {
       insert_bezt_fcurve(fcu, bezt, 0);
     }
