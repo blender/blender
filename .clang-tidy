@@ -12,6 +12,8 @@ Checks:  >
   -readability-avoid-const-params-in-decls,
   -readability-simplify-boolean-expr,
   -readability-make-member-function-const,
+  -readability-suspicious-call-argument,
+  -readability-redundant-member-init,
 
   -readability-misleading-indentation,
 
@@ -25,6 +27,8 @@ Checks:  >
   -bugprone-branch-clone,
   -bugprone-macro-parentheses,
   -bugprone-reserved-identifier,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
 
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
@@ -40,7 +44,8 @@ Checks:  >
   -modernize-pass-by-value,
   # Cannot be enabled yet, because using raw string literals in tests breaks
   # the windows compiler currently.
-  -modernize-raw-string-literal
+  -modernize-raw-string-literal,
+  -modernize-return-braced-init-list
 
 CheckOptions:
   - key: modernize-use-default-member-init.UseAssignment
