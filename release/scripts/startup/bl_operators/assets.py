@@ -142,14 +142,8 @@ class ASSET_OT_open_containing_blend_file(Operator):
         if returncode:
             self.report({'WARNING'}, "Blender sub-process exited with error code %d" % returncode)
 
-        # TODO(Sybren): Replace this with a generic "reload assets" operator
-        # that can run outside of the Asset Browser context.
-        if bpy.ops.file.refresh.poll():
-            bpy.ops.file.refresh()
-        if bpy.ops.asset.list_refresh.poll():
-            bpy.ops.asset.list_refresh()
-        if bpy.ops.file.asset_library_refresh.poll():
-            bpy.ops.file.asset_library_refresh()
+        if bpy.ops.asset.library_refresh.poll():
+            bpy.ops.asset.library_refresh()
 
         self.cancel(context)
         return {'FINISHED'}

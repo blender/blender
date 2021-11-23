@@ -261,7 +261,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     CTX_free(mutable_ctx);
   }
   else {
-    uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_asset_library_refresh");
+    uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
   }
 
   uiItemS(col);
