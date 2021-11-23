@@ -163,6 +163,27 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
   }
 }
 
+static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind> &attributes,
+                                        const GeometryComponent &in_component,
+                                        GeometryComponent &out_component,
+                                        const int num_selected_loops,
+                                        const Span<int> selected_poly_indices,
+                                        const Mesh &mesh_in)
+{
+  Vector<int64_t> indices;
+  indices.reserve(num_selected_loops);
+  for (const int src_poly_index : selected_poly_indices) {
+    const MPoly &src_poly = mesh_in.mpoly[src_poly_index];
+    const int src_loop_start = src_poly.loopstart;
+    const int tot_loop = src_poly.totloop;
+    for (const int i : IndexRange(tot_loop)) {
+      indices.append_unchecked(src_loop_start + i);
+    }
+  }
+  copy_attributes_based_on_mask(
+      attributes, in_component, out_component, ATTR_DOMAIN_CORNER, IndexMask(indices));
+}
+
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
 {
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -1017,12 +1038,17 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                     out_component,
                                     ATTR_DOMAIN_EDGE,
                                     index_mask_indices(edge_map, num_selected_edges, indices));
-      copy_attributes_based_on_mask(
-          attributes,
-          in_component,
-          out_component,
-          ATTR_DOMAIN_FACE,
-          index_mask_indices(selected_poly_indices, num_selected_polys, indices));
+      copy_attributes_based_on_mask(attributes,
+                                    in_component,
+                                    out_component,
+                                    ATTR_DOMAIN_FACE,
+                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_face_corner_attributes(attributes,
+                                  in_component,
+                                  out_component,
+                                  num_selected_loops,
+                                  selected_poly_indices,
+                                  mesh_in);
       break;
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE: {
@@ -1069,11 +1095,17 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       copy_attributes(
           attributes, in_component, out_component, {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE});
       copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
-      Vector<int64_t> indices;
-      const IndexMask mask = index_mask_indices(
-          selected_poly_indices, num_selected_polys, indices);
-      copy_attributes_based_on_mask(
-          attributes, in_component, out_component, ATTR_DOMAIN_FACE, mask);
+      copy_attributes_based_on_mask(attributes,
+                                    in_component,
+                                    out_component,
+                                    ATTR_DOMAIN_FACE,
+                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_face_corner_attributes(attributes,
+                                  in_component,
+                                  out_component,
+                                  num_selected_loops,
+                                  selected_poly_indices,
+                                  mesh_in);
       break;
     }
   }
