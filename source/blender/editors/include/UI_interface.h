@@ -1762,6 +1762,8 @@ void UI_panel_header_buttons_begin(struct Panel *panel);
 void UI_panel_header_buttons_end(struct Panel *panel);
 void UI_panel_end(struct Panel *panel, int width, int height);
 
+void UI_panel_context_pointer_set(struct Panel *panel, const char *name, struct PointerRNA *ptr);
+
 bool UI_panel_is_closed(const struct Panel *panel);
 bool UI_panel_is_active(const struct Panel *panel);
 void UI_panel_label_offset(const struct uiBlock *block, int *r_x, int *r_y);

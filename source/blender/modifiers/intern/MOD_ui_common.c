@@ -132,7 +132,7 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
@@ -304,7 +304,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   ModifierData *md = (ModifierData *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   Scene *scene = CTX_data_scene(C);

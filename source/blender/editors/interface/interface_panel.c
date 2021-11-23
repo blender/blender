@@ -486,8 +486,12 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   /* Set the bit to tell the interface to instanced the list. */
   drag_panel->flag |= PNL_INSTANCED_LIST_ORDER_CHANGED;
 
+  CTX_store_set(C, drag_panel->runtime.context);
+
   /* Finally, move this panel's list item to the new index in its list. */
   drag_panel->type->reorder(C, drag_panel, move_to_index);
+
+  CTX_store_set(C, NULL);
 }
 
 /**
@@ -2456,6 +2460,17 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     ui_panel_custom_data_set_recursive(child_panel, custom_data);
   }
+}
+
+/**
+ * Set a context for this entire panel and its current layout. This should be used whenever panel
+ * callbacks that are called outside of regular drawing might require context. Currently it affects
+ * the #PanelType.reorder callback only.
+ */
+void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
+{
+  uiLayoutSetContextPointer(panel->layout, name, ptr);
+  panel->runtime.context = uiLayoutGetContextStore(panel->layout);
 }
 
 void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
