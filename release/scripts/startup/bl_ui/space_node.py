@@ -721,6 +721,10 @@ class NODE_PT_overlay(Panel):
 
         col.prop(snode, "show_annotation", text="Annotations")
 
+        if snode.tree_type == 'GeometryNodeTree':
+            col.separator()
+            col.prop(overlay, "show_timing", text="Timings")
+
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):

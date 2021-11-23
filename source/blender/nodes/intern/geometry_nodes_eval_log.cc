@@ -25,6 +25,8 @@
 
 #include "BLT_translation.h"
 
+#include <chrono>
+
 namespace blender::nodes::geometry_nodes_eval_log {
 
 using fn::CPPType;
@@ -63,6 +65,12 @@ ModifierLog::ModifierLog(GeoLogger &logger)
       NodeLog &node_log = this->lookup_or_add_node_log(log_by_tree_context,
                                                        node_with_warning.node);
       node_log.warnings_.append(node_with_warning.warning);
+    }
+
+    for (NodeWithExecutionTime &node_with_exec_time : local_logger.node_exec_times_) {
+      NodeLog &node_log = this->lookup_or_add_node_log(log_by_tree_context,
+                                                       node_with_exec_time.node);
+      node_log.exec_time_ = node_with_exec_time.exec_time;
     }
   }
 }
@@ -469,6 +477,11 @@ void LocalGeoLogger::log_multi_value_socket(DSocket socket, Span<GPointer> value
 void LocalGeoLogger::log_node_warning(DNode node, NodeWarningType type, std::string message)
 {
   node_warnings_.append({node, {type, std::move(message)}});
+}
+
+void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds exec_time)
+{
+  node_exec_times_.append({node, exec_time});
 }
 
 }  // namespace blender::nodes::geometry_nodes_eval_log

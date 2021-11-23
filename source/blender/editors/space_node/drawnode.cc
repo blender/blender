@@ -337,8 +337,9 @@ static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree,
   node->totr = rect;
 }
 
-static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float aspect)
+static void node_draw_frame_label(bNodeTree *ntree, bNode *node, SpaceNode *snode)
 {
+  const float aspect = snode->runtime->aspect;
   /* XXX font id is crap design */
   const int fontid = UI_style_get()->widgetlabel.uifont_id;
   NodeFrame *data = (NodeFrame *)node->storage;
@@ -468,7 +469,9 @@ static void node_draw_frame(const bContext *C,
   }
 
   /* label and text */
-  node_draw_frame_label(ntree, node, snode->runtime->aspect);
+  node_draw_frame_label(ntree, node, snode);
+
+  node_draw_extra_info_panel(snode, node);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);

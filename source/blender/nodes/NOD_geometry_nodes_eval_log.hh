@@ -41,6 +41,8 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include <chrono>
+
 struct SpaceNode;
 struct SpaceSpreadsheet;
 
@@ -169,6 +171,11 @@ struct NodeWithWarning {
   NodeWarning warning;
 };
 
+struct NodeWithExecutionTime {
+  DNode node;
+  std::chrono::microseconds exec_time;
+};
+
 /** The same value can be referenced by multiple sockets when they are linked. */
 struct ValueOfSockets {
   Span<DSocket> sockets;
@@ -189,6 +196,7 @@ class LocalGeoLogger {
   std::unique_ptr<LinearAllocator<>> allocator_;
   Vector<ValueOfSockets> values_;
   Vector<NodeWithWarning> node_warnings_;
+  Vector<NodeWithExecutionTime> node_exec_times_;
 
   friend ModifierLog;
 
@@ -201,6 +209,7 @@ class LocalGeoLogger {
   void log_value_for_sockets(Span<DSocket> sockets, GPointer value);
   void log_multi_value_socket(DSocket socket, Span<GPointer> values);
   void log_node_warning(DNode node, NodeWarningType type, std::string message);
+  void log_execution_time(DNode node, std::chrono::microseconds exec_time);
 };
 
 /** The root logger class. */
@@ -274,12 +283,14 @@ class NodeLog {
   Vector<SocketLog> input_logs_;
   Vector<SocketLog> output_logs_;
   Vector<NodeWarning, 0> warnings_;
+  std::chrono::microseconds exec_time_;
 
   friend ModifierLog;
 
  public:
   const SocketLog *lookup_socket_log(eNodeSocketInOut in_out, int index) const;
   const SocketLog *lookup_socket_log(const bNode &node, const bNodeSocket &socket) const;
+  void execution_time(std::chrono::microseconds exec_time);
 
   Span<SocketLog> input_logs() const
   {
@@ -294,6 +305,11 @@ class NodeLog {
   Span<NodeWarning> warnings() const
   {
     return warnings_;
+  }
+
+  std::chrono::microseconds execution_time() const
+  {
+    return exec_time_;
   }
 
   Vector<const GeometryAttributeInfo *> lookup_available_attributes() const;
