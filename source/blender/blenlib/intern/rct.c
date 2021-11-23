@@ -401,35 +401,35 @@ bool BLI_rctf_isect_circle(const rctf *rect, const float xy[2], const float radi
   return dx * dx + dy * dy <= radius * radius;
 }
 
-void BLI_rctf_union(rctf *rct1, const rctf *rct2)
+void BLI_rctf_union(rctf *rct_a, const rctf *rct_b)
 {
-  if (rct1->xmin > rct2->xmin) {
-    rct1->xmin = rct2->xmin;
+  if (rct_a->xmin > rct_b->xmin) {
+    rct_a->xmin = rct_b->xmin;
   }
-  if (rct1->xmax < rct2->xmax) {
-    rct1->xmax = rct2->xmax;
+  if (rct_a->xmax < rct_b->xmax) {
+    rct_a->xmax = rct_b->xmax;
   }
-  if (rct1->ymin > rct2->ymin) {
-    rct1->ymin = rct2->ymin;
+  if (rct_a->ymin > rct_b->ymin) {
+    rct_a->ymin = rct_b->ymin;
   }
-  if (rct1->ymax < rct2->ymax) {
-    rct1->ymax = rct2->ymax;
+  if (rct_a->ymax < rct_b->ymax) {
+    rct_a->ymax = rct_b->ymax;
   }
 }
 
-void BLI_rcti_union(rcti *rct1, const rcti *rct2)
+void BLI_rcti_union(rcti *rct_a, const rcti *rct_b)
 {
-  if (rct1->xmin > rct2->xmin) {
-    rct1->xmin = rct2->xmin;
+  if (rct_a->xmin > rct_b->xmin) {
+    rct_a->xmin = rct_b->xmin;
   }
-  if (rct1->xmax < rct2->xmax) {
-    rct1->xmax = rct2->xmax;
+  if (rct_a->xmax < rct_b->xmax) {
+    rct_a->xmax = rct_b->xmax;
   }
-  if (rct1->ymin > rct2->ymin) {
-    rct1->ymin = rct2->ymin;
+  if (rct_a->ymin > rct_b->ymin) {
+    rct_a->ymin = rct_b->ymin;
   }
-  if (rct1->ymax < rct2->ymax) {
-    rct1->ymax = rct2->ymax;
+  if (rct_a->ymax < rct_b->ymax) {
+    rct_a->ymax = rct_b->ymax;
   }
 }
 
