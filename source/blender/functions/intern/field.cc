@@ -511,10 +511,16 @@ GField make_field_constant_if_possible(GField field)
   const CPPType &type = field.cpp_type();
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
   evaluate_constant_field(field, buffer);
-  auto constant_fn = std::make_unique<CustomMF_GenericConstant>(type, buffer, true);
+  GField new_field = make_constant_field(type, buffer);
   type.destruct(buffer);
+  return new_field;
+}
+
+GField make_constant_field(const CPPType &type, const void *value)
+{
+  auto constant_fn = std::make_unique<CustomMF_GenericConstant>(type, value, true);
   auto operation = std::make_shared<FieldOperation>(std::move(constant_fn));
-  return GField{operation, 0};
+  return GField{std::move(operation), 0};
 }
 
 GVArray FieldContext::get_varray_for_input(const FieldInput &field_input,

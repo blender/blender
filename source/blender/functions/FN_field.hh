@@ -178,11 +178,19 @@ class GFieldRef : public GFieldBase<const FieldNode *> {
   }
 };
 
+namespace detail {
+/* Utility class to make #is_field_v work. */
+struct TypedFieldBase {
+};
+}  // namespace detail
+
 /**
  * A typed version of #GField. It has the same memory layout as #GField.
  */
-template<typename T> class Field : public GField {
+template<typename T> class Field : public GField, detail::TypedFieldBase {
  public:
+  using base_type = T;
+
   Field() = default;
 
   Field(GField field) : GField(std::move(field))
@@ -195,6 +203,11 @@ template<typename T> class Field : public GField {
   {
   }
 };
+
+/** True when T is any Field<...> type. */
+template<typename T>
+static constexpr bool is_field_v = std::is_base_of_v<detail::TypedFieldBase, T> &&
+                                   !std::is_same_v<detail::TypedFieldBase, T>;
 
 /**
  * A #FieldNode that allows composing existing fields into new fields.
@@ -419,6 +432,8 @@ template<typename T> Field<T> make_constant_field(T value)
   return Field<T>{GField{std::move(operation), 0}};
 }
 
+GField make_constant_field(const CPPType &type, const void *value);
+
 GField make_field_constant_if_possible(GField field);
 
 class IndexFieldInput final : public FieldInput {
@@ -433,6 +448,52 @@ class IndexFieldInput final : public FieldInput {
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Value or Field Class
+ *
+ * Utility class that wraps a single value and a field, to simplify accessing both of the types.
+ * \{ */
+
+template<typename T> struct ValueOrField {
+  /** Value that is used when the field is empty. */
+  T value{};
+  Field<T> field;
+
+  ValueOrField() = default;
+
+  ValueOrField(T value) : value(std::move(value))
+  {
+  }
+
+  ValueOrField(Field<T> field) : field(std::move(field))
+  {
+  }
+
+  bool is_field() const
+  {
+    return (bool)this->field;
+  }
+
+  Field<T> as_field() const
+  {
+    if (this->field) {
+      return this->field;
+    }
+    return make_constant_field(this->value);
+  }
+
+  T as_value() const
+  {
+    if (this->field) {
+      /* This returns a default value when the field is not constant. */
+      return evaluate_constant_field(this->field);
+    }
+    return this->value;
+  }
 };
 
 /** \} */
