@@ -219,17 +219,17 @@ static int hipewHasOldDriver(const char *hip_path) {
   DWORD verHandle = 0;
   DWORD verSize = GetFileVersionInfoSize(hip_path, &verHandle);
   int old_driver = 0;
-  if(verSize != 0) {
+  if (verSize != 0) {
     LPSTR verData = (LPSTR)malloc(verSize);
-    if(GetFileVersionInfo(hip_path, verHandle, verSize, verData)) {
+    if (GetFileVersionInfo(hip_path, verHandle, verSize, verData)) {
       LPBYTE lpBuffer = NULL;
       UINT size = 0;
-      if(VerQueryValue(verData, "\\", (VOID FAR * FAR *)&lpBuffer, &size)) {
-        if(size) {
+      if (VerQueryValue(verData, "\\", (VOID FAR * FAR *)&lpBuffer, &size)) {
+        if (size) {
           VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
           /* Magic value from
            * https://docs.microsoft.com/en-us/windows/win32/api/verrsrc/ns-verrsrc-vs_fixedfileinfo */
-          if(verInfo->dwSignature == 0xfeef04bd) {
+          if (verInfo->dwSignature == 0xfeef04bd) {
             unsigned int fileVersionLS0 = (verInfo->dwFileVersionLS >> 16) & 0xffff;
             unsigned int fileversionLS1 = (verInfo->dwFileVersionLS >> 0) & 0xffff;
             /* Corresponds to versions older than AMD Radeon Pro 21.Q4. */
