@@ -37,6 +37,7 @@
 
 #include "ED_asset.h"
 #include "ED_asset_catalog.hh"
+#include "ED_screen.h"
 #include "ED_util.h"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
@@ -395,8 +396,14 @@ static void ASSET_OT_clear(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
-static bool asset_list_refresh_poll(bContext *C)
+static bool asset_library_refresh_poll(bContext *C)
 {
+  if (ED_operator_asset_browsing_active(C)) {
+    return true;
+  }
+
+  /* While not inside an Asset Browser, check if there's a asset list stored for the active asset
+   * library (stored in the workspace, obtained via context). */
   const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   if (!library) {
     return false;
@@ -405,23 +412,38 @@ static bool asset_list_refresh_poll(bContext *C)
   return ED_assetlist_storage_has_list_for_library(library);
 }
 
-static int asset_list_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
+static int asset_library_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
-  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
-  ED_assetlist_clear(library, C);
+  /* Execution mode #1: Inside the Asset Browser. */
+  if (ED_operator_asset_browsing_active(C)) {
+    SpaceFile *sfile = CTX_wm_space_file(C);
+    ED_fileselect_clear(CTX_wm_manager(C), sfile);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+  }
+  else {
+    /* Execution mode #2: Outside the Asset Browser, use the asset list. */
+    const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
+    ED_assetlist_clear(library, C);
+  }
+
   return OPERATOR_FINISHED;
 }
 
-static void ASSET_OT_list_refresh(struct wmOperatorType *ot)
+/**
+ * This operator currently covers both cases, the File/Asset Browser file list and the asset list
+ * used for the asset-view template. Once the asset list design is used by the Asset Browser, this
+ * can be simplified to just that case.
+ */
+static void ASSET_OT_library_refresh(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Refresh Asset List";
-  ot->description = "Trigger a reread of the assets";
-  ot->idname = "ASSET_OT_list_refresh";
+  ot->name = "Refresh Asset Library";
+  ot->description = "Reread assets and asset catalogs from the asset library on disk";
+  ot->idname = "ASSET_OT_library_refresh";
 
   /* api callbacks */
-  ot->exec = asset_list_refresh_exec;
-  ot->poll = asset_list_refresh_poll;
+  ot->exec = asset_library_refresh_exec;
+  ot->poll = asset_library_refresh_poll;
 }
 
 /* -------------------------------------------------------------------- */
@@ -908,5 +930,5 @@ void ED_operatortypes_asset(void)
   WM_operatortype_append(ASSET_OT_catalog_undo_push);
   WM_operatortype_append(ASSET_OT_bundle_install);
 
-  WM_operatortype_append(ASSET_OT_list_refresh);
+  WM_operatortype_append(ASSET_OT_library_refresh);
 }

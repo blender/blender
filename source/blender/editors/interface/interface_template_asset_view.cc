@@ -227,7 +227,7 @@ void uiTemplateAssetView(uiLayout *layout,
   if ((display_flags & UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY) == 0) {
     uiItemFullR(row, asset_library_dataptr, asset_library_prop, RNA_NO_INDEX, 0, 0, "", 0);
     if (asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
-      uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_list_refresh");
+      uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
     }
   }
 
