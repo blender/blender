@@ -1818,7 +1818,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     _support_icon_mapping = {
-        'OFFICIAL': 'FILE_BLEND',
+        'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
         'TESTING': 'EXPERIMENTAL',
     }
