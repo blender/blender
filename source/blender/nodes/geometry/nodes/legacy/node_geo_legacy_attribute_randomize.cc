@@ -59,7 +59,7 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
 
 namespace blender::nodes::node_geo_legacy_attribute_randomize_cc {
 
-static void geo_node_legacy_attribute_randomize_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Attribute"));
@@ -73,15 +73,13 @@ static void geo_node_legacy_attribute_randomize_declare(NodeDeclarationBuilder &
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_legacy_attribute_random_layout(uiLayout *layout,
-                                                    bContext *UNUSED(C),
-                                                    PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void geo_node_legacy_attribute_randomize_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
       sizeof(NodeAttributeRandomize), __func__);
@@ -91,7 +89,7 @@ static void geo_node_legacy_attribute_randomize_init(bNodeTree *UNUSED(tree), bN
   node->storage = data;
 }
 
-static void geo_node_legacy_attribute_randomize_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_min_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -284,7 +282,7 @@ static void randomize_attribute_on_component(GeometryComponent &component,
   attribute.save();
 }
 
-static void geo_node_legacy_random_attribute_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   const std::string attribute_name = params.get_input<std::string>("Attribute");
@@ -338,12 +336,12 @@ void register_node_type_geo_legacy_attribute_randomize()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE, "Attribute Randomize", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_init(&ntype, file_ns::geo_node_legacy_attribute_randomize_init);
-  node_type_update(&ntype, file_ns::geo_node_legacy_attribute_randomize_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
 
-  ntype.declare = file_ns::geo_node_legacy_attribute_randomize_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_legacy_random_attribute_exec;
-  ntype.draw_buttons = file_ns::geo_node_legacy_attribute_random_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeAttributeRandomize", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

@@ -30,7 +30,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_sample_texture_cc {
 
-static void geo_node_attribute_sample_texture_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Texture>(N_("Texture")).hide_label();
@@ -100,7 +100,7 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
   attribute_out.save();
 }
 
-static void geo_node_attribute_sample_texture_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -133,7 +133,7 @@ void register_node_type_geo_sample_texture()
                      NODE_CLASS_ATTRIBUTE,
                      0);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.declare = file_ns::geo_node_attribute_sample_texture_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_sample_texture_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

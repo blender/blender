@@ -20,12 +20,12 @@
 
 namespace blender::nodes::node_geo_is_viewport_cc {
 
-static void geo_node_is_viewport_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>(N_("Is Viewport"));
 }
 
-static void geo_node_is_viewport_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const Depsgraph *depsgraph = params.depsgraph();
   const eEvaluationMode mode = DEG_get_mode(depsgraph);
@@ -43,7 +43,7 @@ void register_node_type_geo_is_viewport()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IS_VIEWPORT, "Is Viewport", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_is_viewport_exec;
-  ntype.declare = file_ns::geo_node_is_viewport_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

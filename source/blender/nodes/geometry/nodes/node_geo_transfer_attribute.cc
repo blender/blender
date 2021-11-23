@@ -38,7 +38,7 @@ namespace blender::nodes::node_geo_transfer_attribute_cc {
 using namespace blender::bke::mesh_surface_sample;
 using blender::fn::GArray;
 
-static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
       .supported_type({GEO_COMPONENT_TYPE_MESH,
@@ -62,9 +62,7 @@ static void geo_node_transfer_attribute_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7});
 }
 
-static void geo_node_transfer_attribute_layout(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode &node = *static_cast<const bNode *>(ptr->data);
   const NodeGeometryTransferAttribute &data = *static_cast<const NodeGeometryTransferAttribute *>(
@@ -78,7 +76,7 @@ static void geo_node_transfer_attribute_layout(uiLayout *layout,
   }
 }
 
-static void geo_node_transfer_attribute_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryTransferAttribute *data = (NodeGeometryTransferAttribute *)MEM_callocN(
       sizeof(NodeGeometryTransferAttribute), __func__);
@@ -87,7 +85,7 @@ static void geo_node_transfer_attribute_init(bNodeTree *UNUSED(tree), bNode *nod
   node->storage = data;
 }
 
-static void geo_node_transfer_attribute_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryTransferAttribute &data = *(const NodeGeometryTransferAttribute *)
                                                    node->storage;
@@ -722,7 +720,7 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
   }
 }
 
-static void geo_node_transfer_attribute_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Target");
   const bNode &node = params.node();
@@ -803,14 +801,14 @@ void register_node_type_geo_transfer_attribute()
 
   geo_node_type_base(
       &ntype, GEO_NODE_TRANSFER_ATTRIBUTE, "Transfer Attribute", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_init(&ntype, file_ns::geo_node_transfer_attribute_init);
-  node_type_update(&ntype, file_ns::geo_node_transfer_attribute_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,
                     "NodeGeometryTransferAttribute",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_transfer_attribute_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_transfer_attribute_exec;
-  ntype.draw_buttons = file_ns::geo_node_transfer_attribute_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

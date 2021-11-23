@@ -23,7 +23,7 @@
 
 namespace blender::nodes::node_geo_legacy_point_scale_cc {
 
-static void geo_node_point_scale_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Factor"));
@@ -34,14 +34,14 @@ static void geo_node_point_scale_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "input_type", 0, IFACE_("Type"), ICON_NONE);
 }
 
-static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
       sizeof(NodeGeometryPointScale), __func__);
@@ -50,7 +50,7 @@ static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_point_scale_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointScale &node_storage = *(NodeGeometryPointScale *)node->storage;
 
@@ -101,7 +101,7 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   scale_attribute.save();
 }
 
-static void geo_node_point_scale_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -130,12 +130,12 @@ void register_node_type_geo_point_scale()
 
   geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_SCALE, "Point Scale", NODE_CLASS_GEOMETRY, 0);
 
-  ntype.declare = file_ns::geo_node_point_scale_declare;
-  node_type_init(&ntype, file_ns::geo_node_point_scale_init);
-  node_type_update(&ntype, file_ns::geo_node_point_scale_update);
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryPointScale", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::geo_node_point_scale_exec;
-  ntype.draw_buttons = file_ns::geo_node_point_scale_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

@@ -21,7 +21,7 @@
 
 namespace blender::nodes::node_geo_viewer_cc {
 
-static void geo_node_viewer_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Float>(N_("Value")).supports_field().hide_value();
@@ -31,7 +31,7 @@ static void geo_node_viewer_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Value"), "Value_004").supports_field().hide_value();
 }
 
-static void geo_node_viewer_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(sizeof(NodeGeometryViewer),
                                                                __func__);
@@ -40,7 +40,7 @@ static void geo_node_viewer_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_viewer_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
@@ -64,7 +64,7 @@ static eNodeSocketDatatype custom_data_type_to_socket_type(const CustomDataType 
   }
 }
 
-static void geo_node_viewer_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryViewer &storage = *(const NodeGeometryViewer *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
@@ -89,9 +89,9 @@ void register_node_type_geo_viewer()
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, 0);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::geo_node_viewer_update);
-  node_type_init(&ntype, file_ns::geo_node_viewer_init);
-  ntype.declare = file_ns::geo_node_viewer_declare;
-  ntype.draw_buttons_ex = file_ns::geo_node_viewer_layout;
+  node_type_update(&ntype, file_ns::node_update);
+  node_type_init(&ntype, file_ns::node_init);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons_ex = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

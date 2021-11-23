@@ -1147,7 +1147,7 @@ void separate_geometry(GeometrySet &geometry_set,
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
 
-static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Bool>(N_("Selection"))
@@ -1158,7 +1158,7 @@ static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_delete_geometry_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = *(const NodeGeometryDeleteGeometry *)node->storage;
@@ -1171,7 +1171,7 @@ static void geo_node_delete_geometry_layout(uiLayout *layout, bContext *UNUSED(C
   }
 }
 
-static void geo_node_delete_geometry_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryDeleteGeometry *data = (NodeGeometryDeleteGeometry *)MEM_callocN(
       sizeof(NodeGeometryDeleteGeometry), __func__);
@@ -1181,7 +1181,7 @@ static void geo_node_delete_geometry_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -1223,10 +1223,10 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  node_type_init(&ntype, file_ns::geo_node_delete_geometry_init);
+  node_type_init(&ntype, file_ns::node_init);
 
-  ntype.declare = file_ns::geo_node_delete_geometry_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_delete_geometry_exec;
-  ntype.draw_buttons = file_ns::geo_node_delete_geometry_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

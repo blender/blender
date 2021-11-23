@@ -18,7 +18,7 @@
 
 namespace blender::nodes::node_geo_set_shade_smooth_cc {
 
-static void geo_node_set_shade_smooth_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
@@ -49,7 +49,7 @@ static void set_smooth_in_component(GeometryComponent &component,
   shades.save();
 }
 
-static void geo_node_set_shade_smooth_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -74,7 +74,7 @@ void register_node_type_geo_set_shade_smooth()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SET_SHADE_SMOOTH, "Set Shade Smooth", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_set_shade_smooth_exec;
-  ntype.declare = file_ns::geo_node_set_shade_smooth_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

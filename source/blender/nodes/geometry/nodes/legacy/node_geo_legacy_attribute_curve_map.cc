@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_curve_map_cc {
 
-static void geo_node_attribute_curve_map_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Attribute"));
@@ -34,9 +34,7 @@ static void geo_node_attribute_curve_map_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_attribute_curve_map_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   bNode *node = (bNode *)ptr->data;
@@ -54,7 +52,7 @@ static void geo_node_attribute_curve_map_layout(uiLayout *layout,
   }
 }
 
-static void geo_node_attribute_curve_map_free_storage(bNode *node)
+static void node_free_storage(bNode *node)
 {
   if (node->storage) {
     NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
@@ -64,9 +62,9 @@ static void geo_node_attribute_curve_map_free_storage(bNode *node)
   }
 }
 
-static void geo_node_attribute_curve_map_copy_storage(bNodeTree *UNUSED(dest_ntree),
-                                                      bNode *dest_node,
-                                                      const bNode *src_node)
+static void node_copy_storage(bNodeTree *UNUSED(dest_ntree),
+                              bNode *dest_node,
+                              const bNode *src_node)
 {
   dest_node->storage = MEM_dupallocN(src_node->storage);
   NodeAttributeCurveMap *src_data = (NodeAttributeCurveMap *)src_node->storage;
@@ -75,7 +73,7 @@ static void geo_node_attribute_curve_map_copy_storage(bNodeTree *UNUSED(dest_ntr
   dest_data->curve_rgb = BKE_curvemapping_copy(src_data->curve_rgb);
 }
 
-static void geo_node_attribute_curve_map_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)MEM_callocN(sizeof(NodeAttributeCurveMap),
                                                                      __func__);
@@ -87,7 +85,7 @@ static void geo_node_attribute_curve_map_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = data;
 }
 
-static void geo_node_attribute_curve_map_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   /* Set the active curve when data type is changed. */
   NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
@@ -179,7 +177,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   attribute_result.save();
 }
 
-static void geo_node_attribute_curve_map_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &bnode = params.node();
   NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)bnode.storage;
@@ -213,15 +211,13 @@ void register_node_type_geo_attribute_curve_map()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP, "Attribute Curve Map", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_update(&ntype, file_ns::geo_node_attribute_curve_map_update);
-  node_type_init(&ntype, file_ns::geo_node_attribute_curve_map_init);
+  node_type_update(&ntype, file_ns::node_update);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_storage(&ntype,
-                    "NodeAttributeCurveMap",
-                    file_ns::geo_node_attribute_curve_map_free_storage,
-                    file_ns::geo_node_attribute_curve_map_copy_storage);
-  ntype.declare = file_ns::geo_node_attribute_curve_map_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_curve_map_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_curve_map_layout;
+  node_type_storage(
+      &ntype, "NodeAttributeCurveMap", file_ns::node_free_storage, file_ns::node_copy_storage);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

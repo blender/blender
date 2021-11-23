@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_legacy_raycast_cc {
 
-static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Geometry>(N_("Target Geometry"));
@@ -47,7 +47,7 @@ static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -56,7 +56,7 @@ static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), Point
   uiItemR(layout, ptr, "input_type_ray_length", 0, IFACE_("Ray Length"), ICON_NONE);
 }
 
-static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryRaycast *data = (NodeGeometryRaycast *)MEM_callocN(sizeof(NodeGeometryRaycast),
                                                                  __func__);
@@ -65,7 +65,7 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_raycast_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryRaycast *node_storage = (NodeGeometryRaycast *)node->storage;
   update_attribute_input_socket_availabilities(
@@ -272,7 +272,7 @@ static void raycast_from_points(const GeoNodeExecParams &params,
   }
 }
 
-static void geo_node_raycast_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet target_geometry_set = params.extract_input<GeometrySet>("Target Geometry");
@@ -317,12 +317,12 @@ void register_node_type_geo_legacy_raycast()
 
   geo_node_type_base(&ntype, GEO_NODE_LEGACY_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, file_ns::geo_node_raycast_init);
-  node_type_update(&ntype, file_ns::geo_node_raycast_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_raycast_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_raycast_exec;
-  ntype.draw_buttons = file_ns::geo_node_raycast_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

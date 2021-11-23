@@ -28,7 +28,7 @@
 
 namespace blender::nodes::node_geo_switch_cc {
 
-static void geo_node_switch_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bool>(N_("Switch")).default_value(false).supports_field();
   b.add_input<decl::Bool>(N_("Switch"), "Switch_001").default_value(false);
@@ -83,19 +83,19 @@ static void geo_node_switch_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Image>(N_("Output"), "Output_011");
 }
 
-static void geo_node_switch_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "input_type", 0, "", ICON_NONE);
 }
 
-static void geo_node_switch_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeSwitch *data = (NodeSwitch *)MEM_callocN(sizeof(NodeSwitch), __func__);
   data->input_type = SOCK_GEOMETRY;
   node->storage = data;
 }
 
-static void geo_node_switch_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeSwitch *node_storage = (NodeSwitch *)node->storage;
   int index = 0;
@@ -232,7 +232,7 @@ template<typename T> void switch_no_fields(GeoNodeExecParams &params, const Stri
   }
 }
 
-static void geo_node_switch_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeSwitch &storage = *(const NodeSwitch *)params.node().storage;
   const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.input_type);
@@ -302,12 +302,12 @@ void register_node_type_geo_switch()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = file_ns::geo_node_switch_declare;
-  node_type_init(&ntype, file_ns::geo_node_switch_init);
-  node_type_update(&ntype, file_ns::geo_node_switch_update);
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::geo_node_switch_exec;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.geometry_node_execute_supports_laziness = true;
-  ntype.draw_buttons = file_ns::geo_node_switch_layout;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

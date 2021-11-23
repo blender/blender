@@ -20,7 +20,7 @@
 
 namespace blender::nodes::node_geo_curve_primitive_spiral_cc {
 
-static void geo_node_curve_primitive_spiral_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Resolution"))
       .default_value(32)
@@ -81,7 +81,7 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
   return curve;
 }
 
-static void geo_node_curve_primitive_spiral_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const float rotations = std::max(params.extract_input<float>("Rotations"), 0.0f);
   if (rotations == 0.0f) {
@@ -108,7 +108,7 @@ void register_node_type_geo_curve_primitive_spiral()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, "Spiral", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_curve_primitive_spiral_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_spiral_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

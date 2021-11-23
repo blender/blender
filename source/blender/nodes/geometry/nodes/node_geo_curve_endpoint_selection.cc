@@ -23,7 +23,7 @@
 
 namespace blender::nodes::node_geo_curve_endpoint_select_cc {
 
-static void geo_node_curve_endpoint_selection_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Start Size"))
       .min(0)
@@ -131,7 +131,7 @@ class EndpointFieldInput final : public fn::FieldInput {
   }
 };
 
-static void geo_node_curve_endpoint_selection_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> start_size = params.extract_input<Field<int>>("Start Size");
   Field<int> end_size = params.extract_input<Field<int>>("End Size");
@@ -148,8 +148,8 @@ void register_node_type_geo_curve_endpoint_selection()
 
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_ENDPOINT_SELECTION, "Endpoint Selection", NODE_CLASS_INPUT, 0);
-  ntype.declare = file_ns::geo_node_curve_endpoint_selection_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_endpoint_selection_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);
 }

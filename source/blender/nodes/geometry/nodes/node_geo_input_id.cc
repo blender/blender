@@ -18,12 +18,12 @@
 
 namespace blender::nodes::node_geo_input_id_cc {
 
-static void geo_node_input_id_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>(N_("ID")).field_source();
 }
 
-static void geo_node_input_id_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> position_field{std::make_shared<bke::IDAttributeFieldInput>()};
   params.set_output("ID", std::move(position_field));
@@ -38,7 +38,7 @@ void register_node_type_geo_input_id()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_ID, "ID", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_input_id_exec;
-  ntype.declare = file_ns::geo_node_input_id_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

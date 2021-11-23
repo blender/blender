@@ -23,7 +23,7 @@
 
 namespace blender::nodes::node_geo_curve_primitive_circle_cc {
 
-static void geo_node_curve_primitive_circle_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Resolution"))
       .default_value(32)
@@ -57,14 +57,12 @@ static void geo_node_curve_primitive_circle_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Center"));
 }
 
-static void geo_node_curve_primitive_circle_layout(uiLayout *layout,
-                                                   bContext *UNUSED(C),
-                                                   PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_primitive_circle_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurvePrimitiveCircle *data = (NodeGeometryCurvePrimitiveCircle *)MEM_callocN(
       sizeof(NodeGeometryCurvePrimitiveCircle), __func__);
@@ -73,7 +71,7 @@ static void geo_node_curve_primitive_circle_init(bNodeTree *UNUSED(tree), bNode 
   node->storage = data;
 }
 
-static void geo_node_curve_primitive_circle_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurvePrimitiveCircle *node_storage = (NodeGeometryCurvePrimitiveCircle *)
                                                              node->storage;
@@ -195,7 +193,7 @@ static std::unique_ptr<CurveEval> create_radius_circle_curve(const int resolutio
   return curve;
 }
 
-static void geo_node_curve_primitive_circle_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurvePrimitiveCircle *node_storage =
       (NodeGeometryCurvePrimitiveCircle *)params.node().storage;
@@ -236,14 +234,14 @@ void register_node_type_geo_curve_primitive_circle()
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Curve Circle", NODE_CLASS_GEOMETRY, 0);
 
-  node_type_init(&ntype, file_ns::geo_node_curve_primitive_circle_init);
-  node_type_update(&ntype, file_ns::geo_node_curve_primitive_circle_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveCircle",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_curve_primitive_circle_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_circle_exec;
-  ntype.draw_buttons = file_ns::geo_node_curve_primitive_circle_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

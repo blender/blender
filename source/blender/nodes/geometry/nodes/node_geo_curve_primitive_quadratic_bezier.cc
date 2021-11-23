@@ -19,7 +19,7 @@
 
 namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc {
 
-static void geo_node_curve_primitive_quadratic_bezier_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Resolution"))
       .default_value(16)
@@ -64,7 +64,7 @@ static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
   return curve;
 }
 
-static void geo_node_curve_primitive_quadratic_bezier_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   std::unique_ptr<CurveEval> curve = create_quadratic_bezier_curve(
       params.extract_input<float3>("Start"),
@@ -86,7 +86,7 @@ void register_node_type_geo_curve_primitive_quadratic_bezier()
                      "Quadratic Bezier",
                      NODE_CLASS_GEOMETRY,
                      0);
-  ntype.declare = file_ns::geo_node_curve_primitive_quadratic_bezier_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_quadratic_bezier_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

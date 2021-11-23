@@ -29,14 +29,14 @@ Mesh *triangulate_mesh(Mesh *mesh,
 
 namespace blender::nodes::node_geo_triangulate_cc {
 
-static void geo_node_triangulate_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Int>(N_("Minimum Vertices")).default_value(4).min(4).max(10000);
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_triangulate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "quad_method", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "ngon_method", 0, "", ICON_NONE);
@@ -48,7 +48,7 @@ static void geo_triangulate_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom2 = GEO_NODE_TRIANGULATE_NGON_BEAUTY;
 }
 
-static void geo_node_triangulate_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
   const int min_vertices = std::max(params.extract_input<int>("Minimum Vertices"), 4);
@@ -78,9 +78,9 @@ void register_node_type_geo_triangulate()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, "Triangulate", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_triangulate_declare;
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::geo_triangulate_init);
-  ntype.geometry_node_execute = file_ns::geo_node_triangulate_exec;
-  ntype.draw_buttons = file_ns::geo_node_triangulate_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

@@ -21,17 +21,17 @@
 
 namespace blender::nodes::node_geo_input_material_cc {
 
-static void geo_node_input_material_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Material>(N_("Material"));
 }
 
-static void geo_node_input_material_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "material", 0, "", ICON_NONE);
 }
 
-static void geo_node_input_material_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Material *material = (Material *)params.node().id;
   params.set_output("Material", material);
@@ -46,8 +46,8 @@ void register_node_type_geo_input_material()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_MATERIAL, "Material", NODE_CLASS_INPUT, 0);
-  ntype.draw_buttons = file_ns::geo_node_input_material_layout;
-  ntype.declare = file_ns::geo_node_input_material_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_input_material_exec;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

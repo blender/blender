@@ -148,7 +148,7 @@ Mesh *create_grid_mesh(const int verts_x,
 
 namespace blender::nodes::node_geo_mesh_primitive_grid_cc {
 
-static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Size X"))
       .default_value(1.0f)
@@ -173,7 +173,7 @@ static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const float size_x = params.extract_input<float>("Size X");
   const float size_y = params.extract_input<float>("Size Y");
@@ -200,7 +200,7 @@ void register_node_type_geo_mesh_primitive_grid()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_GRID, "Grid", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_primitive_grid_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_grid_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

@@ -18,12 +18,12 @@
 
 namespace blender::nodes::node_geo_input_spline_resolution_cc {
 
-static void geo_node_input_spline_resolution_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>(N_("Resolution")).field_source();
 }
 
-static void geo_node_input_spline_resolution_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> resolution_field = AttributeFieldInput::Create<int>("resolution");
   params.set_output("Resolution", std::move(resolution_field));
@@ -39,7 +39,7 @@ void register_node_type_geo_input_spline_resolution()
 
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_SPLINE_RESOLUTION, "Spline Resolution", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_input_spline_resolution_exec;
-  ntype.declare = file_ns::geo_node_input_spline_resolution_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

@@ -37,7 +37,7 @@
 
 namespace blender::nodes::node_geo_volume_to_mesh_cc {
 
-static void geo_node_volume_to_mesh_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Volume")).supported_type(GEO_COMPONENT_TYPE_VOLUME);
   b.add_input<decl::Float>(N_("Voxel Size")).default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
@@ -47,14 +47,14 @@ static void geo_node_volume_to_mesh_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_volume_to_mesh_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
 }
 
-static void geo_node_volume_to_mesh_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryVolumeToMesh *data = (NodeGeometryVolumeToMesh *)MEM_callocN(
       sizeof(NodeGeometryVolumeToMesh), __func__);
@@ -62,7 +62,7 @@ static void geo_node_volume_to_mesh_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_volume_to_mesh_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryVolumeToMesh *data = (NodeGeometryVolumeToMesh *)node->storage;
 
@@ -176,7 +176,7 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
 
 #endif /* WITH_OPENVDB */
 
-static void geo_node_volume_to_mesh_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
 
@@ -203,13 +203,13 @@ void register_node_type_geo_volume_to_mesh()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VOLUME_TO_MESH, "Volume to Mesh", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_volume_to_mesh_declare;
+  ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(&ntype, 170, 120, 700);
-  node_type_init(&ntype, file_ns::geo_node_volume_to_mesh_init);
-  node_type_update(&ntype, file_ns::geo_node_volume_to_mesh_update);
-  ntype.geometry_node_execute = file_ns::geo_node_volume_to_mesh_exec;
-  ntype.draw_buttons = file_ns::geo_node_volume_to_mesh_layout;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

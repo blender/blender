@@ -25,21 +25,19 @@
 
 namespace blender::nodes::node_geo_curve_spline_type_cc {
 
-static void geo_node_curve_spline_type_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_spline_type_layout(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "spline_type", 0, "", ICON_NONE);
 }
 
-static void geo_node_curve_spline_type_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurveSplineType *data = (NodeGeometryCurveSplineType *)MEM_callocN(
       sizeof(NodeGeometryCurveSplineType), __func__);
@@ -238,7 +236,7 @@ static SplinePtr convert_to_nurbs(const Spline &input)
   return {};
 }
 
-static void geo_node_curve_spline_type_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSplineType *storage =
       (const NodeGeometryCurveSplineType *)params.node().storage;
@@ -297,14 +295,14 @@ void register_node_type_geo_curve_spline_type()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_curve_spline_type_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_spline_type_exec;
-  node_type_init(&ntype, file_ns::geo_node_curve_spline_type_init);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSplineType",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::geo_node_curve_spline_type_layout;
+  ntype.draw_buttons = file_ns::node_layout;
 
   nodeRegisterType(&ntype);
 }

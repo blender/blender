@@ -28,7 +28,7 @@
 
 namespace blender::nodes::node_geo_legacy_select_by_material_cc {
 
-static void geo_node_legacy_select_by_material_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Material>(N_("Material")).hide_label();
@@ -54,7 +54,7 @@ static void select_mesh_by_material(const Mesh &mesh,
   });
 }
 
-static void geo_node_legacy_select_by_material_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Material *material = params.extract_input<Material *>("Material");
   const std::string selection_name = params.extract_input<std::string>("Selection");
@@ -88,7 +88,7 @@ void register_node_type_geo_legacy_select_by_material()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, "Select by Material", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_legacy_select_by_material_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_legacy_select_by_material_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

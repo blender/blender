@@ -21,7 +21,7 @@
 
 namespace blender::nodes::node_geo_legacy_point_translate_cc {
 
-static void geo_node_point_translate_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Translation"));
@@ -29,7 +29,7 @@ static void geo_node_point_translate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -53,7 +53,7 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   position_attribute.save();
 }
 
-static void geo_node_point_translate_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -72,7 +72,7 @@ static void geo_node_point_translate_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-static void geo_node_point_translate_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryPointTranslate *data = (NodeGeometryPointTranslate *)MEM_callocN(
       sizeof(NodeGeometryPointTranslate), __func__);
@@ -81,7 +81,7 @@ static void geo_node_point_translate_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_point_translate_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointTranslate &node_storage = *(NodeGeometryPointTranslate *)node->storage;
 
@@ -99,14 +99,14 @@ void register_node_type_geo_point_translate()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_POINT_TRANSLATE, "Point Translate", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, file_ns::geo_node_point_translate_init);
-  node_type_update(&ntype, file_ns::geo_node_point_translate_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,
                     "NodeGeometryPointTranslate",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_point_translate_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_point_translate_exec;
-  ntype.draw_buttons = file_ns::geo_node_point_translate_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

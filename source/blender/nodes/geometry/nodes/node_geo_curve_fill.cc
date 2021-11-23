@@ -33,18 +33,18 @@
 
 namespace blender::nodes::node_geo_curve_fill_cc {
 
-static void geo_node_curve_fill_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_curve_fill_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_fill_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryCurveFill *data = (NodeGeometryCurveFill *)MEM_callocN(sizeof(NodeGeometryCurveFill),
                                                                      __func__);
@@ -147,7 +147,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
   geometry_set.replace_curve(nullptr);
 }
 
-static void geo_node_curve_fill_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
@@ -170,11 +170,11 @@ void register_node_type_geo_curve_fill()
 
   geo_node_type_base(&ntype, GEO_NODE_FILL_CURVE, "Fill Curve", NODE_CLASS_GEOMETRY, 0);
 
-  node_type_init(&ntype, file_ns::geo_node_curve_fill_init);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_curve_fill_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_fill_exec;
-  ntype.draw_buttons = file_ns::geo_node_curve_fill_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

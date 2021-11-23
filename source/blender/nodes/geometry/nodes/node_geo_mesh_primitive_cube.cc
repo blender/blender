@@ -418,7 +418,7 @@ Mesh *create_cuboid_mesh(const float3 size,
 
 namespace blender::nodes::node_geo_mesh_primitive_cube_cc {
 
-static void geo_node_mesh_primitive_cube_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Size"))
       .default_value(float3(1))
@@ -488,7 +488,7 @@ static Mesh *create_cube_mesh(const float3 size,
   return create_cuboid_mesh(size, verts_x, verts_y, verts_z);
 }
 
-static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const float3 size = params.extract_input<float3>("Size");
   const int verts_x = params.extract_input<int>("Vertices X");
@@ -514,7 +514,7 @@ void register_node_type_geo_mesh_primitive_cube()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CUBE, "Cube", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_primitive_cube_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_cube_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

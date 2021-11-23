@@ -18,7 +18,7 @@
 
 namespace blender::nodes::node_geo_set_curve_radius_cc {
 
-static void geo_node_set_curve_radius_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
@@ -53,7 +53,7 @@ static void set_radius_in_component(GeometryComponent &component,
   radii.save();
 }
 
-static void geo_node_set_curve_radius_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -79,7 +79,7 @@ void register_node_type_geo_set_curve_radius()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SET_CURVE_RADIUS, "Set Curve Radius", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_set_curve_radius_exec;
-  ntype.declare = file_ns::geo_node_set_curve_radius_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

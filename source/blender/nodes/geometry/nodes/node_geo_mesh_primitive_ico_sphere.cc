@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_mesh_primitive_ico_sphere_cc {
 
-static void geo_node_mesh_primitive_ico_sphere_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(1.0f)
@@ -69,7 +69,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
   return mesh;
 }
 
-static void geo_node_mesh_primitive_ico_sphere_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const int subdivisions = std::min(params.extract_input<int>("Subdivisions"), 10);
   const float radius = params.extract_input<float>("Radius");
@@ -88,7 +88,7 @@ void register_node_type_geo_mesh_primitive_ico_sphere()
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Ico Sphere", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_primitive_ico_sphere_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_ico_sphere_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

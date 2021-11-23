@@ -30,7 +30,7 @@
 
 namespace blender::nodes::node_geo_legacy_points_to_volume_cc {
 
-static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f);
@@ -41,9 +41,7 @@ static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_points_to_volume_layout(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -51,7 +49,7 @@ static void geo_node_points_to_volume_layout(uiLayout *layout,
   uiItemR(layout, ptr, "input_type_radius", 0, IFACE_("Radius"), ICON_NONE);
 }
 
-static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)MEM_callocN(
       sizeof(NodeGeometryPointsToVolume), __func__);
@@ -65,7 +63,7 @@ static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node
   STRNCPY(radius_attribute_socket_value->value, "radius");
 }
 
-static void geo_node_points_to_volume_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
@@ -244,7 +242,7 @@ static void initialize_volume_component_from_points(const GeometrySet &geometry_
 }
 #endif
 
-static void geo_node_points_to_volume_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set_in = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
@@ -274,10 +272,10 @@ void register_node_type_geo_legacy_points_to_volume()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   node_type_size(&ntype, 170, 120, 700);
-  node_type_init(&ntype, file_ns::geo_node_points_to_volume_init);
-  node_type_update(&ntype, file_ns::geo_node_points_to_volume_update);
-  ntype.declare = file_ns::geo_node_points_to_volume_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_points_to_volume_exec;
-  ntype.draw_buttons = file_ns::geo_node_points_to_volume_layout;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

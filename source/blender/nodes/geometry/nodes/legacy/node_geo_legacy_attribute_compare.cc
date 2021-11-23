@@ -23,7 +23,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_compare_cc {
 
-static void geo_node_attribute_compare_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("A"));
@@ -39,9 +39,7 @@ static void geo_node_attribute_compare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_attribute_compare_layout(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
   uiLayoutSetPropSep(layout, true);
@@ -50,7 +48,7 @@ static void geo_node_attribute_compare_layout(uiLayout *layout,
   uiItemR(layout, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
 }
 
-static void geo_node_attribute_compare_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeAttributeCompare *data = (NodeAttributeCompare *)MEM_callocN(sizeof(NodeAttributeCompare),
                                                                    __func__);
@@ -65,7 +63,7 @@ static bool operation_tests_equality(const NodeAttributeCompare &node_storage)
   return ELEM(node_storage.operation, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL);
 }
 
-static void geo_node_attribute_compare_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeCompare *node_storage = (NodeAttributeCompare *)node->storage;
   update_attribute_input_socket_availabilities(
@@ -322,7 +320,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
   attribute_result.save();
 }
 
-static void geo_node_attribute_compare_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -351,12 +349,12 @@ void register_node_type_geo_attribute_compare()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_ATTRIBUTE_COMPARE, "Attribute Compare", NODE_CLASS_ATTRIBUTE, 0);
-  ntype.declare = file_ns::geo_node_attribute_compare_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_compare_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_compare_layout;
-  node_type_update(&ntype, file_ns::geo_node_attribute_compare_update);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeAttributeCompare", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, file_ns::geo_node_attribute_compare_init);
+  node_type_init(&ntype, file_ns::node_init);
   nodeRegisterType(&ntype);
 }

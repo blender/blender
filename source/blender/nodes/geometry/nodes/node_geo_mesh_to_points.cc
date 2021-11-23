@@ -28,7 +28,7 @@ using blender::Array;
 
 namespace blender::nodes::node_geo_mesh_to_points_cc {
 
-static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
@@ -41,12 +41,12 @@ static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Points"));
 }
 
-static void geo_node_mesh_to_points_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void geo_node_mesh_to_points_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryMeshToPoints *data = (NodeGeometryMeshToPoints *)MEM_callocN(
       sizeof(NodeGeometryMeshToPoints), __func__);
@@ -129,7 +129,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
 }
 
-static void geo_node_mesh_to_points_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
   Field<float3> position = params.extract_input<Field<float3>>("Position");
@@ -181,10 +181,10 @@ void register_node_type_geo_mesh_to_points()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_POINTS, "Mesh to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_to_points_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_to_points_exec;
-  node_type_init(&ntype, file_ns::geo_node_mesh_to_points_init);
-  ntype.draw_buttons = file_ns::geo_node_mesh_to_points_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  node_type_init(&ntype, file_ns::node_init);
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

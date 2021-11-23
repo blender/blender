@@ -25,7 +25,7 @@
 
 namespace blender::nodes::node_geo_curve_sample_cc {
 
-static void geo_node_curve_sample_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve"))
       .only_realized_data()
@@ -38,12 +38,12 @@ static void geo_node_curve_sample_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Normal")).dependent_field();
 }
 
-static void geo_node_curve_sample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_sample_type_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_type_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurveSample *data = (NodeGeometryCurveSample *)MEM_callocN(
       sizeof(NodeGeometryCurveSample), __func__);
@@ -51,7 +51,7 @@ static void geo_node_curve_sample_type_init(bNodeTree *UNUSED(tree), bNode *node
   node->storage = data;
 }
 
-static void geo_node_curve_sample_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurveSample &node_storage = *(NodeGeometryCurveSample *)node->storage;
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
@@ -229,7 +229,7 @@ static Field<float> get_length_input_field(const GeoNodeExecParams &params,
   return Field<float>(std::move(process_op), 0);
 }
 
-static void geo_node_curve_sample_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
@@ -280,13 +280,13 @@ void register_node_type_geo_curve_sample()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, " Sample Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_curve_sample_exec;
-  ntype.declare = file_ns::geo_node_curve_sample_declare;
-  node_type_init(&ntype, file_ns::geo_node_curve_sample_type_init);
-  node_type_update(&ntype, file_ns::geo_node_curve_sample_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_type_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::geo_node_curve_sample_layout;
+  ntype.draw_buttons = file_ns::node_layout;
 
   nodeRegisterType(&ntype);
 }

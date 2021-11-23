@@ -20,7 +20,7 @@
 
 namespace blender::nodes::node_geo_input_spline_length_cc {
 
-static void geo_node_input_spline_length_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Length")).field_source();
 }
@@ -85,7 +85,7 @@ class SplineLengthFieldInput final : public fn::FieldInput {
   }
 };
 
-static void geo_node_input_spline_length_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float> length_field{std::make_shared<SplineLengthFieldInput>()};
   params.set_output("Length", std::move(length_field));
@@ -100,7 +100,7 @@ void register_node_type_geo_input_spline_length()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, "Spline Length", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_input_spline_length_exec;
-  ntype.declare = file_ns::geo_node_input_spline_length_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

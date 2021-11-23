@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_attribute_statistic_cc {
 
-static void geo_node_attribute_statistic_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Float>(N_("Attribute")).hide_value().supports_field();
@@ -51,21 +51,19 @@ static void geo_node_attribute_statistic_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Variance"), "Variance_001");
 }
 
-static void geo_node_attribute_statistic_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
 }
 
-static void geo_node_attribute_statistic_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   node->custom1 = CD_PROP_FLOAT;
   node->custom2 = ATTR_DOMAIN_POINT;
 }
 
-static void geo_node_attribute_statistic_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *socket_geo = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_float_attr = socket_geo->next;
@@ -170,7 +168,7 @@ static void set_empty(CustomDataType data_type, GeoNodeExecParams &params)
   }
 }
 
-static void geo_node_attribute_statistic_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.get_input<GeometrySet>("Geometry");
 
@@ -371,10 +369,10 @@ void register_node_type_geo_attribute_statistic()
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE, 0);
 
-  ntype.declare = file_ns::geo_node_attribute_statistic_declare;
-  node_type_init(&ntype, file_ns::geo_node_attribute_statistic_init);
-  node_type_update(&ntype, file_ns::geo_node_attribute_statistic_update);
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_statistic_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_statistic_layout;
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

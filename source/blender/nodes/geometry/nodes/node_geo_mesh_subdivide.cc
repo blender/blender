@@ -25,7 +25,7 @@
 
 namespace blender::nodes::node_geo_mesh_subdivide_cc {
 
-static void geo_node_mesh_subdivide_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
@@ -72,7 +72,7 @@ static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int lev
   BKE_subdiv_free(subdiv);
 }
 
-static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
@@ -106,7 +106,7 @@ void register_node_type_geo_mesh_subdivide()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_MESH, "Subdivide Mesh", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_subdivide_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_subdivide_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

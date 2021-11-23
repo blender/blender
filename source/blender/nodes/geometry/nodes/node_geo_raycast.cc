@@ -29,7 +29,7 @@ namespace blender::nodes::node_geo_raycast_cc {
 
 using namespace blender::bke::mesh_surface_sample;
 
-static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target Geometry"))
       .only_realized_data()
@@ -63,13 +63,13 @@ static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({1, 2, 3, 4, 5, 6});
 }
 
-static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "mapping", 0, "", ICON_NONE);
 }
 
-static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryRaycast *data = (NodeGeometryRaycast *)MEM_callocN(sizeof(NodeGeometryRaycast),
                                                                  __func__);
@@ -78,7 +78,7 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_raycast_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
@@ -375,7 +375,7 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
   }
 }
 
-static void geo_node_raycast_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
   const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)params.node().storage;
@@ -436,12 +436,12 @@ void register_node_type_geo_raycast()
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::geo_node_raycast_init);
-  node_type_update(&ntype, file_ns::geo_node_raycast_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_raycast_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_raycast_exec;
-  ntype.draw_buttons = file_ns::geo_node_raycast_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

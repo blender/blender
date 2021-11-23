@@ -25,7 +25,7 @@
 
 namespace blender::nodes::node_geo_legacy_attributes_color_ramp_cc {
 
-static void geo_node_attribute_color_ramp_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Attribute"));
@@ -33,14 +33,12 @@ static void geo_node_attribute_color_ramp_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
-                                                 bContext *UNUSED(C),
-                                                 PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiTemplateColorRamp(layout, ptr, "color_ramp", false);
 }
 
-static void geo_node_attribute_color_ramp_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)MEM_callocN(
       sizeof(NodeAttributeColorRamp), __func__);
@@ -100,7 +98,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   attribute_result.save();
 }
 
-static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -134,10 +132,10 @@ void register_node_type_geo_attribute_color_ramp()
                      0);
   node_type_storage(
       &ntype, "NodeAttributeColorRamp", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, file_ns::geo_node_attribute_color_ramp_init);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.declare = file_ns::geo_node_attribute_color_ramp_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_color_ramp_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_color_ramp_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

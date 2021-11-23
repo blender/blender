@@ -29,7 +29,7 @@
 
 namespace blender::nodes::node_geo_collection_info_cc {
 
-static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Collection>(N_("Collection")).hide_label();
   b.add_input<decl::Bool>(N_("Separate Children"))
@@ -42,12 +42,12 @@ static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_collection_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_collection_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCollectionInfo *data = (NodeGeometryCollectionInfo *)MEM_callocN(
       sizeof(NodeGeometryCollectionInfo), __func__);
@@ -61,7 +61,7 @@ struct InstanceListEntry {
   float4x4 transform;
 };
 
-static void geo_node_collection_info_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Collection *collection = params.get_input<Collection *>("Collection");
 
@@ -164,13 +164,13 @@ void register_node_type_geo_collection_info()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT, 0);
-  ntype.declare = file_ns::geo_node_collection_info_declare;
-  node_type_init(&ntype, file_ns::geo_node_collection_info_node_init);
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_node_init);
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::geo_node_collection_info_exec;
-  ntype.draw_buttons = file_ns::geo_node_collection_info_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

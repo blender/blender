@@ -27,7 +27,7 @@
 
 namespace blender::nodes::node_geo_mesh_primitive_line_cc {
 
-static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Count"))
       .default_value(10)
@@ -51,9 +51,7 @@ static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -63,7 +61,7 @@ static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
   }
 }
 
-static void geo_node_mesh_primitive_line_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryMeshLine *node_storage = (NodeGeometryMeshLine *)MEM_callocN(
       sizeof(NodeGeometryMeshLine), __func__);
@@ -74,7 +72,7 @@ static void geo_node_mesh_primitive_line_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = node_storage;
 }
 
-static void geo_node_mesh_primitive_line_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *count_socket = (bNodeSocket *)node->inputs.first;
   bNodeSocket *resolution_socket = count_socket->next;
@@ -100,7 +98,7 @@ static void geo_node_mesh_primitive_line_update(bNodeTree *ntree, bNode *node)
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
-static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshLine &storage = *(const NodeGeometryMeshLine *)params.node().storage;
   const GeometryNodeMeshLineMode mode = (const GeometryNodeMeshLineMode)storage.mode;
@@ -187,12 +185,12 @@ void register_node_type_geo_mesh_primitive_line()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, "Mesh Line", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_mesh_primitive_line_declare;
-  node_type_init(&ntype, file_ns::geo_node_mesh_primitive_line_init);
-  node_type_update(&ntype, file_ns::geo_node_mesh_primitive_line_update);
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_line_exec;
-  ntype.draw_buttons = file_ns::geo_node_mesh_primitive_line_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

@@ -21,7 +21,7 @@
 
 namespace blender::nodes::node_geo_instances_to_points_cc {
 
-static void geo_node_instances_to_points_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Instances")).only_instances();
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
@@ -87,7 +87,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   }
 }
 
-static void geo_node_instances_to_points_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
 
@@ -114,7 +114,7 @@ void register_node_type_geo_instances_to_points()
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCES_TO_POINTS, "Instances to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_instances_to_points_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_instances_to_points_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

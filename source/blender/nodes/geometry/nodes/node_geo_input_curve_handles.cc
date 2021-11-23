@@ -18,13 +18,13 @@
 
 namespace blender::nodes::node_geo_input_curve_handles_cc {
 
-static void geo_node_input_curve_handles_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Vector>(N_("Left")).field_source();
   b.add_output<decl::Vector>(N_("Right")).field_source();
 }
 
-static void geo_node_input_curve_handles_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float3> left_field = AttributeFieldInput::Create<float3>("handle_left");
   Field<float3> right_field = AttributeFieldInput::Create<float3>("handle_right");
@@ -42,7 +42,7 @@ void register_node_type_geo_input_curve_handles()
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_CURVE_HANDLES, "Curve Handle Positions", NODE_CLASS_INPUT, 0);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  ntype.geometry_node_execute = file_ns::geo_node_input_curve_handles_exec;
-  ntype.declare = file_ns::geo_node_input_curve_handles_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

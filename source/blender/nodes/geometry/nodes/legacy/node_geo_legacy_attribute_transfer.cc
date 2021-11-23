@@ -31,7 +31,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_transfer_cc {
 
-static void geo_node_attribute_transfer_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Geometry>(N_("Source Geometry"));
@@ -40,9 +40,7 @@ static void geo_node_attribute_transfer_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_attribute_transfer_layout(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -50,7 +48,7 @@ static void geo_node_attribute_transfer_layout(uiLayout *layout,
   uiItemR(layout, ptr, "mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void geo_node_attribute_transfer_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryAttributeTransfer *data = (NodeGeometryAttributeTransfer *)MEM_callocN(
       sizeof(NodeGeometryAttributeTransfer), __func__);
@@ -477,7 +475,7 @@ static void transfer_attribute(const GeoNodeExecParams &params,
   }
 }
 
-static void geo_node_attribute_transfer_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet dst_geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet src_geometry_set = params.extract_input<GeometrySet>("Source Geometry");
@@ -520,13 +518,13 @@ void register_node_type_geo_legacy_attribute_transfer()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER, "Attribute Transfer", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_init(&ntype, file_ns::geo_node_attribute_transfer_init);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(&ntype,
                     "NodeGeometryAttributeTransfer",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_attribute_transfer_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_transfer_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_transfer_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

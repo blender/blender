@@ -29,7 +29,7 @@
 
 namespace blender::nodes::node_geo_join_geometry_cc {
 
-static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
   b.add_output<decl::Geometry>(N_("Geometry"));
@@ -495,7 +495,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
   join_components(components, result);
 }
 
-static void geo_node_join_geometry_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Geometry");
 
@@ -517,7 +517,7 @@ void register_node_type_geo_join_geometry()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_join_geometry_exec;
-  ntype.declare = file_ns::geo_node_join_geometry_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

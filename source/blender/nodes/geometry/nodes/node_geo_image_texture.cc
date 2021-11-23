@@ -34,7 +34,7 @@
 
 namespace blender::nodes::node_geo_image_texture_cc {
 
-static void geo_node_image_texture_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Image>(N_("Image")).hide_label();
   b.add_input<decl::Vector>(N_("Vector"))
@@ -45,13 +45,13 @@ static void geo_node_image_texture_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field();
 }
 
-static void geo_node_image_texture_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void geo_node_image_texture_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryImageTexture *tex = (NodeGeometryImageTexture *)MEM_callocN(
       sizeof(NodeGeometryImageTexture), __func__);
@@ -370,7 +370,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
   }
 };
 
-static void geo_node_image_texture_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   auto return_default = [&]() {
     params.set_output("Color", ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
@@ -419,13 +419,13 @@ void register_node_type_geo_image_texture(void)
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_TEXTURE, "Image Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = file_ns::geo_node_image_texture_declare;
-  ntype.draw_buttons = file_ns::geo_node_image_texture_layout;
-  node_type_init(&ntype, file_ns::geo_node_image_texture_init);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeGeometryImageTexture", node_free_standard_storage, node_copy_standard_storage);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.geometry_node_execute = file_ns::geo_node_image_texture_exec;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);
 }

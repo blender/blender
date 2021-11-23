@@ -23,7 +23,7 @@
 
 namespace blender::nodes::node_geo_legacy_point_rotate_cc {
 
-static void geo_node_point_rotate_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Axis"));
@@ -37,7 +37,7 @@ static void geo_node_point_rotate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   NodeGeometryRotatePoints *storage = (NodeGeometryRotatePoints *)((bNode *)ptr->data)->storage;
 
@@ -57,7 +57,7 @@ static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), 
   }
 }
 
-static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)MEM_callocN(
       sizeof(NodeGeometryRotatePoints), __func__);
@@ -71,7 +71,7 @@ static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = node_storage;
 }
 
-static void geo_node_point_rotate_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)node->storage;
   update_attribute_input_socket_availabilities(
@@ -199,7 +199,7 @@ static void point_rotate_on_component(GeometryComponent &component,
   rotation_attribute.save();
 }
 
-static void geo_node_point_rotate_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -227,12 +227,12 @@ void register_node_type_geo_point_rotate()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_ROTATE, "Point Rotate", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, file_ns::geo_node_point_rotate_init);
-  node_type_update(&ntype, file_ns::geo_node_point_rotate_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryRotatePoints", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_point_rotate_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_point_rotate_exec;
-  ntype.draw_buttons = file_ns::geo_node_point_rotate_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

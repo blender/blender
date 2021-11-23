@@ -25,7 +25,7 @@
 
 namespace blender::nodes::node_geo_boolean_cc {
 
-static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh 1"))
       .only_realized_data()
@@ -36,12 +36,12 @@ static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_boolean_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void geo_node_boolean_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)node->custom1;
 
@@ -63,12 +63,12 @@ static void geo_node_boolean_update(bNodeTree *ntree, bNode *node)
   }
 }
 
-static void geo_node_boolean_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
 }
 
-static void geo_node_boolean_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;
   const bool use_self = params.get_input<bool>("Self Intersection");
@@ -128,10 +128,10 @@ void register_node_type_geo_boolean()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_BOOLEAN, "Mesh Boolean", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_boolean_declare;
-  ntype.draw_buttons = file_ns::geo_node_boolean_layout;
-  ntype.updatefunc = file_ns::geo_node_boolean_update;
-  node_type_init(&ntype, file_ns::geo_node_boolean_init);
-  ntype.geometry_node_execute = file_ns::geo_node_boolean_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.updatefunc = file_ns::node_update;
+  node_type_init(&ntype, file_ns::node_init);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

@@ -24,7 +24,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
 
 namespace blender::nodes::node_geo_legacy_edge_split_cc {
 
-static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Bool>(N_("Edge Angle")).default_value(true);
@@ -37,7 +37,7 @@ static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_edge_split_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -85,7 +85,7 @@ void register_node_type_geo_legacy_edge_split()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_LEGACY_EDGE_SPLIT, "Edge Split", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_edge_split_exec;
-  ntype.declare = file_ns::geo_node_edge_split_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

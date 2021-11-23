@@ -27,7 +27,7 @@
 
 namespace blender::nodes::node_geo_set_material_cc {
 
-static void geo_node_set_material_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"))
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_VOLUME});
@@ -59,7 +59,7 @@ static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Mate
   }
 }
 
-static void geo_node_set_material_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Material *material = params.extract_input<Material *>("Material");
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -112,7 +112,7 @@ void register_node_type_geo_set_material()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, "Set Material", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_set_material_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_set_material_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

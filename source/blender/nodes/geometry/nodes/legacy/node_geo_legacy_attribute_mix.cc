@@ -27,7 +27,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_mix_cc {
 
-static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Factor"));
@@ -48,7 +48,7 @@ static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -59,7 +59,7 @@ static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C),
   uiItemR(col, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
 }
 
-static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeAttributeMix *data = (NodeAttributeMix *)MEM_callocN(sizeof(NodeAttributeMix),
                                                            "attribute mix node");
@@ -70,7 +70,7 @@ static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_attribute_mix_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeAttributeMix *node_storage = (NodeAttributeMix *)node->storage;
   update_attribute_input_socket_availabilities(
@@ -222,7 +222,7 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
   attribute_result.save();
 }
 
-static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -250,12 +250,12 @@ void register_node_type_geo_attribute_mix()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_init(&ntype, file_ns::geo_node_attribute_mix_init);
-  node_type_update(&ntype, file_ns::geo_node_attribute_mix_update);
-  ntype.declare = file_ns::geo_node_mix_attribute_declare;
-  ntype.draw_buttons = file_ns::geo_node_attribute_mix_layout;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeAttributeMix", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_mix_exec;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

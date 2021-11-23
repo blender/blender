@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_instance_on_points_cc {
 
-static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Points")).description(N_("Points to instance on"));
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
@@ -176,7 +176,7 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   }
 }
 
-static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   GeometrySet instance = params.get_input<GeometrySet>("Instance");
@@ -224,7 +224,7 @@ void register_node_type_geo_instance_on_points()
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_instance_on_points_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_instance_on_points_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

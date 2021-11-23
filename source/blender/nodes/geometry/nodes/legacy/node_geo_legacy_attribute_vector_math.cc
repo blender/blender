@@ -28,7 +28,7 @@
 
 namespace blender::nodes::node_geo_legacy_attribute_vector_math_cc {
 
-static void geo_node_attribute_vector_math_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("A"));
@@ -66,9 +66,7 @@ static bool operation_use_input_c(const NodeVectorMathOperation operation)
               NODE_VECTOR_MATH_MULTIPLY_ADD);
 }
 
-static void geo_node_attribute_vector_math_layout(uiLayout *layout,
-                                                  bContext *UNUSED(C),
-                                                  PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   const NodeAttributeVectorMath &node_storage = *(NodeAttributeVectorMath *)node->storage;
@@ -103,7 +101,7 @@ static CustomDataType operation_get_read_type_c(const NodeVectorMathOperation op
   return CD_PROP_FLOAT3;
 }
 
-static void geo_node_attribute_vector_math_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeAttributeVectorMath *data = (NodeAttributeVectorMath *)MEM_callocN(
       sizeof(NodeAttributeVectorMath), __func__);
@@ -166,7 +164,7 @@ static void geo_node_vector_math_label(bNodeTree *UNUSED(ntree),
   BLI_snprintf(label, maxlen, IFACE_("Vector %s"), IFACE_(name));
 }
 
-static void geo_node_attribute_vector_math_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeAttributeVectorMath *node_storage = (NodeAttributeVectorMath *)node->storage;
   const NodeVectorMathOperation operation = (const NodeVectorMathOperation)node_storage->operation;
@@ -531,7 +529,7 @@ static void attribute_vector_math_calc(GeometryComponent &component,
   attribute_result.save();
 }
 
-static void geo_node_attribute_vector_math_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -564,12 +562,12 @@ void register_node_type_geo_attribute_vector_math()
                      "Attribute Vector Math",
                      NODE_CLASS_ATTRIBUTE,
                      0);
-  ntype.declare = file_ns::geo_node_attribute_vector_math_declare;
-  ntype.geometry_node_execute = file_ns::geo_node_attribute_vector_math_exec;
-  ntype.draw_buttons = file_ns::geo_node_attribute_vector_math_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_label(&ntype, file_ns::geo_node_vector_math_label);
-  node_type_update(&ntype, file_ns::geo_node_attribute_vector_math_update);
-  node_type_init(&ntype, file_ns::geo_node_attribute_vector_math_init);
+  node_type_update(&ntype, file_ns::node_update);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeAttributeVectorMath", node_free_standard_storage, node_copy_standard_storage);
 

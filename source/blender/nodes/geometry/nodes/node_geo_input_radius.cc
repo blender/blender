@@ -18,12 +18,12 @@
 
 namespace blender::nodes::node_geo_input_radius_cc {
 
-static void geo_node_input_radius_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).field_source();
 }
 
-static void geo_node_input_radius_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float> radius_field = AttributeFieldInput::Create<float>("radius");
   params.set_output("Radius", std::move(radius_field));
@@ -38,7 +38,7 @@ void register_node_type_geo_input_radius()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_RADIUS, "Radius", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = file_ns::geo_node_input_radius_exec;
-  ntype.declare = file_ns::geo_node_input_radius_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

@@ -23,22 +23,20 @@
 
 namespace blender::nodes::node_geo_legacy_curve_set_handles_cc {
 
-static void geo_node_curve_set_handles_decalre(NodeDeclarationBuilder &b)
+static void node_decalre(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve"));
   b.add_input<decl::String>(N_("Selection"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_set_handles_layout(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "handle_type", 0, "", ICON_NONE);
 }
 
-static void geo_node_curve_set_handles_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurveSetHandles *data = (NodeGeometryCurveSetHandles *)MEM_callocN(
       sizeof(NodeGeometryCurveSetHandles), __func__);
@@ -64,7 +62,7 @@ static BezierSpline::HandleType handle_type_from_input_type(GeometryNodeCurveHan
   return BezierSpline::HandleType::Auto;
 }
 
-static void geo_node_curve_set_handles_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSetHandles *node_storage =
       (NodeGeometryCurveSetHandles *)params.node().storage;
@@ -133,14 +131,14 @@ void register_node_type_geo_legacy_curve_set_handles()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = file_ns::geo_node_curve_set_handles_decalre;
-  ntype.geometry_node_execute = file_ns::geo_node_curve_set_handles_exec;
-  node_type_init(&ntype, file_ns::geo_node_curve_set_handles_init);
+  ntype.declare = file_ns::node_decalre;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSetHandles",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::geo_node_curve_set_handles_layout;
+  ntype.draw_buttons = file_ns::node_layout;
 
   nodeRegisterType(&ntype);
 }

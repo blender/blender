@@ -26,7 +26,7 @@
 
 namespace blender::nodes::node_geo_legacy_point_instance_cc {
 
-static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::Object>(N_("Object")).hide_label();
@@ -36,7 +36,7 @@ static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "instance_type", 0, "", ICON_NONE);
   if (RNA_enum_get(ptr, "instance_type") == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
@@ -44,7 +44,7 @@ static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C)
   }
 }
 
-static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
       sizeof(NodeGeometryPointInstance), __func__);
@@ -53,7 +53,7 @@ static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_point_instance_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *object_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *collection_socket = object_socket->next;
@@ -215,7 +215,7 @@ static void add_instances_from_component(InstancesComponent &instances,
   }
 }
 
-static void geo_node_point_instance_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
@@ -265,12 +265,12 @@ void register_node_type_geo_point_instance()
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, file_ns::geo_node_point_instance_init);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::geo_node_point_instance_declare;
-  ntype.draw_buttons = file_ns::geo_node_point_instance_layout;
-  node_type_update(&ntype, file_ns::geo_node_point_instance_update);
-  ntype.geometry_node_execute = file_ns::geo_node_point_instance_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }
