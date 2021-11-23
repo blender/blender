@@ -703,8 +703,10 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   float light_u, light_v;
   path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
 
-  light_distribution_sample_from_volume_segment(
-      kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls);
+  if (!light_distribution_sample_from_volume_segment(
+          kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls)) {
+    return false;
+  }
 
   if (ls->shader & SHADER_EXCLUDE_SCATTER) {
     return false;

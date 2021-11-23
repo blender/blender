@@ -73,7 +73,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->P = zero_float3();
     ls->Ng = zero_float3();
     ls->D = zero_float3();
-    ls->pdf = true;
+    ls->pdf = 1.0f;
     ls->t = FLT_MAX;
     return true;
   }
@@ -131,7 +131,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
         ls->eval_fac *= spot_light_attenuation(
             dir, klight->spot.spot_angle, klight->spot.spot_smooth, ls->Ng);
-        if (ls->eval_fac == 0.0f) {
+        if (!in_volume_segment && ls->eval_fac == 0.0f) {
           return false;
         }
       }
@@ -170,7 +170,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         float3 sample_axisu = axisu;
         float3 sample_axisv = axisv;
 
-        if (klight->area.tan_spread > 0.0f) {
+        if (!in_volume_segment && klight->area.tan_spread > 0.0f) {
           if (!light_spread_clamp_area_light(
                   P, Ng, &ls->P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
             return false;
@@ -203,7 +203,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
 
   ls->pdf *= kernel_data.integrator.pdf_lights;
 
-  return (ls->pdf > 0.0f);
+  return in_volume_segment || (ls->pdf > 0.0f);
 }
 
 ccl_device bool lights_intersect(KernelGlobals kg,
