@@ -470,6 +470,8 @@ int WM_operator_repeat(struct bContext *C, struct wmOperator *op);
 int WM_operator_repeat_last(struct bContext *C, struct wmOperator *op);
 bool WM_operator_repeat_check(const struct bContext *C, struct wmOperator *op);
 bool WM_operator_is_repeat(const struct bContext *C, const struct wmOperator *op);
+
+bool WM_operator_name_poll(struct bContext *C, const char *opstring);
 int WM_operator_name_call_ptr(struct bContext *C,
                               struct wmOperatorType *ot,
                               short context,

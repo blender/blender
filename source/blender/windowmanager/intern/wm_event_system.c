@@ -1611,6 +1611,16 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
   return 0;
 }
 
+bool WM_operator_name_poll(bContext *C, const char *opstring)
+{
+  wmOperatorType *ot = WM_operatortype_find(opstring, 0);
+  if (!ot) {
+    return false;
+  }
+
+  return WM_operator_poll(C, ot);
+}
+
 int WM_operator_name_call_with_properties(struct bContext *C,
                                           const char *opstring,
                                           short context,

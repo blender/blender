@@ -28,7 +28,8 @@ extern "C" {
 
 int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library);
 AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
-const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(void);
+const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
+    bool include_local_library);
 
 #ifdef __cplusplus
 }
