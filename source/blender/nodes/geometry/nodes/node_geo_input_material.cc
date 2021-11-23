@@ -19,7 +19,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_material_cc {
 
 static void geo_node_input_material_declare(NodeDeclarationBuilder &b)
 {
@@ -37,15 +37,17 @@ static void geo_node_input_material_exec(GeoNodeExecParams params)
   params.set_output("Material", material);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_material_cc
 
 void register_node_type_geo_input_material()
 {
+  namespace file_ns = blender::nodes::node_geo_input_material_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_MATERIAL, "Material", NODE_CLASS_INPUT, 0);
-  ntype.draw_buttons = blender::nodes::geo_node_input_material_layout;
-  ntype.declare = blender::nodes::geo_node_input_material_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_material_exec;
+  ntype.draw_buttons = file_ns::geo_node_input_material_layout;
+  ntype.declare = file_ns::geo_node_input_material_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_input_material_exec;
   nodeRegisterType(&ntype);
 }

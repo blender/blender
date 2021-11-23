@@ -16,7 +16,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_attribute_remove_cc {
 
 static void geo_node_attribute_remove_declare(NodeDeclarationBuilder &b)
 {
@@ -66,15 +66,17 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", geometry_set);
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_attribute_remove_cc
 
 void register_node_type_geo_attribute_remove()
 {
+  namespace file_ns = blender::nodes::node_geo_attribute_remove_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_REMOVE, "Attribute Remove", NODE_CLASS_ATTRIBUTE, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_attribute_remove_exec;
-  ntype.declare = blender::nodes::geo_node_attribute_remove_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_attribute_remove_exec;
+  ntype.declare = file_ns::geo_node_attribute_remove_declare;
   nodeRegisterType(&ntype);
 }

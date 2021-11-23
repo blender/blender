@@ -24,7 +24,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_attribute_statistic_cc {
 
 static void geo_node_attribute_statistic_declare(NodeDeclarationBuilder &b)
 {
@@ -360,19 +360,21 @@ static void geo_node_attribute_statistic_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_attribute_statistic_cc
 
 void register_node_type_geo_attribute_statistic()
 {
+  namespace file_ns = blender::nodes::node_geo_attribute_statistic_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE, 0);
 
-  ntype.declare = blender::nodes::geo_node_attribute_statistic_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_attribute_statistic_init);
-  node_type_update(&ntype, blender::nodes::geo_node_attribute_statistic_update);
-  ntype.geometry_node_execute = blender::nodes::geo_node_attribute_statistic_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_attribute_statistic_layout;
+  ntype.declare = file_ns::geo_node_attribute_statistic_declare;
+  node_type_init(&ntype, file_ns::geo_node_attribute_statistic_init);
+  node_type_update(&ntype, file_ns::geo_node_attribute_statistic_update);
+  ntype.geometry_node_execute = file_ns::geo_node_attribute_statistic_exec;
+  ntype.draw_buttons = file_ns::geo_node_attribute_statistic_layout;
   nodeRegisterType(&ntype);
 }

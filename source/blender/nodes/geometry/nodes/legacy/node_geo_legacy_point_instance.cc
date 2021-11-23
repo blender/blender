@@ -24,7 +24,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_legacy_point_instance_cc {
 
 static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
 {
@@ -255,20 +255,22 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set_out));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_legacy_point_instance_cc
 
 void register_node_type_geo_point_instance()
 {
+  namespace file_ns = blender::nodes::node_geo_legacy_point_instance_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_point_instance_init);
+  node_type_init(&ntype, file_ns::geo_node_point_instance_init);
   node_type_storage(
       &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_point_instance_declare;
-  ntype.draw_buttons = blender::nodes::geo_node_point_instance_layout;
-  node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
-  ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
+  ntype.declare = file_ns::geo_node_point_instance_declare;
+  ntype.draw_buttons = file_ns::geo_node_point_instance_layout;
+  node_type_update(&ntype, file_ns::geo_node_point_instance_update);
+  ntype.geometry_node_execute = file_ns::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);
 }

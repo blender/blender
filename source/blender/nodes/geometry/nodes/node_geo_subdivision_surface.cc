@@ -27,7 +27,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_subdivision_surface_cc {
 
 static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
 {
@@ -145,18 +145,20 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_subdivision_surface_cc
 
 void register_node_type_geo_subdivision_surface()
 {
+  namespace file_ns = blender::nodes::node_geo_subdivision_surface_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_subdivision_surface_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_subdivision_surface_layout;
-  node_type_init(&ntype, blender::nodes::geo_node_subdivision_surface_init);
+  ntype.declare = file_ns::geo_node_subdivision_surface_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_subdivision_surface_exec;
+  ntype.draw_buttons = file_ns::geo_node_subdivision_surface_layout;
+  node_type_init(&ntype, file_ns::geo_node_subdivision_surface_init);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",

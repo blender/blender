@@ -25,7 +25,7 @@
 
 #include "BKE_spline.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_fillet_cc {
 
 static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
 {
@@ -629,19 +629,21 @@ static void geo_node_fillet_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_fillet_cc
 
 void register_node_type_geo_curve_fillet()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_fillet_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_FILLET_CURVE, "Fillet Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.draw_buttons = blender::nodes::geo_node_curve_fillet_layout;
+  ntype.draw_buttons = file_ns::geo_node_curve_fillet_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_fillet_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_curve_fillet_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_fillet_update);
-  ntype.geometry_node_execute = blender::nodes::geo_node_fillet_exec;
+  ntype.declare = file_ns::geo_node_curve_fillet_declare;
+  node_type_init(&ntype, file_ns::geo_node_curve_fillet_init);
+  node_type_update(&ntype, file_ns::geo_node_curve_fillet_update);
+  ntype.geometry_node_execute = file_ns::geo_node_fillet_exec;
   nodeRegisterType(&ntype);
 }

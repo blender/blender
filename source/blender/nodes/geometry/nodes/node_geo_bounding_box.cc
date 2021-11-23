@@ -16,7 +16,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_bounding_box_cc {
 
 static void geo_node_bounding_box_declare(NodeDeclarationBuilder &b)
 {
@@ -78,14 +78,16 @@ static void geo_node_bounding_box_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_bounding_box_cc
 
 void register_node_type_geo_bounding_box()
 {
+  namespace file_ns = blender::nodes::node_geo_bounding_box_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_BOUNDING_BOX, "Bounding Box", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_bounding_box_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_bounding_box_exec;
+  ntype.declare = file_ns::geo_node_bounding_box_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_bounding_box_exec;
   nodeRegisterType(&ntype);
 }

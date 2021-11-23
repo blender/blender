@@ -18,7 +18,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_rotate_instances_cc {
 
 static void geo_node_rotate_instances_declare(NodeDeclarationBuilder &b)
 {
@@ -106,15 +106,17 @@ static void geo_node_rotate_instances_exec(GeoNodeExecParams params)
   params.set_output("Instances", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_rotate_instances_cc
 
 void register_node_type_geo_rotate_instances()
 {
+  namespace file_ns = blender::nodes::node_geo_rotate_instances_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_ROTATE_INSTANCES, "Rotate Instances", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_rotate_instances_exec;
-  ntype.declare = blender::nodes::geo_node_rotate_instances_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_rotate_instances_exec;
+  ntype.declare = file_ns::geo_node_rotate_instances_declare;
   nodeRegisterType(&ntype);
 }

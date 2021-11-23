@@ -24,7 +24,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_instance_on_points_cc {
 
 static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
 {
@@ -214,15 +214,17 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
   params.set_output("Instances", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_instance_on_points_cc
 
 void register_node_type_geo_instance_on_points()
 {
+  namespace file_ns = blender::nodes::node_geo_instance_on_points_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_instance_on_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_instance_on_points_exec;
+  ntype.declare = file_ns::geo_node_instance_on_points_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_instance_on_points_exec;
   nodeRegisterType(&ntype);
 }

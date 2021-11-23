@@ -25,7 +25,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_subdivide_cc {
 
 static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
 {
@@ -351,14 +351,16 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
   params.set_output("Curve", geometry_set);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_subdivide_cc
 
 void register_node_type_geo_curve_subdivide()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_subdivide_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
+  ntype.declare = file_ns::geo_node_curve_subdivide_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_subdivide_exec;
   nodeRegisterType(&ntype);
 }

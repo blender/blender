@@ -25,14 +25,6 @@
 
 namespace blender::nodes {
 
-static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::String>(N_("Mask"));
-  b.add_output<decl::Geometry>(N_("Geometry 1"));
-  b.add_output<decl::Geometry>(N_("Geometry 2"));
-}
-
 template<typename T>
 static void copy_data_based_on_mask(Span<T> data,
                                     Span<bool> masks,
@@ -76,6 +68,18 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
 
     result_attribute.save();
   }
+}
+
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_legacy_point_separate_cc {
+
+static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::String>(N_("Mask"));
+  b.add_output<decl::Geometry>(N_("Geometry 1"));
+  b.add_output<decl::Geometry>(N_("Geometry 2"));
 }
 
 static void create_component_points(GeometryComponent &component, const int total)
@@ -158,16 +162,18 @@ static void geo_node_point_separate_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_legacy_point_separate_cc
 
 void register_node_type_geo_point_separate()
 {
+  namespace file_ns = blender::nodes::node_geo_legacy_point_separate_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_POINT_SEPARATE, "Point Separate", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_point_instance_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_point_separate_exec;
+  ntype.declare = file_ns::geo_node_point_instance_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_point_separate_exec;
   ntype.geometry_node_execute_supports_laziness = true;
   nodeRegisterType(&ntype);
 }

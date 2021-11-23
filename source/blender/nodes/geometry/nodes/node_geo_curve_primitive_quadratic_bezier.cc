@@ -17,7 +17,7 @@
 #include "BKE_spline.hh"
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc {
 
 static void geo_node_curve_primitive_quadratic_bezier_declare(NodeDeclarationBuilder &b)
 {
@@ -74,17 +74,19 @@ static void geo_node_curve_primitive_quadratic_bezier_exec(GeoNodeExecParams par
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc
 
 void register_node_type_geo_curve_primitive_quadratic_bezier()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype,
                      GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER,
                      "Quadratic Bezier",
                      NODE_CLASS_GEOMETRY,
                      0);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_quadratic_bezier_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_quadratic_bezier_exec;
+  ntype.declare = file_ns::geo_node_curve_primitive_quadratic_bezier_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_quadratic_bezier_exec;
   nodeRegisterType(&ntype);
 }

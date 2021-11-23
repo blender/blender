@@ -25,7 +25,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_legacy_curve_endpoints_cc {
 
 static void geo_node_curve_endpoints_declare(NodeDeclarationBuilder &b)
 {
@@ -206,16 +206,18 @@ static void geo_node_curve_endpoints_exec(GeoNodeExecParams params)
   params.set_output("End Points", std::move(end_result));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_legacy_curve_endpoints_cc
 
 void register_node_type_geo_legacy_curve_endpoints()
 {
+  namespace file_ns = blender::nodes::node_geo_legacy_curve_endpoints_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_CURVE_ENDPOINTS, "Curve Endpoints", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_endpoints_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoints_exec;
+  ntype.declare = file_ns::geo_node_curve_endpoints_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_endpoints_exec;
 
   nodeRegisterType(&ntype);
 }

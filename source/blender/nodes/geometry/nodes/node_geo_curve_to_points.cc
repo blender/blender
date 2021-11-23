@@ -27,6 +27,20 @@
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
+void curve_create_default_rotation_attribute(Span<float3> tangents,
+                                             Span<float3> normals,
+                                             MutableSpan<float3> rotations)
+{
+  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      rotations[i] =
+          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
+    }
+  });
+}
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_curve_to_points_cc {
 
 static void geo_node_curve_to_points_declare(NodeDeclarationBuilder &b)
 {
@@ -289,18 +303,6 @@ static void copy_spline_domain_attributes(const CurveEval &curve,
       ATTR_DOMAIN_CURVE);
 }
 
-void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                             Span<float3> normals,
-                                             MutableSpan<float3> rotations)
-{
-  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      rotations[i] =
-          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
-    }
-  });
-}
-
 static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 {
   NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)params.node().storage;
@@ -374,20 +376,22 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_to_points_cc
 
 void register_node_type_geo_curve_to_points()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_to_points_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_POINTS, "Curve to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_to_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_to_points_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_to_points_layout;
+  ntype.declare = file_ns::geo_node_curve_to_points_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_to_points_exec;
+  ntype.draw_buttons = file_ns::geo_node_curve_to_points_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveToPoints", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_to_points_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_to_points_update);
+  node_type_init(&ntype, file_ns::geo_node_curve_to_points_init);
+  node_type_update(&ntype, file_ns::geo_node_curve_to_points_update);
 
   nodeRegisterType(&ntype);
 }

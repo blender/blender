@@ -25,7 +25,7 @@
 
 #include "BKE_material.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_set_material_cc {
 
 static void geo_node_set_material_declare(NodeDeclarationBuilder &b)
 {
@@ -103,14 +103,16 @@ static void geo_node_set_material_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_set_material_cc
 
 void register_node_type_geo_set_material()
 {
+  namespace file_ns = blender::nodes::node_geo_set_material_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, "Set Material", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_set_material_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_set_material_exec;
+  ntype.declare = file_ns::geo_node_set_material_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_set_material_exec;
   nodeRegisterType(&ntype);
 }

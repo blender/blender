@@ -16,7 +16,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_position_cc {
 
 static void geo_node_input_position_declare(NodeDeclarationBuilder &b)
 {
@@ -29,14 +29,16 @@ static void geo_node_input_position_exec(GeoNodeExecParams params)
   params.set_output("Position", std::move(position_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_position_cc
 
 void register_node_type_geo_input_position()
 {
+  namespace file_ns = blender::nodes::node_geo_input_position_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_POSITION, "Position", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_position_exec;
-  ntype.declare = blender::nodes::geo_node_input_position_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_input_position_exec;
+  ntype.declare = file_ns::geo_node_input_position_declare;
   nodeRegisterType(&ntype);
 }

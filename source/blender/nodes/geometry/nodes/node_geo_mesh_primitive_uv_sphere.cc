@@ -25,7 +25,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc {
 
 static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
 {
@@ -313,15 +313,17 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc
 
 void register_node_type_geo_mesh_primitive_uv_sphere()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_uv_sphere_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_uv_shpere_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_uv_sphere_exec;
+  ntype.declare = file_ns::geo_node_mesh_primitive_uv_shpere_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_uv_sphere_exec;
   nodeRegisterType(&ntype);
 }

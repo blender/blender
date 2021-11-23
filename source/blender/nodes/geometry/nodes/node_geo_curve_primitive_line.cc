@@ -21,7 +21,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_line_cc {
 
 static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
 {
@@ -134,20 +134,22 @@ static void geo_node_curve_primitive_line_exec(GeoNodeExecParams params)
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_line_cc
 
 void register_node_type_geo_curve_primitive_line()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_line_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_line_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_line_update);
+  node_type_init(&ntype, file_ns::geo_node_curve_primitive_line_init);
+  node_type_update(&ntype, file_ns::geo_node_curve_primitive_line_update);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_line_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_line_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_line_layout;
+  ntype.declare = file_ns::geo_node_curve_primitive_line_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_line_exec;
+  ntype.draw_buttons = file_ns::geo_node_curve_primitive_line_layout;
   nodeRegisterType(&ntype);
 }

@@ -32,7 +32,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_image_texture_cc {
 
 static void geo_node_image_texture_declare(NodeDeclarationBuilder &b)
 {
@@ -410,20 +410,22 @@ static void geo_node_image_texture_exec(GeoNodeExecParams params)
   params.set_output("Alpha", Field<float>(image_op, 1));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_image_texture_cc
 
 void register_node_type_geo_image_texture(void)
 {
+  namespace file_ns = blender::nodes::node_geo_image_texture_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_TEXTURE, "Image Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::geo_node_image_texture_declare;
-  ntype.draw_buttons = blender::nodes::geo_node_image_texture_layout;
-  node_type_init(&ntype, blender::nodes::geo_node_image_texture_init);
+  ntype.declare = file_ns::geo_node_image_texture_declare;
+  ntype.draw_buttons = file_ns::geo_node_image_texture_layout;
+  node_type_init(&ntype, file_ns::geo_node_image_texture_init);
   node_type_storage(
       &ntype, "NodeGeometryImageTexture", node_free_standard_storage, node_copy_standard_storage);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.geometry_node_execute = blender::nodes::geo_node_image_texture_exec;
+  ntype.geometry_node_execute = file_ns::geo_node_image_texture_exec;
 
   nodeRegisterType(&ntype);
 }

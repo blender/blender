@@ -27,7 +27,7 @@ Mesh *triangulate_mesh(Mesh *mesh,
                        const int flag);
 }
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_triangulate_cc {
 
 static void geo_node_triangulate_declare(NodeDeclarationBuilder &b)
 {
@@ -69,16 +69,18 @@ static void geo_node_triangulate_exec(GeoNodeExecParams params)
 
   params.set_output("Mesh", std::move(geometry_set));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_triangulate_cc
 
 void register_node_type_geo_triangulate()
 {
+  namespace file_ns = blender::nodes::node_geo_triangulate_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, "Triangulate", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_triangulate_declare;
-  node_type_init(&ntype, blender::nodes::geo_triangulate_init);
-  ntype.geometry_node_execute = blender::nodes::geo_node_triangulate_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_triangulate_layout;
+  ntype.declare = file_ns::geo_node_triangulate_declare;
+  node_type_init(&ntype, file_ns::geo_triangulate_init);
+  ntype.geometry_node_execute = file_ns::geo_node_triangulate_exec;
+  ntype.draw_buttons = file_ns::geo_node_triangulate_layout;
   nodeRegisterType(&ntype);
 }

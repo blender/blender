@@ -19,7 +19,7 @@
 #include "UI_resources.h"
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_quadrilaterial_cc {
 
 static void geo_node_curve_primitive_quadrilateral_declare(NodeDeclarationBuilder &b)
 {
@@ -255,18 +255,20 @@ static void geo_node_curve_primitive_quadrilateral_exec(GeoNodeExecParams params
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_quadrilaterial_cc
 
 void register_node_type_geo_curve_primitive_quadrilateral()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_quadrilaterial_cc;
+
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, "Quadrilateral", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_quadrilateral_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_quadrilateral_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_quadrilateral_layout;
-  node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_quadrilateral_update);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_quadrilateral_init);
+  ntype.declare = file_ns::geo_node_curve_primitive_quadrilateral_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_quadrilateral_exec;
+  ntype.draw_buttons = file_ns::geo_node_curve_primitive_quadrilateral_layout;
+  node_type_update(&ntype, file_ns::geo_node_curve_primitive_quadrilateral_update);
+  node_type_init(&ntype, file_ns::geo_node_curve_primitive_quadrilateral_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveQuad",
                     node_free_standard_storage,

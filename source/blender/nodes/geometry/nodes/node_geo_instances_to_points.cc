@@ -19,7 +19,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_instances_to_points_cc {
 
 static void geo_node_instances_to_points_declare(NodeDeclarationBuilder &b)
 {
@@ -104,15 +104,17 @@ static void geo_node_instances_to_points_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_instances_to_points_cc
 
 void register_node_type_geo_instances_to_points()
 {
+  namespace file_ns = blender::nodes::node_geo_instances_to_points_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCES_TO_POINTS, "Instances to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_instances_to_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_instances_to_points_exec;
+  ntype.declare = file_ns::geo_node_instances_to_points_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_instances_to_points_exec;
   nodeRegisterType(&ntype);
 }

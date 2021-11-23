@@ -29,75 +29,6 @@
 
 namespace blender::nodes {
 
-static void geo_node_mesh_primitive_cone_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Int>(N_("Vertices"))
-      .default_value(32)
-      .min(3)
-      .max(512)
-      .description(N_("Number of points on the circle at the top and bottom"));
-  b.add_input<decl::Int>(N_("Side Segments"))
-      .default_value(1)
-      .min(1)
-      .max(512)
-      .description(N_("The number of edges running vertically along the side of the cone"));
-  b.add_input<decl::Int>(N_("Fill Segments"))
-      .default_value(1)
-      .min(1)
-      .max(512)
-      .description(N_("Number of concentric rings used to fill the round face"));
-  b.add_input<decl::Float>(N_("Radius Top"))
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Radius of the top circle of the cone"));
-  b.add_input<decl::Float>(N_("Radius Bottom"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Radius of the bottom circle of the cone"));
-  b.add_input<decl::Float>(N_("Depth"))
-      .default_value(2.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Height of the generated cone"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Bool>(N_("Top")).field_source();
-  b.add_output<decl::Bool>(N_("Bottom")).field_source();
-  b.add_output<decl::Bool>(N_("Side")).field_source();
-}
-
-static void geo_node_mesh_primitive_cone_init(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryMeshCone *node_storage = (NodeGeometryMeshCone *)MEM_callocN(
-      sizeof(NodeGeometryMeshCone), __func__);
-
-  node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NGON;
-
-  node->storage = node_storage;
-}
-
-static void geo_node_mesh_primitive_cone_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *rings_socket = vertices_socket->next;
-  bNodeSocket *fill_subdiv_socket = rings_socket->next;
-
-  const NodeGeometryMeshCone &storage = *(const NodeGeometryMeshCone *)node->storage;
-  const GeometryNodeMeshCircleFillType fill_type =
-      static_cast<const GeometryNodeMeshCircleFillType>(storage.fill_type);
-  const bool has_fill = fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
-}
-
-static void geo_node_mesh_primitive_cone_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *ptr)
-{
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "fill_type", 0, nullptr, ICON_NONE);
-}
-
 struct ConeConfig {
   float radius_top;
   float radius_bottom;
@@ -794,6 +725,79 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   return mesh;
 }
 
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_mesh_primitive_cone_cc {
+
+static void geo_node_mesh_primitive_cone_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>(N_("Vertices"))
+      .default_value(32)
+      .min(3)
+      .max(512)
+      .description(N_("Number of points on the circle at the top and bottom"));
+  b.add_input<decl::Int>(N_("Side Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("The number of edges running vertically along the side of the cone"));
+  b.add_input<decl::Int>(N_("Fill Segments"))
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description(N_("Number of concentric rings used to fill the round face"));
+  b.add_input<decl::Float>(N_("Radius Top"))
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Radius of the top circle of the cone"));
+  b.add_input<decl::Float>(N_("Radius Bottom"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Radius of the bottom circle of the cone"));
+  b.add_input<decl::Float>(N_("Depth"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Height of the generated cone"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Bool>(N_("Top")).field_source();
+  b.add_output<decl::Bool>(N_("Bottom")).field_source();
+  b.add_output<decl::Bool>(N_("Side")).field_source();
+}
+
+static void geo_node_mesh_primitive_cone_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryMeshCone *node_storage = (NodeGeometryMeshCone *)MEM_callocN(
+      sizeof(NodeGeometryMeshCone), __func__);
+
+  node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NGON;
+
+  node->storage = node_storage;
+}
+
+static void geo_node_mesh_primitive_cone_update(bNodeTree *ntree, bNode *node)
+{
+  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *rings_socket = vertices_socket->next;
+  bNodeSocket *fill_subdiv_socket = rings_socket->next;
+
+  const NodeGeometryMeshCone &storage = *(const NodeGeometryMeshCone *)node->storage;
+  const GeometryNodeMeshCircleFillType fill_type =
+      static_cast<const GeometryNodeMeshCircleFillType>(storage.fill_type);
+  const bool has_fill = fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
+  nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
+}
+
+static void geo_node_mesh_primitive_cone_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "fill_type", 0, nullptr, ICON_NONE);
+}
+
 static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
@@ -874,19 +878,21 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_primitive_cone_cc
 
 void register_node_type_geo_mesh_primitive_cone()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_cone_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CONE, "Cone", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_cone_init);
-  node_type_update(&ntype, blender::nodes::geo_node_mesh_primitive_cone_update);
+  node_type_init(&ntype, file_ns::geo_node_mesh_primitive_cone_init);
+  node_type_update(&ntype, file_ns::geo_node_mesh_primitive_cone_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshCone", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_cone_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_mesh_primitive_cone_layout;
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_cone_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_mesh_primitive_cone_exec;
+  ntype.draw_buttons = file_ns::geo_node_mesh_primitive_cone_layout;
+  ntype.declare = file_ns::geo_node_mesh_primitive_cone_declare;
   nodeRegisterType(&ntype);
 }

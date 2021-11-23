@@ -27,7 +27,7 @@
 
 #include <algorithm>
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_collection_info_cc {
 
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
@@ -155,20 +155,22 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
   params.set_output("Geometry", geometry_set_out);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_collection_info_cc
 
 void register_node_type_geo_collection_info()
 {
+  namespace file_ns = blender::nodes::node_geo_collection_info_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::geo_node_collection_info_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_collection_info_node_init);
+  ntype.declare = file_ns::geo_node_collection_info_declare;
+  node_type_init(&ntype, file_ns::geo_node_collection_info_node_init);
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_collection_info_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_collection_info_layout;
+  ntype.geometry_node_execute = file_ns::geo_node_collection_info_exec;
+  ntype.draw_buttons = file_ns::geo_node_collection_info_layout;
   nodeRegisterType(&ntype);
 }

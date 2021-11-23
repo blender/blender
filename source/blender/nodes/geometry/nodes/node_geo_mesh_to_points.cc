@@ -26,7 +26,7 @@
 
 using blender::Array;
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_to_points_cc {
 
 static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
 {
@@ -172,17 +172,19 @@ static void geo_node_mesh_to_points_exec(GeoNodeExecParams params)
   params.set_output("Points", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_to_points_cc
 
 void register_node_type_geo_mesh_to_points()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_to_points_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_POINTS, "Mesh to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_to_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_to_points_exec;
-  node_type_init(&ntype, blender::nodes::geo_node_mesh_to_points_init);
-  ntype.draw_buttons = blender::nodes::geo_node_mesh_to_points_layout;
+  ntype.declare = file_ns::geo_node_mesh_to_points_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_mesh_to_points_exec;
+  node_type_init(&ntype, file_ns::geo_node_mesh_to_points_init);
+  ntype.draw_buttons = file_ns::geo_node_mesh_to_points_layout;
   node_type_storage(
       &ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

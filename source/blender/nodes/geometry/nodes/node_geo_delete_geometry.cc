@@ -29,8 +29,6 @@
 
 #include "node_geometry_util.hh"
 
-using blender::bke::CustomDataAttributes;
-
 /* Code from the mask modifier in MOD_mask.cc. */
 void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
                                       Mesh &dst_mesh,
@@ -48,39 +46,7 @@ void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
 
 namespace blender::nodes {
 
-static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection"))
-      .default_value(true)
-      .hide_value()
-      .supports_field()
-      .description(N_("The parts of the geometry to be deleted"));
-  b.add_output<decl::Geometry>(N_("Geometry"));
-}
-
-static void geo_node_delete_geometry_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  const bNode *node = static_cast<bNode *>(ptr->data);
-  const NodeGeometryDeleteGeometry &storage = *(const NodeGeometryDeleteGeometry *)node->storage;
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
-
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
-  /* Only show the mode when it is relevant. */
-  if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
-    uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
-  }
-}
-
-static void geo_node_delete_geometry_init(bNodeTree *UNUSED(tree), bNode *node)
-{
-  NodeGeometryDeleteGeometry *data = (NodeGeometryDeleteGeometry *)MEM_callocN(
-      sizeof(NodeGeometryDeleteGeometry), __func__);
-  data->domain = ATTR_DOMAIN_POINT;
-  data->mode = GEO_NODE_DELETE_GEOMETRY_MODE_ALL;
-
-  node->storage = data;
-}
+using blender::bke::CustomDataAttributes;
 
 template<typename T> static void copy_data(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
 {
@@ -1177,6 +1143,44 @@ void separate_geometry(GeometrySet &geometry_set,
   r_is_error = !some_valid_domain && geometry_set.has_realized_data();
 }
 
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_delete_geometry_cc {
+
+static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection"))
+      .default_value(true)
+      .hide_value()
+      .supports_field()
+      .description(N_("The parts of the geometry to be deleted"));
+  b.add_output<decl::Geometry>(N_("Geometry"));
+}
+
+static void geo_node_delete_geometry_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  const bNode *node = static_cast<bNode *>(ptr->data);
+  const NodeGeometryDeleteGeometry &storage = *(const NodeGeometryDeleteGeometry *)node->storage;
+  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+
+  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  /* Only show the mode when it is relevant. */
+  if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
+    uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+  }
+}
+
+static void geo_node_delete_geometry_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryDeleteGeometry *data = (NodeGeometryDeleteGeometry *)MEM_callocN(
+      sizeof(NodeGeometryDeleteGeometry), __func__);
+  data->domain = ATTR_DOMAIN_POINT;
+  data->mode = GEO_NODE_DELETE_GEOMETRY_MODE_ALL;
+
+  node->storage = data;
+}
+
 static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -1204,10 +1208,12 @@ static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_delete_geometry_cc
 
 void register_node_type_geo_delete_geometry()
 {
+  namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
@@ -1217,10 +1223,10 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  node_type_init(&ntype, blender::nodes::geo_node_delete_geometry_init);
+  node_type_init(&ntype, file_ns::geo_node_delete_geometry_init);
 
-  ntype.declare = blender::nodes::geo_node_delete_geometry_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_delete_geometry_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_delete_geometry_layout;
+  ntype.declare = file_ns::geo_node_delete_geometry_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_delete_geometry_exec;
+  ntype.draw_buttons = file_ns::geo_node_delete_geometry_layout;
   nodeRegisterType(&ntype);
 }

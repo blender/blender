@@ -35,15 +35,6 @@
 
 namespace blender::nodes {
 
-static void geo_node_transform_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
-  b.add_input<decl::Vector>(N_("Scale")).default_value({1, 1, 1}).subtype(PROP_XYZ);
-  b.add_output<decl::Geometry>(N_("Geometry"));
-}
-
 static bool use_translate(const float3 rotation, const float3 scale)
 {
   if (compare_ff(rotation.length_squared(), 0.0f, 1e-9f) != 1) {
@@ -67,15 +58,6 @@ static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 {
   BKE_mesh_transform(&mesh, transform.values, false);
   BKE_mesh_normals_tag_dirty(&mesh);
-}
-
-void transform_mesh(Mesh &mesh,
-                    const float3 translation,
-                    const float3 rotation,
-                    const float3 scale)
-{
-  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
-  transform_mesh(mesh, matrix);
 }
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
@@ -153,27 +135,6 @@ static void translate_volume(Volume &volume, const float3 translation, const Dep
   transform_volume(volume, float4x4::from_location(translation), depsgraph);
 }
 
-void transform_geometry_set(GeometrySet &geometry,
-                            const float4x4 &transform,
-                            const Depsgraph &depsgraph)
-{
-  if (CurveEval *curve = geometry.get_curve_for_write()) {
-    curve->transform(transform);
-  }
-  if (Mesh *mesh = geometry.get_mesh_for_write()) {
-    transform_mesh(*mesh, transform);
-  }
-  if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
-    transform_pointcloud(*pointcloud, transform);
-  }
-  if (Volume *volume = geometry.get_volume_for_write()) {
-    transform_volume(*volume, transform, depsgraph);
-  }
-  if (geometry.has_instances()) {
-    transform_instances(geometry.get_component_for_write<InstancesComponent>(), transform);
-  }
-}
-
 static void translate_geometry_set(GeometrySet &geometry,
                                    const float3 translation,
                                    const Depsgraph &depsgraph)
@@ -195,6 +156,49 @@ static void translate_geometry_set(GeometrySet &geometry,
   }
 }
 
+void transform_geometry_set(GeometrySet &geometry,
+                            const float4x4 &transform,
+                            const Depsgraph &depsgraph)
+{
+  if (CurveEval *curve = geometry.get_curve_for_write()) {
+    curve->transform(transform);
+  }
+  if (Mesh *mesh = geometry.get_mesh_for_write()) {
+    transform_mesh(*mesh, transform);
+  }
+  if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
+    transform_pointcloud(*pointcloud, transform);
+  }
+  if (Volume *volume = geometry.get_volume_for_write()) {
+    transform_volume(*volume, transform, depsgraph);
+  }
+  if (geometry.has_instances()) {
+    transform_instances(geometry.get_component_for_write<InstancesComponent>(), transform);
+  }
+}
+
+void transform_mesh(Mesh &mesh,
+                    const float3 translation,
+                    const float3 rotation,
+                    const float3 scale)
+{
+  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+  transform_mesh(mesh, matrix);
+}
+
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_transform_cc {
+
+static void geo_node_transform_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
+  b.add_input<decl::Vector>(N_("Scale")).default_value({1, 1, 1}).subtype(PROP_XYZ);
+  b.add_output<decl::Geometry>(N_("Geometry"));
+}
+
 static void geo_node_transform_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -214,14 +218,16 @@ static void geo_node_transform_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_transform_cc
 
 void register_node_type_geo_transform()
 {
+  namespace file_ns = blender::nodes::node_geo_transform_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_TRANSFORM, "Transform", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_transform_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_transform_exec;
+  ntype.declare = file_ns::geo_node_transform_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_transform_exec;
   nodeRegisterType(&ntype);
 }

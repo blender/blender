@@ -19,7 +19,8 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_viewer_cc {
+
 static void geo_node_viewer_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
@@ -77,18 +78,20 @@ static void geo_node_viewer_update(bNodeTree *ntree, bNode *node)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_viewer_cc
 
 void register_node_type_geo_viewer()
 {
+  namespace file_ns = blender::nodes::node_geo_viewer_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, 0);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, blender::nodes::geo_node_viewer_update);
-  node_type_init(&ntype, blender::nodes::geo_node_viewer_init);
-  ntype.declare = blender::nodes::geo_node_viewer_declare;
-  ntype.draw_buttons_ex = blender::nodes::geo_node_viewer_layout;
+  node_type_update(&ntype, file_ns::geo_node_viewer_update);
+  node_type_init(&ntype, file_ns::geo_node_viewer_init);
+  ntype.declare = file_ns::geo_node_viewer_declare;
+  ntype.draw_buttons_ex = file_ns::geo_node_viewer_layout;
   nodeRegisterType(&ntype);
 }

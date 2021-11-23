@@ -20,7 +20,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_tangent_cc {
 
 static void geo_node_input_tangent_declare(NodeDeclarationBuilder &b)
 {
@@ -161,14 +161,16 @@ static void geo_node_input_tangent_exec(GeoNodeExecParams params)
   params.set_output("Tangent", std::move(tangent_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_tangent_cc
 
 void register_node_type_geo_input_tangent()
 {
+  namespace file_ns = blender::nodes::node_geo_input_tangent_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_TANGENT, "Curve Tangent", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_tangent_exec;
-  ntype.declare = blender::nodes::geo_node_input_tangent_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_input_tangent_exec;
+  ntype.declare = file_ns::geo_node_input_tangent_declare;
   nodeRegisterType(&ntype);
 }

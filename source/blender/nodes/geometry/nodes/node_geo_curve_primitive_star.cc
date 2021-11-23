@@ -18,7 +18,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_star_cc {
 
 static void geo_node_curve_primitive_star_declare(NodeDeclarationBuilder &b)
 {
@@ -103,13 +103,15 @@ static void geo_node_curve_primitive_star_exec(GeoNodeExecParams params)
   }
   params.set_output("Curve", std::move(output));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_star_cc
 
 void register_node_type_geo_curve_primitive_star()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_star_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_STAR, "Star", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_star_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_star_exec;
+  ntype.declare = file_ns::geo_node_curve_primitive_star_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_primitive_star_exec;
   nodeRegisterType(&ntype);
 }

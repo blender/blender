@@ -21,7 +21,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_legacy_curve_set_handles_cc {
 
 static void geo_node_curve_set_handles_decalre(NodeDeclarationBuilder &b)
 {
@@ -124,21 +124,23 @@ static void geo_node_curve_set_handles_exec(GeoNodeExecParams params)
 
   params.set_output("Curve", geometry_set);
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_legacy_curve_set_handles_cc
 
 void register_node_type_geo_legacy_curve_set_handles()
 {
+  namespace file_ns = blender::nodes::node_geo_legacy_curve_set_handles_cc;
+
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_LEGACY_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_set_handles_decalre;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_set_handles_exec;
-  node_type_init(&ntype, blender::nodes::geo_node_curve_set_handles_init);
+  ntype.declare = file_ns::geo_node_curve_set_handles_decalre;
+  ntype.geometry_node_execute = file_ns::geo_node_curve_set_handles_exec;
+  node_type_init(&ntype, file_ns::geo_node_curve_set_handles_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSetHandles",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = blender::nodes::geo_node_curve_set_handles_layout;
+  ntype.draw_buttons = file_ns::geo_node_curve_set_handles_layout;
 
   nodeRegisterType(&ntype);
 }

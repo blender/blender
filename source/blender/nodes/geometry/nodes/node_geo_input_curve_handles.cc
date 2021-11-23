@@ -16,7 +16,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_curve_handles_cc {
 
 static void geo_node_input_curve_handles_declare(NodeDeclarationBuilder &b)
 {
@@ -32,15 +32,17 @@ static void geo_node_input_curve_handles_exec(GeoNodeExecParams params)
   params.set_output("Right", std::move(right_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_curve_handles_cc
 
 void register_node_type_geo_input_curve_handles()
 {
+  namespace file_ns = blender::nodes::node_geo_input_curve_handles_cc;
+
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_CURVE_HANDLES, "Curve Handle Positions", NODE_CLASS_INPUT, 0);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_curve_handles_exec;
-  ntype.declare = blender::nodes::geo_node_input_curve_handles_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_input_curve_handles_exec;
+  ntype.declare = file_ns::geo_node_input_curve_handles_declare;
   nodeRegisterType(&ntype);
 }

@@ -18,7 +18,7 @@
 
 #include "BKE_spline.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_spline_length_cc {
 
 static void geo_node_input_spline_length_declare(NodeDeclarationBuilder &b)
 {
@@ -91,14 +91,16 @@ static void geo_node_input_spline_length_exec(GeoNodeExecParams params)
   params.set_output("Length", std::move(length_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_spline_length_cc
 
 void register_node_type_geo_input_spline_length()
 {
+  namespace file_ns = blender::nodes::node_geo_input_spline_length_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, "Spline Length", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_spline_length_exec;
-  ntype.declare = blender::nodes::geo_node_input_spline_length_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_input_spline_length_exec;
+  ntype.declare = file_ns::geo_node_input_spline_length_declare;
   nodeRegisterType(&ntype);
 }

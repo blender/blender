@@ -21,7 +21,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_object_info_cc {
 
 static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
 {
@@ -115,18 +115,20 @@ static void geo_node_object_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_object_info_cc
 
 void register_node_type_geo_object_info()
 {
+  namespace file_ns = blender::nodes::node_geo_object_info_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_object_info_node_init);
+  node_type_init(&ntype, file_ns::geo_node_object_info_node_init);
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_object_info_layout;
-  ntype.declare = blender::nodes::geo_node_object_info_declare;
+  ntype.geometry_node_execute = file_ns::geo_node_object_info_exec;
+  ntype.draw_buttons = file_ns::geo_node_object_info_layout;
+  ntype.declare = file_ns::geo_node_object_info_declare;
   nodeRegisterType(&ntype);
 }
