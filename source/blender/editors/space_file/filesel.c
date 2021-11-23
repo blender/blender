@@ -411,6 +411,15 @@ FileAssetSelectParams *ED_fileselect_get_asset_params(const SpaceFile *sfile)
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) ? sfile->asset_params : NULL;
 }
 
+bool ED_fileselect_is_local_asset_library(const SpaceFile *sfile)
+{
+  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+  if (asset_params == NULL) {
+    return false;
+  }
+  return asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL;
+}
+
 static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
   AssetLibraryReference *library = &asset_params->asset_library_ref;

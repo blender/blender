@@ -19,12 +19,19 @@
  */
 
 #include "BKE_asset_library.hh"
+#include "BKE_bpath.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_preferences.h"
 #include "BKE_report.h"
 
+#include "BLI_fileops.h"
+#include "BLI_fnmatch.h"
+#include "BLI_path_util.h"
 #include "ED_asset.h"
+#include "ED_util.h"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
 
@@ -32,6 +39,10 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
+
+#include "DNA_space_types.h"
+
+#include "BLO_writefile.h"
 
 using namespace blender;
 
@@ -643,6 +654,240 @@ static void ASSET_OT_catalogs_save(struct wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static bool could_be_asset_bundle(const Main *bmain);
+static const bUserAssetLibrary *selected_asset_library(struct wmOperator *op);
+static bool is_contained_in_selected_asset_library(struct wmOperator *op, const char *filepath);
+static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op);
+static bool has_external_files(Main *bmain, struct ReportList *reports);
+
+static bool asset_bundle_install_poll(bContext *C)
+{
+  /* This operator only works when the asset browser is set to Current File. */
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  if (!ED_fileselect_is_local_asset_library(sfile)) {
+    return false;
+  }
+
+  const Main *bmain = CTX_data_main(C);
+  if (!could_be_asset_bundle(bmain)) {
+    return false;
+  }
+
+  /* Check whether this file is already located inside any asset library. */
+  const struct bUserAssetLibrary *asset_lib = BKE_preferences_asset_library_containing_path(
+      &U, bmain->name);
+  if (asset_lib) {
+    return false;
+  }
+
+  return true;
+}
+
+static int asset_bundle_install_invoke(struct bContext *C,
+                                       struct wmOperator *op,
+                                       const struct wmEvent * /*event*/)
+{
+  Main *bmain = CTX_data_main(C);
+  if (has_external_files(bmain, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_event_add_fileselect(C, op);
+
+  /* Make the "Save As" dialog box default to "${ASSET_LIB_ROOT}/${CURRENT_FILE}.blend". */
+  if (!set_filepath_for_asset_lib(bmain, op)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int asset_bundle_install_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  if (has_external_files(bmain, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Check file path, copied from #wm_file_write(). */
+  char filepath[PATH_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+  const size_t len = strlen(filepath);
+
+  if (len == 0) {
+    BKE_report(op->reports, RPT_ERROR, "Path is empty, cannot save");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (len >= FILE_MAX) {
+    BKE_report(op->reports, RPT_ERROR, "Path too long, cannot save");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Check that the destination is actually contained in the selected asset library. */
+  if (!is_contained_in_selected_asset_library(op, filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "Selected path is outside of the selected asset library");
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_cursor_wait(true);
+  bke::AssetCatalogService *cat_service = get_catalog_service(C);
+  /* Store undo step, such that on a failed save the 'prepare_to_merge_on_write' call can be
+   * un-done. */
+  cat_service->undo_push();
+  cat_service->prepare_to_merge_on_write();
+
+  const int operator_result = WM_operator_name_call(
+      C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, op->ptr);
+  WM_cursor_wait(false);
+
+  if (operator_result != OPERATOR_FINISHED) {
+    cat_service->undo();
+    return operator_result;
+  }
+
+  const bUserAssetLibrary *lib = selected_asset_library(op);
+  BLI_assert_msg(lib, "If the asset library is not known, how did we get here?");
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              "Saved \"%s\" to asset library \"%s\"",
+              BLI_path_basename(bmain->name),
+              lib->name);
+  return OPERATOR_FINISHED;
+}
+
+static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
+                                                                 PointerRNA *UNUSED(ptr),
+                                                                 PropertyRNA *UNUSED(prop),
+                                                                 bool *r_free)
+{
+  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(false);
+  if (!items) {
+    *r_free = false;
+  }
+
+  *r_free = true;
+  return items;
+}
+
+static void ASSET_OT_bundle_install(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Copy to Asset Library";
+  ot->description =
+      "Copy the current .blend file into an Asset Library. Only works on standalone .blend files "
+      "(i.e. when no other files are referenced)";
+  ot->idname = "ASSET_OT_bundle_install";
+
+  /* api callbacks */
+  ot->exec = asset_bundle_install_exec;
+  ot->invoke = asset_bundle_install_invoke;
+  ot->poll = asset_bundle_install_poll;
+
+  ot->prop = RNA_def_property(ot->srna, "asset_library_ref", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN);
+  RNA_def_enum_funcs(ot->prop, rna_asset_library_reference_itemf);
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_BLENDER,
+                                 FILE_BLENDER,
+                                 FILE_SAVE,
+                                 WM_FILESEL_FILEPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+}
+
+/* Cheap check to see if this is an "asset bundle" just by checking main file name.
+ * A proper check will be done in the exec function, to ensure that no external files will be
+ * referenced. */
+static bool could_be_asset_bundle(const Main *bmain)
+{
+  return fnmatch("*_bundle.blend", bmain->name, FNM_CASEFOLD) == 0;
+}
+
+static const bUserAssetLibrary *selected_asset_library(struct wmOperator *op)
+{
+  const int enum_value = RNA_enum_get(op->ptr, "asset_library_ref");
+  const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
+  const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_from_index(
+      &U, lib_ref.custom_library_index);
+  return lib;
+}
+
+static bool is_contained_in_selected_asset_library(struct wmOperator *op, const char *filepath)
+{
+  const bUserAssetLibrary *lib = selected_asset_library(op);
+  if (!lib) {
+    return false;
+  }
+  return BLI_path_contains(lib->path, filepath);
+}
+
+/**
+ * Set the "filepath" RNA property based on selected "asset_library_ref".
+ * \return true if ok, false if error.
+ */
+static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
+{
+  /* Find the directory path of the selected asset library. */
+  const bUserAssetLibrary *lib = selected_asset_library(op);
+  if (lib == nullptr) {
+    return false;
+  }
+
+  /* Concatenate the filename of the current blend file. */
+  const char *blend_filename = BLI_path_basename(bmain->name);
+  if (blend_filename == NULL || blend_filename[0] == '\0') {
+    return false;
+  }
+
+  char file_path[PATH_MAX];
+  BLI_join_dirfile(file_path, sizeof(file_path), lib->path, blend_filename);
+  RNA_string_set(op->ptr, "filepath", file_path);
+
+  return true;
+}
+
+struct FileCheckCallbackInfo {
+  struct ReportList *reports;
+  bool external_file_found;
+};
+
+static bool external_file_check_callback(void *callback_info_ptr,
+                                         char * /*path_dst*/,
+                                         const char *path_src)
+{
+  FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(callback_info_ptr);
+  BKE_reportf(callback_info->reports,
+              RPT_ERROR,
+              "Unable to install asset bundle, has external dependency \"%s\"",
+              path_src);
+  callback_info->external_file_found = true;
+  return false;
+}
+
+/**
+ * Do a check on any external files (.blend, textures, etc.) being used.
+ * The "Install asset bundle" operator only works on standalone .blend files
+ * (catalog definition files are fine, though).
+ *
+ * \return true when there are external files, false otherwise.
+ */
+static bool has_external_files(Main *bmain, struct ReportList *reports)
+{
+  struct FileCheckCallbackInfo callback_info = {reports, false};
+
+  BKE_bpath_traverse_main(
+      bmain,
+      &external_file_check_callback,
+      BKE_BPATH_TRAVERSE_SKIP_PACKED /* Packed files are fine. */
+          | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE /* Only report multifiles once, it's enough. */,
+      &callback_info);
+  return callback_info.external_file_found;
+}
+
+/* -------------------------------------------------------------------- */
+
 void ED_operatortypes_asset(void)
 {
   WM_operatortype_append(ASSET_OT_mark);
@@ -654,6 +899,7 @@ void ED_operatortypes_asset(void)
   WM_operatortype_append(ASSET_OT_catalog_undo);
   WM_operatortype_append(ASSET_OT_catalog_redo);
   WM_operatortype_append(ASSET_OT_catalog_undo_push);
+  WM_operatortype_append(ASSET_OT_bundle_install);
 
   WM_operatortype_append(ASSET_OT_list_refresh);
 }

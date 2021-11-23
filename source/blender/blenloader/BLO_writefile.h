@@ -24,6 +24,10 @@
  * \brief external writefile function prototypes.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BlendThumbnail;
 struct Main;
 struct MemFile;
@@ -72,3 +76,7 @@ extern bool BLO_write_file_mem(struct Main *mainvar,
                                int write_flags);
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

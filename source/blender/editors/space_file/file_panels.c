@@ -41,6 +41,7 @@
 #include "ED_fileselect.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -246,7 +247,20 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params, &params_ptr);
 
   uiItemR(row, &params_ptr, "asset_library_ref", 0, "", ICON_NONE);
-  if (params->asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
+  if (params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
+    bContext *mutable_ctx = CTX_copy(C);
+    if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
+      uiItemS(col);
+      uiItemMenuEnumO(col,
+                      mutable_ctx,
+                      "asset.bundle_install",
+                      "asset_library_ref",
+                      "Copy Bundle to Asset Library...",
+                      ICON_IMPORT);
+    }
+    CTX_free(mutable_ctx);
+  }
+  else {
     uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_asset_library_refresh");
   }
 
