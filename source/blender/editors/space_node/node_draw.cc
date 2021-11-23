@@ -1664,24 +1664,22 @@ static std::string node_get_execution_time_label(const SpaceNode *snode, const b
   if (exec_time_us == 0) {
     return std::string("-");
   }
-  else if (exec_time_us < 100) {
+  if (exec_time_us < 100) {
     return std::string("< 0.1 ms");
   }
-  else {
-    short precision = 0;
-    /* Show decimal if value is below 1ms */
-    if (exec_time_us < 1000) {
-      precision = 2;
-    }
-    else if (exec_time_us < 10000) {
-      precision = 1;
-    }
 
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(precision) << (exec_time_us / 1000.0f);
-    return std::string(stream.str() + " ms");
+  int precision = 0;
+  /* Show decimal if value is below 1ms */
+  if (exec_time_us < 1000) {
+    precision = 2;
   }
-  return std::string("");
+  else if (exec_time_us < 10000) {
+    precision = 1;
+  }
+
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(precision) << (exec_time_us / 1000.0f);
+  return stream.str() + " ms";
 }
 
 struct NodeExtraInfoRow {
