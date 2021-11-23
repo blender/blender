@@ -47,9 +47,6 @@ static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
   OIDNDenoiser *oidn_denoiser = reinterpret_cast<OIDNDenoiser *>(user_ptr);
   return !oidn_denoiser->is_cancelled();
 }
-#endif
-
-#ifdef WITH_OPENIMAGEDENOISE
 
 class OIDNPass {
  public:
@@ -547,7 +544,6 @@ class OIDNDenoiseContext {
    * the fake values and denoising of passes which do need albedo can no longer happen. */
   bool albedo_replaced_with_fake_ = false;
 };
-#endif
 
 static unique_ptr<DeviceQueue> create_device_queue(const RenderBuffers *render_buffers)
 {
@@ -582,18 +578,20 @@ static void copy_render_buffers_to_device(unique_ptr<DeviceQueue> &queue,
   }
 }
 
+#endif
+
 bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
                                   RenderBuffers *render_buffers,
                                   const int num_samples,
                                   bool allow_inplace_modification)
 {
+#ifdef WITH_OPENIMAGEDENOISE
   thread_scoped_lock lock(mutex_);
 
   /* Make sure the host-side data is available for denoising. */
   unique_ptr<DeviceQueue> queue = create_device_queue(render_buffers);
   copy_render_buffers_from_device(queue, render_buffers);
 
-#ifdef WITH_OPENIMAGEDENOISE
   OIDNDenoiseContext context(
       this, params_, buffer_params, render_buffers, num_samples, allow_inplace_modification);
 
@@ -620,6 +618,11 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
      * copies data from the device it doesn't overwrite the denoiser buffers. */
     copy_render_buffers_to_device(queue, render_buffers);
   }
+#else
+  (void)buffer_params;
+  (void)render_buffers;
+  (void)num_samples;
+  (void)allow_inplace_modification;
 #endif
 
   /* This code is not supposed to run when compiled without OIDN support, so can assume if we made
