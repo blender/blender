@@ -32,19 +32,19 @@
 using blender::bke::CustomDataAttributes;
 
 /* Code from the mask modifier in MOD_mask.cc. */
-extern void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
-                                             Mesh &dst_mesh,
-                                             blender::Span<int> vertex_map);
-extern void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
-                                          Mesh &dst_mesh,
-                                          blender::Span<int> vertex_map,
-                                          blender::Span<int> edge_map);
-extern void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
-                                          Mesh &dst_mesh,
-                                          blender::Span<int> vertex_map,
-                                          blender::Span<int> edge_map,
-                                          blender::Span<int> masked_poly_indices,
-                                          blender::Span<int> new_loop_starts);
+void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
+                                      Mesh &dst_mesh,
+                                      blender::Span<int> vertex_map);
+void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
+                                   Mesh &dst_mesh,
+                                   blender::Span<int> vertex_map,
+                                   blender::Span<int> edge_map);
+void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
+                                   Mesh &dst_mesh,
+                                   blender::Span<int> vertex_map,
+                                   blender::Span<int> edge_map,
+                                   blender::Span<int> masked_poly_indices,
+                                   blender::Span<int> new_loop_starts);
 
 namespace blender::nodes {
 
