@@ -1367,6 +1367,61 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
   BLI_ticket_mutex_unlock(DST.gl_context_mutex);
 }
 
+/* update a viewport which belongs to a GPUOffscreen */
+void DRW_notify_view_update_offscreen(struct Depsgraph *depsgraph,
+                                      RenderEngineType *engine_type,
+                                      ARegion *region,
+                                      View3D *v3d,
+                                      GPUViewport *viewport)
+{
+
+  if (viewport && GPU_viewport_do_update(viewport)) {
+
+    Scene *scene = DEG_get_evaluated_scene(depsgraph);
+    ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+    RegionView3D *rv3d = region->regiondata;
+
+    const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
+
+    /* Reset before using it. */
+    drw_state_prepare_clean_for_draw(&DST);
+
+    DST.draw_ctx = (DRWContextState){
+        .region = region,
+        .rv3d = rv3d,
+        .v3d = v3d,
+        .scene = scene,
+        .view_layer = view_layer,
+        .obact = OBACT(view_layer),
+        .engine_type = engine_type,
+        .depsgraph = depsgraph,
+    };
+
+    /* Custom lightweight initialize to avoid resetting the memory-pools. */
+    DST.viewport = viewport;
+    DST.vmempool = drw_viewport_data_ensure(DST.viewport);
+
+    /* Separate update for each stereo view. */
+    int view_count = GPU_viewport_is_stereo_get(viewport) ? 2 : 1;
+    for (int view = 0; view < view_count; view++) {
+      DST.view_data_active = DST.vmempool->view_data[view];
+
+      drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
+      drw_engines_data_validate();
+
+      DRW_ENABLED_ENGINE_ITER (DST.view_data_active, draw_engine, data) {
+        if (draw_engine->view_update) {
+          draw_engine->view_update(data);
+        }
+      }
+
+      drw_engines_disable();
+    }
+
+    drw_manager_exit(&DST);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1742,10 +1797,13 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     GPUOffScreen *ofs,
                                     GPUViewport *viewport)
 {
-  /* Create temporary viewport if needed. */
+  /* Create temporary viewport if needed or update the existing viewport. */
   GPUViewport *render_viewport = viewport;
   if (viewport == NULL) {
     render_viewport = GPU_viewport_create();
+  }
+  else {
+    DRW_notify_view_update_offscreen(depsgraph, engine_type, region, v3d, render_viewport);
   }
 
   GPU_viewport_bind_from_offscreen(render_viewport, ofs);
