@@ -113,7 +113,7 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
         // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
         {ASSET_LIBRARY_LOCAL,
          "LOCAL",
-         ICON_BLENDER,
+         ICON_CURRENT_FILE,
          "Current File",
          "Show the assets currently available in this Blender session"},
         {0, nullptr, 0, nullptr, nullptr},

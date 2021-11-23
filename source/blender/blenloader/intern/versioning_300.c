@@ -1321,13 +1321,16 @@ static void version_liboverride_rnacollections_insertion_object_constraints(
                                                                        opop->subitem_local_name,
                                                                        offsetof(bConstraint, name),
                                                                        opop->subitem_local_index);
-    if (constraint_anchor == NULL || constraint_anchor->next == NULL) {
+    bConstraint *constraint_src = constraint_anchor != NULL ? constraint_anchor->next :
+                                                              constraints->first;
+
+    if (constraint_src == NULL) {
       /* Invalid case, just remove that override property operation. */
-      CLOG_ERROR(&LOG, "Could not find anchor or source constraints in stored override data");
+      CLOG_ERROR(&LOG, "Could not find source constraint in stored override data");
       BKE_lib_override_library_property_operation_delete(op, opop);
       continue;
     }
-    bConstraint *constraint_src = constraint_anchor->next;
+
     opop->subitem_reference_name = opop->subitem_local_name;
     opop->subitem_local_name = BLI_strdup(constraint_src->name);
     opop->subitem_reference_index = opop->subitem_local_index;
@@ -1350,13 +1353,15 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
                                                                    opop->subitem_local_name,
                                                                    offsetof(ModifierData, name),
                                                                    opop->subitem_local_index);
-      if (mod_anchor == NULL || mod_anchor->next == NULL) {
+      ModifierData *mod_src = mod_anchor != NULL ? mod_anchor->next : object->modifiers.first;
+
+      if (mod_src == NULL) {
         /* Invalid case, just remove that override property operation. */
-        CLOG_ERROR(&LOG, "Could not find anchor or source modifiers in stored override data");
+        CLOG_ERROR(&LOG, "Could not find source modifier in stored override data");
         BKE_lib_override_library_property_operation_delete(op, opop);
         continue;
       }
-      ModifierData *mod_src = mod_anchor->next;
+
       opop->subitem_reference_name = opop->subitem_local_name;
       opop->subitem_local_name = BLI_strdup(mod_src->name);
       opop->subitem_reference_index = opop->subitem_local_index;
@@ -1375,13 +1380,17 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
           opop->subitem_local_name,
           offsetof(GpencilModifierData, name),
           opop->subitem_local_index);
-      if (gp_mod_anchor == NULL || gp_mod_anchor->next == NULL) {
+      GpencilModifierData *gp_mod_src = gp_mod_anchor != NULL ?
+                                            gp_mod_anchor->next :
+                                            object->greasepencil_modifiers.first;
+
+      if (gp_mod_src == NULL) {
         /* Invalid case, just remove that override property operation. */
-        CLOG_ERROR(&LOG, "Could not find anchor GP modifier in stored override data");
+        CLOG_ERROR(&LOG, "Could not find source GP modifier in stored override data");
         BKE_lib_override_library_property_operation_delete(op, opop);
         continue;
       }
-      GpencilModifierData *gp_mod_src = gp_mod_anchor->next;
+
       opop->subitem_reference_name = opop->subitem_local_name;
       opop->subitem_local_name = BLI_strdup(gp_mod_src->name);
       opop->subitem_reference_index = opop->subitem_local_index;
