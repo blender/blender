@@ -750,7 +750,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   BLI_assert_msg(lib, "If the asset library is not known, how did we get here?");
   BKE_reportf(op->reports,
               RPT_INFO,
-              "Saved \"%s\" to asset library \"%s\"",
+              R"(Saved "%s" to asset library "%s")",
               BLI_path_basename(bmain->name),
               lib->name);
   return OPERATOR_FINISHED;
@@ -837,7 +837,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
 
   /* Concatenate the filename of the current blend file. */
   const char *blend_filename = BLI_path_basename(bmain->name);
-  if (blend_filename == NULL || blend_filename[0] == '\0') {
+  if (blend_filename == nullptr || blend_filename[0] == '\0') {
     return false;
   }
 
