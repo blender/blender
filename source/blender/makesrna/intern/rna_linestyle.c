@@ -949,8 +949,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Period", "Period of the noise");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
-  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "seed");
+  RNA_def_property_range(prop, 1, SHRT_MAX);
   RNA_def_property_ui_text(prop, "Seed", "Seed for the noise generation");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
@@ -1051,8 +1052,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Period", "Period of the noise");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
-  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "seed");
+  RNA_def_property_range(prop, 1, SHRT_MAX);
   RNA_def_property_ui_text(prop, "Seed", "Seed for the noise generation");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
@@ -1191,8 +1193,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Period", "Period of the noise");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
-  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "seed");
+  RNA_def_property_range(prop, 1, SHRT_MAX);
   RNA_def_property_ui_text(prop, "Seed", "Seed for the noise generation");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
