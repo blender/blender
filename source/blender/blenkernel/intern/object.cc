@@ -4573,10 +4573,11 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
    * object types either store it there or add a reference to it if it's owned elsewhere. */
   GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
   if (geometry_set_eval) {
-    /* Some areas expect to be able to modify the evaluated mesh. Theoretically this should be
-     * avoided, or at least protected with a lock, so a const mesh could be returned from this
-     * function. */
-    Mesh *mesh = geometry_set_eval->get_mesh_for_write();
+    /* Some areas expect to be able to modify the evaluated mesh in limited ways. Theoretically
+     * this should be avoided, or at least protected with a lock, so a const mesh could be returned
+     * from this function. We use a const_cast instead of #get_mesh_for_write, because that might
+     * result in a copy of the mesh when it is shared. */
+    Mesh *mesh = const_cast<Mesh *>(geometry_set_eval->get_mesh_for_read());
     if (mesh) {
       return mesh;
     }

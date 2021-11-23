@@ -4233,12 +4233,15 @@ static int image_num_files(Image *ima)
   return BLI_listbase_count(&ima->views);
 }
 
-static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, const int view_id)
+static ImBuf *load_sequence_single(
+    Image *ima, ImageUser *iuser, int frame, const int view_id, bool *r_cache_ibuf)
 {
   struct ImBuf *ibuf;
   char name[FILE_MAX];
   int flag;
   ImageUser iuser_t = {0};
+
+  *r_cache_ibuf = true;
 
   ima->lastframe = frame;
 
@@ -4279,6 +4282,9 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
         ima->type = IMA_TYPE_MULTILAYER;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
+        /* NULL ibuf in the cache means the image failed to load. However for multilayer we load
+         * pixels into RenderResult instead and intentionally leave ibuf NULL. */
+        *r_cache_ibuf = false;
       }
     }
     else {
@@ -4299,17 +4305,21 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, 
   const int totfiles = image_num_files(ima);
 
   if (!is_multiview) {
-    ibuf = load_sequence_single(ima, iuser, frame, 0);
-    image_assign_ibuf(ima, ibuf, 0, entry);
+    bool put_in_cache;
+    ibuf = load_sequence_single(ima, iuser, frame, 0, &put_in_cache);
+    if (put_in_cache) {
+      image_assign_ibuf(ima, ibuf, 0, entry);
+    }
   }
   else {
     const int totviews = BLI_listbase_count(&ima->views);
     struct ImBuf **ibuf_arr;
 
     ibuf_arr = MEM_mallocN(sizeof(ImBuf *) * totviews, "Image Views Imbufs");
+    bool *cache_ibuf_arr = MEM_mallocN(sizeof(bool) * totviews, "Image View Put In Cache");
 
     for (int i = 0; i < totfiles; i++) {
-      ibuf_arr[i] = load_sequence_single(ima, iuser, frame, i);
+      ibuf_arr[i] = load_sequence_single(ima, iuser, frame, i, cache_ibuf_arr + i);
     }
 
     if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D) {
@@ -4320,7 +4330,9 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, 
     ibuf = ibuf_arr[(iuser ? iuser->multi_index : 0)];
 
     for (int i = 0; i < totviews; i++) {
-      image_assign_ibuf(ima, ibuf_arr[i], i, entry);
+      if (cache_ibuf_arr[i]) {
+        image_assign_ibuf(ima, ibuf_arr[i], i, entry);
+      }
     }
 
     /* "remove" the others (decrease their refcount) */
@@ -4332,6 +4344,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, 
 
     /* cleanup */
     MEM_freeN(ibuf_arr);
+    MEM_freeN(cache_ibuf_arr);
   }
 
   return ibuf;
@@ -4493,12 +4506,18 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
   return ibuf;
 }
 
-static ImBuf *load_image_single(
-    Image *ima, ImageUser *iuser, int cfra, const int view_id, const bool has_packed)
+static ImBuf *load_image_single(Image *ima,
+                                ImageUser *iuser,
+                                int cfra,
+                                const int view_id,
+                                const bool has_packed,
+                                bool *r_cache_ibuf)
 {
   char filepath[FILE_MAX];
   struct ImBuf *ibuf = NULL;
   int flag;
+
+  *r_cache_ibuf = true;
 
   /* is there a PackedFile with this image ? */
   if (has_packed) {
@@ -4550,6 +4569,9 @@ static ImBuf *load_image_single(
         ima->type = IMA_TYPE_MULTILAYER;
         IMB_freeImBuf(ibuf);
         ibuf = NULL;
+        /* NULL ibuf in the cache means the image failed to load. However for multilayer we load
+         * pixels into RenderResult instead and intentionally leave ibuf NULL. */
+        *r_cache_ibuf = false;
       }
     }
     else
@@ -4594,8 +4616,11 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
   }
 
   if (!is_multiview) {
-    ibuf = load_image_single(ima, iuser, cfra, 0, has_packed);
-    image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+    bool put_in_cache;
+    ibuf = load_image_single(ima, iuser, cfra, 0, has_packed, &put_in_cache);
+    if (put_in_cache) {
+      image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+    }
   }
   else {
     struct ImBuf **ibuf_arr;
@@ -4603,9 +4628,10 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
     BLI_assert(totviews > 0);
 
     ibuf_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Image Views Imbufs");
+    bool *cache_ibuf_arr = MEM_mallocN(sizeof(bool) * totviews, "Image Views Put In Cache");
 
     for (int i = 0; i < totfiles; i++) {
-      ibuf_arr[i] = load_image_single(ima, iuser, cfra, i, has_packed);
+      ibuf_arr[i] = load_image_single(ima, iuser, cfra, i, has_packed, cache_ibuf_arr + i);
     }
 
     /* multi-views/multi-layers OpenEXR files directly populate ima, and return NULL ibuf... */
@@ -4619,7 +4645,9 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
     ibuf = ibuf_arr[i];
 
     for (i = 0; i < totviews; i++) {
-      image_assign_ibuf(ima, ibuf_arr[i], i, 0);
+      if (cache_ibuf_arr[i]) {
+        image_assign_ibuf(ima, ibuf_arr[i], i, 0);
+      }
     }
 
     /* "remove" the others (decrease their refcount) */
@@ -4631,6 +4659,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 
     /* cleanup */
     MEM_freeN(ibuf_arr);
+    MEM_freeN(cache_ibuf_arr);
   }
 
   return ibuf;

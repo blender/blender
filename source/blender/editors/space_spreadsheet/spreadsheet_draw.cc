@@ -27,6 +27,8 @@
 
 #include "spreadsheet_draw.hh"
 
+#define CELL_RIGHT_PADDING (2.0f * UI_DPI_FAC)
+
 namespace blender::ed::spreadsheet {
 
 SpreadsheetDrawer::SpreadsheetDrawer()
@@ -159,7 +161,7 @@ static void draw_left_column_content(const int scroll_offset_y,
     params.xmin = 0;
     params.ymin = region->winy - drawer.top_row_height - (row_index + 1) * drawer.row_height -
                   scroll_offset_y;
-    params.width = drawer.left_column_width;
+    params.width = drawer.left_column_width - CELL_RIGHT_PADDING;
     params.height = drawer.row_height;
     drawer.draw_left_column_cell(row_index, params);
   }
@@ -194,7 +196,7 @@ static void draw_top_row_content(const bContext *C,
     params.block = first_row_block;
     params.xmin = left_x;
     params.ymin = region->winy - drawer.top_row_height;
-    params.width = column_width;
+    params.width = column_width - CELL_RIGHT_PADDING;
     params.height = drawer.top_row_height;
     drawer.draw_top_row_cell(column_index, params);
 
@@ -242,7 +244,7 @@ static void draw_cell_contents(const bContext *C,
         params.xmin = left_x;
         params.ymin = region->winy - drawer.top_row_height - (row_index + 1) * drawer.row_height -
                       scroll_offset_y;
-        params.width = column_width;
+        params.width = column_width - CELL_RIGHT_PADDING;
         params.height = drawer.row_height;
         drawer.draw_content_cell(row_index, column_index, params);
       }
