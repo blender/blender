@@ -555,7 +555,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
 /* Create uv map attributes. */
 static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 {
-  if (b_mesh.uv_layers.length() != 0) {
+  if (!b_mesh.uv_layers.empty()) {
     for (BL::MeshUVLoopLayer &l : b_mesh.uv_layers) {
       const bool active_render = l.active_render();
       AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
@@ -619,7 +619,7 @@ static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 
 static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivide_uvs)
 {
-  if (b_mesh.uv_layers.length() != 0) {
+  if (!b_mesh.uv_layers.empty()) {
     BL::Mesh::uv_layers_iterator l;
     int i = 0;
 
@@ -951,7 +951,7 @@ static void create_mesh(Scene *scene,
   N = attr_N->data_float3();
 
   /* create generated coordinates from undeformed coordinates */
-  const bool need_default_tangent = (subdivision == false) && (b_mesh.uv_layers.length() == 0) &&
+  const bool need_default_tangent = (subdivision == false) && (b_mesh.uv_layers.empty()) &&
                                     (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT));
   if (mesh->need_attribute(scene, ATTR_STD_GENERATED) || need_default_tangent) {
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);

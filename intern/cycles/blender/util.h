@@ -303,7 +303,7 @@ static inline string image_user_file_path(BL::ImageUser &iuser,
   string filepath_str = string(filepath);
   if (load_tiled && ima.source() == BL::Image::source_TILED) {
     string udim;
-    if (ima.tiles.length() > 0) {
+    if (!ima.tiles.empty()) {
       udim = to_string(ima.tiles[0].number());
     }
     string_replace(filepath_str, udim, "<UDIM>");
@@ -647,7 +647,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
 {
   PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
 
-  if (cobj.data && b_ob.modifiers.length() > 0 && experimental) {
+  if (cobj.data && !b_ob.modifiers.empty() && experimental) {
     BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
     bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
