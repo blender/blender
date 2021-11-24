@@ -1666,8 +1666,8 @@ class GeometryNodesEvaluator {
     for (const DOutputSocket &socket : locked_node.delayed_unused_outputs) {
       this->send_output_unused_notification(socket);
     }
-    for (const DNode &node : locked_node.delayed_scheduled_nodes) {
-      this->add_node_to_task_pool(node);
+    for (const DNode &node_to_schedule : locked_node.delayed_scheduled_nodes) {
+      this->add_node_to_task_pool(node_to_schedule);
     }
   }
 };
