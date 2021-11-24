@@ -44,6 +44,7 @@
 #include "../space_file/filelist.h"
 
 #include "ED_asset_handle.h"
+#include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
 #include "asset_library_reference.hh"
@@ -168,6 +169,7 @@ void AssetList::setup()
       true,
       "",
       "");
+  filelist_setindexer(files, &file_indexer_asset);
 
   char path[FILE_MAXDIR] = "";
   if (user_library) {
