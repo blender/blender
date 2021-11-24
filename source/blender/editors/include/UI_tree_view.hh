@@ -358,11 +358,18 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
  * custom implementation of #AbstractTreeViewItem::create_drag_controller().
  */
 class AbstractTreeViewItemDragController {
+ protected:
+  AbstractTreeView &tree_view_;
+
  public:
+  AbstractTreeViewItemDragController(AbstractTreeView &tree_view);
   virtual ~AbstractTreeViewItemDragController() = default;
 
   virtual int get_drag_type() const = 0;
   virtual void *create_drag_data() const = 0;
+  virtual void on_drag_start();
+
+  template<class TreeViewType> inline TreeViewType &tree_view() const;
 };
 
 /**
@@ -451,6 +458,13 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
   return dynamic_cast<ItemT &>(
       add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
+}
+
+template<class TreeViewType> TreeViewType &AbstractTreeViewItemDragController::tree_view() const
+{
+  static_assert(std::is_base_of<AbstractTreeView, TreeViewType>::value,
+                "Type must derive from and implement the AbstractTreeView interface");
+  return static_cast<TreeViewType &>(tree_view_);
 }
 
 template<class TreeViewType> TreeViewType &AbstractTreeViewItemDropController::tree_view() const

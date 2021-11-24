@@ -550,6 +550,19 @@ void AbstractTreeViewItem::change_state_delayed()
     activate();
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+AbstractTreeViewItemDragController::AbstractTreeViewItemDragController(AbstractTreeView &tree_view)
+    : tree_view_(tree_view)
+{
+}
+
+void AbstractTreeViewItemDragController::on_drag_start()
+{
+  /* Do nothing by default. */
+}
+
 /* ---------------------------------------------------------------------- */
 
 AbstractTreeViewItemDropController::AbstractTreeViewItemDropController(AbstractTreeView &tree_view)
@@ -714,6 +727,8 @@ bool UI_tree_view_item_drag_start(bContext *C, uiTreeViewItemHandle *item_)
                       drag_controller->create_drag_data(),
                       0,
                       WM_DRAG_FREE_DATA);
+  drag_controller->on_drag_start();
+
   return true;
 }
 

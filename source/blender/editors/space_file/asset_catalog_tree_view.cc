@@ -110,10 +110,12 @@ class AssetCatalogDragController : public ui::AbstractTreeViewItemDragController
   AssetCatalogTreeItem &catalog_item_;
 
  public:
-  explicit AssetCatalogDragController(AssetCatalogTreeItem &catalog_item);
+  explicit AssetCatalogDragController(AssetCatalogTreeView &tree_view,
+                                      AssetCatalogTreeItem &catalog_item);
 
   int get_drag_type() const override;
   void *create_drag_data() const override;
+  void on_drag_start() override;
 };
 
 class AssetCatalogDropController : public ui::AbstractTreeViewItemDropController {
@@ -355,7 +357,8 @@ std::unique_ptr<ui::AbstractTreeViewItemDropController> AssetCatalogTreeViewItem
 std::unique_ptr<ui::AbstractTreeViewItemDragController> AssetCatalogTreeViewItem::
     create_drag_controller() const
 {
-  return std::make_unique<AssetCatalogDragController>(catalog_item_);
+  return std::make_unique<AssetCatalogDragController>(
+      static_cast<AssetCatalogTreeView &>(get_tree_view()), catalog_item_);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -513,8 +516,9 @@ bool AssetCatalogDropController::has_droppable_asset(const wmDrag &drag,
 
 /* ---------------------------------------------------------------------- */
 
-AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeItem &catalog_item)
-    : catalog_item_(catalog_item)
+AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeView &tree_view,
+                                                       AssetCatalogTreeItem &catalog_item)
+    : ui::AbstractTreeViewItemDragController(tree_view), catalog_item_(catalog_item)
 {
 }
 
@@ -529,6 +533,12 @@ void *AssetCatalogDragController::create_drag_data() const
                                                                        __func__);
   drag_catalog->drag_catalog_id = catalog_item_.get_catalog_id();
   return drag_catalog;
+}
+
+void AssetCatalogDragController::on_drag_start()
+{
+  AssetCatalogTreeView &tree_view_ = tree_view<AssetCatalogTreeView>();
+  tree_view_.activate_catalog_by_id(catalog_item_.get_catalog_id());
 }
 
 /* ---------------------------------------------------------------------- */
