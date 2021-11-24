@@ -688,6 +688,9 @@ static bool asset_bundle_install_poll(bContext *C)
 {
   /* This operator only works when the asset browser is set to Current File. */
   const SpaceFile *sfile = CTX_wm_space_file(C);
+  if (sfile == nullptr) {
+    return false;
+  }
   if (!ED_fileselect_is_local_asset_library(sfile)) {
     return false;
   }
