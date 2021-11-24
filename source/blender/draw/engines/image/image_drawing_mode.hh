@@ -50,19 +50,13 @@ class DefaultDrawingMode : public AbstractDrawingMode {
 
     GPUBatch *geom = DRW_cache_quad_get();
 
-    const bool is_tiled_texture = image && image->source == IMA_SRC_TILED;
-    if (is_tiled_texture) {
-      const float translate_x = image_mat[3][0];
-      const float translate_y = image_mat[3][1];
-      LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
-        const int tile_x = ((tile->tile_number - 1001) % 10);
-        const int tile_y = ((tile->tile_number - 1001) / 10);
-        image_mat[3][0] = (float)tile_x + translate_x;
-        image_mat[3][1] = (float)tile_y + translate_y;
-        DRW_shgroup_call_obmat(grp, geom, image_mat);
-      }
-    }
-    else {
+    const float translate_x = image_mat[3][0];
+    const float translate_y = image_mat[3][1];
+    LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+      const int tile_x = ((tile->tile_number - 1001) % 10);
+      const int tile_y = ((tile->tile_number - 1001) / 10);
+      image_mat[3][0] = (float)tile_x + translate_x;
+      image_mat[3][1] = (float)tile_y + translate_y;
       DRW_shgroup_call_obmat(grp, geom, image_mat);
     }
   }
