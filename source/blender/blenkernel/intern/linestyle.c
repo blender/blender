@@ -754,6 +754,7 @@ IDTypeInfo IDType_ID_LS = {
     .name_plural = "linestyles",
     .translation_context = BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = linestyle_init_data,
     .copy_data = linestyle_copy_data,

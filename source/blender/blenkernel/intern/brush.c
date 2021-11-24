@@ -414,6 +414,7 @@ IDTypeInfo IDType_ID_BR = {
     .name_plural = "brushes",
     .translation_context = BLT_I18NCONTEXT_ID_BRUSH,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = brush_init_data,
     .copy_data = brush_copy_data,

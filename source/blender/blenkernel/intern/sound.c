@@ -205,6 +205,7 @@ IDTypeInfo IDType_ID_SO = {
     .name_plural = "sounds",
     .translation_context = BLT_I18NCONTEXT_ID_SOUND,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     /* A fuzzy case, think NULLified content is OK here... */
     .init_data = NULL,

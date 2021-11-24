@@ -182,6 +182,7 @@ IDTypeInfo IDType_ID_HA = {
     .name_plural = "hairs",
     .translation_context = BLT_I18NCONTEXT_ID_HAIR,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = hair_init_data,
     .copy_data = hair_copy_data,

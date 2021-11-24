@@ -69,6 +69,7 @@ IDTypeInfo IDType_ID_LI = {
     .name_plural = "libraries",
     .translation_context = BLT_I18NCONTEXT_ID_LIBRARY,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,

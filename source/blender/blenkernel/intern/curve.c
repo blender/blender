@@ -312,6 +312,7 @@ IDTypeInfo IDType_ID_CU = {
     .name_plural = "curves",
     .translation_context = BLT_I18NCONTEXT_ID_CURVE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = curve_init_data,
     .copy_data = curve_copy_data,

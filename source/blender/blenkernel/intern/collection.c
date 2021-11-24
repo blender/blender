@@ -375,6 +375,7 @@ IDTypeInfo IDType_ID_GR = {
     .name_plural = "collections",
     .translation_context = BLT_I18NCONTEXT_ID_COLLECTION,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = collection_init_data,
     .copy_data = collection_copy_data,

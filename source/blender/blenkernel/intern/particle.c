@@ -500,6 +500,7 @@ IDTypeInfo IDType_ID_PA = {
     .name_plural = "particles",
     .translation_context = BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
     .flags = 0,
+    .asset_type_info = NULL,
 
     .init_data = particle_settings_init,
     .copy_data = particle_settings_copy_data,

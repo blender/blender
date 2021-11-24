@@ -99,6 +99,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .name_plural = "link_placeholders",
     .translation_context = BLT_I18NCONTEXT_ID_ID,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,

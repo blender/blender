@@ -149,11 +149,12 @@ typedef struct IDTypeInfo {
   /** Generic info flags about that data-block type. */
   uint32_t flags;
 
-  /* ********** ID management callbacks ********** */
+  /**
+   * Information and callbacks for assets, based on the type of asset.
+   */
+  struct AssetTypeInfo *asset_type_info;
 
-  /* TODO: Note about callbacks: Ideally we could also handle here `BKE_lib_query`'s behavior, as
-   * well as read/write of files. However, this is a bit more involved than basic ID management
-   * callbacks, so we'll check on this later. */
+  /* ********** ID management callbacks ********** */
 
   /**
    * Initialize a new, empty calloc'ed data-block. May be NULL if there is nothing to do.
@@ -228,11 +229,6 @@ typedef struct IDTypeInfo {
    * \note Currently needed for some update operation on point caches.
    */
   IDTypeLibOverrideApplyPost lib_override_apply_post;
-
-  /**
-   * Callbacks for assets, based on the type of asset.
-   */
-  struct AssetTypeInfo *asset_type_info;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */

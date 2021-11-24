@@ -1047,6 +1047,7 @@ IDTypeInfo IDType_ID_NT = {
     /* name_plural */ "node_groups",
     /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ ntree_init_data,
     /* copy_data */ ntree_copy_data,

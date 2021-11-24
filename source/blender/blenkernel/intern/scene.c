@@ -1600,6 +1600,7 @@ IDTypeInfo IDType_ID_SCE = {
     .name_plural = "scenes",
     .translation_context = BLT_I18NCONTEXT_ID_SCENE,
     .flags = 0,
+    .asset_type_info = NULL,
 
     .init_data = scene_init_data,
     .copy_data = scene_copy_data,

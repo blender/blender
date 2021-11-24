@@ -1258,6 +1258,7 @@ IDTypeInfo IDType_ID_OB = {
     /* name_plural */ "objects",
     /* translation_context */ BLT_I18NCONTEXT_ID_OBJECT,
     /* flags */ 0,
+    /* asset_type_info */ &AssetType_OB,
 
     /* init_data */ object_init_data,
     /* copy_data */ object_copy_data,
@@ -1275,8 +1276,6 @@ IDTypeInfo IDType_ID_OB = {
     /* blend_read_undo_preserve */ nullptr,
 
     /* lib_override_apply_post */ object_lib_override_apply_post,
-
-    /* asset_type_info */ &AssetType_OB,
 };
 
 void BKE_object_workob_clear(Object *workob)

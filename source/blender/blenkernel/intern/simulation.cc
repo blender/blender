@@ -154,6 +154,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* name_plural */ "simulations",
     /* translation_context */ BLT_I18NCONTEXT_ID_SIMULATION,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ simulation_init_data,
     /* copy_data */ simulation_copy_data,

@@ -192,6 +192,7 @@ IDTypeInfo IDType_ID_WO = {
     .name_plural = "worlds",
     .translation_context = BLT_I18NCONTEXT_ID_WORLD,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = world_init_data,
     .copy_data = world_copy_data,

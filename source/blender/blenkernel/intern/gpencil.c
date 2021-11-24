@@ -320,6 +320,7 @@ IDTypeInfo IDType_ID_GD = {
     .name_plural = "grease_pencils",
     .translation_context = BLT_I18NCONTEXT_ID_GPENCIL,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = greasepencil_copy_data,

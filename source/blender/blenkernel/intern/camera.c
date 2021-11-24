@@ -182,6 +182,7 @@ IDTypeInfo IDType_ID_CA = {
     .name_plural = "cameras",
     .translation_context = BLT_I18NCONTEXT_ID_CAMERA,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = camera_init_data,
     .copy_data = camera_copy_data,

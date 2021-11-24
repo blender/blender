@@ -320,6 +320,7 @@ IDTypeInfo IDType_ID_AC = {
     .name_plural = "actions",
     .translation_context = BLT_I18NCONTEXT_ID_ACTION,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = &AssetType_AC,
 
     .init_data = NULL,
     .copy_data = action_copy_data,
@@ -337,8 +338,6 @@ IDTypeInfo IDType_ID_AC = {
     .blend_read_undo_preserve = NULL,
 
     .lib_override_apply_post = NULL,
-
-    .asset_type_info = &AssetType_AC,
 };
 
 /* ***************** Library data level operations on action ************** */

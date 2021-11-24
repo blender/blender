@@ -363,6 +363,7 @@ IDTypeInfo IDType_ID_ME = {
     /* name_plural */ "meshes",
     /* translation_context */ BLT_I18NCONTEXT_ID_MESH,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ mesh_init_data,
     /* copy_data */ mesh_copy_data,
@@ -376,9 +377,10 @@ IDTypeInfo IDType_ID_ME = {
     /* blend_read_data */ mesh_blend_read_data,
     /* blend_read_lib */ mesh_blend_read_lib,
     /* blend_read_expand */ mesh_read_expand,
+
     /* blend_read_undo_preserve */ nullptr,
+
     /* lib_override_apply_post */ nullptr,
-    /* asset_type_info */ nullptr,
 };
 
 enum {
