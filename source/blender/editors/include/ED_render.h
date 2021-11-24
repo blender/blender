@@ -41,6 +41,7 @@ struct bContext;
 struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
+enum eIconSizes;
 
 /* render_ops.c */
 
@@ -105,6 +106,11 @@ void ED_preview_icon_job(const struct bContext *C,
                          int sizex,
                          int sizey,
                          const bool delay);
+
+void ED_preview_restart_queue_free(void);
+void ED_preview_restart_queue_add(struct ID *id, enum eIconSizes size);
+void ED_preview_restart_queue_work(const struct bContext *C);
+
 void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain);
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);

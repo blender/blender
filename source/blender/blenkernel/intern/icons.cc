@@ -251,7 +251,7 @@ static PreviewImage *previewimg_create_ex(size_t deferred_data_size)
   }
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    prv_img->flag[i] |= (PRV_CHANGED | PRV_UNFINISHED);
+    prv_img->flag[i] |= PRV_CHANGED;
     prv_img->changed_timestamp[i] = 0;
   }
   return prv_img;
@@ -308,7 +308,7 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
     GPU_texture_free(prv->gputexture[size]);
   }
   prv->h[size] = prv->w[size] = 0;
-  prv->flag[size] |= (PRV_CHANGED | PRV_UNFINISHED);
+  prv->flag[size] |= PRV_CHANGED;
   prv->flag[size] &= ~PRV_USER_EDITED;
   prv->changed_timestamp[size] = 0;
 }
@@ -565,7 +565,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
           prv->w[ICON_SIZE_PREVIEW] = thumb->x;
           prv->h[ICON_SIZE_PREVIEW] = thumb->y;
           prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->rect);
-          prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_UNFINISHED);
+          prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
         }
         if (do_icon) {
           if (thumb->x > thumb->y) {
@@ -584,7 +584,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
           prv->w[ICON_SIZE_ICON] = icon_w;
           prv->h[ICON_SIZE_ICON] = icon_h;
           prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->rect);
-          prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_UNFINISHED);
+          prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
         }
         IMB_freeImBuf(thumb);
       }
@@ -616,12 +616,12 @@ ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
 void BKE_previewimg_finish(PreviewImage *prv, const int size)
 {
   /* Previews may be calculated on a thread. */
-  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_UNFINISHED);
+  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_RENDERING);
 }
 
 bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 {
-  return (prv->flag[size] & PRV_UNFINISHED) == 0;
+  return (prv->flag[size] & PRV_RENDERING) == 0;
 }
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
@@ -655,16 +655,11 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       BLO_read_data_address(reader, &prv->rect[i]);
     }
     prv->gputexture[i] = nullptr;
-    /* For now consider previews read from file as finished to not confuse File Browser preview
-     * loading. That could be smarter and check if there's a preview job running instead.
-     * If the preview is tagged as changed, it needs to be updated anyway, so don't remove the tag.
-     */
-    if ((prv->flag[i] & PRV_CHANGED) == 0) {
-      BKE_previewimg_finish(prv, i);
-    }
-    else {
-      /* Only for old files that didn't write the flag. */
-      prv->flag[i] |= PRV_UNFINISHED;
+
+    /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets
+     * special handling in #memfile_undosys_restart_unfinished_id_previews() then. */
+    if (!BLO_read_data_is_undo(reader)) {
+      prv->flag[i] &= ~PRV_RENDERING;
     }
   }
   prv->icon_id = 0;
@@ -694,7 +689,7 @@ void BKE_icon_changed(const int icon_id)
     /* If we have previews, they all are now invalid changed. */
     if (p_prv && *p_prv) {
       for (int i = 0; i < NUM_ICON_SIZES; i++) {
-        (*p_prv)->flag[i] |= (PRV_CHANGED | PRV_UNFINISHED);
+        (*p_prv)->flag[i] |= PRV_CHANGED;
         (*p_prv)->changed_timestamp[i]++;
       }
     }
