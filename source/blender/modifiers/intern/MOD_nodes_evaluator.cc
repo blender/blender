@@ -1184,10 +1184,9 @@ class GeometryNodesEvaluator {
 
   /**
    * Load the required input from the socket or trigger nodes to the left to compute the value.
-   * When this function is called, the node will always be executed again eventually (either
-   * immediately, or when all required inputs have been computed by other nodes).
+   * \return True when the node will be triggered by another node again when the value is computed.
    */
-  void set_input_required(LockedNode &locked_node, const DInputSocket input_socket)
+  bool set_input_required(LockedNode &locked_node, const DInputSocket input_socket)
   {
     BLI_assert(locked_node.node == input_socket.node());
     InputState &input_state = locked_node.node_state.inputs[input_socket->index()];
@@ -1195,19 +1194,16 @@ class GeometryNodesEvaluator {
     /* Value set as unused cannot become used again. */
     BLI_assert(input_state.usage != ValueUsage::Unused);
 
+    if (input_state.was_ready_for_execution) {
+      return false;
+    }
+
     if (input_state.usage == ValueUsage::Required) {
-      /* The value is already required, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      /* Returning here also ensure that the code below is executed at most once per input. */
-      return;
+      /* If the input was not ready for execution but is required, the node will be triggered again
+       * once the input has been computed. */
+      return true;
     }
     input_state.usage = ValueUsage::Required;
-
-    if (input_state.was_ready_for_execution) {
-      /* The value was already ready, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      return;
-    }
 
     /* Count how many values still have to be added to this input until it is "complete". */
     int missing_values = 0;
@@ -1222,9 +1218,7 @@ class GeometryNodesEvaluator {
       }
     }
     if (missing_values == 0) {
-      /* The input is fully available already, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      return;
+      return false;
     }
     /* Increase the total number of missing required inputs. This ensures that the node will be
      * scheduled correctly when all inputs have been provided. */
@@ -1239,30 +1233,28 @@ class GeometryNodesEvaluator {
       /* If there are no origin sockets, just load the value from the socket directly. */
       this->load_unlinked_input_value(locked_node, input_socket, input_state, input_socket);
       locked_node.node_state.missing_required_inputs -= 1;
-      this->schedule_node(locked_node);
-      return;
+      return false;
     }
-    bool will_be_triggered_by_other_node = false;
+    bool requested_from_other_node = false;
     for (const DSocket &origin_socket : origin_sockets) {
       if (origin_socket->is_input()) {
         /* Load the value directly from the origin socket. In most cases this is an unlinked
          * group input. */
         this->load_unlinked_input_value(locked_node, input_socket, input_state, origin_socket);
         locked_node.node_state.missing_required_inputs -= 1;
-        this->schedule_node(locked_node);
       }
       else {
         /* The value has not been computed yet, so when it will be forwarded by another node, this
          * node will be triggered. */
-        will_be_triggered_by_other_node = true;
-
+        requested_from_other_node = true;
         locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
       }
     }
     /* If this node will be triggered by another node, we don't have to schedule it now. */
-    if (!will_be_triggered_by_other_node) {
-      this->schedule_node(locked_node);
+    if (requested_from_other_node) {
+      return true;
     }
+    return false;
   }
 
   void set_input_unused(LockedNode &locked_node, const DInputSocket socket)
@@ -1798,7 +1790,11 @@ bool NodeParamsProvider::lazy_require_input(StringRef identifier)
     return false;
   }
   evaluator_.with_locked_node(this->dnode, node_state_, [&](LockedNode &locked_node) {
-    evaluator_.set_input_required(locked_node, socket);
+    if (!evaluator_.set_input_required(locked_node, socket)) {
+      /* Schedule the currently executed node again because the value is available now but was not
+       * ready for the current execution. */
+      evaluator_.schedule_node(locked_node);
+    }
   });
   return true;
 }
