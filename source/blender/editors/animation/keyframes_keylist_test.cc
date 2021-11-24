@@ -52,7 +52,7 @@ static void assert_act_key_column(const ActKeyColumn *column,
 {
   if (expected_frame.has_value()) {
     EXPECT_NE(column, nullptr);
-    EXPECT_NEAR(column->cfra, expected_frame.value(), KEYLIST_NEAR_ERROR);
+    EXPECT_NEAR(column->cfra, *expected_frame, KEYLIST_NEAR_ERROR);
   }
   else {
     EXPECT_EQ(column, nullptr);
