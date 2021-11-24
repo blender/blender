@@ -1368,11 +1368,11 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 }
 
 /* update a viewport which belongs to a GPUOffscreen */
-void DRW_notify_view_update_offscreen(struct Depsgraph *depsgraph,
-                                      RenderEngineType *engine_type,
-                                      ARegion *region,
-                                      View3D *v3d,
-                                      GPUViewport *viewport)
+static void DRW_notify_view_update_offscreen(struct Depsgraph *depsgraph,
+                                             RenderEngineType *engine_type,
+                                             ARegion *region,
+                                             View3D *v3d,
+                                             GPUViewport *viewport)
 {
 
   if (viewport && GPU_viewport_do_update(viewport)) {
