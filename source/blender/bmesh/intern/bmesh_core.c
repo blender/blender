@@ -2259,7 +2259,7 @@ static char *obj_append_line(char *line, char *str, char *fixed, int *size, int 
   return str;
 }
 
-static char *bm_save_local_obj_text(
+ATTR_NO_OPT static char *bm_save_local_obj_text(
     BMesh *bm, int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
 {
   va_list vl;
@@ -2512,7 +2512,11 @@ static void trigger_jvke_error(int err, char *obj_text)
   printf("========= ERROR %s============\n\n%s\n\n", get_err_str(err), obj_text);
 }
 
-#if JVKE_DEBUG
+char *_last_local_obj = NULL;
+
+//#define JVKE_DEBUG
+
+#ifdef JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
     { \
       int err = 0; \
@@ -2531,7 +2535,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
 #ifdef JVKE_DEBUG
   char buf[LOCAL_OBJ_SIZE];
-  char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
+  char *saved_obj = _last_local_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
   bm_local_obj_free(saved_obj, buf);
 #endif
 
@@ -2760,6 +2764,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
   JVKE_CHECK_ELEMENT(v_conn);
 
+#ifdef JVKE_DEBUG
   for (int step = 0; step < 2; step++) {
     BMVert *v = step ? v_conn : v_del;
     BMEdge *e1 = v->e;
@@ -2782,6 +2787,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
       } while ((e1 = BM_DISK_EDGE_NEXT(e1, v)) != v->e);
     }
   }
+#endif
 
   // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
   if (do_del) {

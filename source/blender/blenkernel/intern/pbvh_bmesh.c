@@ -68,6 +68,7 @@ Topology rake:
 
 #include "bmesh.h"
 #include "pbvh_intern.h"
+#include "atomic_ops.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -75,7 +76,7 @@ Topology rake:
 
 #include <stdarg.h>
 
-static void _debugprint(const char *fmt, ...)
+ATTR_NO_OPT static void _debugprint(const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -84,7 +85,7 @@ static void _debugprint(const char *fmt, ...)
 }
 
 #ifdef PBVH_BMESH_DEBUG
-void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -108,7 +109,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
   }
 }
 
-void pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -125,12 +126,12 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
     int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
     if (ni >= 0 && (!v->e || !v->e->l)) {
-      _debugprint("wire vert had node reference\n");
-      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+      _debugprint("wire vert had node reference: %p (type %d)\n", v, v->head.htype);
+      //BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
     }
 
     if (ni < -1 || ni >= pbvh->totnode) {
-      _debugprint("vert node ref was invalid");
+      _debugprint("vert node ref was invalid: %p (type %d)\n", v, v->head.htype);
       continue;
     }
 
@@ -229,7 +230,7 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
   }
 }
 
-void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   pbvh_bmesh_check_nodes(pbvh);
 }
@@ -1575,9 +1576,14 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
     do {
       BMVert *v = l_iter->v;
 
-      if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
+      int old = BM_ELEM_CD_GET_INT(
+          v, pbvh->cd_vert_node_offset);
+
+      char *ptr = (char *)v;
+      ptr += pbvh->cd_vert_node_offset;
+
+      if (old == DYNTOPO_NODE_NONE && atomic_cas_int32((int32_t*)ptr, DYNTOPO_NODE_NONE, node_index) == DYNTOPO_NODE_NONE) {
         BLI_table_gset_insert(n->bm_unique_verts, v);
-        BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, node_index);
       }
       else {
         BLI_table_gset_add(n->bm_other_verts, v);

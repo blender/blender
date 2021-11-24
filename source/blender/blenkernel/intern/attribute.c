@@ -477,7 +477,7 @@ CustomDataLayer *BKE_id_attributes_active_color_get(ID *id)
   }
 
   if (!ref->type) {
-    fprintf(stderr, "%s: invalid active color attribute\n", __func__);
+    //fprintf(stderr, "%s: invalid active color attribute\n", __func__);
     return NULL;
   }
 
@@ -515,7 +515,7 @@ void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
     if (customdata) {
       for (int i = 0; i < customdata->totlayer; i++) {
         CustomDataLayer *layer = &customdata->layers[i];
-
+        
         if (layer == active_layer && ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
           ref->type = layer->type;
           ref->domain = domain;
@@ -548,7 +548,7 @@ CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
   }
 
   if (!ref->type) {
-    fprintf(stderr, "%s: invalid render color attribute\n", __func__);
+    //fprintf(stderr, "%s: invalid render color attribute\n", __func__);
     return NULL;
   }
 

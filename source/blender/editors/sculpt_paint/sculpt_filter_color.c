@@ -113,9 +113,9 @@ static EnumPropertyItem prop_color_filter_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-ATTR_NO_OPT static void color_filter_task_cb(void *__restrict userdata,
-                                             const int n,
-                                             const TaskParallelTLS *__restrict UNUSED(tls))
+static void color_filter_task_cb(void *__restrict userdata,
+                                 const int n,
+                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

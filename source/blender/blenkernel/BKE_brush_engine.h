@@ -249,6 +249,18 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,
                                 BrushChannelSet *parent);
 
+/*takes child and parent channels and builds inherited channel
+  in dst, with channel and brush mapping inheritance flags
+  properly resolved.
+
+  note that child or parent may be NULL, but not both.
+  */
+void BKE_brush_channel_copy_final_data(BrushChannel *dst,
+                                       BrushChannel *src_child,
+                                       BrushChannel *src_parent,
+                                       bool keep_mapping,
+                                       bool keep_idname_and_def);
+
 void BKE_brush_resolve_channels(struct Brush *brush, struct Sculpt *sd);
 
 void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
@@ -309,10 +321,10 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
 
 /* returns size of vector */
 int BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
-                                            BrushChannelSet *toolset,
-                                            const char *idname,
-                                            float r_vec[4],
-                                            BrushMappingData *mapdata);
+                                          BrushChannelSet *toolset,
+                                          const char *idname,
+                                          float r_vec[4],
+                                          BrushMappingData *mapdata);
 void BKE_brush_channelset_set_final_vector(BrushChannelSet *brushset,
                                            BrushChannelSet *toolset,
                                            const char *idname,

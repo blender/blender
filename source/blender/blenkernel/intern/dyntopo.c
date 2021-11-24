@@ -2877,6 +2877,10 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
         // deal with non-manifold iffyness
         destroy_nonmanifold_fins(pbvh, e);
         push_subentry = true;
+
+        if (bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+          continue;
+        }
       }
 
       MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v1);
@@ -3798,6 +3802,13 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       }
 
       do {
+        BMLoop *l2 = l;
+        do {
+          if (BM_ELEM_CD_GET_INT(l2->v, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
+            pbvh_bmesh_vert_remove(pbvh, l2->v);
+          }
+        } while ((l2 = l2->next) != l);
+
         if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
           pbvh_bmesh_face_remove(pbvh, l->f, false, false, false);
           BM_log_face_topo_pre(pbvh->bm_log, l->f);

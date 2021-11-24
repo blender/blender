@@ -1084,6 +1084,12 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
     Sculpt *data = MEM_callocN(sizeof(*data), __func__);
     paint = &data->paint;
 
+    if (!data->channels) {
+      data->channels = BKE_brush_channelset_create(__func__);
+    }
+
+    BKE_brush_check_toolsettings(data);
+
     /* Turn on X plane mirror symmetry by default */
     paint->symmetry_flags |= PAINT_SYMM_X;
 

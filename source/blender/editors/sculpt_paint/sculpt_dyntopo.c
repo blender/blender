@@ -1177,7 +1177,7 @@ double area_tri_v3_db(const double v1[3], const double v2[3], const double v3[3]
   return len_v3_db(n) * 0.5;
 }
 
-ATTR_NO_OPT static UVSmoothTri *uvsolver_ensure_face(UVSolver *solver, BMFace *f)
+static UVSmoothTri *uvsolver_ensure_face(UVSolver *solver, BMFace *f)
 {
   void **entry = NULL;
 
@@ -1405,7 +1405,7 @@ static void uvsolver_solve_begin(UVSolver *solver)
   }
 }
 
-ATTR_NO_OPT static void uvsolver_simple_relax(UVSolver *solver, float strength)
+static void uvsolver_simple_relax(UVSolver *solver, float strength)
 {
   BLI_mempool_iter iter;
 
@@ -1434,7 +1434,7 @@ ATTR_NO_OPT static void uvsolver_simple_relax(UVSolver *solver, float strength)
 
       bool sign = sv1->neighbor_tris[i]->area2d < 0.0f;
 
-      //try to unfold folded uvs
+      // try to unfold folded uvs
       if (totneighbor > 0 && sign != lastsign) {
         strength2 = 1.0;
       }
@@ -1730,7 +1730,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   UVSolver *solver = uvsolver_new(cd_uv);
   solver->cd_sculpt_vert = ss->cd_sculpt_vert;
-  //solver->strength = powf(fabs(ss->cache->bstrength), 0.25) * signf(ss->cache->bstrength);
+  // solver->strength = powf(fabs(ss->cache->bstrength), 0.25) * signf(ss->cache->bstrength);
   solver->strength = ss->cache->bstrength;
 
   /* Threaded loop over nodes. */

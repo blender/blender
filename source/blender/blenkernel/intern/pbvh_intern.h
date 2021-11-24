@@ -343,6 +343,8 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
 
 bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
 
+//#define PBVH_BMESH_DEBUG
+
 #ifdef PBVH_BMESH_DEBUG
 void pbvh_bmesh_check_nodes(PBVH *pbvh);
 void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);

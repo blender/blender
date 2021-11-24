@@ -48,7 +48,7 @@
 #  pragma warning(error : 4018) /* signed/unsigned mismatch */
 #  pragma warning(error : 4245) /* conversion from 'int' to 'unsigned int' */
 #  pragma warning(error : 4389) /* signed/unsigned mismatch */
-#  pragma warning(error : 4002) /* too many actual parameters for macro 'identifier' */
+#  pragma warning(error : 4002) /* too many actual maeters for macro 'identifier' */
 #  pragma warning(error : 4003) /* not enough actual parameters for macro 'identifier' */
 #  pragma warning( \
       error : 4022) /* 'function': pointer mismatch for actual parameter 'parameter number' */
@@ -328,6 +328,53 @@ static void copy_channel_data_keep_mappings(BrushChannel *dst,
   }
 }
 
+void BKE_brush_channel_copy_final_data(BrushChannel *dst,
+                                       BrushChannel *src_child,
+                                       BrushChannel *src_parent,
+                                       bool keep_mapping,
+                                       bool keep_idname_and_def)
+{
+  if (!src_child || !src_parent) {
+    BKE_brush_channel_copy_data(
+        dst, src_child ? src_child : src_parent, keep_mapping, keep_idname_and_def);
+    return;
+  }
+
+  if (src_child->flag & BRUSH_CHANNEL_INHERIT) {
+    BKE_brush_channel_copy_data(dst, src_parent, keep_mapping, keep_idname_and_def);
+  }
+  else {
+    BKE_brush_channel_copy_data(dst, src_child, keep_mapping, keep_idname_and_def);
+  }
+
+  if (keep_mapping) {
+    return;
+  }
+
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    BrushMapping *mp = NULL;
+
+    switch (src_child->mappings[i].inherit_mode) {
+      case BRUSH_MAPPING_INHERIT_CHANNEL:
+        mp = src_child->flag & BRUSH_CHANNEL_INHERIT ? src_parent->mappings + i :
+                                                       src_child->mappings + i;
+        break;
+      case BRUSH_MAPPING_INHERIT_ALWAYS:
+        mp = src_parent->mappings + i;
+        break;
+      case BRUSH_MAPPING_INHERIT_NEVER:
+        mp = src_child->mappings + i;
+        break;
+    }
+
+    if (UNLIKELY(!mp)) {
+      continue;
+    }
+
+    BKE_brush_mapping_copy_data(dst->mappings + i, mp);
+  }
+}
+
 void BKE_brush_channel_copy_data(BrushChannel *dst,
                                  BrushChannel *src,
                                  bool keep_mapping,
@@ -463,7 +510,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
     }
 
     if (mdef->inherit) {
-      mp->flag |= BRUSH_MAPPING_INHERIT_ALWAYS;
+      mp->inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
     }
 
     int slope = CURVEMAP_SLOPE_POSITIVE;
@@ -840,10 +887,8 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       BKE_brush_channel_copy_data(mch, pch, true, false);
     }
 
-    /*apply mapping inheritance flags, which are respected
-      for non inherited channels.  note that absense
-      of BRUSH_MAPPING_FLAG doen't prevent mapping inheritance
-      if BRUSH_CHANNEL_INHERIT in ch->flag *is* set.*/
+    /* apply mapping inheritance flags, which are respected
+       even for non inherited channels.*/
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
       if (brush_mapping_inherits(ch, ch->mappings + i)) {
         BKE_brush_mapping_copy_data(mch->mappings + i, pch->mappings + i);

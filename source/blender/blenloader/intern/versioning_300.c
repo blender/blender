@@ -2575,6 +2575,64 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 4)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt ||
+          !scene->toolsettings->sculpt->channels) {
+        continue;
+      }
+
+      BrushChannelSet *chset = scene->toolsettings->sculpt->channels;
+
+      BrushChannel *ch1 = BRUSHSET_LOOKUP(chset, smooth_strength_factor);
+      BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, smooth_strength_projection);
+
+      for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+        if (ch1) {
+          ch1->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+
+          if (i == 0) {
+            ch1->mappings[i].flag |= BRUSH_MAPPING_ENABLED;
+          }
+          else {
+            ch1->mappings[i].flag &= ~BRUSH_MAPPING_ENABLED;
+          }
+        }
+
+        if (ch2) {
+          ch2->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+          ch2->mappings[i].flag &= ~BRUSH_MAPPING_ENABLED;
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      BrushChannel *ch1 = BRUSHSET_LOOKUP(brush->channels, smooth_strength_factor);
+      BrushChannel *ch2 = BRUSHSET_LOOKUP(brush->channels, smooth_strength_projection);
+
+      for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+        if (ch1) {
+          ch1->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+
+          if (i == 0) {
+            ch1->mappings[i].flag |= BRUSH_MAPPING_ENABLED;
+          }
+          else {
+            ch1->mappings[i].flag &= ~BRUSH_MAPPING_ENABLED;
+          }
+        }
+
+        if (ch2) {
+          ch2->mappings[i].inherit_mode = BRUSH_MAPPING_INHERIT_ALWAYS;
+          ch2->mappings[i].flag &= ~BRUSH_MAPPING_ENABLED;
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

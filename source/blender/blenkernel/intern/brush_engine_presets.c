@@ -274,6 +274,7 @@ static bool check_builtin_init()
 
     for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
       (&def->mappings.pressure)[j].inherit = true;
+      (&def->mappings.pressure)[j].enabled = i == 0 && j == 0;
     }
   }
 

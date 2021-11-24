@@ -1653,6 +1653,10 @@ void SCULPT_smooth(Sculpt *sd,
   int iteration, count;
   float last;
 
+  if (bstrength == 0.0f) {
+    return;
+  }
+
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       ((ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) ||
        ss->cache->brush->boundary_smooth_factor > 0.0f)) {
@@ -1734,7 +1738,8 @@ void SCULPT_smooth(Sculpt *sd,
 #else
   const float strength = last;
 #endif
-    // turn off velocity smooth for final iteration or two to smooth out ripples
+
+    /* turn off velocity smooth for final iteration or two to smooth out ripples */
     bool do_vel = do_vel_smooth && iteration != count;
 
     if (count > 1) {

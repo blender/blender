@@ -5783,6 +5783,28 @@ static void get_nodes_undo(Sculpt *sd,
   data->totnode = totnode;
 }
 
+static void sculpt_apply_alt_smmoth_settings(SculptSession *ss, Sculpt *sd, Brush *brush)
+{
+  float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
+  float projection = BRUSHSET_GET_FLOAT(
+      ss->cache->channels_final, smooth_strength_projection, NULL);
+
+  BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
+  BRUSHSET_SET_FLOAT(ss->cache->channels_final, projection, projection);
+
+  BrushChannel *ch = BRUSHSET_LOOKUP(brush->channels, smooth_strength_factor);
+  BrushChannel *parentch = BRUSHSET_LOOKUP(sd->channels, smooth_strength_factor);
+
+  BKE_brush_channel_copy_final_data(
+      BRUSHSET_LOOKUP(ss->cache->channels_final, strength), ch, parentch, false, true);
+
+  ch = BRUSHSET_LOOKUP(brush->channels, smooth_strength_projection);
+  parentch = BRUSHSET_LOOKUP(sd->channels, smooth_strength_projection);
+
+  BKE_brush_channel_copy_final_data(
+      BRUSHSET_LOOKUP(ss->cache->channels_final, projection), ch, parentch, false, true);
+}
+
 static void SCULPT_run_command(
     Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, void *userdata)
 {
@@ -6072,23 +6094,6 @@ static void SCULPT_run_commandlist(
   SculptSession *ss = ob->sculpt;
   Brush *oldbrush = ss->cache->brush;
 
-  if (ss->cache->alt_smooth && SCULPT_get_tool(ss, brush) == SCULPT_TOOL_SMOOTH) {
-    float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
-    float projection = BRUSHSET_GET_FLOAT(
-        ss->cache->channels_final, smooth_strength_projection, NULL);
-
-    BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
-    BRUSHSET_SET_FLOAT(ss->cache->channels_final, projection, projection);
-
-    BrushChannel *ch = BRUSHSET_LOOKUP(ss->cache->channels_final, smooth_strength_factor);
-    BKE_brush_channel_copy_data(
-        BRUSHSET_LOOKUP(ss->cache->channels_final, strength), ch, false, true);
-
-    ch = BRUSHSET_LOOKUP(ss->cache->channels_final, smooth_strength_projection);
-    BKE_brush_channel_copy_data(
-        BRUSHSET_LOOKUP(ss->cache->channels_final, projection), ch, false, true);
-  }
-
   int totnode = 0;
   PBVHNode **nodes = NULL;
 
@@ -6096,6 +6101,10 @@ static void SCULPT_run_commandlist(
 
   float radius_scale = 1.0f;
   float radius_max = 0.0f;
+
+  if (ss->cache && ss->cache->alt_smooth && ss->cache->tool_override == SCULPT_TOOL_SMOOTH) {
+    sculpt_apply_alt_smmoth_settings(ss, sd, brush);
+  }
 
   BKE_brush_commandlist_start(list, brush, ss->cache->channels_final);
 
@@ -7023,8 +7032,8 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
+  // Main *bmain = CTX_data_main(C);
+  // Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
@@ -7124,6 +7133,12 @@ static void sculpt_update_cache_invariants(
       /* Do nothing, this tool has its own smooth mode. */
     }
     else {
+      if (!cache->tool_override_channels) {
+        cache->tool_override_channels = sculpt_init_tool_override_channels(
+            sd, ss, SCULPT_TOOL_SMOOTH);
+        cache->tool_override = SCULPT_TOOL_SMOOTH;
+      }
+#if 0
       Paint *p = &sd->paint;
       Brush *br;
       int size = BKE_brush_size_get(scene, brush, true);
@@ -7140,6 +7155,7 @@ static void sculpt_update_cache_invariants(
         BKE_brush_size_set(scene, brush, size, paint_use_channels(C));
         BKE_curvemapping_init(brush->curve);
       }
+#endif
     }
   }
 
@@ -8401,7 +8417,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
         channels = sculpt_init_tool_override_channels(sd, ob->sculpt, tool);
       }
 
-      //paranoia check to correct corrupted brushes
+      // paranoia check to correct corrupted brushes
       BKE_brush_builtin_patch(brush, brush->sculpt_tool);
 
       BKE_brush_channelset_compat_load(sculpt_get_brush_channels(ob->sculpt, brush), brush, false);
@@ -8486,21 +8502,8 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   ss->cache->use_plane_trim = BRUSHSET_GET_INT(
       ss->cache->channels_final, use_plane_trim, &ss->cache->input_mapping);
 
-  if (ss->cache->alt_smooth) {
-    Brush *brush = (Brush *)BKE_libblock_find_name(
-        CTX_data_main(C), ID_BR, ss->cache->saved_active_brush_name);
-
-    if (brush) {
-      // some settings should not be overridden
-
-      bool hard_edge = BRUSHSET_GET_FINAL_INT(
-          brush->channels, sd->channels ? sd->channels : NULL, hard_edge_mode, NULL);
-      float smooth_factor = BRUSHSET_GET_FINAL_FLOAT(
-          brush->channels, sd->channels ? sd->channels : NULL, smooth_strength_factor, NULL);
-
-      BRUSHSET_SET_INT(ss->cache->channels_final, hard_edge_mode, hard_edge);
-      BRUSHSET_SET_FLOAT(ss->cache->channels_final, smooth_strength_factor, smooth_factor);
-    }
+  if (ss->cache->alt_smooth && ss->cache->tool_override == SCULPT_TOOL_SMOOTH) {
+    sculpt_apply_alt_smmoth_settings(ss, sd, brush);
   }
 
   // load settings into brush and unified paint settings
@@ -8586,20 +8589,6 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
                                    detail_range);
   }
 
-  if (0 && !ss->cache->commandlist && SCULPT_stroke_is_dynamic_topology(ss, brush)) {
-    float spacing = (float)brush->cached_dyntopo.spacing / 100.0f;
-
-    if (paint_stroke_apply_subspacing(
-            ss->cache->stroke, spacing, PAINT_MODE_SCULPT, &ss->cache->last_dyntopo_t)) {
-      do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, NULL);
-
-      if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_SNAKE_HOOK) {
-        /* run dyntopo again for snake hook */
-        do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, NULL);
-      }
-    }
-  }
-
   bool run_commandlist = brush_uses_commandlist(brush, SCULPT_get_tool(ss, brush));
 
   if (run_commandlist) {
@@ -8614,6 +8603,10 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
 
       if (tool == SCULPT_TOOL_SLIDE_RELAX && ss->cache->alt_smooth) {
         tool = SCULPT_TOOL_RELAX;
+      }
+
+      if (ss->cache->alt_smooth && ss->cache->tool_override == SCULPT_TOOL_SMOOTH) {
+        sculpt_apply_alt_smmoth_settings(ss, sd, brush);
       }
 
       BKE_builtin_commandlist_create(
@@ -8711,9 +8704,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 
 static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(stroke))
 {
-  Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
-  Scene *scene = CTX_data_scene(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
@@ -8743,11 +8734,12 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       /* Do nothing. */
     }
     else {
+      /*
       BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size, true);
       brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, ss->cache->saved_active_brush_name);
       if (brush) {
         BKE_paint_brush_set(&sd->paint, brush);
-      }
+      }*/
     }
   }
 
