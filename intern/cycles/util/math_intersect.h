@@ -85,6 +85,35 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
   return true;
 }
 
+ccl_device bool ray_disk_intersect(float3 ray_P,
+                                   float3 ray_D,
+                                   float ray_t,
+                                   float3 disk_P,
+                                   float3 disk_N,
+                                   float disk_radius,
+                                   ccl_private float3 *isect_P,
+                                   ccl_private float *isect_t)
+{
+  const float3 vp = ray_P - disk_P;
+  const float dp = dot(vp, disk_N);
+  const float cos_angle = dot(disk_N, -ray_D);
+  if (dp * cos_angle > 0.f)  // front of light
+  {
+    float t = dp / cos_angle;
+    if (t < 0.f) { /* Ray points away from the light. */
+      return false;
+    }
+    float3 P = ray_P + t * ray_D;
+    float3 T = P - disk_P;
+    if (dot(T, T) < sqr(disk_radius) /*&& t > 0.f*/ && t <= ray_t) {
+      *isect_P = ray_P + t * ray_D;
+      *isect_t = t;
+      return true;
+    }
+  }
+  return false;
+}
+
 ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
                                                    float3 ray_dir,
                                                    float ray_t,

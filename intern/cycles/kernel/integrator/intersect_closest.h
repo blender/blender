@@ -341,9 +341,8 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
      * these in the path_state_init. */
     const int last_type = INTEGRATOR_STATE(state, isect, type);
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
     hit = lights_intersect(
-              kg, &ray, &isect, last_isect_prim, last_isect_object, last_type, path_flag) ||
+              kg, state, &ray, &isect, last_isect_prim, last_isect_object, last_type, path_flag) ||
           hit;
   }
 
