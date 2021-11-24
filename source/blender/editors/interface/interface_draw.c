@@ -1351,7 +1351,10 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   immUnbindProgram();
 }
 
-void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
+void ui_draw_but_UNITVEC(uiBut *but,
+                         const uiWidgetColors *wcol,
+                         const rcti *rect,
+                         const float radius)
 {
   /* sphere color */
   const float diffuse[3] = {1.0f, 1.0f, 1.0f};
@@ -1368,7 +1371,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
           .ymax = rect->ymax,
       },
       true,
-      5.0f,
+      radius,
       wcol->inner,
       255);
 
