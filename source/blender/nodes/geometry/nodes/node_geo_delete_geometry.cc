@@ -29,21 +29,6 @@
 
 #include "node_geometry_util.hh"
 
-/* Code from the mask modifier in MOD_mask.cc. */
-void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
-                                      Mesh &dst_mesh,
-                                      blender::Span<int> vertex_map);
-void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   blender::Span<int> vertex_map,
-                                   blender::Span<int> edge_map);
-void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   blender::Span<int> vertex_map,
-                                   blender::Span<int> edge_map,
-                                   blender::Span<int> masked_poly_indices,
-                                   blender::Span<int> new_loop_starts);
-
 namespace blender::nodes {
 
 using blender::bke::CustomDataAttributes;
@@ -184,6 +169,24 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
       attributes, in_component, out_component, ATTR_DOMAIN_CORNER, IndexMask(indices));
 }
 
+static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
+                                             Mesh &dst_mesh,
+                                             Span<int> vertex_map)
+{
+  BLI_assert(src_mesh.totvert == vertex_map.size());
+  for (const int i_src : vertex_map.index_range()) {
+    const int i_dst = vertex_map[i_src];
+    if (i_dst == -1) {
+      continue;
+    }
+
+    const MVert &v_src = src_mesh.mvert[i_src];
+    MVert &v_dst = dst_mesh.mvert[i_dst];
+
+    v_dst = v_src;
+  }
+}
+
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
 {
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -199,6 +202,28 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, 
     e_dst = e_src;
     e_dst.v1 = e_src.v1;
     e_dst.v2 = e_src.v2;
+  }
+}
+
+static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
+                                          Mesh &dst_mesh,
+                                          Span<int> vertex_map,
+                                          Span<int> edge_map)
+{
+  BLI_assert(src_mesh.totvert == vertex_map.size());
+  BLI_assert(src_mesh.totedge == edge_map.size());
+  for (const int i_src : IndexRange(src_mesh.totedge)) {
+    const int i_dst = edge_map[i_src];
+    if (i_dst == -1) {
+      continue;
+    }
+
+    const MEdge &e_src = src_mesh.medge[i_src];
+    MEdge &e_dst = dst_mesh.medge[i_dst];
+
+    e_dst = e_src;
+    e_dst.v1 = vertex_map[e_src.v1];
+    e_dst.v2 = vertex_map[e_src.v2];
   }
 }
 
@@ -251,6 +276,33 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
     for (int i : IndexRange(mp_src.totloop)) {
       ml_dst[i].v = ml_src[i].v;
       ml_dst[i].e = ml_src[i].e;
+    }
+  }
+}
+
+static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
+                                          Mesh &dst_mesh,
+                                          Span<int> vertex_map,
+                                          Span<int> edge_map,
+                                          Span<int> masked_poly_indices,
+                                          Span<int> new_loop_starts)
+{
+  for (const int i_dst : masked_poly_indices.index_range()) {
+    const int i_src = masked_poly_indices[i_dst];
+
+    const MPoly &mp_src = src_mesh.mpoly[i_src];
+    MPoly &mp_dst = dst_mesh.mpoly[i_dst];
+    const int i_ml_src = mp_src.loopstart;
+    const int i_ml_dst = new_loop_starts[i_dst];
+
+    const MLoop *ml_src = src_mesh.mloop + i_ml_src;
+    MLoop *ml_dst = dst_mesh.mloop + i_ml_dst;
+
+    mp_dst = mp_src;
+    mp_dst.loopstart = i_ml_dst;
+    for (int i : IndexRange(mp_src.totloop)) {
+      ml_dst[i].v = vertex_map[ml_src[i].v];
+      ml_dst[i].e = edge_map[ml_src[i].e];
     }
   }
 }
@@ -973,6 +1025,30 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
+
+      Vector<int64_t> indices;
+      copy_attributes_based_on_mask(
+          attributes,
+          in_component,
+          out_component,
+          ATTR_DOMAIN_POINT,
+          index_mask_indices(vertex_map, num_selected_vertices, indices));
+      copy_attributes_based_on_mask(attributes,
+                                    in_component,
+                                    out_component,
+                                    ATTR_DOMAIN_EDGE,
+                                    index_mask_indices(edge_map, num_selected_edges, indices));
+      copy_attributes_based_on_mask(attributes,
+                                    in_component,
+                                    out_component,
+                                    ATTR_DOMAIN_FACE,
+                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_face_corner_attributes(attributes,
+                                  in_component,
+                                  out_component,
+                                  num_selected_loops,
+                                  selected_poly_indices,
+                                  mesh_in);
       break;
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE: {
