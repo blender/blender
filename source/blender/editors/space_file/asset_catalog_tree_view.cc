@@ -377,6 +377,10 @@ bool AssetCatalogDropController::can_drop(const wmDrag &drag, const char **r_dis
       *r_disabled_hint = "Catalog cannot be dropped into itself";
       return false;
     }
+    if (catalog_item_.catalog_path() == drag_catalog->path.parent()) {
+      *r_disabled_hint = "Catalog is already placed inside this catalog";
+      return false;
+    }
     return true;
   }
   if (drag.type == WM_DRAG_ASSET_LIST) {
