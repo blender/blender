@@ -931,7 +931,10 @@ void ui_draw_but_VECTORSCOPE(struct ARegion *region,
                              const struct uiWidgetColors *wcol,
                              const rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
-void ui_draw_but_UNITVEC(uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_UNITVEC(uiBut *but,
+                         const struct uiWidgetColors *wcol,
+                         const rcti *rect,
+                         const float radius);
 void ui_draw_but_CURVE(struct ARegion *region,
                        uiBut *but,
                        const struct uiWidgetColors *wcol,

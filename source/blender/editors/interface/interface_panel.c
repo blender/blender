@@ -1122,7 +1122,8 @@ static void panel_draw_highlight_border(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
+  const float aspect = panel->runtime.block->aspect;
+  const float radius = (btheme->tui.panel_roundness * U.widget_unit * 0.5f) / aspect;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
   float color[4];
@@ -1245,7 +1246,8 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
+  const float aspect = panel->runtime.block->aspect;
+  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
