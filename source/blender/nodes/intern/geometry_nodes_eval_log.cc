@@ -72,6 +72,11 @@ ModifierLog::ModifierLog(GeoLogger &logger)
                                                        node_with_exec_time.node);
       node_log.exec_time_ = node_with_exec_time.exec_time;
     }
+
+    for (NodeWithDebugMessage &debug_message : local_logger.node_debug_messages_) {
+      NodeLog &node_log = this->lookup_or_add_node_log(log_by_tree_context, debug_message.node);
+      node_log.debug_messages_.append(debug_message.message);
+    }
   }
 }
 
@@ -482,6 +487,15 @@ void LocalGeoLogger::log_node_warning(DNode node, NodeWarningType type, std::str
 void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds exec_time)
 {
   node_exec_times_.append({node, exec_time});
+}
+
+/**
+ * Log a message that will be displayed in the node editor next to the node. This should only be
+ * used for debugging purposes and not to display information to users.
+ */
+void LocalGeoLogger::log_debug_message(DNode node, std::string message)
+{
+  node_debug_messages_.append({node, std::move(message)});
 }
 
 }  // namespace blender::nodes::geometry_nodes_eval_log

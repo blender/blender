@@ -1637,6 +1637,14 @@ class GeometryNodesEvaluator {
     params_.geo_logger->local().log_value_for_sockets(sockets, value);
   }
 
+  void log_debug_message(DNode node, std::string message)
+  {
+    if (params_.geo_logger == nullptr) {
+      return;
+    }
+    params_.geo_logger->local().log_debug_message(node, std::move(message));
+  }
+
   /* In most cases when `NodeState` is accessed, the node has to be locked first to avoid race
    * conditions. */
   template<typename Function>
