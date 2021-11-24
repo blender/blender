@@ -123,7 +123,7 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
 
 void ED_asset_catalog_move(::AssetLibrary *library,
                            const CatalogID src_catalog_id,
-                           const CatalogID dst_parent_catalog_id)
+                           const std::optional<CatalogID> dst_parent_catalog_id)
 {
   bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
   if (!catalog_service) {
@@ -132,9 +132,24 @@ void ED_asset_catalog_move(::AssetLibrary *library,
   }
 
   AssetCatalog *src_catalog = catalog_service->find_catalog(src_catalog_id);
-  AssetCatalog *dst_catalog = catalog_service->find_catalog(dst_parent_catalog_id);
+  if (!src_catalog) {
+    BLI_assert_unreachable();
+    return;
+  }
+  AssetCatalog *dst_catalog = dst_parent_catalog_id ?
+                                  catalog_service->find_catalog(*dst_parent_catalog_id) :
+                                  nullptr;
+  if (!dst_catalog && dst_parent_catalog_id) {
+    BLI_assert_unreachable();
+    return;
+  }
 
-  const AssetCatalogPath new_path = dst_catalog->path / StringRef(src_catalog->path.name());
+  std::string unique_name = catalog_name_ensure_unique(
+      *catalog_service, src_catalog->path.name(), dst_catalog ? dst_catalog->path.c_str() : "");
+  /* If a destination catalog was given, construct the path using that. Otherwise, the path is just
+   * the name of the catalog to be moved, which means it ends up at the root level. */
+  const AssetCatalogPath new_path = dst_catalog ? (dst_catalog->path / unique_name) :
+                                                  AssetCatalogPath{unique_name};
   const AssetCatalogPath clean_new_path = new_path.cleanup();
 
   if (new_path == src_catalog->path || clean_new_path == src_catalog->path) {
