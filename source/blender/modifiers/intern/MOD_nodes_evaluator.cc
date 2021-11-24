@@ -937,7 +937,9 @@ class GeometryNodesEvaluator {
     Clock::time_point end = Clock::now();
     const std::chrono::microseconds duration =
         std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    params_.geo_logger->local().log_execution_time(node, duration);
+    if (params_.geo_logger != nullptr) {
+      params_.geo_logger->local().log_execution_time(node, duration);
+    }
   }
 
   void execute_multi_function_node(const DNode node,
