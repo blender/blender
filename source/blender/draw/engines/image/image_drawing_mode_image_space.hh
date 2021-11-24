@@ -26,7 +26,7 @@
 
 namespace blender::draw::image_engine {
 
-class DefaultDrawingMode : public AbstractDrawingMode {
+class ImageSpaceDrawingMode : public AbstractDrawingMode {
  private:
   DRWPass *create_image_pass() const
   {

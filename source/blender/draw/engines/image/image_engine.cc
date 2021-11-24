@@ -41,7 +41,7 @@
 
 #include "GPU_batch.h"
 
-#include "image_drawing_mode.hh"
+#include "image_drawing_mode_image_space.hh"
 #include "image_engine.h"
 #include "image_private.hh"
 #include "image_space_image.hh"
@@ -63,12 +63,18 @@ static std::unique_ptr<AbstractSpaceAccessor> space_accessor_from_context(
   return nullptr;
 }
 
+template<
+    /** \brief Drawing mode to use.
+     *
+     * Useful during development to switch between drawing implementations.
+     */
+    typename DrawingMode = ImageSpaceDrawingMode>
 class ImageEngine {
  private:
   const DRWContextState *draw_ctx;
   IMAGE_Data *vedata;
   std::unique_ptr<AbstractSpaceAccessor> space;
-  DefaultDrawingMode drawing_mode;
+  DrawingMode drawing_mode;
 
  public:
   ImageEngine(const DRWContextState *draw_ctx, IMAGE_Data *vedata)
