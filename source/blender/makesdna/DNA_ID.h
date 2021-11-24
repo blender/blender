@@ -461,7 +461,7 @@ typedef struct LibraryWeakReference {
 enum ePreviewImage_Flag {
   PRV_CHANGED = (1 << 0),
   PRV_USER_EDITED = (1 << 1), /* if user-edited, do not auto-update this anymore! */
-  PRV_UNFINISHED = (1 << 2),  /* The preview is not done rendering yet. */
+  PRV_RENDERING = (1 << 2),   /* Rendering was invoked. Cleared on file read. */
 };
 
 /* for PreviewImage->tag */

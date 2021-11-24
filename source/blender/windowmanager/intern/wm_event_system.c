@@ -64,6 +64,7 @@
 #include "ED_asset.h"
 #include "ED_fileselect.h"
 #include "ED_info.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 #include "ED_util.h"
@@ -456,6 +457,9 @@ void wm_event_do_notifiers(bContext *C)
         }
         else if (note->data == ND_DATACHANGED) {
           wm_window_title(wm, win);
+        }
+        else if (note->data == ND_UNDO) {
+          ED_preview_restart_queue_work(C);
         }
       }
       if (note->window == win) {

@@ -103,6 +103,8 @@
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
 
+#include "UI_interface_icons.h"
+
 #ifndef NDEBUG
 /* Used for database init assert(). */
 #  include "BLI_threads.h"
@@ -1945,6 +1947,47 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main *UNUSED(bmain))
      * avoid invalid memory access. */
     WM_jobs_kill(wm, NULL, common_preview_startjob);
     WM_jobs_kill(wm, NULL, icon_preview_startjob_all_sizes);
+  }
+}
+
+typedef struct PreviewRestartQueueEntry {
+  struct PreviewRestartQueueEntry *next, *prev;
+
+  enum eIconSizes size;
+  ID *id;
+} PreviewRestartQueueEntry;
+
+static ListBase /* #PreviewRestartQueueEntry */ G_restart_previews_queue;
+
+void ED_preview_restart_queue_free(void)
+{
+  BLI_freelistN(&G_restart_previews_queue);
+}
+
+void ED_preview_restart_queue_add(ID *id, enum eIconSizes size)
+{
+  PreviewRestartQueueEntry *queue_entry = MEM_mallocN(sizeof(*queue_entry), __func__);
+  queue_entry->size = size;
+  queue_entry->id = id;
+  BLI_addtail(&G_restart_previews_queue, queue_entry);
+}
+
+void ED_preview_restart_queue_work(const bContext *C)
+{
+  LISTBASE_FOREACH_MUTABLE (PreviewRestartQueueEntry *, queue_entry, &G_restart_previews_queue) {
+    PreviewImage *preview = BKE_previewimg_id_get(queue_entry->id);
+    if (!preview) {
+      continue;
+    }
+    if (preview->flag[queue_entry->size] & PRV_USER_EDITED) {
+      /* Don't touch custom previews. */
+      continue;
+    }
+
+    BKE_previewimg_clear_single(preview, queue_entry->size);
+    UI_icon_render_id(C, NULL, queue_entry->id, queue_entry->size, true);
+
+    BLI_freelinkN(&G_restart_previews_queue, queue_entry);
   }
 }
 

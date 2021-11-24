@@ -35,6 +35,7 @@
 
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -48,6 +49,7 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
+#include "ED_render.h"
 #include "ED_undo.h"
 #include "ED_util.h"
 
@@ -142,6 +144,32 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   return IDWALK_RET_NOP;
 }
 
+/**
+ * ID previews may be generated in a parallel job. So whatever operation generates the preview
+ * likely does the undo push before the preview is actually done and stored in the ID. Hence they
+ * get some extra treatement here:
+ * When undoing back to the moment the preview generation was triggered, this function schedules
+ * the preview for regeneration.
+ */
+static void memfile_undosys_unfinished_id_previews_restart(ID *id)
+{
+  PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (!preview) {
+    return;
+  }
+
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if (preview->flag[i] & PRV_USER_EDITED) {
+      /* Don't modify custom previews. */
+      continue;
+    }
+
+    if (!BKE_previewimg_is_finished(preview, i)) {
+      ED_preview_restart_queue_add(id, i);
+    }
+  }
+}
+
 static void memfile_undosys_step_decode(struct bContext *C,
                                         struct Main *bmain,
                                         UndoStep *us_p,
@@ -188,6 +216,9 @@ static void memfile_undosys_step_decode(struct bContext *C,
   }
 
   ED_editors_exit(bmain, false);
+  /* Ensure there's no preview job running. Unfinished previews will be scheduled for regeneration
+   * via #memfile_undosys_unfinished_id_previews_restart(). */
+  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
   BKE_memfile_undo_decode(us->data, undo_direction, use_old_bmain_data, C);
@@ -239,6 +270,9 @@ static void memfile_undosys_step_decode(struct bContext *C,
               bmain, &scene->master_collection->id, scene->master_collection->id.recalc);
         }
       }
+
+      /* Restart preview generation if the undo state was generating previews. */
+      memfile_undosys_unfinished_id_previews_restart(id);
     }
     FOREACH_MAIN_ID_END;
 
@@ -260,6 +294,14 @@ static void memfile_undosys_step_decode(struct bContext *C,
           scene->master_collection->id.recalc_after_undo_push = 0;
         }
       }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+  else {
+    ID *id = NULL;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      /* Restart preview generation if the undo state was generating previews. */
+      memfile_undosys_unfinished_id_previews_restart(id);
     }
     FOREACH_MAIN_ID_END;
   }
