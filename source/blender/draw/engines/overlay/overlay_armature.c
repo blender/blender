@@ -26,6 +26,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -39,6 +40,7 @@
 #include "BKE_armature.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -51,6 +53,8 @@
 #include "draw_manager_text.h"
 
 #include "overlay_private.h"
+
+#include "draw_cache_impl.h"
 
 #define BONE_VAR(eBone, pchan, var) ((eBone) ? (eBone->var) : (pchan->var))
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
@@ -535,13 +539,22 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
                                           const float outline_color[4],
                                           Object *custom)
 {
+  /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
+   * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
+   * other data type, but supporting all evaluated geometry components would require a much larger
+   * refactor of this area. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh(custom);
+  if (mesh == NULL) {
+    return;
+  }
+
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  drw_batch_cache_validate(custom);
+  DRW_mesh_batch_cache_validate(mesh);
 
-  struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
-  struct GPUBatch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
-  struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
+  struct GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
+  struct GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, NULL);
+  struct GPUBatch *ledges = DRW_mesh_batch_cache_get_loose_edges(mesh);
   BoneInstanceData inst_data;
   DRWCallBuffer *buf;
 
