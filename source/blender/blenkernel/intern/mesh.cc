@@ -442,13 +442,15 @@ static int customdata_compare(
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
 
   for (int i = 0; i < c1->totlayer; i++) {
-    if (CD_TYPE_AS_MASK(c1->layers[i].type) & cd_mask_all_attr) {
+    l1 = &c1->layers[i];
+    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l1->anonymous_id != nullptr) {
       layer_count1++;
     }
   }
 
   for (int i = 0; i < c2->totlayer; i++) {
-    if (CD_TYPE_AS_MASK(c2->layers[i].type) & cd_mask_all_attr) {
+    l2 = &c2->layers[i];
+    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l2->anonymous_id != nullptr) {
       layer_count2++;
     }
   }
@@ -464,7 +466,8 @@ static int customdata_compare(
     l1 = c1->layers + i1;
     for (int i2 = 0; i2 < c2->totlayer; i2++) {
       l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name)) {
+      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l1->anonymous_id != nullptr ||
+          l2->anonymous_id != nullptr) {
         continue;
       }
       /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
