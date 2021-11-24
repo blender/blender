@@ -282,7 +282,12 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 /** Bounding box from evaluated geometry. */
 static void object_sync_boundbox_to_original(Object *object_orig, Object *object_eval)
 {
-  BoundBox *bb = BKE_object_boundbox_get(object_eval);
+  BoundBox *bb = object_eval->runtime.bb;
+  if (!bb || (bb->flag & BOUNDBOX_DIRTY)) {
+    BKE_object_boundbox_calc_from_evaluated_geometry(object_eval);
+  }
+
+  bb = BKE_object_boundbox_get(object_eval);
   if (bb != NULL) {
     if (object_orig->runtime.bb == NULL) {
       object_orig->runtime.bb = MEM_mallocN(sizeof(*object_orig->runtime.bb), __func__);
