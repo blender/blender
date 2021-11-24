@@ -66,8 +66,6 @@
 
 using blender::IndexRange;
 
-static void boundbox_displist_object(Object *ob);
-
 static void displist_elem_free(DispList *dl)
 {
   if (dl) {
@@ -1528,7 +1526,9 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
     ob->runtime.geometry_set_eval = new GeometrySet(std::move(geometry));
   }
 
-  boundbox_displist_object(ob);
+  if (ob->runtime.bb) {
+    ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
+  }
 }
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
@@ -1549,32 +1549,5 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
     /* there's no geometry in displist, use zero-sized boundbox */
     zero_v3(min);
     zero_v3(max);
-  }
-}
-
-/* this is confusing, there's also min_max_object, applying the obmat... */
-static void boundbox_displist_object(Object *ob)
-{
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT));
-  /* Curve's BB is already calculated as a part of modifier stack,
-   * here we only calculate object BB based on final display list. */
-
-  /* object's BB is calculated from final displist */
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
-  }
-
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  if (mesh_eval) {
-    BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
-  }
-  else {
-    float min[3], max[3];
-
-    INIT_MINMAX(min, max);
-    BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-
-    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
   }
 }
