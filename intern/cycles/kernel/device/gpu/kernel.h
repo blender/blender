@@ -547,6 +547,33 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
 #endif
 }
 
+#ifdef __KERNEL_METAL__
+
+/* Fetch into a local variable on Metal - there is minimal overhead. Templating the
+ * film_get_pass_pixel_... functions works on MSL, but not on other compilers. */
+#  define FILM_GET_PASS_PIXEL_F32(variant, input_channel_count) \
+    float local_pixel[4]; \
+    film_get_pass_pixel_##variant(&kfilm_convert, buffer, local_pixel); \
+    if (input_channel_count >= 1) { \
+      pixel[0] = local_pixel[0]; \
+    } \
+    if (input_channel_count >= 2) { \
+      pixel[1] = local_pixel[1]; \
+    } \
+    if (input_channel_count >= 3) { \
+      pixel[2] = local_pixel[2]; \
+    } \
+    if (input_channel_count >= 4) { \
+      pixel[3] = local_pixel[3]; \
+    }
+
+#else
+
+#  define FILM_GET_PASS_PIXEL_F32(variant, input_channel_count) \
+    film_get_pass_pixel_##variant(&kfilm_convert, buffer, pixel);
+
+#endif
+
 #define KERNEL_FILM_CONVERT_VARIANT(variant, input_channel_count) \
   ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS) \
       ccl_gpu_kernel_signature(film_convert_##variant, \
@@ -574,7 +601,7 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
     ccl_global float *pixel = pixels + \
                               (render_pixel_index + rgba_offset) * kfilm_convert.pixel_stride; \
 \
-    film_get_pass_pixel_##variant(&kfilm_convert, buffer, pixel); \
+    FILM_GET_PASS_PIXEL_F32(variant, input_channel_count); \
   } \
 \
   ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS) \
