@@ -1002,10 +1002,10 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
     DWORD pos = GetMessagePos();
     int x = GET_X_LPARAM(pos);
     int y = GET_Y_LPARAM(pos);
+    GHOST_TabletData td = wt->getLastTabletData();
 
-    /* TODO supply tablet data */
     system->pushEvent(new GHOST_EventCursor(
-        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, GHOST_TABLET_DATA_NONE));
+        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, td));
   }
 }
 
