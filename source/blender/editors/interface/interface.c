@@ -2062,24 +2062,11 @@ void UI_block_draw(const bContext *C, uiBlock *block)
     ui_draw_menu_back(&style, block, &rect);
   }
   else if (block->panel) {
-    bool show_background = region->alignment != RGN_ALIGN_FLOAT;
-    if (show_background) {
-      if (block->panel->type && (block->panel->type->flag & PANEL_TYPE_NO_HEADER)) {
-        if (region->regiontype == RGN_TYPE_TOOLS) {
-          /* We never want a background around active tools. */
-          show_background = false;
-        }
-        else {
-          /* Without a header there is no background except for region overlap. */
-          show_background = region->overlap != 0;
-        }
-      }
-    }
     ui_draw_aligned_panel(&style,
                           block,
                           &rect,
                           UI_panel_category_is_visible(region),
-                          show_background,
+                          UI_panel_should_show_background(region, block->panel->type),
                           region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE);
   }
 

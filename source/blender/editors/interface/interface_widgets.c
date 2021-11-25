@@ -101,6 +101,10 @@ typedef enum {
 
   UI_WTYPE_PULLDOWN,
   UI_WTYPE_MENU_ITEM,
+  /* Same as #UI_WTYPE_MENU_ITEM, but doesn't add padding to sides for text & icon inside the
+   * widget. To be used when multiple menu items should be displayed close to each other
+   * horizontally. */
+  UI_WTYPE_MENU_ITEM_UNPADDED,
   UI_WTYPE_MENU_ITEM_RADIAL,
   UI_WTYPE_MENU_BACK,
 
@@ -4081,6 +4085,27 @@ static void widget_menu_itembut(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_menu_itembut_unpadded(uiWidgetColors *wcol,
+                                         rcti *rect,
+                                         int UNUSED(state),
+                                         int UNUSED(roundboxalign),
+                                         const float zoom)
+{
+  /* This function is used for menu items placed close to each other horizontally, e.g. the matcap
+   * preview popup or the row of collection color icons in the Outliner context menu. Don't use
+   * padding on the sides like the normal menu item. */
+
+  uiWidgetBase wtb;
+  widget_init(&wtb);
+
+  /* No outline. */
+  wtb.draw_outline = false;
+  const float rad = widget_radius_from_zoom(zoom, wcol);
+  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+
+  widgetbase_draw(&wtb, wcol);
+}
+
 static void widget_menu_radial_itembut(uiBut *but,
                                        uiWidgetColors *wcol,
                                        rcti *rect,
@@ -4486,6 +4511,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.state = widget_state_menu_item;
       break;
 
+    case UI_WTYPE_MENU_ITEM_UNPADDED:
+      wt.wcol_theme = &btheme->tui.wcol_menu_item;
+      wt.draw = widget_menu_itembut_unpadded;
+      wt.state = widget_state_menu_item;
+      break;
+
     case UI_WTYPE_MENU_BACK:
       wt.wcol_theme = &btheme->tui.wcol_menu_back;
       wt.draw = widget_menu_back;
@@ -4648,9 +4679,12 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
       case UI_BTYPE_SEPR_LINE:
         ui_draw_separator(rect, &tui->wcol_menu_item);
         break;
-      default:
-        wt = widget_type(UI_WTYPE_MENU_ITEM);
+      default: {
+        const bool use_unpadded = (but->flag & UI_BUT_ICON_PREVIEW) ||
+                                  ((but->flag & UI_HAS_ICON) && !but->drawstr[0]);
+        wt = widget_type(use_unpadded ? UI_WTYPE_MENU_ITEM_UNPADDED : UI_WTYPE_MENU_ITEM);
         break;
+      }
     }
   }
   else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
@@ -5526,7 +5560,7 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
                           int state,
                           eFontStyle_Align text_align)
 {
-  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
+  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM_UNPADDED);
 
   /* drawing button background */
   wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
