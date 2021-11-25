@@ -66,6 +66,9 @@ places in rna_engine_codebase are relevent:
 #  ifdef MAKE_CURVE
 #    undef MAKE_CURVE
 #  endif
+#  ifdef MAKE_CURVE_EX
+#    undef MAKE_CURVE_EX
+#  endif
 
 #  ifdef MAKE_BUILTIN_CH_DEF
 #    undef MAKE_BUILTIN_CH_DEF
@@ -109,6 +112,8 @@ places in rna_engine_codebase are relevent:
 #  define MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, flag1, enumdef1, ...) \
     MAKE_BUILTIN_CH_DEF(idname1);
 #  define MAKE_CURVE(idname1, name1, tooltip1, preset1) MAKE_BUILTIN_CH_DEF(idname1);
+#  define MAKE_CURVE_EX(idname1, name1, tooltip1, preset1, flag, preset_slope_neg) \
+    MAKE_BUILTIN_CH_DEF(idname1);
 #else
 #endif
 
@@ -195,6 +200,8 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   })
 
   MAKE_FLOAT_EX(spacing,"Spacing","",10.0f,0.25f,1000.0f,1.0f,200.0f,false)
+  MAKE_BOOL(use_scene_spacing, "Scene Spacing", "Space brush in 3d space", false)
+
   MAKE_FLOAT_EX(topology_rake,"Topology Rake","Automatically align edges to the brush direction to "
     "generate cleaner topology and define sharp features. "
     "Best used on low-poly meshes as it has a performance impact",0.0f,0.0f,5.0f,0.0f,2.0f,false)
@@ -337,7 +344,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   MAKE_FLOAT(concave_mask_factor,"Cavity Factor","",0.35f,0.0f,1.0f)
   MAKE_INT_EX(automasking_boundary_edges_propagation_steps,"Propagation Steps",
     "Distance where boundary edge automasking is going to protect vertices "
-    "from the fully masked edge",1,1,20,1,3)
+    "from the fully masked edge",1,1,20,1,10)
   MAKE_COLOR4(cursor_color_add,"Add Color","Color of cursor when adding",1.0f,0.39f,0.39f,1.0f)
   MAKE_COLOR4(cursor_color_sub,"Subtract Color","Color of cursor when subtracting",0.39f,0.39f,1.0f,1.0f)
   MAKE_COLOR3(color,"Color","",1.0f,1.0f,1.0f)
@@ -465,9 +472,18 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
       {-1}
     })
 
-  MAKE_CURVE(autosmooth_falloff_curve,"Autosmooth Falloff","Custom curve for autosmooth",BRUSH_CURVE_SMOOTH)
-  MAKE_CURVE(topology_rake_falloff_curve,"Rake Falloff","Custom curve for topolgoy rake",BRUSH_CURVE_SMOOTH)
-  MAKE_CURVE(falloff_curve,"Falloff","Falloff curve",BRUSH_CURVE_SMOOTH)
+  MAKE_CURVE_EX(falloff_curve,"Falloff","Falloff curve",BRUSH_CURVE_SMOOTH, 0, true)
+  MAKE_ENUM(falloff_shape, "Falloff Shape", "Use projected or spherical falloff", 0, {\
+      {PAINT_FALLOFF_SHAPE_SPHERE, "SPHERE", "NONE", "Sphere", "Apply brush influence in a Sphere, outwards from the center"},
+      {PAINT_FALLOFF_SHAPE_TUBE,
+       "PROJECTED",
+       "NONE",
+       "Projected",
+       "Apply brush influence in a 2D circle, projected from the view"},
+      {-1},
+})
+  MAKE_CURVE_EX(autosmooth_falloff_curve,"Autosmooth Falloff","Custom curve for autosmooth",BRUSH_CURVE_SMOOTH, 0, true)
+  MAKE_CURVE_EX(topology_rake_falloff_curve,"Rake Falloff","Custom curve for topolgoy rake",BRUSH_CURVE_SMOOTH, 0, true)
   MAKE_FLOAT_EX(unprojected_radius,"Unprojected Radius","Radius of brush in Blender units",0.1f,0.001f,FLT_MAX,0.001f,1.0f,false)
   MAKE_ENUM_EX(radius_unit,"Radius Unit","Measure brush size relative to the view or the scene",0,BRUSH_CHANNEL_SHOW_IN_WORKSPACE,{\
     {0, "VIEW", "NONE", "View", "Measure brush size relative to the view"},
@@ -668,5 +684,8 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
 
 #  ifdef MAKE_CURVE
 #    undef MAKE_CURVE
+#  endif
+#  ifdef MAKE_CURVE_EX
+#    undef MAKE_CURVE_EX
 #  endif
 #endif

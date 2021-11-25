@@ -205,6 +205,17 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
   .curve_preset = preset1,\
 },
 
+#  define MAKE_CURVE_EX(idname1, name1, tooltip1, preset1, flag1, preset_slope_neg) \
+{\
+  .idname = #idname1,\
+  .name = name1,\
+  .tooltip = tooltip1,\
+  .type = BRUSH_CHANNEL_TYPE_CURVE,\
+  .curve_preset = preset1,\
+  .flag = flag1,\
+  .curve_preset_slope_neg = preset_slope_neg,\
+},
+
 /*
 This is where all the builtin brush channels are defined.
 That includes per-brush enums and bitflags!
@@ -413,15 +424,11 @@ static bool check_builtin_init()
 #ifdef ADDCH
 #  undef ADDCH
 #endif
-#ifdef GETCH
-#  undef GETCH
-#endif
 
 /* TODO: replace these two macros with equivalent BRUSHSET_XXX ones */
 #define ADDCH(name) \
   (BKE_brush_channelset_ensure_builtin(chset, BRUSH_BUILTIN_##name), \
    BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name))
-#define GETCH(name) BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name)
 
 /* create pointer map between brush channels and old brush settings */
 
@@ -519,6 +526,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(array_count, array_count, INT, INT)
   DEF(smear_deform_type, smear_deform_type, INT, INT)
   DEF(slide_deform_type, slide_deform_type, INT, INT)
+  DEF(falloff_shape, falloff_shape, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -593,6 +601,7 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, accumulate, BRUSH_ACCUMULATE)
   DEF(flag, use_smooth_stroke, BRUSH_SMOOTH_STROKE)
   DEFBIT(flag, jitter_unit, BRUSH_ABSOLUTE_JITTER, BRUSH_ABSOLUTE_JITTER)
+  DEF(flag, use_scene_spacing, BRUSH_SCENE_SPACING)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -1039,10 +1048,46 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(radius);
   ADDCH(spacing);
+
+  if (!BRUSHSET_LOOKUP(chset, use_scene_spacing)) {
+    BrushChannel *ch = ADDCH(use_scene_spacing);
+    BrushMapping *mp = ch->mappings + BRUSH_MAPPING_PRESSURE;
+
+    mp->max = 1.5;
+    mp->flag |= BRUSH_MAPPING_ENABLED | BRUSH_MAPPING_INVERT;
+  }
+
+  if (!BRUSHSET_LOOKUP(chset, falloff_shape)) {
+    ADDCH(falloff_shape);
+    BRUSHSET_SET_INT(chset, falloff_shape, brush->falloff_shape);
+  }
+
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
   ADDCH(use_frontface);
+
+  /* if falloff curve hannel doesn't already exist, load it from
+     field in Brush */
+  if (!BRUSHSET_LOOKUP(chset, falloff_curve)) {
+    BrushChannel *ch = ADDCH(falloff_curve);
+
+    ch->curve.preset = brush->curve_preset;
+
+    if (brush->curve) {
+      ch->curve.curve = BKE_curvemapping_copy(brush->curve);
+      BKE_curvemapping_init(brush->curve);
+    }
+    else {
+      ch->curve.curve = MEM_callocN(sizeof(*ch->curve.curve), "ch->curve.curve");
+
+      BKE_curvemap_reset(ch->curve.curve->cm,
+                         &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                         CURVE_PRESET_SMOOTH,
+                         1);
+      BKE_curvemapping_init(ch->curve.curve);
+    }
+  }
 
   ADDCH(sharp_mode);
   ADDCH(show_origco);
@@ -1638,17 +1683,21 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
 
   BKE_brush_builtin_patch(brush, tool);
 
-  GETCH(dyntopo_detail_mode)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_mode)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_detail_range)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_detail_percent)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_detail_size)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_constant_detail)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_spacing)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(dyntopo_radius_scale)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, use_scene_spacing)->mappings[BRUSH_MAPPING_PRESSURE].max = 1.5;
+  BRUSHSET_LOOKUP(chset, use_scene_spacing)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+      BRUSH_MAPPING_ENABLED | BRUSH_MAPPING_INVERT;
 
-  // GETCH(strength)->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH(radius)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_detail_mode)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_mode)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_detail_range)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_detail_percent)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_detail_size)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_constant_detail)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_spacing)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, dyntopo_radius_scale)->flag |= BRUSH_CHANNEL_INHERIT;
+
+  // BRUSHSET_LOOKUP(chset, strength)->flag |= BRUSH_CHANNEL_INHERIT;
+  BRUSHSET_LOOKUP(chset, radius)->flag |= BRUSH_CHANNEL_INHERIT;
 
   ADDCH(area_radius_factor);
 
@@ -1683,9 +1732,9 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
     case SCULPT_TOOL_SCENE_PROJECT:
-      GETCH(spacing)->fvalue = 10;
-      GETCH(strength)->fvalue = 1.0f;
-      GETCH(dyntopo_disabled)->ivalue = 1;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 10;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 1.0f;
+      BRUSHSET_LOOKUP(chset, dyntopo_disabled)->ivalue = 1;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_SMEAR:
@@ -1704,10 +1753,10 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      GETCH(spacing)->fvalue = 10;
-      GETCH(strength)->fvalue = 1.0f;
-      GETCH(dyntopo_disabled)->ivalue = 1;
-      GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 10;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 1.0f;
+      BRUSHSET_LOOKUP(chset, dyntopo_disabled)->ivalue = 1;
+      BRUSHSET_LOOKUP(chset, slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
     case SCULPT_TOOL_PAINT: {
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
@@ -1721,16 +1770,18 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     }
     case SCULPT_TOOL_CLAY:
-      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
 
-      GETCH(spacing)->fvalue = 3;
-      GETCH(autosmooth)->fvalue = 0.25f;
-      GETCH(normal_radius_factor)->fvalue = 0.75f;
-      GETCH(hardness)->fvalue = 0.65;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 3;
+      BRUSHSET_LOOKUP(chset, autosmooth)->fvalue = 0.25f;
+      BRUSHSET_LOOKUP(chset, normal_radius_factor)->fvalue = 0.75f;
+      BRUSHSET_LOOKUP(chset, hardness)->fvalue = 0.65;
 
       // ADDCH(autosmooth_falloff_curve);
-      // GETCH(autosmooth_falloff_curve)->curve.preset = BRUSH_CURVE_SPHERE;
+      // BRUSHSET_LOOKUP(chset, autosmooth_falloff_curve)->curve.preset = BRUSH_CURVE_SPHERE;
 
       BRUSHSET_SET_BOOL(chset, autosmooth_use_spacing, true);
       BRUSHSET_SET_FLOAT(chset, autosmooth_spacing, 7);
@@ -1738,10 +1789,10 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       reset_clay_mappings(chset, false);
       break;
     case SCULPT_TOOL_TWIST:
-      GETCH(strength)->fvalue = 0.5f;
-      GETCH(normal_radius_factor)->fvalue = 1.0f;
-      GETCH(spacing)->fvalue = 6;
-      GETCH(hardness)->fvalue = 0.5;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.5f;
+      BRUSHSET_LOOKUP(chset, normal_radius_factor)->fvalue = 1.0f;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 6;
+      BRUSHSET_LOOKUP(chset, hardness)->fvalue = 0.5;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_CLAY_THUMB:
@@ -1753,22 +1804,25 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
           ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {
-      // GETCH(falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
+      // BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
 
-      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
 
-      GETCH(strength)->flag &= ~BRUSH_CHANNEL_INHERIT;
+      BRUSHSET_LOOKUP(chset, strength)->flag &= ~BRUSH_CHANNEL_INHERIT;
 
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
 
-      GETCH(tip_roundness)->fvalue = 0.18f;
-      GETCH(normal_radius_factor)->fvalue = 1.35f;
-      GETCH(strength)->fvalue = 0.8f;
-      GETCH(accumulate)->ivalue = 1;
-      GETCH(spacing)->fvalue = 7.0f;
+      BRUSHSET_LOOKUP(chset, tip_roundness)->fvalue = 0.18f;
+      BRUSHSET_LOOKUP(chset, normal_radius_factor)->fvalue = 1.35f;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.8f;
+      BRUSHSET_LOOKUP(chset, accumulate)->ivalue = 1;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 7.0f;
 
-      BKE_brush_mapping_ensure_write(&GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE]);
+      BKE_brush_mapping_ensure_write(
+          &BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE]);
 
       reset_clay_mappings(chset, true);
 
@@ -1796,57 +1850,62 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       ADDCH(use_multiplane_scrape_dynamic);
       ADDCH(show_multiplane_scrape_planes_preview);
 
-      GETCH(strength)->fvalue = 0.7f;
-      GETCH(normal_radius_factor)->fvalue = 0.7f;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.7f;
+      BRUSHSET_LOOKUP(chset, normal_radius_factor)->fvalue = 0.7f;
 
       ADDCH(multiplane_scrape_angle);
-      GETCH(spacing)->fvalue = 5.0f;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 5.0f;
       break;
     case SCULPT_TOOL_CREASE:
-      GETCH(direction)->ivalue = true;
-      GETCH(strength)->fvalue = 0.25f;
-      GETCH(crease_pinch_factor)->fvalue = 0.5f;
+      BRUSHSET_LOOKUP(chset, direction)->ivalue = true;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.25f;
+      BRUSHSET_LOOKUP(chset, crease_pinch_factor)->fvalue = 0.5f;
       break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
-      GETCH(strength)->fvalue = 0.7f;
-      GETCH(area_radius_factor)->fvalue = 0.5f;
-      GETCH(spacing)->fvalue = 7.0f;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.7f;
+      BRUSHSET_LOOKUP(chset, area_radius_factor)->fvalue = 0.5f;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 7.0f;
       ADDCH(invert_to_scrape_fill);
-      GETCH(invert_to_scrape_fill)->ivalue = true;
-      GETCH(accumulate)->ivalue = true;
+      BRUSHSET_LOOKUP(chset, invert_to_scrape_fill)->ivalue = true;
+      BRUSHSET_LOOKUP(chset, accumulate)->ivalue = true;
       break;
     case SCULPT_TOOL_ROTATE:
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
-      GETCH(strength)->fvalue = 1.0;
-      GETCH(dyntopo_disabled)->ivalue = true;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 1.0;
+      BRUSHSET_LOOKUP(chset, dyntopo_disabled)->ivalue = true;
       break;
     case SCULPT_TOOL_CLOTH:
       BRUSHSET_SET_BOOL(chset, cloth_pin_simulation_boundary, true);
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
-      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_GRAB:
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->fvalue = 0.4f;
-      GETCH(radius)->fvalue = 75.0f;
-      GETCH(dyntopo_disabled)->ivalue = 1;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 0.4f;
+      BRUSHSET_LOOKUP(chset, radius)->fvalue = 75.0f;
+      BRUSHSET_LOOKUP(chset, dyntopo_disabled)->ivalue = 1;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
 
-      GETCH(dyntopo_mode)->ivalue = DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_SUBDIVIDE;
-      GETCH(dyntopo_mode)->flag = BRUSH_CHANNEL_INHERIT_IF_UNSET;
-      GETCH(strength)->fvalue = 1.0f;
+      BRUSHSET_LOOKUP(chset, dyntopo_mode)->ivalue = DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      BRUSHSET_LOOKUP(chset, dyntopo_mode)->flag = BRUSH_CHANNEL_INHERIT_IF_UNSET;
+      BRUSHSET_LOOKUP(chset, strength)->fvalue = 1.0f;
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);
 
@@ -1860,13 +1919,15 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_BOUNDARY:
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);
       break;
     case SCULPT_TOOL_POSE:
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);

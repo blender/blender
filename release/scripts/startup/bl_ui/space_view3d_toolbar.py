@@ -425,7 +425,7 @@ class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
 
 class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Workspace Settings Preview"
 
     @classmethod
@@ -454,7 +454,7 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 14
@@ -473,7 +473,7 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
 
 class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Color Picker"
 
     @classmethod
@@ -500,7 +500,7 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
     bl_label = "Persistent Base"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -710,7 +710,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_display(Panel, View3DPaintBrushPanel, DisplayPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Cursor"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
@@ -719,7 +719,7 @@ class VIEW3D_PT_tools_brush_display(Panel, View3DPaintBrushPanel, DisplayPanel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -753,7 +753,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel, TextureMaskPanel):
     bl_category = "Tool"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -779,7 +779,7 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel, TextureMaskPanel):
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel, StrokePanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Stroke"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_options = {'DEFAULT_CLOSED'}
 
 
@@ -826,15 +826,15 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
-    bl_label = "Falloff"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    bl_label = ""
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Front-Face Falloff"
-    bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
+    #bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1279,12 +1279,12 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             context,
             brush,
             "automasking_boundary_edges_propagation_steps",
-            toolsettings_only=True, ui_editing=False)
+            ui_editing=False)
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "concave_mask_factor",
-            toolsettings_only=True, ui_editing=False, slider=True, show_mappings=True)
+            ui_editing=False, slider=True, show_mappings=True)
 
         """
         col = layout.column(heading="Auto-Masking", align=True)

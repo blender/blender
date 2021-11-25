@@ -4394,7 +4394,7 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   mv->flag &= ~SCULPTVERT_NEED_VALENCE;
 }
 
-void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
+ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          MVert *mvert,
                                          MEdge *medge,
                                          MLoop *mloop,

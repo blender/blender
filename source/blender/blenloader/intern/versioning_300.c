@@ -2633,6 +2633,39 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
+
+  /* fix custom presets of autosmooth/toplogy-rake falloff curves */
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      const char *names[] = {"autosmooth_falloff_curve", "topology_rake_falloff_curve"};
+
+      LISTBASE_FOREACH (BrushChannel *, ch, &brush->channels->channels) {
+        if (ch->type != BRUSH_CHANNEL_TYPE_CURVE) {
+          continue;
+        }
+
+        bool ok = false;
+        for (int i = 0; i < ARRAY_SIZE(names); i++) {
+          if (STREQ(names[i], ch->idname)) {
+            ok = true;
+            break;
+          }
+        }
+
+        if (ok) {
+          BrushChannelType *def = ch->def;
+
+          BKE_brush_channel_free_data(ch);
+          BKE_brush_channel_init(ch, def);
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

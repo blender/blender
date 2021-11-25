@@ -361,6 +361,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
   string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\2" CUDA_VERSION_MINOR "${NVCC_OUT}")
   set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
+
   # warn for other versions
   if((CUDA_VERSION MATCHES "101") OR
      (CUDA_VERSION MATCHES "102") OR
@@ -406,6 +407,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -D CCL_NAMESPACE_BEGIN=
       -D CCL_NAMESPACE_END=
       -D NVCC
+      -allow-unsupported-compiler
       -m ${CUDA_BITS}
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda

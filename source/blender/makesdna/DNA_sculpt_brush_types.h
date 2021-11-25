@@ -48,7 +48,9 @@ typedef struct BrushMapping {
 
 typedef struct BrushCurve {
   CurveMapping *curve;
-  int preset, _pad[1];  // see eBrushCurvePreset, this differs from the one in BrushMappingDef
+  int preset;  // see eBrushCurvePreset, this differs from the one in BrushMappingDef
+  char preset_slope_negative;
+  char _pad[3];
 } BrushCurve;
 
 typedef struct BrushChannel {

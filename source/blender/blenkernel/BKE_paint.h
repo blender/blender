@@ -218,8 +218,9 @@ void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       float rotation);
 
 void BKE_paint_stroke_get_average(struct Scene *scene, struct Object *ob, float stroke[3]);
+bool BKE_paint_uses_channels(ePaintMode mode);
 
-/* Tool slot API. */
+    /* Tool slot API. */
 void BKE_paint_toolslots_init_from_main(struct Main *bmain);
 void BKE_paint_toolslots_len_ensure(struct Paint *paint, int len);
 void BKE_paint_toolslots_brush_update_ex(struct Paint *paint, struct Brush *brush);

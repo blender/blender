@@ -474,6 +474,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
   ch->flag = def->flag;
 
   ch->curve.preset = def->curve_preset;
+  ch->curve.preset_slope_negative = def->curve_preset_slope_neg;
   ch->fvalue = def->fvalue;
   ch->ivalue = def->ivalue;
   copy_v4_v4(ch->vector, def->vector);
@@ -550,12 +551,29 @@ CurveMapping *BKE_brush_channel_curvemapping_get(BrushCurve *curve, bool force_c
   if ((force_create || curve->preset == BRUSH_CURVE_CUSTOM) && !curve->curve) {
     CurveMapping *cumap = curve->curve = MEM_callocN(sizeof(CurveMapping), "channel CurveMapping");
 
-    BKE_curvemapping_set_defaults(cumap, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+    int preset = CURVE_PRESET_LINE;
 
+    /* brush and curvemapping presets aren't perfectly compatible,
+       try to convert in reasonable manner*/
+    switch (curve->preset) {
+      case BRUSH_CURVE_SMOOTH:
+      case BRUSH_CURVE_SMOOTHER:
+        preset = CURVE_PRESET_SMOOTH;
+        break;
+
+      case BRUSH_CURVE_SHARP:
+        preset = CURVE_PRESET_SHARP;
+        break;
+      case BRUSH_CURVE_POW4:
+        preset = CURVE_PRESET_POW3;
+        break;
+    }
+
+    BKE_curvemapping_set_defaults(cumap, 1, 0.0f, 0.0f, 1.0f, 1.0f);
     BKE_curvemap_reset(cumap->cm,
                        &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
-                       CURVE_PRESET_LINE,
-                       1);
+                       preset,
+                       curve->preset_slope_negative ? 0 : 1);
 
     BKE_curvemapping_init(cumap);
   }
@@ -1143,10 +1161,31 @@ void BKE_brush_channel_set_int(BrushChannel *ch, int val)
   ch->ivalue = val;
 }
 
-void brush_channel_apply_mapping_flags(BrushChannel *ch, BrushChannel *child, BrushChannel *parent)
+bool BKE_brush_mapping_is_enabled(BrushChannel *child, BrushChannel *parent, int mapping)
+{
+  if (child && parent) {
+    if (brush_mapping_inherits(child, child->mappings + mapping)) {
+      return child->mappings[mapping].flag & BRUSH_MAPPING_ENABLED;
+    }
+    else {
+      return parent->mappings[mapping].flag & BRUSH_MAPPING_ENABLED;
+    }
+  }
+  else if (child) {
+    return child->mappings[mapping].flag & BRUSH_MAPPING_ENABLED;
+  }
+  else if (parent) {
+    return parent->mappings[mapping].flag & BRUSH_MAPPING_ENABLED;
+  }
+  else {
+    return false;
+  }
+}
+
+void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst, BrushChannel *child, BrushChannel *parent)
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-    BrushMapping *mp = ch->mappings + i;
+    BrushMapping *mp = dst->mappings + i;
     BrushMapping *cmp = child ? child->mappings + i : NULL;
     BrushMapping *pmp = parent ? parent->mappings + i : NULL;
 
@@ -1202,7 +1241,7 @@ int BKE_brush_channelset_get_final_int(BrushChannelSet *child,
 
   if (ch) {
     BrushChannel cpy = *ch;
-    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+    BKE_brush_channel_apply_mapping_flags(&cpy, childch, parentch);
 
     return BKE_brush_channel_get_int(&cpy, mapdata);
   }
@@ -1250,7 +1289,7 @@ float BKE_brush_channelset_get_final_float(BrushChannelSet *child,
 
   if (ch) {
     BrushChannel cpy = *ch;
-    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+    BKE_brush_channel_apply_mapping_flags(&cpy, childch, parentch);
 
     return BKE_brush_channel_get_float(&cpy, mapdata);
   }
@@ -1350,7 +1389,7 @@ int BKE_brush_channelset_get_final_vector(BrushChannelSet *child,
 
   if (ch) {
     BrushChannel cpy = *ch;
-    brush_channel_apply_mapping_flags(&cpy, childch, parentch);
+    BKE_brush_channel_apply_mapping_flags(&cpy, childch, parentch);
 
     return BKE_brush_channel_get_vector(&cpy, r_vec, mapdata);
   }

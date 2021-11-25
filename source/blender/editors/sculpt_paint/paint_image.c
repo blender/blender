@@ -554,7 +554,7 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
     return;
   }
 
-  if (BKE_brush_use_alpha_pressure(brush)) {
+  if (BKE_brush_use_alpha_pressure(scene->toolsettings, brush, paint_use_channels(C))) {
     BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * pressure * alphafac));
   }
   else {

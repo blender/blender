@@ -178,11 +178,12 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
   return true;
 }
 
-static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
+static bool paint_stroke_use_scene_spacing(ToolSettings *ts, Brush *brush, ePaintMode mode)
 {
   switch (mode) {
     case PAINT_MODE_SCULPT:
-      return brush->flag & BRUSH_SCENE_SPACING;
+      return BRUSHSET_GET_FINAL_BOOL(brush->channels, ts->sculpt->channels, use_scene_spacing, NULL);
+      //return brush->flag & BRUSH_SCENE_SPACING;
     default:
       break;
   }
@@ -304,7 +305,8 @@ static bool paint_brush_update(bContext *C,
   ups->pixel_radius = BKE_brush_size_get(scene, brush, mode == PAINT_MODE_SCULPT);
   ups->initial_pixel_radius = BKE_brush_size_get(scene, brush, mode == PAINT_MODE_SCULPT);
 
-  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, mode)) {
+  if (BKE_brush_use_size_pressure(scene->toolsettings, brush, BKE_paint_uses_channels(mode)) &&
+      paint_supports_dynamic_size(brush, mode)) {
     ups->pixel_radius *= stroke->cached_size_pressure;
   }
 
@@ -521,7 +523,7 @@ static void paint_brush_stroke_add_step(bContext *C,
   copy_v2_v2(stroke->last_mouse_position, mouse_in);
   stroke->last_pressure = pressure;
 
-  if (paint_stroke_use_scene_spacing(brush, mode)) {
+  if (paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode)) {
     SCULPT_stroke_get_location(C, stroke->last_world_space_position, stroke->last_mouse_position);
     mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
   }
@@ -641,7 +643,7 @@ static float paint_space_stroke_spacing(bContext *C,
   }
   float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) *
                final_size_pressure;
-  if (paint_stroke_use_scene_spacing(brush, mode)) {
+  if (paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
       mul_v3_m4v3(
@@ -659,11 +661,36 @@ static float paint_space_stroke_spacing(bContext *C,
     size_clamp = max_ff(1.0f, size);
   }
 
-  float spacing = stroke->brush->spacing;
+  float spacing;
 
-  /* apply spacing pressure */
-  if (stroke->brush->flag & BRUSH_SPACING_PRESSURE) {
-    spacing = spacing * (1.5f - spacing_pressure);
+  if (paint_use_channels(C)) {
+    Object *ob = CTX_data_active_object(C);
+    SculptSession *ss = ob->sculpt;
+    Sculpt *sd = scene->toolsettings->sculpt;
+
+    BrushMappingData mapping = {0};
+
+    if (ss->cache) {
+      mapping = ss->cache->input_mapping;
+    }
+
+    /* apply spacing pressure */
+    //mapping.pressure = 1.5f - spacing_pressure;
+    mapping.pressure = spacing_pressure;
+
+    if (ss->cache && ss->cache->channels_final) {
+      spacing = BRUSHSET_GET_FLOAT(ss->cache->channels_final, spacing, &mapping);
+    }
+    else {
+      spacing = BRUSHSET_GET_FINAL_FLOAT(stroke->brush->channels, sd->channels, spacing, &mapping);
+    }
+  }
+  else {
+    spacing = stroke->brush->spacing;
+    /* apply spacing pressure */
+    if (stroke->brush->flag & BRUSH_SPACING_PRESSURE) {
+      spacing = spacing * (1.5f - spacing_pressure);
+    }
   }
 
   if (SCULPT_is_cloth_deform_brush(brush)) {
@@ -678,7 +705,7 @@ static float paint_space_stroke_spacing(bContext *C,
    * the fact that brush can be scaled there. */
   spacing *= stroke->zoom_2d;
 
-  if (paint_stroke_use_scene_spacing(brush, mode)) {
+  if (paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode)) {
     return max_ff(0.001f, size_clamp * spacing / 50.0f);
   }
   return max_ff(stroke->zoom_2d, size_clamp * spacing / 50.0f);
@@ -735,7 +762,7 @@ static float paint_space_get_final_size_intern(
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) * pressure;
 
-  if (paint_stroke_use_scene_spacing(stroke->brush, mode)) {
+  if (paint_stroke_use_scene_spacing(scene->toolsettings, stroke->brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, stroke->brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
       mul_v3_m4v3(
@@ -758,7 +785,9 @@ static float paint_space_get_final_size(bContext *C,
                                         float dpressure,
                                         float length)
 {
-  if (BKE_brush_use_size_pressure(stroke->brush)) {
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  if (BKE_brush_use_size_pressure(
+          scene->toolsettings, stroke->brush, BKE_paint_uses_channels(mode))) {
     /* use pressure to modify size. set spacing so that at 100%, the circles
      * are aligned nicely with no overlap. for this the spacing needs to be
      * the average of the previous and next size. */
@@ -789,7 +818,10 @@ static float paint_space_stroke_spacing_variable(bContext *C,
                                                  float dpressure,
                                                  float length)
 {
-  if (BKE_brush_use_size_pressure(stroke->brush)) {
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+  if (BKE_brush_use_size_pressure(
+          scene->toolsettings, stroke->brush, BKE_paint_uses_channels(mode))) {
     /* use pressure to modify size. set spacing so that at 100%, the circles
      * are aligned nicely with no overlap. for this the spacing needs to be
      * the average of the previous and next size. */
@@ -831,7 +863,7 @@ static int paint_space_stroke(bContext *C,
   Brush *brush = BKE_paint_brush(paint);
   int cnt = 0;
 
-  const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
+  const bool use_scene_spacing = paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode);
   float d_world_space_position[3] = {0.0f};
 
   float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
@@ -1220,7 +1252,7 @@ static void paint_line_strokes_spacing(bContext *C,
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   ARegion *region = CTX_wm_region(C);
 
-  const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
+  const bool use_scene_spacing = paint_stroke_use_scene_spacing(CTX_data_scene(C)->toolsettings, brush, mode);
 
   float mouse[2], dmouse[2];
   float length;
@@ -1377,7 +1409,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
           stroke->last_pressure = 1.0;
           copy_v2_v2(stroke->last_mouse_position, data + 2 * j);
 
-          if (paint_stroke_use_scene_spacing(br, BKE_paintmode_get_active_from_context(C))) {
+          if (paint_stroke_use_scene_spacing(scene->toolsettings, br, BKE_paintmode_get_active_from_context(C))) {
             stroke->stroke_over_mesh = SCULPT_stroke_get_location(
                 C, stroke->last_world_space_position, data + 2 * j);
             mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
@@ -1509,7 +1541,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     stroke->last_pressure = sample_average.pressure;
 
     copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
-    if (paint_stroke_use_scene_spacing(br, mode)) {
+    if (paint_stroke_use_scene_spacing(CTX_data_scene(C)->toolsettings, br, mode)) {
       stroke->stroke_over_mesh = SCULPT_stroke_get_location(
           C, stroke->last_world_space_position, sample_average.mouse);
       mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);

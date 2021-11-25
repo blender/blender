@@ -5357,11 +5357,17 @@ class VIEW3D_MT_sculpt_automasking_pie(Menu):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
 
-        pie.prop(sculpt, "use_automasking_topology", text="Topology")
-        pie.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
-        pie.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
-        pie.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        ch = UnifiedPaintPanel.get_channel(context, sculpt.brush, "automasking")
 
+        keys = ["TOPOLOGY", "FACE_SETS", "BOUNDARY_EDGE", "BOUNDARY_FACE_SETS"]
+
+        for item in ch.enum_items:
+            if item.identifier not in keys:
+                keys.append(item.identifier)
+
+        for key in keys:
+            print(key)
+            pie.prop_enum(ch, "value", key)
 
 class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
 

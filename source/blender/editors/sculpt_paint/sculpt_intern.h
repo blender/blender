@@ -49,6 +49,7 @@ struct Object;
 struct SculptUndoNode;
 struct bContext;
 struct BrushChannelSet;
+struct TaskParallelTLS;
 
 enum ePaintSymmetryFlags;
 

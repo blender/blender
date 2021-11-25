@@ -1575,7 +1575,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
     BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius, false);
   }
 
-  if (BKE_brush_use_size_pressure(brush) &&
+  if (BKE_brush_use_size_pressure(scene->toolsettings, brush, paint_use_channels(C)) &&
       paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
     cache->radius = cache->initial_radius * cache->pressure;
   }
@@ -1756,12 +1756,18 @@ static void get_brush_alpha_data(const Scene *scene,
                                  const Brush *brush,
                                  float *r_brush_size_pressure,
                                  float *r_brush_alpha_value,
-                                 float *r_brush_alpha_pressure)
+                                 float *r_brush_alpha_pressure,
+                                 bool use_channels)
 {
   *r_brush_size_pressure = BKE_brush_size_get(scene, brush, false) *
-                           (BKE_brush_use_size_pressure(brush) ? ss->cache->pressure : 1.0f);
+                           (BKE_brush_use_size_pressure(scene->toolsettings, brush, use_channels) ?
+                                ss->cache->pressure :
+                                1.0f);
   *r_brush_alpha_value = BKE_brush_alpha_get(scene, brush);
-  *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(brush) ? ss->cache->pressure : 1.0f);
+  *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(
+                                 scene->toolsettings, brush, use_channels) ?
+                                 ss->cache->pressure :
+                                 1.0f);
 }
 
 static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintInfo *wpi)
@@ -1833,8 +1839,13 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
   Scene *scene = CTX_data_scene(data->C);
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_face_sel = (data->me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -1923,8 +1934,13 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   const Scene *scene = CTX_data_scene(data->C);
   const StrokeCache *cache = ss->cache;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_face_sel = (data->me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -2035,8 +2051,13 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
    * however in this case we calculate a new weight each time. */
   const float paintweight = data->strength;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_face_sel = (data->me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -2873,8 +2894,13 @@ static void do_vpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   uint *lcol = data->lcol;
   const Scene *scene = CTX_data_scene(data->C);
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_vert_sel = (data->me->editflag &
                              (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
@@ -2971,8 +2997,13 @@ static void do_vpaint_brush_blur_task_cb_ex(void *__restrict userdata,
   const StrokeCache *cache = ss->cache;
   uint *lcol = data->lcol;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_vert_sel = (data->me->editflag &
                              (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
@@ -3088,8 +3119,13 @@ static void do_vpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   const StrokeCache *cache = ss->cache;
   uint *lcol = data->lcol;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-  get_brush_alpha_data(
-      scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+  get_brush_alpha_data(scene,
+                       ss,
+                       brush,
+                       &brush_size_pressure,
+                       &brush_alpha_value,
+                       &brush_alpha_pressure,
+                       paint_use_channels(data->C));
   float brush_dir[3];
   const bool use_normal = vwpaint_use_normal(data->vp);
   const bool use_vert_sel = (data->me->editflag &

@@ -1731,7 +1731,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   return true;
 }
 
-bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
+ATTR_NO_OPT bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
 {
   return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
@@ -2422,7 +2422,8 @@ static void grids_update_boundary_flags(const SculptSession *ss, SculptVertRef v
   }
 }
 
-static void faces_update_boundary_flags(const SculptSession *ss, const SculptVertRef vertex)
+ATTR_NO_OPT static void faces_update_boundary_flags(const SculptSession *ss,
+                                                    const SculptVertRef vertex)
 {
   BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
                                       ss->mvert,
@@ -2522,9 +2523,9 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
   return ret;
 }
 
-SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
-                                             const SculptVertRef vertex,
-                                             SculptBoundaryType boundary_types)
+ATTR_NO_OPT SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
+                                                         const SculptVertRef vertex,
+                                                         SculptBoundaryType boundary_types)
 {
   MSculptVert *mv = NULL;
 
@@ -7702,7 +7703,10 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     }
   }
 
-  if (BKE_brush_use_size_pressure(brush) &&
+  if (BKE_brush_use_size_pressure(
+          scene->toolsettings,
+          brush,
+          BKE_paint_uses_channels(BKE_paintmode_get_active_from_context(C))) &&
       paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
     cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
     cache->dyntopo_pixel_radius = sculpt_brush_dynamic_size_get(
@@ -8185,7 +8189,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask, needs_colors);
 }
 
-static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
+static void sculpt_restore_mesh(Scene *scene, Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -8199,7 +8203,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
   /* Restore the mesh before continuing with anchored stroke. */
   if ((brush->flag & BRUSH_ANCHORED) ||
       ((ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM)) &&
-       BKE_brush_use_size_pressure(brush)) ||
+       BKE_brush_use_size_pressure(scene->toolsettings, brush, true)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
     for (int i = 0; i < ss->totfaces; i++) {
@@ -8552,7 +8556,7 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   if (itemptr) {
     sculpt_update_cache_variants(C, sd, ob, itemptr);
   }
-  sculpt_restore_mesh(sd, ob);
+  sculpt_restore_mesh(CTX_data_scene(C), sd, ob);
 
   int boundsym = BKE_get_fset_boundary_symflag(ob);
   ss->cache->boundary_symmetry = boundsym;

@@ -138,9 +138,12 @@ void BKE_brush_weight_set(const struct Scene *scene, struct Brush *brush, float 
 bool BKE_brush_use_locked_size(const struct Scene *scene,
                                const struct Brush *brush,
                                bool use_channels);
-bool BKE_brush_use_alpha_pressure(const struct Brush *brush);
-bool BKE_brush_use_size_pressure(const struct Brush *brush);
-
+bool BKE_brush_use_alpha_pressure(const struct ToolSettings *ts,
+                                  const struct Brush *brush,
+                                  bool use_channels);
+bool BKE_brush_use_size_pressure(const struct ToolSettings *ts,
+                                 const struct Brush *brush,
+                                 bool use_channels);
 bool BKE_brush_sculpt_has_secondary_color(const struct Brush *brush);
 
 /* scale unprojected radius to reflect a change in the brush's 2D size */

@@ -324,7 +324,7 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd,
 
 #define EDGE_DISTANCE_INF -1
 
-void SCULPT_boundary_automasking_init(Object *ob,
+ATTR_NO_OPT void SCULPT_boundary_automasking_init(Object *ob,
                                       eBoundaryAutomaskMode mode,
                                       int propagation_steps,
                                       SculptCustomLayer *factorlayer)

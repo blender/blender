@@ -273,8 +273,8 @@ channel_name_map = {
 expand_channels = {"direction", "radius_unit", "automasking"}
 
 
-def template_curve(layout, base, propname, full_path):
-    layout.template_curve_mapping(base, propname, brush=True)
+def template_curve(layout, base, propname, full_path, use_negative_slope=None):
+    layout.template_curve_mapping(base, propname, brush=True, use_negative_slope=use_negative_slope)
 
     path = full_path
 
@@ -286,6 +286,7 @@ def template_curve(layout, base, propname, full_path):
 
     for i, shape in enumerate(shapes):
         props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
+        props.invert = use_negative_slope
         props.shape = shape
         props.path = path
 
@@ -414,13 +415,16 @@ class UnifiedPaintPanel:
     @staticmethod
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None, baselayout=None,
                         slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None,
-                        show_mappings=None):
+                        show_mappings=None, brush_only=False, use_negative_slope=None):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle
 
             note that ui_editing is no longer a bool, it can also be "mappings_only"
             to just show the input mappings controls.
-            """
+
+            for curve channels, if use_negative_slope is None then
+            `channel.curve_preset_negative_slope` will be used.
+        """
 
         if baselayout is None:
             baselayout = layout
@@ -488,7 +492,7 @@ class UnifiedPaintPanel:
 
         pressurech = ch
 
-        if ch.inherit or toolsettings_only:
+        if not brush_only and (ch.inherit or toolsettings_only):
             sd = context.tool_settings.sculpt
             # ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
@@ -527,9 +531,13 @@ class UnifiedPaintPanel:
 
         if ch.type == "CURVE":
             row.prop(finalch.curve, "curve_preset", text=text)
-            if finalch.curve.curve_preset == "CUSTOM":
+
+            if use_negative_slope is None:
+                use_negative_slope = finalch.curve.preset_slope_negative
+
+            if not header and finalch.curve.curve_preset == "CUSTOM":
                 path2 = path + ".curve.curve"
-                template_curve(layout, finalch.curve, "curve", path2)
+                template_curve(layout, finalch.curve, "curve", path2, use_negative_slope=use_negative_slope)
 
         elif ch.type == "BITMASK":
             if header or not expand:
@@ -985,7 +993,11 @@ class StrokePanel(BrushPanel):
                 row.prop(brush, "spacing", text="Spacing")
 
         if mode == 'SCULPT':
-            col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
+            UnifiedPaintPanel.channel_unified(col,
+                    context,
+                    brush,
+                    "use_scene_spacing", text="Spacing Distance", expand=True)
+            #col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
         if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
@@ -1099,7 +1111,7 @@ class SmoothStrokePanel(BrushPanel):
 
 
 class FalloffPanel(BrushPanel):
-    bl_label = "Falloff"
+    bl_label = ""
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1108,6 +1120,23 @@ class FalloffPanel(BrushPanel):
             return False
         settings = cls.paint_settings(context)
         return (settings and settings.brush and settings.brush.curve)
+
+    def draw_header(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+        mode = self.get_brush_mode(context)
+        brush = settings.brush
+
+        if 0 and mode == "SCULPT" and "falloff_curve" in brush.channels:
+            layout.label(text="Falloff")
+            ch = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve")
+            layout.prop(ch.curve, "curve_preset", text="")
+
+            #UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_curve", use_negative_slope=True, header=True, text="")
+            return
+        else:
+            layout.label(text="Falloff")
+            layout.prop(brush, "curve_preset", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -1118,9 +1147,17 @@ class FalloffPanel(BrushPanel):
         if brush is None:
             return
 
+        if mode == "SCULPT" and "falloff_curve" in brush.channels:
+            ch, path = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve", need_path=True)
+            path += ".curve.curve"
+            template_curve(layout, ch.curve, "curve", path, True)
+
+            #UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_shape", expand=True)
+            layout.prop(brush, "falloff_shape", expand=True)
+
+            return
+
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(brush, "curve_preset", text="")
 
         if brush.curve_preset == 'CUSTOM':
             layout.template_curve_mapping(brush, "curve", brush=True, use_negative_slope=False)

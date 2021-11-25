@@ -458,7 +458,7 @@ enum eBlurKernelType;
 BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
 
-#define paint_use_channels(C) (BKE_paintmode_get_active_from_context(C) == PAINT_MODE_SCULPT)
+#define paint_use_channels(C) BKE_paint_uses_channels(BKE_paintmode_get_active_from_context(C))
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40

@@ -851,6 +851,11 @@ void RNA_def_brush_curve(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_pointer_funcs(prop, "rna_BrushCurve_curve_get", NULL, NULL, NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "preset_slope_negative", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Negative Slope", "");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 void RNA_def_brush_channel(BlenderRNA *brna)
@@ -1056,7 +1061,6 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Curve", "Curve");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  // PROP_ENUM_FLAG
 }
 
 void RNA_def_brush_channelset(BlenderRNA *brna, PropertyRNA *cprop, const char *type_prefix)

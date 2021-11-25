@@ -3348,3 +3348,8 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
     ss->totuv = ss->ldata ? CustomData_number_of_layers(ss->ldata, CD_MLOOPUV) : 0;
   }
 }
+
+bool BKE_paint_uses_channels(ePaintMode mode)
+{
+  return mode == PAINT_MODE_SCULPT;
+}

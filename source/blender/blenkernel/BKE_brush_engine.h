@@ -78,6 +78,8 @@ struct UnifiedPaintSettings;
   BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_GET_FINAL_INT(child, parent, channel, mapdata) \
   BKE_brush_channelset_get_final_int(child, parent, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+#define BRUSHSET_GET_FINAL_BOOL(child, parent, channel, mapdata) \
+  BRUSHSET_GET_FINAL_INT(child, parent, channel, mapdata)
 #define BRUSHSET_ENSURE_BUILTIN(chset, channel) \
   BKE_brush_channelset_ensure_builtin(chset, MAKE_BUILTIN_CH_NAME(channel))
 #define BRUSHSET_SET_FLOAT(chset, channel, val) \
@@ -147,6 +149,7 @@ typedef struct BrushChannelType {
   float fvalue;
   float vector[4];
   int curve_preset;
+  bool curve_preset_slope_neg;
 
   BrushEnumDef enumdef[MAX_BRUSH_ENUM_DEF];  // for enum/bitmask types
   EnumPropertyItem *rna_enumdef;
@@ -203,6 +206,7 @@ void BKE_brush_channel_copy_data(BrushChannel *dst,
                                  bool keep_mappings,
                                  bool keep_idname_and_def);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
+BrushChannelType *BKE_brush_builtin_channel_def_find(const char *name);
 
 BrushChannelSet *BKE_brush_channelset_create(const char *info);
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
@@ -248,13 +252,17 @@ void BKE_brush_channelset_inherit_mappings(BrushChannelSet *chset);
 void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,
                                 BrushChannelSet *parent);
+void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst,
+                                           BrushChannel *child,
+                                           BrushChannel *parent);
+bool BKE_brush_mapping_is_enabled(BrushChannel *child, BrushChannel *parent, int mapping);
 
 /*takes child and parent channels and builds inherited channel
-  in dst, with channel and brush mapping inheritance flags
-  properly resolved.
+in dst, with channel and brush mapping inheritance flags
+properly resolved.
 
-  note that child or parent may be NULL, but not both.
-  */
+note that child or parent may be NULL, but not both.
+*/
 void BKE_brush_channel_copy_final_data(BrushChannel *dst,
                                        BrushChannel *src_child,
                                        BrushChannel *src_parent,

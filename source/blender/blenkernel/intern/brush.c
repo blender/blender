@@ -330,6 +330,16 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
+  /* Falloff curve. */
+  BLO_read_data_address(reader, &brush->curve);
+
+  if (brush->curve) {
+    BKE_curvemapping_blend_read(reader, brush->curve);
+  }
+  else {
+    BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
+  }
+
   if (brush->channels) {
     BLO_read_data_address(reader, &brush->channels);
 
@@ -364,21 +374,11 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
     brush->topology_rake_projection = 1.0f;
   }
 
-  /* Falloff curve. */
-  BLO_read_data_address(reader, &brush->curve);
-
   /* Input Curves. */
   BLO_read_data_address(reader, &brush->pressure_size_curve);
   BLO_read_data_address(reader, &brush->pressure_strength_curve);
 
   BLO_read_data_address(reader, &brush->gradient);
-
-  if (brush->curve) {
-    BKE_curvemapping_blend_read(reader, brush->curve);
-  }
-  else {
-    BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
-  }
 
   if (brush->pressure_size_curve) {
     BKE_curvemapping_blend_read(reader, brush->pressure_size_curve);
@@ -2595,13 +2595,35 @@ bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush, bool use_
   }
 }
 
-bool BKE_brush_use_size_pressure(const Brush *brush)
+bool BKE_brush_use_size_pressure(const ToolSettings *ts, const Brush *brush, bool use_channels)
 {
+  if (use_channels && brush->channels) {
+    BrushChannel *child_ch = BRUSHSET_LOOKUP(brush->channels, radius);
+    BrushChannel *parent_ch = ts && ts->sculpt && ts->sculpt->channels ?
+                                  BRUSHSET_LOOKUP(ts->sculpt->channels, radius) :
+                                  NULL;
+
+    if (child_ch || parent_ch) {
+      return BKE_brush_mapping_is_enabled(child_ch, parent_ch, BRUSH_MAPPING_PRESSURE);
+    }
+  }
+
   return brush->flag & BRUSH_SIZE_PRESSURE;
 }
 
-bool BKE_brush_use_alpha_pressure(const Brush *brush)
+bool BKE_brush_use_alpha_pressure(const ToolSettings *ts, const Brush *brush, bool use_channels)
 {
+  if (use_channels && brush->channels) {
+    BrushChannel *child_ch = BRUSHSET_LOOKUP(brush->channels, strength);
+    BrushChannel *parent_ch = ts && ts->sculpt && ts->sculpt->channels ?
+                                  BRUSHSET_LOOKUP(ts->sculpt->channels, strength) :
+                                  NULL;
+
+    if (child_ch || parent_ch) {
+      return BKE_brush_mapping_is_enabled(child_ch, parent_ch, BRUSH_MAPPING_PRESSURE);
+    }
+  }
+
   return brush->flag & BRUSH_ALPHA_PRESSURE;
 }
 
@@ -3055,7 +3077,5 @@ void BKE_brush_hard_edge_mode_set(Scene *scene, Brush *brush, bool val)
 
 float BKE_brush_fset_slide_get(const Scene *scene, const Brush *brush)
 {
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
   return BKE_brush_hard_edge_mode_get(scene, brush) ? 0.0f : brush->autosmooth_fset_slide;
 }

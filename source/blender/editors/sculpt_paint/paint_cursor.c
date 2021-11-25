@@ -589,7 +589,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
       GPU_matrix_translate_2f(-x, -y);
 
       /* Scale based on tablet pressure. */
-      if (primary && ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
+      if (primary && ups->stroke_active && BKE_brush_use_size_pressure(CTX_data_scene(vc->C)->toolsettings, brush, use_brush_channels)) {
         const float scale = ups->size_pressure_value;
         GPU_matrix_translate_2f(x, y);
         GPU_matrix_scale_2f(scale, scale);
@@ -728,7 +728,7 @@ static bool paint_draw_cursor_overlay(
     }
 
     /* Scale based on tablet pressure. */
-    if (ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
+    if (ups->stroke_active && BKE_brush_use_size_pressure(CTX_data_scene(vc->C)->toolsettings, brush, paint_use_channels(vc->C))) {
       do_pop = true;
       GPU_matrix_push();
       GPU_matrix_translate_2fv(center);
@@ -1031,7 +1031,9 @@ static void paint_cursor_update_unprojected_radius(UnifiedPaintSettings *ups,
     unprojected_radius = paint_calc_object_space_radius(vc, location, projected_radius);
 
     /* Scale 3D brush radius by pressure. */
-    if (ups->stroke_active && BKE_brush_use_size_pressure(brush)) {
+    if (ups->stroke_active && BKE_brush_use_size_pressure(CTX_data_scene(vc->C)->toolsettings,
+                                                          brush,
+                                                          use_brush_channels)) {
       unprojected_radius *= ups->size_pressure_value;
     }
 
@@ -1434,7 +1436,7 @@ static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
   immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
 
   /* Draw brush outline. */
-  if (pcontext->ups->stroke_active && BKE_brush_use_size_pressure(pcontext->brush)) {
+  if (pcontext->ups->stroke_active && BKE_brush_use_size_pressure(CTX_data_scene(pcontext->C)->toolsettings, pcontext->brush, paint_use_channels(pcontext->C))) {
     imm_draw_circle_wire_2d(pcontext->pos,
                             pcontext->translation[0],
                             pcontext->translation[1],
