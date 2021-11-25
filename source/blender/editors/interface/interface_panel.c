@@ -1827,6 +1827,7 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
 {
   int sizex = 0;
   int sizey = 0;
+  bool has_panel_with_background = false;
 
   /* Compute size taken up by panels, for setting in view2d. */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
@@ -1836,6 +1837,9 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
 
       sizex = max_ii(sizex, pa_sizex);
       sizey = min_ii(sizey, pa_sizey);
+      if (UI_panel_should_show_background(region, panel->type)) {
+        has_panel_with_background = true;
+      }
     }
   }
 
@@ -1844,6 +1848,11 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
   }
   if (sizey == 0) {
     sizey = -UI_PANEL_WIDTH;
+  }
+  /* Extra margin after the list so the view scrolls a few pixels further than the panel border.
+   * Also makes the bottom match the top margin. */
+  if (has_panel_with_background) {
+    sizey -= UI_PANEL_MARGIN_Y;
   }
 
   *r_x = sizex;
