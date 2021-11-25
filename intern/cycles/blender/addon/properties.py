@@ -429,7 +429,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
 
     direct_light_sampling_type: EnumProperty(
-        name="Direct Light Sampling Type",
+        name="Direct Light Sampling",
         description="The type of strategy used for sampling direct light contributions",
         items=enum_direct_light_sampling_type,
         default='MULTIPLE_IMPORTANCE_SAMPLING',

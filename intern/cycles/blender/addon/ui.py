@@ -1819,37 +1819,38 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
 
         scene = context.scene
         cscene = scene.cycles
 
-        col = layout.column()
+        col = layout.column(heading="CPU")
 
-        col.label(text="CPU Flags:")
         row = col.row(align=True)
         row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse3", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse41", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
-        col.prop(cscene, "debug_bvh_layout")
+        col.prop(cscene, "debug_bvh_layout", text="BVH")
 
         col.separator()
 
-        col = layout.column()
-        col.label(text="CUDA Flags:")
+        col = layout.column(heading="CUDA")
         col.prop(cscene, "debug_use_cuda_adaptive_compile")
+        col = layout.column(heading="OptiX")
+        col.prop(cscene, "debug_use_optix_debug", text="Module Debug")
 
         col.separator()
 
-        col = layout.column()
-        col.label(text="OptiX Flags:")
-        col.prop(cscene, "debug_use_optix_debug")
+        col.prop(cscene, "debug_bvh_type", text="Viewport BVH")
 
         col.separator()
 
-        col = layout.column()
-        col.prop(cscene, "debug_bvh_type")
+        import _cycles
+        if _cycles.with_debug:
+            col.prop(cscene, "direct_light_sampling_type")
 
 
 class CYCLES_RENDER_PT_simplify(CyclesButtonsPanel, Panel):
