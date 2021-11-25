@@ -1334,6 +1334,26 @@ void ui_draw_aligned_panel(const uiStyle *style,
   }
 }
 
+bool UI_panel_should_show_background(const ARegion *region, const PanelType *panel_type)
+{
+  if (region->alignment == RGN_ALIGN_FLOAT) {
+    return false;
+  }
+
+  if (panel_type && panel_type->flag & PANEL_TYPE_NO_HEADER) {
+    if (region->regiontype == RGN_TYPE_TOOLS) {
+      /* We never want a background around active tools. */
+      return false;
+    }
+    else {
+      /* Without a header there is no background except for region overlap. */
+      return region->overlap != 0;
+    }
+  }
+
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1746,17 +1766,22 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   const int region_offset_x = panel_region_offset_x_get(region);
   for (int i = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
-    const bool no_header = ps->panel->type->flag & PANEL_TYPE_NO_HEADER;
+    const bool show_background = UI_panel_should_show_background(region, ps->panel->type);
     ps->panel->runtime.region_ofsx = region_offset_x;
-    ps->new_offset_x = region_offset_x + (no_header ? 0 : UI_PANEL_MARGIN_X);
+    ps->new_offset_x = region_offset_x + (show_background ? UI_PANEL_MARGIN_X : 0);
   }
 
   /* Y offset. */
   for (int i = 0, y = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
+    const bool show_background = UI_panel_should_show_background(region, ps->panel->type);
+
     y -= get_panel_real_size_y(ps->panel);
 
-    y -= UI_PANEL_MARGIN_Y;
+    /* Separate panel boxes a bit further (if they are drawn). */
+    if (show_background) {
+      y -= UI_PANEL_MARGIN_Y;
+    }
     ps->new_offset_y = y;
     /* The header still draws offset by the size of closed panels, so apply the offset here. */
     if (UI_panel_is_closed(ps->panel)) {

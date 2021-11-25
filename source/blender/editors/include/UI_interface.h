@@ -257,6 +257,8 @@ enum {
 
 #define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 1.0f)
 
+/* Both these margins should be ignored if the panel doesn't show a background (check
+ * #UI_panel_should_show_background()). */
 #define UI_PANEL_MARGIN_X (U.widget_unit * 0.4f)
 #define UI_PANEL_MARGIN_Y (U.widget_unit * 0.1f)
 
@@ -1771,6 +1773,8 @@ void UI_panel_context_pointer_set(struct Panel *panel, const char *name, struct 
 bool UI_panel_is_closed(const struct Panel *panel);
 bool UI_panel_is_active(const struct Panel *panel);
 void UI_panel_label_offset(const struct uiBlock *block, int *r_x, int *r_y);
+bool UI_panel_should_show_background(const struct ARegion *region,
+                                     const struct PanelType *panel_type);
 int UI_panel_size_y(const struct Panel *panel);
 bool UI_panel_is_dragging(const struct Panel *panel);
 bool UI_panel_matches_search_filter(const struct Panel *panel);
