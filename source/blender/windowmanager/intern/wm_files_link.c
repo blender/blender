@@ -1541,6 +1541,11 @@ static void lib_relocate_do(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
+  /* All override rules need to be up to date, since there will be no do_version here, otherwise
+   * older, now-invalid rules might be applied and likely fail, or some changes might be missing,
+   * etc. See T93353. */
+  BKE_lib_override_library_main_operations_create(bmain, true);
+
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
   while (lba_idx--) {
