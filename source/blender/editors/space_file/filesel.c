@@ -1372,7 +1372,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
 
   BLI_assert(params->renamefile[0] != '\0' || params->rename_id != NULL);
 
-  const int idx = file_params_find_renamed(params, sfile->files);
+  int idx = file_params_find_renamed(params, sfile->files);
   if (idx >= 0) {
     FileDirEntry *file = filelist_file(sfile->files, idx);
     BLI_assert(file != NULL);
@@ -1385,7 +1385,11 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
     }
     else if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_PENDING) != 0) {
+      /* file_select_deselect_all() will resort and refilter, so idx will probably have changed.
+       * Need to get the correct FileDirEntry again. */
       file_select_deselect_all(sfile, FILE_SEL_SELECTED);
+      idx = file_params_find_renamed(params, sfile->files);
+      file = filelist_file(sfile->files, idx);
       filelist_entry_select_set(
           sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED, CHECK_ALL);
       params->active_file = idx;
