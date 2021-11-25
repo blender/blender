@@ -2630,8 +2630,12 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      This function must take 2 values (self, value) and return None.\n" \
   "   :type set: function\n"
 
-#define BPY_PROPDEF_TYPE_DOC \
+#define BPY_PROPDEF_POINTER_TYPE_DOC \
   "   :arg type: A subclass of :class:`bpy.types.PropertyGroup` or :class:`bpy.types.ID`.\n" \
+  "   :type type: class\n"
+
+#define BPY_PROPDEF_COLLECTION_TYPE_DOC \
+  "   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n" \
   "   :type type: class\n"
 
 #define BPY_PROPDEF_TAGS_DOC \
@@ -3981,7 +3985,7 @@ PyDoc_STRVAR(BPy_PointerProperty_doc,
              "update=None)\n"
              "\n"
              "   Returns a new pointer property definition.\n"
-             "\n" BPY_PROPDEF_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
+             "\n" BPY_PROPDEF_POINTER_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
                  BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
                      BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC);
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -4104,7 +4108,7 @@ PyDoc_STRVAR(BPy_CollectionProperty_doc,
              "tags=set())\n"
              "\n"
              "   Returns a new collection property definition.\n"
-             "\n" BPY_PROPDEF_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
+             "\n" BPY_PROPDEF_COLLECTION_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
                  BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC
                      BPY_PROPDEF_TAGS_DOC);
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
