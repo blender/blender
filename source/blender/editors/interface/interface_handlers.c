@@ -1266,12 +1266,22 @@ static void ui_apply_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
   if (data->str) {
+    /* This is intended to avoid unnecessary updates when the value stays the same, however there
+     * are issues with the current implementation. It does not work with multi-button editing
+     * (T89996) or operator popups where a number button requires an update even if the value is
+     * unchanged (T89996).
+     *
+     * Trying to detect changes at this level is not reliable. Instead it could be done at the
+     * level of RNA update/set, skipping RNA update if RNA set did not change anything, instead
+     * of skipping all button updates. */
+#if 0
     double value;
     /* Check if the string value is a number and cancel if it's equal to the startvalue. */
     if (ui_but_string_eval_number(C, but, data->str, &value) && (value == data->startvalue)) {
       data->cancel = true;
       return;
     }
+#endif
 
     if (ui_but_string_set(C, but, data->str)) {
       data->value = ui_but_value_get(but);
