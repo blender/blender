@@ -332,14 +332,17 @@ static void copy_common_attributes_by_mapping(const Spline &src,
   copy_attribute_by_mapping(src.radii(), dst.radii(), mapping);
   copy_attribute_by_mapping(src.tilts(), dst.tilts(), mapping);
 
-  dst.attributes.reallocate(1);
   src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         std::optional<GSpan> src_attribute = src.attributes.get_for_read(attribute_id);
         if (dst.attributes.create(attribute_id, meta_data.data_type)) {
           std::optional<GMutableSpan> dst_attribute = dst.attributes.get_for_write(attribute_id);
           if (dst_attribute) {
-            src_attribute->type().copy_assign(src_attribute->data(), dst_attribute->data());
+            attribute_math::convert_to_static_type(dst_attribute->type(), [&](auto dummy) {
+              using T = decltype(dummy);
+              copy_attribute_by_mapping(
+                  src_attribute->typed<T>(), dst_attribute->typed<T>(), mapping);
+            });
             return true;
           }
         }
