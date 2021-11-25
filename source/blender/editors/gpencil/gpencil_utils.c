@@ -991,6 +991,10 @@ void gpencil_stroke_convertcoords_tpoint(Scene *scene,
 {
   ToolSettings *ts = scene->toolsettings;
 
+  if (depth && (*depth == DEPTH_INVALID)) {
+    depth = NULL;
+  }
+
   int mval_i[2];
   round_v2i_v2fl(mval_i, &point2D->x);
 
