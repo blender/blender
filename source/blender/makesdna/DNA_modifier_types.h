@@ -374,7 +374,15 @@ typedef struct MirrorModifierData {
   short flag;
   float tolerance;
   float bisect_threshold;
-  char _pad[4];
+
+  /** Mirror modifier used to merge the old vertex into its new copy, which would break code
+   * relying on access to the original geometry vertices. However, modifying this behavior to the
+   * correct one (i.e. merging the copy vertices into their original sources) has several potential
+   * effects on other modifiers and tools, so we need to keep that incorrect behavior for existing
+   * modifiers, and only use the new correct one for new modifiers. */
+  uint8_t use_correct_order_on_merge;
+
+  char _pad[3];
   float uv_offset[2];
   float uv_offset_copy[2];
   struct Object *mirror_ob;

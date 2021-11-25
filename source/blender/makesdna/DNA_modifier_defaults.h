@@ -429,6 +429,7 @@
     .uv_offset = {0.0f, 0.0f}, \
     .uv_offset_copy = {0.0f, 0.0f}, \
     .mirror_ob = NULL, \
+    .use_correct_order_on_merge = true, \
   }
 
 #define _DNA_DEFAULT_MultiresModifierData \

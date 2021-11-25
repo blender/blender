@@ -84,14 +84,17 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh *mesh)
 {
   Mesh *result = mesh;
+  const bool use_correct_order_on_merge = mmd->use_correct_order_on_merge;
 
   /* check which axes have been toggled and mirror accordingly */
   if (mmd->flag & MOD_MIR_AXIS_X) {
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 0);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 0, use_correct_order_on_merge);
   }
   if (mmd->flag & MOD_MIR_AXIS_Y) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 1);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 1, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);
@@ -99,7 +102,8 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
   }
   if (mmd->flag & MOD_MIR_AXIS_Z) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 2);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 2, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);

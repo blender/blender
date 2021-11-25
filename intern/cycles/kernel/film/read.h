@@ -460,7 +460,7 @@ ccl_device_inline float4 film_calculate_shadow_catcher_matte_with_shadow(
   const float transparency = in_matte[3] * scale;
   const float alpha = saturatef(1.0f - transparency);
 
-  const float alpha_matte = (1.0f - alpha) * (1.0f - average(shadow_catcher)) + alpha;
+  const float alpha_matte = (1.0f - alpha) * (1.0f - saturatef(average(shadow_catcher))) + alpha;
 
   if (kfilm_convert->use_approximate_shadow_catcher_background) {
     kernel_assert(kfilm_convert->pass_background != PASS_UNUSED);
