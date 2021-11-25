@@ -613,6 +613,8 @@ void register_node_type_group_output(void)
   node_type_init(ntype, node_group_output_init);
   node_type_update(ntype, node_group_output_update);
 
+  ntype->no_muting = true;
+
   nodeRegisterType(ntype);
 }
 
