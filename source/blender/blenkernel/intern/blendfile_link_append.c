@@ -1389,6 +1389,11 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   Main *bmain = lapp_context->params->bmain;
 
+  /* All override rules need to be up to date, since there will be no do_version here, otherwise
+   * older, now-invalid rules might be applied and likely fail, or some changes might be missing,
+   * etc. See T93353. */
+  BKE_lib_override_library_main_operations_create(bmain, true);
+
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
   while (lba_idx--) {
