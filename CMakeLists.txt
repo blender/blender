@@ -502,7 +502,8 @@ endif()
 
 # This should be turned off when Blender enter beta/rc/release
 if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
-   "${BLENDER_VERSION_CYCLE}" STREQUAL "rc")
+   "${BLENDER_VERSION_CYCLE}" STREQUAL "rc" OR
+   "${BLENDER_VERSION_CYCLE}" STREQUAL "beta")
   set(WITH_EXPERIMENTAL_FEATURES OFF)
 else()
   set(WITH_EXPERIMENTAL_FEATURES ON)

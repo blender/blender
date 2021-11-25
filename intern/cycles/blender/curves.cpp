@@ -819,11 +819,14 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
+#ifdef WITH_HAIR_NODES
     if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
-    else {
+    else
+#endif
+    {
       /* Particle hair. */
       bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
@@ -870,12 +873,15 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
+#ifdef WITH_HAIR_NODES
     if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
-    else {
+    else
+#endif
+    {
       /* Particle hair. */
       BL::Mesh b_mesh = object_to_mesh(
           b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
