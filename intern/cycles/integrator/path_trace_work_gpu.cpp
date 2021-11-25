@@ -258,7 +258,8 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
    * become busy after adding new tiles). This is especially important for the shadow catcher which
    * schedules work in halves of available number of paths. */
   work_tile_scheduler_.set_max_num_path_states(max_num_paths_ / 8);
-
+  work_tile_scheduler_.set_accelerated_rt((device_->get_bvh_layout_mask() & BVH_LAYOUT_OPTIX) !=
+                                          0);
   work_tile_scheduler_.reset(effective_buffer_params_,
                              start_sample,
                              samples_num,

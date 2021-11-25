@@ -49,7 +49,8 @@ std::ostream &operator<<(std::ostream &os, const TileSize &tile_size);
  * of active path states.
  * Will attempt to provide best guess to keep path tracing threads of a device as localized as
  * possible, and have as many threads active for every tile as possible. */
-TileSize tile_calculate_best_size(const int2 &image_size,
+TileSize tile_calculate_best_size(const bool accel_rt,
+                                  const int2 &image_size,
                                   const int num_samples,
                                   const int max_num_path_states,
                                   const float scrambling_distance);
