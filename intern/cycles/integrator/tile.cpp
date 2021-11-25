@@ -46,7 +46,8 @@ ccl_device_inline uint round_up_to_power_of_two(uint x)
   return next_power_of_two(x);
 }
 
-TileSize tile_calculate_best_size(const int2 &image_size,
+TileSize tile_calculate_best_size(const bool accel_rt,
+                                  const int2 &image_size,
                                   const int num_samples,
                                   const int max_num_path_states,
                                   const float scrambling_distance)
@@ -73,7 +74,7 @@ TileSize tile_calculate_best_size(const int2 &image_size,
 
   TileSize tile_size;
   const int num_path_states_per_sample = max_num_path_states / num_samples;
-  if (scrambling_distance < 0.9f) {
+  if (scrambling_distance < 0.9f && accel_rt) {
     /* Prefer large tiles for scrambling distance, bounded by max num path states. */
     tile_size.width = min(image_size.x, max_num_path_states);
     tile_size.height = min(image_size.y, max(max_num_path_states / tile_size.width, 1));
