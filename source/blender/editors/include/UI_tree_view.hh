@@ -405,7 +405,7 @@ class AbstractTreeViewItemDropController {
    * Execute the logic to apply a drop of the data dragged with \a drag onto/into the item this
    * controller is for.
    */
-  virtual bool on_drop(const wmDrag &drag) = 0;
+  virtual bool on_drop(struct bContext *C, const wmDrag &drag) = 0;
 
   template<class TreeViewType> inline TreeViewType &tree_view() const;
 };

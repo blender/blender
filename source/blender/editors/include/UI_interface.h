@@ -2786,7 +2786,9 @@ bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
                                 const struct wmDrag *drag,
                                 const char **r_disabled_hint);
 char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item, const struct wmDrag *drag);
-bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const struct ListBase *drags);
+bool UI_tree_view_item_drop_handle(struct bContext *C,
+                                   uiTreeViewItemHandle *item_,
+                                   const struct ListBase *drags);
 bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle);
 void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle);
 
