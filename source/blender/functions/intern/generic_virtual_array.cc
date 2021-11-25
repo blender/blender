@@ -530,9 +530,6 @@ void GVArrayCommon::move_from(GVArrayCommon &&other) noexcept
 /* Returns true when the virtual array is stored as a span internally. */
 bool GVArrayCommon::is_span() const
 {
-  if (this->is_empty()) {
-    return true;
-  }
   return impl_->is_span();
 }
 
@@ -541,18 +538,12 @@ bool GVArrayCommon::is_span() const
 GSpan GVArrayCommon::get_internal_span() const
 {
   BLI_assert(this->is_span());
-  if (this->is_empty()) {
-    return GSpan(impl_->type());
-  }
   return impl_->get_internal_span();
 }
 
 /* Returns true when the virtual array returns the same value for every index. */
 bool GVArrayCommon::is_single() const
 {
-  if (impl_->size() == 1) {
-    return true;
-  }
   return impl_->is_single();
 }
 
@@ -562,10 +553,6 @@ bool GVArrayCommon::is_single() const
 void GVArrayCommon::get_internal_single(void *r_value) const
 {
   BLI_assert(this->is_single());
-  if (impl_->size() == 1) {
-    impl_->get(0, r_value);
-    return;
-  }
   impl_->get_internal_single(r_value);
 }
 

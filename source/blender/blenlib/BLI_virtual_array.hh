@@ -719,9 +719,6 @@ template<typename T> class VArrayCommon {
   bool is_span() const
   {
     BLI_assert(*this);
-    if (this->is_empty()) {
-      return true;
-    }
     return impl_->is_span();
   }
 
@@ -742,9 +739,6 @@ template<typename T> class VArrayCommon {
   bool is_single() const
   {
     BLI_assert(*this);
-    if (impl_->size() == 1) {
-      return true;
-    }
     return impl_->is_single();
   }
 
