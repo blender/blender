@@ -165,7 +165,7 @@ set(SRC
   intern/idtype.c
   intern/image.c
   intern/image_gen.c
-  intern/image_gpu.c
+  intern/image_gpu.cc
   intern/image_save.c
   intern/ipo.c
   intern/kelvinlet.c

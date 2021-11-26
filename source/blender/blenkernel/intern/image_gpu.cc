@@ -47,7 +47,7 @@
 #include "PIL_time.h"
 
 /* Prototypes. */
-static void gpu_free_unused_buffers(void);
+static void gpu_free_unused_buffers();
 static void image_free_gpu(Image *ima, const bool immediate);
 static void image_free_gpu_limited_scale(Image *ima);
 static void image_update_gputexture_ex(
@@ -55,11 +55,11 @@ static void image_update_gputexture_ex(
 
 /* Internal structs. */
 #define IMA_PARTIAL_REFRESH_TILE_SIZE 256
-typedef struct ImagePartialRefresh {
+struct ImagePartialRefresh {
   struct ImagePartialRefresh *next, *prev;
   int tile_x;
   int tile_y;
-} ImagePartialRefresh;
+};
 
 /* Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied. */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
@@ -71,7 +71,7 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
     }
     /* Generated images use pre multiplied float buffer, but straight alpha for byte buffers. */
     if (image->type == IMA_TYPE_UV_TEST && ibuf) {
-      return ibuf->rect_float != NULL;
+      return ibuf->rect_float != nullptr;
     }
   }
   if (ibuf) {
@@ -104,8 +104,8 @@ static GPUTexture *gpu_texture_create_tile_mapping(
   const int resolution = (texture_resolution == IMA_TEXTURE_RESOLUTION_LIMITED) ? 1 : 0;
   GPUTexture *tilearray = ima->gputexture[TEXTARGET_2D_ARRAY][multiview_eye][resolution];
 
-  if (tilearray == NULL) {
-    return 0;
+  if (tilearray == nullptr) {
+    return nullptr;
   }
 
   float array_w = GPU_texture_width(tilearray);
@@ -142,11 +142,11 @@ static GPUTexture *gpu_texture_create_tile_mapping(
   return tex;
 }
 
-typedef struct PackTile {
+struct PackTile {
   FixedSizeBoxPack boxpack;
   ImageTile *tile;
   float pack_score;
-} PackTile;
+};
 
 static int compare_packtile(const void *a, const void *b)
 {
@@ -163,13 +163,13 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima,
   const bool limit_gl_texture_size = texture_resolution == IMA_TEXTURE_RESOLUTION_LIMITED;
   const int resolution = texture_resolution == IMA_TEXTURE_RESOLUTION_LIMITED ? 1 : 0;
   int arraywidth = 0, arrayheight = 0;
-  ListBase boxes = {NULL};
+  ListBase boxes = {nullptr};
 
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     ImageUser iuser;
     BKE_imageuser_default(&iuser);
     iuser.tile = tile->tile_number;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
     if (ibuf) {
       PackTile *packtile = (PackTile *)MEM_callocN(sizeof(PackTile), __func__);
@@ -190,7 +190,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima,
       float w = packtile->boxpack.w, h = packtile->boxpack.h;
       packtile->pack_score = max_ff(w, h) / min_ff(w, h) * w * h;
 
-      BKE_image_release_ibuf(ima, ibuf, NULL);
+      BKE_image_release_ibuf(ima, ibuf, nullptr);
       BLI_addtail(&boxes, packtile);
     }
   }
@@ -200,10 +200,10 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima,
   BLI_listbase_sort(&boxes, compare_packtile);
   int arraylayers = 0;
   /* Keep adding layers until all tiles are packed. */
-  while (boxes.first != NULL) {
-    ListBase packed = {NULL};
+  while (boxes.first != nullptr) {
+    ListBase packed = {nullptr};
     BLI_box_pack_2d_fixedarea(&boxes, arraywidth, arrayheight, &packed);
-    BLI_assert(packed.first != NULL);
+    BLI_assert(packed.first != nullptr);
 
     LISTBASE_FOREACH (PackTile *, packtile, &packed) {
       ImageTile *tile = packtile->tile;
@@ -241,7 +241,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima,
     ImageUser iuser;
     BKE_imageuser_default(&iuser);
     iuser.tile = tile->tile_number;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
     if (ibuf) {
       const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
@@ -254,7 +254,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima,
                                  store_premultiplied);
     }
 
-    BKE_image_release_ibuf(ima, ibuf, NULL);
+    BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 
   if (GPU_mipmap_enabled()) {
@@ -305,7 +305,7 @@ static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
   if (in_range) {
     return &(ima->gputexture[textarget][multiview_eye][resolution]);
   }
-  return NULL;
+  return nullptr;
 }
 
 static GPUTexture *image_gpu_texture_error_create(eGPUTextureTarget textarget)
@@ -342,8 +342,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
                                          ImBuf *ibuf,
                                          eGPUTextureTarget textarget)
 {
-  if (ima == NULL) {
-    return NULL;
+  if (ima == nullptr) {
+    return nullptr;
   }
 
   /* Free any unused GPU textures, since we know we are in a thread with OpenGL
@@ -373,7 +373,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   /* Check if image has been updated and tagged to be updated (full or partial). */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (((ima->gpuflag & IMA_GPU_REFRESH) != 0) ||
-      ((ibuf == NULL || tile == NULL) && ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
+      ((ibuf == nullptr || tile == nullptr) && ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
     image_free_gpu(ima, true);
     BLI_freelistN(&ima->gpu_refresh_areas);
     ima->gpuflag &= ~(IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH);
@@ -382,7 +382,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     BLI_assert(ibuf);
     BLI_assert(tile);
     ImagePartialRefresh *refresh_area;
-    while ((refresh_area = BLI_pophead(&ima->gpu_refresh_areas))) {
+    while ((
+        refresh_area = static_cast<ImagePartialRefresh *>(BLI_pophead(&ima->gpu_refresh_areas)))) {
       const int tile_offset_x = refresh_area->tile_x * IMA_PARTIAL_REFRESH_TILE_SIZE;
       const int tile_offset_y = refresh_area->tile_y * IMA_PARTIAL_REFRESH_TILE_SIZE;
       const int tile_width = MIN2(IMA_PARTIAL_REFRESH_TILE_SIZE, ibuf->x - tile_offset_x);
@@ -404,7 +405,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
   const bool limit_resolution = U.glreslimit != 0 &&
                                 ((iuser && (iuser->flag & IMA_SHOW_MAX_RESOLUTION) == 0) ||
-                                 (iuser == NULL)) &&
+                                 (iuser == nullptr)) &&
                                 ((ima->gpuflag & IMA_GPU_REUSE_MAX_RESOLUTION) == 0);
   const eImageTextureResolution texture_resolution = limit_resolution ?
                                                          IMA_TEXTURE_RESOLUTION_LIMITED :
@@ -416,16 +417,16 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
 
   /* Check if we have a valid image. If not, we return a dummy
    * texture with zero bind-code so we don't keep trying. */
-  if (tile == NULL) {
+  if (tile == nullptr) {
     *tex = image_gpu_texture_error_create(textarget);
     return *tex;
   }
 
   /* check if we have a valid image buffer */
   ImBuf *ibuf_intern = ibuf;
-  if (ibuf_intern == NULL) {
-    ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, NULL);
-    if (ibuf_intern == NULL) {
+  if (ibuf_intern == nullptr) {
+    ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, nullptr);
+    if (ibuf_intern == nullptr) {
       *tex = image_gpu_texture_error_create(textarget);
       return *tex;
     }
@@ -477,8 +478,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 
   /* if `ibuf` was given, we don't own the `ibuf_intern` */
-  if (ibuf == NULL) {
-    BKE_image_release_ibuf(ima, ibuf_intern, NULL);
+  if (ibuf == nullptr) {
+    BKE_image_release_ibuf(ima, ibuf_intern, nullptr);
   }
 
   if (*tex) {
@@ -512,19 +513,19 @@ GPUTexture *BKE_image_get_gpu_tilemap(Image *image, ImageUser *iuser, ImBuf *ibu
  * In that case we push them into a queue and free the buffers later.
  * \{ */
 
-static LinkNode *gpu_texture_free_queue = NULL;
+static LinkNode *gpu_texture_free_queue = nullptr;
 static ThreadMutex gpu_texture_queue_mutex = BLI_MUTEX_INITIALIZER;
 
-static void gpu_free_unused_buffers(void)
+static void gpu_free_unused_buffers()
 {
-  if (gpu_texture_free_queue == NULL) {
+  if (gpu_texture_free_queue == nullptr) {
     return;
   }
 
   BLI_mutex_lock(&gpu_texture_queue_mutex);
 
-  while (gpu_texture_free_queue != NULL) {
-    GPUTexture *tex = BLI_linklist_pop(&gpu_texture_free_queue);
+  while (gpu_texture_free_queue != nullptr) {
+    GPUTexture *tex = static_cast<GPUTexture *>(BLI_linklist_pop(&gpu_texture_free_queue));
     GPU_texture_free(tex);
   }
 
@@ -549,7 +550,7 @@ static void image_free_gpu(Image *ima, const bool immediate)
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        if (ima->gputexture[i][eye][resolution] != NULL) {
+        if (ima->gputexture[i][eye][resolution] != nullptr) {
           if (immediate) {
             GPU_texture_free(ima->gputexture[i][eye][resolution]);
           }
@@ -559,7 +560,7 @@ static void image_free_gpu(Image *ima, const bool immediate)
             BLI_mutex_unlock(&gpu_texture_queue_mutex);
           }
 
-          ima->gputexture[i][eye][resolution] = NULL;
+          ima->gputexture[i][eye][resolution] = nullptr;
         }
       }
     }
@@ -573,9 +574,9 @@ static void image_free_gpu_limited_scale(Image *ima)
   const eImageTextureResolution resolution = IMA_TEXTURE_RESOLUTION_LIMITED;
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->gputexture[i][eye][resolution] != NULL) {
+      if (ima->gputexture[i][eye][resolution] != nullptr) {
         GPU_texture_free(ima->gputexture[i][eye][resolution]);
-        ima->gputexture[i][eye][resolution] = NULL;
+        ima->gputexture[i][eye][resolution] = nullptr;
       }
     }
   }
@@ -769,7 +770,7 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
 {
   const int resolution = texture_resolution == IMA_TEXTURE_RESOLUTION_LIMITED ? 1 : 0;
   bool scaled;
-  if (tile != NULL) {
+  if (tile != nullptr) {
     ImageTile_RuntimeTextureSlot *tile_runtime = &tile->runtime.slots[resolution];
     int *tilesize = tile_runtime->tilearray_size;
     scaled = (ibuf->x != tilesize[0]) || (ibuf->y != tilesize[1]);
@@ -796,14 +797,14 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
 
   const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
-  if (rect_float == NULL) {
+  if (rect_float == nullptr) {
     /* Byte pixels. */
     if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
       const bool compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(
           ibuf->rect_colorspace);
 
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
-      if (rect == NULL) {
+      if (rect == nullptr) {
         return;
       }
 
@@ -820,7 +821,7 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
     /* Float pixels. */
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
       rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
-      if (rect_float == NULL) {
+      if (rect_float == nullptr) {
         return;
       }
 
@@ -834,7 +835,7 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
 
   if (scaled) {
     /* Slower update where we first have to scale the input pixels. */
-    if (tile != NULL) {
+    if (tile != nullptr) {
       ImageTile_RuntimeTextureSlot *tile_runtime = &tile->runtime.slots[resolution];
       int *tileoffset = tile_runtime->tilearray_offset;
       int *tilesize = tile_runtime->tilearray_size;
@@ -844,12 +845,12 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
     }
     else {
       gpu_texture_update_scaled(
-          tex, rect, rect_float, ibuf->x, ibuf->y, x, y, -1, NULL, NULL, w, h);
+          tex, rect, rect_float, ibuf->x, ibuf->y, x, y, -1, nullptr, nullptr, w, h);
     }
   }
   else {
     /* Fast update at same resolution. */
-    if (tile != NULL) {
+    if (tile != nullptr) {
       ImageTile_RuntimeTextureSlot *tile_runtime = &tile->runtime.slots[resolution];
       int *tileoffset = tile_runtime->tilearray_offset;
       int tilelayer = tile_runtime->tilearray_layer;
@@ -858,7 +859,7 @@ static void gpu_texture_update_from_ibuf(GPUTexture *tex,
     }
     else {
       gpu_texture_update_unscaled(
-          tex, rect, rect_float, x, y, -1, NULL, w, h, tex_stride, tex_offset);
+          tex, rect, rect_float, x, y, -1, nullptr, w, h, tex_stride, tex_offset);
     }
   }
 
@@ -886,15 +887,15 @@ static void image_update_gputexture_ex(
   const int eye = 0;
   for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
     GPUTexture *tex = ima->gputexture[TEXTARGET_2D][eye][resolution];
-    eImageTextureResolution texture_resolution = resolution;
+    eImageTextureResolution texture_resolution = static_cast<eImageTextureResolution>(resolution);
     /* Check if we need to update the main gputexture. */
-    if (tex != NULL && tile == ima->tiles.first) {
-      gpu_texture_update_from_ibuf(tex, ima, ibuf, NULL, x, y, w, h, texture_resolution);
+    if (tex != nullptr && tile == ima->tiles.first) {
+      gpu_texture_update_from_ibuf(tex, ima, ibuf, nullptr, x, y, w, h, texture_resolution);
     }
 
     /* Check if we need to update the array gputexture. */
     tex = ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution];
-    if (tex != NULL) {
+    if (tex != nullptr) {
       gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h, texture_resolution);
     }
   }
@@ -904,15 +905,15 @@ static void image_update_gputexture_ex(
  * quicker than fully updating the texture for high resolution images. */
 void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
   ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
 
-  if ((ibuf == NULL) || (w == 0) || (h == 0)) {
+  if ((ibuf == nullptr) || (w == 0) || (h == 0)) {
     /* Full reload of texture. */
     BKE_image_free_gputextures(ima);
   }
   image_update_gputexture_ex(ima, tile, ibuf, x, y, w, h);
-  BKE_image_release_ibuf(ima, ibuf, NULL);
+  BKE_image_release_ibuf(ima, ibuf, nullptr);
 }
 
 /* Mark areas on the GPUTexture that needs to be updated. The areas are marked in chunks.
@@ -946,7 +947,7 @@ void BKE_image_update_gputexture_delayed(
   const int num_tiles_y = (end_tile_y + 1) - (start_tile_y);
   const int num_tiles = num_tiles_x * num_tiles_y;
   const bool allocate_on_heap = BLI_BITMAP_SIZE(num_tiles) > 16;
-  BLI_bitmap *requested_tiles = NULL;
+  BLI_bitmap *requested_tiles = nullptr;
   if (allocate_on_heap) {
     requested_tiles = BLI_BITMAP_NEW(num_tiles, __func__);
   }
@@ -976,7 +977,8 @@ void BKE_image_update_gputexture_delayed(
     for (int tile_y = start_tile_y; tile_y <= end_tile_y; tile_y++) {
       for (int tile_x = start_tile_x; tile_x <= end_tile_x; tile_x++) {
         if (!BLI_BITMAP_TEST_BOOL(requested_tiles, tile_index)) {
-          ImagePartialRefresh *area = MEM_mallocN(sizeof(ImagePartialRefresh), __func__);
+          ImagePartialRefresh *area = static_cast<ImagePartialRefresh *>(
+              MEM_mallocN(sizeof(ImagePartialRefresh), __func__));
           area->tile_x = tile_x;
           area->tile_y = tile_y;
           BLI_addtail(&ima->gpu_refresh_areas, area);
@@ -1005,7 +1007,7 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
             for (int eye = 0; eye < 2; eye++) {
               for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
                 GPUTexture *tex = ima->gputexture[a][eye][resolution];
-                if (tex != NULL) {
+                if (tex != nullptr) {
                   GPU_texture_mipmap_mode(tex, mipmap, true);
                 }
               }
