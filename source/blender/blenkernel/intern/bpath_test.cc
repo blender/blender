@@ -42,7 +42,7 @@ namespace blender::bke::tests {
 #  define ABSOLUTE_ROOT SEP_STR
 #endif
 
-#define RELATIVE_ROOT SEP_STR SEP_STR
+#define RELATIVE_ROOT "//"
 #define BASE_DIR ABSOLUTE_ROOT "blendfiles" SEP_STR
 #define REBASE_DIR BASE_DIR "rebase" SEP_STR
 
