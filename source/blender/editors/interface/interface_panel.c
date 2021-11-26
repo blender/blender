@@ -1345,10 +1345,8 @@ bool UI_panel_should_show_background(const ARegion *region, const PanelType *pan
       /* We never want a background around active tools. */
       return false;
     }
-    else {
-      /* Without a header there is no background except for region overlap. */
-      return region->overlap != 0;
-    }
+    /* Without a header there is no background except for region overlap. */
+    return region->overlap != 0;
   }
 
   return true;
