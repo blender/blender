@@ -808,6 +808,7 @@ if(WITH_GTESTS)
     intern/asset_library_service_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
+    intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc

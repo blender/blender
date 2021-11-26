@@ -1,0 +1,167 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2021 by Blender Foundation.
+ */
+#include "testing/testing.h"
+
+#include "CLG_log.h"
+
+#include "BKE_bpath.h"
+#include "BKE_idtype.h"
+#include "BKE_lib_id.h"
+#include "BKE_main.h"
+
+#include "MEM_guardedalloc.h"
+
+#include "DNA_listBase.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_text_types.h"
+
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+
+namespace blender::bke::tests {
+
+#define DEFAULT_BASE_DIR "/blendfiles/"
+#define DEFAULT_BLENDFILE_NAME "bpath.blend"
+#define DEFAULT_BLENDFILE_PATH (DEFAULT_BASE_DIR DEFAULT_BLENDFILE_NAME)
+
+#define DEFAULT_TEXT_PATH_ITEM "texts/text.txt"
+#define DEFAULT_TEXT_PATH_ABSOLUTE ("/" DEFAULT_TEXT_PATH_ITEM)
+#define DEFAULT_TEXT_PATH_RELATIVE ("//" DEFAULT_TEXT_PATH_ITEM)
+
+#define DEFAULT_MOVIECLIP_PATH_ITEM "movieclips/movieclip.avi"
+#define DEFAULT_MOVIECLIP_PATH_ABSOLUTE ("/" DEFAULT_MOVIECLIP_PATH_ITEM)
+#define DEFAULT_MOVIECLIP_PATH_RELATIVE ("//" DEFAULT_MOVIECLIP_PATH_ITEM)
+
+class BPathTest : public testing::Test {
+ public:
+  static void SetUpTestSuite()
+  {
+    CLG_init();
+    BKE_idtype_init();
+  }
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+  }
+
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+    BLI_strncpy(bmain->name, DEFAULT_BLENDFILE_PATH, sizeof(bmain->name));
+
+    BKE_id_new(bmain, ID_TXT, nullptr);
+    BKE_id_new(bmain, ID_MC, nullptr);
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain);
+  }
+
+  Main *bmain;
+};
+
+TEST_F(BPathTest, rebase_on_relative)
+{
+  // Test on relative paths, should be modified.
+  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+
+  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+
+  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase/", nullptr);
+
+  EXPECT_STREQ(text->filepath, "//../" DEFAULT_TEXT_PATH_ITEM);
+  EXPECT_STREQ(movie_clip->filepath, "//../" DEFAULT_MOVIECLIP_PATH_ITEM);
+}
+
+TEST_F(BPathTest, rebase_on_absolute)
+{
+  // Test on absolute paths, should not be modified.
+  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_ABSOLUTE);
+
+  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+
+  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase/", nullptr);
+
+  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_ABSOLUTE);
+  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+}
+
+TEST_F(BPathTest, convert_to_relative)
+{
+  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+
+  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+
+  BKE_bpath_relative_convert(bmain, DEFAULT_BASE_DIR, nullptr);
+
+  // Already relative path should not be modified.
+  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_RELATIVE);
+  // Absolute path should be modified.
+  EXPECT_STREQ(movie_clip->filepath, "//../" DEFAULT_MOVIECLIP_PATH_ITEM);
+}
+
+TEST_F(BPathTest, convert_to_absolute)
+{
+  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+
+  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+
+  BKE_bpath_absolute_convert(bmain, DEFAULT_BASE_DIR, nullptr);
+
+  // Relative path should be modified.
+  EXPECT_STREQ(text->filepath, DEFAULT_BASE_DIR DEFAULT_TEXT_PATH_ITEM);
+  // Already absolute path should not be modified.
+  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+}
+
+TEST_F(BPathTest, list_backup_restore)
+{
+  Text *text = reinterpret_cast<Text *>(bmain->texts.first);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+
+  MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+
+  void *path_list_handle = BKE_bpath_list_backup(bmain, 0);
+
+  ListBase *path_list = reinterpret_cast<ListBase *>(path_list_handle);
+  EXPECT_EQ(BLI_listbase_count(path_list), 2);
+
+  MEM_freeN(text->filepath);
+  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_ABSOLUTE);
+  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+
+  BKE_bpath_list_restore(bmain, 0, path_list_handle);
+
+  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_RELATIVE);
+  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+  EXPECT_EQ(BLI_listbase_count(path_list), 0);
+
+  BKE_bpath_list_free(path_list_handle);
+}
+
+}  // namespace blender::bke::tests
