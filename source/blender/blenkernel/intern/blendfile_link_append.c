@@ -579,6 +579,8 @@ static void loose_data_instantiate_collection_process(
   ViewLayer *view_layer = lapp_context->params->context.view_layer;
   const View3D *v3d = lapp_context->params->context.v3d;
 
+  const bool do_append = (lapp_context->params->flag & FILE_LINK) == 0;
+
   /* NOTE: For collections we only view_layer-instantiate duplicated collections that have
    * non-instantiated objects in them. */
   LinkNode *itemlink;
@@ -601,7 +603,10 @@ static void loose_data_instantiate_collection_process(
     Collection *collection = (Collection *)id;
     /* We always add collections directly selected by the user. */
     bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0;
-    if (!do_add_collection) {
+    /* In linking case, we do not enforce instantiating non-directly linked collections/objects.
+     * This avoids cluttering the ViewLayers, user can instantiate themselves specific collections
+     * or objects easily from the Outliner if needed. */
+    if (!do_add_collection && do_append) {
       LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
         Object *ob = coll_ob->ob;
         if (!object_in_any_scene(bmain, ob)) {
