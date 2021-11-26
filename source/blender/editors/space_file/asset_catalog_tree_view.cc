@@ -608,7 +608,8 @@ std::string AssetCatalogTreeViewAllItem::DropController::drop_tooltip(const wmDr
          TIP_("to the top level of the tree");
 }
 
-bool AssetCatalogTreeViewAllItem::DropController::on_drop(struct bContext *, const wmDrag &drag)
+bool AssetCatalogTreeViewAllItem::DropController::on_drop(struct bContext *UNUSED(C),
+                                                          const wmDrag &drag)
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   return AssetCatalogDropController::drop_asset_catalog_into_catalog(
