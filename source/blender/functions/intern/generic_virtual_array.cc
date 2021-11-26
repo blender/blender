@@ -337,6 +337,57 @@ class GVArrayImpl_For_SingleValue : public GVArrayImpl_For_SingleValueRef,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #GVArrayImpl_For_SmallTrivialSingleValue
+ * \{ */
+
+/**
+ * Contains an inline buffer that can store a single value of a trivial type.
+ * This avoids the allocation that would be done by #GVArrayImpl_For_SingleValue.
+ */
+template<int BufferSize> class GVArrayImpl_For_SmallTrivialSingleValue : public GVArrayImpl {
+ private:
+  AlignedBuffer<BufferSize, 8> buffer_;
+
+ public:
+  GVArrayImpl_For_SmallTrivialSingleValue(const CPPType &type,
+                                          const int64_t size,
+                                          const void *value)
+      : GVArrayImpl(type, size)
+  {
+    BLI_assert(type.is_trivial());
+    BLI_assert(type.alignment() <= 8);
+    BLI_assert(type.size() <= BufferSize);
+    type.copy_construct(value, &buffer_);
+  }
+
+ private:
+  void get(const int64_t UNUSED(index), void *r_value) const override
+  {
+    this->copy_value_to(r_value);
+  }
+  void get_to_uninitialized(const int64_t UNUSED(index), void *r_value) const override
+  {
+    this->copy_value_to(r_value);
+  }
+
+  bool is_single() const override
+  {
+    return true;
+  }
+  void get_internal_single(void *r_value) const override
+  {
+    this->copy_value_to(r_value);
+  }
+
+  void copy_value_to(void *dst) const
+  {
+    memcpy(dst, &buffer_, type_->size());
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #GVArray_GSpan
  * \{ */
 
@@ -593,6 +644,9 @@ GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::m
 
 GVArray GVArray::ForSingle(const CPPType &type, const int64_t size, const void *value)
 {
+  if (type.is_trivial() && type.size() <= 16 && type.alignment() <= 8) {
+    return GVArray::For<GVArrayImpl_For_SmallTrivialSingleValue<16>>(type, size, value);
+  }
   return GVArray::For<GVArrayImpl_For_SingleValue>(type, size, value);
 }
 
