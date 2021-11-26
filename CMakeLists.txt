@@ -501,12 +501,10 @@ if(WIN32)
 endif()
 
 # This should be turned off when Blender enter beta/rc/release
-if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
-   "${BLENDER_VERSION_CYCLE}" STREQUAL "rc" OR
-   "${BLENDER_VERSION_CYCLE}" STREQUAL "beta")
-  set(WITH_EXPERIMENTAL_FEATURES OFF)
-else()
+if("${BLENDER_VERSION_CYCLE}" STREQUAL "alpha")
   set(WITH_EXPERIMENTAL_FEATURES ON)
+else()
+  set(WITH_EXPERIMENTAL_FEATURES OFF)
 endif()
 
 # Unit testsing
