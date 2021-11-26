@@ -555,37 +555,19 @@ template<typename T> class VMutableArrayImpl_For_GVMutableArray : public VMutabl
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #GVArrayImpl_For_GSpan and #GVMutableArrayImpl_For_GMutableSpan.
+/** \name #GVArrayImpl_For_GSpan.
  * \{ */
 
-class GVArrayImpl_For_GSpan : public GVArrayImpl {
- protected:
-  const void *data_ = nullptr;
-  const int64_t element_size_;
-
- public:
-  GVArrayImpl_For_GSpan(const GSpan span);
-
- protected:
-  GVArrayImpl_For_GSpan(const CPPType &type, const int64_t size);
-
-  void get(const int64_t index, void *r_value) const override;
-  void get_to_uninitialized(const int64_t index, void *r_value) const override;
-
-  bool is_span() const override;
-  GSpan get_internal_span() const override;
-};
-
-class GVMutableArrayImpl_For_GMutableSpan : public GVMutableArrayImpl {
+class GVArrayImpl_For_GSpan : public GVMutableArrayImpl {
  protected:
   void *data_ = nullptr;
   const int64_t element_size_;
 
  public:
-  GVMutableArrayImpl_For_GMutableSpan(const GMutableSpan span);
+  GVArrayImpl_For_GSpan(const GMutableSpan span);
 
  protected:
-  GVMutableArrayImpl_For_GMutableSpan(const CPPType &type, const int64_t size);
+  GVArrayImpl_For_GSpan(const CPPType &type, const int64_t size);
 
  public:
   void get(const int64_t index, void *r_value) const override;

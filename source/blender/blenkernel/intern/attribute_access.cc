@@ -50,7 +50,7 @@ using blender::bke::AttributeIDRef;
 using blender::bke::OutputAttribute;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
-using blender::fn::GVMutableArrayImpl_For_GMutableSpan;
+using blender::fn::GVArrayImpl_For_GSpan;
 
 namespace blender::bke {
 
@@ -1200,8 +1200,7 @@ blender::fn::GVArray GeometryComponent::attribute_get_for_read(const AttributeID
   return blender::fn::GVArray::ForSingle(*type, domain_size, default_value);
 }
 
-class GVMutableAttribute_For_OutputAttribute
-    : public blender::fn::GVMutableArrayImpl_For_GMutableSpan {
+class GVMutableAttribute_For_OutputAttribute : public blender::fn::GVArrayImpl_For_GSpan {
  public:
   GeometryComponent *component;
   std::string attribute_name;
@@ -1210,7 +1209,7 @@ class GVMutableAttribute_For_OutputAttribute
   GVMutableAttribute_For_OutputAttribute(GMutableSpan data,
                                          GeometryComponent &component,
                                          const AttributeIDRef &attribute_id)
-      : blender::fn::GVMutableArrayImpl_For_GMutableSpan(data), component(&component)
+      : blender::fn::GVArrayImpl_For_GSpan(data), component(&component)
   {
     if (attribute_id.is_named()) {
       this->attribute_name = attribute_id.name();

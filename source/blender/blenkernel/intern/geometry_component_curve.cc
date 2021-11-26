@@ -714,46 +714,15 @@ static bool remove_point_attribute(GeometryComponent &component,
 }
 
 /**
- * Virtual array for any control point data accessed with spans and an offset array.
- */
-template<typename T> class VArray_For_SplinePoints : public VArrayImpl<T> {
- private:
-  const Array<Span<T>> data_;
-  Array<int> offsets_;
-
- public:
-  VArray_For_SplinePoints(Array<Span<T>> data, Array<int> offsets)
-      : VArrayImpl<T>(offsets.last()), data_(std::move(data)), offsets_(std::move(offsets))
-  {
-  }
-
-  T get(const int64_t index) const final
-  {
-    const PointIndices indices = lookup_point_indices(offsets_, index);
-    return data_[indices.spline_index][indices.point_index];
-  }
-
-  void materialize(const IndexMask mask, MutableSpan<T> r_span) const final
-  {
-    point_attribute_materialize(data_.as_span(), offsets_, mask, r_span);
-  }
-
-  void materialize_to_uninitialized(const IndexMask mask, MutableSpan<T> r_span) const final
-  {
-    point_attribute_materialize_to_uninitialized(data_.as_span(), offsets_, mask, r_span);
-  }
-};
-
-/**
  * Mutable virtual array for any control point data accessed with spans and an offset array.
  */
-template<typename T> class VMutableArray_For_SplinePoints final : public VMutableArrayImpl<T> {
+template<typename T> class VArrayImpl_For_SplinePoints final : public VMutableArrayImpl<T> {
  private:
   Array<MutableSpan<T>> data_;
   Array<int> offsets_;
 
  public:
-  VMutableArray_For_SplinePoints(Array<MutableSpan<T>> data, Array<int> offsets)
+  VArrayImpl_For_SplinePoints(Array<MutableSpan<T>> data, Array<int> offsets)
       : VMutableArrayImpl<T>(offsets.last()), data_(std::move(data)), offsets_(std::move(offsets))
   {
   }
@@ -791,16 +760,17 @@ template<typename T> class VMutableArray_For_SplinePoints final : public VMutabl
   }
 };
 
-template<typename T> VArray<T> point_data_varray(Array<Span<T>> spans, Array<int> offsets)
+template<typename T> VArray<T> point_data_varray(Array<MutableSpan<T>> spans, Array<int> offsets)
 {
-  return VArray<T>::template For<VArray_For_SplinePoints<T>>(std::move(spans), std::move(offsets));
+  return VArray<T>::template For<VArrayImpl_For_SplinePoints<T>>(std::move(spans),
+                                                                 std::move(offsets));
 }
 
 template<typename T>
-VMutableArray<T> point_data_varray(Array<MutableSpan<T>> spans, Array<int> offsets)
+VMutableArray<T> point_data_varray_mutable(Array<MutableSpan<T>> spans, Array<int> offsets)
 {
-  return VMutableArray<T>::template For<VMutableArray_For_SplinePoints<T>>(std::move(spans),
-                                                                           std::move(offsets));
+  return VMutableArray<T>::template For<VArrayImpl_For_SplinePoints<T>>(std::move(spans),
+                                                                        std::move(offsets));
 }
 
 /**
@@ -811,13 +781,13 @@ VMutableArray<T> point_data_varray(Array<MutableSpan<T>> spans, Array<int> offse
  * \note There is no need to check the handle type to avoid changing auto handles, since
  * retrieving write access to the position data will mark them for recomputation anyway.
  */
-class VMutableArray_For_SplinePosition final : public VMutableArrayImpl<float3> {
+class VArrayImpl_For_SplinePosition final : public VMutableArrayImpl<float3> {
  private:
   MutableSpan<SplinePtr> splines_;
   Array<int> offsets_;
 
  public:
-  VMutableArray_For_SplinePosition(MutableSpan<SplinePtr> splines, Array<int> offsets)
+  VArrayImpl_For_SplinePosition(MutableSpan<SplinePtr> splines, Array<int> offsets)
       : VMutableArrayImpl<float3>(offsets.last()), splines_(splines), offsets_(std::move(offsets))
   {
   }
@@ -889,104 +859,16 @@ class VMutableArray_For_SplinePosition final : public VMutableArrayImpl<float3> 
   }
 };
 
-class VArray_For_BezierHandle final : public VArrayImpl<float3> {
- private:
-  Span<SplinePtr> splines_;
-  Array<int> offsets_;
-  bool is_right_;
-
- public:
-  VArray_For_BezierHandle(Span<SplinePtr> splines, Array<int> offsets, const bool is_right)
-      : VArrayImpl<float3>(offsets.last()),
-        splines_(std::move(splines)),
-        offsets_(std::move(offsets)),
-        is_right_(is_right)
-  {
-  }
-
-  static float3 get_internal(const int64_t index,
-                             Span<SplinePtr> splines,
-                             Span<int> offsets,
-                             const bool is_right)
-  {
-    const PointIndices indices = lookup_point_indices(offsets, index);
-    const Spline &spline = *splines[indices.spline_index];
-    if (spline.type() == Spline::Type::Bezier) {
-      const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
-      return is_right ? bezier_spline.handle_positions_right()[indices.point_index] :
-                        bezier_spline.handle_positions_left()[indices.point_index];
-    }
-    return float3(0);
-  }
-
-  float3 get(const int64_t index) const final
-  {
-    return get_internal(index, splines_, offsets_, is_right_);
-  }
-
-  /**
-   * Utility so we can pass handle positions to the materialize functions above.
-   *
-   * \note This relies on the ability of the materialize implementations to
-   * handle empty spans, since only Bezier splines have handles.
-   */
-  static Array<Span<float3>> get_handle_spans(Span<SplinePtr> splines, const bool is_right)
-  {
-    Array<Span<float3>> spans(splines.size());
-    for (const int i : spans.index_range()) {
-      if (splines[i]->type() == Spline::Type::Bezier) {
-        BezierSpline &bezier_spline = static_cast<BezierSpline &>(*splines[i]);
-        spans[i] = is_right ? bezier_spline.handle_positions_right() :
-                              bezier_spline.handle_positions_left();
-      }
-      else {
-        spans[i] = {};
-      }
-    }
-    return spans;
-  }
-
-  static void materialize_internal(const IndexMask mask,
-                                   Span<SplinePtr> splines,
-                                   Span<int> offsets,
-                                   const bool is_right,
-                                   MutableSpan<float3> r_span)
-  {
-    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
-    point_attribute_materialize(spans.as_span(), offsets, mask, r_span);
-  }
-
-  static void materialize_to_uninitialized_internal(const IndexMask mask,
-                                                    Span<SplinePtr> splines,
-                                                    Span<int> offsets,
-                                                    const bool is_right,
-                                                    MutableSpan<float3> r_span)
-  {
-    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
-    point_attribute_materialize_to_uninitialized(spans.as_span(), offsets, mask, r_span);
-  }
-
-  void materialize(const IndexMask mask, MutableSpan<float3> r_span) const final
-  {
-    materialize_internal(mask, splines_, offsets_, is_right_, r_span);
-  }
-
-  void materialize_to_uninitialized(const IndexMask mask, MutableSpan<float3> r_span) const final
-  {
-    materialize_to_uninitialized_internal(mask, splines_, offsets_, is_right_, r_span);
-  }
-};
-
-class VMutableArray_For_BezierHandles final : public VMutableArrayImpl<float3> {
+class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
  private:
   MutableSpan<SplinePtr> splines_;
   Array<int> offsets_;
   bool is_right_;
 
  public:
-  VMutableArray_For_BezierHandles(MutableSpan<SplinePtr> splines,
-                                  Array<int> offsets,
-                                  const bool is_right)
+  VArrayImpl_For_BezierHandles(MutableSpan<SplinePtr> splines,
+                               Array<int> offsets,
+                               const bool is_right)
       : VMutableArrayImpl<float3>(offsets.last()),
         splines_(splines),
         offsets_(std::move(offsets)),
@@ -996,7 +878,14 @@ class VMutableArray_For_BezierHandles final : public VMutableArrayImpl<float3> {
 
   float3 get(const int64_t index) const final
   {
-    return VArray_For_BezierHandle::get_internal(index, splines_, offsets_, is_right_);
+    const PointIndices indices = lookup_point_indices(offsets_, index);
+    const Spline &spline = *splines_[indices.spline_index];
+    if (spline.type() == Spline::Type::Bezier) {
+      const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
+      return is_right_ ? bezier_spline.handle_positions_right()[indices.point_index] :
+                         bezier_spline.handle_positions_left()[indices.point_index];
+    }
+    return float3(0);
   }
 
   void set(const int64_t index, float3 value) final
@@ -1040,13 +929,36 @@ class VMutableArray_For_BezierHandles final : public VMutableArrayImpl<float3> {
 
   void materialize(const IndexMask mask, MutableSpan<float3> r_span) const final
   {
-    VArray_For_BezierHandle::materialize_internal(mask, splines_, offsets_, is_right_, r_span);
+    Array<Span<float3>> spans = get_handle_spans(splines_, is_right_);
+    point_attribute_materialize(spans.as_span(), offsets_, mask, r_span);
   }
 
   void materialize_to_uninitialized(const IndexMask mask, MutableSpan<float3> r_span) const final
   {
-    VArray_For_BezierHandle::materialize_to_uninitialized_internal(
-        mask, splines_, offsets_, is_right_, r_span);
+    Array<Span<float3>> spans = get_handle_spans(splines_, is_right_);
+    point_attribute_materialize_to_uninitialized(spans.as_span(), offsets_, mask, r_span);
+  }
+
+  /**
+   * Utility so we can pass handle positions to the materialize functions above.
+   *
+   * \note This relies on the ability of the materialize implementations to
+   * handle empty spans, since only Bezier splines have handles.
+   */
+  static Array<Span<float3>> get_handle_spans(Span<SplinePtr> splines, const bool is_right)
+  {
+    Array<Span<float3>> spans(splines.size());
+    for (const int i : spans.index_range()) {
+      if (splines[i]->type() == Spline::Type::Bezier) {
+        BezierSpline &bezier_spline = static_cast<BezierSpline &>(*splines[i]);
+        spans[i] = is_right ? bezier_spline.handle_positions_right() :
+                              bezier_spline.handle_positions_left();
+      }
+      else {
+        spans[i] = {};
+      }
+    }
+    return spans;
   }
 };
 
@@ -1102,9 +1014,12 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
     }
 
     Array<int> offsets = curve->control_point_offsets();
-    Array<Span<T>> spans(splines.size());
+    Array<MutableSpan<T>> spans(splines.size());
     for (const int i : splines.index_range()) {
-      spans[i] = get_span_(*splines[i]);
+      Span<T> span = get_span_(*splines[i]);
+      /* Use const-cast because the underlying virtual array implementation is shared between const
+       * and non const data. */
+      spans[i] = MutableSpan<T>(const_cast<T *>(span.data()), span.size());
     }
 
     return point_data_varray(spans, offsets);
@@ -1143,7 +1058,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       spans[i] = get_mutable_span_(*splines[i]);
     }
 
-    return {point_data_varray(spans, offsets), domain_, tag_modified_fn};
+    return {point_data_varray_mutable(spans, offsets), domain_, tag_modified_fn};
   }
 
   bool try_delete(GeometryComponent &component) const final
@@ -1235,8 +1150,8 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     };
 
     Array<int> offsets = curve->control_point_offsets();
-    return {VMutableArray<float3>::For<VMutableArray_For_SplinePosition>(curve->splines(),
-                                                                         std::move(offsets)),
+    return {VMutableArray<float3>::For<VArrayImpl_For_SplinePosition>(curve->splines(),
+                                                                      std::move(offsets)),
             domain_,
             tag_modified_fn};
   }
@@ -1270,8 +1185,10 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
     }
 
     Array<int> offsets = curve->control_point_offsets();
-    return VArray<float3>::For<VArray_For_BezierHandle>(
-        curve->splines(), std::move(offsets), is_right_);
+    /* Use const-cast because the underlying virtual array implementation is shared between const
+     * and non const data. */
+    return VArray<float3>::For<VArrayImpl_For_BezierHandles>(
+        const_cast<CurveEval *>(curve)->splines(), std::move(offsets), is_right_);
   }
 
   WriteAttributeLookup try_get_for_write(GeometryComponent &component) const override
@@ -1288,7 +1205,7 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
     auto tag_modified_fn = [curve]() { curve->mark_cache_invalid(); };
 
     Array<int> offsets = curve->control_point_offsets();
-    return {VMutableArray<float3>::For<VMutableArray_For_BezierHandles>(
+    return {VMutableArray<float3>::For<VArrayImpl_For_BezierHandles>(
                 curve->splines(), std::move(offsets), is_right_),
             domain_,
             tag_modified_fn};
@@ -1377,9 +1294,12 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     Array<int> offsets = curve->control_point_offsets();
     attribute_math::convert_to_static_type(spans[0].type(), [&](auto dummy) {
       using T = decltype(dummy);
-      Array<Span<T>> data(splines.size());
+      Array<MutableSpan<T>> data(splines.size());
       for (const int i : splines.index_range()) {
-        data[i] = spans[i].typed<T>();
+        Span<T> span = spans[i].typed<T>();
+        /* Use const-cast because the underlying virtual array implementation is shared between
+         * const and non const data. */
+        data[i] = MutableSpan<T>(const_cast<T *>(span.data()), span.size());
         BLI_assert(data[i].data() != nullptr);
       }
       attribute = {point_data_varray(data, offsets), ATTR_DOMAIN_POINT};
@@ -1435,7 +1355,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
         data[i] = spans[i].typed<T>();
         BLI_assert(data[i].data() != nullptr);
       }
-      attribute = {point_data_varray(data, offsets), ATTR_DOMAIN_POINT};
+      attribute = {point_data_varray_mutable(data, offsets), ATTR_DOMAIN_POINT};
     });
     return attribute;
   }

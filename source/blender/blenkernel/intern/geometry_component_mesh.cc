@@ -996,57 +996,36 @@ static void set_crease(MEdge &edge, float value)
   edge.crease = round_fl_to_uchar_clamp(value * 255.0f);
 }
 
-class VMutableArray_For_VertexWeights final : public VMutableArrayImpl<float> {
+class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
  private:
   MDeformVert *dverts_;
   const int dvert_index_;
 
  public:
-  VMutableArray_For_VertexWeights(MDeformVert *dverts, const int totvert, const int dvert_index)
+  VArrayImpl_For_VertexWeights(MDeformVert *dverts, const int totvert, const int dvert_index)
       : VMutableArrayImpl<float>(totvert), dverts_(dverts), dvert_index_(dvert_index)
   {
   }
 
   float get(const int64_t index) const override
   {
-    return get_internal(dverts_, dvert_index_, index);
+    if (dverts_ == nullptr) {
+      return 0.0f;
+    }
+    const MDeformVert &dvert = dverts_[index];
+    for (const MDeformWeight &weight : Span(dvert.dw, dvert.totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return weight.weight;
+      }
+    }
+    return 0.0f;
+    ;
   }
 
   void set(const int64_t index, const float value) override
   {
     MDeformWeight *weight = BKE_defvert_ensure_index(&dverts_[index], dvert_index_);
     weight->weight = value;
-  }
-
-  static float get_internal(const MDeformVert *dverts, const int dvert_index, const int64_t index)
-  {
-    if (dverts == nullptr) {
-      return 0.0f;
-    }
-    const MDeformVert &dvert = dverts[index];
-    for (const MDeformWeight &weight : Span(dvert.dw, dvert.totweight)) {
-      if (weight.def_nr == dvert_index) {
-        return weight.weight;
-      }
-    }
-    return 0.0f;
-  }
-};
-
-class VArray_For_VertexWeights final : public VArrayImpl<float> {
- private:
-  const MDeformVert *dverts_;
-  const int dvert_index_;
-
- public:
-  VArray_For_VertexWeights(const MDeformVert *dverts, const int totvert, const int dvert_index)
-      : VArrayImpl<float>(totvert), dverts_(dverts), dvert_index_(dvert_index)
-  {
-  }
-
-  float get(const int64_t index) const override
-  {
-    return VMutableArray_For_VertexWeights::get_internal(dverts_, dvert_index_, index);
   }
 };
 
@@ -1077,7 +1056,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
       static const float default_value = 0.0f;
       return {VArray<float>::ForSingle(default_value, mesh->totvert), ATTR_DOMAIN_POINT};
     }
-    return {VArray<float>::For<VArray_For_VertexWeights>(
+    return {VArray<float>::For<VArrayImpl_For_VertexWeights>(
                 mesh->dvert, mesh->totvert, vertex_group_index),
             ATTR_DOMAIN_POINT};
   }
@@ -1109,7 +1088,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
       mesh->dvert = (MDeformVert *)CustomData_duplicate_referenced_layer(
           &mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
     }
-    return {VMutableArray<float>::For<VMutableArray_For_VertexWeights>(
+    return {VMutableArray<float>::For<VArrayImpl_For_VertexWeights>(
                 mesh->dvert, mesh->totvert, vertex_group_index),
             ATTR_DOMAIN_POINT};
   }

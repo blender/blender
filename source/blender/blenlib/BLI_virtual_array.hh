@@ -223,69 +223,21 @@ template<typename T> class VMutableArrayImpl : public VArrayImpl<T> {
 };
 
 /**
- * A virtual array implementation for a span. Methods in this class are final so that it can be
- * devirtualized by the compiler in some cases (e.g. when #devirtualize_varray is used).
+ * A virtual array implementation that references that wraps a span. This implementation is used by
+ * mutable and immutable spans to avoid code duplication.
  */
-template<typename T> class VArrayImpl_For_Span : public VArrayImpl<T> {
- protected:
-  const T *data_ = nullptr;
-
- public:
-  VArrayImpl_For_Span(const Span<T> data) : VArrayImpl<T>(data.size()), data_(data.data())
-  {
-  }
-
- protected:
-  VArrayImpl_For_Span(const int64_t size) : VArrayImpl<T>(size)
-  {
-  }
-
-  T get(const int64_t index) const final
-  {
-    return data_[index];
-  }
-
-  bool is_span() const final
-  {
-    return true;
-  }
-
-  Span<T> get_internal_span() const final
-  {
-    return Span<T>(data_, this->size_);
-  }
-};
-
-/**
- * A version of #VArrayImpl_For_Span that can not be subclassed. This allows safely overwriting the
- * #may_have_ownership method.
- */
-template<typename T> class VArrayImpl_For_Span_final final : public VArrayImpl_For_Span<T> {
- public:
-  using VArrayImpl_For_Span<T>::VArrayImpl_For_Span;
-
- private:
-  bool may_have_ownership() const override
-  {
-    return false;
-  }
-};
-
-/**
- * Like #VArrayImpl_For_Span but for mutable data.
- */
-template<typename T> class VMutableArrayImpl_For_MutableSpan : public VMutableArrayImpl<T> {
+template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
  protected:
   T *data_ = nullptr;
 
  public:
-  VMutableArrayImpl_For_MutableSpan(const MutableSpan<T> data)
+  VArrayImpl_For_Span(const MutableSpan<T> data)
       : VMutableArrayImpl<T>(data.size()), data_(data.data())
   {
   }
 
  protected:
-  VMutableArrayImpl_For_MutableSpan(const int64_t size) : VMutableArrayImpl<T>(size)
+  VArrayImpl_For_Span(const int64_t size) : VMutableArrayImpl<T>(size)
   {
   }
 
@@ -311,12 +263,12 @@ template<typename T> class VMutableArrayImpl_For_MutableSpan : public VMutableAr
 };
 
 /**
- * Like #VArrayImpl_For_Span_final but for mutable data.
+ * A version of #VArrayImpl_For_Span that can not be subclassed. This allows safely overwriting the
+ * #may_have_ownership method.
  */
-template<typename T>
-class VMutableArrayImpl_For_MutableSpan_final final : public VMutableArrayImpl_For_MutableSpan<T> {
+template<typename T> class VArrayImpl_For_Span_final final : public VArrayImpl_For_Span<T> {
  public:
-  using VMutableArrayImpl_For_MutableSpan<T>::VMutableArrayImpl_For_MutableSpan;
+  using VArrayImpl_For_Span<T>::VArrayImpl_For_Span;
 
  private:
   bool may_have_ownership() const override
@@ -340,7 +292,7 @@ class VArrayImpl_For_ArrayContainer : public VArrayImpl_For_Span<T> {
   VArrayImpl_For_ArrayContainer(Container container)
       : VArrayImpl_For_Span<T>((int64_t)container.size()), container_(std::move(container))
   {
-    this->data_ = container_.data();
+    this->data_ = const_cast<T *>(container_.data());
   }
 };
 
@@ -422,54 +374,16 @@ template<typename T, typename GetFunc> class VArrayImpl_For_Func final : public 
 /**
  * \note: This is `final` so that #may_have_ownership can be implemented reliably.
  */
-template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
-class VArrayImpl_For_DerivedSpan final : public VArrayImpl<ElemT> {
- private:
-  const StructT *data_;
-
- public:
-  VArrayImpl_For_DerivedSpan(const Span<StructT> data)
-      : VArrayImpl<ElemT>(data.size()), data_(data.data())
-  {
-  }
-
- private:
-  ElemT get(const int64_t index) const override
-  {
-    return GetFunc(data_[index]);
-  }
-
-  void materialize(IndexMask mask, MutableSpan<ElemT> r_span) const override
-  {
-    ElemT *dst = r_span.data();
-    mask.foreach_index([&](const int64_t i) { dst[i] = GetFunc(data_[i]); });
-  }
-
-  void materialize_to_uninitialized(IndexMask mask, MutableSpan<ElemT> r_span) const override
-  {
-    ElemT *dst = r_span.data();
-    mask.foreach_index([&](const int64_t i) { new (dst + i) ElemT(GetFunc(data_[i])); });
-  }
-
-  bool may_have_ownership() const override
-  {
-    return false;
-  }
-};
-
-/**
- * \note: This is `final` so that #may_have_ownership can be implemented reliably.
- */
 template<typename StructT,
          typename ElemT,
          ElemT (*GetFunc)(const StructT &),
-         void (*SetFunc)(StructT &, ElemT)>
-class VMutableArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
+         void (*SetFunc)(StructT &, ElemT) = nullptr>
+class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
  private:
   StructT *data_;
 
  public:
-  VMutableArrayImpl_For_DerivedSpan(const MutableSpan<StructT> data)
+  VArrayImpl_For_DerivedSpan(const MutableSpan<StructT> data)
       : VMutableArrayImpl<ElemT>(data.size()), data_(data.data())
   {
   }
@@ -482,6 +396,7 @@ class VMutableArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> 
 
   void set(const int64_t index, ElemT value) override
   {
+    BLI_assert(SetFunc != nullptr);
     SetFunc(data_[index], std::move(value));
   }
 
@@ -840,7 +755,10 @@ template<typename T> class VArray : public VArrayCommon<T> {
    */
   static VArray ForSpan(Span<T> values)
   {
-    return VArray::For<VArrayImpl_For_Span_final<T>>(values);
+    /* Cast const away, because the virtual array implementation for const and non const spans is
+     * shared. */
+    MutableSpan<T> span{const_cast<T *>(values.data()), values.size()};
+    return VArray::For<VArrayImpl_For_Span_final<T>>(span);
   }
 
   /**
@@ -859,7 +777,10 @@ template<typename T> class VArray : public VArrayCommon<T> {
   template<typename StructT, T (*GetFunc)(const StructT &)>
   static VArray ForDerivedSpan(Span<StructT> values)
   {
-    return VArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc>>(values);
+    /* Cast const away, because the virtual array implementation for const and non const derived
+     * spans is shared. */
+    MutableSpan<StructT> span{const_cast<StructT *>(values.data()), values.size()};
+    return VArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc>>(span);
   }
 
   /**
@@ -919,7 +840,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
    */
   static VMutableArray ForSpan(MutableSpan<T> values)
   {
-    return VMutableArray::For<VMutableArrayImpl_For_MutableSpan_final<T>>(values);
+    return VMutableArray::For<VArrayImpl_For_Span_final<T>>(values);
   }
 
   /**
@@ -929,8 +850,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   template<typename StructT, T (*GetFunc)(const StructT &), void (*SetFunc)(StructT &, T)>
   static VMutableArray ForDerivedSpan(MutableSpan<StructT> values)
   {
-    return VMutableArray::For<VMutableArrayImpl_For_DerivedSpan<StructT, T, GetFunc, SetFunc>>(
-        values);
+    return VMutableArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc, SetFunc>>(values);
   }
 
   /** Convert to a #VArray by copying. */
