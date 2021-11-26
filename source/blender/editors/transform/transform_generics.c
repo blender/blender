@@ -493,25 +493,31 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
+    orient_type_default = orient_type_scene;
+
     if (orient_type_set != -1) {
-      orient_type_default = orient_type_set;
-      t->is_orient_set = true;
+      if (!(t->con.mode & CON_APPLY)) {
+        /* Only overwrite default if not constrained. */
+        orient_type_default = orient_type_set;
+        t->is_orient_default_overwrite = true;
+      }
     }
     else if (orient_type_matrix_set != -1) {
-      orient_type_default = orient_type_set = orient_type_matrix_set;
-      t->is_orient_set = true;
+      orient_type_set = orient_type_matrix_set;
+      if (!(t->con.mode & CON_APPLY)) {
+        /* Only overwrite default if not constrained. */
+        orient_type_default = orient_type_set;
+        t->is_orient_default_overwrite = true;
+      }
     }
     else if (t->con.mode & CON_APPLY) {
-      orient_type_default = orient_type_set = orient_type_scene;
+      orient_type_set = orient_type_scene;
+    }
+    else if (orient_type_scene == V3D_ORIENT_GLOBAL) {
+      orient_type_set = V3D_ORIENT_LOCAL;
     }
     else {
-      orient_type_default = orient_type_scene;
-      if (orient_type_scene == V3D_ORIENT_GLOBAL) {
-        orient_type_set = V3D_ORIENT_LOCAL;
-      }
-      else {
-        orient_type_set = V3D_ORIENT_GLOBAL;
-      }
+      orient_type_set = V3D_ORIENT_GLOBAL;
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));

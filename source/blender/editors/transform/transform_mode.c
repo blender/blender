@@ -1240,7 +1240,7 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
   /* Currently only these types are supported. */
   BLI_assert(ELEM(type, V3D_ORIENT_GLOBAL, V3D_ORIENT_VIEW));
 
-  if (t->is_orient_set) {
+  if (t->is_orient_default_overwrite) {
     return;
   }
 

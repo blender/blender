@@ -608,7 +608,7 @@ typedef struct TransInfo {
    * mouse button then.) */
   bool is_launch_event_tweak;
 
-  bool is_orient_set;
+  bool is_orient_default_overwrite;
 
   struct {
     short type;
