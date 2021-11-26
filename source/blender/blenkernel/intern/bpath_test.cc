@@ -36,17 +36,30 @@
 
 namespace blender::bke::tests {
 
-#define DEFAULT_BASE_DIR SEP_STR "blendfiles" SEP_STR
-#define DEFAULT_BLENDFILE_NAME "bpath.blend"
-#define DEFAULT_BLENDFILE_PATH DEFAULT_BASE_DIR DEFAULT_BLENDFILE_NAME
+#ifdef WIN32
+#  define ABSOLUTE_ROOT "C:" SEP_STR
+#else
+#  define ABSOLUTE_ROOT SEP_STR
+#endif
 
-#define DEFAULT_TEXT_PATH_ITEM "texts" SEP_STR "text.txt"
-#define DEFAULT_TEXT_PATH_ABSOLUTE SEP_STR DEFAULT_TEXT_PATH_ITEM
-#define DEFAULT_TEXT_PATH_RELATIVE SEP_STR SEP_STR DEFAULT_TEXT_PATH_ITEM
+#define RELATIVE_ROOT SEP_STR SEP_STR
+#define BASE_DIR ABSOLUTE_ROOT "blendfiles" SEP_STR
+#define REBASE_DIR BASE_DIR "rebase" SEP_STR
 
-#define DEFAULT_MOVIECLIP_PATH_ITEM "movieclips" SEP_STR "movieclip.avi"
-#define DEFAULT_MOVIECLIP_PATH_ABSOLUTE SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM
-#define DEFAULT_MOVIECLIP_PATH_RELATIVE SEP_STR SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM
+#define BLENDFILE_NAME "bpath.blend"
+#define BLENDFILE_PATH BASE_DIR BLENDFILE_NAME
+
+#define TEXT_PATH_ITEM "texts" SEP_STR "text.txt"
+#define TEXT_PATH_ABSOLUTE ABSOLUTE_ROOT TEXT_PATH_ITEM
+#define TEXT_PATH_ABSOLUTE_MADE_RELATIVE RELATIVE_ROOT ".." TEXT_PATH_ABSOLUTE
+#define TEXT_PATH_RELATIVE RELATIVE_ROOT TEXT_PATH_ITEM
+#define TEXT_PATH_RELATIVE_MADE_ABSOLUTE BASE_DIR TEXT_PATH_ITEM
+
+#define MOVIECLIP_PATH_ITEM "movieclips" SEP_STR "movieclip.avi"
+#define MOVIECLIP_PATH_ABSOLUTE ABSOLUTE_ROOT MOVIECLIP_PATH_ITEM
+#define MOVIECLIP_PATH_ABSOLUTE_MADE_RELATIVE RELATIVE_ROOT ".." MOVIECLIP_PATH_ABSOLUTE
+#define MOVIECLIP_PATH_RELATIVE RELATIVE_ROOT MOVIECLIP_PATH_ITEM
+#define MOVIECLIP_PATH_RELATIVE_MADE_ABSOLUTE BASE_DIR MOVIECLIP_PATH_ITEM
 
 class BPathTest : public testing::Test {
  public:
@@ -63,7 +76,7 @@ class BPathTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    BLI_strncpy(bmain->name, DEFAULT_BLENDFILE_PATH, sizeof(bmain->name));
+    BLI_strncpy(bmain->name, BLENDFILE_PATH, sizeof(bmain->name));
 
     BKE_id_new(bmain, ID_TXT, nullptr);
     BKE_id_new(bmain, ID_MC, nullptr);
@@ -81,71 +94,71 @@ TEST_F(BPathTest, rebase_on_relative)
 {
   // Test on relative paths, should be modified.
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+  text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase" SEP_STR, nullptr);
+  BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
 
-  EXPECT_STREQ(text->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_TEXT_PATH_ITEM);
-  EXPECT_STREQ(movie_clip->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM);
+  EXPECT_STREQ(text->filepath, RELATIVE_ROOT ".." SEP_STR TEXT_PATH_ITEM);
+  EXPECT_STREQ(movie_clip->filepath, RELATIVE_ROOT ".." SEP_STR MOVIECLIP_PATH_ITEM);
 }
 
 TEST_F(BPathTest, rebase_on_absolute)
 {
   // Test on absolute paths, should not be modified.
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_ABSOLUTE);
+  text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase" SEP_STR, nullptr);
+  BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
 
-  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_ABSOLUTE);
-  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+  EXPECT_STREQ(text->filepath, TEXT_PATH_ABSOLUTE);
+  EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 }
 
 TEST_F(BPathTest, convert_to_relative)
 {
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+  text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_relative_convert(bmain, DEFAULT_BASE_DIR, nullptr);
+  BKE_bpath_relative_convert(bmain, BASE_DIR, nullptr);
 
   // Already relative path should not be modified.
-  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_RELATIVE);
+  EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE);
   // Absolute path should be modified.
-  EXPECT_STREQ(movie_clip->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM);
+  EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE_MADE_RELATIVE);
 }
 
 TEST_F(BPathTest, convert_to_absolute)
 {
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+  text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_absolute_convert(bmain, DEFAULT_BASE_DIR, nullptr);
+  BKE_bpath_absolute_convert(bmain, BASE_DIR, nullptr);
 
   // Relative path should be modified.
-  EXPECT_STREQ(text->filepath, DEFAULT_BASE_DIR DEFAULT_TEXT_PATH_ITEM);
+  EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE_MADE_ABSOLUTE);
   // Already absolute path should not be modified.
-  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+  EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 }
 
 TEST_F(BPathTest, list_backup_restore)
 {
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_RELATIVE);
+  text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
   void *path_list_handle = BKE_bpath_list_backup(bmain, 0);
 
@@ -153,13 +166,13 @@ TEST_F(BPathTest, list_backup_restore)
   EXPECT_EQ(BLI_listbase_count(path_list), 2);
 
   MEM_freeN(text->filepath);
-  text->filepath = BLI_strdup(DEFAULT_TEXT_PATH_ABSOLUTE);
-  BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+  text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
+  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
 
   BKE_bpath_list_restore(bmain, 0, path_list_handle);
 
-  EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_RELATIVE);
-  EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
+  EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE);
+  EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
   EXPECT_EQ(BLI_listbase_count(path_list), 0);
 
   BKE_bpath_list_free(path_list_handle);
