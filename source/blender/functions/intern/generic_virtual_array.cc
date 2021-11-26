@@ -477,12 +477,14 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
  protected:
   GVArray varray_;
   int64_t offset_;
+  IndexRange slice_;
 
  public:
   GVArrayImpl_For_SlicedGVArray(GVArray varray, const IndexRange slice)
       : GVArrayImpl(varray.type(), slice.size()),
         varray_(std::move(varray)),
-        offset_(slice.start())
+        offset_(slice.start()),
+        slice_(slice)
   {
     BLI_assert(slice.one_after_last() <= varray_.size());
   }
@@ -503,7 +505,7 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
   }
   GSpan get_internal_span() const override
   {
-    return varray_.get_internal_span();
+    return varray_.get_internal_span().slice(slice_);
   }
 
   bool is_single() const override
