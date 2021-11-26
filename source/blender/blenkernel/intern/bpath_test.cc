@@ -31,21 +31,22 @@
 #include "DNA_text_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 namespace blender::bke::tests {
 
-#define DEFAULT_BASE_DIR "/blendfiles/"
+#define DEFAULT_BASE_DIR SEP_STR "blendfiles" SEP_STR
 #define DEFAULT_BLENDFILE_NAME "bpath.blend"
-#define DEFAULT_BLENDFILE_PATH (DEFAULT_BASE_DIR DEFAULT_BLENDFILE_NAME)
+#define DEFAULT_BLENDFILE_PATH DEFAULT_BASE_DIR DEFAULT_BLENDFILE_NAME
 
-#define DEFAULT_TEXT_PATH_ITEM "texts/text.txt"
-#define DEFAULT_TEXT_PATH_ABSOLUTE ("/" DEFAULT_TEXT_PATH_ITEM)
-#define DEFAULT_TEXT_PATH_RELATIVE ("//" DEFAULT_TEXT_PATH_ITEM)
+#define DEFAULT_TEXT_PATH_ITEM "texts" SEP_STR "text.txt"
+#define DEFAULT_TEXT_PATH_ABSOLUTE SEP_STR DEFAULT_TEXT_PATH_ITEM
+#define DEFAULT_TEXT_PATH_RELATIVE SEP_STR SEP_STR DEFAULT_TEXT_PATH_ITEM
 
-#define DEFAULT_MOVIECLIP_PATH_ITEM "movieclips/movieclip.avi"
-#define DEFAULT_MOVIECLIP_PATH_ABSOLUTE ("/" DEFAULT_MOVIECLIP_PATH_ITEM)
-#define DEFAULT_MOVIECLIP_PATH_RELATIVE ("//" DEFAULT_MOVIECLIP_PATH_ITEM)
+#define DEFAULT_MOVIECLIP_PATH_ITEM "movieclips" SEP_STR "movieclip.avi"
+#define DEFAULT_MOVIECLIP_PATH_ABSOLUTE SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM
+#define DEFAULT_MOVIECLIP_PATH_RELATIVE SEP_STR SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM
 
 class BPathTest : public testing::Test {
  public:
@@ -85,10 +86,10 @@ TEST_F(BPathTest, rebase_on_relative)
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
   BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase/", nullptr);
+  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase" SEP_STR, nullptr);
 
-  EXPECT_STREQ(text->filepath, "//../" DEFAULT_TEXT_PATH_ITEM);
-  EXPECT_STREQ(movie_clip->filepath, "//../" DEFAULT_MOVIECLIP_PATH_ITEM);
+  EXPECT_STREQ(text->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_TEXT_PATH_ITEM);
+  EXPECT_STREQ(movie_clip->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM);
 }
 
 TEST_F(BPathTest, rebase_on_absolute)
@@ -100,7 +101,7 @@ TEST_F(BPathTest, rebase_on_absolute)
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
   BLI_strncpy(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase/", nullptr);
+  BKE_bpath_relative_rebase(bmain, DEFAULT_BASE_DIR, DEFAULT_BASE_DIR "rebase" SEP_STR, nullptr);
 
   EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_ABSOLUTE);
   EXPECT_STREQ(movie_clip->filepath, DEFAULT_MOVIECLIP_PATH_ABSOLUTE);
@@ -119,7 +120,7 @@ TEST_F(BPathTest, convert_to_relative)
   // Already relative path should not be modified.
   EXPECT_STREQ(text->filepath, DEFAULT_TEXT_PATH_RELATIVE);
   // Absolute path should be modified.
-  EXPECT_STREQ(movie_clip->filepath, "//../" DEFAULT_MOVIECLIP_PATH_ITEM);
+  EXPECT_STREQ(movie_clip->filepath, SEP_STR SEP_STR ".." SEP_STR DEFAULT_MOVIECLIP_PATH_ITEM);
 }
 
 TEST_F(BPathTest, convert_to_absolute)
