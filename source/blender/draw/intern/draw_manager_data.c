@@ -971,7 +971,8 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
     if (SCULPT_DEBUG_BUFFERS) {
       /* Color each buffers in different colors. Only work in solid/Xray mode. */
       shgrp = DRW_shgroup_create_sub(shgrp);
-      DRW_shgroup_uniform_vec3(shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
+      DRW_shgroup_uniform_vec3(
+          shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
     }
 #if 0
     float extramat[4][4], mat[4][4];
@@ -1091,7 +1092,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     update_only_visible = true;
   }
 
-  Mesh *mesh = scd->ob->data;
+  Mesh *mesh = BKE_object_get_original_mesh(scd->ob);
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
 
   BKE_pbvh_draw_cb(pbvh,

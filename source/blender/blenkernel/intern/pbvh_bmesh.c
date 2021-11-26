@@ -66,9 +66,9 @@ Topology rake:
 
 #include "GPU_buffers.h"
 
+#include "atomic_ops.h"
 #include "bmesh.h"
 #include "pbvh_intern.h"
-#include "atomic_ops.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -76,7 +76,7 @@ Topology rake:
 
 #include <stdarg.h>
 
-ATTR_NO_OPT static void _debugprint(const char *fmt, ...)
+static void _debugprint(const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -127,7 +127,7 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
 
     if (ni >= 0 && (!v->e || !v->e->l)) {
       _debugprint("wire vert had node reference: %p (type %d)\n", v, v->head.htype);
-      //BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+      // BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
     }
 
     if (ni < -1 || ni >= pbvh->totnode) {
@@ -1576,13 +1576,13 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
     do {
       BMVert *v = l_iter->v;
 
-      int old = BM_ELEM_CD_GET_INT(
-          v, pbvh->cd_vert_node_offset);
+      int old = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
       char *ptr = (char *)v;
       ptr += pbvh->cd_vert_node_offset;
 
-      if (old == DYNTOPO_NODE_NONE && atomic_cas_int32((int32_t*)ptr, DYNTOPO_NODE_NONE, node_index) == DYNTOPO_NODE_NONE) {
+      if (old == DYNTOPO_NODE_NONE &&
+          atomic_cas_int32((int32_t *)ptr, DYNTOPO_NODE_NONE, node_index) == DYNTOPO_NODE_NONE) {
         BLI_table_gset_insert(n->bm_unique_verts, v);
       }
       else {

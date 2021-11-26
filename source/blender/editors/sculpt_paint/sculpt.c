@@ -1731,7 +1731,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   return true;
 }
 
-ATTR_NO_OPT bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
+bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
 {
   return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
@@ -2422,8 +2422,7 @@ static void grids_update_boundary_flags(const SculptSession *ss, SculptVertRef v
   }
 }
 
-ATTR_NO_OPT static void faces_update_boundary_flags(const SculptSession *ss,
-                                                    const SculptVertRef vertex)
+static void faces_update_boundary_flags(const SculptSession *ss, const SculptVertRef vertex)
 {
   BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
                                       ss->mvert,
@@ -2523,9 +2522,9 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
   return ret;
 }
 
-ATTR_NO_OPT SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
-                                                         const SculptVertRef vertex,
-                                                         SculptBoundaryType boundary_types)
+SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
+                                             const SculptVertRef vertex,
+                                             SculptBoundaryType boundary_types)
 {
   MSculptVert *mv = NULL;
 

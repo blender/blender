@@ -91,7 +91,7 @@ static uint bm_id_freelist_pop(BMesh *bm)
 
 void bm_free_ids_check(BMesh *bm, uint id)
 {
-  if (id >> 2UL >= (uint)bm->idmap.free_ids_size) {
+  if (!bm->idmap.free_ids || id >> 2UL >= (uint)bm->idmap.free_ids_size) {
     size_t size = (size_t)(id >> 2) + 2ULL;
     size += size >> 1ULL;
 

@@ -1631,14 +1631,10 @@ bool GPU_pbvh_update_attribute_names(CustomData *vdata,
               &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
           g_vbo_id.totcol++;
 
-          bool is_render = cl == render_vcol_layer;
-          bool is_active = cl == active_vcol_layer;
+          bool is_render = render_vcol_layer == cl;
+          bool is_active = active_vcol_layer == cl;
 
           DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", cdata, cl, is_render, is_active);
-
-          if (cl == active_vcol_layer) {
-            GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
-          }
         }
       }
     }

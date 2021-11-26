@@ -150,7 +150,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   bool bad = false;
 
   for (int i = 0; i < totuv; i++) {
-    snapuvs[i] = true; //!(mv->flag & SCULPTVERT_UV_BOUNDARY);
+    snapuvs[i] = true;  //!(mv->flag & SCULPTVERT_UV_BOUNDARY);
   }
 
   do {
@@ -209,7 +209,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
         break;
       }
     } while ((l = l->radial_next) != e->l);
-    
+
     if (bad) {
       break;
     }
@@ -333,8 +333,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     tots[i] = 0;
   }
 
-  //re-snap uvs
-  v = (BMVert*)vertex.i;
+  // re-snap uvs
+  v = (BMVert *)vertex.i;
 
   e = v->e;
   do {
@@ -1545,6 +1545,13 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
           if (vel_scl) {
             float *vel = SCULPT_temp_cdata_get(vd.vertex, vel_scl);
+#  if 0
+            if (isnan(dot_v3v3(vel, vel)) || !isfinite(dot_v3v3(vel, vel))) {
+              printf("NaN!");
+              zero_v3(vel);
+            }
+#  endif
+
             copy_v3_v3(startvel, vel);
           }
 
@@ -1616,7 +1623,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
 void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
 {
-  SculptLayerParams params = {.permanent = true, .simple_array = false};
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   if (!ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS]) {
     ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] = MEM_callocN(sizeof(SculptCustomLayer),
@@ -1763,7 +1770,7 @@ void SCULPT_smooth(Sculpt *sd,
         .fset_slide = fset_slide,
         .bound_smooth = bound_smooth,
         .scl = do_vel ? ss->custom_layers[SCULPT_SCL_SMOOTH_VEL] : NULL,
-        .scl2 = ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS],
+        .scl2 = bound_smooth > 0.0f ? ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] : NULL,
         .vel_smooth_fac = vel_fac,
         .do_origco = do_origco,
         .iterations = count + 1,

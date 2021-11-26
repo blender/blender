@@ -1426,6 +1426,17 @@ bool BKE_pbvh_get_color_layer(PBVH *pbvh,
       pbvh->cd_vcol_offset = cdata_bm->layers[idx].offset;
       cl = *r_cl = cdata_bm->layers + idx;
     }
+    else if (pbvh) { /* check if pbvh is using its own customdata layout */
+      CustomData *cdata = domain == ATTR_DOMAIN_POINT ? pbvh->vdata : pbvh->ldata;
+
+      if (cdata) {
+        int idx = CustomData_get_named_layer_index(cdata, cl->type, cl->name);
+
+        if (idx != -1) {
+          *r_cl = cdata->layers + idx;
+        }
+      }
+    }
 
     if (pbvh) {
       pbvh->vcol_domain = domain;
@@ -4394,7 +4405,7 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   mv->flag &= ~SCULPTVERT_NEED_VALENCE;
 }
 
-ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
+void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          MVert *mvert,
                                          MEdge *medge,
                                          MLoop *mloop,

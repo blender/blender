@@ -453,7 +453,7 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
 
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
-    bl_context = ".paint_common"
+    bl_context = ".brush_editor"
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
@@ -718,7 +718,7 @@ class VIEW3D_PT_tools_brush_display(Panel, View3DPaintBrushPanel, DisplayPanel):
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
-    bl_context = ".paint_common"
+    bl_context = ".brush_editor"
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
@@ -777,14 +777,14 @@ class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel, TextureMaskPanel):
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel, StrokePanel):
-    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_context = ".brush_editor"  # dot on purpose (access from topbar)
     bl_label = "Stroke"
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel, SmoothStrokePanel):
-    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_context = ".brush_editor"  # dot on purpose (access from topbar)
     bl_label = "Stabilize Stroke"
     bl_parent_id = "VIEW3D_PT_tools_brush_stroke"
     bl_options = {'DEFAULT_CLOSED'}
@@ -825,7 +825,7 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
-    bl_context = ".paint_common"  # dot on purpose (access from topbar)
+    bl_context = ".brush_editor"  # dot on purpose (access from topbar)
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = ""
     bl_options = {'DEFAULT_CLOSED'}
