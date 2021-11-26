@@ -423,7 +423,6 @@ class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
 
   void set(const int64_t index, ElemT value) override
   {
-    BLI_assert(SetFunc != nullptr);
     SetFunc(data_[index], std::move(value));
   }
 
