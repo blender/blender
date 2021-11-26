@@ -236,7 +236,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_hits + 1));
 
     if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      optixSetPayload_4(true);
+      optixSetPayload_5(true);
       return optixTerminateRay();
     }
     else {
