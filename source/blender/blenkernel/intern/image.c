@@ -5142,12 +5142,16 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 /* return image buffer for given image and user
  *
  * - will lock render result if image type is render result and lock is not NULL
- * - will return NULL if image type if render or composite result and lock is NULL
+ * - will return NULL if image is NULL or image type is render or composite result and lock is NULL
  *
  * references the result, BKE_image_release_ibuf should be used to de-reference
  */
 ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 {
+  if (ima == NULL) {
+    return NULL;
+  }
+
   ImBuf *ibuf;
 
   BLI_mutex_lock(ima->runtime.cache_mutex);
