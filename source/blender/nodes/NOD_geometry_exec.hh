@@ -118,6 +118,8 @@ class GeoNodeExecParamsProvider {
   virtual bool output_is_required(StringRef identifier) const = 0;
   virtual bool lazy_require_input(StringRef identifier) = 0;
   virtual bool lazy_output_is_required(StringRef identifier) const = 0;
+
+  virtual void set_default_remaining_outputs() = 0;
 };
 
 class GeoNodeExecParams {
@@ -356,6 +358,8 @@ class GeoNodeExecParams {
                                                     const AttributeDomain default_domain) const;
 
   std::string attribute_producer_name() const;
+
+  void set_default_remaining_outputs();
 
  private:
   /* Utilities for detecting common errors at when using this class. */

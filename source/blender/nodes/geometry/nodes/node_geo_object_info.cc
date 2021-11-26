@@ -47,19 +47,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool transform_space_relative = (node_storage->transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  auto default_transform = [&]() {
-    params.set_output("Location", float3(0));
-    params.set_output("Rotation", float3(0));
-    params.set_output("Scale", float3(0));
-  };
-  auto default_geometry = [&]() { params.set_output("Geometry", GeometrySet()); };
-
   Object *object = params.get_input<Object *>("Object");
 
   const Object *self_object = params.self_object();
   if (object == nullptr) {
-    default_transform();
-    default_geometry();
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -81,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (object == self_object) {
       params.error_message_add(NodeWarningType::Error,
                                TIP_("Geometry cannot be retrieved from the modifier object"));
-      default_geometry();
+      params.set_default_remaining_outputs();
       return;
     }
 

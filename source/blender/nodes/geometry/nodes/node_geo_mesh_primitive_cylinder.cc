@@ -98,32 +98,28 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
                                                        storage.fill_type;
 
-  auto return_default = [&]() {
-    params.set_output("Top", fn::make_constant_field<bool>(false));
-    params.set_output("Bottom", fn::make_constant_field<bool>(false));
-    params.set_output("Side", fn::make_constant_field<bool>(false));
-    params.set_output("Mesh", GeometrySet());
-  };
-
   const float radius = params.extract_input<float>("Radius");
   const float depth = params.extract_input<float>("Depth");
   const int circle_segments = params.extract_input<int>("Vertices");
   if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   const int side_segments = params.extract_input<int>("Side Segments");
   if (side_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   const bool no_fill = fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE;
   const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
   if (fill_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   ConeAttributeOutputs attribute_outputs;

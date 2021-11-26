@@ -382,28 +382,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeRaycastMapMode mapping = static_cast<GeometryNodeRaycastMapMode>(data.mapping);
   const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
 
-  auto return_default = [&]() {
-    params.set_output("Is Hit", fn::make_constant_field<bool>(false));
-    params.set_output("Hit Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Hit Normal", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Hit Distance", fn::make_constant_field<float>(0.0f));
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      output_attribute_field(params, fn::make_constant_field<T>(T()));
-    });
-  };
-
   if (target.is_empty()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   if (!target.has_mesh()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   if (target.get_mesh_for_read()->totpoly == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The target mesh must have faces"));
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   GField field = get_input_attribute_field(params, data_type);

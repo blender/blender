@@ -254,6 +254,11 @@ std::string GeoNodeExecParams::attribute_producer_name() const
   return provider_->dnode->label_or_name() + TIP_(" node");
 }
 
+void GeoNodeExecParams::set_default_remaining_outputs()
+{
+  provider_->set_default_remaining_outputs();
+}
+
 void GeoNodeExecParams::check_input_access(StringRef identifier,
                                            const CPPType *requested_type) const
 {

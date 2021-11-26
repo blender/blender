@@ -287,7 +287,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   const std::string attribute_name = params.get_input<std::string>("Attribute");
   if (attribute_name.empty()) {
-    params.set_output("Geometry", geometry_set);
+    params.set_default_remaining_outputs();
     return;
   }
   const int seed = params.get_input<int>("Seed");

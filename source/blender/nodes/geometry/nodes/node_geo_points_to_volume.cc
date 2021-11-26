@@ -246,7 +246,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_output("Volume", GeometrySet());
+  params.set_default_remaining_outputs();
 #endif
 }
 

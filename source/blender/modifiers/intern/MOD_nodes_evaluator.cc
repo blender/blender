@@ -416,6 +416,8 @@ class NodeParamsProvider : public nodes::GeoNodeExecParamsProvider {
 
   bool lazy_require_input(StringRef identifier) override;
   bool lazy_output_is_required(StringRef identifier) const override;
+
+  void set_default_remaining_outputs();
 };
 
 class GeometryNodesEvaluator {
@@ -1371,6 +1373,7 @@ class GeometryNodesEvaluator {
 
   /**
    * Moves a newly computed value from an output socket to all the inputs that might need it.
+   * Takes ownership of the value and destructs if it is unused.
    */
   void forward_output(const DOutputSocket from_socket,
                       GMutablePointer value_to_forward,
@@ -1889,6 +1892,29 @@ bool NodeParamsProvider::lazy_output_is_required(StringRef identifier) const
     return false;
   }
   return output_state.output_usage_for_execution == ValueUsage::Required;
+}
+
+void NodeParamsProvider::set_default_remaining_outputs()
+{
+  LinearAllocator<> &allocator = evaluator_.local_allocators_.local();
+
+  for (const int i : this->dnode->outputs().index_range()) {
+    OutputState &output_state = node_state_.outputs[i];
+    if (output_state.has_been_computed) {
+      continue;
+    }
+    if (output_state.output_usage_for_execution == ValueUsage::Unused) {
+      continue;
+    }
+
+    const DOutputSocket socket = this->dnode.output(i);
+    const CPPType *type = get_socket_cpp_type(socket);
+    BLI_assert(type != nullptr);
+    void *buffer = allocator.allocate(type->size(), type->alignment());
+    type->copy_construct(type->default_value(), buffer);
+    evaluator_.forward_output(socket, {type, buffer}, run_state_);
+    output_state.has_been_computed = true;
+  }
 }
 
 void evaluate_geometry_nodes(GeometryNodesEvaluationParams &params)

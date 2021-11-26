@@ -65,10 +65,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   Collection *collection = params.get_input<Collection *>("Collection");
 
-  GeometrySet geometry_set_out;
-
   if (collection == nullptr) {
-    params.set_output("Geometry", geometry_set_out);
+    params.set_default_remaining_outputs();
     return;
   }
   const Object *self_object = params.self_object();
@@ -76,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                                           (Object *)self_object);
   if (is_recursive) {
     params.error_message_add(NodeWarningType::Error, "Collection contains current object");
-    params.set_output("Geometry", geometry_set_out);
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -85,6 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool use_relative_transform = (node_storage->transform_space ==
                                        GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
+  GeometrySet geometry_set_out;
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
 
   const bool separate_children = params.get_input<bool>("Separate Children");

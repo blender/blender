@@ -152,8 +152,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set = bke::geometry_set_realize_instances(geometry_set);
 
   if (!geometry_set.has_curve()) {
-    params.set_output("Start Points", GeometrySet());
-    params.set_output("End Points", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -168,8 +167,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int total_size = offsets.size();
 
   if (total_size == 0) {
-    params.set_output("Start Points", GeometrySet());
-    params.set_output("End Points", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 

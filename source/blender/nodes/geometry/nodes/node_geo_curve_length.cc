@@ -29,7 +29,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
   if (!curve_set.has_curve()) {
-    params.set_output("Length", 0.0f);
+    params.set_default_remaining_outputs();
     return;
   }
   const CurveEval &curve = *curve_set.get_curve_for_read();

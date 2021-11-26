@@ -372,14 +372,10 @@ class ImageFieldsFunction : public fn::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  auto return_default = [&]() {
-    params.set_output("Color", ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
-    params.set_output("Alpha", 1.0f);
-  };
-
   Image *image = params.get_input<Image *>("Image");
   if (image == nullptr) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   const bNode &node = params.node();
@@ -398,7 +394,8 @@ static void node_geo_exec(GeoNodeExecParams params)
         data->interpolation, data->extension, *image, image_user);
   }
   catch (const std::runtime_error &) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   Field<float3> vector_field = params.extract_input<Field<float3>>("Vector");

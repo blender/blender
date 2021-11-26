@@ -144,29 +144,6 @@ static float median_of_sorted_span(const Span<float> data)
   }
   return median;
 }
-static void set_empty(CustomDataType data_type, GeoNodeExecParams &params)
-{
-  if (data_type == CD_PROP_FLOAT) {
-    params.set_output("Mean", 0.0f);
-    params.set_output("Median", 0.0f);
-    params.set_output("Sum", 0.0f);
-    params.set_output("Min", 0.0f);
-    params.set_output("Max", 0.0f);
-    params.set_output("Range", 0.0f);
-    params.set_output("Standard Deviation", 0.0f);
-    params.set_output("Variance", 0.0f);
-  }
-  else if (data_type == CD_PROP_FLOAT3) {
-    params.set_output("Mean_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Median_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Sum_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Min_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Max_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Range_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Standard Deviation_001", float3{0.0f, 0.0f, 0.0f});
-    params.set_output("Variance_001", float3{0.0f, 0.0f, 0.0f});
-  }
-}
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
@@ -185,7 +162,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
   if (total_size == 0) {
-    set_empty(data_type, params);
+    params.set_default_remaining_outputs();
     return;
   }
 

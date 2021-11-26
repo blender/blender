@@ -79,7 +79,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_default_remaining_outputs();
   return;
 #endif
 

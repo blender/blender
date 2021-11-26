@@ -269,7 +269,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     Field<int> count = params.extract_input<Field<int>>("Count");
     if (count < 1) {
-      params.set_output("Curve", GeometrySet());
+      params.set_default_remaining_outputs();
       return;
     }
     mode_param.count.emplace(count);

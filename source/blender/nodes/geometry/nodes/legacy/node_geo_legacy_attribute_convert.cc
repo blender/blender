@@ -141,7 +141,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttributeDomain domain = static_cast<AttributeDomain>(node_storage.domain);
 
   if (result_name.empty()) {
-    params.set_output("Geometry", geometry_set);
+    params.set_default_remaining_outputs();
     return;
   }
 

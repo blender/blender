@@ -552,14 +552,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       "Density Attribute");
 
   if (density <= 0.0f) {
-    params.set_output("Geometry", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
   Vector<GeometryInstanceGroup> set_groups;
   geometry_set_gather_instances(geometry_set, set_groups);
   if (set_groups.is_empty()) {
-    params.set_output("Geometry", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -573,7 +573,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (set_groups.is_empty()) {
     params.error_message_add(NodeWarningType::Error, TIP_("Input geometry must contain a mesh"));
-    params.set_output("Geometry", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -623,7 +623,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (final_points_len == 0) {
-    params.set_output("Geometry", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 

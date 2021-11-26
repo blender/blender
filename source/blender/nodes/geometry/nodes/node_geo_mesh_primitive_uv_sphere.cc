@@ -303,7 +303,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (rings_num < 3) {
       params.error_message_add(NodeWarningType::Info, TIP_("Rings must be at least 3"));
     }
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 

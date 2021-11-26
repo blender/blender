@@ -233,30 +233,28 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  auto return_default = [&]() {
-    params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Tangent", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Normal", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-  };
-
   const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>();
   if (component == nullptr) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   const CurveEval *curve = component->get_for_read();
   if (curve == nullptr) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   if (curve->splines().is_empty()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   Array<float> spline_lengths = curve->accumulated_spline_lengths();
   const float total_length = spline_lengths.last();
   if (total_length == 0.0f) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   Field<float> length_field = get_length_input_field(params, total_length);

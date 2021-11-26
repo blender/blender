@@ -85,7 +85,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const float rotations = std::max(params.extract_input<float>("Rotations"), 0.0f);
   if (rotations == 0.0f) {
-    params.set_output("Curve", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 

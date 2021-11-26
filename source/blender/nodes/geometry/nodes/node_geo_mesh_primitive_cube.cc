@@ -496,7 +496,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int verts_z = params.extract_input<int>("Vertices Z");
   if (verts_x < 1 || verts_y < 1 || verts_z < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 1"));
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 

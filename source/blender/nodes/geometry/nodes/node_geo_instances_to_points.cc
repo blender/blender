@@ -100,7 +100,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output("Points", std::move(geometry_set));
   }
   else {
-    params.set_output("Points", GeometrySet());
+    params.set_default_remaining_outputs();
   }
 }
 

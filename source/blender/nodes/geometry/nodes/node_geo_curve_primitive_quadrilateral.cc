@@ -244,7 +244,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                           params.extract_input<float3>("Point 4"));
       break;
     default:
-      params.set_output("Curve", GeometrySet());
+      params.set_default_remaining_outputs();
       return;
   }
 

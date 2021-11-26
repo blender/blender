@@ -180,7 +180,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
   if (verts_x < 1 || verts_y < 1) {
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
