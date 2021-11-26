@@ -422,9 +422,9 @@ static int check_pixel_assigned(
 
 /**
  * if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
- *
- * When a mask is given, only effect pixels with a mask value of 1,
- * defined as #BAKE_MASK_MARGIN in rendercore.c
+ * When a mask is given, the mask will be used instead of the alpha channel, where only
+ * pixels with a mask value of 0 will be written to, and only pixels with a mask value of 1
+ * will be used for the average. The mask will be set to one for the pixels which were written.
  */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 {
