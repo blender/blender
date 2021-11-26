@@ -496,6 +496,24 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
   {
     varray_.get_to_uninitialized(index + offset_, r_value);
   }
+
+  bool is_span() const override
+  {
+    return varray_.is_span();
+  }
+  GSpan get_internal_span() const override
+  {
+    return varray_.get_internal_span();
+  }
+
+  bool is_single() const override
+  {
+    return varray_.is_single();
+  }
+  void get_internal_single(void *r_value) const override
+  {
+    varray_.get_internal_single(r_value);
+  }
 };
 
 /** \} */
