@@ -4134,8 +4134,9 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 
     if (ps->do_material_slots) {
       if (lc->slot_clone != lc->slot_last_clone) {
-        if (!slot->uvname || !(lc->mloopuv_clone_base = CustomData_get_layer_named(
-                                   &ps->me_eval->ldata, CD_MLOOPUV, lc->slot_clone->uvname))) {
+        if (!lc->slot_clone->uvname ||
+            !(lc->mloopuv_clone_base = CustomData_get_layer_named(
+                  &ps->me_eval->ldata, CD_MLOOPUV, lc->slot_clone->uvname))) {
           lc->mloopuv_clone_base = CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV);
         }
         lc->slot_last_clone = lc->slot_clone;
