@@ -60,6 +60,7 @@ class MultiFunction {
   {
   }
 
+  void call_auto(IndexMask mask, MFParams params, MFContext context) const;
   virtual void call(IndexMask mask, MFParams params, MFContext context) const = 0;
 
   virtual uint64_t hash() const
@@ -110,6 +111,31 @@ class MultiFunction {
     return *signature_ref_;
   }
 
+  /**
+   * Information about how the multi-function behaves that help a caller to execute it efficiently.
+   */
+  struct ExecutionHints {
+    /**
+     * Suggested minimum workload under which multi-threading does not really help.
+     * This should be lowered when the multi-function is doing something computationally expensive.
+     */
+    int64_t min_grain_size = 10000;
+    /**
+     * Indicates that the multi-function will allocate an array large enough to hold all indices
+     * passed in as mask. This tells the caller that it would be preferable to pass in smaller
+     * indices. Also maybe the full mask should be split up into smaller segments to decrease peak
+     * memory usage.
+     */
+    bool allocates_array = false;
+    /**
+     * Tells the caller that every execution takes about the same time. This helps making a more
+     * educated guess about a good grain size.
+     */
+    bool uniform_execution_time = true;
+  };
+
+  ExecutionHints execution_hints() const;
+
  protected:
   /* Make the function use the given signature. This should be called once in the constructor of
    * child classes. No copy of the signature is made, so the caller has to make sure that the
@@ -121,6 +147,8 @@ class MultiFunction {
     BLI_assert(signature != nullptr);
     signature_ref_ = signature;
   }
+
+  virtual ExecutionHints get_execution_hints() const;
 };
 
 inline MFParamsBuilder::MFParamsBuilder(const MultiFunction &fn, int64_t mask_size)

@@ -25,6 +25,8 @@
  * the function. `MFParams` is then used inside the called function to access the parameters.
  */
 
+#include <mutex>
+
 #include "BLI_resource_scope.hh"
 
 #include "FN_generic_pointer.hh"
@@ -45,6 +47,9 @@ class MFParamsBuilder {
   Vector<const GVVectorArray *> virtual_vector_arrays_;
   Vector<GVectorArray *> vector_arrays_;
 
+  std::mutex mutex_;
+  Vector<std::pair<int, GMutableSpan>> dummy_output_spans_;
+
   friend class MFParams;
 
   MFParamsBuilder(const MFSignature &signature, const IndexMask mask)
@@ -62,8 +67,8 @@ class MFParamsBuilder {
 
   template<typename T> void add_readonly_single_input_value(T value, StringRef expected_name = "")
   {
-    T *value_ptr = &scope_.add_value<T>(std::move(value));
-    this->add_readonly_single_input(value_ptr, expected_name);
+    this->add_readonly_single_input(VArray<T>::ForSingle(std::move(value), min_array_size_),
+                                    expected_name);
   }
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
@@ -254,20 +259,12 @@ class MFParams {
     this->assert_correct_param(param_index, name, MFParamType::SingleOutput);
     int data_index = builder_->signature_->data_index(param_index);
     GMutableSpan span = builder_->mutable_spans_[data_index];
-    if (span.is_empty()) {
-      /* The output is ignored by the caller, but the multi-function does not handle this case. So
-       * create a temporary buffer that the multi-function can write to. */
-      const CPPType &type = span.type();
-      void *buffer = builder_->scope_.linear_allocator().allocate(
-          builder_->min_array_size_ * type.size(), type.alignment());
-      if (!type.is_trivially_destructible()) {
-        /* Make sure the temporary elements will be destructed in the end. */
-        builder_->scope_.add_destruct_call(
-            [&type, buffer, mask = builder_->mask_]() { type.destruct_indices(buffer, mask); });
-      }
-      span = GMutableSpan{type, buffer, builder_->min_array_size_};
+    if (!span.is_empty()) {
+      return span;
     }
-    return span;
+    /* The output is ignored by the caller, but the multi-function does not handle this case. So
+     * create a temporary buffer that the multi-function can write to. */
+    return this->ensure_dummy_single_output(data_index);
   }
 
   /**
@@ -356,6 +353,8 @@ class MFParams {
     }
 #endif
   }
+
+  GMutableSpan ensure_dummy_single_output(int data_index);
 };
 
 }  // namespace blender::fn

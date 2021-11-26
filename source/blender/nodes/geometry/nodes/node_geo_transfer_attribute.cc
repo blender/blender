@@ -131,9 +131,9 @@ static void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
                                    const MutableSpan<float> r_distances_sq,
                                    const MutableSpan<float3> r_positions)
 {
-  BLI_assert(positions.size() == r_indices.size() || r_indices.is_empty());
-  BLI_assert(positions.size() == r_distances_sq.size() || r_distances_sq.is_empty());
-  BLI_assert(positions.size() == r_positions.size() || r_positions.is_empty());
+  BLI_assert(positions.size() >= r_indices.size());
+  BLI_assert(positions.size() >= r_distances_sq.size());
+  BLI_assert(positions.size() >= r_positions.size());
 
   for (const int i : mask) {
     BVHTreeNearest nearest;
@@ -159,7 +159,7 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
                                           const MutableSpan<int> r_indices,
                                           const MutableSpan<float> r_distances_sq)
 {
-  BLI_assert(positions.size() == r_indices.size());
+  BLI_assert(positions.size() >= r_indices.size());
   BLI_assert(pointcloud.totpoint > 0);
 
   BVHTreeFromPointCloud tree_data;

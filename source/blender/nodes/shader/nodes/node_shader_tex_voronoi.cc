@@ -167,6 +167,8 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 
 namespace blender::nodes {
 
+static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
+
 class VoronoiMinowskiFunction : public fn::MultiFunction {
  private:
   int dimensions_;
@@ -591,6 +593,11 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
         break;
       }
     }
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
   }
 };
 
@@ -1106,6 +1113,11 @@ class VoronoiMetricFunction : public fn::MultiFunction {
       }
     }
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
 class VoronoiEdgeFunction : public fn::MultiFunction {
@@ -1282,7 +1294,12 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
         break;
       }
     }
-  };
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
 static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)

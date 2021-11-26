@@ -229,6 +229,14 @@ class NoiseFunction : public fn::MultiFunction {
       }
     }
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.allocates_array = false;
+    hints.min_grain_size = 100;
+    return hints;
+  }
 };
 
 static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)

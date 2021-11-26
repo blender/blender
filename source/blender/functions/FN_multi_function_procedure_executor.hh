@@ -34,6 +34,9 @@ class MFProcedureExecutor : public MultiFunction {
   MFProcedureExecutor(const MFProcedure &procedure);
 
   void call(IndexMask mask, MFParams params, MFContext context) const override;
+
+ private:
+  ExecutionHints get_execution_hints() const override;
 };
 
 }  // namespace blender::fn
