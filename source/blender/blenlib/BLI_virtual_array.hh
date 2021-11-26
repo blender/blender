@@ -183,6 +183,15 @@ template<typename T> class VArrayImpl {
      * own anything can overwrite this with false. */
     return true;
   }
+
+  /**
+   * Return true when the other virtual array should be considered to be the same, e.g. because it
+   * shares the same underlying memory.
+   */
+  virtual bool is_same(const VArrayImpl<T> &UNUSED(other)) const
+  {
+    return false;
+  }
 };
 
 /* Similar to #VArrayImpl, but adds methods that allow modifying the referenced elements. */
@@ -259,6 +268,18 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
   Span<T> get_internal_span() const override
   {
     return Span<T>(data_, this->size_);
+  }
+
+  bool is_same(const VArrayImpl<T> &other) const final
+  {
+    if (other.size() != this->size_) {
+      return false;
+    }
+    if (!other.is_span()) {
+      return false;
+    }
+    const Span<T> other_span = other.get_internal_span();
+    return data_ == other_span.data();
   }
 };
 
@@ -388,6 +409,12 @@ class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
   {
   }
 
+  template<typename OtherStructT,
+           typename OtherElemT,
+           OtherElemT (*OtherGetFunc)(const OtherStructT &),
+           void (*OtherSetFunc)(OtherStructT &, OtherElemT)>
+  friend class VArrayImpl_For_DerivedSpan;
+
  private:
   ElemT get(const int64_t index) const override
   {
@@ -414,6 +441,23 @@ class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
 
   bool may_have_ownership() const override
   {
+    return false;
+  }
+
+  bool is_same(const VArrayImpl<ElemT> &other) const override
+  {
+    if (other.size() != this->size_) {
+      return false;
+    }
+    if (const VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc> *other_typed =
+            dynamic_cast<const VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc> *>(&other)) {
+      return other_typed->data_ == data_;
+    }
+    if (const VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc, SetFunc> *other_typed =
+            dynamic_cast<const VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc, SetFunc> *>(
+                &other)) {
+      return other_typed->data_ == data_;
+    }
     return false;
   }
 };
@@ -668,6 +712,25 @@ template<typename T> class VArrayCommon {
       return impl_->get(0);
     }
     return impl_->get_internal_single();
+  }
+
+  /**
+   * Return true when the other virtual references the same underlying memory.
+   */
+  bool is_same(const VArrayCommon<T> &other) const
+  {
+    if (!*this || !other) {
+      return false;
+    }
+    /* Check in both directions in case one does not know how to compare to the other
+     * implementation. */
+    if (impl_->is_same(*other.impl_)) {
+      return true;
+    }
+    if (other.impl_->is_same(*impl_)) {
+      return true;
+    }
+    return false;
   }
 
   /** Copy the entire virtual array into a span. */
