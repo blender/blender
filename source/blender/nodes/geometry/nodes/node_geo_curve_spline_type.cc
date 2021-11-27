@@ -261,24 +261,28 @@ static void node_geo_exec(GeoNodeExecParams params)
     const VArray<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
 
     std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
-    for (const int i : curve.splines().index_range()) {
-      if (selection[i]) {
-        switch (output_type) {
-          case GEO_NODE_SPLINE_TYPE_POLY:
-            new_curve->add_spline(convert_to_poly_spline(*curve.splines()[i]));
-            break;
-          case GEO_NODE_SPLINE_TYPE_BEZIER:
-            new_curve->add_spline(convert_to_bezier(*curve.splines()[i], params));
-            break;
-          case GEO_NODE_SPLINE_TYPE_NURBS:
-            new_curve->add_spline(convert_to_nurbs(*curve.splines()[i]));
-            break;
+    new_curve->resize(curve.splines().size());
+
+    threading::parallel_for(curve.splines().index_range(), 512, [&](IndexRange range) {
+      for (const int i : range) {
+        if (selection[i]) {
+          switch (output_type) {
+            case GEO_NODE_SPLINE_TYPE_POLY:
+              new_curve->splines()[i] = convert_to_poly_spline(*curve.splines()[i]);
+              break;
+            case GEO_NODE_SPLINE_TYPE_BEZIER:
+              new_curve->splines()[i] = convert_to_bezier(*curve.splines()[i], params);
+              break;
+            case GEO_NODE_SPLINE_TYPE_NURBS:
+              new_curve->splines()[i] = convert_to_nurbs(*curve.splines()[i]);
+              break;
+          }
+        }
+        else {
+          new_curve->splines()[i] = curve.splines()[i]->copy();
         }
       }
-      else {
-        new_curve->add_spline(curve.splines()[i]->copy());
-      }
-    }
+    });
     new_curve->attributes = curve.attributes;
     geometry_set.replace_curve(new_curve.release());
   });
