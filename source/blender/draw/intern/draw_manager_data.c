@@ -1093,7 +1093,9 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   }
 
   Mesh *mesh = BKE_object_get_original_mesh(scd->ob);
-  BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
+  Mesh *mesh_eval = (Mesh *)scd->ob->data;
+
+  BKE_pbvh_update_normals(pbvh, mesh_eval->runtime.subdiv_ccg);
 
   BKE_pbvh_draw_cb(pbvh,
                    mesh,
