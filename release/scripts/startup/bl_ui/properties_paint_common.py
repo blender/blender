@@ -754,9 +754,9 @@ class UnifiedPaintPanel:
         return row
 
     @staticmethod
-    def prop_unified_color(parent, context, brush, prop_name, *, text=None):
+    def prop_unified_color(parent, context, brush, prop_name, *, text=None, show_mappings=None):
         if context.mode == 'SCULPT':
-            return UnifiedPaintPanel.channel_unified(parent, context, brush, prop_name, text=text)
+            return UnifiedPaintPanel.channel_unified(parent, context, brush, prop_name, text=text, show_mappings=show_mappings)
 
         ups = context.tool_settings.unified_paint_settings
         prop_owner = ups if ups.use_unified_color else brush

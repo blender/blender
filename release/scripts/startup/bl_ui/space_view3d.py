@@ -7449,14 +7449,14 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         if colorch:
             split = layout.split(factor=0.1)
-            UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="", show_mappings=False)
             UnifiedPaintPanel.prop_unified_color_picker(split, context, brush, "color", value_slider=True)
 
         for ch in channels:
             if ch.idname in textmap:
-                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True, text=textmap[ch.idname])
+                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True, show_mappings=False, text=textmap[ch.idname])
             else:
-                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True)
+                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True, show_mappings=False)
 
         return
         layout.label(text="-----")
