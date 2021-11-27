@@ -77,23 +77,37 @@ static void calculate_vertices(const CuboidConfig &config, MutableSpan<MVert> ve
 
   int vert_index = 0;
 
-  /* Though looping over all possible coordinates inside the cube only to skip them may be slow,
-   * the alternative is similar complexity to below in the poly index calculation. If this loop
-   * becomes a problem in the future it could be optimized, though only after proper performance
-   * testing. */
   for (const int z : IndexRange(config.verts_z)) {
-    for (const int y : IndexRange(config.verts_y)) {
-      for (const int x : IndexRange(config.verts_x)) {
-        /* Only plot vertices on the surface of the cuboid. */
-        if (ELEM(z, 0, config.edges_z) || ELEM(x, 0, config.edges_x) ||
-            ELEM(y, 0, config.edges_y)) {
-
+    if (ELEM(z, 0, config.edges_z)) {
+      /* Fill bottom and top. */
+      const float z_pos = z_bottom + z_delta * z;
+      for (const int y : IndexRange(config.verts_y)) {
+        const float y_pos = y_front + y_delta * y;
+        for (const int x : IndexRange(config.verts_x)) {
           const float x_pos = x_left + x_delta * x;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+        }
+      }
+    }
+    else {
+      for (const int y : IndexRange(config.verts_y)) {
+        if (ELEM(y, 0, config.edges_y)) {
+          /* Fill y-sides. */
           const float y_pos = y_front + y_delta * y;
           const float z_pos = z_bottom + z_delta * z;
-          copy_v3_v3(verts[vert_index].co, float3(x_pos, y_pos, z_pos));
-
-          vert_index++;
+          for (const int x : IndexRange(config.verts_x)) {
+            const float x_pos = x_left + x_delta * x;
+            copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          }
+        }
+        else {
+          /* Fill x-sides. */
+          const float x_pos = x_left;
+          const float y_pos = y_front + y_delta * y;
+          const float z_pos = z_bottom + z_delta * z;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          const float x_pos2 = x_left + x_delta * config.edges_x;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos2, y_pos, z_pos));
         }
       }
     }
