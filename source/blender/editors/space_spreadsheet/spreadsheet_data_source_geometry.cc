@@ -134,6 +134,10 @@ void GeometryDataSource::foreach_default_column_ids(
     return;
   }
 
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    fn({(char *)"Name"}, false);
+  }
+
   extra_columns_.foreach_default_column_ids(fn);
   component_->attribute_foreach(
       [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
@@ -148,12 +152,18 @@ void GeometryDataSource::foreach_default_column_ids(
         fn(column_id, false);
         return true;
       });
+
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    fn({(char *)"Rotation"}, false);
+    fn({(char *)"Scale"}, false);
+  }
 }
 
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  if (component_->attribute_domain_size(domain_) == 0) {
+  const int domain_size = component_->attribute_domain_size(domain_);
+  if (domain_size == 0) {
     return {};
   }
 
@@ -164,6 +174,60 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     return extra_column_values;
   }
 
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    const InstancesComponent &instances = static_cast<const InstancesComponent &>(*component_);
+    if (STREQ(column_id.name, "Name")) {
+      Span<int> reference_handles = instances.instance_reference_handles();
+      Span<InstanceReference> references = instances.references();
+      std::unique_ptr<ColumnValues> values = column_values_from_function(
+          SPREADSHEET_VALUE_TYPE_INSTANCES,
+          "Name",
+          domain_size,
+          [reference_handles, references](int index, CellValue &r_cell_value) {
+            const InstanceReference &reference = references[reference_handles[index]];
+            switch (reference.type()) {
+              case InstanceReference::Type::Object: {
+                Object &object = reference.object();
+                r_cell_value.value_object = ObjectCellValue{&object};
+                break;
+              }
+              case InstanceReference::Type::Collection: {
+                Collection &collection = reference.collection();
+                r_cell_value.value_collection = CollectionCellValue{&collection};
+                break;
+              }
+              case InstanceReference::Type::GeometrySet: {
+                const GeometrySet &geometry_set = reference.geometry_set();
+                r_cell_value.value_geometry_set = GeometrySetCellValue{&geometry_set};
+                break;
+              }
+              case InstanceReference::Type::None: {
+                break;
+              }
+            }
+          });
+      return values;
+    }
+    Span<float4x4> transforms = instances.instance_transforms();
+    if (STREQ(column_id.name, "Rotation")) {
+      return column_values_from_function(
+          SPREADSHEET_VALUE_TYPE_FLOAT3,
+          column_id.name,
+          domain_size,
+          [transforms](int index, CellValue &r_cell_value) {
+            r_cell_value.value_float3 = transforms[index].to_euler();
+          });
+    }
+    if (STREQ(column_id.name, "Scale")) {
+      return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
+                                         column_id.name,
+                                         domain_size,
+                                         [transforms](int index, CellValue &r_cell_value) {
+                                           r_cell_value.value_float3 = transforms[index].scale();
+                                         });
+    }
+  }
+
   bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
   if (!attribute) {
     return {};
@@ -172,7 +236,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   if (attribute.domain != domain_) {
     return {};
   }
-  int domain_size = varray.size();
+
   const CustomDataType type = bke::cpp_type_to_custom_data_type(varray.type());
   switch (type) {
     case CD_PROP_FLOAT:
@@ -385,115 +449,6 @@ void GeometryDataSource::apply_selection_filter(MutableSpan<bool> rows_included)
     };
     get_selected_indices_on_domain(*mesh_eval, domain_, is_vertex_selected, rows_included);
   }
-}
-
-void InstancesDataSource::foreach_default_column_ids(
-    FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
-{
-  if (component_->instances_amount() == 0) {
-    return;
-  }
-
-  extra_columns_.foreach_default_column_ids(fn);
-
-  SpreadsheetColumnID column_id;
-  column_id.name = (char *)"Name";
-  fn(column_id, false);
-  for (const char *name : {"Position", "Rotation", "Scale", "id"}) {
-    column_id.name = (char *)name;
-    fn(column_id, false);
-  }
-}
-
-std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
-    const SpreadsheetColumnID &column_id) const
-{
-  if (component_->instances_amount() == 0) {
-    return {};
-  }
-
-  std::unique_ptr<ColumnValues> extra_column_values = extra_columns_.get_column_values(column_id);
-  if (extra_column_values) {
-    return extra_column_values;
-  }
-
-  const int size = this->tot_rows();
-  if (STREQ(column_id.name, "Name")) {
-    Span<int> reference_handles = component_->instance_reference_handles();
-    Span<InstanceReference> references = component_->references();
-    std::unique_ptr<ColumnValues> values = column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_INSTANCES,
-        "Name",
-        size,
-        [reference_handles, references](int index, CellValue &r_cell_value) {
-          const InstanceReference &reference = references[reference_handles[index]];
-          switch (reference.type()) {
-            case InstanceReference::Type::Object: {
-              Object &object = reference.object();
-              r_cell_value.value_object = ObjectCellValue{&object};
-              break;
-            }
-            case InstanceReference::Type::Collection: {
-              Collection &collection = reference.collection();
-              r_cell_value.value_collection = CollectionCellValue{&collection};
-              break;
-            }
-            case InstanceReference::Type::GeometrySet: {
-              const GeometrySet &geometry_set = reference.geometry_set();
-              r_cell_value.value_geometry_set = GeometrySetCellValue{&geometry_set};
-              break;
-            }
-            case InstanceReference::Type::None: {
-              break;
-            }
-          }
-        });
-    return values;
-  }
-  Span<float4x4> transforms = component_->instance_transforms();
-  if (STREQ(column_id.name, "Position")) {
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_FLOAT3,
-        column_id.name,
-        size,
-        [transforms](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float3 = transforms[index].translation();
-        });
-  }
-  if (STREQ(column_id.name, "Rotation")) {
-    return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
-                                       column_id.name,
-                                       size,
-                                       [transforms](int index, CellValue &r_cell_value) {
-                                         r_cell_value.value_float3 = transforms[index].to_euler();
-                                       });
-  }
-  if (STREQ(column_id.name, "Scale")) {
-    return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
-                                       column_id.name,
-                                       size,
-                                       [transforms](int index, CellValue &r_cell_value) {
-                                         r_cell_value.value_float3 = transforms[index].scale();
-                                       });
-  }
-  Span<int> ids = component_->instance_ids();
-  if (!ids.is_empty()) {
-    if (STREQ(column_id.name, "id")) {
-      /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
-      return column_values_from_function(
-          SPREADSHEET_VALUE_TYPE_INT32,
-          column_id.name,
-          size,
-          [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
-          5.5f);
-    }
-  }
-  return {};
-}
-
-int InstancesDataSource::tot_rows() const
-{
-  return component_->instances_amount();
 }
 
 void VolumeDataSource::foreach_default_column_ids(
@@ -771,9 +726,6 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   ExtraColumns extra_columns;
   add_fields_as_extra_columns(sspreadsheet, component, extra_columns);
 
-  if (component_type == GEO_COMPONENT_TYPE_INSTANCES) {
-    return std::make_unique<InstancesDataSource>(geometry_set, std::move(extra_columns));
-  }
   if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
     return std::make_unique<VolumeDataSource>(geometry_set);
   }

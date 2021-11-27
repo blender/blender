@@ -94,28 +94,6 @@ class GeometryDataSource : public DataSource {
   int tot_rows() const override;
 };
 
-class InstancesDataSource : public DataSource {
-  const GeometrySet geometry_set_;
-  const InstancesComponent *component_;
-  ExtraColumns extra_columns_;
-
- public:
-  InstancesDataSource(GeometrySet geometry_set, ExtraColumns extra_columns)
-      : geometry_set_(std::move(geometry_set)),
-        component_(geometry_set_.get_component_for_read<InstancesComponent>()),
-        extra_columns_(std::move(extra_columns))
-  {
-  }
-
-  void foreach_default_column_ids(
-      FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const override;
-
-  std::unique_ptr<ColumnValues> get_column_values(
-      const SpreadsheetColumnID &column_id) const override;
-
-  int tot_rows() const override;
-};
-
 class VolumeDataSource : public DataSource {
   const GeometrySet geometry_set_;
   const VolumeComponent *component_;
