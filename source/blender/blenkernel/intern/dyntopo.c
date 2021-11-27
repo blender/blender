@@ -1906,7 +1906,9 @@ static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx, BMEdge *e)
   }
 }
 
-static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f, bool ignore_frontface)
+ATTR_NO_OPT static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx,
+                                                 BMFace *f,
+                                                 bool ignore_frontface)
 {
 #ifdef USE_EDGEQUEUE_FRONTFACE
   if (!ignore_frontface && eq_ctx->q->use_view_normal) {

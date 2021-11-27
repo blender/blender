@@ -1578,7 +1578,7 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
 
       int old = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
-      char *ptr = (char *)v;
+      char *ptr = (char *)v->head.data;
       ptr += pbvh->cd_vert_node_offset;
 
       if (old == DYNTOPO_NODE_NONE &&
