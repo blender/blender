@@ -2200,7 +2200,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
 void SCULPT_do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   float offset[3];
   float bstrength = ss->cache->bstrength;
   float flippedbstrength, crease_correction;
@@ -2440,7 +2440,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
 void SCULPT_do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   float grab_delta[3];
 
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
@@ -3905,7 +3905,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
                                 bool needs_origco)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   const float strength = bstrength;  // clamp_f(bstrength, 0.0f, 1.0f);
 
   Brush local_brush;
@@ -4143,7 +4143,7 @@ void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 #endif
 
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   float directions[3][3];
 

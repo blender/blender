@@ -2364,7 +2364,7 @@ static void sculpt_cloth_ensure_constraints_in_simulation_area(Sculpt *sd,
 void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   SCULPT_vertex_random_access_ensure(ss);
 

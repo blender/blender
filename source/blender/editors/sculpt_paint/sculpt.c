@@ -3197,7 +3197,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   PBVHNode **nodes;
   int totnode;
@@ -3826,7 +3826,7 @@ void SCULPT_calc_area_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3])
 {
   SculptSession *ss = ob->sculpt;
-  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
   const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
@@ -3874,9 +3874,7 @@ void SCULPT_calc_area_center(
 void SCULPT_calc_area_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
-  SculptSession *ss = ob->sculpt;
-
-  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
   SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
 }
 
@@ -3928,7 +3926,7 @@ void SCULPT_calc_area_normal_and_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
 {
   SculptSession *ss = ob->sculpt;
-  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
   const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
@@ -4422,7 +4420,7 @@ static void calc_sculpt_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
   const SculptSession *ss = ob->sculpt;
-  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
 
   switch (brush->sculpt_plane) {
     case SCULPT_DISP_DIR_VIEW:
@@ -5812,8 +5810,15 @@ static void SCULPT_run_command(
   BrushRunCommandData *data = userdata;
   BrushCommand *cmd = data->cmd;
 
-  float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
-  radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+  float radius;
+
+  if (BRUSHSET_GET_INT(cmd->params_mapped, radius_unit, NULL)) {
+    radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, unprojected_radius, NULL);
+  }
+  else {
+    radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
+    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+  }
 
   ss->cache->radius = radius;
   ss->cache->radius_squared = radius * radius;
@@ -5853,9 +5858,11 @@ static void SCULPT_run_command(
 
   brush2->sculpt_tool = cmd->tool;
   BrushChannelSet *channels_final = ss->cache->channels_final;
-  ss->cache->channels_final = cmd->params_mapped;
+
+  ss->cache->channels_final = brush2->channels = cmd->params_mapped;
 
   ss->cache->brush = brush2;
+  sd->paint.brush_eval = brush2;
 
   ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_final, strength, NULL);
 
@@ -6123,22 +6130,6 @@ static void SCULPT_run_commandlist(
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
 
-    ss->cache->brush = &brush2;
-
-    if (cmd->tool == SCULPT_TOOL_SMOOTH) {
-      ss->cache->bstrength = brush2.alpha;
-
-      if (ss->cache->invert && BRUSHSET_GET_INT(cmd->params_final, use_ctrl_invert, NULL)) {
-        ss->cache->bstrength = -ss->cache->bstrength;
-      }
-    }
-    else {
-      ss->cache->bstrength = brush_strength(
-          sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
-    }
-
-    brush2.alpha = fabs(ss->cache->bstrength);
-
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
     if (cmd->tool == SCULPT_TOOL_DRAW && BKE_brush_channelset_get_int(cmd->params_final,
@@ -6158,9 +6149,15 @@ static void SCULPT_run_commandlist(
       has_dyntopo = false;
     }
 
-    float radius = BRUSHSET_GET_FLOAT(
-        ss->cache->channels_final, radius, &ss->cache->input_mapping);
-    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+    float radius;
+
+    if (BRUSHSET_GET_INT(cmd->params_final, radius_unit, NULL)) {
+      radius = BRUSHSET_GET_FLOAT(cmd->params_final, unprojected_radius, &ss->cache->input_mapping);
+    }
+    else {
+      radius = BRUSHSET_GET_FLOAT(cmd->params_final, radius, &ss->cache->input_mapping);
+      radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+    };
 
     radius_max = max_ff(radius_max, radius);
     ss->cache->brush = brush;
@@ -6170,10 +6167,14 @@ static void SCULPT_run_commandlist(
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR) &&
       !ELEM(type, PBVH_BMESH, PBVH_FACES)) {
+    ss->cache->brush = oldbrush;
+    sd->paint.brush_eval = NULL;
     return;
   }
 
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_ARRAY && !ELEM(type, PBVH_FACES, PBVH_BMESH)) {
+    ss->cache->brush = oldbrush;
+    sd->paint.brush_eval = NULL;
     return;
   }
 
@@ -6243,7 +6244,9 @@ static void SCULPT_run_commandlist(
       SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
     }
   }
+
   ss->cache->brush = oldbrush;
+  sd->paint.brush_eval = NULL;
   ss->cache->radius = start_radius;
   ss->cache->radius_squared = start_radius * start_radius;
 }
@@ -6328,7 +6331,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
 void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   PBVHNode **nodes;
   int totnode;
 

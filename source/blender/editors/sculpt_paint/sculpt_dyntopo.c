@@ -1710,7 +1710,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
 void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   float offset[3];
 
   if (!ss->bm || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {

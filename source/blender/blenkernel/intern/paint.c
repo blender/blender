@@ -614,7 +614,7 @@ ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
 
 Brush *BKE_paint_brush(Paint *p)
 {
-  return p ? p->brush : NULL;
+  return p ? (p->brush_eval ? p->brush_eval : p->brush) : NULL;
 }
 
 void BKE_paint_brush_set(Paint *p, Brush *br)
@@ -2084,7 +2084,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
     BKE_mesh_update_customdata_pointers(orig_me, true);
     DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   }
-  
+
   if (cl) {
     BKE_id_attributes_active_color_set(&orig_me->id, cl);
   }

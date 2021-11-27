@@ -301,7 +301,7 @@ static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
 void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (!SCULPT_has_colors(ss)) {
     return;
@@ -563,7 +563,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (!SCULPT_has_colors(ss)) {
     return;

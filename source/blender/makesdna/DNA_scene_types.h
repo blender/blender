@@ -868,6 +868,7 @@ typedef struct PaintToolSlot {
 /* Paint Tool Base */
 typedef struct Paint {
   struct Brush *brush;
+  struct Brush *brush_eval;
 
   /* Each tool has its own active brush,
    * The currently active tool is defined by the current 'brush'. */

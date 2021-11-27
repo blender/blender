@@ -200,7 +200,15 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   })
 
   MAKE_FLOAT_EX(spacing,"Spacing","",10.0f,0.25f,1000.0f,1.0f,200.0f,false)
-  MAKE_BOOL(use_scene_spacing, "Scene Spacing", "Space brush in 3d space", false)
+  MAKE_ENUM(use_scene_spacing, "Spacing Mode", "Calculate the brush spacing using view or scene distance", 0, {\
+      {0, "VIEW", "NONE", "View", "Calculate brush spacing relative to the view"},
+      {1,
+       "SCENE",
+       "NONE",
+       "Scene",
+       "Calculate brush spacing relative to the scene using the stroke location"},
+      {-1}
+  })
 
   MAKE_FLOAT_EX(topology_rake,"Topology Rake","Automatically align edges to the brush direction to "
     "generate cleaner topology and define sharp features. "

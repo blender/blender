@@ -389,6 +389,7 @@ class UnifiedPaintPanel:
                 path = "sculpt.channels[\"%s\"]" % prop_name
 
         if need_path:
+            path = "tool_settings." + path
             return (ch, path)
         else:
             return ch
@@ -767,7 +768,7 @@ class UnifiedPaintPanel:
         prop_owner = ups if ups.use_unified_color else brush
 
         if context.mode == "SCULPT":
-            ch, path = UnifiedPaintPanel.get_channel(context, brush, prop_name, need_path=True)
+            ch = UnifiedPaintPanel.get_channel(context, brush, prop_name)
 
             if ch is not None:
                 print("FOUND CH", ch.idname)
@@ -1127,13 +1128,10 @@ class FalloffPanel(BrushPanel):
         mode = self.get_brush_mode(context)
         brush = settings.brush
 
-        if 0 and mode == "SCULPT" and "falloff_curve" in brush.channels:
+        if mode == "SCULPT" and "falloff_curve" in brush.channels:
             layout.label(text="Falloff")
             ch = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve")
             layout.prop(ch.curve, "curve_preset", text="")
-
-            #UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_curve", use_negative_slope=True, header=True, text="")
-            return
         else:
             layout.label(text="Falloff")
             layout.prop(brush, "curve_preset", text="")
@@ -1152,8 +1150,8 @@ class FalloffPanel(BrushPanel):
             path += ".curve.curve"
             template_curve(layout, ch.curve, "curve", path, True)
 
-            #UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_shape", expand=True)
-            layout.prop(brush, "falloff_shape", expand=True)
+            UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_shape", expand=True)
+            #layout.prop(brush, "falloff_shape", expand=True)
 
             return
 
