@@ -152,6 +152,8 @@ static void color_filter_task_cb(void *__restrict userdata,
       random_factor = ((float)seed) / (float)0xFFFFFFFFu - 0.5f;
     }
 
+    final_color[3] = 1.0f;
+
     switch (mode) {
       case COLOR_FILTER_FILL: {
         float fill_color_rgba[4];
