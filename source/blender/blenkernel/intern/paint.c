@@ -2449,7 +2449,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, me->totvert);
 
   MEM_SAFE_FREE(ss->face_areas);
-  ss->face_areas = MEM_calloc_arrayN(me->totpoly, sizeof(float), "ss->face_areas");
+  ss->face_areas = MEM_calloc_arrayN(me->totpoly, sizeof(float) * 2, "ss->face_areas");
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
@@ -2496,7 +2496,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   int totgridfaces = base_mesh->totpoly * (key.grid_size - 1) * (key.grid_size - 1);
 
   MEM_SAFE_FREE(ss->face_areas);
-  ss->face_areas = MEM_calloc_arrayN(totgridfaces, sizeof(float), "ss->face_areas");
+  ss->face_areas = MEM_calloc_arrayN(totgridfaces, sizeof(float) * 2, "ss->face_areas");
 
   BKE_pbvh_build_grids(pbvh,
                        subdiv_ccg->grids,
@@ -2944,7 +2944,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
 
   BMCustomLayerReq flayers[] = {
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
   };
   BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, 2);
 

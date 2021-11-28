@@ -45,6 +45,7 @@ Topology rake:
 #include "BLI_array.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
+#include "BLI_hash.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -2463,6 +2464,31 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   }
 
   pbvh_print_mem_size(pbvh);
+
+  /* update face areas */
+  const int cd_face_area = pbvh->cd_face_area;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    BKE_pbvh_bmesh_check_tris(pbvh, node);
+
+    node->flag |= PBVH_UpdateTriAreas;
+    BKE_pbvh_check_tri_areas(pbvh, node);
+
+    int area_src_i = pbvh->face_area_i ^ 1;
+    int area_dst_i = pbvh->face_area_i;
+
+    /* make sure read side of double buffer is set too */
+    TGSET_ITER (f, node->bm_faces) {
+      float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
+      areabuf[area_dst_i] = areabuf[area_src_i];
+    }
+    TGSET_ITER_END;
+  }
 }
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
@@ -2808,7 +2834,8 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
   key ^= (uintptr_t)l->v;
 
   if (cd_fset >= 0) {
-    key ^= BM_ELEM_CD_GET_INT(l->f, cd_fset);
+    // key ^= (uintptr_t)BLI_hash_int(BM_ELEM_CD_GET_INT(l->f, cd_fset));
+    key ^= (uintptr_t)BM_ELEM_CD_GET_INT(l->f, cd_fset);
   }
 
   for (int i = 0; i < totuv; i++) {

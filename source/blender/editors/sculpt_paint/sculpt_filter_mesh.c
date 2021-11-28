@@ -781,6 +781,10 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, false);
 
+  if (ELEM(filter_type, MESH_FILTER_SMOOTH) && ss->filter_cache->weighted_smooth) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
+
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,

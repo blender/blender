@@ -172,7 +172,8 @@ struct PBVH {
   int face_sets_color_seed;
   int face_sets_color_default;
   int *face_sets;
-  float *face_areas;
+  float *face_areas; /* float2 vector, double buffered to avoid thread contention */
+  int face_area_i;
 
   /* Grid Data */
   CCGKey gridkey;

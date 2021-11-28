@@ -1655,10 +1655,15 @@ void SCULPT_smooth(Sculpt *sd,
     return;
   }
 
-  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
-      ((ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) ||
-       ss->cache->brush->boundary_smooth_factor > 0.0f)) {
-    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  if ((ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) ||
+      ss->cache->brush->boundary_smooth_factor > 0.0f) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      BKE_pbvh_update_all_tri_areas(ss->pbvh);
+    }
+    else {
+      void BKE_pbvh_face_areas_begin(PBVH * pbvh);
+      BKE_pbvh_face_areas_begin(ss->pbvh);
+    }
   }
 
   SculptLayerParams params = {.permanent = false, .simple_array = false};

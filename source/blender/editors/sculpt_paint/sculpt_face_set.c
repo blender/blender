@@ -412,6 +412,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     ss->cache->automasking->settings.flags &= ~BRUSH_AUTOMASKING_FACE_SETS;
   }
 
+  bool modified = false;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap[vd.index];
@@ -501,6 +503,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
           if (ok) {
             ss->face_sets[vert_map->indices[j]] = new_fset;
+            modified = true;
           }
         }
       }
@@ -590,6 +593,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             if (ok) {
               BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, new_fset);
+              modified = true;
             }
           }
         }
@@ -621,11 +625,16 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
         if (!use_fset_strength || fade > test_limit) {
           SCULPT_vertex_face_set_set(ss, vd.vertex, new_fset);
+          modified = true;
         }
       }
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (modified) {
+    BKE_pbvh_node_mark_update_triangulation(data->nodes[n]);
+  }
 
   // restore automasking flag
   if (set_active_faceset) {

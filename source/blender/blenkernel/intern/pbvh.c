@@ -4248,8 +4248,17 @@ void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node)
   node->flag |= PBVH_UpdateTriAreas;
 }
 
+/* must be called outside of threads */
+void BKE_pbvh_face_areas_begin(PBVH *pbvh)
+{
+  pbvh->face_area_i ^= 1;
+}
+
 void BKE_pbvh_update_all_tri_areas(PBVH *pbvh)
 {
+  /* swap read/write face area buffers */
+  pbvh->face_area_i ^= 1;
+
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
     if (node->flag & PBVH_Leaf) {
@@ -4279,6 +4288,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
     BKE_pbvh_bmesh_check_tris(pbvh, node);
   }
 
+  const int cur_i = pbvh->face_area_i ^ 1;
+
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES: {
       for (int i = 0; i < node->totprim; i++) {
@@ -4289,7 +4300,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
           continue;
         }
 
-        pbvh->face_areas[lt->poly] = 0.0f;
+        pbvh->face_areas[lt->poly * 2 + cur_i] = 0.0f;
       }
 
       for (int i = 0; i < node->totprim; i++) {
@@ -4304,7 +4315,14 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         MVert *mv2 = pbvh->verts + pbvh->mloop[lt->tri[1]].v;
         MVert *mv3 = pbvh->verts + pbvh->mloop[lt->tri[2]].v;
 
-        pbvh->face_areas[lt->poly] += area_tri_v3(mv1->co, mv2->co, mv3->co);
+        float area = area_tri_v3(mv1->co, mv2->co, mv3->co);
+
+        pbvh->face_areas[lt->poly * 2 + cur_i] += area;
+
+        /* sanity check on read side of read write buffer */
+        if (pbvh->face_areas[lt->poly * 2 + (cur_i ^ 1)] == 0.0f) {
+          pbvh->face_areas[lt->poly * 2 + (cur_i ^ 1)] = pbvh->face_areas[lt->poly * 2 + cur_i];
+        }
       }
       break;
     }
@@ -4313,7 +4331,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       const int cd_face_area = pbvh->cd_face_area;
 
       TGSET_ITER (f, node->bm_faces) {
-        BM_ELEM_CD_SET_FLOAT(f, cd_face_area, 0.0f);
+        float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
+        areabuf[cur_i] = 0.0f;
       }
       TGSET_ITER_END;
 
@@ -4325,10 +4344,12 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         BMVert *v3 = (BMVert *)(node->tribuf->verts[tri->v[2]].i);
         BMFace *f = (BMFace *)tri->f.i;
 
+        float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
+
         float area = area_tri_v3(v1->co, v2->co, v3->co);
         float farea = BM_ELEM_CD_GET_FLOAT(f, cd_face_area);
 
-        BM_ELEM_CD_SET_FLOAT(f, cd_face_area, farea + area);
+        areabuf[cur_i] = farea + area;
       }
       break;
     }
@@ -4439,6 +4460,8 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
 
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence)
 {
+  const int cur_i = pbvh->face_area_i;
+
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES: {
       int *edges = BLI_array_alloca(edges, 16);
@@ -4470,10 +4493,10 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
         }
       }
       for (int i = 0; i < len; i++) {
-        r_areas[i] = pbvh->face_areas[polys[i * 2]];
+        r_areas[i] = pbvh->face_areas[polys[i * 2] * 2 + cur_i];
 
         if (polys[i * 2 + 1] != -1) {
-          r_areas[i] += pbvh->face_areas[polys[i * 2 + 1]];
+          r_areas[i] += pbvh->face_areas[polys[i * 2 + 1] * 2 + cur_i];
           r_areas[i] *= 0.5f;
         }
       }
@@ -4507,8 +4530,11 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
           w = 0.0f;
         }
         else {
-          w += BM_ELEM_CD_GET_FLOAT(e->l->f, cd_face_area) * 0.5f;
-          w += BM_ELEM_CD_GET_FLOAT(e->l->radial_next->f, cd_face_area) * 0.5f;
+          float *a1 = BM_ELEM_CD_GET_VOID_P(e->l->f, cd_face_area);
+          float *a2 = BM_ELEM_CD_GET_VOID_P(e->l->radial_next->f, cd_face_area);
+
+          w += a1[cur_i] * 0.5f;
+          w += a2[cur_i] * 0.5f;
         }
 
         if (j >= valence) {
