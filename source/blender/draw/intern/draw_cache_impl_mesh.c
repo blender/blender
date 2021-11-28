@@ -535,7 +535,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
         AttributeDomain domain = ATTR_DOMAIN_NUM;
 
         if (type == CD_AUTO_FROM_NAME) {
-          /* We need to deduct what exact layer is used.
+          /* We need to deduce what exact layer is used.
            *
            * We do it based on the specified name.
            */
