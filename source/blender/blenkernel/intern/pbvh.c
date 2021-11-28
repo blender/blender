@@ -4379,7 +4379,6 @@ static void pbvh_pmap_to_edges_add(PBVH *pbvh,
 
   if (*len >= *r_edges_size) {
     int newsize = *len + ((*len) >> 1) + 1;
-    *heap_alloc = true;
 
     int *r_edges_new = MEM_malloc_arrayN(newsize, sizeof(*r_edges_new), "r_edges_new");
     int *r_polys_new = MEM_malloc_arrayN(newsize * 2, sizeof(*r_polys_new), "r_polys_new");
