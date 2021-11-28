@@ -1517,6 +1517,16 @@ static void bm_log_face_values_swap(BMLog *log,
     BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
     BMFace *f = bm_log_face_from_id(log, lf->id);
 
+    if (!f) {
+      fprintf(stderr, "%s: Failed to find face %d!\n", __func__, (int)lf->id);
+      continue;
+    }
+
+    if (f->head.htype != BM_FACE) {
+      fprintf(stderr, "%s: Got non-face for face ID %d, type was %d\n", __func__, (int)lf->id, (int)f->head.htype);
+      continue;
+    }
+
     swap_v3_v3(f->no, lf->no);
     SWAP(char, f->head.hflag, lf->hflag);
     SWAP(short, f->mat_nr, lf->mat_nr);

@@ -409,6 +409,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
+  const float bevel_smooth_factor = 1.0f - args->bevel_smooth_factor;
   float projection = args->projection;
   float slide_fset = args->slide_fset;
   float bound_smooth = args->bound_smooth;
@@ -471,6 +472,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     areas = BLI_array_alloca(areas, val);
 
     BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+
+    /* normalize areas, then apply a 0.25/val floor */
 
     float totarea = 0.0f;
 
@@ -640,19 +643,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
       float radius;
       if (!args->bound_smooth_radius && ss->cache) {
-        radius = ss->cache->radius * 1.0f;
+        radius = ss->cache->radius;
       }
       else {
-        radius = args->bound_smooth_radius * 1.0f;
+        radius = args->bound_smooth_radius;
       }
 
       radius = radius == 0.0f ? 0.0001f : radius;
-
-      float th = radius - b1_orig;
-      th = MAX2(th, 0.0f);
-      th /= radius;
-
-      // th = 1.0 - th;
 
 #if 0
       float color[4];
@@ -664,24 +661,18 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       SCULPT_vertex_color_set(ss, ni.vertex, color);
 #endif
 
-      float fac = bound_smooth;
-      fac = MIN2(fac * 4.0f, 1.0f);
-      fac = powf(fac, 0.2);
-      // th *= fac;
-      // th *= shell_angle_to_dist(shellth * 1.0) * 0.5;
-
       /* jump above the v,no2 plane, using distance from plane (which doubles after this)*/
       // sub_v3_v3(tmp, co);
       // madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
       // add_v3_v3(tmp, co);
 
-      th = min_ff(b1_orig / radius, 1.0f);
+      float th = min_ff(b1_orig / radius, bevel_smooth_factor);
 
-      /*ok this bit smoothes the bevel edges.  why? hit on it
-        by accident.*/
+      /*smooth bevel edges slightly to avoid artifacts.
+        not entire sure why this works.*/
       float shellth = saacos(dot_v3v3(no, no2));
-      shellth = safe_shell_angle_to_dist(shellth * 2.0);
-      th /= 0.00001 + shellth;
+      shellth = safe_shell_angle_to_dist(shellth * 2.0f);
+      th /= 0.00001f + shellth;
 
       sub_v3_v3v3(tmp, co2, co);
       madd_v3_v3fl(tmp, no, -dot_v3v3(no, tmp) * th);

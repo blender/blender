@@ -292,7 +292,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
                          int looptri_num,
-                         bool fast_draw);
+                         bool fast_draw,
+                         float *face_areas,
+                         struct MeshElemMap *pmap);
 void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGElem **grids,
                           int totgrid,
@@ -300,7 +302,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden,
-                          bool fast_draw);
+                          bool fast_draw,
+                          float *face_areas);
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct Mesh *me,
                           struct BMesh *bm,
@@ -1070,3 +1073,21 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                         PBVHTopologyUpdateMode mode);
 void BKE_pbvh_bmesh_get_vcol(
     struct BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset);
+/*
+
+use pmap to build an array of edge indices surrounding vertex
+r_edges, r_edges_size, heap_alloc define an existing array to put data in.
+
+final array is similarly put in these pointers.  note that calling code
+may pass a stack allocated array (*heap_alloc should be false), and must
+check if heap_alloc is true afterwards and free *r_edges.
+
+r_polys is an array of integer pairs and must be same logical size as r_edges
+*/
+void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
+                            SculptVertRef vertex,
+                            int **r_edges,
+                            int *r_edges_size,
+                            bool *heap_alloc,
+                            int **r_polys);
+void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);

@@ -158,6 +158,7 @@ struct PBVH {
   int depth_limit;
 
   /* Mesh data */
+  struct MeshElemMap *pmap, *vemap;
   const struct Mesh *mesh;
   MVert *verts;
   const MPoly *mpoly;
@@ -171,6 +172,7 @@ struct PBVH {
   int face_sets_color_seed;
   int face_sets_color_default;
   int *face_sets;
+  float *face_areas;
 
   /* Grid Data */
   CCGKey gridkey;

@@ -22,6 +22,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_alloca.h"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
@@ -421,6 +422,7 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
   BKE_pbvh_node_mark_rebuild_draw(node);
 
   BKE_pbvh_node_fully_hidden_set(node, !has_visible);
+  BKE_pbvh_node_mark_update_tri_area(node);
 
   BLI_ghash_free(map, NULL, NULL);
 }
@@ -493,6 +495,7 @@ static void build_grid_leaf_node(PBVH *pbvh, PBVHNode *node)
       pbvh->grid_hidden, node->prim_indices, node->totprim, pbvh->gridkey.grid_size);
   BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
   BKE_pbvh_node_mark_rebuild_draw(node);
+  BKE_pbvh_node_mark_update_tri_area(node);
 }
 
 static void build_leaf(PBVH *pbvh, int node_index, BBC *prim_bbc, int offset, int count)
@@ -659,18 +662,21 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const MLoop *mloop,
                          MVert *verts,
                          MSculptVert *mdyntopo_verts,
-
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
                          struct CustomData *pdata,
                          const MLoopTri *looptri,
                          int looptri_num,
-                         bool fast_draw)
+                         bool fast_draw,
+                         float *face_areas,
+                         struct MeshElemMap *pmap)
 {
   BBC *prim_bbc = NULL;
   BB cb;
 
+  pbvh->pmap = pmap;
+  pbvh->face_areas = face_areas;
   pbvh->mesh = mesh;
   pbvh->type = PBVH_FACES;
   pbvh->mpoly = mpoly;
@@ -731,10 +737,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           DMFlagMat *flagmats,
                           BLI_bitmap **grid_hidden,
-                          bool fast_draw)
+                          bool fast_draw,
+                          float *face_areas)
 {
   const int gridsize = key->grid_size;
 
+  pbvh->face_areas = face_areas;
   pbvh->type = PBVH_GRIDS;
   pbvh->grids = grids;
   pbvh->gridfaces = gridfaces;
@@ -4257,17 +4265,49 @@ void BKE_pbvh_update_all_tri_areas(PBVH *pbvh)
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
 {
-  if (!(node->flag & PBVH_UpdateTriAreas) || !node->tribuf || !node->tribuf->tottri) {
+  if (!(node->flag & PBVH_UpdateTriAreas)) {
+    return;
+  }
+
+  if (pbvh->type == PBVH_BMESH && (!node->tribuf || !node->tribuf->tottri)) {
     return;
   }
 
   node->flag &= ~PBVH_UpdateTriAreas;
 
-  if (node->flag & PBVH_UpdateTris) {
+  if (pbvh->type == PBVH_BMESH && (node->flag & PBVH_UpdateTris)) {
     BKE_pbvh_bmesh_check_tris(pbvh, node);
   }
 
   switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES: {
+      for (int i = 0; i < node->totprim; i++) {
+        const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
+
+        if (pbvh->face_sets[lt->poly] < 0) {
+          /* Skip hidden faces. */
+          continue;
+        }
+
+        pbvh->face_areas[lt->poly] = 0.0f;
+      }
+
+      for (int i = 0; i < node->totprim; i++) {
+        const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
+
+        if (pbvh->face_sets[lt->poly] < 0) {
+          /* Skip hidden faces. */
+          continue;
+        }
+
+        MVert *mv1 = pbvh->verts + pbvh->mloop[lt->tri[0]].v;
+        MVert *mv2 = pbvh->verts + pbvh->mloop[lt->tri[1]].v;
+        MVert *mv3 = pbvh->verts + pbvh->mloop[lt->tri[2]].v;
+
+        pbvh->face_areas[lt->poly] += area_tri_v3(mv1->co, mv2->co, mv3->co);
+      }
+      break;
+    }
     case PBVH_BMESH: {
       BMFace *f;
       const int cd_face_area = pbvh->cd_face_area;
@@ -4297,51 +4337,204 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
   }
 }
 
+static void pbvh_pmap_to_edges_add(PBVH *pbvh,
+                                   SculptVertRef vertex,
+                                   int **r_edges,
+                                   int *r_edges_size,
+                                   bool *heap_alloc,
+                                   int e,
+                                   int p,
+                                   int *len,
+                                   int **r_polys)
+{
+  for (int i = 0; i < *len; i++) {
+    if ((*r_edges)[i] == e) {
+      if ((*r_polys)[i * 2 + 1] == -1) {
+        (*r_polys)[i * 2 + 1] = p;
+      }
+      return;
+    }
+  }
+
+  if (*len >= *r_edges_size) {
+    int newsize = *len + ((*len) >> 1) + 1;
+    *heap_alloc = true;
+
+    int *r_edges_new = MEM_malloc_arrayN(newsize, sizeof(*r_edges_new), "r_edges_new");
+    int *r_polys_new = MEM_malloc_arrayN(newsize * 2, sizeof(*r_polys_new), "r_polys_new");
+
+    memcpy((void *)r_edges_new, (void *)*r_edges, sizeof(int) * (*r_edges_size));
+    memcpy((void *)r_polys_new, (void *)(*r_polys), sizeof(int) * 2 * (*r_edges_size));
+
+    *r_edges_size = newsize;
+
+    if (*heap_alloc) {
+      MEM_freeN(*r_polys);
+      MEM_freeN(*r_edges);
+    }
+
+    *r_edges = r_edges_new;
+    *r_polys = r_polys_new;
+
+    *heap_alloc = true;
+  }
+
+  (*r_polys)[*len * 2] = p;
+  (*r_polys)[*len * 2 + 1] = -1;
+
+  (*r_edges)[*len] = e;
+  (*len)++;
+}
+
+void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
+                            SculptVertRef vertex,
+                            int **r_edges,
+                            int *r_edges_size,
+                            bool *r_heap_alloc,
+                            int **r_polys)
+{
+  MeshElemMap *map = pbvh->pmap + vertex.i;
+  int len = 0;
+
+  for (int i = 0; i < map->count; i++) {
+    const MPoly *mp = pbvh->mpoly + map->indices[i];
+    const MLoop *ml = pbvh->mloop + mp->loopstart;
+
+    if (pbvh->face_sets[map->indices[i]] < 0) {
+      /* Skip connectivity from hidden faces. */
+      continue;
+    }
+
+    for (int j = 0; j < mp->totloop; j++, ml++) {
+      if (ml->v == vertex.i) {
+        pbvh_pmap_to_edges_add(pbvh,
+                               vertex,
+                               r_edges,
+                               r_edges_size,
+                               r_heap_alloc,
+                               ME_POLY_LOOP_PREV(pbvh->mloop, mp, j)->e,
+                               map->indices[i],
+                               &len,
+                               r_polys);
+        pbvh_pmap_to_edges_add(pbvh,
+                               vertex,
+                               r_edges,
+                               r_edges_size,
+                               r_heap_alloc,
+                               ml->e,
+                               map->indices[i],
+                               &len,
+                               r_polys);
+      }
+    }
+  }
+
+  *r_edges_size = len;
+}
+
+void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
+{
+  pbvh->vemap = vemap;
+}
+
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence)
 {
-  if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
-    // not supported
-    for (int i = 0; i < valence; i++) {
-      r_areas[i] = 1.0f;
-    }
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES: {
+      int *edges = BLI_array_alloca(edges, 16);
+      int *polys = BLI_array_alloca(polys, 32);
+      bool heap_alloc = false;
+      int len = 16;
 
-    return;
-  }
+      BKE_pbvh_pmap_to_edges(pbvh, vertex, &edges, &len, &heap_alloc, &polys);
+      len = MIN2(len, valence);
 
-  BMVert *v = (BMVert *)vertex.i;
-  BMEdge *e = v->e;
+      if (pbvh->vemap) {
+        /* sort poly references by vemap edge ordering */
+        MeshElemMap *emap = pbvh->vemap + vertex.i;
 
-  if (!e) {
-    for (int i = 0; i < valence; i++) {
-      r_areas[i] = 1.0f;
-    }
+        int *polys_old = BLI_array_alloca(polys, len * 2);
+        memcpy((void *)polys_old, (void *)polys, sizeof(int) * len * 2);
 
-    return;
-  }
+        /* note that wire edges will break this, but
+           should only result in incorrect weights
+           and isn't worth fixing */
 
-  const int cd_face_area = pbvh->cd_face_area;
-  int j = 0;
+        for (int i = 0; i < len; i++) {
+          for (int j = 0; j < len; j++) {
+            if (emap->indices[i] == edges[j]) {
+              polys[i * 2] = polys_old[j * 2];
+              polys[i * 2 + 1] = polys_old[j * 2 + 1];
+            }
+          }
+        }
+      }
+      for (int i = 0; i < len; i++) {
+        r_areas[i] = pbvh->face_areas[polys[i * 2]];
 
-  do {
-    float w = 0.0f;
+        if (polys[i * 2 + 1] != -1) {
+          r_areas[i] += pbvh->face_areas[polys[i * 2 + 1]];
+          r_areas[i] *= 0.5f;
+        }
+      }
 
-    if (!e->l) {
-      w = 0.0f;
-    }
-    else {
-      w += BM_ELEM_CD_GET_FLOAT(e->l->f, cd_face_area) * 0.5f;
-      w += BM_ELEM_CD_GET_FLOAT(e->l->radial_next->f, cd_face_area) * 0.5f;
-    }
+      if (heap_alloc) {
+        MEM_freeN(edges);
+        MEM_freeN(polys);
+      }
 
-    if (j >= valence) {
-      printf("%s: error, corrupt edge cycle\n", __func__);
       break;
     }
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      BMEdge *e = v->e;
 
-    r_areas[j++] = w;
+      if (!e) {
+        for (int i = 0; i < valence; i++) {
+          r_areas[i] = 1.0f;
+        }
 
-    e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
-  } while (e != v->e);
+        return;
+      }
+
+      const int cd_face_area = pbvh->cd_face_area;
+      int j = 0;
+
+      do {
+        float w = 0.0f;
+
+        if (!e->l) {
+          w = 0.0f;
+        }
+        else {
+          w += BM_ELEM_CD_GET_FLOAT(e->l->f, cd_face_area) * 0.5f;
+          w += BM_ELEM_CD_GET_FLOAT(e->l->radial_next->f, cd_face_area) * 0.5f;
+        }
+
+        if (j >= valence) {
+          printf("%s: error, corrupt edge cycle\n", __func__);
+          break;
+        }
+
+        r_areas[j++] = w;
+
+        e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+      } while (e != v->e);
+
+      for (; j < valence; j++) {
+        r_areas[j] = 1.0f;
+      }
+
+      break;
+    }
+    default:
+      // not supported
+      for (int i = 0; i < valence; i++) {
+        r_areas[i] = 1.0f;
+      }
+
+      break;
+  }
 }
 
 void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id)

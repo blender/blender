@@ -493,6 +493,10 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
         settings = self.paint_settings(context)
+
+        if not settings:
+            return
+
         brush = settings.brush
 
         draw_color_settings(context, layout, brush, color_type=not context.vertex_paint_object)

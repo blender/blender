@@ -24,6 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
@@ -879,52 +880,7 @@ bool SCULPT_temp_customlayer_has(SculptSession *ss,
 
 bool SCULPT_temp_customlayer_release(SculptSession *ss, Object *ob, SculptCustomLayer *scl)
 {
-  AttributeDomain domain = scl->domain;
-
-  if (scl->released) {
-    return false;
-  }
-
-  // remove from layers_to_free list if necassary
-  for (int i = 0; scl->data && i < ss->tot_layers_to_free; i++) {
-    if (ss->layers_to_free[i] && ss->layers_to_free[i]->data == scl->data) {
-      MEM_freeN(ss->layers_to_free[i]);
-      ss->layers_to_free[i] = NULL;
-    }
-  }
-
-  scl->released = true;
-
-  if (!scl->from_bmesh) {
-    // for now, don't clean up bmesh temp layers
-    if (scl->is_cdlayer && BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-      CustomData *cdata = NULL;
-      int totelem = 0;
-
-      switch (domain) {
-        case ATTR_DOMAIN_POINT:
-          cdata = ss->vdata;
-          totelem = ss->totvert;
-          break;
-        case ATTR_DOMAIN_FACE:
-          cdata = ss->pdata;
-          totelem = ss->totfaces;
-          break;
-        default:
-          printf("error, unknown domain in %s\n", __func__);
-          return false;
-      }
-
-      CustomData_free_layer(cdata, scl->layer->type, totelem, scl->layer - cdata->layers);
-      SCULPT_update_customdata_refs(ss, ob);
-    }
-    else {
-      MEM_SAFE_FREE(scl->data);
-    }
-
-    scl->data = NULL;
-  }
-  return true;
+  return BKE_sculptsession_customlayer_release(ob, scl);
 }
 
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
@@ -1906,7 +1862,6 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
 {
   int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
 
-  MeshElemMap *vert_map = &ss->pmap[index];
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
@@ -1916,6 +1871,26 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   iter->has_edge = true;
   iter->no_free = false;
 
+  int *edges = BLI_array_alloca(edges, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY);
+  int *unused_polys = BLI_array_alloca(unused_polys, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY * 2);
+  bool heap_alloc = false;
+  int len = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
+
+  BKE_pbvh_pmap_to_edges(ss->pbvh, vertex, &edges, &len, &heap_alloc, &unused_polys);
+  /* length of array is now in len */
+
+  for (int i = 0; i < len; i++) {
+    MEdge *e = ss->medge + edges[i];
+    int v2 = e->v1 == vertex.i ? e->v2 : e->v1;
+
+    sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v2), BKE_pbvh_make_eref(edges[i]), v2);
+  }
+
+  if (heap_alloc) {
+    MEM_freeN(unused_polys);
+    MEM_freeN(edges);
+  }
+#if 0
   for (int i = 0; i < ss->pmap[index].count; i++) {
     if (ss->face_sets[vert_map->indices[i]] < 0) {
       /* Skip connectivity from hidden faces. */
@@ -1950,6 +1925,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
       }
     }
   }
+#endif
 
   if (ss->fake_neighbors.use_fake_neighbors) {
     BLI_assert(ss->fake_neighbors.fake_neighbor_index != NULL);
@@ -2166,6 +2142,7 @@ static NeighborCacheItem *neighbor_cache_get(const SculptSession *ss,
       case PBVH_FACES:
         // use vemap if it exists, so result is in disk cycle order
         if (ss->vemap) {
+          BKE_pbvh_set_vemap(ss->pbvh, ss->vemap);
           sculpt_vertex_neighbors_get_faces_vemap(ss, vertex, &ni);
         }
         else {
@@ -2231,8 +2208,9 @@ void SCULPT_vertex_neighbors_get(const SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      // use vemap if it exists, so result is in disk cycle order
+      /* use vemap if it exists, so result is in disk cycle order */
       if (ss->vemap) {
+        BKE_pbvh_set_vemap(ss->pbvh, ss->vemap);
         sculpt_vertex_neighbors_get_faces_vemap(ss, vertex, iter);
       }
       else {
@@ -6152,7 +6130,8 @@ static void SCULPT_run_commandlist(
     float radius;
 
     if (BRUSHSET_GET_INT(cmd->params_final, radius_unit, NULL)) {
-      radius = BRUSHSET_GET_FLOAT(cmd->params_final, unprojected_radius, &ss->cache->input_mapping);
+      radius = BRUSHSET_GET_FLOAT(
+          cmd->params_final, unprojected_radius, &ss->cache->input_mapping);
     }
     else {
       radius = BRUSHSET_GET_FLOAT(cmd->params_final, radius, &ss->cache->input_mapping);

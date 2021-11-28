@@ -743,6 +743,7 @@ typedef struct SculptSession {
   float (*orig_cos)[3];         /* Coords of un-deformed mesh. */
   float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
   float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
+  float *face_areas; /* cached face areas for PBVH_FACES and PBVH_GRIDS */
 
   /* Used to cache the render of the active texture */
   unsigned int texcache_side, *texcache, texcache_actual;
@@ -890,6 +891,7 @@ bool BKE_sculptsession_customlayer_get(struct Object *ob,
                                        const char *name,
                                        SculptCustomLayer *scl,
                                        SculptLayerParams *params);
+bool BKE_sculptsession_customlayer_release(struct Object *ob, SculptCustomLayer *scl);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 int BKE_sculptsession_get_totvert(const SculptSession *ss);

@@ -867,7 +867,7 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
   int to_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
   int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
 
-  const float current_color[4];
+  float current_color[4];
 
   SCULPT_vertex_color_get(ss, to_v, current_color);
 

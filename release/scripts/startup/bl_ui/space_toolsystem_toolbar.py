@@ -1350,6 +1350,7 @@ class _defs_sculpt:
                 layout.prop(props, "hard_edge_mode")
                 layout.prop(props, "preserve_fset_boundaries")
                 layout.prop(props, "bound_smooth_radius")
+                layout.prop(props, "bevel_smooth_fac")
 
         return dict(idname="builtin.mesh_filter",
             label="Mesh Filter",

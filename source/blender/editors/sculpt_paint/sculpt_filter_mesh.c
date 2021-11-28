@@ -337,6 +337,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   // const float hard_edge_fac = ss->filter_cache->hard_edge_fac;
   const bool hard_edge_mode = ss->filter_cache->hard_edge_mode;
   const float bound_smooth_radius = ss->filter_cache->bound_smooth_radius;
+  const float bevel_smooth_fac = ss->filter_cache->bevel_smooth_fac;
 
   if (ELEM(filter_type,
            MESH_FILTER_SMOOTH,
@@ -403,6 +404,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
                 .preserve_fset_boundaries = preserve_fset_boundaries,
                 .do_weighted_smooth = weighted,
                 .bound_smooth_radius = bound_smooth_radius,
+                .bevel_smooth_factor = bevel_smooth_fac,
                 .bound_scl = bsmooth > 0.0f ? ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] : NULL}));
 
         sub_v3_v3v3(val, avg, orig_co);
@@ -909,6 +911,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   // ss->filter_cache->hard_edge_fac = RNA_float_get(op->ptr, "hard_edge_fac");
   ss->filter_cache->hard_edge_mode = RNA_boolean_get(op->ptr, "hard_edge_mode");
   ss->filter_cache->bound_smooth_radius = RNA_float_get(op->ptr, "bound_smooth_radius");
+  ss->filter_cache->bevel_smooth_fac = RNA_float_get(op->ptr, "bevel_smooth_fac");
 
   if (filter_type == MESH_FILTER_SMOOTH && ss->filter_cache->bound_smooth_radius != 0.0f) {
     /*ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists*/
@@ -1034,4 +1037,6 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                 "Radius to bevel hard edges, 0 disables",
                 0.0f,
                 5.0f);
+  RNA_def_float(
+      ot->srna, "bevel_smooth_fac", 0.0f, 0.0f, 1.0f, "Bevel Smoothness", "", 0.0f, 1.0f);
 }

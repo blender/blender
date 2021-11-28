@@ -408,6 +408,7 @@ typedef struct SculptSmoothArgs {
   float bound_smooth_radius;  // if 0, ss->cache->radius will be used
   float vel_smooth_fac;
   SculptCustomLayer *vel_scl;
+  float bevel_smooth_factor;
 } SculptSmoothArgs;
 
 /* Utils. */
@@ -1718,6 +1719,7 @@ typedef struct FilterCache {
   float hard_edge_fac;
   bool hard_edge_mode;
   float bound_smooth_radius;
+  float bevel_smooth_fac;
 } FilterCache;
 
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,

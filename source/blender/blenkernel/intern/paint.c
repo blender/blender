@@ -90,6 +90,8 @@ void SCULPT_undo_ensure_bmlog(Object *ob);
 
 static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
+const char *face_areas_layer_name = "_sculpt_face_areas";
+
 static void palette_init_data(ID *id)
 {
   Palette *palette = (Palette *)id;
@@ -1455,6 +1457,8 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = NULL;
   }
 
+  MEM_SAFE_FREE(ss->face_areas);
+
   MEM_SAFE_FREE(ss->pmap);
   MEM_SAFE_FREE(ss->pmap_mem);
 
@@ -2444,19 +2448,24 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, me->totvert);
 
+  MEM_SAFE_FREE(ss->face_areas);
+  ss->face_areas = MEM_calloc_arrayN(me->totpoly, sizeof(float), "ss->face_areas");
+
   BKE_pbvh_build_mesh(pbvh,
                       me,
                       me->mpoly,
                       me->mloop,
                       me->mvert,
-                      ob->sculpt->mdyntopo_verts,
+                      ss->mdyntopo_verts,
                       me->totvert,
                       &me->vdata,
                       &me->ldata,
                       &me->pdata,
                       looptri,
                       looptris_num,
-                      ob->sculpt->fast_draw);
+                      ss->fast_draw,
+                      ss->face_areas,
+                      ss->pmap);
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
@@ -2474,6 +2483,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
 static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect_hide)
 {
+  SculptSession *ss = ob->sculpt;
+
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
   PBVH *pbvh = BKE_pbvh_new();
@@ -2482,6 +2493,11 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   Mesh *base_mesh = BKE_mesh_from_object(ob);
   BKE_sculpt_sync_face_set_visibility(base_mesh, subdiv_ccg);
 
+  int totgridfaces = base_mesh->totpoly * (key.grid_size - 1) * (key.grid_size - 1);
+
+  MEM_SAFE_FREE(ss->face_areas);
+  ss->face_areas = MEM_calloc_arrayN(totgridfaces, sizeof(float), "ss->face_areas");
+
   BKE_pbvh_build_grids(pbvh,
                        subdiv_ccg->grids,
                        subdiv_ccg->num_grids,
@@ -2489,7 +2505,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        (void **)subdiv_ccg->grid_faces,
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden,
-                       ob->sculpt->fast_draw);
+                       ob->sculpt->fast_draw,
+                       ss->face_areas);
 
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
 
@@ -3352,4 +3369,55 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
 bool BKE_paint_uses_channels(ePaintMode mode)
 {
   return mode == PAINT_MODE_SCULPT;
+}
+
+bool BKE_sculptsession_customlayer_release(Object *ob, SculptCustomLayer *scl)
+{
+  SculptSession *ss = ob->sculpt;
+  AttributeDomain domain = scl->domain;
+
+  if (scl->released) {
+    return false;
+  }
+
+  // remove from layers_to_free list if necassary
+  for (int i = 0; scl->data && i < ss->tot_layers_to_free; i++) {
+    if (ss->layers_to_free[i] && ss->layers_to_free[i]->data == scl->data) {
+      MEM_freeN(ss->layers_to_free[i]);
+      ss->layers_to_free[i] = NULL;
+    }
+  }
+
+  scl->released = true;
+
+  if (!scl->from_bmesh) {
+    // for now, don't clean up bmesh temp layers
+    if (scl->is_cdlayer && BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+      CustomData *cdata = NULL;
+      int totelem = 0;
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          cdata = ss->vdata;
+          totelem = ss->totvert;
+          break;
+        case ATTR_DOMAIN_FACE:
+          cdata = ss->pdata;
+          totelem = ss->totfaces;
+          break;
+        default:
+          printf("error, unknown domain in %s\n", __func__);
+          return false;
+      }
+
+      CustomData_free_layer(cdata, scl->layer->type, totelem, scl->layer - cdata->layers);
+      BKE_sculptsession_update_attr_refs(ob);
+    }
+    else {
+      MEM_SAFE_FREE(scl->data);
+    }
+
+    scl->data = NULL;
+  }
+  return true;
 }
