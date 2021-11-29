@@ -50,7 +50,7 @@
  * Almost all data in Blender are structures. Each struct saved
  * gets a BHead header.  With BHead the struct can be linked again
  * and compared with #StructDNA.
-
+ *
  * WRITE
  * =====
  *

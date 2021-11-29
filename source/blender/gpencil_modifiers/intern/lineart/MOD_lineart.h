@@ -485,7 +485,7 @@ typedef struct LineartBoundingArea {
   (((a) + DBL_TRIANGLE_LIM) >= (b) && ((a)-DBL_TRIANGLE_LIM) <= (b))
 
 /* Notes on this function:
-
+ *
  * r_ratio: The ratio on segment a1-a2. When r_ratio is very close to zero or one, it
  * fixes the value to zero or one, this makes it easier to identify "on the tip" situations.
  *
