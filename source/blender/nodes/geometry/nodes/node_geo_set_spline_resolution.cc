@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Resolution")).default_value(12).supports_field();
+  b.add_input<decl::Int>(N_("Resolution")).min(1).default_value(12).supports_field();
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
