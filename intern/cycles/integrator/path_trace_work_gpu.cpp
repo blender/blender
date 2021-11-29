@@ -334,7 +334,8 @@ DeviceKernel PathTraceWorkGPU::get_most_queued_kernel() const
 
 void PathTraceWorkGPU::enqueue_reset()
 {
-  void *args[] = {&max_num_paths_};
+  DeviceKernelArguments args(&max_num_paths_);
+
   queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_RESET, max_num_paths_, args);
   queue_->zero_to_device(integrator_queue_counter_);
   queue_->zero_to_device(integrator_shader_sort_counter_);
@@ -405,7 +406,7 @@ bool PathTraceWorkGPU::enqueue_path_iteration()
 
 void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num_paths_limit)
 {
-  void *d_path_index = (void *)NULL;
+  device_ptr d_path_index = 0;
 
   /* Create array of path indices for which this kernel is queued to be executed. */
   int work_size = kernel_max_active_main_path_index(kernel);
@@ -416,14 +417,14 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
   if (kernel_uses_sorting(kernel)) {
     /* Compute array of active paths, sorted by shader. */
     work_size = num_queued;
-    d_path_index = (void *)queued_paths_.device_pointer;
+    d_path_index = queued_paths_.device_pointer;
 
     compute_sorted_queued_paths(
         DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY, kernel, num_paths_limit);
   }
   else if (num_queued < work_size) {
     work_size = num_queued;
-    d_path_index = (void *)queued_paths_.device_pointer;
+    d_path_index = queued_paths_.device_pointer;
 
     if (kernel_is_shadow_path(kernel)) {
       /* Compute array of active shadow paths for specific kernel. */
@@ -442,8 +443,7 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
   switch (kernel) {
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST: {
       /* Closest ray intersection kernels with integrator state and render buffer. */
-      void *d_render_buffer = (void *)buffers_->buffer.device_pointer;
-      void *args[] = {&d_path_index, &d_render_buffer, const_cast<int *>(&work_size)};
+      DeviceKernelArguments args(&d_path_index, &buffers_->buffer.device_pointer, &work_size);
 
       queue_->enqueue(kernel, work_size, args);
       break;
@@ -453,7 +453,7 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK: {
       /* Ray intersection kernels with integrator state. */
-      void *args[] = {&d_path_index, const_cast<int *>(&work_size)};
+      DeviceKernelArguments args(&d_path_index, &work_size);
 
       queue_->enqueue(kernel, work_size, args);
       break;
@@ -465,8 +465,7 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME: {
       /* Shading kernels with integrator state and render buffer. */
-      void *d_render_buffer = (void *)buffers_->buffer.device_pointer;
-      void *args[] = {&d_path_index, &d_render_buffer, const_cast<int *>(&work_size)};
+      DeviceKernelArguments args(&d_path_index, &buffers_->buffer.device_pointer, &work_size);
 
       queue_->enqueue(kernel, work_size, args);
       break;
@@ -484,15 +483,17 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
                                                    const int num_paths_limit)
 {
   int d_queued_kernel = queued_kernel;
-  void *d_counter = integrator_state_gpu_.sort_key_counter[d_queued_kernel];
-  void *d_prefix_sum = (void *)integrator_shader_sort_prefix_sum_.device_pointer;
+  device_ptr d_counter = (device_ptr)integrator_state_gpu_.sort_key_counter[d_queued_kernel];
+  device_ptr d_prefix_sum = integrator_shader_sort_prefix_sum_.device_pointer;
   assert(d_counter != nullptr && d_prefix_sum != nullptr);
 
   /* Compute prefix sum of number of active paths with each shader. */
   {
     const int work_size = 1;
     int max_shaders = device_scene_->data.max_shaders;
-    void *args[] = {&d_counter, &d_prefix_sum, &max_shaders};
+
+    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &max_shaders);
+
     queue_->enqueue(DEVICE_KERNEL_PREFIX_SUM, work_size, args);
   }
 
@@ -507,15 +508,16 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
      * end of the array since compaction would need to do less work. */
     const int work_size = kernel_max_active_main_path_index(queued_kernel);
 
-    void *d_queued_paths = (void *)queued_paths_.device_pointer;
-    void *d_num_queued_paths = (void *)num_queued_paths_.device_pointer;
-    void *args[] = {const_cast<int *>(&work_size),
-                    const_cast<int *>(&num_paths_limit),
-                    &d_queued_paths,
-                    &d_num_queued_paths,
-                    &d_counter,
-                    &d_prefix_sum,
-                    &d_queued_kernel};
+    device_ptr d_queued_paths = queued_paths_.device_pointer;
+    device_ptr d_num_queued_paths = num_queued_paths_.device_pointer;
+
+    DeviceKernelArguments args(&work_size,
+                               &num_paths_limit,
+                               &d_queued_paths,
+                               &d_num_queued_paths,
+                               &d_counter,
+                               &d_prefix_sum,
+                               &d_queued_kernel);
 
     queue_->enqueue(kernel, work_size, args);
   }
@@ -527,10 +529,10 @@ void PathTraceWorkGPU::compute_queued_paths(DeviceKernel kernel, DeviceKernel qu
 
   /* Launch kernel to fill the active paths arrays. */
   const int work_size = kernel_max_active_main_path_index(queued_kernel);
-  void *d_queued_paths = (void *)queued_paths_.device_pointer;
-  void *d_num_queued_paths = (void *)num_queued_paths_.device_pointer;
-  void *args[] = {
-      const_cast<int *>(&work_size), &d_queued_paths, &d_num_queued_paths, &d_queued_kernel};
+  device_ptr d_queued_paths = queued_paths_.device_pointer;
+  device_ptr d_num_queued_paths = num_queued_paths_.device_pointer;
+
+  DeviceKernelArguments args(&work_size, &d_queued_paths, &d_num_queued_paths, &d_queued_kernel);
 
   queue_->zero_to_device(num_queued_paths_);
   queue_->enqueue(kernel, work_size, args);
@@ -606,15 +608,17 @@ void PathTraceWorkGPU::compact_paths(const int num_active_paths,
 {
   /* Compact fragmented path states into the start of the array, moving any paths
    * with index higher than the number of active paths into the gaps. */
-  void *d_compact_paths = (void *)queued_paths_.device_pointer;
-  void *d_num_queued_paths = (void *)num_queued_paths_.device_pointer;
+  device_ptr d_compact_paths = queued_paths_.device_pointer;
+  device_ptr d_num_queued_paths = num_queued_paths_.device_pointer;
 
   /* Create array with terminated paths that we can write to. */
   {
     /* TODO: can the work size be reduced here? */
     int offset = num_active_paths;
     int work_size = num_active_paths;
-    void *args[] = {&work_size, &d_compact_paths, &d_num_queued_paths, &offset};
+
+    DeviceKernelArguments args(&work_size, &d_compact_paths, &d_num_queued_paths, &offset);
+
     queue_->zero_to_device(num_queued_paths_);
     queue_->enqueue(terminated_paths_kernel, work_size, args);
   }
@@ -623,8 +627,10 @@ void PathTraceWorkGPU::compact_paths(const int num_active_paths,
    * than the number of active paths. */
   {
     int work_size = max_active_path_index;
-    void *args[] = {
-        &work_size, &d_compact_paths, &d_num_queued_paths, const_cast<int *>(&num_active_paths)};
+
+    DeviceKernelArguments args(
+        &work_size, &d_compact_paths, &d_num_queued_paths, &num_active_paths);
+
     queue_->zero_to_device(num_queued_paths_);
     queue_->enqueue(compact_paths_kernel, work_size, args);
   }
@@ -639,8 +645,10 @@ void PathTraceWorkGPU::compact_paths(const int num_active_paths,
     int work_size = num_compact_paths;
     int active_states_offset = 0;
     int terminated_states_offset = num_active_paths;
-    void *args[] = {
-        &d_compact_paths, &active_states_offset, &terminated_states_offset, &work_size};
+
+    DeviceKernelArguments args(
+        &d_compact_paths, &active_states_offset, &terminated_states_offset, &work_size);
+
     queue_->enqueue(compact_kernel, work_size, args);
   }
 }
@@ -769,14 +777,12 @@ void PathTraceWorkGPU::enqueue_work_tiles(DeviceKernel kernel,
 
   queue_->copy_to_device(work_tiles_);
 
-  void *d_work_tiles = (void *)work_tiles_.device_pointer;
-  void *d_render_buffer = (void *)buffers_->buffer.device_pointer;
+  device_ptr d_work_tiles = work_tiles_.device_pointer;
+  device_ptr d_render_buffer = buffers_->buffer.device_pointer;
 
   /* Launch kernel. */
-  void *args[] = {&d_work_tiles,
-                  const_cast<int *>(&num_work_tiles),
-                  &d_render_buffer,
-                  const_cast<int *>(&max_tile_work_size)};
+  DeviceKernelArguments args(
+      &d_work_tiles, &num_work_tiles, &d_render_buffer, &max_tile_work_size);
 
   queue_->enqueue(kernel, max_tile_work_size * num_work_tiles, args);
 
@@ -966,16 +972,16 @@ int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float thr
 
   const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
 
-  void *args[] = {&buffers_->buffer.device_pointer,
-                  const_cast<int *>(&effective_buffer_params_.full_x),
-                  const_cast<int *>(&effective_buffer_params_.full_y),
-                  const_cast<int *>(&effective_buffer_params_.width),
-                  const_cast<int *>(&effective_buffer_params_.height),
-                  &threshold,
-                  &reset,
-                  &effective_buffer_params_.offset,
-                  &effective_buffer_params_.stride,
-                  &num_active_pixels.device_pointer};
+  DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                             &effective_buffer_params_.full_x,
+                             &effective_buffer_params_.full_y,
+                             &effective_buffer_params_.width,
+                             &effective_buffer_params_.height,
+                             &threshold,
+                             &reset,
+                             &effective_buffer_params_.offset,
+                             &effective_buffer_params_.stride,
+                             &num_active_pixels.device_pointer);
 
   queue_->enqueue(DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_CHECK, work_size, args);
 
@@ -989,13 +995,13 @@ void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_x()
 {
   const int work_size = effective_buffer_params_.height;
 
-  void *args[] = {&buffers_->buffer.device_pointer,
-                  &effective_buffer_params_.full_x,
-                  &effective_buffer_params_.full_y,
-                  &effective_buffer_params_.width,
-                  &effective_buffer_params_.height,
-                  &effective_buffer_params_.offset,
-                  &effective_buffer_params_.stride};
+  DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                             &effective_buffer_params_.full_x,
+                             &effective_buffer_params_.full_y,
+                             &effective_buffer_params_.width,
+                             &effective_buffer_params_.height,
+                             &effective_buffer_params_.offset,
+                             &effective_buffer_params_.stride);
 
   queue_->enqueue(DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_FILTER_X, work_size, args);
 }
@@ -1004,13 +1010,13 @@ void PathTraceWorkGPU::enqueue_adaptive_sampling_filter_y()
 {
   const int work_size = effective_buffer_params_.width;
 
-  void *args[] = {&buffers_->buffer.device_pointer,
-                  &effective_buffer_params_.full_x,
-                  &effective_buffer_params_.full_y,
-                  &effective_buffer_params_.width,
-                  &effective_buffer_params_.height,
-                  &effective_buffer_params_.offset,
-                  &effective_buffer_params_.stride};
+  DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                             &effective_buffer_params_.full_x,
+                             &effective_buffer_params_.full_y,
+                             &effective_buffer_params_.width,
+                             &effective_buffer_params_.height,
+                             &effective_buffer_params_.offset,
+                             &effective_buffer_params_.stride);
 
   queue_->enqueue(DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_FILTER_Y, work_size, args);
 }
@@ -1019,10 +1025,10 @@ void PathTraceWorkGPU::cryptomatte_postproces()
 {
   const int work_size = effective_buffer_params_.width * effective_buffer_params_.height;
 
-  void *args[] = {&buffers_->buffer.device_pointer,
-                  const_cast<int *>(&work_size),
-                  &effective_buffer_params_.offset,
-                  &effective_buffer_params_.stride};
+  DeviceKernelArguments args(&buffers_->buffer.device_pointer,
+                             &work_size,
+                             &effective_buffer_params_.offset,
+                             &effective_buffer_params_.stride);
 
   queue_->enqueue(DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS, work_size, args);
 }
@@ -1071,8 +1077,9 @@ int PathTraceWorkGPU::shadow_catcher_count_possible_splits()
   queue_->zero_to_device(num_queued_paths_);
 
   const int work_size = max_active_main_path_index_;
-  void *d_num_queued_paths = (void *)num_queued_paths_.device_pointer;
-  void *args[] = {const_cast<int *>(&work_size), &d_num_queued_paths};
+  device_ptr d_num_queued_paths = num_queued_paths_.device_pointer;
+
+  DeviceKernelArguments args(&work_size, &d_num_queued_paths);
 
   queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_SHADOW_CATCHER_COUNT_POSSIBLE_SPLITS, work_size, args);
   queue_->copy_from_device(num_queued_paths_);

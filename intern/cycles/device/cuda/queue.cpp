@@ -89,7 +89,9 @@ bool CUDADeviceQueue::kernel_available(DeviceKernel kernel) const
   return cuda_device_->kernels.available(kernel);
 }
 
-bool CUDADeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *args[])
+bool CUDADeviceQueue::enqueue(DeviceKernel kernel,
+                              const int work_size,
+                              DeviceKernelArguments const &args)
 {
   if (cuda_device_->have_error()) {
     return false;
@@ -133,7 +135,7 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *ar
                                 1,
                                 shared_mem_bytes,
                                 cuda_stream_,
-                                args,
+                                const_cast<void**>(args.values),
                                 0),
                  "enqueue");
 

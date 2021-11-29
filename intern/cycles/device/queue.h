@@ -31,6 +31,72 @@ class device_memory;
 
 struct KernelWorkTile;
 
+/* Container for device kernel arguments with type correctness ensured by API. */
+struct DeviceKernelArguments {
+
+  enum Type {
+    POINTER,
+    INT32,
+    FLOAT32,
+    BOOLEAN,
+    KERNEL_FILM_CONVERT,
+  };
+
+  static const int MAX_ARGS = 16;
+  Type types[MAX_ARGS];
+  void *values[MAX_ARGS];
+  size_t sizes[MAX_ARGS];
+  size_t count = 0;
+
+  DeviceKernelArguments()
+  {
+  }
+
+  template<class T> DeviceKernelArguments(const T *arg)
+  {
+    add(arg);
+  }
+
+  template<class T, class... Args> DeviceKernelArguments(const T *first, Args... args)
+  {
+    add(first);
+    add(args...);
+  }
+
+  void add(const KernelFilmConvert *value)
+  {
+    add(KERNEL_FILM_CONVERT, value, sizeof(KernelFilmConvert));
+  }
+  void add(const device_ptr *value)
+  {
+    add(POINTER, value, sizeof(device_ptr));
+  }
+  void add(const int32_t *value)
+  {
+    add(INT32, value, sizeof(int32_t));
+  }
+  void add(const float *value)
+  {
+    add(FLOAT32, value, sizeof(float));
+  }
+  void add(const bool *value)
+  {
+    add(BOOLEAN, value, 4);
+  }
+  void add(const Type type, const void *value, size_t size)
+  {
+    types[count] = type;
+    values[count] = (void *)value;
+    sizes[count] = size;
+    count++;
+  }
+  template<typename T, typename... Args> void add(const T *first, Args... args)
+  {
+    add(first);
+    add(args...);
+  }
+};
+
 /* Abstraction of a command queue for a device.
  * Provides API to schedule kernel execution in a specific queue with minimal possible overhead
  * from driver side.
@@ -66,7 +132,9 @@ class DeviceQueue {
    * - int: pass pointer to the int
    * - device memory: pass pointer to device_memory.device_pointer
    * Return false if there was an error executing this or a previous kernel. */
-  virtual bool enqueue(DeviceKernel kernel, const int work_size, void *args[]) = 0;
+  virtual bool enqueue(DeviceKernel kernel,
+                       const int work_size,
+                       DeviceKernelArguments const &args) = 0;
 
   /* Wait unit all enqueued kernels have finished execution.
    * Return false if there was an error executing any of the enqueued kernels. */

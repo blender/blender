@@ -89,7 +89,9 @@ bool HIPDeviceQueue::kernel_available(DeviceKernel kernel) const
   return hip_device_->kernels.available(kernel);
 }
 
-bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *args[])
+bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
+                             const int work_size,
+                             DeviceKernelArguments const &args)
 {
   if (hip_device_->have_error()) {
     return false;
@@ -132,7 +134,7 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *arg
                                        1,
                                        shared_mem_bytes,
                                        hip_stream_,
-                                       args,
+                                       const_cast<void**>(args.values),
                                        0),
                  "enqueue");
 

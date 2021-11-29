@@ -667,22 +667,22 @@ bool OptiXDevice::denoise_filter_guiding_preprocess(DenoiseContext &context)
 
   const int work_size = buffer_params.width * buffer_params.height;
 
-  void *args[] = {const_cast<device_ptr *>(&context.guiding_params.device_pointer),
-                  const_cast<int *>(&context.guiding_params.pass_stride),
-                  const_cast<int *>(&context.guiding_params.pass_albedo),
-                  const_cast<int *>(&context.guiding_params.pass_normal),
-                  &context.render_buffers->buffer.device_pointer,
-                  const_cast<int *>(&buffer_params.offset),
-                  const_cast<int *>(&buffer_params.stride),
-                  const_cast<int *>(&buffer_params.pass_stride),
-                  const_cast<int *>(&context.pass_sample_count),
-                  const_cast<int *>(&context.pass_denoising_albedo),
-                  const_cast<int *>(&context.pass_denoising_normal),
-                  const_cast<int *>(&buffer_params.full_x),
-                  const_cast<int *>(&buffer_params.full_y),
-                  const_cast<int *>(&buffer_params.width),
-                  const_cast<int *>(&buffer_params.height),
-                  const_cast<int *>(&context.num_samples)};
+  DeviceKernelArguments args(&context.guiding_params.device_pointer,
+                             &context.guiding_params.pass_stride,
+                             &context.guiding_params.pass_albedo,
+                             &context.guiding_params.pass_normal,
+                             &context.render_buffers->buffer.device_pointer,
+                             &buffer_params.offset,
+                             &buffer_params.stride,
+                             &buffer_params.pass_stride,
+                             &context.pass_sample_count,
+                             &context.pass_denoising_albedo,
+                             &context.pass_denoising_normal,
+                             &buffer_params.full_x,
+                             &buffer_params.full_y,
+                             &buffer_params.width,
+                             &buffer_params.height,
+                             &context.num_samples);
 
   return denoiser_.queue.enqueue(DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS, work_size, args);
 }
@@ -693,11 +693,11 @@ bool OptiXDevice::denoise_filter_guiding_set_fake_albedo(DenoiseContext &context
 
   const int work_size = buffer_params.width * buffer_params.height;
 
-  void *args[] = {const_cast<device_ptr *>(&context.guiding_params.device_pointer),
-                  const_cast<int *>(&context.guiding_params.pass_stride),
-                  const_cast<int *>(&context.guiding_params.pass_albedo),
-                  const_cast<int *>(&buffer_params.width),
-                  const_cast<int *>(&buffer_params.height)};
+  DeviceKernelArguments args(&context.guiding_params.device_pointer,
+                             &context.guiding_params.pass_stride,
+                             &context.guiding_params.pass_albedo,
+                             &buffer_params.width,
+                             &buffer_params.height);
 
   return denoiser_.queue.enqueue(DEVICE_KERNEL_FILTER_GUIDING_SET_FAKE_ALBEDO, work_size, args);
 }
@@ -793,15 +793,15 @@ bool OptiXDevice::denoise_filter_color_preprocess(DenoiseContext &context, const
 
   const int work_size = buffer_params.width * buffer_params.height;
 
-  void *args[] = {&context.render_buffers->buffer.device_pointer,
-                  const_cast<int *>(&buffer_params.full_x),
-                  const_cast<int *>(&buffer_params.full_y),
-                  const_cast<int *>(&buffer_params.width),
-                  const_cast<int *>(&buffer_params.height),
-                  const_cast<int *>(&buffer_params.offset),
-                  const_cast<int *>(&buffer_params.stride),
-                  const_cast<int *>(&buffer_params.pass_stride),
-                  const_cast<int *>(&pass.denoised_offset)};
+  DeviceKernelArguments args(&context.render_buffers->buffer.device_pointer,
+                             &buffer_params.full_x,
+                             &buffer_params.full_y,
+                             &buffer_params.width,
+                             &buffer_params.height,
+                             &buffer_params.offset,
+                             &buffer_params.stride,
+                             &buffer_params.pass_stride,
+                             &pass.denoised_offset);
 
   return denoiser_.queue.enqueue(DEVICE_KERNEL_FILTER_COLOR_PREPROCESS, work_size, args);
 }
@@ -813,20 +813,20 @@ bool OptiXDevice::denoise_filter_color_postprocess(DenoiseContext &context,
 
   const int work_size = buffer_params.width * buffer_params.height;
 
-  void *args[] = {&context.render_buffers->buffer.device_pointer,
-                  const_cast<int *>(&buffer_params.full_x),
-                  const_cast<int *>(&buffer_params.full_y),
-                  const_cast<int *>(&buffer_params.width),
-                  const_cast<int *>(&buffer_params.height),
-                  const_cast<int *>(&buffer_params.offset),
-                  const_cast<int *>(&buffer_params.stride),
-                  const_cast<int *>(&buffer_params.pass_stride),
-                  const_cast<int *>(&context.num_samples),
-                  const_cast<int *>(&pass.noisy_offset),
-                  const_cast<int *>(&pass.denoised_offset),
-                  const_cast<int *>(&context.pass_sample_count),
-                  const_cast<int *>(&pass.num_components),
-                  const_cast<bool *>(&pass.use_compositing)};
+  DeviceKernelArguments args(&context.render_buffers->buffer.device_pointer,
+                             &buffer_params.full_x,
+                             &buffer_params.full_y,
+                             &buffer_params.width,
+                             &buffer_params.height,
+                             &buffer_params.offset,
+                             &buffer_params.stride,
+                             &buffer_params.pass_stride,
+                             &context.num_samples,
+                             &pass.noisy_offset,
+                             &pass.denoised_offset,
+                             &context.pass_sample_count,
+                             &pass.num_components,
+                             &pass.use_compositing);
 
   return denoiser_.queue.enqueue(DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS, work_size, args);
 }
