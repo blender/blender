@@ -269,6 +269,7 @@ IDTypeInfo IDType_ID_MA = {
     .make_local = NULL,
     .foreach_id = material_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = material_blend_write,

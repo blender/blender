@@ -60,6 +60,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -163,6 +164,12 @@ static void movie_clip_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
   key.cache_v = movie_clip->tracking.camera.intrinsics;
   function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
+}
+
+static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  MovieClip *movie_clip = (MovieClip *)id;
+  BKE_bpath_foreach_path_fixed_process(bpath_data, movie_clip->filepath);
 }
 
 static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
@@ -355,6 +362,7 @@ IDTypeInfo IDType_ID_MC = {
     .make_local = NULL,
     .foreach_id = movie_clip_foreach_id,
     .foreach_cache = movie_clip_foreach_cache,
+    .foreach_path = movie_clip_foreach_path,
     .owner_get = NULL,
 
     .blend_write = movieclip_blend_write,

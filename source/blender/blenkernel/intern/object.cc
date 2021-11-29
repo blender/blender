@@ -83,6 +83,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_asset.h"
+#include "BKE_bpath.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
@@ -545,6 +546,66 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
           data, object->soft->effector_weights->group, IDWALK_CB_NOP);
     }
+  }
+}
+
+static void object_foreach_path_pointcache(ListBase *ptcache_list, BPathForeachPathData *bpath_data)
+{
+  for (PointCache *cache = (PointCache *)ptcache_list->first; cache != nullptr;
+       cache = cache->next) {
+    if (cache->flag & PTCACHE_DISK_CACHE) {
+      BKE_bpath_foreach_path_fixed_process(bpath_data, cache->path);
+    }
+  }
+}
+
+static void object_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Object *ob = reinterpret_cast<Object *>(id);
+
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+    /* TODO: Move that to #ModifierTypeInfo. */
+    switch (md->type) {
+      case eModifierType_Fluidsim: {
+        FluidsimModifierData *fluidmd = reinterpret_cast<FluidsimModifierData *>(md);
+        if (fluidmd->fss) {
+          BKE_bpath_foreach_path_fixed_process(bpath_data, fluidmd->fss->surfdataPath);
+        }
+        break;
+      }
+      case eModifierType_Fluid: {
+        FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
+        if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
+          BKE_bpath_foreach_path_fixed_process(bpath_data, fmd->domain->cache_directory);
+        }
+        break;
+      }
+      case eModifierType_Cloth: {
+        ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
+        object_foreach_path_pointcache(&clmd->ptcaches, bpath_data);
+        break;
+      }
+      case eModifierType_Ocean: {
+        OceanModifierData *omd = reinterpret_cast<OceanModifierData *>(md);
+        BKE_bpath_foreach_path_fixed_process(bpath_data, omd->cachepath);
+        break;
+      }
+      case eModifierType_MeshCache: {
+        MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
+        BKE_bpath_foreach_path_fixed_process(bpath_data, mcmd->filepath);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  if (ob->soft != nullptr) {
+    object_foreach_path_pointcache(&ob->soft->shared->ptcaches, bpath_data);
+  }
+
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+    object_foreach_path_pointcache(&psys->ptcaches, bpath_data);
   }
 }
 
@@ -1266,6 +1327,7 @@ IDTypeInfo IDType_ID_OB = {
     /* make_local */ object_make_local,
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
+    /* foreach_path */ object_foreach_path,
     /* owner_get */ nullptr,
 
     /* blend_write */ object_blend_write,

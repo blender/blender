@@ -880,11 +880,12 @@ struct FileCheckCallbackInfo {
   bool external_file_found;
 };
 
-static bool external_file_check_callback(void *callback_info_ptr,
+static bool external_file_check_callback(BPathForeachPathData *bpath_data,
                                          char * /*path_dst*/,
                                          const char *path_src)
 {
-  FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(callback_info_ptr);
+  FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(
+      bpath_data->user_data);
   BKE_reportf(callback_info->reports,
               RPT_ERROR,
               "Unable to install asset bundle, has external dependency \"%s\"",
@@ -904,12 +905,19 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
 {
   struct FileCheckCallbackInfo callback_info = {reports, false};
 
-  BKE_bpath_traverse_main(
-      bmain,
-      &external_file_check_callback,
-      BKE_BPATH_TRAVERSE_SKIP_PACKED /* Packed files are fine. */
-          | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE /* Only report multifiles once, it's enough. */,
-      &callback_info);
+  eBPathForeachFlag flag = static_cast<eBPathForeachFlag>(
+      BKE_BPATH_FOREACH_PATH_SKIP_PACKED        /* Packed files are fine. */
+      | BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE); /* Only report multifiles once, it's enough. */
+
+  BPathForeachPathData bpath_data = {
+      /* bmain */ bmain,
+      /* callback_function */ &external_file_check_callback,
+      /* flag */ flag,
+      /* user_data */ &callback_info,
+      /* absolute_base_path */ nullptr,
+  };
+
+  BKE_bpath_foreach_path_main(&bpath_data);
   return callback_info.external_file_found;
 }
 

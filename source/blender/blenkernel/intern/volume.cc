@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -576,6 +577,17 @@ static void volume_foreach_cache(ID *id,
   function_callback(id, &key, (void **)&volume->runtime.grids, 0, user_data);
 }
 
+static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Volume *volume = reinterpret_cast<Volume *>(id);
+
+  if (volume->packedfile != nullptr && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+    return;
+  }
+
+  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath);
+}
+
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Volume *volume = (Volume *)id;
@@ -653,6 +665,7 @@ IDTypeInfo IDType_ID_VO = {
     /* make_local */ nullptr,
     /* foreach_id */ volume_foreach_id,
     /* foreach_cache */ volume_foreach_cache,
+    /* foreach_path */ volume_foreach_path,
     /* owner_get */ nullptr,
 
     /* blend_write */ volume_blend_write,

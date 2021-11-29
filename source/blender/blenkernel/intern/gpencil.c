@@ -328,6 +328,7 @@ IDTypeInfo IDType_ID_GD = {
     .make_local = NULL,
     .foreach_id = greasepencil_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = greasepencil_blend_write,

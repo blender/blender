@@ -75,6 +75,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_bpath.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -252,6 +253,34 @@ static void image_foreach_cache(ID *id,
   }
 }
 
+static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Image *ima = (Image *)id;
+  const eBPathForeachFlag flag = bpath_data->flag;
+
+  if (BKE_image_has_packedfile(ima) && (flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+    return;
+  }
+  /* Skip empty file paths, these are typically from generated images and
+   * don't make sense to add directories to until the image has been saved
+   * once to give it a meaningful value. */
+  /* TODO re-assess whether this behavior is disired in the new generic code context. */
+  if (!ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) ||
+      ima->filepath[0] == '\0') {
+    return;
+  }
+
+  if (BKE_bpath_foreach_path_fixed_process(bpath_data, ima->filepath)) {
+    if (flag & BKE_BPATH_FOREACH_PATH_RELOAD_EDITED) {
+      if (!BKE_image_has_packedfile(ima) &&
+          /* Image may have been painted onto (and not saved, T44543). */
+          !BKE_image_is_dirty(ima)) {
+        BKE_image_signal(bpath_data->bmain, ima, NULL, IMA_SIGNAL_RELOAD);
+      }
+    }
+  }
+}
+
 static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Image *ima = (Image *)id;
@@ -377,6 +406,7 @@ IDTypeInfo IDType_ID_IM = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = image_foreach_cache,
+    .foreach_path = image_foreach_path,
     .owner_get = NULL,
 
     .blend_write = image_blend_write,

@@ -160,7 +160,7 @@ TEST_F(BPathTest, list_backup_restore)
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
   BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
 
-  void *path_list_handle = BKE_bpath_list_backup(bmain, 0);
+  void *path_list_handle = BKE_bpath_list_backup(bmain, static_cast<eBPathForeachFlag>(0));
 
   ListBase *path_list = reinterpret_cast<ListBase *>(path_list_handle);
   EXPECT_EQ(BLI_listbase_count(path_list), 2);
@@ -169,7 +169,7 @@ TEST_F(BPathTest, list_backup_restore)
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
   BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
 
-  BKE_bpath_list_restore(bmain, 0, path_list_handle);
+  BKE_bpath_list_restore(bmain, static_cast<eBPathForeachFlag>(0), path_list_handle);
 
   EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE);
   EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);

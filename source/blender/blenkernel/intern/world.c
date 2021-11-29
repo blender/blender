@@ -200,6 +200,7 @@ IDTypeInfo IDType_ID_WO = {
     .make_local = NULL,
     .foreach_id = world_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = world_blend_write,

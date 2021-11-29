@@ -49,6 +49,7 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_bpath.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -169,6 +170,15 @@ static void text_free_data(ID *id)
 #endif
 }
 
+static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Text *text = (Text *)id;
+
+  if (text->filepath != NULL) {
+    BKE_bpath_foreach_path_allocated_process(bpath_data, &text->filepath);
+  }
+}
+
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Text *text = (Text *)id;
@@ -250,6 +260,7 @@ IDTypeInfo IDType_ID_TXT = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = text_foreach_path,
     .owner_get = NULL,
 
     .blend_write = text_blend_write,

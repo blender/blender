@@ -40,6 +40,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_cachefile.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -94,6 +95,12 @@ static void cache_file_free_data(ID *id)
   BLI_freelistN(&cache_file->object_paths);
 }
 
+static void cache_file_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+  BKE_bpath_foreach_path_fixed_process(bpath_data, cache_file->filepath);
+}
+
 static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   CacheFile *cache_file = (CacheFile *)id;
@@ -142,6 +149,7 @@ IDTypeInfo IDType_ID_CF = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = cache_file_foreach_path,
     .owner_get = NULL,
 
     .blend_write = cache_file_blend_write,

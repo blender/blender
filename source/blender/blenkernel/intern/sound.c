@@ -54,6 +54,7 @@
 #  include <AUD_Special.h>
 #endif
 
+#include "BKE_bpath.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -131,6 +132,17 @@ static void sound_foreach_cache(ID *id,
   };
 
   function_callback(id, &key, &sound->waveform, 0, user_data);
+}
+
+static void sound_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  bSound *sound = (bSound *)id;
+  if (sound->packedfile != NULL && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+    return;
+  }
+
+  /* FIXME: This does not check for empty path... */
+  BKE_bpath_foreach_path_fixed_process(bpath_data, sound->filepath);
 }
 
 static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -214,6 +226,7 @@ IDTypeInfo IDType_ID_SO = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = sound_foreach_cache,
+    .foreach_path = sound_foreach_path,
     .owner_get = NULL,
 
     .blend_write = sound_blend_write,

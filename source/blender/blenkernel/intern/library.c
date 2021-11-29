@@ -36,6 +36,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_bpath.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -60,6 +61,22 @@ static void library_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lib->parent, IDWALK_CB_NEVER_SELF);
 }
 
+static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Library *lib = (Library *)id;
+
+  /* FIXME: Find if we should respect #BKE_BPATH_FOREACH_PATH_SKIP_PACKED here, and if not, explain
+   * why. */
+  if (lib->packedfile !=
+      NULL /*&& (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0 */) {
+    return;
+  }
+
+  if (BKE_bpath_foreach_path_fixed_process(bpath_data, lib->filepath)) {
+    BKE_library_filepath_set(bpath_data->bmain, lib, lib->filepath);
+  }
+}
+
 IDTypeInfo IDType_ID_LI = {
     .id_code = ID_LI,
     .id_filter = 0,
@@ -77,6 +94,7 @@ IDTypeInfo IDType_ID_LI = {
     .make_local = NULL,
     .foreach_id = library_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = library_foreach_path,
     .owner_get = NULL,
 
     .blend_write = NULL,

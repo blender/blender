@@ -71,6 +71,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_bpath.h"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
@@ -891,6 +892,45 @@ static void scene_foreach_cache(ID *id,
                     user_data);
 }
 
+static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
+{
+  if (SEQ_HAS_PATH(seq)) {
+    StripElem *se = seq->strip->stripdata;
+    BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
+
+    if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
+      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dir, se->name);
+    }
+    else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
+      /* NOTE: An option not to loop over all strips could be usefull? */
+      unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
+      unsigned int i;
+
+      if (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE) {
+        /* only operate on one path */
+        len = MIN2(1u, len);
+      }
+
+      for (i = 0; i < len; i++, se++) {
+        BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dir, se->name);
+      }
+    }
+    else {
+      /* simple case */
+      BKE_bpath_foreach_path_fixed_process(bpath_data, seq->strip->dir);
+    }
+  }
+  return true;
+}
+
+static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Scene *scene = (Scene *)id;
+  if (scene->ed != NULL) {
+    SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_path_callback, bpath_data);
+  }
+}
+
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Scene *sce = (Scene *)id;
@@ -1610,6 +1650,7 @@ IDTypeInfo IDType_ID_SCE = {
     .make_local = NULL,
     .foreach_id = scene_foreach_id,
     .foreach_cache = scene_foreach_cache,
+    .foreach_path = scene_foreach_path,
     .owner_get = NULL,
 
     .blend_write = scene_blend_write,

@@ -383,6 +383,7 @@ IDTypeInfo IDType_ID_GR = {
     .make_local = NULL,
     .foreach_id = collection_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = collection_owner_get,
 
     .blend_write = collection_blend_write,

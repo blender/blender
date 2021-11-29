@@ -33,6 +33,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_bpath.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -216,6 +217,14 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                           BKE_texture_mtex_foreach_id(data, &brush->mask_mtex));
+}
+
+static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Brush *brush = (Brush *)id;
+  if (brush->icon_filepath[0] != '\0') {
+    BKE_bpath_foreach_path_fixed_process(bpath_data, brush->icon_filepath);
+  }
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -422,6 +431,7 @@ IDTypeInfo IDType_ID_BR = {
     .make_local = brush_make_local,
     .foreach_id = brush_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = brush_foreach_path,
     .owner_get = NULL,
 
     .blend_write = brush_blend_write,

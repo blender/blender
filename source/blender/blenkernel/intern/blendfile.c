@@ -78,7 +78,9 @@
 /** \name High Level `.blend` file read/write.
  * \{ */
 
-static bool clean_paths_visit_cb(void *UNUSED(userdata), char *path_dst, const char *path_src)
+static bool foreach_path_clean_cb(BPathForeachPathData *UNUSED(bpath_data),
+                                  char *path_dst,
+                                  const char *path_src)
 {
   strcpy(path_dst, path_src);
   BLI_path_slash_native(path_dst);
@@ -86,13 +88,14 @@ static bool clean_paths_visit_cb(void *UNUSED(userdata), char *path_dst, const c
 }
 
 /* make sure path names are correct for OS */
-static void clean_paths(Main *main)
+static void clean_paths(Main *bmain)
 {
-  Scene *scene;
+  BKE_bpath_foreach_path_main(&(BPathForeachPathData){.bmain = bmain,
+                                              .callback_function = foreach_path_clean_cb,
+                                              .flag = BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE,
+                                              .user_data = NULL});
 
-  BKE_bpath_traverse_main(main, clean_paths_visit_cb, BKE_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
-
-  for (scene = main->scenes.first; scene; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     BLI_path_slash_native(scene->r.pic);
   }
 }
@@ -887,7 +890,8 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
   int a, retval;
 
   void *path_list_backup = NULL;
-  const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
+  const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
+                                            BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
   /* This is needed to be able to load that file as a real one later
    * (otherwise main->name will not be set at read time). */

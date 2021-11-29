@@ -320,6 +320,7 @@ IDTypeInfo IDType_ID_CU = {
     .make_local = NULL,
     .foreach_id = curve_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = curve_blend_write,

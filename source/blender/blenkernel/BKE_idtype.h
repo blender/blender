@@ -35,6 +35,7 @@ struct BlendDataReader;
 struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
+struct BPathForeachPathData;
 struct ID;
 struct LibraryForeachIDData;
 struct Main;
@@ -99,6 +100,8 @@ typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
 typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
                                            void *user_data);
+
+typedef void (*IDTypeForeachPathFunction)(struct ID *id, struct BPathForeachPathData *bpath_data);
 
 typedef struct ID *(*IDTypeEmbeddedOwnerGetFunction)(struct Main *bmain, struct ID *id);
 
@@ -188,6 +191,11 @@ typedef struct IDTypeInfo {
    * Iterator over all cache pointers of given ID.
    */
   IDTypeForeachCacheFunction foreach_cache;
+
+  /**
+   * Iterator over all file paths of given ID.
+   */
+  IDTypeForeachPathFunction foreach_path;
 
   /**
    * For embedded IDs, return their owner ID.

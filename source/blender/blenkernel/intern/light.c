@@ -203,6 +203,7 @@ IDTypeInfo IDType_ID_LA = {
     .make_local = NULL,
     .foreach_id = light_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = light_blend_write,
