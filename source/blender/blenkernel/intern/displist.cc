@@ -1526,9 +1526,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
     ob->runtime.geometry_set_eval = new GeometrySet(std::move(geometry));
   }
 
-  if (ob->runtime.bb) {
-    ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
-  }
+  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 }
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])

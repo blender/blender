@@ -1764,6 +1764,10 @@ static void icon_preview_free(void *customdata)
  */
 bool ED_preview_id_is_supported(const ID *id)
 {
+  if (id == NULL) {
+    return false;
+  }
+
   if (GS(id->name) == ID_OB) {
     return object_preview_is_type_supported((const Object *)id);
   }
