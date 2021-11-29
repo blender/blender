@@ -81,7 +81,7 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
   {
     PlaneTrackCommon::determine_canvas(preferred_area, r_area);
 
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     rcti &preferred = r_area;
     NodeOperation::determine_canvas(preferred, unused);
   }
@@ -102,7 +102,7 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
   {
     PlaneTrackCommon::determine_canvas(preferred_area, r_area);
 
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     rcti &preferred = r_area;
     NodeOperation::determine_canvas(preferred, unused);
   }

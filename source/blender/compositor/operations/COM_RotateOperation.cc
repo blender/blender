@@ -227,7 +227,7 @@ void RotateOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti input_canvas = r_area;
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     get_input_socket(DEGREE_INPUT_INDEX)->determine_canvas(input_canvas, unused);
 
     ensure_degree();

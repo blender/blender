@@ -60,7 +60,7 @@ void SplitOperation::execute_pixel_sampled(float output[4],
 
 void SplitOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  rcti unused_area;
+  rcti unused_area = COM_AREA_NONE;
 
   const bool determined = this->get_input_socket(0)->determine_canvas(COM_AREA_NONE, unused_area);
   this->set_canvas_input_index(determined ? 0 : 1);

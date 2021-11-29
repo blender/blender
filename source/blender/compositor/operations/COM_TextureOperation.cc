@@ -80,7 +80,7 @@ void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_
 
   if (execution_model_ == eExecutionModel::FullFrame) {
     /* Determine inputs. */
-    rcti temp;
+    rcti temp = COM_AREA_NONE;
     NodeOperation::determine_canvas(r_area, temp);
   }
 }

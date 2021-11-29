@@ -158,7 +158,7 @@ void TranslateCanvasOperation::determine_canvas(const rcti &preferred_area, rcti
   if (determined) {
     NodeOperationInput *x_socket = get_input_socket(X_INPUT_INDEX);
     NodeOperationInput *y_socket = get_input_socket(Y_INPUT_INDEX);
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     x_socket->determine_canvas(r_area, unused);
     y_socket->determine_canvas(r_area, unused);
 

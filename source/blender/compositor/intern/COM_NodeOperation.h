@@ -351,7 +351,7 @@ class NodeOperation {
    */
   eExecutionModel execution_model_;
 
-  rcti canvas_;
+  rcti canvas_ = COM_AREA_NONE;
 
   /**
    * Flags how to evaluate this operation.
