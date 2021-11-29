@@ -2116,18 +2116,19 @@ static int get_main_socket_priority(const bNodeSocket *socket)
 {
   switch ((eNodeSocketDatatype)socket->type) {
     case __SOCK_MESH:
-    case SOCK_CUSTOM:
       return -1;
-    case SOCK_BOOLEAN:
+    case SOCK_CUSTOM:
       return 0;
-    case SOCK_INT:
+    case SOCK_BOOLEAN:
       return 1;
-    case SOCK_FLOAT:
+    case SOCK_INT:
       return 2;
-    case SOCK_VECTOR:
+    case SOCK_FLOAT:
       return 3;
-    case SOCK_RGBA:
+    case SOCK_VECTOR:
       return 4;
+    case SOCK_RGBA:
+      return 5;
     case SOCK_STRING:
     case SOCK_SHADER:
     case SOCK_OBJECT:
@@ -2136,7 +2137,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
-      return 5;
+      return 6;
   }
   return -1;
 }
