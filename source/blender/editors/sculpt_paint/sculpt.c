@@ -6069,6 +6069,7 @@ static void SCULPT_run_command(
 
   ss->cache->channels_final = channels_final;
   ss->cache->brush = brush;
+  sd->paint.brush_eval = NULL;
 
   MEM_SAFE_FREE(nodes);
 }
