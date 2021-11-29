@@ -90,10 +90,12 @@ static bool foreach_path_clean_cb(BPathForeachPathData *UNUSED(bpath_data),
 /* make sure path names are correct for OS */
 static void clean_paths(Main *bmain)
 {
-  BKE_bpath_foreach_path_main(&(BPathForeachPathData){.bmain = bmain,
-                                              .callback_function = foreach_path_clean_cb,
-                                              .flag = BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE,
-                                              .user_data = NULL});
+  BKE_bpath_foreach_path_main(&(BPathForeachPathData){
+      .bmain = bmain,
+      .callback_function = foreach_path_clean_cb,
+      .flag = BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE,
+      .user_data = NULL,
+  });
 
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     BLI_path_slash_native(scene->r.pic);

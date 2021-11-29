@@ -351,7 +351,6 @@ typedef struct uiButProgressbar {
   float progress;
 } uiButProgressbar;
 
-
 /** Derived struct for #UI_BTYPE_TREEROW. */
 typedef struct uiButTreeRow {
   uiBut but;

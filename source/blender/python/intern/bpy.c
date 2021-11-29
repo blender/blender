@@ -151,10 +151,12 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 
   list = PyList_New(0);
 
-  BKE_bpath_foreach_path_main(&(BPathForeachPathData){.bmain = G_MAIN,
-                                              .callback_function = bpy_blend_foreach_path_cb,
-                                              .flag = flag,
-                                              .user_data = list});
+  BKE_bpath_foreach_path_main(&(BPathForeachPathData){
+      .bmain = G_MAIN,
+      .callback_function = bpy_blend_foreach_path_cb,
+      .flag = flag,
+      .user_data = list,
+  });
 
   return list;
 }

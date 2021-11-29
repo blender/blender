@@ -25,7 +25,8 @@ TEST(tile_calculate_best_size, Basic)
 {
   /* Make sure CPU-like case is handled properly. */
   EXPECT_EQ(tile_calculate_best_size(false, make_int2(1920, 1080), 1, 1, 1.0f), TileSize(1, 1, 1));
-  EXPECT_EQ(tile_calculate_best_size(false, make_int2(1920, 1080), 100, 1, 1.0f), TileSize(1, 1, 1));
+  EXPECT_EQ(tile_calculate_best_size(false, make_int2(1920, 1080), 100, 1, 1.0f),
+            TileSize(1, 1, 1));
 
   /* Enough path states to fit an entire image with all samples. */
   EXPECT_EQ(tile_calculate_best_size(false, make_int2(1920, 1080), 1, 1920 * 1080, 1.0f),

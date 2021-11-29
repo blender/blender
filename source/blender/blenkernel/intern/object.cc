@@ -549,7 +549,8 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void object_foreach_path_pointcache(ListBase *ptcache_list, BPathForeachPathData *bpath_data)
+static void object_foreach_path_pointcache(ListBase *ptcache_list,
+                                           BPathForeachPathData *bpath_data)
 {
   for (PointCache *cache = (PointCache *)ptcache_list->first; cache != nullptr;
        cache = cache->next) {

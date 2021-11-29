@@ -4572,7 +4572,6 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_progressbar;
       break;
 
-
     case UI_WTYPE_TREEROW:
       wt.custom = widget_treerow;
       break;

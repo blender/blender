@@ -134,7 +134,7 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
                                        1,
                                        shared_mem_bytes,
                                        hip_stream_,
-                                       const_cast<void**>(args.values),
+                                       const_cast<void **>(args.values),
                                        0),
                  "enqueue");
 
