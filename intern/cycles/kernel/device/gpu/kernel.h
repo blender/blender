@@ -21,6 +21,8 @@
 #include "kernel/device/gpu/parallel_sorted_index.h"
 #include "kernel/device/gpu/work_stealing.h"
 
+#include "kernel/sample/lcg.h"
+
 /* Include constant tables before entering Metal's context class scope (context_begin.h) */
 #include "kernel/tables.h"
 

@@ -227,8 +227,8 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals kg,
                                                const int isect_object,
                                                const int isect_prim)
 {
-#ifdef __KERNEL_OPTIX__
-  /* t is always in world space with OptiX. */
+#if defined(__KERNEL_GPU_RAYTRACING__)
+  /* t is always in world space with OptiX and MetalRT. */
   return triangle_refine(kg, sd, P, D, t, isect_object, isect_prim);
 #else
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

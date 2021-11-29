@@ -31,6 +31,10 @@
 #  include "kernel/bvh/embree.h"
 #endif
 
+#ifdef __METALRT__
+#  include "kernel/bvh/metal.h"
+#endif
+
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
 
@@ -38,7 +42,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_OPTIX__
+#if !defined(__KERNEL_GPU_RAYTRACING__)
 
 /* Regular BVH traversal */
 
@@ -139,7 +143,7 @@ CCL_NAMESPACE_BEGIN
 #  undef BVH_NAME_EVAL
 #  undef BVH_FUNCTION_FULL_NAME
 
-#endif /* __KERNEL_OPTIX__ */
+#endif /* !defined(__KERNEL_GPU_RAYTRACING__) */
 
 ccl_device_inline bool scene_intersect_valid(ccl_private const Ray *ray)
 {
@@ -205,7 +209,95 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   isect->type = p5;
 
   return p5 != PRIMITIVE_NONE;
-#else /* __KERNEL_OPTIX__ */
+#elif defined(__METALRT__)
+
+  if (!scene_intersect_valid(ray)) {
+    isect->t = ray->t;
+    isect->type = PRIMITIVE_NONE;
+    return false;
+  }
+
+#  if defined(__KERNEL_DEBUG__)
+  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
+    isect->t = ray->t;
+    isect->type = PRIMITIVE_NONE;
+    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
+    return false;
+  }
+
+  if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
+    isect->t = ray->t;
+    isect->type = PRIMITIVE_NONE;
+    kernel_assert(!"Invalid ift_default");
+    return false;
+  }
+#  endif
+
+  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metalrt_intersector_type metalrt_intersect;
+
+  if (!kernel_data.bvh.have_curves) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
+  MetalRTIntersectionPayload payload;
+  payload.u = 0.0f;
+  payload.v = 0.0f;
+  payload.visibility = visibility;
+
+  typename metalrt_intersector_type::result_type intersection;
+
+  uint ray_mask = visibility & 0xFF;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+    /* No further intersector setup required: Default MetalRT behaviour is anyhit */
+  }
+  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+    /* No further intersector setup required: Shadow ray early termination is controlled by the
+     * intersection handler */
+  }
+
+#  if defined(__METALRT_MOTION__)
+  payload.time = ray->time;
+  intersection = metalrt_intersect.intersect(r,
+                                             metal_ancillaries->accel_struct,
+                                             ray_mask,
+                                             ray->time,
+                                             metal_ancillaries->ift_default,
+                                             payload);
+#  else
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, ray_mask, metal_ancillaries->ift_default, payload);
+#  endif
+
+  if (intersection.type == intersection_type::none) {
+    isect->t = ray->t;
+    isect->type = PRIMITIVE_NONE;
+
+    return false;
+  }
+
+  isect->t = intersection.distance;
+
+  isect->prim = payload.prim;
+  isect->type = payload.type;
+  isect->object = intersection.user_instance_id;
+
+  isect->t = intersection.distance;
+  if (intersection.type == intersection_type::triangle) {
+    isect->u = 1.0f - intersection.triangle_barycentric_coord.y -
+               intersection.triangle_barycentric_coord.x;
+    isect->v = intersection.triangle_barycentric_coord.x;
+  }
+  else {
+    isect->u = payload.u;
+    isect->v = payload.v;
+  }
+
+  return isect->type != PRIMITIVE_NONE;
+
+#else
+
   if (!scene_intersect_valid(ray)) {
     return false;
   }
@@ -289,7 +381,69 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
              p5);
 
   return p5;
-#  else /* __KERNEL_OPTIX__ */
+#  elif defined(__METALRT__)
+  if (!scene_intersect_valid(ray)) {
+    if (local_isect) {
+      local_isect->num_hits = 0;
+    }
+    return false;
+  }
+
+#    if defined(__KERNEL_DEBUG__)
+  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
+    if (local_isect) {
+      local_isect->num_hits = 0;
+    }
+    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
+    return false;
+  }
+
+  if (is_null_intersection_function_table(metal_ancillaries->ift_local)) {
+    if (local_isect) {
+      local_isect->num_hits = 0;
+    }
+    kernel_assert(!"Invalid ift_local");
+    return false;
+  }
+#    endif
+
+  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metalrt_intersector_type metalrt_intersect;
+
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  if (!kernel_data.bvh.have_curves) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
+  MetalRTIntersectionLocalPayload payload;
+  payload.local_object = local_object;
+  payload.max_hits = max_hits;
+  payload.local_isect.num_hits = 0;
+  if (lcg_state) {
+    payload.has_lcg_state = true;
+    payload.lcg_state = *lcg_state;
+  }
+  payload.result = false;
+
+  typename metalrt_intersector_type::result_type intersection;
+
+#    if defined(__METALRT_MOTION__)
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, 0xFF, ray->time, metal_ancillaries->ift_local, payload);
+#    else
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, 0xFF, metal_ancillaries->ift_local, payload);
+#    endif
+
+  if (lcg_state) {
+    *lcg_state = payload.lcg_state;
+  }
+  *local_isect = payload.local_isect;
+
+  return payload.result;
+
+#  else
+
   if (!scene_intersect_valid(ray)) {
     if (local_isect) {
       local_isect->num_hits = 0;
@@ -406,7 +560,67 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   *throughput = __uint_as_float(p1);
 
   return p5;
-#  else /* __KERNEL_OPTIX__ */
+#  elif defined(__METALRT__)
+
+  if (!scene_intersect_valid(ray)) {
+    return false;
+  }
+
+#    if defined(__KERNEL_DEBUG__)
+  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
+    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
+    return false;
+  }
+
+  if (is_null_intersection_function_table(metal_ancillaries->ift_shadow)) {
+    kernel_assert(!"Invalid ift_shadow");
+    return false;
+  }
+#    endif
+
+  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metalrt_intersector_type metalrt_intersect;
+
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  if (!kernel_data.bvh.have_curves) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
+  MetalRTIntersectionShadowPayload payload;
+  payload.visibility = visibility;
+  payload.max_hits = max_hits;
+  payload.num_hits = 0;
+  payload.num_recorded_hits = 0;
+  payload.throughput = 1.0f;
+  payload.result = false;
+  payload.state = state;
+
+  uint ray_mask = visibility & 0xFF;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+  }
+
+  typename metalrt_intersector_type::result_type intersection;
+
+#    if defined(__METALRT_MOTION__)
+  payload.time = ray->time;
+  intersection = metalrt_intersect.intersect(r,
+                                             metal_ancillaries->accel_struct,
+                                             ray_mask,
+                                             ray->time,
+                                             metal_ancillaries->ift_shadow,
+                                             payload);
+#    else
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, ray_mask, metal_ancillaries->ift_shadow, payload);
+#    endif
+
+  *num_recorded_hits = payload.num_recorded_hits;
+  *throughput = payload.throughput;
+
+  return payload.result;
+
+#  else
   if (!scene_intersect_valid(ray)) {
     *num_recorded_hits = 0;
     *throughput = 1.0f;
@@ -503,7 +717,76 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   isect->type = p5;
 
   return p5 != PRIMITIVE_NONE;
-#  else /* __KERNEL_OPTIX__ */
+#  elif defined(__METALRT__)
+
+  if (!scene_intersect_valid(ray)) {
+    return false;
+  }
+#    if defined(__KERNEL_DEBUG__)
+  if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
+    kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
+    return false;
+  }
+
+  if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
+    kernel_assert(!"Invalid ift_default");
+    return false;
+  }
+#    endif
+
+  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metalrt_intersector_type metalrt_intersect;
+
+  metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
+  if (!kernel_data.bvh.have_curves) {
+    metalrt_intersect.assume_geometry_type(metal::raytracing::geometry_type::triangle);
+  }
+
+  MetalRTIntersectionPayload payload;
+  payload.visibility = visibility;
+
+  typename metalrt_intersector_type::result_type intersection;
+
+  uint ray_mask = visibility & 0xFF;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+  }
+
+#    if defined(__METALRT_MOTION__)
+  payload.time = ray->time;
+  intersection = metalrt_intersect.intersect(r,
+                                             metal_ancillaries->accel_struct,
+                                             ray_mask,
+                                             ray->time,
+                                             metal_ancillaries->ift_default,
+                                             payload);
+#    else
+  intersection = metalrt_intersect.intersect(
+      r, metal_ancillaries->accel_struct, ray_mask, metal_ancillaries->ift_default, payload);
+#    endif
+
+  if (intersection.type == intersection_type::none) {
+    return false;
+  }
+
+  isect->prim = payload.prim;
+  isect->type = payload.type;
+  isect->object = intersection.user_instance_id;
+
+  isect->t = intersection.distance;
+  if (intersection.type == intersection_type::triangle) {
+    isect->u = 1.0f - intersection.triangle_barycentric_coord.y -
+               intersection.triangle_barycentric_coord.x;
+    isect->v = intersection.triangle_barycentric_coord.x;
+  }
+  else {
+    isect->u = payload.u;
+    isect->v = payload.v;
+  }
+
+  return isect->type != PRIMITIVE_NONE;
+
+#  else
   if (!scene_intersect_valid(ray)) {
     return false;
   }

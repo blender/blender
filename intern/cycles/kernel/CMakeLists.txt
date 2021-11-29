@@ -207,6 +207,7 @@ set(SRC_KERNEL_BVH_HEADERS
   bvh/volume.h
   bvh/volume_all.h
   bvh/embree.h
+  bvh/metal.h
 )
 
 set(SRC_KERNEL_CAMERA_HEADERS

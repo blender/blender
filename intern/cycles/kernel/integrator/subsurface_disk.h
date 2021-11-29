@@ -137,8 +137,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
       Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
       hit_Ng = normalize(transform_direction_transposed(&itfm, hit_Ng));
 
-      /* Transform t to world space, except for OptiX where it already is. */
-#ifdef __KERNEL_OPTIX__
+      /* Transform t to world space, except for OptiX and MetalRT where it already is. */
+#ifdef __KERNEL_GPU_RAYTRACING__
       (void)tfm;
 #else
       float3 D = transform_direction(&itfm, ray.D);

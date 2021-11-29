@@ -69,6 +69,7 @@ DeviceScene::DeviceScene(Device *device)
       object_motion(device, "__object_motion", MEM_GLOBAL),
       object_flag(device, "__object_flag", MEM_GLOBAL),
       object_volume_step(device, "__object_volume_step", MEM_GLOBAL),
+      object_prim_offset(device, "__object_prim_offset", MEM_GLOBAL),
       camera_motion(device, "__camera_motion", MEM_GLOBAL),
       attributes_map(device, "__attributes_map", MEM_GLOBAL),
       attributes_float(device, "__attributes_float", MEM_GLOBAL),
@@ -308,6 +309,12 @@ void Scene::device_update(Device *device_, Progress &progress)
 
   progress.set_status("Updating Objects Flags");
   object_manager->device_update_flags(device, &dscene, this, progress);
+
+  if (progress.get_cancel() || device->have_error())
+    return;
+
+  progress.set_status("Updating Primitive Offsets");
+  object_manager->device_update_prim_offsets(device, &dscene, this);
 
   if (progress.get_cancel() || device->have_error())
     return;

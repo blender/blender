@@ -101,8 +101,8 @@ ccl_device_inline
                                  const int isect_prim,
                                  float3 verts[3])
 {
-#  ifdef __KERNEL_OPTIX__
-  /* t is always in world space with OptiX. */
+#  if defined(__KERNEL_GPU_RAYTRACING__)
+  /* t is always in world space with OptiX and MetalRT. */
   return motion_triangle_refine(kg, sd, P, D, t, isect_object, isect_prim, verts);
 #  else
 #    ifdef __INTERSECTION_REFINE__

@@ -26,6 +26,10 @@ class MetalKernelContext {
     MetalKernelContext(constant KernelParamsMetal &_launch_params_metal, constant MetalAncillaries * _metal_ancillaries)
     : launch_params_metal(_launch_params_metal), metal_ancillaries(_metal_ancillaries)
     {}
+  
+    MetalKernelContext(constant KernelParamsMetal &_launch_params_metal)
+    : launch_params_metal(_launch_params_metal)
+    {}
 
     /* texture fetch adapter functions */
     typedef uint64_t ccl_gpu_tex_object;

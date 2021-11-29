@@ -110,9 +110,9 @@ CCL_NAMESPACE_BEGIN
 #  define __VOLUME_RECORD_ALL__
 #endif /* __KERNEL_CPU__ */
 
-#ifdef __KERNEL_OPTIX__
+#ifdef __KERNEL_GPU_RAYTRACING__
 #  undef __BAKING__
-#endif /* __KERNEL_OPTIX__ */
+#endif /* __KERNEL_GPU_RAYTRACING__ */
 
 /* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__
@@ -1220,10 +1220,12 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_OPTIX = (1 << 2),
   BVH_LAYOUT_MULTI_OPTIX = (1 << 3),
   BVH_LAYOUT_MULTI_OPTIX_EMBREE = (1 << 4),
+  BVH_LAYOUT_METAL = (1 << 5),
+  BVH_LAYOUT_MULTI_METAL_EMBREE = (1 << 6),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
-  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX,
+  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL,
 } KernelBVHLayout;
 
 typedef struct KernelBVH {
@@ -1238,6 +1240,8 @@ typedef struct KernelBVH {
   /* Custom BVH */
 #ifdef __KERNEL_OPTIX__
   OptixTraversableHandle scene;
+#elif defined __METALRT__
+  metalrt_as_type scene;
 #else
 #  ifdef __EMBREE__
   RTCScene scene;

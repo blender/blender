@@ -165,7 +165,8 @@ int Geometry::motion_step(float time) const
 bool Geometry::need_build_bvh(BVHLayout layout) const
 {
   return is_instanced() || layout == BVH_LAYOUT_OPTIX || layout == BVH_LAYOUT_MULTI_OPTIX ||
-         layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+         layout == BVH_LAYOUT_METAL || layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
+         layout == BVH_LAYOUT_MULTI_METAL_EMBREE;
 }
 
 bool Geometry::is_instanced() const
@@ -1247,7 +1248,8 @@ void GeometryManager::device_update_bvh(Device *device,
   VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
   const bool can_refit = scene->bvh != nullptr &&
-                         (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX);
+                         (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX ||
+                          bparams.bvh_layout == BVHLayout::BVH_LAYOUT_METAL);
 
   BVH *bvh = scene->bvh;
   if (!scene->bvh) {

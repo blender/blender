@@ -32,6 +32,10 @@
 
 using namespace metal;
 
+#ifdef __METALRT__
+using namespace metal::raytracing;
+#endif
+
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
 #pragma clang diagnostic ignored "-Wuninitialized"
@@ -47,7 +51,7 @@ using namespace metal;
 #define ccl_global device
 #define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
-#define ccl_constant const device
+#define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
 #define ccl_may_alias
@@ -246,6 +250,22 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 #define __device__
 
+#ifdef __METALRT__
+
+#  define __KERNEL_GPU_RAYTRACING__
+
+#  if defined(__METALRT_MOTION__)
+#    define METALRT_TAGS instancing, instance_motion, primitive_motion
+#  else
+#    define METALRT_TAGS instancing
+#  endif /* __METALRT_MOTION__ */
+
+typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
+typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
+typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+
+#endif /* __METALRT__ */
+
 /* texture bindings and sampler setup */
 
 struct Texture2DParamsMetal {
@@ -258,6 +278,13 @@ struct Texture3DParamsMetal {
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
+
+#ifdef __METALRT__
+  metalrt_as_type accel_struct;
+  metalrt_ift_type ift_default;
+  metalrt_ift_type ift_shadow;
+  metalrt_ift_type ift_local;
+#endif
 };
 
 #include "util/half.h"
