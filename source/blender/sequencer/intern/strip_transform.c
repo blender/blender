@@ -463,9 +463,11 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
   r_origin[0] = (image_size[0] * transform->origin[0]) - (image_size[0] * 0.5f) + transform->xofs;
   r_origin[1] = (image_size[1] * transform->origin[1]) - (image_size[1] * 0.5f) + transform->yofs;
 
+  const float viewport_pixel_aspect[2] = {scene->r.xasp / scene->r.yasp, 1.0f};
   float mirror[2];
   SEQ_image_transform_mirror_factor_get(seq, mirror);
   mul_v2_v2(r_origin, mirror);
+  mul_v2_v2(r_origin, viewport_pixel_aspect);
 }
 
 static void seq_image_transform_quad_get_ex(const Scene *scene,
@@ -483,7 +485,6 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
   }
 
   float transform_matrix[4][4];
-
   float rotation_matrix[3][3];
   axis_angle_to_mat3_single(rotation_matrix, 'Z', apply_rotation ? transform->rotation : 0.0f);
   loc_rot_size_to_mat4(transform_matrix,
@@ -512,9 +513,12 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
   float mirror[2];
   SEQ_image_transform_mirror_factor_get(seq, mirror);
 
+  const float viewport_pixel_aspect[2] = {scene->r.xasp / scene->r.yasp, 1.0f};
+
   for (int i = 0; i < 4; i++) {
     mul_m4_v3(transform_matrix, quad_temp[i]);
     mul_v2_v2(quad_temp[i], mirror);
+    mul_v2_v2(quad_temp[i], viewport_pixel_aspect);
     copy_v2_v2(r_quad[i], quad_temp[i]);
   }
 }
