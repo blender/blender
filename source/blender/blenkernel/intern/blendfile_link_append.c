@@ -188,7 +188,7 @@ static void link_append_context_library_blohandle_release(
 
 /** Allocate and initialize a new context to link/append datablocks.
  *
- *  \param flag a combination of #eFileSel_Params_Flag from DNA_space_types.h & #eBLOLibLinkFlags
+ *  \param flag: A combination of #eFileSel_Params_Flag from DNA_space_types.h & #eBLOLibLinkFlags
  * from BLO_readfile.h
  */
 BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(LibraryLink_Params *params)
@@ -222,7 +222,7 @@ void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_con
 
 /** Set or clear flags in given \a lapp_context.
  *
- * \param do_set Set the given \a flag if true, clear it otherwise.
+ * \param do_set: Set the given \a flag if true, clear it otherwise.
  */
 void BKE_blendfile_link_append_context_flag_set(BlendfileLinkAppendContext *lapp_context,
                                                 const int flag,

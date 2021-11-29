@@ -1528,8 +1528,8 @@ class GeometryNodesEvaluator {
    * still be linked to e.g. a Group Input node, but the socket on the outside is not connected to
    * anything.
    *
-   * \param input_socket The socket of the node that wants to use the value.
-   * \param origin_socket The socket that we want to load the value from.
+   * \param input_socket: The socket of the node that wants to use the value.
+   * \param origin_socket: The socket that we want to load the value from.
    */
   void load_unlinked_input_value(LockedNode &locked_node,
                                  const DInputSocket input_socket,

@@ -188,13 +188,13 @@ void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name
  *
  * Since this is about animation data, it only concerns input sockets.
  *
- * \param node_tree_type node tree type that has these nodes, for example NTREE_SHADER.
- * \param node_type node type to adjust, for example SH_NODE_BSDF_PRINCIPLED.
- * \param socket_index_orig the original index of the moved socket; when socket 4 moved to 6,
+ * \param node_tree_type: Node tree type that has these nodes, for example #NTREE_SHADER.
+ * \param node_type: Node type to adjust, for example #SH_NODE_BSDF_PRINCIPLED.
+ * \param socket_index_orig: The original index of the moved socket; when socket 4 moved to 6,
  * pass 4 here.
- * \param socket_index_offset the offset of the nodes, so when socket 4 moved to 6,
+ * \param socket_index_offset: The offset of the nodes, so when socket 4 moved to 6,
  * pass 2 here.
- * \param total_number_of_sockets the total number of sockets in the node.
+ * \param total_number_of_sockets: The total number of sockets in the node.
  */
 void version_node_socket_index_animdata(Main *bmain,
                                         const int node_tree_type,

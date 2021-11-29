@@ -99,7 +99,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
  * Since this is meant for UI display, skips non-displayable libraries, that is, libraries with an
  * empty name or path.
  *
- * \param include_local_library whether to include the "Current File" library or not.
+ * \param include_local_library: Whether to include the "Current File" library or not.
  */
 const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
     const bool include_local_library)

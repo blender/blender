@@ -509,12 +509,12 @@ struct AssetLibraryIndex {
 /**
  * Instance of this class represents the contents of an asset index file.
  *
- * /code
+ * \code
  * {
  *    "version": {version},
  *    "entries": ...
  * }
- * /endcode
+ * \endcode
  */
 struct AssetIndex {
   /**

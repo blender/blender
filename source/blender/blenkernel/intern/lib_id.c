@@ -194,7 +194,7 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  *
- * \param flags Same set of `LIB_ID_MAKELOCAL_` flags as passed to `BKE_lib_id_make_local`.
+ * \param flags: Same set of `LIB_ID_MAKELOCAL_` flags as passed to `BKE_lib_id_make_local`.
  */
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 {
