@@ -1666,6 +1666,7 @@ static void annotation_paint_initstroke(tGPsdata *p,
 static void annotation_paint_strokeend(tGPsdata *p)
 {
   ToolSettings *ts = p->scene->toolsettings;
+  const bool is_eraser = (p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) != 0;
   /* for surface sketching, need to set the right OpenGL context stuff so that
    * the conversions will project the values correctly...
    */
@@ -1681,11 +1682,11 @@ static void annotation_paint_strokeend(tGPsdata *p)
                              (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             NULL);
+                             is_eraser ? NULL : &p->depths);
   }
 
   /* check if doing eraser or not */
-  if ((p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
+  if (!is_eraser) {
     /* transfer stroke to frame */
     annotation_stroke_newfrombuffer(p);
   }
