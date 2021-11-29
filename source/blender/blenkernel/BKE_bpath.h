@@ -22,7 +22,7 @@
  */
 
 /* TODO: Make this module handle a bit more safely string length, instead of assuming buffers are
- * FILE_MAX len etc. */
+ * FILE_MAX length etc. */
 
 #pragma once
 
@@ -54,13 +54,13 @@ typedef enum eBPathForeachFlag {
    * `foreach_path` implementations and/or callbacks to implement specific behaviors. */
 
   /** Skip paths where a single dir is used with an array of files, eg. sequence strip images or
-   * pointcaches. In this case only use the first file path is processed.
+   * point-caches. In this case only use the first file path is processed.
    *
    * This is needed for directory manipulation callbacks which might otherwise modify the same
    * directory multiple times. */
   BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE = (1 << 8),
   /** Reload data (when the path is edited).
-   *  \note Ony used by Image IDType currently. */
+   *  \note Only used by Image IDType currently. */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
 } eBPathForeachFlag;
 
@@ -76,7 +76,7 @@ typedef bool (*BPathForeachPathFunctionCallback)(struct BPathForeachPathData *bp
                                                  char *r_path_dst,
                                                  const char *path_src);
 
-/** Storage for common data needed accross the BPath 'foreach_path' code. */
+/** Storage for common data needed across the BPath 'foreach_path' code. */
 typedef struct BPathForeachPathData {
   struct Main *bmain;
 

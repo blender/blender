@@ -335,7 +335,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 #  if OPTIX_ABI_VERSION >= 55
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
       builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
-      builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable endcaps. */
+      builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable end-caps. */
 #  else
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
 #  endif
@@ -1281,7 +1281,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
       else {
         /* Disable visibility test any-hit program, since it is already checked during
-         * intersection. Those trace calls that require anyhit can force it with a ray flag. */
+         * intersection. Those trace calls that require any-hit can force it with a ray flag. */
         build_flags |= OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT;
 
         build_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
@@ -1449,7 +1449,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
       }
 #  if OPTIX_ABI_VERSION < 55
-      /* Cannot disable any-hit program for thick curves, since it needs to filter out endcaps. */
+      /* Cannot disable any-hit program for thick curves, since it needs to filter out end-caps. */
       else
 #  endif
       {

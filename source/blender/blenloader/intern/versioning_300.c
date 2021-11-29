@@ -2376,8 +2376,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /* Special case to handle older in-dev 3.1 files, before change from 3.0 branch gets merged in
-   * master. */
+  /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
+   * merged in master. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 42) ||
       (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3))) {
     /* Update LibOverride operations regarding insertions in RNA collections (i.e. modifiers,

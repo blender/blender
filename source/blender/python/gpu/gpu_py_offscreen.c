@@ -356,7 +356,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
 
   GPU_offscreen_bind(self->ofs, true);
 
-  /* Cache the GPUViewport so the framebuffers and associated textures are
+  /* Cache the #GPUViewport so the frame-buffers and associated textures are
    * not reallocated each time, see: T89204 */
   if (!self->viewport) {
     self->viewport = GPU_viewport_create();

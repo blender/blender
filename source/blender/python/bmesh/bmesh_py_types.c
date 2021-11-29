@@ -3349,8 +3349,8 @@ static PyObject *bpy_bmiter_next(BPy_BMIter *self)
   return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, ele);
 }
 
-/* Dealloc Functions
- * ================= */
+/* Deallocate Functions
+ * ==================== */
 
 static void bpy_bmesh_dealloc(BPy_BMesh *self)
 {

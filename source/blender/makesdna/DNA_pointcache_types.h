@@ -131,8 +131,8 @@ typedef struct PointCache {
   void (*free_edit)(struct PTCacheEdit *edit);
 } PointCache;
 
+/** #PointCache.flag */
 enum {
-  /* pointcache->flag */
   PTCACHE_BAKED = 1 << 0,
   PTCACHE_OUTDATED = 1 << 1,
   PTCACHE_SIMULATION_VALID = 1 << 2,

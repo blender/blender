@@ -532,11 +532,11 @@ struct AssetIndex {
   const int UNKNOWN_VERSION = -1;
 
   /**
-   * `blender::io::serialize::Value` represeting the contents of an index file.
+   * `blender::io::serialize::Value` representing the contents of an index file.
    *
-   * Value is used over ObjectValue as the contents of the index could be corrupted and doesn't
+   * Value is used over #ObjectValue as the contents of the index could be corrupted and doesn't
    * represent an object. In case corrupted files are detected the `get_version` would return
-   * UNKNOWN_VERSION.`
+   * `UNKNOWN_VERSION`.
    */
   std::unique_ptr<Value> contents;
 

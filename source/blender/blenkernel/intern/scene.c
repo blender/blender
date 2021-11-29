@@ -902,7 +902,7 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dir, se->name);
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
-      /* NOTE: An option not to loop over all strips could be usefull? */
+      /* NOTE: An option not to loop over all strips could be useful? */
       unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
       unsigned int i;
 

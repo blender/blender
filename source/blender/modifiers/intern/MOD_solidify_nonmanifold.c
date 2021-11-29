@@ -186,7 +186,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const float offset = fabsf(smd->offset) * smd->offset_clamp;
   const bool do_angle_clamp = smd->flag & MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP;
   /* #do_flip, flips the normals of the result. This is inverted if negative thickness
-   * is used, since simple soldify with negative thickness keeps the faces facing outside. */
+   * is used, since simple solidify with negative thickness keeps the faces facing outside. */
   const bool do_flip = ((smd->flag & MOD_SOLIDIFY_FLIP) != 0) == (smd->offset > 0);
   const bool do_rim = smd->flag & MOD_SOLIDIFY_RIM;
   const bool do_shell = ((smd->flag & MOD_SOLIDIFY_RIM) && (smd->flag & MOD_SOLIDIFY_NOSHELL)) ==

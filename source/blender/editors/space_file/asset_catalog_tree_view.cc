@@ -376,7 +376,7 @@ bool AssetCatalogDropController::can_drop(const wmDrag &drag, const char **r_dis
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
     const AssetCatalog *drag_catalog = get_drag_catalog(drag, get_asset_library());
-    /* Note: Technically it's not an issue to allow this (the catalog will just receive a new
+    /* NOTE: Technically it's not an issue to allow this (the catalog will just receive a new
      * path and the catalog system will generate missing parents from the path). But it does
      * appear broken to users, so disabling entirely. */
     if (catalog_item_.catalog_path().is_contained_in(drag_catalog->path)) {

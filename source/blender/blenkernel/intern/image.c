@@ -264,7 +264,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   /* Skip empty file paths, these are typically from generated images and
    * don't make sense to add directories to until the image has been saved
    * once to give it a meaningful value. */
-  /* TODO re-assess whether this behavior is disired in the new generic code context. */
+  /* TODO re-assess whether this behavior is desired in the new generic code context. */
   if (!ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) ||
       ima->filepath[0] == '\0') {
     return;

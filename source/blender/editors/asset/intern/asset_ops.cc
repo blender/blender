@@ -907,7 +907,7 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
 
   eBPathForeachFlag flag = static_cast<eBPathForeachFlag>(
       BKE_BPATH_FOREACH_PATH_SKIP_PACKED        /* Packed files are fine. */
-      | BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE); /* Only report multifiles once, it's enough. */
+      | BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE); /* Only report multi-files once, it's enough. */
 
   BPathForeachPathData bpath_data = {
       /* bmain */ bmain,

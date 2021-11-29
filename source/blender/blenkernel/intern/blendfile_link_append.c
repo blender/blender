@@ -18,8 +18,8 @@
  * \ingroup bke
  *
  * High level `.blend` file link/append code,
- * including linking/appending several IDs from different libraries, handling instanciations of
- * collections/objects/obdata in current scene.
+ * including linking/appending several IDs from different libraries, handling instantiations of
+ * collections/objects/object-data in current scene.
  */
 
 #include <stdlib.h>
@@ -110,7 +110,7 @@ typedef struct BlendfileLinkAppendContext {
   LinkNodePair items;
   int num_libraries;
   int num_items;
-  /** Linking/appending parameters. Including bmain, scene, viewlayer and view3d. */
+  /** Linking/appending parameters. Including `bmain`, `scene`, `viewlayer` and `view3d`. */
   LibraryLink_Params *params;
 
   /** Allows to easily find an existing items from an ID pointer. */
@@ -245,7 +245,7 @@ void BKE_blendfile_link_append_context_embedded_blendfile_set(
     BlendfileLinkAppendContext *lapp_context, const void *blendfile_mem, int blendfile_memsize)
 {
   BLI_assert_msg(lapp_context->blendfile_mem == NULL,
-                 "Please explicitely clear reference to an embedded blender memfile before "
+                 "Please explicitly clear reference to an embedded blender memfile before "
                  "setting a new one");
   lapp_context->blendfile_mem = blendfile_mem;
   lapp_context->blendfile_memsize = (size_t)blendfile_memsize;
@@ -530,7 +530,7 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
 }
 
 /* Tag obdata that actually need to be instantiated (those referenced by an object do not, since
- * the object will be instantiated instaed if needed. */
+ * the object will be instantiated instead if needed. */
 static void loose_data_instantiate_obdata_preprocess(
     LooseDataInstantiateContext *instantiate_context)
 {
@@ -854,7 +854,7 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
      * processed, so we need to recursively deal with them here. */
     /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
      * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
-     * shapekey referencing the shapekey itself). */
+     * shape-key referencing the shape-key itself). */
     if (id != cb_data->id_self) {
       BKE_library_foreach_ID_link(
           cb_data->bmain, id, foreach_libblock_link_append_callback, data, IDWALK_NOP);
@@ -946,8 +946,8 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
     /* Linked IDs should never be marked as needing post-processing (instantiation of loose
      * objects etc.).
-     * NOTE: This is dev test check, can be removed once we get rid of instantiation code in BLO
-     * completely.*/
+     * NOTE: This is a developer test check, can be removed once we get rid of instantiation code
+     * in BLO completely.*/
     BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
 
     ID *existing_local_id = BKE_idtype_idcode_append_is_reusable(GS(id->name)) ?
@@ -1206,8 +1206,8 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
     /* here appending/linking starts */
 
-    /* NOTE: This is temporary hotfix until whole code using link/append features has been moved to
-     * use new BKE code. */
+    /* NOTE: This is temporary hot-fix until whole code using link/append features has been moved
+     * to use new BKE code. */
     /* Do not handle instantiation in linking process anymore, we do it here in
      * #loose_data_instantiate instead. */
     lapp_context->params->flag &= ~BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
@@ -1271,8 +1271,8 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
       /* Linked IDs should never be marked as needing post-processing (instantiation of loose
        * objects etc.).
-       * NOTE: This is dev test check, can be removed once we get rid of instantiation code in BLO
-       * completely.*/
+       * NOTE: This is developer test check, can be removed once we get rid of instantiation code
+       * in BLO completely.*/
       BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
 
       BlendfileLinkAppendContextCallBack cb_data = {

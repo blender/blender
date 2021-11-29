@@ -21,7 +21,7 @@
 
 /** \file
  * \ingroup blenloader
- * \brief external writefile function prototypes.
+ * \brief external `writefile.c` function prototypes.
  */
 
 #ifdef __cplusplus

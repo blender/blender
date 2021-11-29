@@ -50,7 +50,7 @@ typedef enum eFileIndexerResult {
   FILE_INDEXER_ENTRIES_LOADED,
 
   /**
-   * Index isn't available or not upto date. Entries should be read from te blend file and
+   * Index isn't available or not up to date. Entries should be read from the blend file and
    * `update_index` must be called to update the index.
    */
   FILE_INDEXER_NEEDS_UPDATE,
@@ -103,7 +103,7 @@ typedef struct FileIndexerType {
    * Is called at the end of the file listing process (before the `free_user_data`) where indexes
    * can perform clean-ups.
    *
-   * This is an optinal callback. Called when listing files completed.
+   * This is an optional callback. Called when listing files completed.
    */
   FileIndexerFinishedFunc filelist_finished;
 

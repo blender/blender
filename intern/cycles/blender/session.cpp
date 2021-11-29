@@ -629,7 +629,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
       integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
     }
 
-    /* Always use transpanent background for baking. */
+    /* Always use transparent background for baking. */
     scene->background->set_transparent(true);
 
     /* Load built-in images from Blender. */

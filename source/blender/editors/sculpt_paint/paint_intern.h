@@ -265,7 +265,7 @@ typedef struct CurveMaskCache {
   int last_curve_timestamp;
 
   /**
-   * \brief sampled version of the brush curvemapping.
+   * \brief sampled version of the brush curve-mapping.
    */
   float *sampled_curve;
 
@@ -414,4 +414,3 @@ void paint_delete_blur_kernel(BlurKernel *);
 #ifdef __cplusplus
 }
 #endif
-

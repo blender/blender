@@ -1854,7 +1854,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const boo
   return result;
 }
 
-/* next to indirect usage in read/writefile also in editobject.c scene.c */
+/* Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.c`. */
 void BKE_main_id_newptr_and_tag_clear(Main *bmain)
 {
   ID *id;

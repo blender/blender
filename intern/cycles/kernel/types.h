@@ -1204,7 +1204,7 @@ typedef struct KernelIntegrator {
   /* Closure filter. */
   int filter_closures;
 
-  /* MIS debuging */
+  /* MIS debugging. */
   int direct_light_sampling_type;
 
   /* padding */

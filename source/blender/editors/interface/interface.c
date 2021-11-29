@@ -25,7 +25,7 @@
 #include <float.h>
 #include <limits.h>
 #include <math.h>
-#include <stddef.h> /* offsetof() */
+#include <stddef.h> /* `offsetof()` */
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

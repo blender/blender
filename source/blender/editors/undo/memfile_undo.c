@@ -147,7 +147,7 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
 /**
  * ID previews may be generated in a parallel job. So whatever operation generates the preview
  * likely does the undo push before the preview is actually done and stored in the ID. Hence they
- * get some extra treatement here:
+ * get some extra treatment here:
  * When undoing back to the moment the preview generation was triggered, this function schedules
  * the preview for regeneration.
  */

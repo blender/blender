@@ -578,7 +578,7 @@ template<typename T> class VArrayCommon {
     /* Make sure we are actually constructing a #VArrayImpl. */
     static_assert(std::is_base_of_v<VArrayImpl<T>, ImplT>);
     if constexpr (std::is_copy_constructible_v<ImplT> && Storage::template is_inline_v<ImplT>) {
-      /* Only inline the implementatiton when it is copyable and when it fits into the inline
+      /* Only inline the implementation when it is copyable and when it fits into the inline
        * buffer of the storage. */
       impl_ = &storage_.template emplace<ImplT>(std::forward<Args>(args)...);
     }

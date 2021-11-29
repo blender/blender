@@ -250,7 +250,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   uint ray_mask = visibility & 0xFF;
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
-    /* No further intersector setup required: Default MetalRT behaviour is anyhit */
+    /* No further intersector setup required: Default MetalRT behavior is any-hit. */
   }
   else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
     /* No further intersector setup required: Shadow ray early termination is controlled by the

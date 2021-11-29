@@ -3255,7 +3255,7 @@ static int filelist_readjob_list_lib(const char *root,
   /* Try read from indexer_runtime. */
   /* Indexing returns all entries in a blend file. We should ignore the index when listing a group
    * inside a blend file, so the `entries` isn't filled with undesired entries.
-   * This happens when linking or appending data-blocks, where you can navigate into a group (fe
+   * This happens when linking or appending data-blocks, where you can navigate into a group (ie
    * Materials/Objects) where you only want to work with partial indexes.
    *
    * Adding support for partial reading/updating indexes would increase the complexity.

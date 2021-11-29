@@ -1385,8 +1385,8 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
     }
     else if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_PENDING) != 0) {
-      /* file_select_deselect_all() will resort and refilter, so idx will probably have changed.
-       * Need to get the correct FileDirEntry again. */
+      /* file_select_deselect_all() will resort and re-filter, so `idx` will probably have changed.
+       * Need to get the correct #FileDirEntry again. */
       file_select_deselect_all(sfile, FILE_SEL_SELECTED);
       idx = file_params_find_renamed(params, sfile->files);
       file = filelist_file(sfile->files, idx);

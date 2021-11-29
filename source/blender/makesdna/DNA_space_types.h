@@ -281,7 +281,7 @@ typedef struct SpaceOutliner {
    * Note that treestore may contain duplicate elements if element
    * is used multiple times in outliner tree (e. g. linked objects)
    * Also note that BLI_mempool can not be read/written in DNA directly,
-   * therefore readfile.c/writefile.c linearize treestore into TreeStore structure
+   * therefore `readfile.c/writefile.c` linearize treestore into TreeStore structure
    */
   struct BLI_mempool *treestore;
 
