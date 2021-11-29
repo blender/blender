@@ -426,6 +426,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::VISIBILITY:
     case NodeType::SIMULATION: {
       ComponentNode *comp_node = (ComponentNode *)node;
       if (comp_node->operations.is_empty()) {

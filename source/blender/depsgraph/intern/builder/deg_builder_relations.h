@@ -336,6 +336,11 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                               Node *node_to,
                               const char *description,
                               int flags = 0);
+
+  /* Add relation which ensures visibility of `id_from` when `id_to` is visible.
+   * For the more detailed explanation see comment for `NodeType::VISIBILITY`. */
+  void add_visibility_relation(ID *id_from, ID *id_to);
+
   Relation *add_operation_relation(OperationNode *node_from,
                                    OperationNode *node_to,
                                    const char *description,

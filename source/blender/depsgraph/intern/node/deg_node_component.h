@@ -188,6 +188,15 @@ struct ComponentNode : public Node {
     } \
   }
 
+#define DEG_COMPONENT_NODE_DECLARE_NO_COW(name) \
+  struct name##ComponentNode : public ComponentNode { \
+    DEG_COMPONENT_NODE_DECLARE; \
+    virtual bool depends_on_cow() \
+    { \
+      return false; \
+    } \
+  }
+
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Animation);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(BatchCache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Cache);
@@ -210,6 +219,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Synchronization);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Audio);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Armature);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
+DEG_COMPONENT_NODE_DECLARE_NO_COW(Visibility);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Simulation);
 
 /* Bone Component */

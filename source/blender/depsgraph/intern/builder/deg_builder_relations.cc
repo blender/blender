@@ -368,6 +368,13 @@ Relation *DepsgraphRelationBuilder::add_time_relation(TimeSourceNode *timesrc,
   return nullptr;
 }
 
+void DepsgraphRelationBuilder::add_visibility_relation(ID *id_from, ID *id_to)
+{
+  ComponentKey from_key(id_from, NodeType::VISIBILITY);
+  ComponentKey to_key(id_to, NodeType::VISIBILITY);
+  add_relation(from_key, to_key, "visibility");
+}
+
 Relation *DepsgraphRelationBuilder::add_operation_relation(OperationNode *node_from,
                                                            OperationNode *node_to,
                                                            const char *description,

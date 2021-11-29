@@ -450,6 +450,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
     /* Custom shape. */
     if (pchan->custom != nullptr) {
       build_object(pchan->custom);
+      add_visibility_relation(&pchan->custom->id, &armature->id);
     }
   }
 }
@@ -505,6 +506,12 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
       OperationKey from_bone_parameters(
           &proxy_from->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, pchan->name);
       add_relation(from_bone_parameters, bone_parameters, "Proxy Bone Parameters");
+    }
+
+    /* Custom shape. */
+    if (pchan->custom != nullptr) {
+      build_object(pchan->custom);
+      add_visibility_relation(&pchan->custom->id, &armature->id);
     }
   }
 }

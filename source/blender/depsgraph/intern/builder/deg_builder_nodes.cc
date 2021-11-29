@@ -179,15 +179,30 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   id_node->previously_visible_components_mask = previously_visible_components_mask;
   id_node->previous_eval_flags = previous_eval_flags;
   id_node->previous_customdata_masks = previous_customdata_masks;
+
   /* NOTE: Zero number of components indicates that ID node was just created. */
-  if (id_node->components.is_empty() && deg_copy_on_write_is_needed(id_type)) {
-    ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
-    OperationNode *op_cow = comp_cow->add_operation(
-        [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
-        OperationCode::COPY_ON_WRITE,
-        "",
-        -1);
-    graph_->operations.append(op_cow);
+  const bool is_newly_created = id_node->components.is_empty();
+
+  if (is_newly_created) {
+    if (deg_copy_on_write_is_needed(id_type)) {
+      ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
+      OperationNode *op_cow = comp_cow->add_operation(
+          [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
+          OperationCode::COPY_ON_WRITE,
+          "",
+          -1);
+      graph_->operations.append(op_cow);
+    }
+
+    ComponentNode *visibility_component = id_node->add_component(NodeType::VISIBILITY);
+    OperationNode *visibility_operation = visibility_component->add_operation(
+        nullptr, OperationCode::OPERATION, "", -1);
+    /* Pin the node so that it and its relations are preserved by the unused nodes/relations
+     * deletion. This is mainly to make it easier to debug visibility. */
+    /* NOTE: Keep un-pinned for the 3.0 release. This way we are more sure that side effects of the
+     * change is minimal outside of the dependency graph area. */
+    // visibility_operation->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
+    graph_->operations.append(visibility_operation);
   }
   return id_node;
 }

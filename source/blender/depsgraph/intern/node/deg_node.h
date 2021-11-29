@@ -103,6 +103,22 @@ enum class NodeType {
    * not have very distinctive update procedure. */
   GENERIC_DATABLOCK,
 
+  /* Component which is used to define visibility relation between IDs, on the ID level.
+   *
+   * Consider two ID nodes NodeA and NodeB, with the relation between visibility components going
+   * as NodeA -> NodeB. If NodeB is considreed visible on screen, then the relation will ensure
+   * that NodeA is also visible. The way how relation is oriented could be seen as a inverted from
+   * visibility dependency point of view, but it follows the same direction as data dependency
+   * which simplifies common algorithms which are dealing with relations and visibility.
+   *
+   * The fact that the visibility operates on the ID level basically means that all components in
+   * NodeA will be considered as affecting directly visible when NodeB's visibility is
+   * affecting directly visible ID.
+   *
+   * This is the way to ensure objects needed for visualization without any actual data dependency
+   * are properly evaluated. Example of this is custom shapes for bones. */
+  VISIBILITY,
+
   /* **** Evaluation-Related Outer Types (with Subdata) **** */
 
   /* Pose Component - Owner/Container of Bones Eval */

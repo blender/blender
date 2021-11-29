@@ -77,6 +77,12 @@ void deg_foreach_dependent_operation(const Depsgraph *UNUSED(graph),
   TraversalQueue queue;
   Set<OperationNode *> scheduled;
   for (ComponentNode *comp_node : target_id_node->components.values()) {
+    if (comp_node->type == NodeType::VISIBILITY) {
+      /* Visibility component is only used internally. It is not to be reporting dependencies to
+       * the outer world. */
+      continue;
+    }
+
     if (source_component_type != DEG_OB_COMP_ANY &&
         nodeTypeToObjectComponent(comp_node->type) != source_component_type) {
       continue;
