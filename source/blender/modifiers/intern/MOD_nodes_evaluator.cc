@@ -417,7 +417,7 @@ class NodeParamsProvider : public nodes::GeoNodeExecParamsProvider {
   bool lazy_require_input(StringRef identifier) override;
   bool lazy_output_is_required(StringRef identifier) const override;
 
-  void set_default_remaining_outputs();
+  void set_default_remaining_outputs() override;
 };
 
 class GeometryNodesEvaluator {
