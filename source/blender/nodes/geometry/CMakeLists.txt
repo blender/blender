@@ -81,6 +81,7 @@ set(SRC
   nodes/legacy/node_geo_legacy_volume_to_mesh.cc
 
   nodes/node_geo_attribute_capture.cc
+  nodes/node_geo_attribute_domain_size.cc
   nodes/node_geo_attribute_remove.cc
   nodes/node_geo_attribute_statistic.cc
   nodes/node_geo_boolean.cc

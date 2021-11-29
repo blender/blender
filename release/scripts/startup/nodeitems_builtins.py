@@ -675,6 +675,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeRemove", poll=geometry_nodes_legacy_poll),
 
         NodeItem("GeometryNodeCaptureAttribute"),
+        NodeItem("GeometryNodeAttributeDomainSize"),
         NodeItem("GeometryNodeAttributeStatistic"),
         NodeItem("GeometryNodeAttributeTransfer"),
     ]),

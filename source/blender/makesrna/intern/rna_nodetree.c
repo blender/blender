@@ -39,6 +39,7 @@
 #include "BKE_animsys.h"
 #include "BKE_attribute.h"
 #include "BKE_cryptomatte.h"
+#include "BKE_geometry_set.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
@@ -9163,6 +9164,16 @@ static void def_geo_boolean(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_boolean_method_items);
   RNA_def_property_enum_default(prop, GEO_NODE_BOOLEAN_INTERSECT);
   RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_attribute_domain_size(StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "component", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_geometry_component_type_items);
+  RNA_def_property_enum_default(prop, GEO_COMPONENT_TYPE_MESH);
+  RNA_def_property_ui_text(prop, "Component", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 

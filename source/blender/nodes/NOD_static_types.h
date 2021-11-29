@@ -325,6 +325,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_VOLUME_TO_MESH, def_geo_volume_to_mesh, "L
 
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, def_geo_attribute_statistic, "ATTRIBUTE_STATISTIC", AttributeStatistic, "Attribute Statistic", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, def_geo_attribute_domain_size, "ATTRIBUTE_DOMAIN_SIZE", AttributeDomainSize, "Domain Size", "")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
 DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, def_geo_attribute_capture, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")
