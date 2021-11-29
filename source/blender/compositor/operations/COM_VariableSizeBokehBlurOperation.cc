@@ -69,7 +69,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   data->bokeh = (MemoryBuffer *)input_bokeh_program_->initialize_tile_data(rect);
   data->size = (MemoryBuffer *)input_size_program_->initialize_tile_data(rect);
 
-  rcti rect2;
+  rcti rect2 = COM_AREA_NONE;
   this->determine_depending_area_of_interest(
       rect, (ReadBufferOperation *)input_size_program_, &rect2);
 
@@ -398,7 +398,7 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
   p.image_width = this->get_width();
   p.image_height = this->get_height();
 
-  rcti scalar_area;
+  rcti scalar_area = COM_AREA_NONE;
   this->get_area_of_interest(SIZE_INPUT_INDEX, area, scalar_area);
   BLI_rcti_isect(&scalar_area, &p.size_input->get_rect(), &scalar_area);
   const float max_size = p.size_input->get_max_value(scalar_area);

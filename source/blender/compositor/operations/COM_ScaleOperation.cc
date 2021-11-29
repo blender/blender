@@ -223,7 +223,7 @@ void ScaleOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti image_canvas = r_area;
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     NodeOperationInput *x_socket = get_input_socket(X_INPUT_INDEX);
     NodeOperationInput *y_socket = get_input_socket(Y_INPUT_INDEX);
     x_socket->determine_canvas(image_canvas, unused);
@@ -503,7 +503,7 @@ void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti 
   rcti local_preferred = preferred_area;
   local_preferred.xmax = local_preferred.xmin + new_width_;
   local_preferred.ymax = local_preferred.ymin + new_height_;
-  rcti input_canvas;
+  rcti input_canvas = COM_AREA_NONE;
   const bool input_determined = get_input_socket(0)->determine_canvas(local_preferred,
                                                                       input_canvas);
   if (input_determined) {
