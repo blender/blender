@@ -485,7 +485,7 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
   int d_queued_kernel = queued_kernel;
   device_ptr d_counter = (device_ptr)integrator_state_gpu_.sort_key_counter[d_queued_kernel];
   device_ptr d_prefix_sum = integrator_shader_sort_prefix_sum_.device_pointer;
-  assert(d_counter != nullptr && d_prefix_sum != nullptr);
+  assert(d_counter != 0 && d_prefix_sum != 0);
 
   /* Compute prefix sum of number of active paths with each shader. */
   {
