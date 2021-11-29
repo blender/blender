@@ -2048,6 +2048,15 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
   }
   memcpy(&v3d.shading, source_shading_settings, sizeof(View3DShading));
 
+  if (drawtype == OB_RENDER) {
+    /* Don't use external engines for preview. Fall back to solid instead of Eevee as rendering
+     * with Eevee is potentially slow due to compiling shaders and loading textures, and the
+     * depsgraph may not have been updated to have all the right geometry attributes. */
+    if (!(BKE_scene_uses_blender_eevee(scene) || BKE_scene_uses_blender_workbench(scene))) {
+      drawtype = OB_SOLID;
+    }
+  }
+
   if (drawtype == OB_MATERIAL) {
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
     v3d.shading.render_pass = SCE_PASS_COMBINED;
