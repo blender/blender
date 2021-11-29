@@ -1671,7 +1671,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
 
     if (st->showlinenrs && !wrap_skip) {
       /* Draw line number. */
-      UI_FontThemeColor(tdc.font_id, (tmp == text->curl) ? TH_HILITE : TH_LINENUMBERS);
+      UI_FontThemeColor(tdc.font_id, (tmp == text->sell) ? TH_HILITE : TH_LINENUMBERS);
       BLI_snprintf(linenr,
                    sizeof(linenr),
                    "%*d",
