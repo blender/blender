@@ -581,7 +581,7 @@ template<typename T> class device_vector : public device_memory {
  * from an already allocated base memory. It is freed automatically when it
  * goes out of scope, which should happen before base memory is freed.
  *
- * Note: some devices require offset and size of the sub_ptr to be properly
+ * NOTE: some devices require offset and size of the sub_ptr to be properly
  * aligned to device->mem_address_alingment(). */
 
 class device_sub_ptr {

@@ -31,7 +31,7 @@ struct Node;
 struct NodeType;
 struct Transform;
 
-/* Note: in the following macros we use "type const &" instead of "const type &"
+/* NOTE: in the following macros we use "type const &" instead of "const type &"
  * to avoid issues when pasting a pointer type. */
 #define NODE_SOCKET_API_BASE_METHODS(type_, name, string_name) \
   const SocketType *get_##name##_socket() const \

@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
  *
  * https://www.solidangle.com/research/egsr2013_spherical_rectangle.pdf
  *
- * Note: light_p is modified when sample_coord is true.
+ * NOTE: light_p is modified when sample_coord is true.
  */
 ccl_device_inline float rect_light_sample(float3 P,
                                           ccl_private float3 *light_p,

@@ -370,7 +370,7 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 #if defined(__KERNEL_GPU_RAYTRACING__)
   return normalize((1.0f - t) * q1 + t * q2);
 #else  /* defined(__KERNEL_GPU_RAYTRACING__) */
-  /* note: this does not ensure rotation around shortest angle, q1 and q2
+  /* NOTE: this does not ensure rotation around shortest angle, q1 and q2
    * are assumed to be matched already in transform_motion_decompose */
   float costheta = dot(q1, q2);
 

@@ -1475,7 +1475,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
    * and even have to support NULL data_src in transfer data code
    * (we always create a data_dst, though).
    *
-   * Note: Above comment is outdated, but this function was written when that was true.
+   * NOTE: Above comment is outdated, but this function was written when that was true.
    */
 
   const ListBase *src_defbase = BKE_object_defgroup_list(ob_src);

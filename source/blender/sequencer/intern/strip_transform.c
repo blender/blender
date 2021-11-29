@@ -438,7 +438,7 @@ void SEQ_image_transform_mirror_factor_get(const Sequence *seq, float r_mirror[2
 
 /**
  * Get strip transform origin offset from image center
- * Note: This function does not apply axis mirror.
+ * NOTE: This function does not apply axis mirror.
  *
  * \param scene: Scene in which strips are located
  * \param seq: Sequence to calculate image transform origin

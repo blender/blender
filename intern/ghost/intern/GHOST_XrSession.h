@@ -53,7 +53,7 @@ class GHOST_XrSession {
   void draw(void *draw_customdata);
 
   /** Action functions to be called pre-session start.
-   * Note: The "destroy" functions can also be called post-session start. */
+   * NOTE: The "destroy" functions can also be called post-session start. */
   bool createActionSet(const GHOST_XrActionSetInfo &info);
   void destroyActionSet(const char *action_set_name);
   bool createActions(const char *action_set_name, uint32_t count, const GHOST_XrActionInfo *infos);

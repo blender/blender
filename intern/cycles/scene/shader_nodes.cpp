@@ -2399,7 +2399,7 @@ void GlossyBsdfNode::simplify_settings(Scene *scene)
   ShaderInput *roughness_input = input("Roughness");
   if (integrator->get_filter_glossy() == 0.0f) {
     /* Fallback to Sharp closure for Roughness close to 0.
-     * Note: Keep the epsilon in sync with kernel!
+     * NOTE: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
       VLOG(3) << "Using sharp glossy BSDF.";
@@ -2492,7 +2492,7 @@ void GlassBsdfNode::simplify_settings(Scene *scene)
   ShaderInput *roughness_input = input("Roughness");
   if (integrator->get_filter_glossy() == 0.0f) {
     /* Fallback to Sharp closure for Roughness close to 0.
-     * Note: Keep the epsilon in sync with kernel!
+     * NOTE: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
       VLOG(3) << "Using sharp glass BSDF.";
@@ -2585,7 +2585,7 @@ void RefractionBsdfNode::simplify_settings(Scene *scene)
   ShaderInput *roughness_input = input("Roughness");
   if (integrator->get_filter_glossy() == 0.0f) {
     /* Fallback to Sharp closure for Roughness close to 0.
-     * Note: Keep the epsilon in sync with kernel!
+     * NOTE: Keep the epsilon in sync with kernel!
      */
     if (!roughness_input->link && roughness <= 1e-4f) {
       VLOG(3) << "Using sharp refraction BSDF.";

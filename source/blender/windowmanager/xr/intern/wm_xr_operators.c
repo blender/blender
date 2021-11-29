@@ -553,7 +553,7 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
 
   wm_xr_navigation_grab_bimanual_state_update(actiondata, data);
 
-  /* Note: KM_PRESS and KM_RELEASE are the only two values supported by XR events during event
+  /* NOTE: #KM_PRESS and #KM_RELEASE are the only two values supported by XR events during event
    * dispatching (see #wm_xr_session_action_states_interpret()). For modal XR operators, modal
    * handling starts when an input is "pressed" (action state exceeds the action threshold) and
    * ends when the input is "released" (state falls below the threshold). */

@@ -99,7 +99,7 @@ static bool find_attribute(const std::string &attributes, const char *search_att
  */
 static bool test_onedrive_file_is_placeholder(const char *path)
 {
-  /* Note: Currently only checking for the "com.microsoft.OneDrive.RecallOnOpen" extended file
+  /* NOTE: Currently only checking for the "com.microsoft.OneDrive.RecallOnOpen" extended file
    * attribute. In theory this attribute can also be set on files that aren't located inside a
    * OneDrive folder. Maybe additional checks are required? */
 

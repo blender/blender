@@ -283,7 +283,7 @@ void occlusion_eval(OcclusionData data,
     bent_normal = N;
   }
   else {
-    /* Note: using pow(visibility, 6.0) produces NaN (see T87369). */
+    /* NOTE: using pow(visibility, 6.0) produces NaN (see T87369). */
     float tmp = saturate(pow6(visibility));
     bent_normal = normalize(mix(bent_normal, N, tmp));
   }
@@ -337,7 +337,7 @@ float diffuse_occlusion(
  * radius1 : First cap’s radius (arc length in radians)
  * radius2 : Second caps’ radius (in radians)
  * dist : Distance between caps (radians between centers of caps)
- * Note: Result is divided by pi to save one multiply.
+ * NOTE: Result is divided by pi to save one multiply.
  */
 float spherical_cap_intersection(float radius1, float radius2, float dist)
 {
