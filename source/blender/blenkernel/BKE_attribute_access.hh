@@ -345,6 +345,8 @@ class CustomDataAttributes {
 
   void reallocate(const int size);
 
+  void clear();
+
   std::optional<blender::fn::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
 
   blender::fn::GVArray get_for_read(const AttributeIDRef &attribute_id,

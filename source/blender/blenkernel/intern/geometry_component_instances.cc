@@ -63,6 +63,7 @@ void InstancesComponent::reserve(int min_capacity)
   if (!instance_ids_.is_empty()) {
     this->instance_ids_ensure();
   }
+  attributes_.reallocate(min_capacity);
 }
 
 /**
@@ -78,6 +79,7 @@ void InstancesComponent::resize(int capacity)
   if (!instance_ids_.is_empty()) {
     this->instance_ids_ensure();
   }
+  attributes_.reallocate(capacity);
 }
 
 void InstancesComponent::clear()
@@ -85,6 +87,7 @@ void InstancesComponent::clear()
   instance_reference_handles_.clear();
   instance_transforms_.clear();
   instance_ids_.clear();
+  attributes_.clear();
 
   references_.clear();
 }
@@ -98,6 +101,7 @@ void InstancesComponent::add_instance(const int instance_handle, const float4x4 
   if (!instance_ids_.is_empty()) {
     this->instance_ids_ensure();
   }
+  attributes_.reallocate(this->instances_amount());
 }
 
 blender::Span<int> InstancesComponent::instance_reference_handles() const

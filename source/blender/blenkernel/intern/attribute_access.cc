@@ -821,6 +821,12 @@ void CustomDataAttributes::reallocate(const int size)
   CustomData_realloc(&data, size);
 }
 
+void CustomDataAttributes::clear()
+{
+  CustomData_free(&data, size_);
+  size_ = 0;
+}
+
 bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback callback,
                                              const AttributeDomain domain) const
 {
