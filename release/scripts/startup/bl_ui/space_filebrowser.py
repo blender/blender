@@ -707,7 +707,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         asset_file_handle = context.asset_file_handle
 
         if asset_file_handle is None:
-            layout.label(text="No asset selected", icon='INFO')
+            layout.label(text="No active asset", icon='INFO')
             return
 
         asset_library_ref = context.asset_library_ref
