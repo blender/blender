@@ -404,7 +404,13 @@ class FILEBROWSER_PT_advanced_filter(Panel):
 
 
 def is_option_region_visible(context, space):
-    if not space.active_operator:
+    from bpy_extras.asset_utils import SpaceAssetInfo
+
+    if SpaceAssetInfo.is_asset_browser(space):
+        pass
+    # For the File Browser, there must be an operator for there to be options
+    # (irrelevant for the Asset Browser).
+    elif not space.active_operator:
         return False
 
     for region in context.area.regions:
