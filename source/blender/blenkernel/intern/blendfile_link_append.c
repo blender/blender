@@ -1324,12 +1324,6 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
     /* here appending/linking starts */
 
-    /* NOTE: This is temporary hot-fix until whole code using link/append features has been moved
-     * to use new BKE code. */
-    /* Do not handle instantiation in linking process anymore, we do it here in
-     * #loose_data_instantiate instead. */
-    lapp_context->params->flag &= ~BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
-
     mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
     lib = mainl->curlib;
     BLI_assert(lib);

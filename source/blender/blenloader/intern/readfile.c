@@ -195,7 +195,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist);
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
-static bool library_link_idcode_needs_tag_check(const short idcode, const int flag);
 
 typedef struct BHeadN {
   struct BHeadN *next, *prev;
@@ -4441,290 +4440,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 /** \name Library Linking (helper functions)
  * \{ */
 
-static bool object_in_any_scene(Main *bmain, Object *ob)
-{
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (BKE_scene_object_find(sce, ob)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static bool object_in_any_collection(Main *bmain, Object *ob)
-{
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (BKE_collection_has_object(collection, ob)) {
-      return true;
-    }
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->master_collection != NULL &&
-        BKE_collection_has_object(scene->master_collection, ob)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Shared operations to perform on the object's base after adding it to the scene.
- */
-static void object_base_instance_init(
-    Object *ob, ViewLayer *view_layer, const View3D *v3d, const int flag, bool set_active)
-{
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-  if (v3d != NULL) {
-    base->local_view_bits |= v3d->local_view_uuid;
-  }
-
-  if (flag & FILE_AUTOSELECT) {
-    /* All objects that use #FILE_AUTOSELECT must be selectable (unless linking data). */
-    BLI_assert((base->flag & BASE_SELECTABLE) || (flag & FILE_LINK));
-    if (base->flag & BASE_SELECTABLE) {
-      base->flag |= BASE_SELECTED;
-    }
-  }
-
-  if (set_active) {
-    view_layer->basact = base;
-  }
-
-  BKE_scene_object_base_flag_sync_from_base(base);
-}
-
-/**
- * Exported for link/append to create objects as well.
- */
-void BLO_object_instantiate_object_base_instance_init(Main *bmain,
-                                                      Collection *collection,
-                                                      Object *ob,
-                                                      ViewLayer *view_layer,
-                                                      const View3D *v3d,
-                                                      const int flag,
-                                                      bool set_active)
-{
-  /* Auto-select and appending. */
-  if ((flag & FILE_AUTOSELECT) && ((flag & FILE_LINK) == 0)) {
-    /* While in general the object should not be manipulated,
-     * when the user requests the object to be selected, ensure it's visible and selectable. */
-    ob->visibility_flag &= ~(OB_HIDE_VIEWPORT | OB_HIDE_SELECT);
-  }
-
-  BKE_collection_object_add(bmain, collection, ob);
-
-  object_base_instance_init(ob, view_layer, v3d, flag, set_active);
-}
-
-static void add_loose_objects_to_scene(Main *mainvar,
-                                       Main *bmain,
-                                       Scene *scene,
-                                       ViewLayer *view_layer,
-                                       const View3D *v3d,
-                                       Library *lib,
-                                       const int flag)
-{
-  Collection *active_collection = NULL;
-  const bool do_append = (flag & FILE_LINK) == 0;
-
-  BLI_assert(scene);
-
-  /* Give all objects which are LIB_TAG_INDIRECT a base,
-   * or for a collection when *lib has been set. */
-  LISTBASE_FOREACH (Object *, ob, &mainvar->objects) {
-    /* NOTE: Even if this is a directly linked object and is tagged for instantiation, it might
-     * have already been instantiated through one of its owner collections, in which case we do not
-     * want to re-instantiate it in the active collection here. */
-    bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0 && !BKE_scene_object_find(scene, ob);
-    if (do_it ||
-        ((ob->id.tag & LIB_TAG_INDIRECT) != 0 && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
-      if (do_append) {
-        if (ob->id.us == 0) {
-          do_it = true;
-        }
-        else if ((ob->id.lib == lib) && !object_in_any_collection(bmain, ob)) {
-          /* When appending, make sure any indirectly loaded object gets a base,
-           * when they are not part of any collection yet. */
-          do_it = true;
-        }
-      }
-
-      if (do_it) {
-        /* Find or add collection as needed. */
-        if (active_collection == NULL) {
-          if (flag & FILE_ACTIVE_COLLECTION) {
-            LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-            active_collection = lc->collection;
-          }
-          else {
-            active_collection = BKE_collection_add(bmain, scene->master_collection, NULL);
-          }
-        }
-
-        CLAMP_MIN(ob->id.us, 0);
-        ob->mode = OB_MODE_OBJECT;
-
-        /* Do NOT make base active here! screws up GUI stuff,
-         * if you want it do it at the editor level. */
-        const bool set_active = false;
-        BLO_object_instantiate_object_base_instance_init(
-            bmain, active_collection, ob, view_layer, v3d, flag, set_active);
-
-        ob->id.tag &= ~LIB_TAG_INDIRECT;
-        ob->id.flag &= ~LIB_INDIRECT_WEAK_LINK;
-        ob->id.tag |= LIB_TAG_EXTERN;
-      }
-    }
-  }
-}
-
-static void add_loose_object_data_to_scene(Main *mainvar,
-                                           Main *bmain,
-                                           Scene *scene,
-                                           ViewLayer *view_layer,
-                                           const View3D *v3d,
-                                           const int flag)
-{
-  if ((flag & BLO_LIBLINK_OBDATA_INSTANCE) == 0) {
-    return;
-  }
-
-  Collection *active_collection = scene->master_collection;
-  if (flag & FILE_ACTIVE_COLLECTION) {
-    LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-    active_collection = lc->collection;
-  }
-
-  /* Do not re-instantiate obdata IDs that are already instantiated by an object. */
-  LISTBASE_FOREACH (Object *, ob, &mainvar->objects) {
-    if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 && ob->data != NULL) {
-      ID *obdata = ob->data;
-      BLI_assert(ID_REAL_USERS(obdata) > 0);
-      if ((obdata->tag & LIB_TAG_PRE_EXISTING) == 0) {
-        obdata->tag &= ~LIB_TAG_DOIT;
-      }
-    }
-  }
-
-  /* Loop over all ID types, instancing object-data for ID types that have support for it. */
-  ListBase *lbarray[INDEX_ID_MAX];
-  int i = set_listbasepointers(mainvar, lbarray);
-  while (i--) {
-    const short idcode = BKE_idtype_idcode_from_index(i);
-    if (!OB_DATA_SUPPORT_ID(idcode)) {
-      continue;
-    }
-
-    LISTBASE_FOREACH (ID *, id, lbarray[i]) {
-      if (id->tag & LIB_TAG_DOIT) {
-        const int type = BKE_object_obdata_to_type(id);
-        BLI_assert(type != -1);
-        Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
-        ob->data = id;
-        id_us_plus(id);
-        BKE_object_materials_test(bmain, ob, ob->data);
-
-        /* Do NOT make base active here! screws up GUI stuff,
-         * if you want it do it at the editor level. */
-        bool set_active = false;
-        BLO_object_instantiate_object_base_instance_init(
-            bmain, active_collection, ob, view_layer, v3d, flag, set_active);
-
-        copy_v3_v3(ob->loc, scene->cursor.location);
-      }
-    }
-  }
-}
-
-static void add_collections_to_scene(Main *mainvar,
-                                     Main *bmain,
-                                     Scene *scene,
-                                     ViewLayer *view_layer,
-                                     const View3D *v3d,
-                                     Library *lib,
-                                     const int flag)
-{
-  Collection *active_collection = scene->master_collection;
-  if (flag & FILE_ACTIVE_COLLECTION) {
-    LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-    active_collection = lc->collection;
-  }
-
-  /* Give all objects which are tagged a base. */
-  LISTBASE_FOREACH (Collection *, collection, &mainvar->collections) {
-    if ((flag & BLO_LIBLINK_COLLECTION_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
-      /* Any indirect collection should not have been tagged. */
-      BLI_assert((collection->id.tag & LIB_TAG_INDIRECT) == 0);
-
-      /* BKE_object_add(...) messes with the selection. */
-      Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
-      ob->type = OB_EMPTY;
-      ob->empty_drawsize = U.collection_instance_empty_size;
-
-      const bool set_selected = (flag & FILE_AUTOSELECT) != 0;
-      /* TODO: why is it OK to make this active here but not in other situations?
-       * See other callers of #object_base_instance_init */
-      const bool set_active = set_selected;
-      BLO_object_instantiate_object_base_instance_init(
-          bmain, active_collection, ob, view_layer, v3d, flag, set_active);
-
-      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-
-      /* Assign the collection. */
-      ob->instance_collection = collection;
-      id_us_plus(&collection->id);
-      ob->transflag |= OB_DUPLICOLLECTION;
-      copy_v3_v3(ob->loc, scene->cursor.location);
-    }
-    /* We do not want to force instantiation of indirectly linked collections,
-     * not even when appending. Users can now easily instantiate collections (and their objects)
-     * as needed by themselves. See T67032. */
-    else if ((collection->id.tag & LIB_TAG_INDIRECT) == 0) {
-      bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
-      if (!do_add_collection) {
-        /* We need to check that objects in that collections are already instantiated in a scene.
-         * Otherwise, it's better to add the collection to the scene's active collection, than to
-         * instantiate its objects in active scene's collection directly. See T61141.
-         * Note that we only check object directly into that collection,
-         * not recursively into its children.
-         */
-        LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-          Object *ob = coll_ob->ob;
-          if ((ob->id.tag & (LIB_TAG_PRE_EXISTING | LIB_TAG_DOIT | LIB_TAG_INDIRECT)) == 0 &&
-              (ob->id.lib == lib) && (object_in_any_scene(bmain, ob) == false)) {
-            do_add_collection = true;
-            break;
-          }
-        }
-      }
-      if (do_add_collection) {
-        /* Add collection as child of active collection. */
-        BKE_collection_child_add(bmain, active_collection, collection);
-
-        if (flag & FILE_AUTOSELECT) {
-          LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-            Object *ob = coll_ob->ob;
-            Base *base = BKE_view_layer_base_find(view_layer, ob);
-            if (base) {
-              base->flag |= BASE_SELECTED;
-              BKE_scene_object_base_flag_sync_from_base(base);
-            }
-          }
-        }
-
-        /* Those are kept for safety and consistency, but should not be needed anymore? */
-        collection->id.tag &= ~LIB_TAG_INDIRECT;
-        collection->id.flag &= ~LIB_INDIRECT_WEAK_LINK;
-        collection->id.tag |= LIB_TAG_EXTERN;
-      }
-    }
-  }
-}
-
 /* returns true if the item was found
  * but it may already have already been appended/linked */
 static ID *link_named_part(
@@ -4774,14 +4489,6 @@ static ID *link_named_part(
   /* if we found the id but the id is NULL, this is really bad */
   BLI_assert(!((bhead != NULL) && (id == NULL)));
 
-  /* Tag as loose object (or data associated with objects)
-   * needing to be instantiated in #LibraryLink_Params.scene. */
-  if ((id != NULL) && (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT)) {
-    if (library_link_idcode_needs_tag_check(idcode, flag)) {
-      id->tag |= LIB_TAG_DOIT;
-    }
-  }
-
   return id;
 }
 
@@ -4806,41 +4513,10 @@ ID *BLO_library_link_named_part(Main *mainl,
 
 /* common routine to append/link something from a library */
 
-/**
- * Checks if the \a idcode needs to be tagged with #LIB_TAG_DOIT when linking/appending.
- */
-static bool library_link_idcode_needs_tag_check(const short idcode, const int flag)
-{
-  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
-    /* Always true because of #add_loose_objects_to_scene & #add_collections_to_scene. */
-    if (ELEM(idcode, ID_OB, ID_GR)) {
-      return true;
-    }
-    if (flag & BLO_LIBLINK_OBDATA_INSTANCE) {
-      if (OB_DATA_SUPPORT_ID(idcode)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Clears #LIB_TAG_DOIT based on the result of #library_link_idcode_needs_tag_check.
- */
-static void library_link_clear_tag(Main *mainvar, const int flag)
-{
-  for (int i = 0; i < INDEX_ID_MAX; i++) {
-    const short idcode = BKE_idtype_idcode_from_index(i);
-    BLI_assert(idcode != -1);
-    if (library_link_idcode_needs_tag_check(idcode, flag)) {
-      BKE_main_id_tag_idcode(mainvar, idcode, LIB_TAG_DOIT, false);
-    }
-  }
-}
-
-static Main *library_link_begin(
-    Main *mainvar, FileData **fd, const char *filepath, const int flag, const int id_tag_extra)
+static Main *library_link_begin(Main *mainvar,
+                                FileData **fd,
+                                const char *filepath,
+                                const int id_tag_extra)
 {
   Main *mainl;
 
@@ -4852,11 +4528,6 @@ static Main *library_link_begin(
   (*fd)->id_tag_extra = id_tag_extra;
 
   (*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
-
-  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
-    /* Clear for objects and collections instantiating tag. */
-    library_link_clear_tag(mainvar, flag);
-  }
 
   /* make mains */
   blo_split_main((*fd)->mainlist, mainvar);
@@ -4896,9 +4567,6 @@ void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params
 {
   BLO_library_link_params_init(params, bmain, flag, id_tag_extra);
   if (scene != NULL) {
-    /* Tagging is needed for instancing. */
-    params->flag |= BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
-
     params->context.scene = scene;
     params->context.view_layer = view_layer;
     params->context.v3d = v3d;
@@ -4919,7 +4587,7 @@ Main *BLO_library_link_begin(BlendHandle **bh,
                              const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return library_link_begin(params->bmain, &fd, filepath, params->flag, params->id_tag_extra);
+  return library_link_begin(params->bmain, &fd, filepath, params->id_tag_extra);
 }
 
 static void split_main_newid(Main *mainptr, Main *main_newid)
@@ -4946,19 +4614,7 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   }
 }
 
-/**
- * \param scene: The scene in which to instantiate objects/collections
- * (if NULL, no instantiation is done).
- * \param v3d: The active 3D viewport.
- * (only to define active layers for instantiated objects & collections, can be NULL).
- */
-static void library_link_end(Main *mainl,
-                             FileData **fd,
-                             Main *bmain,
-                             const int flag,
-                             Scene *scene,
-                             ViewLayer *view_layer,
-                             const View3D *v3d)
+static void library_link_end(Main *mainl, FileData **fd, const int flag)
 {
   Main *mainvar;
   Library *curlib;
@@ -5043,22 +4699,6 @@ static void library_link_end(Main *mainl,
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
 
-  /* Give a base to loose objects and collections.
-   * Only directly linked objects & collections are instantiated by
-   * #BLO_library_link_named_part & co,
-   * here we handle indirect ones and other possible edge-cases. */
-  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
-    /* Should always be true. */
-    if (scene != NULL) {
-      add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
-      add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
-      add_loose_object_data_to_scene(mainvar, bmain, scene, view_layer, v3d, flag);
-    }
-
-    /* Clear objects and collections instantiating tag. */
-    library_link_clear_tag(mainvar, flag);
-  }
-
   /* patch to prevent switch_endian happens twice */
   if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
     blo_filedata_free(*fd);
@@ -5078,13 +4718,7 @@ static void library_link_end(Main *mainl,
 void BLO_library_link_end(Main *mainl, BlendHandle **bh, const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  library_link_end(mainl,
-                   &fd,
-                   params->bmain,
-                   params->flag,
-                   params->context.scene,
-                   params->context.view_layer,
-                   params->context.v3d);
+  library_link_end(mainl, &fd, params->flag);
   *bh = (BlendHandle *)fd;
 }
 

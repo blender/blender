@@ -212,14 +212,6 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
   /** Force loaded ID to be tagged as #LIB_TAG_INDIRECT (used in reload context only). */
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
-  /**
-   * When set, tag ID types that pass the internal check #library_link_idcode_needs_tag_check
-   *
-   * Currently this is only used to instantiate objects in the scene.
-   * Set this from #BLO_library_link_params_init_with_context so callers
-   * don't need to remember to set this flag.
-   */
-  BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
   /** Set fake user on appended IDs. */
   BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
   /** Append (make local) also indirect dependencies of appended IDs coming from other libraries.
@@ -334,14 +326,6 @@ void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
 
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
-
-void BLO_object_instantiate_object_base_instance_init(struct Main *bmain,
-                                                      struct Collection *collection,
-                                                      struct Object *ob,
-                                                      struct ViewLayer *view_layer,
-                                                      const struct View3D *v3d,
-                                                      const int flag,
-                                                      bool set_active);
 
 /* datafiles (generated theme) */
 extern const struct bTheme U_theme_default;
