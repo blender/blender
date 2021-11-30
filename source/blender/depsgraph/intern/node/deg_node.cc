@@ -94,8 +94,6 @@ const char *nodeTypeAsString(NodeType type)
       return "PARTICLE_SETTINGS";
     case NodeType::SHADING:
       return "SHADING";
-    case NodeType::SHADING_PARAMETERS:
-      return "SHADING_PARAMETERS";
     case NodeType::CACHE:
       return "CACHE";
     case NodeType::POINT_CACHE:
@@ -161,7 +159,6 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::GENERIC_DATABLOCK:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
-    case NodeType::SHADING_PARAMETERS:
     case NodeType::POINT_CACHE:
     case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:
@@ -248,7 +245,6 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::GENERIC_DATABLOCK:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
-    case NodeType::SHADING_PARAMETERS:
     case NodeType::POINT_CACHE:
     case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:

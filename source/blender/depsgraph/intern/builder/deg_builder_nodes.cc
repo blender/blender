@@ -1730,7 +1730,6 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   /* Shading update. */
   add_operation_node(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-  add_operation_node(&ntree->id, NodeType::SHADING_PARAMETERS, OperationCode::MATERIAL_UPDATE);
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);

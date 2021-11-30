@@ -2528,16 +2528,13 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   }
 
   OperationKey shading_update_key(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-  OperationKey shading_parameters_key(
-      &ntree->id, NodeType::SHADING_PARAMETERS, OperationCode::MATERIAL_UPDATE);
-  add_relation(shading_parameters_key, shading_update_key, "NTree Shading Parameters");
 
   if (check_id_has_anim_component(&ntree->id)) {
     ComponentKey animation_key(&ntree->id, NodeType::ANIMATION);
-    add_relation(animation_key, shading_parameters_key, "NTree Shading Parameters");
+    add_relation(animation_key, shading_update_key, "NTree Shading Parameters");
   }
   ComponentKey parameters_key(&ntree->id, NodeType::PARAMETERS);
-  add_relation(parameters_key, shading_parameters_key, "NTree Shading Parameters");
+  add_relation(parameters_key, shading_update_key, "NTree Shading Parameters");
 }
 
 /* Recursively build graph for material */

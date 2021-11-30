@@ -130,7 +130,6 @@ enum class NodeType {
   PARTICLE_SETTINGS,
   /* Material Shading Component */
   SHADING,
-  SHADING_PARAMETERS,
   /* Point cache Component */
   POINT_CACHE,
   /* Image Animation Component */
