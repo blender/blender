@@ -586,7 +586,8 @@ void BKE_bpath_traverse_id(
     return;
   }
 
-  if (id->library_weak_reference != NULL) {
+  if (id->library_weak_reference != NULL &&
+      (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0) {
     rewrite_path_fixed(
         id->library_weak_reference->library_filepath, visit_cb, absbase, bpath_user_data);
   }

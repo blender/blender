@@ -912,8 +912,9 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
   BKE_bpath_traverse_main(
       bmain,
       &external_file_check_callback,
-      BKE_BPATH_TRAVERSE_SKIP_PACKED /* Packed files are fine. */
-          | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE /* Only report multifiles once, it's enough. */,
+      BKE_BPATH_TRAVERSE_SKIP_PACKED          /* Packed files are fine. */
+          | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE /* Only report multifiles once, it's enough. */
+          | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES /* Only care about actually used files. */,
       &callback_info);
   return callback_info.external_file_found;
 }

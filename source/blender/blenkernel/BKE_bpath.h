@@ -70,6 +70,12 @@ enum {
   BKE_BPATH_TRAVERSE_SKIP_MULTIFILE = (1 << 3),
   /* reload data (when the path is edited) */
   BKE_BPATH_TRAVERSE_RELOAD_EDITED = (1 << 4),
+  /* Skip weak reference paths. Those paths are typically 'nice to have' extra information, but are
+   * not used as actual source of data by the current .blend file.
+   *
+   * NOTE: Currently this only concerns the weak reference to a library file stored in
+   * `ID::library_weak_reference`. */
+  BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES = (1 << 5),
 };
 
 /* high level funcs */
