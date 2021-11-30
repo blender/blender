@@ -204,6 +204,14 @@ def main():
         SpecMeshTest("CubeShadeFlat", "testCubeShadeFlat", "expectedCubeShadeFlat",
                  [OperatorSpecEditMode("faces_shade_flat", {}, "FACE", {i for i in range(6)})]),
 
+        # hide
+        SpecMeshTest("HideFace", "testCubeHideFace", "expectedCubeHideFace",
+                 [OperatorSpecEditMode("hide", {}, "FACE", {3})]),
+        SpecMeshTest("HideEdge", "testCubeHideEdge", "expectedCubeHideEdge",
+                 [OperatorSpecEditMode("hide", {}, "EDGE", {1})]),
+        SpecMeshTest("HideVertex", "testCubeHideVertex", "expectedCubeHideVertex",
+                 [OperatorSpecEditMode("hide", {}, "VERT", {0})]),
+
         # inset faces
         SpecMeshTest("CubeInset",
                  "testCubeInset", "expectedCubeInset", [OperatorSpecEditMode("inset", {"thickness": 0.2}, "VERT",
@@ -312,10 +320,59 @@ def main():
         SpecMeshTest("CircleSelect2nd", "testCircleSelect2nd", "expectedCircleSelect2nd",
                  [OperatorSpecEditMode("select_nth", {}, "VERT", {i for i in range(32)})]),
 
+        # Subdivide edgering - Not currently functional, operator returns inconsistently
+        #SpecMeshTest("SubdivideEdgeringSurface", "testCylinderSubdivideEdgering", "expectedCylinderSubdivideEdgeringSurface",
+        #         [OperatorSpecEditMode("subdivide_edgering", {"number_cuts": 5, "interpolation": 'SURFACE', "profile_shape_factor": 0.1}, "EDGE", {0, (i for i in range(96) if (i % 3))})]),
+        #SpecMeshTest("SubdivideEdgeringPath", "testCylinderSubdivideEdgering", "expectedCylinderSubdivideEdgeringPath",
+        #         [OperatorSpecEditMode("subdivide_edgering", {"number_cuts": 5, "interpolation": 'PATH', "profile_shape_factor": 0.1}, "EDGE", {0, (i for i in range(96) if (i % 3))})]),
+        #SpecMeshTest("SubdivideEdgeringLinear", "testCylinderSubdivideEdgering", "expectedCylinderSubdivideEdgeringLinear",
+        #         [OperatorSpecEditMode("subdivide_edgering", {"number_cuts": 5, "interpolation": 'LINEAR', "profile_shape_factor": 0.1}, "EDGE", {0, (i for i in range(96) if (i % 3))})]),
+
+        # Symmetry Snap
+        SpecMeshTest("SymmetrySnap", "testPlaneSymmetrySnap", "expectedPlaneSymmetrySnap",
+                 [OperatorSpecEditMode("symmetry_snap", {"direction": 'POSITIVE_X', "threshold": 1, "factor": 0.75,
+                                                        "use_center": False}, "VERT", {i for i in range(5)})]),
+        SpecMeshTest("SymmetrySnapCenter", "testPlaneSymmetrySnap", "expectedPlaneSymmetrySnapCenter",
+                 [OperatorSpecEditMode("symmetry_snap", {"direction": 'NEGATIVE_X', "threshold": 1, "factor": 0.75,
+                                                        "use_center": True}, "VERT", {i for i in range(5)})]),
+
+        # Tris to Quads
+        SpecMeshTest("TrisToQuads", "testPlanesTrisToQuad", "expectedPlanesTrisToQuad",
+                 [OperatorSpecEditMode("tris_convert_to_quads", {"face_threshold":0.174533, "shape_threshold":0.174533,
+                 "uvs":True, "vcols":True, "seam":True, "sharp":True, "materials":True}, "VERT", {i for i in range(32)})]),
+
         # unsubdivide
         # normal case
         SpecMeshTest("CubeFaceUnsubdivide", "testCubeUnsubdivide", "expectedCubeUnsubdivide",
                  [OperatorSpecEditMode("unsubdivide", {}, "FACE", {i for i in range(6)})]),
+
+        # UV Manipulation
+        SpecMeshTest("UVRotate", "testCubeUV", "expectedCubeUVRotate",
+                 [OperatorSpecEditMode("uvs_rotate", {}, "FACE", {2})]),
+        SpecMeshTest("UVRotateCCW", "testCubeUV", "expectedCubeUVRotateCCW",
+                 [OperatorSpecEditMode("uvs_rotate", {"use_ccw": True}, "FACE", {2})]),
+        SpecMeshTest("UVReverse", "testCubeUV", "expectedCubeUVReverse",
+                 [OperatorSpecEditMode("uvs_reverse", {}, "FACE", {2})]),
+        SpecMeshTest("UVAdd", "testCubeUV", "expectedCubeUVAdd",
+                 [OperatorSpecEditMode("uv_texture_add", {}, "FACE", {})]),
+        SpecMeshTest("UVRemove", "testCubeUV", "expectedCubeUVRemove",
+                 [OperatorSpecEditMode("uv_texture_remove", {}, "FACE", {})]),
+
+
+        # Vert Connect Concave
+        SpecMeshTest("VertexConnectConcave", "testPlaneVertConnectConcave", "expectedPlaneVertConnectConcave",
+                 [OperatorSpecEditMode("vert_connect_concave", {}, "FACE", {0})]),
+        SpecMeshTest("VertexConnectConcaveConvexPentagon", "testPentagonVertConnectConcave", "expectedPentagonVertConnectConcave",
+                 [OperatorSpecEditMode("vert_connect_concave", {}, "FACE", {0})]),
+        SpecMeshTest("VertexConnectConcaveQuad", "testPlaneVertConnectConcaveQuad", "expectedPlaneVertConnectConcaveQuad",
+                 [OperatorSpecEditMode("vert_connect_concave", {}, "FACE", {0})]),
+
+        # Vert Connect Nonplanar
+        SpecMeshTest("VertexConnectNonplanar", "testPlaneVertConnectNonplanar", "expectedPlaneVertConnectNonplanar",
+                 [OperatorSpecEditMode("vert_connect_nonplanar", {"angle_limit": 0.17453292}, "VERT", {i for i in range(9)})]),
+        SpecMeshTest("VertexConnectNonplanarNgon", "testPlaneVertConnectNonplanarNgon", "expectedPlaneVertConnectNonplanarNgon",
+                 [OperatorSpecEditMode("vert_connect_nonplanar", {"angle_limit": 0.218166}, "VERT", {i for i in range(6)})]),
+
 
         # T87259 - test cases
         SpecMeshTest("CubeEdgeUnsubdivide", "testCubeEdgeUnsubdivide", "expectedCubeEdgeUnsubdivide",
@@ -325,8 +382,69 @@ def main():
 
         # vert connect path
         # Tip: It works only if there is an already existing face or more than 2 vertices.
-        SpecMeshTest("CubeVertConnectPath", "testCubeVertConnectPath", "expectedCubeVertConnectPath",
-                 [OperatorSpecEditMode("vert_connect_path", {}, "VERT", {0, 5})]),
+        SpecMeshTest(
+            "PlaneVertConnectPath", "testPlaneVertConnectPath", "expectedPlaneVertConnectPath",
+            [OperatorSpecEditMode(
+                "vert_connect_path", {}, "VERT", (0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
+                select_history=True,
+            )],
+        ),
+
+        # Vertex Colors
+        SpecMeshTest(
+            "VertexColorAdd", "testCubeColorAdd", "expectedCubeColorAdd",
+            [OperatorSpecEditMode("vertex_color_add", {}, "VERT", {})],
+        ),
+        SpecMeshTest(
+            "VertexColorRemove", "testCubeColorRemove", "expectedCubeColorRemove",
+            [OperatorSpecEditMode("vertex_color_remove", {}, "VERT", {})],
+        ),
+        SpecMeshTest(
+            "VertexColorSculptAdd", "testCubeSculptAdd", "expectedCubeSculptAdd",
+            [OperatorSpecEditMode("sculpt_vertex_color_add", {}, "VERT", {})],
+        ),
+        SpecMeshTest(
+            "VertexColorSculptRemove", "testCubeSculptRemove", "expectedCubeSculptRemove",
+            [OperatorSpecEditMode("sculpt_vertex_color_remove", {}, "VERT", {})],
+        ),
+
+        # Laplacian Smooth
+        SpecMeshTest(
+            "LaplacianSmoothDefault", "testSphereLaplacianSmoothDefault", "expectedSphereLaplacianSmoothDefault",
+            [OperatorSpecEditMode("vertices_smooth_laplacian", {"preserve_volume": False}, "VERT", {i for i in range(482)})],
+        ),
+        SpecMeshTest(
+            "LaplacianSmoothHighValues", "testSphereLaplacianSmoothHigh", "expectedSphereLaplacianSmoothHigh",
+            [OperatorSpecEditMode("vertices_smooth_laplacian", {"preserve_volume": False, "repeat": 100, "lambda_factor": 10.0}, "VERT", {i for i in range(482)})],
+        ),
+        SpecMeshTest(
+            "LaplacianSmoothBorder", "testCubeLaplacianSmoothBorder", "expectedCubeLaplacianSmoothBorder",
+            [OperatorSpecEditMode("vertices_smooth_laplacian", {"preserve_volume": False, "lambda_border": 1.0}, "VERT", {i for i in range(25)})],
+        ),
+        SpecMeshTest(
+            "LaplacianSmoothHighBorder", "testCubeLaplacianSmoothHighBorder", "expectedCubeLaplacianSmoothHighBorder",
+            [OperatorSpecEditMode("vertices_smooth_laplacian", {"preserve_volume": False, "lambda_border": 100.0}, "VERT", {i for i in range(25)})],
+        ),
+        SpecMeshTest(
+            "LaplacianSmoothPreserveVolume", "testSphereLaplacianSmoothPreserveVol", "expectedSphereLaplacianSmoothPreserveVol",
+            [OperatorSpecEditMode("vertices_smooth_laplacian", {"preserve_volume": True}, "VERT", {i for i in range(482)})],
+        ),
+
+
+        # wireframe
+        SpecMeshTest(
+            "WireFrameDefault", "testCubeWireframeDefault", "expectedCubeWireframeDefault",
+            [OperatorSpecEditMode("wireframe", {}, "FACE", {i for i in range(6)})],
+        ),
+        SpecMeshTest(
+            "WireFrameAlt", "testCubeWireframeAlt", "expectedCubeWireframeAlt",
+            [OperatorSpecEditMode(
+                "wireframe", {
+                    "use_boundary": False, "use_even_offset": False,
+                    "use_relative_offset": True, "use_replace": False, "thickness": 0.3, "offset": 0.3,
+                    "use_crease": True, "crease_weight": 0.01,
+                }, "FACE", {i for i in range(6)})],
+        ),
 
     ]
 
