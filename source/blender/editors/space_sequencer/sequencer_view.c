@@ -405,7 +405,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view_ghost_border_exec;
   ot->modal = WM_gesture_box_modal;
-  ot->poll = sequencer_view_preview_poll;
+  ot->poll = sequencer_view_has_preview_poll;
   ot->cancel = WM_gesture_box_cancel;
 
   /* Flags. */

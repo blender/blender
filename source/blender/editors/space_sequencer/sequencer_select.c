@@ -416,8 +416,11 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
-  const bool is_preview = sequencer_view_preview_poll(C);
+  const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     SEQ_query_rendered_strips_to_tag(ed->seqbasep, scene->r.cfra, 0);
   }
 
@@ -494,8 +497,11 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
-  const bool is_preview = sequencer_view_preview_poll(C);
+  const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     SEQ_query_rendered_strips_to_tag(ed->seqbasep, scene->r.cfra, 0);
   }
 
@@ -866,6 +872,9 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   }
 
   if (region->regiontype == RGN_TYPE_PREVIEW) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     const SpaceSeq *sseq = CTX_wm_space_seq(C);
     if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
       return OPERATOR_CANCELLED;
@@ -1612,6 +1621,9 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 
   ARegion *region = CTX_wm_region(C);
   if (region->regiontype == RGN_TYPE_PREVIEW) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     seq_box_select_seq_from_preview(C, &rectf, sel_op);
     sequencer_select_do_updates(C, scene);
     return OPERATOR_FINISHED;
@@ -1671,6 +1683,11 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
 {
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = &CTX_wm_region(C)->v2d;
+  ARegion *region = CTX_wm_region(C);
+
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
+  }
 
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
@@ -2003,8 +2020,11 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   Sequence *actseq = SEQ_select_active_get(scene);
 
-  const bool is_preview = sequencer_view_preview_poll(C);
+  const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     SEQ_query_rendered_strips_to_tag(seqbase, scene->r.cfra, 0);
     if (actseq && actseq->tmp_tag == false) {
       actseq = NULL;
