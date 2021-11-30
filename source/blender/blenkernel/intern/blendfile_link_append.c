@@ -570,6 +570,22 @@ static void loose_data_instantiate_obdata_preprocess(
   }
 }
 
+/* Test whether some ancestor collection is also tagged for instantiation (return true) or not
+ * (return false). */
+static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
+{
+  for (CollectionParent *parent_collection = collection->parents.first; parent_collection != NULL;
+       parent_collection = parent_collection->next) {
+    if ((parent_collection->collection->id.tag & LIB_TAG_DOIT) != 0) {
+      return true;
+    }
+    if (loose_data_instantiate_collection_parents_check_recursive(parent_collection->collection)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void loose_data_instantiate_collection_process(
     LooseDataInstantiateContext *instantiate_context)
 {
@@ -580,9 +596,13 @@ static void loose_data_instantiate_collection_process(
   const View3D *v3d = lapp_context->params->context.v3d;
 
   const bool do_append = (lapp_context->params->flag & FILE_LINK) == 0;
+  const bool do_instantiate_as_empty = (lapp_context->params->flag &
+                                        BLO_LIBLINK_COLLECTION_INSTANCE) != 0;
 
   /* NOTE: For collections we only view_layer-instantiate duplicated collections that have
-   * non-instantiated objects in them. */
+   * non-instantiated objects in them.
+   * NOTE: Also avoid viewlayer-instantiating of collections children of other instantiated
+   * collections. This is why we need two passes here. */
   LinkNode *itemlink;
   for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
     BlendfileLinkAppendContextItem *item = itemlink->link;
@@ -591,7 +611,7 @@ static void loose_data_instantiate_collection_process(
       continue;
     }
 
-    /* We do not want to force instantiation of indirectly appended collections. Users can now
+    /* Forced instantiation of indirectly appended collections is not wanted. Users can now
      * easily instantiate collections (and their objects) as needed by themselves. See T67032. */
     /* We need to check that objects in that collections are already instantiated in a scene.
      * Otherwise, it's better to add the collection to the scene's active collection, than to
@@ -601,9 +621,9 @@ static void loose_data_instantiate_collection_process(
      * children.
      */
     Collection *collection = (Collection *)id;
-    /* We always add collections directly selected by the user. */
+    /* Always consider adding collections directly selected by the user. */
     bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0;
-    /* In linking case, we do not enforce instantiating non-directly linked collections/objects.
+    /* In linking case, do not enforce instantiating non-directly linked collections/objects.
      * This avoids cluttering the ViewLayers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
     if (!do_add_collection && do_append) {
@@ -615,17 +635,38 @@ static void loose_data_instantiate_collection_process(
         }
       }
     }
-    if (!do_add_collection) {
+    if (do_add_collection) {
+      collection->id.tag |= LIB_TAG_DOIT;
+    }
+  }
+
+  /* Second loop to actually instantiate collections tagged as such in first loop, unless some of
+   * their ancestor is also instantiated in case this is not an empty-instantiation. */
+  for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
+    BlendfileLinkAppendContextItem *item = itemlink->link;
+    ID *id = loose_data_instantiate_process_check(instantiate_context, item);
+    if (id == NULL || GS(id->name) != ID_GR) {
+      continue;
+    }
+
+    Collection *collection = (Collection *)id;
+    bool do_add_collection = (id->tag & LIB_TAG_DOIT) != 0;
+
+    /* When instantiated into viewlayer, do not add collections if one of their parents is also
+     * instantiated. In case of empty-instantiation though, instantiation of all user-selected
+     * collections is the desired behavior. */
+    if (!do_add_collection ||
+        (!do_instantiate_as_empty &&
+         loose_data_instantiate_collection_parents_check_recursive(collection))) {
       continue;
     }
 
     loose_data_instantiate_ensure_active_collection(instantiate_context);
     Collection *active_collection = instantiate_context->active_collection;
 
-    /* In case user requested instantiation of collections as empties, we do so for the one they
+    /* In case user requested instantiation of collections as empties, do so for the one they
      * explicitly selected (originally directly linked IDs) only. */
-    if ((lapp_context->params->flag & BLO_LIBLINK_COLLECTION_INSTANCE) != 0 &&
-        (item->tag & LINK_APPEND_TAG_INDIRECT) == 0) {
+    if (do_instantiate_as_empty && (item->tag & LINK_APPEND_TAG_INDIRECT) == 0) {
       /* BKE_object_add(...) messes with the selection. */
       Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
       ob->type = OB_EMPTY;
