@@ -283,8 +283,6 @@ void BLO_library_link_end(struct Main *mainl,
                           BlendHandle **bh,
                           const struct LibraryLink_Params *params);
 
-int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const uint64_t id_types_mask);
-
 /**
  * Struct for temporarily loading datablocks from a blend file.
  */

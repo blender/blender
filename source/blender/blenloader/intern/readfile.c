@@ -4786,55 +4786,6 @@ static ID *link_named_part(
 }
 
 /**
- * Simple reader for copy/paste buffers.
- */
-int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_types_mask)
-{
-  FileData *fd = (FileData *)(bh);
-  BHead *bhead;
-  int num_directly_linked = 0;
-
-  for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    ID *id = NULL;
-
-    if (bhead->code == ENDB) {
-      break;
-    }
-
-    if (blo_bhead_is_id_valid_type(bhead) && BKE_idtype_idcode_is_linkable((short)bhead->code) &&
-        (id_types_mask == 0 ||
-         (BKE_idtype_idcode_to_idfilter((short)bhead->code) & id_types_mask) != 0)) {
-      read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_EXTERN, false, &id);
-      num_directly_linked++;
-    }
-
-    if (id) {
-      /* sort by name in list */
-      ListBase *lb = which_libbase(mainl, GS(id->name));
-      id_sort_by_name(lb, id, NULL);
-
-      /* Tag as loose object (or data associated with objects)
-       * needing to be instantiated (see also #link_named_part and its usage of
-       * #BLO_LIBLINK_NEEDS_ID_TAG_DOIT above). */
-      if (library_link_idcode_needs_tag_check(GS(id->name), BLO_LIBLINK_NEEDS_ID_TAG_DOIT)) {
-        id->tag |= LIB_TAG_DOIT;
-      }
-
-      if (bhead->code == ID_OB) {
-        /* Instead of instancing Base's directly, postpone until after collections are loaded
-         * otherwise the base's flag is set incorrectly when collections are used */
-        Object *ob = (Object *)id;
-        ob->mode = OB_MODE_OBJECT;
-        /* ensure add_loose_objects_to_scene runs on this object */
-        BLI_assert(id->us == 0);
-      }
-    }
-  }
-
-  return num_directly_linked;
-}
-
-/**
  * Link a named data-block from an external blend file.
  *
  * \param mainl: The main database to link from (not the active one).
