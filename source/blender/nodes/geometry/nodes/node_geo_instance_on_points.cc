@@ -22,6 +22,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_attribute_math.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_instance_on_points_cc {
@@ -53,10 +55,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Instances"));
 }
 
-static void add_instances_from_component(InstancesComponent &dst_component,
-                                         const GeometryComponent &src_component,
-                                         const GeometrySet &instance,
-                                         const GeoNodeExecParams &params)
+static void add_instances_from_component(
+    InstancesComponent &dst_component,
+    const GeometryComponent &src_component,
+    const GeometrySet &instance,
+    const GeoNodeExecParams &params,
+    const Map<AttributeIDRef, AttributeKind> &attributes_to_propagate)
 {
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
   const int domain_size = src_component.attribute_domain_size(domain);
@@ -174,6 +178,37 @@ static void add_instances_from_component(InstancesComponent &dst_component,
       }
     }
   }
+
+  bke::CustomDataAttributes &instance_attributes = dst_component.attributes();
+  for (const auto &item : attributes_to_propagate.items()) {
+    const AttributeIDRef &attribute_id = item.key;
+    const AttributeKind attribute_kind = item.value;
+
+    const GVArray src_attribute = src_component.attribute_get_for_read(
+        attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
+    BLI_assert(src_attribute);
+    std::optional<GMutableSpan> dst_attribute_opt = instance_attributes.get_for_write(
+        attribute_id);
+    if (!dst_attribute_opt) {
+      if (!instance_attributes.create(attribute_id, attribute_kind.data_type)) {
+        continue;
+      }
+      dst_attribute_opt = instance_attributes.get_for_write(attribute_id);
+    }
+    BLI_assert(dst_attribute_opt);
+    const GMutableSpan dst_attribute = dst_attribute_opt->slice(start_len, select_len);
+    threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
+      attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
+        using T = decltype(dummy);
+        VArray<T> src = src_attribute.typed<T>();
+        MutableSpan<T> dst = dst_attribute.typed<T>();
+        for (const int range_i : selection_range) {
+          const int i = selection[range_i];
+          dst[range_i] = src[i];
+        }
+      });
+    });
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -185,23 +220,36 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
+    Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
+    geometry_set.gather_attributes_for_propagation(
+        {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE},
+        GEO_COMPONENT_TYPE_INSTANCES,
+        false,
+        attributes_to_propagate);
+    attributes_to_propagate.remove("position");
+
     if (geometry_set.has<MeshComponent>()) {
-      add_instances_from_component(
-          instances, *geometry_set.get_component_for_read<MeshComponent>(), instance, params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_MESH);
+      add_instances_from_component(instances,
+                                   *geometry_set.get_component_for_read<MeshComponent>(),
+                                   instance,
+                                   params,
+                                   attributes_to_propagate);
     }
     if (geometry_set.has<PointCloudComponent>()) {
       add_instances_from_component(instances,
                                    *geometry_set.get_component_for_read<PointCloudComponent>(),
                                    instance,
-                                   params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_POINT_CLOUD);
+                                   params,
+                                   attributes_to_propagate);
     }
     if (geometry_set.has<CurveComponent>()) {
-      add_instances_from_component(
-          instances, *geometry_set.get_component_for_read<CurveComponent>(), instance, params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_CURVE);
+      add_instances_from_component(instances,
+                                   *geometry_set.get_component_for_read<CurveComponent>(),
+                                   instance,
+                                   params,
+                                   attributes_to_propagate);
     }
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
   });
 
   /* Unused references may have been added above. Remove those now so that other nodes don't
