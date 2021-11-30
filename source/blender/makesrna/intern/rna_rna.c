@@ -1941,6 +1941,8 @@ int rna_property_override_diff_default(Main *bmain,
                    idx_a - 1);
 #  endif
             op = NULL;
+
+            equals = false;
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
