@@ -210,7 +210,7 @@ bool sequencer_strip_has_path_poll(bContext *C)
           (SEQ_HAS_PATH(seq)));
 }
 
-bool sequencer_view_preview_poll(bContext *C)
+bool sequencer_view_has_preview_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   if (sseq == NULL) {
@@ -221,6 +221,26 @@ bool sequencer_view_preview_poll(bContext *C)
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
         (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool sequencer_view_preview_only_poll(const bContext *C)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq == NULL) {
+    return false;
+  }
+  if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+    return false;
+  }
+  if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
     return false;
   }
   ARegion *region = CTX_wm_region(C);
@@ -1710,8 +1730,11 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   SEQ_prefetch_stop(scene);
 
-  const bool is_preview = sequencer_view_preview_poll(C);
+  const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     SEQ_query_rendered_strips_to_tag(seqbasep, scene->r.cfra, 0);
   }
 
@@ -3438,7 +3461,7 @@ void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = sequencer_set_2d_cursor_exec;
   ot->invoke = sequencer_set_2d_cursor_invoke;
-  ot->poll = sequencer_view_preview_poll;
+  ot->poll = sequencer_view_has_preview_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

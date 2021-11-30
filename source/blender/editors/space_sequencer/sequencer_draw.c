@@ -2097,6 +2097,10 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
 static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
+  const ARegion *region = CTX_wm_region(C);
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return;
+  }
   if ((seq->flag & SELECT) == 0) {
     return;
   }

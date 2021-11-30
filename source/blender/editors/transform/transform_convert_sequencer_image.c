@@ -118,16 +118,17 @@ static void freeSeqData(TransInfo *UNUSED(t),
 void createTransSeqImageData(TransInfo *t)
 {
   Editing *ed = SEQ_editing_get(t->scene);
+  const SpaceSeq *sseq = t->area->spacedata.first;
+  const ARegion *region = t->region;
 
   if (ed == NULL) {
     return;
   }
-
-  {
-    const SpaceSeq *sseq = t->area->spacedata.first;
-    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
-      return;
-    }
+  if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+    return;
+  }
+  if (region->regiontype == RGN_TYPE_PREVIEW && sseq->view == SEQ_VIEW_SEQUENCE_PREVIEW) {
+    return;
   }
 
   ListBase *seqbase = SEQ_active_seqbase_get(ed);

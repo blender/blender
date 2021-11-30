@@ -110,7 +110,8 @@ bool sequencer_edit_poll(struct bContext *C);
 /* UNUSED */
 /* bool sequencer_strip_poll(struct bContext *C); */
 bool sequencer_strip_has_path_poll(struct bContext *C);
-bool sequencer_view_preview_poll(struct bContext *C);
+bool sequencer_view_has_preview_poll(struct bContext *C);
+bool sequencer_view_preview_only_poll(const struct bContext *C);
 bool sequencer_view_strips_poll(struct bContext *C);
 
 /* Externs. */
