@@ -1413,8 +1413,13 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
     return 0;
   }
 
-  numfiles = filelist_files_ensure(sfile->files);
   params = ED_fileselect_get_active_params(sfile);
+  /* In case #SpaceFile.browse_mode just changed, the area may be pending a refresh still, which is
+   * what creates the params for the current browse mode. See T93508. */
+  if (!params) {
+    return false;
+  }
+  numfiles = filelist_files_ensure(sfile->files);
 
   origfile = params->highlight_file;
 
