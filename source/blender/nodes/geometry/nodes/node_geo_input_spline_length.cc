@@ -23,7 +23,12 @@ namespace blender::nodes::node_geo_input_spline_length_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Length")).field_source();
+  b.add_output<decl::Int>(N_("Point Count")).field_source();
 }
+
+/* --------------------------------------------------------------------
+ * Spline Length
+ */
 
 static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
                                                      const AttributeDomain domain,
@@ -46,7 +51,7 @@ static VArray<float> construct_spline_length_gvarray(const CurveComponent &compo
         std::move(length), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
 
-  return nullptr;
+  return {};
 }
 
 class SplineLengthFieldInput final : public fn::FieldInput {
@@ -85,10 +90,77 @@ class SplineLengthFieldInput final : public fn::FieldInput {
   }
 };
 
+/* --------------------------------------------------------------------
+ * Spline Count
+ */
+
+static VArray<int> construct_spline_count_gvarray(const CurveComponent &component,
+                                                  const AttributeDomain domain,
+                                                  ResourceScope &UNUSED(scope))
+{
+  const CurveEval *curve = component.get_for_read();
+  if (curve == nullptr) {
+    return {};
+  }
+
+  Span<SplinePtr> splines = curve->splines();
+  auto count_fn = [splines](int i) { return splines[i]->size(); };
+
+  if (domain == ATTR_DOMAIN_CURVE) {
+    return VArray<int>::ForFunc(splines.size(), count_fn);
+  }
+  if (domain == ATTR_DOMAIN_POINT) {
+    VArray<int> count = VArray<int>::ForFunc(splines.size(), count_fn);
+    return component.attribute_try_adapt_domain<int>(
+        std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+  }
+
+  return {};
+}
+
+class SplineCountFieldInput final : public fn::FieldInput {
+ public:
+  SplineCountFieldInput() : fn::FieldInput(CPPType::get<int>(), "Spline Point Count")
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask UNUSED(mask),
+                                 ResourceScope &scope) const final
+  {
+    if (const GeometryComponentFieldContext *geometry_context =
+            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
+
+      const GeometryComponent &component = geometry_context->geometry_component();
+      const AttributeDomain domain = geometry_context->domain();
+      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+        return construct_spline_count_gvarray(curve_component, domain, scope);
+      }
+    }
+    return {};
+  }
+
+  uint64_t hash() const override
+  {
+    /* Some random constant hash. */
+    return 456364322625;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const override
+  {
+    return dynamic_cast<const SplineCountFieldInput *>(&other) != nullptr;
+  }
+};
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float> length_field{std::make_shared<SplineLengthFieldInput>()};
-  params.set_output("Length", std::move(length_field));
+  Field<float> spline_length_field{std::make_shared<SplineLengthFieldInput>()};
+  Field<int> spline_count_field{std::make_shared<SplineCountFieldInput>()};
+
+  params.set_output("Length", std::move(spline_length_field));
+  params.set_output("Point Count", std::move(spline_count_field));
 }
 
 }  // namespace blender::nodes::node_geo_input_spline_length_cc
@@ -98,7 +170,6 @@ void register_node_type_geo_input_spline_length()
   namespace file_ns = blender::nodes::node_geo_input_spline_length_cc;
 
   static bNodeType ntype;
-
   geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, "Spline Length", NODE_CLASS_INPUT, 0);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
