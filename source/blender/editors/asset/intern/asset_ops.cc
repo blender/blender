@@ -30,6 +30,7 @@
 #include "BLI_fileops.h"
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 
 #include "ED_asset.h"
 #include "ED_asset_catalog.hh"
@@ -877,7 +878,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
 
 struct FileCheckCallbackInfo {
   struct ReportList *reports;
-  bool external_file_found;
+  Set<std::string> external_files;
 };
 
 static bool external_file_check_callback(BPathForeachPathData *bpath_data,
@@ -886,24 +887,20 @@ static bool external_file_check_callback(BPathForeachPathData *bpath_data,
 {
   FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(
       bpath_data->user_data);
-  BKE_reportf(callback_info->reports,
-              RPT_ERROR,
-              "Unable to install asset bundle, has external dependency \"%s\"",
-              path_src);
-  callback_info->external_file_found = true;
+  callback_info->external_files.add(std::string(path_src));
   return false;
 }
 
 /**
  * Do a check on any external files (.blend, textures, etc.) being used.
- * The "Install asset bundle" operator only works on standalone .blend files
+ * The ASSET_OT_bundle_install operator only works on standalone .blend files
  * (catalog definition files are fine, though).
  *
  * \return true when there are external files, false otherwise.
  */
 static bool has_external_files(Main *bmain, struct ReportList *reports)
 {
-  struct FileCheckCallbackInfo callback_info = {reports, false};
+  struct FileCheckCallbackInfo callback_info = {reports, Set<std::string>()};
 
   eBPathForeachFlag flag = static_cast<eBPathForeachFlag>(
       BKE_BPATH_FOREACH_PATH_SKIP_PACKED          /* Packed files are fine. */
@@ -917,9 +914,34 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
       /* user_data */ &callback_info,
       /* absolute_base_path */ nullptr,
   };
-
   BKE_bpath_foreach_path_main(&bpath_data);
-  return callback_info.external_file_found;
+
+  if (callback_info.external_files.is_empty()) {
+    /* No external dependencies. */
+    return false;
+  }
+
+  if (callback_info.external_files.size() == 1) {
+    /* Only one external dependency, report it directly. */
+    BKE_reportf(callback_info.reports,
+                RPT_ERROR,
+                "Unable to copy bundle due to external dependency: \"%s\"",
+                callback_info.external_files.begin()->c_str());
+    return true;
+  }
+
+  /* Multiple external dependencies, report the aggregate and put details on console. */
+  BKE_reportf(
+      callback_info.reports,
+      RPT_ERROR,
+      "Unable to copy bundle due to %ld external dependencies; more details on the console",
+      callback_info.external_files.size());
+  printf("Unable to copy bundle due to %ld external dependencies:\n",
+         callback_info.external_files.size());
+  for (const std::string &path : callback_info.external_files) {
+    printf("   \"%s\"\n", path.c_str());
+  }
+  return true;
 }
 
 /* -------------------------------------------------------------------- */
