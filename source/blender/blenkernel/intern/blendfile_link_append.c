@@ -914,6 +914,11 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
  * Then we can heavily simplify #BKE_library_make_local(). */
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
+  if (lapp_context->num_items == 0) {
+    /* Nothing to append. */
+    return;
+  }
+
   Main *bmain = lapp_context->params->bmain;
 
   BLI_assert((lapp_context->params->flag & FILE_LINK) == 0);
@@ -1183,13 +1188,18 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
+  if (lapp_context->num_items == 0) {
+    /* Nothing to be linked. */
+    return;
+  }
+
+  BLI_assert(lapp_context->num_libraries != 0);
+
   Main *mainl;
   Library *lib;
 
   LinkNode *liblink, *itemlink;
   int lib_idx, item_idx;
-
-  BLI_assert(lapp_context->num_items && lapp_context->num_libraries);
 
   for (lib_idx = 0, liblink = lapp_context->libraries.list; liblink;
        lib_idx++, liblink = liblink->next) {
