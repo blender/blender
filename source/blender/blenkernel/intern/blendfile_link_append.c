@@ -318,6 +318,70 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
   return item;
 }
 
+/** Search for all ID matching given `id_types_filter` in given `library_index`, and add them to
+ * the list of items to process.
+ *
+ * \note #BKE_blendfile_link_append_context_library_add should never be called on the same
+ *`lapp_context` after this function.
+ *
+ * \param id_types_filter: A set of `FILTER_ID` bitflags, the types of IDs to add to the items
+ *                         list.
+ * \param library_index: The index of the library to look into, in given `lapp_context`.
+ *
+ * \return The number of items found and added to the list, or `BLENDFILE_LINK_APPEND_INVALID` if
+ *         it could not open the .blend file.
+ */
+int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
+    BlendfileLinkAppendContext *lapp_context,
+    ReportList *reports,
+    const uint64_t id_types_filter,
+    const int library_index)
+{
+  int id_num = 0;
+  int id_code_iter = 0;
+  short id_code;
+
+  LinkNode *lib_context_link = BLI_linklist_find(lapp_context->libraries.list, library_index);
+  BlendfileLinkAppendContextLibrary *lib_context = lib_context_link->link;
+  BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
+      lapp_context, lib_context, reports);
+
+  if (blo_handle == NULL) {
+    return BLENDFILE_LINK_APPEND_INVALID;
+  }
+
+  const bool use_assets_only = (lapp_context->params->flag & FILE_ASSETS_ONLY) != 0;
+
+  while ((id_code = BKE_idtype_idcode_iter_step(&id_code_iter))) {
+    if (!BKE_idtype_idcode_is_linkable(id_code) ||
+        (id_types_filter != 0 &&
+         (BKE_idtype_idcode_to_idfilter(id_code) & id_types_filter) == 0)) {
+      continue;
+    }
+
+    int id_names_num;
+    LinkNode *id_names_list = BLO_blendhandle_get_datablock_names(
+        blo_handle, id_code, use_assets_only, &id_names_num);
+
+    for (LinkNode *link_next = NULL; id_names_list != NULL; id_names_list = link_next) {
+      link_next = id_names_list->next;
+
+      char *id_name = id_names_list->link;
+      BlendfileLinkAppendContextItem *item = BKE_blendfile_link_append_context_item_add(
+          lapp_context, id_name, id_code, NULL);
+      BKE_blendfile_link_append_context_item_library_index_enable(
+          lapp_context, item, library_index);
+
+      MEM_freeN(id_name);
+      MEM_freeN(id_names_list);
+    }
+
+    id_num += id_names_num;
+  }
+
+  return id_num;
+}
+
 /** Enable search of the given \a item into the library stored at given index in the link/append
  * context. */
 void BKE_blendfile_link_append_context_item_library_index_enable(

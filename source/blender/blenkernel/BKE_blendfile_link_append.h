@@ -58,6 +58,14 @@ struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_ad
     const char *idname,
     const short idcode,
     void *userdata);
+
+#define BLENDFILE_LINK_APPEND_INVALID -1
+int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
+    struct BlendfileLinkAppendContext *lapp_context,
+    struct ReportList *reports,
+    const uint64_t id_types_filter,
+    const int library_index);
+
 void BKE_blendfile_link_append_context_item_library_index_enable(
     struct BlendfileLinkAppendContext *lapp_context,
     struct BlendfileLinkAppendContextItem *item,
