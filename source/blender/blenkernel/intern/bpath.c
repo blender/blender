@@ -103,7 +103,8 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
     return;
   }
 
-  if (id->library_weak_reference != NULL) {
+  if (id->library_weak_reference != NULL &&
+      (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0) {
     BKE_bpath_foreach_path_fixed_process(bpath_data, id->library_weak_reference->library_filepath);
   }
 

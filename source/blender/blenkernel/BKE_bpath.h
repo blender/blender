@@ -49,6 +49,12 @@ typedef enum eBPathForeachFlag {
   BKE_BPATH_FOREACH_PATH_SKIP_LINKED = (1 << 1),
   /** Skip paths when their matching data is packed. */
   BKE_BPATH_FOREACH_PATH_SKIP_PACKED = (1 << 2),
+  /* Skip weak reference paths. Those paths are typically 'nice to have' extra information, but are
+   * not used as actual source of data by the current .blend file.
+   *
+   * NOTE: Currently this only concerns the weak reference to a library file stored in
+   * `ID::library_weak_reference`. */
+  BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES = (1 << 5),
 
   /** Flags not affecting the generic BPath API. Those may be used by specific IDTypeInfo
    * `foreach_path` implementations and/or callbacks to implement specific behaviors. */
