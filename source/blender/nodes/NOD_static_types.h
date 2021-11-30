@@ -333,7 +333,7 @@ DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Conve
 DefNode(GeometryNode, GEO_NODE_CURVE_ENDPOINT_SELECTION, 0, "CURVE_ENDPOINT_SELECTION", CurveEndpointSelection, "Endpoint Selection", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, def_geo_curve_handle_type_selection, "CURVE_HANDLE_TYPE_SELECTION", CurveHandleTypeSelection, "Handle Type Selection", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_LENGTH, 0, "CURVE_LENGTH", CurveLength, "Curve Length", "")
-DefNode(GeometryNode, GEO_NODE_CURVE_PARAMETER, 0, "CURVE_PARAMETER", CurveParameter, "Curve Parameter", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SPLINE_PARAMETER, 0, "SPLINE_PARAMETER", SplineParameter, "Spline Parameter", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT, def_geo_curve_primitive_bezier_segment, "CURVE_PRIMITIVE_BEZIER_SEGMENT", CurvePrimitiveBezierSegment, "Bezier Segment", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, def_geo_curve_primitive_circle, "CURVE_PRIMITIVE_CIRCLE", CurvePrimitiveCircle, "Curve Circle", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_LINE, def_geo_curve_primitive_line, "CURVE_PRIMITIVE_LINE", CurvePrimitiveLine, "Curve Line", "")

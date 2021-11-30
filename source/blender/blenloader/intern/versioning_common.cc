@@ -165,6 +165,21 @@ void version_node_output_socket_name(bNodeTree *ntree,
   }
 }
 
+bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
+                                                  bNode *node,
+                                                  eNodeSocketInOut in_out,
+                                                  int type,
+                                                  int subtype,
+                                                  const char *identifier,
+                                                  const char *name)
+{
+  bNodeSocket *sock = nodeFindSocket(node, in_out, identifier);
+  if (sock != nullptr) {
+    return sock;
+  }
+  return nodeAddStaticSocket(ntree, node, in_out, type, subtype, identifier, name);
+}
+
 /**
  * Replace the ID name of all nodes in the tree with the given type with the new name.
  */

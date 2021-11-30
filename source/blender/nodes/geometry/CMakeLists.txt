@@ -94,7 +94,6 @@ set(SRC
   nodes/node_geo_curve_fillet.cc
   nodes/node_geo_curve_handle_type_selection.cc
   nodes/node_geo_curve_length.cc
-  nodes/node_geo_curve_parameter.cc
   nodes/node_geo_curve_primitive_bezier_segment.cc
   nodes/node_geo_curve_primitive_circle.cc
   nodes/node_geo_curve_primitive_line.cc
@@ -107,6 +106,7 @@ set(SRC
   nodes/node_geo_curve_sample.cc
   nodes/node_geo_curve_set_handles.cc
   nodes/node_geo_curve_spline_type.cc
+  nodes/node_geo_curve_spline_parameter.cc
   nodes/node_geo_curve_subdivide.cc
   nodes/node_geo_curve_to_mesh.cc
   nodes/node_geo_curve_to_points.cc

@@ -20,7 +20,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_curve_parameter_cc {
+namespace blender::nodes::node_geo_curve_spline_parameter_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -34,6 +34,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           N_("For points, the distance along the control point's spline, For splines, the "
              "distance along the entire curve"));
+  b.add_output<decl::Int>(N_("Index"))
+      .field_source()
+      .description(N_("Each control point's index on its spline"));
 }
 
 /**
@@ -182,6 +185,23 @@ static VArray<float> construct_curve_length_varray(const CurveEval &curve,
   return {};
 }
 
+static VArray<int> construct_index_on_spline_varray(const CurveEval &curve,
+                                                    const IndexMask UNUSED(mask),
+                                                    const AttributeDomain domain)
+{
+  if (domain == ATTR_DOMAIN_POINT) {
+    Array<int> output(curve.total_control_point_size());
+    int output_index = 0;
+    for (int spline_index : curve.splines().index_range()) {
+      for (int point_index : IndexRange(curve.splines()[spline_index]->size())) {
+        output[output_index++] = point_index;
+      }
+    }
+    return VArray<int>::ForContainer(std::move(output));
+  }
+  return {};
+}
+
 class CurveParameterFieldInput final : public fn::FieldInput {
  public:
   CurveParameterFieldInput() : fn::FieldInput(CPPType::get<float>(), "Curve Parameter node")
@@ -261,22 +281,64 @@ class CurveLengthFieldInput final : public fn::FieldInput {
   }
 };
 
+class IndexOnSplineFieldInput final : public fn::FieldInput {
+ public:
+  IndexOnSplineFieldInput() : fn::FieldInput(CPPType::get<int>(), "Spline Index")
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &UNUSED(scope)) const final
+  {
+    if (const GeometryComponentFieldContext *geometry_context =
+            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
+
+      const GeometryComponent &component = geometry_context->geometry_component();
+      const AttributeDomain domain = geometry_context->domain();
+      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+        const CurveEval *curve = curve_component.get_for_read();
+        if (curve) {
+          return construct_index_on_spline_varray(*curve, mask, domain);
+        }
+      }
+    }
+    return {};
+  }
+
+  uint64_t hash() const override
+  {
+    /* Some random constant hash. */
+    return 4536246522;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const override
+  {
+    return dynamic_cast<const IndexOnSplineFieldInput *>(&other) != nullptr;
+  }
+};
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float> parameter_field{std::make_shared<CurveParameterFieldInput>()};
   Field<float> length_field{std::make_shared<CurveLengthFieldInput>()};
+  Field<int> index_on_spline_field{std::make_shared<IndexOnSplineFieldInput>()};
   params.set_output("Factor", std::move(parameter_field));
   params.set_output("Length", std::move(length_field));
+  params.set_output("Index", std::move(index_on_spline_field));
 }
 
-}  // namespace blender::nodes::node_geo_curve_parameter_cc
+}  // namespace blender::nodes::node_geo_curve_spline_parameter_cc
 
-void register_node_type_geo_curve_parameter()
+void register_node_type_geo_curve_spline_parameter()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_parameter_cc;
+  namespace file_ns = blender::nodes::node_geo_curve_spline_parameter_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PARAMETER, "Curve Parameter", NODE_CLASS_INPUT, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_SPLINE_PARAMETER, "Spline Parameter", NODE_CLASS_INPUT, 0);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
