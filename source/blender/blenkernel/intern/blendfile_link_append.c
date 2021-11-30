@@ -293,6 +293,9 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
  * associated to the given context.
  *
  * \param userdata: an opaque user-data pointer stored in generated link/append item. */
+/* TODO: Add a more friendly version of this that combines it with the call to
+ * #BKE_blendfile_link_append_context_item_library_index_enable to enable the added item for all
+ * added library sources. */
 BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
     BlendfileLinkAppendContext *lapp_context,
     const char *idname,
@@ -1011,12 +1014,11 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 /** \name Library link/append code.
  * \{ */
 
-/* Perform append operation, using modern ID usage looper to detect which ID should be kept linked,
- * made local, duplicated as local, re-used from local etc.
+/** Perform append operation, using modern ID usage looper to detect which ID should be kept
+ * linked, made local, duplicated as local, re-used from local etc.
  *
- * TODO: Expose somehow this logic to the two other parts of code performing actual append
- * (i.e. copy/paste and `bpy` link/append API).
- * Then we can heavily simplify #BKE_library_make_local(). */
+ * The IDs processed by this functions are the one that have been linked by a previous call to
+ * #BKE_blendfile_link on the same `lapp_context`. */
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1291,6 +1293,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   BKE_main_id_newptr_and_tag_clear(bmain);
 }
 
+/** Perform linking operation on all items added to given `lapp_context`. */
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1496,6 +1499,23 @@ static void blendfile_library_relocate_remap(Main *bmain,
   }
 }
 
+/** Try to relocate all linked IDs added to `lapp_context`, belonging to the given `library`.
+ *
+ * This function searches for matching IDs (type and name) in all libraries added to the given
+ * `lapp_context`.
+ *
+ * Typical usages include:
+ *  * Relocating a library:
+ *    - Add the new target library path to `lapp_context`.
+ *    - Add all IDs from the library to relocate to `lapp_context`
+ *    - Mark the new target library to beconsidered for each ID.
+ *    - Call this function.
+ *
+ *  * Searching for (e.g.missing) linked IDs in a set or sub-set of libraries:
+ *    - Add all potential library sources paths to `lapp_context`.
+ *    - Add all IDs to search for to `lapp_context`.
+ *    - Mark which libraries should be considered for each ID.
+ *    - Call this function. */
 void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                     ReportList *reports,
                                     Library *library,
