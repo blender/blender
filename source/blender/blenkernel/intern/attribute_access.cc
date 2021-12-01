@@ -744,7 +744,6 @@ CustomDataAttributes &CustomDataAttributes::operator=(const CustomDataAttributes
 
 std::optional<GSpan> CustomDataAttributes::get_for_read(const AttributeIDRef &attribute_id) const
 {
-  BLI_assert(size_ != 0);
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       const CPPType *cpp_type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
@@ -783,8 +782,6 @@ GVArray CustomDataAttributes::get_for_read(const AttributeIDRef &attribute_id,
 
 std::optional<GMutableSpan> CustomDataAttributes::get_for_write(const AttributeIDRef &attribute_id)
 {
-  /* If this assert hits, it most likely means that #reallocate was not called at some point. */
-  BLI_assert(size_ != 0);
   for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
     if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       const CPPType *cpp_type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
