@@ -107,11 +107,11 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
   memset(gs, 0, sizeof(*gs));
 
-  if (ns == NULL) {
-    /* node_get_stack() will generate NULL bNodeStack pointers
+  if (ns == nullptr) {
+    /* node_get_stack() will generate nullptr bNodeStack pointers
      * for unknown/unsupported types of sockets. */
     zero_v4(gs->vec);
-    gs->link = NULL;
+    gs->link = nullptr;
     gs->type = GPU_NONE;
     gs->hasinput = false;
     gs->hasoutput = false;
@@ -119,7 +119,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
   }
   else {
     nodestack_get_vec(gs->vec, type, ns);
-    gs->link = ns->data;
+    gs->link = (GPUNodeLink *)ns->data;
 
     if (type == SOCK_FLOAT) {
       gs->type = GPU_FLOAT;
@@ -159,11 +159,9 @@ void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)
 
 static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeStack **ns)
 {
-  bNodeSocket *sock;
   int i;
-
-  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++) {
-    node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
+    node_gpu_stack_from_data(&gs[i], socket->type, ns[i]);
   }
 
   gs[i].end = true;
@@ -171,10 +169,8 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 
 static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
 {
-  bNodeSocket *sock;
   int i;
-
-  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++) {
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
     node_data_from_gpu_stack(ns[i], &gs[i]);
   }
 }
@@ -182,14 +178,14 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 bNode *nodeGetActiveTexture(bNodeTree *ntree)
 {
   /* this is the node we texture paint and draw in textured draw */
-  bNode *node, *tnode, *inactivenode = NULL, *activetexnode = NULL, *activegroup = NULL;
+  bNode *inactivenode = nullptr, *activetexnode = nullptr, *activegroup = nullptr;
   bool hasgroup = false;
 
   if (!ntree) {
-    return NULL;
+    return nullptr;
   }
 
-  for (node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->flag & NODE_ACTIVE_TEXTURE) {
       activetexnode = node;
       /* if active we can return immediately */
@@ -212,7 +208,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 
   /* first, check active group for textures */
   if (activegroup) {
-    tnode = nodeGetActiveTexture((bNodeTree *)activegroup->id);
+    bNode *tnode = nodeGetActiveTexture((bNodeTree *)activegroup->id);
     /* active node takes priority, so ignore any other possible nodes here */
     if (tnode) {
       return tnode;
@@ -225,9 +221,9 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 
   if (hasgroup) {
     /* node active texture node in this tree, look inside groups */
-    for (node = ntree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == NODE_GROUP) {
-        tnode = nodeGetActiveTexture((bNodeTree *)node->id);
+        bNode *tnode = nodeGetActiveTexture((bNodeTree *)node->id);
         if (tnode && ((tnode->flag & NODE_ACTIVE_TEXTURE) || !inactivenode)) {
           return tnode;
         }
@@ -257,7 +253,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
     do_it = false;
     /* for groups, only execute outputs for edited group */
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-      if ((output_node != NULL) && (node == output_node)) {
+      if ((output_node != nullptr) && (node == output_node)) {
         do_it = true;
       }
     }
@@ -307,7 +303,7 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
                                  GPUNodeStack *in,
                                  GPUNodeStack *UNUSED(out))
 {
-  NodeTexBase *base = node->storage;
+  NodeTexBase *base = (NodeTexBase *)node->storage;
   TexMapping *texmap = &base->tex_mapping;
   float domin = (texmap->flag & TEXMAP_CLIP_MIN) != 0;
   float domax = (texmap->flag & TEXMAP_CLIP_MAX) != 0;

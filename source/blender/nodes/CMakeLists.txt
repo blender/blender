@@ -248,7 +248,7 @@ set(SRC
   shader/nodes/node_shader_wavelength.c
   shader/nodes/node_shader_wireframe.c
   shader/node_shader_tree.c
-  shader/node_shader_util.c
+  shader/node_shader_util.cc
 
   texture/nodes/node_texture_at.c
   texture/nodes/node_texture_bricks.c
