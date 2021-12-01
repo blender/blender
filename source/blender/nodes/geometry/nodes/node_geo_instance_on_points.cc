@@ -158,17 +158,6 @@ static void add_instances_from_component(
     }
   });
 
-  VArray<int> ids = src_component
-                        .attribute_try_get_for_read("id", ATTR_DOMAIN_POINT, CD_PROP_INT32)
-                        .typed<int>();
-  if (ids) {
-    VArray_Span<int> ids_span{ids};
-    MutableSpan<int> dst_ids = dst_component.instance_ids_ensure();
-    for (const int64_t i : selection.index_range()) {
-      dst_ids[i] = ids_span[selection[i]];
-    }
-  }
-
   if (pick_instance.is_single()) {
     if (pick_instance.get_internal_single()) {
       if (instance.has_realized_data()) {

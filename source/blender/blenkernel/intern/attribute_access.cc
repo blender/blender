@@ -400,7 +400,9 @@ WriteAttributeLookup BuiltinCustomDataLayerProvider::try_get_for_write(
   }
 
   if (data != new_data) {
-    custom_data_access_.update_custom_data_pointers(component);
+    if (custom_data_access_.update_custom_data_pointers) {
+      custom_data_access_.update_custom_data_pointers(component);
+    }
     data = new_data;
   }
 
@@ -441,7 +443,9 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   const bool delete_success = CustomData_free_layer(
       custom_data, stored_type_, domain_size, layer_index);
   if (delete_success) {
-    custom_data_access_.update_custom_data_pointers(component);
+    if (custom_data_access_.update_custom_data_pointers) {
+      custom_data_access_.update_custom_data_pointers(component);
+    }
   }
   return delete_success;
 }
@@ -476,7 +480,9 @@ bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,
         *custom_data, stored_type_, domain_size, initializer);
   }
   if (success) {
-    custom_data_access_.update_custom_data_pointers(component);
+    if (custom_data_access_.update_custom_data_pointers) {
+      custom_data_access_.update_custom_data_pointers(component);
+    }
   }
   return success;
 }
@@ -644,7 +650,9 @@ WriteAttributeLookup NamedLegacyCustomDataProvider::try_get_for_write(
         void *data_new = CustomData_duplicate_referenced_layer_named(
             custom_data, stored_type_, layer.name, domain_size);
         if (data_old != data_new) {
-          custom_data_access_.update_custom_data_pointers(component);
+          if (custom_data_access_.update_custom_data_pointers) {
+            custom_data_access_.update_custom_data_pointers(component);
+          }
         }
         return {as_write_attribute_(layer.data, domain_size), domain_};
       }
@@ -666,7 +674,9 @@ bool NamedLegacyCustomDataProvider::try_delete(GeometryComponent &component,
       if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
         const int domain_size = component.attribute_domain_size(domain_);
         CustomData_free_layer(custom_data, stored_type_, domain_size, i);
-        custom_data_access_.update_custom_data_pointers(component);
+        if (custom_data_access_.update_custom_data_pointers) {
+          custom_data_access_.update_custom_data_pointers(component);
+        }
         return true;
       }
     }

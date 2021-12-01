@@ -186,7 +186,9 @@ static void add_instances_from_component(InstancesComponent &instances,
   instances.resize(start_len + domain_size);
   MutableSpan<int> handles = instances.instance_reference_handles().slice(start_len, domain_size);
   MutableSpan<float4x4> transforms = instances.instance_transforms().slice(start_len, domain_size);
-  MutableSpan<int> instance_ids = instances.instance_ids_ensure().slice(start_len, domain_size);
+  OutputAttribute_Typed<int> instance_id_attribute =
+      instances.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_INSTANCE);
+  MutableSpan<int> instance_ids = instance_id_attribute.as_span();
 
   /* Skip all of the randomness handling if there is only a single possible instance
    * (anything except for collection mode with "Whole Collection" turned off). */
@@ -213,6 +215,8 @@ static void add_instances_from_component(InstancesComponent &instances,
       }
     });
   }
+
+  instance_id_attribute.save();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
