@@ -434,7 +434,6 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
     ls->pdf = invarea;
 
     /* spot light attenuation */
-    float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
     ls->eval_fac *= spot_light_attenuation(
         ls->Ng, klight->spot.spot_angle, klight->spot.spot_smooth, -ls->D);
 
