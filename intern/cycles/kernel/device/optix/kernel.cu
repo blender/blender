@@ -97,9 +97,9 @@ extern "C" __global__ void __miss__kernel_optix_miss()
 
 extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 {
-#ifdef __HAIR__
+#if defined(__HAIR__) || defined(__POINTCLOUD__)
   if (!optixIsTriangleHit()) {
-    /* Ignore curves. */
+    /* Ignore curves and points. */
     return optixIgnoreIntersection();
   }
 #endif
@@ -194,7 +194,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     type = kernel_tex_fetch(__objects, object).primitive_type;
   }
 #  ifdef __HAIR__
-  else {
+  else if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
     u = __uint_as_float(optixGetAttribute_0());
     v = __uint_as_float(optixGetAttribute_1());
 
@@ -210,6 +210,11 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 #    endif
   }
 #  endif
+  else {
+    type = kernel_tex_fetch(__objects, object).primitive_type;
+    u = 0.0f;
+    v = 0.0f;
+  }
 
 #  ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
@@ -291,7 +296,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 
 extern "C" __global__ void __anyhit__kernel_optix_volume_test()
 {
-#ifdef __HAIR__
+#if defined(__HAIR__) || defined(__POINTCLOUD__)
   if (!optixIsTriangleHit()) {
     /* Ignore curves. */
     return optixIgnoreIntersection();
@@ -315,7 +320,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 {
 #ifdef __HAIR__
 #  if OPTIX_ABI_VERSION < 55
-  if (!optixIsTriangleHit()) {
+  if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
     /* Filter out curve endcaps. */
     const float u = __uint_as_float(optixGetAttribute_0());
     if (u == 0.0f || u == 1.0f) {
@@ -354,12 +359,18 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_3(prim);
     optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
   }
-  else {
+  else if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
     const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
     optixSetPayload_1(optixGetAttribute_0()); /* Same as 'optixGetCurveParameter()' */
     optixSetPayload_2(optixGetAttribute_1());
     optixSetPayload_3(segment.prim);
     optixSetPayload_5(segment.type);
+  }
+  else {
+    optixSetPayload_1(0);
+    optixSetPayload_2(0);
+    optixSetPayload_3(prim);
+    optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
   }
 }
 
@@ -409,6 +420,47 @@ extern "C" __global__ void __intersection__curve_ribbon()
   const int type = segment.type;
   if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     optix_intersection_curve(prim, type);
+  }
+}
+
+#endif
+
+#ifdef __POINTCLOUD__
+extern "C" __global__ void __intersection__point()
+{
+  const int prim = optixGetPrimitiveIndex();
+  const int object = get_object_id();
+  const int type = kernel_tex_fetch(__objects, object).primitive_type;
+
+#  ifdef __VISIBILITY_FLAG__
+  const uint visibility = optixGetPayload_4();
+  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+    return;
+  }
+#  endif
+
+  float3 P = optixGetObjectRayOrigin();
+  float3 dir = optixGetObjectRayDirection();
+
+  /* The direction is not normalized by default, the point intersection routine expects that. */
+  float len;
+  dir = normalize_len(dir, &len);
+
+#  ifdef __OBJECT_MOTION__
+  const float time = optixGetRayTime();
+#  else
+  const float time = 0.0f;
+#  endif
+
+  Intersection isect;
+  isect.t = optixGetRayTmax();
+  /* Transform maximum distance into object space. */
+  if (isect.t != FLT_MAX) {
+    isect.t *= len;
+  }
+
+  if (point_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
+    optixReportIntersection(isect.t / len, type & PRIMITIVE_ALL);
   }
 }
 #endif

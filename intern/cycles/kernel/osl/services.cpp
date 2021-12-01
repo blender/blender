@@ -28,6 +28,7 @@
 #include "scene/colorspace.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 #include "scene/scene.h"
 
 #include "kernel/osl/closures.h"
@@ -113,6 +114,8 @@ ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
 ustring OSLRenderServices::u_curve_length("geom:curve_length");
 ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 ustring OSLRenderServices::u_curve_random("geom:curve_random");
+ustring OSLRenderServices::u_is_point("geom:is_point");
+ustring OSLRenderServices::u_point_radius("geom:point_radius");
 ustring OSLRenderServices::u_normal_map_normal("geom:normal_map_normal");
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_path_ray_depth("path:ray_depth");
@@ -993,6 +996,15 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   else if (name == u_curve_tangent_normal) {
     float3 f = curve_tangent_normal(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
+  }
+  /* point attributes */
+  else if (name == u_is_point) {
+    float f = (sd->type & PRIMITIVE_ALL_POINT) != 0;
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == u_point_radius) {
+    float f = point_radius(kg, sd);
+    return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_ALL_TRIANGLE) {

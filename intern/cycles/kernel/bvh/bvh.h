@@ -49,24 +49,24 @@ CCL_NAMESPACE_BEGIN
 #  include "kernel/bvh/nodes.h"
 
 #  define BVH_FUNCTION_NAME bvh_intersect
-#  define BVH_FUNCTION_FEATURES 0
+#  define BVH_FUNCTION_FEATURES BVH_POINTCLOUD
 #  include "kernel/bvh/traversal.h"
 
 #  if defined(__HAIR__)
 #    define BVH_FUNCTION_NAME bvh_intersect_hair
-#    define BVH_FUNCTION_FEATURES BVH_HAIR
+#    define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_POINTCLOUD
 #    include "kernel/bvh/traversal.h"
 #  endif
 
 #  if defined(__OBJECT_MOTION__)
 #    define BVH_FUNCTION_NAME bvh_intersect_motion
-#    define BVH_FUNCTION_FEATURES BVH_MOTION
+#    define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_POINTCLOUD
 #    include "kernel/bvh/traversal.h"
 #  endif
 
 #  if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #    define BVH_FUNCTION_NAME bvh_intersect_hair_motion
-#    define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION
+#    define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION | BVH_POINTCLOUD
 #    include "kernel/bvh/traversal.h"
 #  endif
 
@@ -102,26 +102,27 @@ CCL_NAMESPACE_BEGIN
 
 #  if defined(__SHADOW_RECORD_ALL__)
 #    define BVH_FUNCTION_NAME bvh_intersect_shadow_all
-#    define BVH_FUNCTION_FEATURES 0
+#    define BVH_FUNCTION_FEATURES BVH_POINTCLOUD
 #    include "kernel/bvh/shadow_all.h"
 
 #    if defined(__HAIR__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
-#      define BVH_FUNCTION_FEATURES BVH_HAIR
+#      define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_POINTCLOUD
 #      include "kernel/bvh/shadow_all.h"
 #    endif
 
 #    if defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
-#      define BVH_FUNCTION_FEATURES BVH_MOTION
+#      define BVH_FUNCTION_FEATURES BVH_MOTION | BVH_POINTCLOUD
 #      include "kernel/bvh/shadow_all.h"
 #    endif
 
 #    if defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #      define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
-#      define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION
+#      define BVH_FUNCTION_FEATURES BVH_HAIR | BVH_MOTION | BVH_POINTCLOUD
 #      include "kernel/bvh/shadow_all.h"
 #    endif
+
 #  endif /* __SHADOW_RECORD_ALL__ */
 
 /* Record all intersections - Volume BVH traversal. */

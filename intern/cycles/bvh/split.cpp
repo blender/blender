@@ -23,6 +23,7 @@
 #include "scene/hair.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 
 #include "util/algorithm.h"
 
@@ -426,6 +427,32 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
   }
 }
 
+void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
+                                            const Transform *tfm,
+                                            int prim_index,
+                                            int dim,
+                                            float pos,
+                                            BoundBox &left_bounds,
+                                            BoundBox &right_bounds)
+{
+  /* No real splitting support for points, assume they are small enough for it
+   * not to matter. */
+  float3 point = pointcloud->get_points()[prim_index];
+
+  if (tfm != NULL) {
+    point = transform_point(tfm, point);
+  }
+  point = get_unaligned_point(point);
+
+  if (point[dim] <= pos) {
+    left_bounds.grow(point);
+  }
+
+  if (point[dim] >= pos) {
+    right_bounds.grow(point);
+  }
+}
+
 void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
                                                const Mesh *mesh,
                                                int dim,
@@ -453,6 +480,16 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
                         right_bounds);
 }
 
+void BVHSpatialSplit::split_point_reference(const BVHReference &ref,
+                                            const PointCloud *pointcloud,
+                                            int dim,
+                                            float pos,
+                                            BoundBox &left_bounds,
+                                            BoundBox &right_bounds)
+{
+  split_point_primitive(pointcloud, NULL, ref.prim_index(), dim, pos, left_bounds, right_bounds);
+}
+
 void BVHSpatialSplit::split_object_reference(
     const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds)
 {
@@ -473,6 +510,13 @@ void BVHSpatialSplit::split_object_reference(
         split_curve_primitive(
             hair, &object->get_tfm(), curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
       }
+    }
+  }
+  else if (geom->geometry_type == Geometry::POINTCLOUD) {
+    PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+    for (int point_idx = 0; point_idx < pointcloud->num_points(); ++point_idx) {
+      split_point_primitive(
+          pointcloud, &object->get_tfm(), point_idx, dim, pos, left_bounds, right_bounds);
     }
   }
 }
@@ -498,6 +542,10 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
   else if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
     Hair *hair = static_cast<Hair *>(ob->get_geometry());
     split_curve_reference(ref, hair, dim, pos, left_bounds, right_bounds);
+  }
+  else if (ref.prim_type() & PRIMITIVE_ALL_POINT) {
+    PointCloud *pointcloud = static_cast<PointCloud *>(ob->get_geometry());
+    split_point_reference(ref, pointcloud, dim, pos, left_bounds, right_bounds);
   }
   else {
     split_object_reference(ob, dim, pos, left_bounds, right_bounds);

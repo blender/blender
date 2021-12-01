@@ -55,6 +55,10 @@ KERNEL_TEX(KernelCurveSegment, __curve_segments)
 /* patches */
 KERNEL_TEX(uint, __patches)
 
+/* pointclouds */
+KERNEL_TEX(float4, __points)
+KERNEL_TEX(uint, __points_shader)
+
 /* attributes */
 KERNEL_TEX(uint4, __attributes_map)
 KERNEL_TEX(float, __attributes_float)

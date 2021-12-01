@@ -45,6 +45,7 @@
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
+#  include "scene/pointcloud.h"
 
 #  include "util/foreach.h"
 #  include "util/log.h"
@@ -245,7 +246,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
   }
 }
 
-static void rtc_filter_func_thick_curve(const RTCFilterFunctionNArguments *args)
+static void rtc_filter_func_backface_cull(const RTCFilterFunctionNArguments *args)
 {
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
@@ -258,7 +259,7 @@ static void rtc_filter_func_thick_curve(const RTCFilterFunctionNArguments *args)
   }
 }
 
-static void rtc_filter_occluded_func_thick_curve(const RTCFilterFunctionNArguments *args)
+static void rtc_filter_occluded_func_backface_cull(const RTCFilterFunctionNArguments *args)
 {
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
@@ -408,6 +409,12 @@ void BVHEmbree::add_object(Object *ob, int i)
     Hair *hair = static_cast<Hair *>(geom);
     if (hair->num_curves() > 0) {
       add_curves(ob, hair, i);
+    }
+  }
+  else if (geom->geometry_type == Geometry::POINTCLOUD) {
+    PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+    if (pointcloud->num_points() > 0) {
+      add_points(ob, pointcloud, i);
     }
   }
 }
@@ -624,6 +631,89 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
   }
 }
 
+void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
+                                        const PointCloud *pointcloud,
+                                        const bool update)
+{
+  const Attribute *attr_mP = NULL;
+  size_t num_motion_steps = 1;
+  if (pointcloud->has_motion_blur()) {
+    attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    if (attr_mP) {
+      num_motion_steps = pointcloud->get_motion_steps();
+    }
+  }
+
+  const size_t num_points = pointcloud->num_points();
+
+  /* Copy the point data to Embree */
+  const int t_mid = (num_motion_steps - 1) / 2;
+  const float *radius = pointcloud->get_radius().data();
+  for (int t = 0; t < num_motion_steps; ++t) {
+    const float3 *verts;
+    if (t == t_mid || attr_mP == NULL) {
+      verts = pointcloud->get_points().data();
+    }
+    else {
+      int t_ = (t > t_mid) ? (t - 1) : t;
+      verts = &attr_mP->data_float3()[t_ * num_points];
+    }
+
+    float4 *rtc_verts = (update) ? (float4 *)rtcGetGeometryBufferData(
+                                       geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
+                                   (float4 *)rtcSetNewGeometryBuffer(geom_id,
+                                                                     RTC_BUFFER_TYPE_VERTEX,
+                                                                     t,
+                                                                     RTC_FORMAT_FLOAT4,
+                                                                     sizeof(float) * 4,
+                                                                     num_points);
+
+    assert(rtc_verts);
+    if (rtc_verts) {
+      for (size_t j = 0; j < num_points; ++j) {
+        rtc_verts[j] = float3_to_float4(verts[j]);
+        rtc_verts[j].w = radius[j];
+      }
+    }
+
+    if (update) {
+      rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
+    }
+  }
+}
+
+void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i)
+{
+  size_t prim_offset = pointcloud->prim_offset;
+
+  const Attribute *attr_mP = NULL;
+  size_t num_motion_steps = 1;
+  if (pointcloud->has_motion_blur()) {
+    attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    if (attr_mP) {
+      num_motion_steps = pointcloud->get_motion_steps();
+    }
+  }
+
+  enum RTCGeometryType type = RTC_GEOMETRY_TYPE_SPHERE_POINT;
+
+  RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
+
+  rtcSetGeometryBuildQuality(geom_id, build_quality);
+  rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
+
+  set_point_vertex_buffer(geom_id, pointcloud, false);
+
+  rtcSetGeometryUserData(geom_id, (void *)prim_offset);
+  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_backface_cull);
+  rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_backface_cull);
+  rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
+
+  rtcCommitGeometry(geom_id);
+  rtcAttachGeometryByID(scene, geom_id, i * 2);
+  rtcReleaseGeometry(geom_id);
+}
+
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
   size_t prim_offset = hair->curve_segment_offset;
@@ -678,8 +768,8 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
     rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
   }
   else {
-    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_thick_curve);
-    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_thick_curve);
+    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_backface_cull);
+    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_backface_cull);
   }
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
@@ -713,6 +803,14 @@ void BVHEmbree::refit(Progress &progress)
           RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
           set_curve_vertex_buffer(geom, hair, true);
           rtcSetGeometryUserData(geom, (void *)hair->curve_segment_offset);
+          rtcCommitGeometry(geom);
+        }
+      }
+      else if (geom->geometry_type == Geometry::POINTCLOUD) {
+        PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+        if (pointcloud->num_points() > 0) {
+          RTCGeometry geom = rtcGetGeometry(scene, geom_id);
+          set_point_vertex_buffer(geom, pointcloud, true);
           rtcCommitGeometry(geom);
         }
       }

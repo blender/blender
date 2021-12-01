@@ -42,7 +42,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
                                   int pixel_size,
                                   ccl_private float3 *P)
 {
-#ifdef __HAIR__
+#if defined(__HAIR__) || defined(__POINTCLOUD__)
   if (sd->prim != PRIM_NONE && sd->type & PRIMITIVE_ALL_TRIANGLE)
 #else
   if (sd->prim != PRIM_NONE)
