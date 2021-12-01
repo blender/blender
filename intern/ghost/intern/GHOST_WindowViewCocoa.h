@@ -510,6 +510,14 @@
 - (void)checkKeyCodeIsControlChar:(NSEvent *)event
 {
   ime.state_flag &= ~GHOST_IME_KEY_CONTROL_CHAR;
+
+  /* Don't use IME for command and ctrl key combinations, these are shortcuts. */
+  if ([event modifierFlags] & (NSEventModifierFlagCommand | NSEventModifierFlagControl)) {
+    ime.state_flag |= GHOST_IME_KEY_CONTROL_CHAR;
+    return;
+  }
+
+  /* Don't use IME for these control keys. */
   switch ([event keyCode]) {
     case kVK_ANSI_KeypadEnter:
     case kVK_ANSI_KeypadClear:
