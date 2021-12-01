@@ -98,8 +98,7 @@ class OptiXDevice : public CUDADevice {
     /* OptiX denoiser state and scratch buffers, stored in a single memory buffer.
      * The memory layout goes as following: [denoiser state][scratch buffer]. */
     device_only_memory<unsigned char> state;
-    size_t scratch_offset = 0;
-    size_t scratch_size = 0;
+    OptixDenoiserSizes sizes = {};
 
     bool use_pass_albedo = false;
     bool use_pass_normal = false;

@@ -41,6 +41,8 @@
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
 
+#  include <optix_denoiser_tiling.h>
+
 CCL_NAMESPACE_BEGIN
 
 OptiXDevice::Denoiser::Denoiser(OptiXDevice *device)
@@ -884,35 +886,33 @@ bool OptiXDevice::denoise_create_if_needed(DenoiseContext &context)
 
 bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
 {
-  if (denoiser_.is_configured && (denoiser_.configured_size.x == context.buffer_params.width &&
-                                  denoiser_.configured_size.y == context.buffer_params.height)) {
+  /* Limit maximum tile size denoiser can be invoked with. */
+  const int2 tile_size = make_int2(min(context.buffer_params.width, 4096),
+                                   min(context.buffer_params.height, 4096));
+
+  if (denoiser_.is_configured &&
+      (denoiser_.configured_size.x == tile_size.x && denoiser_.configured_size.y == tile_size.y)) {
     return true;
   }
 
-  const BufferParams &buffer_params = context.buffer_params;
-
-  OptixDenoiserSizes sizes = {};
   optix_assert(optixDenoiserComputeMemoryResources(
-      denoiser_.optix_denoiser, buffer_params.width, buffer_params.height, &sizes));
-
-  /* Denoiser is invoked on whole images only, so no overlap needed (would be used for tiling). */
-  denoiser_.scratch_size = sizes.withoutOverlapScratchSizeInBytes;
-  denoiser_.scratch_offset = sizes.stateSizeInBytes;
+      denoiser_.optix_denoiser, tile_size.x, tile_size.y, &denoiser_.sizes));
 
   /* Allocate denoiser state if tile size has changed since last setup. */
-  denoiser_.state.alloc_to_device(denoiser_.scratch_offset + denoiser_.scratch_size);
+  denoiser_.state.alloc_to_device(denoiser_.sizes.stateSizeInBytes +
+                                  denoiser_.sizes.withOverlapScratchSizeInBytes);
 
   /* Initialize denoiser state for the current tile size. */
   const OptixResult result = optixDenoiserSetup(
       denoiser_.optix_denoiser,
       0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
             on a stream that is not the default stream */
-      buffer_params.width,
-      buffer_params.height,
+      tile_size.x + denoiser_.sizes.overlapWindowSizeInPixels * 2,
+      tile_size.y + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       denoiser_.state.device_pointer,
-      denoiser_.scratch_offset,
-      denoiser_.state.device_pointer + denoiser_.scratch_offset,
-      denoiser_.scratch_size);
+      denoiser_.sizes.stateSizeInBytes,
+      denoiser_.state.device_pointer + denoiser_.sizes.stateSizeInBytes,
+      denoiser_.sizes.withOverlapScratchSizeInBytes);
   if (result != OPTIX_SUCCESS) {
     set_error("Failed to set up OptiX denoiser");
     return false;
@@ -921,8 +921,7 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   cuda_assert(cuCtxSynchronize());
 
   denoiser_.is_configured = true;
-  denoiser_.configured_size.x = buffer_params.width;
-  denoiser_.configured_size.y = buffer_params.height;
+  denoiser_.configured_size = tile_size;
 
   return true;
 }
@@ -993,18 +992,20 @@ bool OptiXDevice::denoise_run(DenoiseContext &context, const DenoisePass &pass)
   guide_layers.albedo = albedo_layer;
   guide_layers.normal = normal_layer;
 
-  optix_assert(optixDenoiserInvoke(denoiser_.optix_denoiser,
-                                   denoiser_.queue.stream(),
-                                   &params,
-                                   denoiser_.state.device_pointer,
-                                   denoiser_.scratch_offset,
-                                   &guide_layers,
-                                   &image_layers,
-                                   1,
-                                   0,
-                                   0,
-                                   denoiser_.state.device_pointer + denoiser_.scratch_offset,
-                                   denoiser_.scratch_size));
+  optix_assert(optixUtilDenoiserInvokeTiled(denoiser_.optix_denoiser,
+                                            denoiser_.queue.stream(),
+                                            &params,
+                                            denoiser_.state.device_pointer,
+                                            denoiser_.sizes.stateSizeInBytes,
+                                            &guide_layers,
+                                            &image_layers,
+                                            1,
+                                            denoiser_.state.device_pointer +
+                                                denoiser_.sizes.stateSizeInBytes,
+                                            denoiser_.sizes.withOverlapScratchSizeInBytes,
+                                            denoiser_.sizes.overlapWindowSizeInPixels,
+                                            denoiser_.configured_size.x,
+                                            denoiser_.configured_size.y));
 
   return true;
 }
