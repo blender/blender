@@ -7557,7 +7557,7 @@ def km_sequencer_editor_tool_generic_select(params, *, fallback):
                 params, "sequencer.select", "sequencer.cursor_set", extend="toggle")),
 
             *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(
-                type=params.select_mouse, value=params.select_mouse_value_fallback, legacy=params.legacy)),
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
             # Ignored for preview.
             *_template_items_change_frame(params),
         ]},
