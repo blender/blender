@@ -1555,6 +1555,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_ID 1134
 #define GEO_NODE_SET_ID 1135
 #define GEO_NODE_ATTRIBUTE_DOMAIN_SIZE 1136
+#define GEO_NODE_DUAL_MESH 1137
 
 /** \} */
 

@@ -141,6 +141,7 @@ def mesh_node_items(context):
         yield NodeItem("GeometryNodeLegacySubdivisionSurface", poll=geometry_nodes_legacy_poll)
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
+    yield NodeItem("GeometryNodeDualMesh")
     yield NodeItem("GeometryNodeMeshBoolean")
     yield NodeItem("GeometryNodeMeshToCurve")
     yield NodeItem("GeometryNodeMeshToPoints")

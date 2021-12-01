@@ -113,6 +113,7 @@ set(SRC
   nodes/node_geo_curve_trim.cc
   nodes/node_geo_delete_geometry.cc
   nodes/node_geo_distribute_points_on_faces.cc
+  nodes/node_geo_dual_mesh.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_image_texture.cc
   nodes/node_geo_input_curve_handles.cc

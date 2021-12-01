@@ -347,6 +347,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")
 DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, def_geo_delete_geometry, "DELETE_GEOMETRY", DeleteGeometry, "Delete Geometry", "")
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "")
+DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh", "")
 DefNode(GeometryNode, GEO_NODE_FILL_CURVE, def_geo_curve_fill, "FILL_CURVE", FillCurve, "Fill Curve", "")
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, def_geo_curve_fillet, "FILLET_CURVE", FilletCurve, "Fillet Curve", "")
 DefNode(GeometryNode, GEO_NODE_IMAGE_TEXTURE, def_geo_image_texture, "IMAGE_TEXTURE", ImageTexture, "Image Texture", "")
