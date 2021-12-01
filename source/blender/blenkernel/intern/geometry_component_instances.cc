@@ -53,6 +53,7 @@ GeometryComponent *InstancesComponent::copy() const
   new_component->instance_reference_handles_ = instance_reference_handles_;
   new_component->instance_transforms_ = instance_transforms_;
   new_component->references_ = references_;
+  new_component->attributes_ = attributes_;
   return new_component;
 }
 
