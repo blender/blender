@@ -1799,7 +1799,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 #define SEQ_CHANNEL_CHECK(_seq, _chan) (ELEM((_chan), 0, (_seq)->machine))
 
 static bool select_grouped_type(SeqCollection *strips,
-                                ListBase *seqbase,
+                                ListBase *UNUSED(seqbase),
                                 Sequence *actseq,
                                 const int channel)
 {
@@ -1817,7 +1817,7 @@ static bool select_grouped_type(SeqCollection *strips,
 }
 
 static bool select_grouped_type_basic(SeqCollection *strips,
-                                      ListBase *seqbase,
+                                      ListBase *UNUSED(seqbase),
                                       Sequence *actseq,
                                       const int channel)
 {
@@ -1836,7 +1836,7 @@ static bool select_grouped_type_basic(SeqCollection *strips,
 }
 
 static bool select_grouped_type_effect(SeqCollection *strips,
-                                       ListBase *seqbase,
+                                       ListBase *UNUSED(seqbase),
                                        Sequence *actseq,
                                        const int channel)
 {
@@ -1856,7 +1856,7 @@ static bool select_grouped_type_effect(SeqCollection *strips,
 }
 
 static bool select_grouped_data(SeqCollection *strips,
-                                ListBase *seqbase,
+                                ListBase *UNUSED(seqbase),
                                 Sequence *actseq,
                                 const int channel)
 {
@@ -1911,7 +1911,7 @@ static bool select_grouped_data(SeqCollection *strips,
 }
 
 static bool select_grouped_effect(SeqCollection *strips,
-                                  ListBase *seqbase,
+                                  ListBase *UNUSED(seqbase),
                                   Sequence *actseq,
                                   const int channel)
 {
@@ -1922,14 +1922,15 @@ static bool select_grouped_effect(SeqCollection *strips,
     effects[i] = false;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
         ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
       effects[seq->type] = true;
     }
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
       if (seq->seq1) {
         seq->seq1->flag |= SELECT;
@@ -1947,11 +1948,14 @@ static bool select_grouped_effect(SeqCollection *strips,
   return changed;
 }
 
-static bool select_grouped_time_overlap(SeqCollection *strips, ListBase *seqbase, Sequence *actseq)
+static bool select_grouped_time_overlap(SeqCollection *strips,
+                                        ListBase *UNUSED(seqbase),
+                                        Sequence *actseq)
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->startdisp < actseq->enddisp && seq->enddisp > actseq->startdisp) {
       seq->flag |= SELECT;
       changed = true;
