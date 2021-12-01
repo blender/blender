@@ -34,6 +34,7 @@ struct Depsgraph;
 struct Main;
 struct Scene;
 struct Sequence;
+struct SeqCollection;
 struct SpaceSeq;
 struct StripElem;
 struct bContext;
@@ -113,6 +114,25 @@ bool sequencer_strip_has_path_poll(struct bContext *C);
 bool sequencer_view_has_preview_poll(struct bContext *C);
 bool sequencer_view_preview_only_poll(const struct bContext *C);
 bool sequencer_view_strips_poll(struct bContext *C);
+
+/**
+ * Returns collection with all strips presented to user. If operation is done in preview,
+ * collection is limited to all presented strips that can produce image output.
+ *
+ * \param C: context
+ * \return collection of strips (`Sequence`)
+ */
+struct SeqCollection *all_strips_from_context(struct bContext *C);
+
+/**
+ * Returns collection with selected strips presented to user. If operation is done in preview,
+ * collection is limited to selected presented strips, that can produce image output at current
+ * frame.
+ *
+ * \param C: context
+ * \return collection of strips (`Sequence`)
+ */
+struct SeqCollection *selected_strips_from_context(struct bContext *C);
 
 /* Externs. */
 extern EnumPropertyItem sequencer_prop_effect_types[];
