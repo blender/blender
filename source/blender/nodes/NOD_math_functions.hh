@@ -204,7 +204,7 @@ inline bool try_dispatch_float_math_fl_fl_fl_to_fl(const int operation, Callback
  * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
  */
 template<typename Callback>
-inline bool try_dispatch_float_math_fl_fl_to_bool(const FloatCompareOperation operation,
+inline bool try_dispatch_float_math_fl_fl_to_bool(const NodeCompareOperation operation,
                                                   Callback &&callback)
 {
   const FloatMathOperationInfo *info = get_float_compare_operation_info(operation);
@@ -219,13 +219,13 @@ inline bool try_dispatch_float_math_fl_fl_to_bool(const FloatCompareOperation op
   };
 
   switch (operation) {
-    case NODE_FLOAT_COMPARE_LESS_THAN:
+    case NODE_COMPARE_LESS_THAN:
       return dispatch([](float a, float b) { return a < b; });
-    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+    case NODE_COMPARE_LESS_EQUAL:
       return dispatch([](float a, float b) { return a <= b; });
-    case NODE_FLOAT_COMPARE_GREATER_THAN:
+    case NODE_COMPARE_GREATER_THAN:
       return dispatch([](float a, float b) { return a > b; });
-    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+    case NODE_COMPARE_GREATER_EQUAL:
       return dispatch([](float a, float b) { return a >= b; });
     default:
       return false;

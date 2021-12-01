@@ -5970,7 +5970,7 @@ static void registerFunctionNodes()
 
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
-  register_node_type_fn_float_compare();
+  register_node_type_fn_compare();
   register_node_type_fn_float_to_int();
   register_node_type_fn_input_bool();
   register_node_type_fn_input_color();

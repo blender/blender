@@ -1606,6 +1606,16 @@ typedef struct NodeGeometryViewer {
   int8_t data_type;
 } NodeGeometryViewer;
 
+typedef struct NodeFunctionCompare {
+  /* NodeCompareOperation */
+  int8_t operation;
+  /* eNodeSocketDatatype */
+  int8_t data_type;
+  /* NodeCompareMode */
+  int8_t mode;
+  char _pad[1];
+} NodeFunctionCompare;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1886,14 +1896,25 @@ enum {
 };
 
 /* Float compare node operations. */
-typedef enum FloatCompareOperation {
-  NODE_FLOAT_COMPARE_LESS_THAN = 0,
-  NODE_FLOAT_COMPARE_LESS_EQUAL = 1,
-  NODE_FLOAT_COMPARE_GREATER_THAN = 2,
-  NODE_FLOAT_COMPARE_GREATER_EQUAL = 3,
-  NODE_FLOAT_COMPARE_EQUAL = 4,
-  NODE_FLOAT_COMPARE_NOT_EQUAL = 5,
-} FloatCompareOperation;
+typedef enum NodeCompareMode {
+  NODE_COMPARE_MODE_ELEMENT = 0,
+  NODE_COMPARE_MODE_LENGTH = 1,
+  NODE_COMPARE_MODE_AVERAGE = 2,
+  NODE_COMPARE_MODE_DOT_PRODUCT = 3,
+  NODE_COMPARE_MODE_DIRECTION = 4
+} NodeCompareMode;
+
+typedef enum NodeCompareOperation {
+  NODE_COMPARE_LESS_THAN = 0,
+  NODE_COMPARE_LESS_EQUAL = 1,
+  NODE_COMPARE_GREATER_THAN = 2,
+  NODE_COMPARE_GREATER_EQUAL = 3,
+  NODE_COMPARE_EQUAL = 4,
+  NODE_COMPARE_NOT_EQUAL = 5,
+  NODE_COMPARE_COLOR_BRIGHTER = 6,
+  NODE_COMPARE_COLOR_DARKER = 7,
+
+} NodeCompareOperation;
 
 /* Float to Int node operations. */
 typedef enum FloatToIntRoundingMode {

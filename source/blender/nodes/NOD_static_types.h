@@ -267,7 +267,7 @@ DefNode(FunctionNode, FN_NODE_LEGACY_RANDOM_FLOAT, 0, "LEGACY_RANDOM_FLOAT", Leg
 
 DefNode(FunctionNode, FN_NODE_ALIGN_EULER_TO_VECTOR, def_fn_align_euler_to_vector, "ALIGN_EULER_TO_VECTOR", AlignEulerToVector, "Align Euler To Vector", "")
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
-DefNode(FunctionNode, FN_NODE_COMPARE_FLOATS, def_float_compare, "COMPARE_FLOATS", CompareFloats, "Compare Floats", "")
+DefNode(FunctionNode, FN_NODE_COMPARE, def_compare, "COMPARE", Compare, "Compare", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_TO_INT, def_float_to_int, "FLOAT_TO_INT", FloatToInt, "Float to Integer", "")
 DefNode(FunctionNode, FN_NODE_INPUT_BOOL, def_fn_input_bool, "INPUT_BOOL", InputBool, "Boolean", "")
 DefNode(FunctionNode, FN_NODE_INPUT_COLOR, def_fn_input_color, "INPUT_COLOR", InputColor, "Color", "")

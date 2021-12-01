@@ -750,7 +750,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeMath"),
         NodeItem("FunctionNodeBooleanMath"),
         NodeItem("FunctionNodeRotateEuler"),
-        NodeItem("FunctionNodeCompareFloats"),
+        NodeItem("FunctionNodeCompare"),
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
         NodeItem("FunctionNodeRandomValue"),

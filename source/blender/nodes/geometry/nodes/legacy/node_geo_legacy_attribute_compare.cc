@@ -52,7 +52,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeAttributeCompare *data = (NodeAttributeCompare *)MEM_callocN(sizeof(NodeAttributeCompare),
                                                                    __func__);
-  data->operation = NODE_FLOAT_COMPARE_GREATER_THAN;
+  data->operation = NODE_COMPARE_GREATER_THAN;
   data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
   data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
   node->storage = data;
@@ -60,7 +60,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static bool operation_tests_equality(const NodeAttributeCompare &node_storage)
 {
-  return ELEM(node_storage.operation, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL);
+  return ELEM(node_storage.operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -77,7 +77,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void do_math_operation(const VArray<float> &input_a,
                               const VArray<float> &input_b,
-                              const FloatCompareOperation operation,
+                              const NodeCompareOperation operation,
                               MutableSpan<bool> span_result)
 {
   const int size = input_a.size();
@@ -241,7 +241,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
 {
   const bNode &node = params.node();
   NodeAttributeCompare *node_storage = (NodeAttributeCompare *)node.storage;
-  const FloatCompareOperation operation = static_cast<FloatCompareOperation>(
+  const NodeCompareOperation operation = static_cast<NodeCompareOperation>(
       node_storage->operation);
   const std::string result_name = params.get_input<std::string>("Result");
 
@@ -271,7 +271,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
    * conversions and float comparison. In other words, the comparison is not element-wise. */
   if (operation_tests_equality(*node_storage)) {
     const float threshold = params.get_input<float>("Threshold");
-    if (operation == NODE_FLOAT_COMPARE_EQUAL) {
+    if (operation == NODE_COMPARE_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
         do_equal_operation_float(
             attribute_a.typed<float>(), attribute_b.typed<float>(), threshold, result_span);
@@ -291,7 +291,7 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
             attribute_a.typed<bool>(), attribute_b.typed<bool>(), threshold, result_span);
       }
     }
-    else if (operation == NODE_FLOAT_COMPARE_NOT_EQUAL) {
+    else if (operation == NODE_COMPARE_NOT_EQUAL) {
       if (input_data_type == CD_PROP_FLOAT) {
         do_not_equal_operation_float(
             attribute_a.typed<float>(), attribute_b.typed<float>(), threshold, result_span);

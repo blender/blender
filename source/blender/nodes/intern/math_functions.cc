@@ -127,17 +127,17 @@ const FloatMathOperationInfo *get_float_compare_operation_info(const int operati
   ((void)0)
 
   switch (operation) {
-    case NODE_FLOAT_COMPARE_LESS_THAN:
+    case NODE_COMPARE_LESS_THAN:
       RETURN_OPERATION_INFO("Less Than", "math_less_than");
-    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+    case NODE_COMPARE_LESS_EQUAL:
       RETURN_OPERATION_INFO("Less Than or Equal", "math_less_equal");
-    case NODE_FLOAT_COMPARE_GREATER_THAN:
+    case NODE_COMPARE_GREATER_THAN:
       RETURN_OPERATION_INFO("Greater Than", "math_greater_than");
-    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+    case NODE_COMPARE_GREATER_EQUAL:
       RETURN_OPERATION_INFO("Greater Than or Equal", "math_greater_equal");
-    case NODE_FLOAT_COMPARE_EQUAL:
+    case NODE_COMPARE_EQUAL:
       RETURN_OPERATION_INFO("Equal", "math_equal");
-    case NODE_FLOAT_COMPARE_NOT_EQUAL:
+    case NODE_COMPARE_NOT_EQUAL:
       RETURN_OPERATION_INFO("Not Equal", "math_not_equal");
   }
 

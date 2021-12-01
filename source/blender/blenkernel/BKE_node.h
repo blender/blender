@@ -1563,7 +1563,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
  * \{ */
 
 #define FN_NODE_BOOLEAN_MATH 1200
-#define FN_NODE_COMPARE_FLOATS 1202
+#define FN_NODE_COMPARE 1202
 #define FN_NODE_LEGACY_RANDOM_FLOAT 1206
 #define FN_NODE_INPUT_VECTOR 1207
 #define FN_NODE_INPUT_STRING 1208
