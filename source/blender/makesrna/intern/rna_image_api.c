@@ -213,11 +213,17 @@ static void rna_Image_scale(Image *image, ReportList *reports, int width, int he
   }
 }
 
-static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
+static int rna_Image_gl_load(
+    Image *image, ReportList *reports, int frame, int layer_index, int pass_index)
 {
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
   iuser.framenr = frame;
+  iuser.layer = layer_index;
+  iuser.pass = pass_index;
+  if (image->rr != NULL) {
+    BKE_image_multilayer_index(image->rr, &iuser);
+  }
 
   GPUTexture *tex = BKE_image_get_gpu_texture(image, &iuser, NULL);
 
@@ -230,14 +236,15 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
   return 0; /* GL_NO_ERROR */
 }
 
-static int rna_Image_gl_touch(Image *image, ReportList *reports, int frame)
+static int rna_Image_gl_touch(
+    Image *image, ReportList *reports, int frame, int layer_index, int pass_index)
 {
   int error = 0; /* GL_NO_ERROR */
 
   BKE_image_tag_time(image);
 
   if (image->gputexture[TEXTARGET_2D][0] == NULL) {
-    error = rna_Image_gl_load(image, reports, frame);
+    error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
   }
 
   return error;
@@ -332,6 +339,24 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(
       func, "frame", 0, 0, INT_MAX, "Frame", "Frame of image sequence or movie", 0, INT_MAX);
+  RNA_def_int(func,
+              "layer_index",
+              0,
+              0,
+              INT_MAX,
+              "Layer",
+              "Index of layer that should be loaded",
+              0,
+              INT_MAX);
+  RNA_def_int(func,
+              "pass_index",
+              0,
+              0,
+              INT_MAX,
+              "Pass",
+              "Index of pass that should be loaded",
+              0,
+              INT_MAX);
   /* return value */
   parm = RNA_def_int(
       func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
@@ -346,6 +371,24 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(
       func, "frame", 0, 0, INT_MAX, "Frame", "Frame of image sequence or movie", 0, INT_MAX);
+  RNA_def_int(func,
+              "layer_index",
+              0,
+              0,
+              INT_MAX,
+              "Layer",
+              "Index of layer that should be loaded",
+              0,
+              INT_MAX);
+  RNA_def_int(func,
+              "pass_index",
+              0,
+              0,
+              INT_MAX,
+              "Pass",
+              "Index of pass that should be loaded",
+              0,
+              INT_MAX);
   /* return value */
   parm = RNA_def_int(
       func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
