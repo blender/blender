@@ -220,8 +220,14 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     BKE_lib_libblock_session_uuid_renew(id);
   }
 
-  if ((flags & LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR) != 0 && id->asset_data != NULL) {
-    BKE_asset_metadata_free(&id->asset_data);
+  if (ID_IS_ASSET(id)) {
+    if ((flags & LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR) != 0) {
+      BKE_asset_metadata_free(&id->asset_data);
+    }
+    else {
+      /* Assets should always have a fake user. Ensure this is the case after "Make Local". */
+      id_fake_user_set(id);
+    }
   }
 
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
