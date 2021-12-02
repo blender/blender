@@ -46,4 +46,7 @@ void BPy_BM_init_types_select(void);
 
 PyObject *BPy_BMEditSel_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm);
+/**
+ * \note doesn't actually check selection.
+ */
 int BPy_BMEditSel_Assign(struct BPy_BMesh *self, PyObject *value);

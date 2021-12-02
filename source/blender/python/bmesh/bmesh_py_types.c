@@ -3954,7 +3954,6 @@ PyObject *BPy_BMIter_CreatePyObject(BMesh *bm)
   return (PyObject *)self;
 }
 
-/* this is just a helper func */
 PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 {
   switch (ele->htype) {
@@ -4036,11 +4035,6 @@ void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
   self->bm = NULL;
 }
 
-/* generic python seq as BMVert/Edge/Face array,
- * return value must be freed with PyMem_FREE(...);
- *
- * The 'bm_r' value is assigned when empty, and used when set.
- */
 void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
                                      PyObject *seq_fast,
                                      Py_ssize_t min,
@@ -4233,11 +4227,6 @@ int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype)
           ((htype & BM_LOOP) && (type == &BPy_BMLoop_Type)));
 }
 
-/**
- * Use for error strings only, not thread safe,
- *
- * \return a string like '(BMVert/BMEdge/BMFace/BMLoop)'
- */
 char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 {
   /* zero to ensure string is always NULL terminated */

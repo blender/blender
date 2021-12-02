@@ -95,8 +95,17 @@ PyObject *BPy_Wrap_GetItems_View_WithID(struct ID *id, struct IDProperty *prop);
 
 int BPy_Wrap_SetMapItem(struct IDProperty *prop, PyObject *key, PyObject *val);
 
+/**
+ * For simple, non nested types this is the same as #BPy_IDGroup_WrapData.
+ */
 PyObject *BPy_IDGroup_MapDataToPy(struct IDProperty *prop);
 PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
+/**
+ * \note group can be a pointer array or a group.
+ * assume we already checked key is a string.
+ *
+ * \return success.
+ */
 bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDProperty *group, PyObject *ob);
 
 void IDProp_Init_Types(void);

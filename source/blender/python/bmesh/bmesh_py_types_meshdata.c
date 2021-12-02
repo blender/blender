@@ -683,7 +683,6 @@ PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
 
 /* --- End Mesh Deform Vert --- */
 
-/* call to init all types */
 void BPy_BM_init_types_meshdata(void)
 {
   bm_init_types_bmloopuv();

@@ -148,9 +148,15 @@ PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm);
 PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
 
-/* Just checks type and creates v/e/f/l. */
+/** Just checks type and creates vert/edge/face/loop. */
 PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele);
 
+/**
+ * Generic python seq as BMVert/Edge/Face array,
+ * return value must be freed with PyMem_FREE(...);
+ *
+ * The 'bm_r' value is assigned when empty, and used when set.
+ */
 void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
                                      PyObject *seq_fast,
                                      Py_ssize_t min,
@@ -177,6 +183,11 @@ PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_le
 PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop **elem, Py_ssize_t elem_len);
 
 int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype);
+/**
+ * Use for error strings only, not thread safe,
+ *
+ * \return a string like '(BMVert/BMEdge/BMFace/BMLoop)'
+ */
 char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32]);
 char *BPy_BMElem_StringFromHType(const char htype);
 
@@ -198,7 +209,9 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
   } \
   (void)0
 
-/* macros like BPY_BM_CHECK_OBJ/BPY_BM_CHECK_INT that ensure we're from the right BMesh */
+/**
+ * Macros like `BPY_BM_CHECK_OBJ/BPY_BM_CHECK_INT` that ensure we're from the right #BMesh.
+ */
 #define BPY_BM_CHECK_SOURCE_OBJ(bm, errmsg, ...) \
   { \
     void *_args[] = {__VA_ARGS__}; \

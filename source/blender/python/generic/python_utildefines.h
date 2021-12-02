@@ -36,16 +36,20 @@ extern "C" {
   } \
   (void)0
 
-/* wrap Py_INCREF & return the result,
- * use sparingly to avoid comma operator or temp var assignment */
+/**
+ * Wrap #Py_INCREF & return the result,
+ * use sparingly to avoid comma operator or temp var assignment.
+ */
 Py_LOCAL_INLINE(PyObject *) Py_INCREF_RET(PyObject *op)
 {
   Py_INCREF(op);
   return op;
 }
 
-/* Append & transfer ownership to the list,
- * avoids inline Py_DECREF all over (which is quite a large macro). */
+/**
+ * Append & transfer ownership to the list,
+ * avoids inline #Py_DECREF all over (which is quite a large macro).
+ */
 Py_LOCAL_INLINE(int) PyList_APPEND(PyObject *op, PyObject *v)
 {
   int ret = PyList_Append(op, v);

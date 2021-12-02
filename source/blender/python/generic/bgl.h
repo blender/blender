@@ -22,6 +22,13 @@
 
 PyObject *BPyInit_bgl(void);
 
+/**
+ * Create a buffer object
+ *
+ * \param dimensions: An array of ndimensions integers representing the size of each dimension.
+ * \param initbuffer: When not NULL holds a contiguous buffer
+ * with the correct format from which the buffer will be initialized
+ */
 struct _Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer);
 
 int BGL_typeSize(int type);
@@ -50,5 +57,5 @@ typedef struct _Buffer {
   } buf;
 } Buffer;
 
-/** The type object */
+/** The type object. */
 extern PyTypeObject BGL_bufferType;

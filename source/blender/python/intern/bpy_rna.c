@@ -1462,10 +1462,6 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
   return ret;
 }
 
-/**
- * This function is used by operators and converting dicts into collections.
- * It takes keyword args and fills them with property values.
- */
 int pyrna_pydict_to_props(PointerRNA *ptr,
                           PyObject *kw,
                           const bool all_args,
@@ -7545,7 +7541,6 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
   return (PyObject *)pyrna;
 }
 
-/* Utility func to be used by external modules, sneaky! */
 PyObject *pyrna_id_CreatePyObject(ID *id)
 {
   if (id) {
@@ -7777,9 +7772,6 @@ static struct PyModuleDef bpy_types_module_def = {
     NULL,                                 /* m_free */
 };
 
-/**
- * Accessed from Python as 'bpy.types'
- */
 PyObject *BPY_rna_types(void)
 {
   PyObject *submodule = PyModule_Create(&bpy_types_module_def);
@@ -7864,11 +7856,6 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
 }
 
 /* Orphan functions, not sure where they should go. */
-/**
- * Get the SRNA for methods attached to types.
- *
- * Caller needs to raise error.
- */
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
 
@@ -9094,9 +9081,6 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
   Py_RETURN_NONE;
 }
 
-/**
- * Extend RNA types with C/API methods, properties.
- */
 void pyrna_struct_type_extend_capi(struct StructRNA *srna,
                                    struct PyMethodDef *method,
                                    struct PyGetSetDef *getset)

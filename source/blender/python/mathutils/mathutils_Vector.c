@@ -1676,17 +1676,6 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 /*------------------------obj * obj------------------------------
  * multiplication */
 
-/**
- * Column vector multiplication (Matrix * Vector).
- * <pre>
- * [1][4][7]   [a]
- * [2][5][8] * [b]
- * [3][6][9]   [c]
- * </pre>
- *
- * \note Vector/Matrix multiplication is not commutative.
- * \note Assume read callbacks have been done first.
- */
 int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
   float vec_cpy[MAX_DIMENSIONS];
@@ -3166,11 +3155,6 @@ PyObject *Vector_CreatePyObject(const float *vec, const int size, PyTypeObject *
   return (PyObject *)self;
 }
 
-/**
- * Create a vector that wraps existing memory.
- *
- * \param vec: Use this vector in-place.
- */
 PyObject *Vector_CreatePyObject_wrap(float *vec, const int size, PyTypeObject *base_type)
 {
   VectorObject *self;
@@ -3194,10 +3178,6 @@ PyObject *Vector_CreatePyObject_wrap(float *vec, const int size, PyTypeObject *b
   return (PyObject *)self;
 }
 
-/**
- * Create a vector where the value is defined by registered callbacks,
- * see: #Mathutils_RegisterCallback
- */
 PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, uchar cb_type, uchar cb_subtype)
 {
   VectorObject *self = (VectorObject *)Vector_CreatePyObject(NULL, size, NULL);
@@ -3212,9 +3192,6 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, uchar cb_type, u
   return (PyObject *)self;
 }
 
-/**
- * \param vec: Initialized vector value to use in-place, allocated with #PyMem_Malloc
- */
 PyObject *Vector_CreatePyObject_alloc(float *vec, const int size, PyTypeObject *base_type)
 {
   VectorObject *self;

@@ -26,6 +26,10 @@
 #include "BLI_utildefines_variadic.h"
 
 void PyC_ObSpit(const char *name, PyObject *var);
+/**
+ * A version of #PyC_ObSpit that writes into a string (and doesn't take a name argument).
+ * Use for logging.
+ */
 void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
 void PyC_LineSpit(void);
 void PyC_StackSpit(void);
@@ -34,9 +38,20 @@ PyObject *PyC_ExceptionBuffer_Simple(void);
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *PyC_FrozenSetFromStrings(const char **strings);
 
+/**
+ * Similar to #PyErr_Format(),
+ *
+ * Implementation - we can't actually prepend the existing exception,
+ * because it could have _any_ arguments given to it, so instead we get its
+ * `__str__` output and raise our own exception including it.
+ */
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
 PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *str);
 
+/**
+ * Use for Python callbacks run directly from C,
+ * when we can't use normal methods of raising exceptions.
+ */
 void PyC_Err_PrintWithFunc(PyObject *py_func);
 
 void PyC_FileAndNum(const char **r_filename, int *r_lineno);
@@ -92,6 +107,10 @@ PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], c
 PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], const int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], const int dims_len);
 
+/**
+ * Caller needs to ensure tuple is uninitialized.
+ * Handy for filling a tuple with None for eg.
+ */
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void PyC_List_Fill(PyObject *list, PyObject *value);
 
@@ -99,13 +118,31 @@ void PyC_List_Fill(PyObject *list, PyObject *value);
 PyObject *PyC_UnicodeFromByte(const char *str);
 PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+/**
+ * String conversion, escape non-unicode chars
+ * \param coerce: must be set to NULL.
+ */
 const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
-/* name namespace function for bpy */
+/**
+ * Description: This function creates a new Python dictionary object.
+ * NOTE: dict is owned by sys.modules["__main__"] module, reference is borrowed
+ * NOTE: important we use the dict from __main__, this is what python expects
+ * for 'pickle' to work as well as strings like this...
+ * >> foo = 10
+ * >> print(__import__("__main__").foo)
+ *
+ * NOTE: this overwrites __main__ which gives problems with nested calls.
+ * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
+ * any chance that python is in the call stack.
+ */
 PyObject *PyC_DefaultNameSpace(const char *filename);
 void PyC_RunQuicky(const char *filepath, int n, ...);
 bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 
+/**
+ * #PyC_MainModule_Restore MUST be called after #PyC_MainModule_Backup.
+ */
 void PyC_MainModule_Backup(PyObject **r_main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
 
@@ -131,6 +168,11 @@ int PyC_FlagSet_ToBitfield(const PyC_FlagSet *items,
                            const char *error_prefix);
 PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
+/**
+ * \return success
+ *
+ * \note it is caller's responsibility to acquire & release GIL!
+ */
 bool PyC_RunString_AsNumber(const char **imports,
                             const char *expr,
                             const char *filename,
@@ -149,6 +191,11 @@ bool PyC_RunString_AsString(const char **imports,
                             const char *filename,
                             char **r_value);
 
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * \see #PyC_Long_AsBool for a similar function to use outside of argument parsing.
+ */
 int PyC_ParseBool(PyObject *o, void *p);
 
 struct PyC_StringEnumItems {
@@ -160,6 +207,9 @@ struct PyC_StringEnum {
   int value_found;
 };
 
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ */
 int PyC_ParseStringEnum(PyObject *o, void *p);
 const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *items,
                                            const int value);
@@ -167,6 +217,32 @@ const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *ite
 int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
+/**
+ *
+ * Comparison with #PyObject_IsTrue
+ * ================================
+ *
+ * Even though Python provides a way to retrieve the boolean value for an object,
+ * in many cases it's far too relaxed, with the following examples coercing values.
+ *
+ * \code{.py}
+ * data.value = "Text"    # True.
+ * data.value = ""        # False.
+ * data.value = {1, 2}    # True
+ * data.value = {}        # False.
+ * data.value = None      # False.
+ * \endcode
+ *
+ * In practice this is often a mistake by the script author that doesn't behave as they expect.
+ * So it's better to be more strict for attribute assignment and function arguments,
+ * only accepting True/False 0/1.
+ *
+ * If coercing a value is desired, it can be done explicitly: `data.value = bool(value)`
+ *
+ * \see #PyC_ParseBool for use with #PyArg_ParseTuple and related functions.
+ *
+ * \note Don't use `bool` return type, so -1 can be used as an error value.
+ */
 int PyC_Long_AsBool(PyObject *value);
 int8_t PyC_Long_AsI8(PyObject *value);
 int16_t PyC_Long_AsI16(PyObject *value);

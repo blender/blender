@@ -26,7 +26,6 @@
 #include "../BPY_extern.h"
 #include "BLI_utildefines.h"
 
-/* analogue of PyEval_SaveThread() */
 BPy_ThreadStatePtr BPY_thread_save(void)
 {
   /* Use `_PyThreadState_UncheckedGet()` instead of `PyThreadState_Get()`, to avoid a fatal error
@@ -40,7 +39,6 @@ BPy_ThreadStatePtr BPY_thread_save(void)
   return NULL;
 }
 
-/* analogue of PyEval_RestoreThread() */
 void BPY_thread_restore(BPy_ThreadStatePtr tstate)
 {
   if (tstate) {

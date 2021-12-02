@@ -411,9 +411,6 @@ void BPy_BM_init_types_select(void)
 
 /* utility function */
 
-/**
- * \note doesn't actually check selection.
- */
 int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
 {
   BMesh *bm;

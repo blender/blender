@@ -4396,10 +4396,6 @@ PyObject *BPY_rna_props(void)
   return submodule;
 }
 
-/**
- * Run this on exit, clearing all Python callback users and disable the RNA callback,
- * as it would be called after Python has already finished.
- */
 void BPY_rna_props_clear_all(void)
 {
   /* Remove all user counts, so this isn't considered a leak from Python's perspective. */

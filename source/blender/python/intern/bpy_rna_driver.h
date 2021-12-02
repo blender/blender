@@ -28,6 +28,9 @@ struct PathResolvedRNA;
 extern "C" {
 #endif
 
+/**
+ * A version of #driver_get_variable_value which returns a #PyObject.
+ */
 PyObject *pyrna_driver_get_variable_value(struct ChannelDriver *driver, struct DriverTarget *dtar);
 
 PyObject *pyrna_driver_self_from_anim_rna(struct PathResolvedRNA *anim_rna);

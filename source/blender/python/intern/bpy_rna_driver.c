@@ -34,9 +34,6 @@
 
 #include "bpy_rna_driver.h" /* own include */
 
-/**
- * A version of #driver_get_variable_value which returns a PyObject.
- */
 PyObject *pyrna_driver_get_variable_value(struct ChannelDriver *driver, struct DriverTarget *dtar)
 {
   PyObject *driver_arg = NULL;

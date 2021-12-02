@@ -745,9 +745,6 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
   return item;
 }
 
-/**
- * This is the __call__ for bmesh.ops.xxx()
- */
 PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 {
   PyObject *ret;
