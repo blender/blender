@@ -201,11 +201,9 @@ void AssetCatalogTreeView::build_tree()
   all_item.set_collapsed(false);
 
   if (catalog_tree_) {
+    /* Pass the "All" item on as parent of the actual catalog items. */
     catalog_tree_->foreach_root_item([this, &all_item](AssetCatalogTreeItem &item) {
-      ui::BasicTreeViewItem &child_view_item = build_catalog_items_recursive(all_item, item);
-
-      /* Open root-level items by default. */
-      child_view_item.set_collapsed(false);
+      build_catalog_items_recursive(all_item, item);
     });
   }
 
