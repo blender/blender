@@ -2119,6 +2119,12 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
 {
   if (region->flag & RGN_FLAG_HIDDEN) {
     WM_event_remove_handlers(C, &region->handlers);
+    /* Needed to close any open pop-overs which would otherwise remain open,
+     * crashing on attempting to refresh. See: T93410.
+     *
+     * When #ED_area_init frees buttons via #UI_blocklist_free a NULL context
+     * is passed, causing the free not to remove menus or their handlers. */
+    UI_region_free_active_but_all(C, region);
   }
 
   ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), area);

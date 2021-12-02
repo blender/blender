@@ -955,7 +955,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
        * because it can undo setting the right button as active due
        * to delayed notifier handling. */
       if (C) {
-        UI_screen_free_active_but(C, screen);
+        UI_screen_free_active_but_highlight(C, screen);
       }
     }
   }
