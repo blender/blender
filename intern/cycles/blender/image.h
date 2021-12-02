@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 class BlenderImageLoader : public ImageLoader {
  public:
-  BlenderImageLoader(BL::Image b_image, int frame);
+  BlenderImageLoader(BL::Image b_image, const int frame, const bool is_preview_render);
 
   bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
   bool load_pixels(const ImageMetaData &metadata,
