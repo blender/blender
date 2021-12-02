@@ -3450,6 +3450,25 @@ void drw_batch_cache_generate_requested(Object *ob)
   }
 }
 
+/* Note: Logic here is duplicated from #drw_batch_cache_generate_requested. */
+void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
+  const enum eContextObjectMode mode = CTX_data_mode_enum_ex(
+      draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
+  const bool is_paint_mode = ELEM(
+      mode, CTX_MODE_SCULPT, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
+
+  const bool use_hide = ((ob->type == OB_MESH) &&
+                         ((is_paint_mode && (ob == draw_ctx->obact) &&
+                           DRW_object_use_hide_faces(ob)) ||
+                          ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
+
+  Mesh *mesh = BKE_object_get_evaluated_mesh(ob);
+  DRW_mesh_batch_cache_create_requested(DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
+}
+
 void drw_batch_cache_generate_requested_delayed(Object *ob)
 {
   BLI_gset_add(DST.delayed_extraction, ob);
