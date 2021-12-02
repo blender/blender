@@ -1324,7 +1324,7 @@ static void gpencil_layer_to_curve(bContext *C,
 
   cu->flag |= CU_3D;
   cu->bevresol = gtd->bevel_resolution;
-  cu->ext2 = gtd->bevel_depth;
+  cu->bevel_radius = gtd->bevel_depth;
 
   gtd->inittime = ((bGPDstroke *)gpf->strokes.first)->inittime;
 

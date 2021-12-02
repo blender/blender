@@ -1892,7 +1892,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
       if (cu->flag & (CU_FRONT | CU_BACK)) {
-        if (cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
+        if (cu->extrude != 0.0f || cu->bevel_radius != 0.0f) {
           Nurb *nu;
 
           for (nu = cu->nurb.first; nu; nu = nu->next) {

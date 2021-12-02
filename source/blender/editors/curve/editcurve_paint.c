@@ -144,7 +144,7 @@ static float stroke_elem_radius_from_pressure(const struct CurveDrawData *cdd,
                                               const float pressure)
 {
   const Curve *cu = cdd->vc.obedit->data;
-  return ((pressure * cdd->radius.range) + cdd->radius.min) * cu->ext2;
+  return ((pressure * cdd->radius.range) + cdd->radius.min) * cu->bevel_radius;
 }
 
 static float stroke_elem_radius(const struct CurveDrawData *cdd, const struct StrokeElem *selem)
@@ -364,7 +364,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
   Object *obedit = cdd->vc.obedit;
   Curve *cu = obedit->data;
 
-  if (cu->ext2 > 0.0f) {
+  if (cu->bevel_radius > 0.0f) {
     BLI_mempool_iter iter;
     const struct StrokeElem *selem;
 
