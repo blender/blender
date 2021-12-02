@@ -2846,20 +2846,21 @@ static void widget_menu_back(
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void ui_hsv_cursor(float x, float y)
+static void ui_hsv_cursor(const float x, const float y, const float zoom)
 {
+  const float radius = zoom * 3.0f * U.pixelsize;
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformColor3f(1.0f, 1.0f, 1.0f);
-  imm_draw_circle_fill_2d(pos, x, y, 3.0f * U.pixelsize, 8);
+  imm_draw_circle_fill_2d(pos, x, y, radius, 8);
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
   immUniformColor3f(0.0f, 0.0f, 0.0f);
-  imm_draw_circle_wire_2d(pos, x, y, 3.0f * U.pixelsize, 12);
+  imm_draw_circle_wire_2d(pos, x, y, radius, 12);
   GPU_blend(GPU_BLEND_NONE);
   GPU_line_smooth(false);
 
@@ -3007,7 +3008,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   float xpos, ypos;
   ui_hsvcircle_pos_from_vals(cpicker, rect, hsv, &xpos, &ypos);
-  ui_hsv_cursor(xpos, ypos);
+  const float zoom = 1.0f / but->block->aspect;
+  ui_hsv_cursor(xpos, ypos, zoom);
 }
 
 /** \} */
@@ -3241,7 +3243,9 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   CLAMP(x, rect->xmin + 3.0f, rect->xmax - 3.0f);
   CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
 
-  ui_hsv_cursor(x, y);
+  const float zoom = 1.0f / but->block->aspect;
+
+  ui_hsv_cursor(x, y, zoom);
 
   /* outline */
   const uint pos = GPU_vertformat_attr_add(
@@ -3304,8 +3308,9 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   x = rect->xmin + 0.5f * BLI_rcti_size_x(rect);
   y = rect->ymin + v * BLI_rcti_size_y(rect);
   CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
+  const float zoom = 1.0f / but->block->aspect;
 
-  ui_hsv_cursor(x, y);
+  ui_hsv_cursor(x, y, zoom);
 }
 
 /** Separator for menus. */
