@@ -288,7 +288,7 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
     char attribute_name_c[MAX_NAME];
     attribute_id.name().copy(attribute_name_c);
     return CustomData_add_layer_named(
-        &custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
+        &custom_data, data_type, alloctype, layer_data, domain_size, attribute_name_c);
   }
   const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
   return CustomData_add_layer_anonymous(
