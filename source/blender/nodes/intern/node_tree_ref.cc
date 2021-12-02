@@ -262,7 +262,6 @@ void InputSocketRef::foreach_logical_origin(
           skipped_fn.call_safe(origin);
           skipped_fn.call_safe(mute_input);
           mute_input.foreach_logical_origin(origin_fn, skipped_fn, true, seen_sockets_stack);
-          break;
         }
       }
     }
