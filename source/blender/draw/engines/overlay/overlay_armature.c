@@ -591,12 +591,16 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
                                          const float color[4],
                                          Object *custom)
 {
+  /* See comments in #drw_shgroup_bone_custom_solid. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh(custom);
+  if (mesh == NULL) {
+    return;
+  }
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  drw_batch_cache_validate(custom);
+  DRW_mesh_batch_cache_validate(mesh);
 
-  struct GPUBatch *geom = DRW_cache_object_all_edges_get(custom);
-
+  struct GPUBatch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {
     DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, geom);
     BoneInstanceData inst_data;
