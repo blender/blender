@@ -281,7 +281,6 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
         mute_output.foreach_target_socket(target_fn, path_info);
         path_info.sockets.pop_last();
         path_info.sockets.pop_last();
-        break;
       }
     }
     else if (linked_node->is_group_output_node()) {
