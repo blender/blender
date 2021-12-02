@@ -223,7 +223,7 @@ DEF_ENUM(rna_enum_subdivision_boundary_smooth_items)
 
 DEF_ENUM(rna_enum_transform_orientation_items)
 
-/* Not available to RNA pre-processing (`makrsrna`).
+/* Not available to RNA pre-processing (`makesrna`).
  * Defined in editors for example. */
 #ifndef RNA_MAKESRNA
 

@@ -281,11 +281,11 @@ static void create_vertex_poly_map(const Mesh &mesh,
 }
 
 /**
- * Sorts the polygons connnected to the given vertex based on polygon adjacency. The ordering is
+ * Sorts the polygons connected to the given vertex based on polygon adjacency. The ordering is
  * so such that the normals point in the same way as the original mesh. If the vertex is a
  * boundary vertex, the first and last polygon have a boundary edge connected to the vertex. The
- * `r_shared_edges` array at index i is set to the index of the shared edge bewteen the i-th and
- * (i+1)-th sorted polygon. Similarly the `r_sorted_corners` array at index i is set to the
+ * `r_shared_edges` array at index i is set to the index of the shared edge between the i-th and
+ * `(i+1)-th` sorted polygon. Similarly the `r_sorted_corners` array at index i is set to the
  * corner in the i-th sorted polygon.
  *
  * How the faces are sorted (see diagrams below):
@@ -481,7 +481,7 @@ static void boundary_edge_on_poly(const MPoly &poly,
 
 /**
  * Get the two edges on the poly that contain the given vertex and are boundary edges. The
- * orientation of the poly is taken into acount.
+ * orientation of the poly is taken into account.
  */
 static void boundary_edges_on_poly(const MPoly &poly,
                                    const Mesh &mesh,
@@ -669,7 +669,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
        * The first thing that happens is ordering the faces f1,f2 and f3 (stored in
        * loop_indices), together with their shared edges e3 and e4 (which get stored in
        * shared_edges). The ordering could end up being clockwise or counterclockwise, for this
-       * we'll asume that the ordering f1->f2->f3 is chosen. After that we add the edges in
+       * we'll assume that the ordering f1->f2->f3 is chosen. After that we add the edges in
        * between the polygons, in this case the edges f1--f2, and f2--f3. Now we need to merge
        * these with the boundary edges e1 and e2. To do this we create an edge from f3 to the
        * midpoint of e2 (computed in a previous step), from this midpoint to V, from V to the

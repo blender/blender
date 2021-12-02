@@ -134,7 +134,7 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
 
   pxr::SdfPath ref_path(context.original_export_path);
   if (!prim.GetReferences().AddInternalReference(ref_path)) {
-    /* See this URL for a description fo why referencing may fail"
+    /* See this URL for a description for why referencing may fail"
      * https://graphics.pixar.com/usd/docs/api/class_usd_references.html#Usd_Failing_References
      */
     printf("USD Export warning: unable to add reference from %s to %s, not instancing object\n",

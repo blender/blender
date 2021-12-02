@@ -668,7 +668,7 @@ static void loose_data_instantiate_collection_process(
 
   /* NOTE: For collections we only view_layer-instantiate duplicated collections that have
    * non-instantiated objects in them.
-   * NOTE: Also avoid viewlayer-instantiating of collections children of other instantiated
+   * NOTE: Also avoid view-layer-instantiating of collections children of other instantiated
    * collections. This is why we need two passes here. */
   LinkNode *itemlink;
   for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
@@ -719,7 +719,7 @@ static void loose_data_instantiate_collection_process(
     Collection *collection = (Collection *)id;
     bool do_add_collection = (id->tag & LIB_TAG_DOIT) != 0;
 
-    /* When instantiated into viewlayer, do not add collections if one of their parents is also
+    /* When instantiated into view-layer, do not add collections if one of their parents is also
      * instantiated. In case of empty-instantiation though, instantiation of all user-selected
      * collections is the desired behavior. */
     if (!do_add_collection ||
@@ -1508,7 +1508,7 @@ static void blendfile_library_relocate_remap(Main *bmain,
  *  * Relocating a library:
  *    - Add the new target library path to `lapp_context`.
  *    - Add all IDs from the library to relocate to `lapp_context`
- *    - Mark the new target library to beconsidered for each ID.
+ *    - Mark the new target library to be considered for each ID.
  *    - Call this function.
  *
  *  * Searching for (e.g.missing) linked IDs in a set or sub-set of libraries:
