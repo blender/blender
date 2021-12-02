@@ -5,7 +5,7 @@
     <DisplayName>Blender[LTSORNOT]</DisplayName>
     <PublisherDisplayName>Blender Foundation</PublisherDisplayName>
     <Description>Blender [VERSION] is the Free and Open Source 3D creation suite</Description>
-    <Logo>Assets\StoreLogo.png</Logo>
+    <Logo>Assets\StoreLogo.scale-100.png</Logo>
   </Properties>
   <Resources>
     <Resource Language="en-us" />
