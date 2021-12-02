@@ -1187,12 +1187,14 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       vlen = BLI_array_len(loops);
 
       /* find the boundary of one of the split edges */
-      for (a = 1; a < vlen; a++) {
-        if (!BMO_vert_flag_test(bm, loops[a - 1]->v, ELE_INNER) &&
+      for (a = 0; a < vlen; a++) {
+        if (!BMO_vert_flag_test(bm, loops[a ? (a - 1) : (vlen - 1)]->v, ELE_INNER) &&
             BMO_vert_flag_test(bm, loops[a]->v, ELE_INNER)) {
           break;
         }
       }
+      /* Failure to break means there is an internal error. */
+      BLI_assert(a < vlen);
 
       if (BMO_vert_flag_test(bm, loops[(a + numcuts + 1) % vlen]->v, ELE_INNER)) {
         b = (a + numcuts + 1) % vlen;
