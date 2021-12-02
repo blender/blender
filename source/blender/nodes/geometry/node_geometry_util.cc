@@ -63,7 +63,7 @@ bool geo_node_poll_default(bNodeType *UNUSED(ntype),
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "GeometryNodeTree")) {
-    *r_disabled_hint = "Not a geometry node tree";
+    *r_disabled_hint = TIP_("Not a geometry node tree");
     return false;
   }
   return true;

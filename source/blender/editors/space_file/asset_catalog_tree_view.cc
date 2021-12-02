@@ -516,7 +516,7 @@ bool AssetCatalogDropController::has_droppable_asset(const wmDrag &drag,
     }
   }
 
-  *r_disabled_hint = "Only assets from this current file can be moved between catalogs";
+  *r_disabled_hint = TIP_("Only assets from this current file can be moved between catalogs");
   return false;
 }
 

@@ -107,7 +107,7 @@ bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_dis
   }
 
   if (nodetree == grouptree) {
-    *r_disabled_hint = "Nesting a node group inside of itself is not allowed";
+    *r_disabled_hint = TIP_("Nesting a node group inside of itself is not allowed");
     return false;
   }
 

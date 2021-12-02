@@ -44,7 +44,7 @@ bool tex_node_poll_default(bNodeType *UNUSED(ntype),
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "TextureNodeTree")) {
-    *r_disabled_hint = "Not a texture node tree";
+    *r_disabled_hint = TIP_("Not a texture node tree");
     return false;
   }
   return true;
