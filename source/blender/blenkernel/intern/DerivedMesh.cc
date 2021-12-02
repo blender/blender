@@ -2097,12 +2097,10 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
                              Object *ob,
                              const CustomData_MeshMasks *dataMask)
 {
-  Mesh *final;
-
+  Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, -1, false, false, nullptr, &final, nullptr);
-
-  return final;
+      depsgraph, scene, ob, true, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+  return result;
 }
 
 Mesh *mesh_create_eval_final_index_render(Depsgraph *depsgraph,
@@ -2111,12 +2109,10 @@ Mesh *mesh_create_eval_final_index_render(Depsgraph *depsgraph,
                                           const CustomData_MeshMasks *dataMask,
                                           int index)
 {
-  Mesh *final;
-
+  Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, index, false, false, nullptr, &final, nullptr);
-
-  return final;
+      depsgraph, scene, ob, true, false, dataMask, index, false, false, nullptr, &result, nullptr);
+  return result;
 }
 
 Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
@@ -2124,12 +2120,10 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
                                  Object *ob,
                                  const CustomData_MeshMasks *dataMask)
 {
-  Mesh *final;
-
+  Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &final, nullptr);
-
-  return final;
+      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+  return result;
 }
 
 Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
@@ -2137,12 +2131,10 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask)
 {
-  Mesh *final;
-
+  Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &final, nullptr);
-
-  return final;
+      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+  return result;
 }
 
 /***/
