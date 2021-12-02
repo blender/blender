@@ -90,7 +90,7 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
  * created as directory if necessary later. */
 void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
 {
-  BLI_strncpy_utf8(library->path, path, sizeof(library->path));
+  BLI_strncpy(library->path, path, sizeof(library->path));
   if (BLI_is_file(library->path)) {
     BLI_path_parent_dir(library->path);
   }
