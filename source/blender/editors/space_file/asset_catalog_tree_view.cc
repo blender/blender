@@ -230,8 +230,7 @@ AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
 {
   FileAssetSelectParams *params = params_;
 
-  AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"),
-                                                                                 ICON_HOME);
+  AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"));
   item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
