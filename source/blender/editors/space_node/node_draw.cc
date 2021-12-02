@@ -382,8 +382,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
   /* Header. */
   dy -= NODE_DY;
 
-  /* Little bit of space in top. */
-  if (node->outputs.first) {
+  /* Add a little bit of padding above the top socket. */
+  if (node->outputs.first || node->inputs.first) {
     dy -= NODE_DYS / 2;
   }
 
