@@ -79,7 +79,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   ui::BasicTreeViewItem &build_catalog_items_recursive(ui::TreeViewItemContainer &view_parent_item,
                                                        AssetCatalogTreeItem &catalog);
 
-  void add_all_item();
+  AssetCatalogTreeViewAllItem &add_all_item();
   void add_unassigned_item();
   bool is_active_catalog(CatalogID catalog_id) const;
 };
@@ -197,11 +197,12 @@ AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
 
 void AssetCatalogTreeView::build_tree()
 {
-  add_all_item();
+  AssetCatalogTreeViewAllItem &all_item = add_all_item();
+  all_item.set_collapsed(false);
 
   if (catalog_tree_) {
-    catalog_tree_->foreach_root_item([this](AssetCatalogTreeItem &item) {
-      ui::BasicTreeViewItem &child_view_item = build_catalog_items_recursive(*this, item);
+    catalog_tree_->foreach_root_item([this, &all_item](AssetCatalogTreeItem &item) {
+      ui::BasicTreeViewItem &child_view_item = build_catalog_items_recursive(all_item, item);
 
       /* Open root-level items by default. */
       child_view_item.set_collapsed(false);
@@ -225,7 +226,7 @@ ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
   return view_item;
 }
 
-void AssetCatalogTreeView::add_all_item()
+AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
 {
   FileAssetSelectParams *params = params_;
 
@@ -237,6 +238,7 @@ void AssetCatalogTreeView::add_all_item()
   });
   item.set_is_active_fn(
       [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS; });
+  return item;
 }
 
 void AssetCatalogTreeView::add_unassigned_item()
