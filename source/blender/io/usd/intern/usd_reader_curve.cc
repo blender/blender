@@ -108,11 +108,11 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
    * Perhaps to be replaced by Blender/USD Schema. */
   if (!usdNormals.empty()) {
     /* Set extrusion to 1.0f. */
-    curve_->ext1 = 1.0f;
+    curve_->extrude = 1.0f;
   }
   else {
     /* Set bevel depth to 1.0f. */
-    curve_->ext2 = 1.0f;
+    curve_->bevel_radius = 1.0f;
   }
 
   size_t idx = 0;
@@ -164,7 +164,7 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
       bp->f1 = SELECT;
       bp->weight = weight;
 
-      float radius = curve_->width;
+      float radius = curve_->offset;
       if (idx < usdWidths.size()) {
         radius = usdWidths[idx];
       }
