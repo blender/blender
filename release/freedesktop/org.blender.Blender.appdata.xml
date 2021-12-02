@@ -40,6 +40,29 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.0" date="2021-12-03">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Asset browser</li>
+                    <li>Geometry nodes fields</li>
+                    <li>Video editor thumbnail previews</li>
+                    <li>Transformation tools for video strips</li>
+                    <li>Virtual reality navigation</li>
+                    <li>Quicker save and better compression</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Cycles performance and quality improvements</li>
+                    <li>About 100 new geometry nodes</li>
+                    <li>EEVEE attribute support</li>
+                    <li>User Interface updates</li>
+                    <li>OpenImageDenoise upgraded to 1.4</li>
+                    <li>Shadow terminator geometry offset</li>
+                    <li>Shadow catcher indirect and environment light support</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.93" date="2021-06-02">
             <description>
                 <p>New features:</p>
@@ -51,7 +74,7 @@
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
-                    <li>Geometry nodes 22 new nodes and imrpoved attribute search</li>
+                    <li>Geometry nodes 22 new nodes and improved attribute search</li>
                     <li>Mask loops, textures and patterns for sculpting</li>
                     <li>Grease pencil interpolate refactored and SVG and PDF support</li>
                     <li>Persistent Data rendering settings for Cycles</li>
