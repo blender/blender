@@ -24,8 +24,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Packed Images */
 
-BlenderImageLoader::BlenderImageLoader(BL::Image b_image, int frame)
-    : b_image(b_image), frame(frame), free_cache(!b_image.has_data())
+BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
+                                       const int frame,
+                                       const bool is_preview_render)
+    : b_image(b_image),
+      frame(frame),
+      /* Don't free cache for preview render to avoid race condition from T93560, to be fixed
+         properly later as we are close to release. */
+      free_cache(!is_preview_render && !b_image.has_data())
 {
 }
 
