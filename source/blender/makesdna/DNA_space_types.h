@@ -1514,6 +1514,7 @@ typedef struct bNodeTreePath {
 } bNodeTreePath;
 
 typedef struct SpaceNodeOverlay {
+  /* eSpaceNodeOverlay_Flag */
   int flag;
 } SpaceNodeOverlay;
 
@@ -1521,6 +1522,7 @@ typedef enum eSpaceNodeOverlay_Flag {
   SN_OVERLAY_SHOW_OVERLAYS = (1 << 1),
   SN_OVERLAY_SHOW_WIRE_COLORS = (1 << 2),
   SN_OVERLAY_SHOW_TIMINGS = (1 << 3),
+  SN_OVERLAY_SHOW_PATH = (1 << 4),
 } eSpaceNodeOverlay_Flag;
 
 typedef struct SpaceNode {

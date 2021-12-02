@@ -230,8 +230,8 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+  snode->overlay.flag = (SN_OVERLAY_SHOW_OVERLAYS | SN_OVERLAY_SHOW_WIRE_COLORS |
+                         SN_OVERLAY_SHOW_PATH);
 
   /* backdrop */
   snode->zoom = 1.0f;
