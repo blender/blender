@@ -529,8 +529,24 @@ void SCULPT_do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     add_v3_v3(area_co, temp);
     */
 
+  int totbit = 0;
+
+  for (int i = 0; i < 3; i++) {
+    if (ss->cache->mirror_symmetry_pass & (1<<i)) {
+      totbit++;
+    }
+  }
+
+  float tan[3];
+
+  copy_v3_v3(tan, ss->cache->grab_delta_symmetry);
+
+  if (totbit & 1) {
+    negate_v3(tan);
+  }
+
   /* Initialize brush local-space matrix. */
-  cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
+  cross_v3_v3v3(mat[0], area_no, tan);
   mat[0][3] = 0.0f;
   cross_v3_v3v3(mat[1], area_no, mat[0]);
   mat[1][3] = 0.0f;

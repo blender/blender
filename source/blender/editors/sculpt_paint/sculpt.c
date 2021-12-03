@@ -5152,6 +5152,7 @@ static bool brush_uses_commandlist(Brush *brush, int tool)
     case SCULPT_TOOL_RELAX:
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_TWIST:
     case SCULPT_TOOL_SMEAR:
       ok = true;
       break;
