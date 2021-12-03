@@ -102,9 +102,7 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
 
 static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 {
-  bNode *node;
-
-  for (node = (bNode *)ntree.nodes.last; node; node = node->prev) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     if (node->typeinfo->select_area_func) {
       if (node->typeinfo->select_area_func(node, mx, my)) {
         return node;
@@ -116,9 +114,7 @@ static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 
 static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
 {
-  bNode *node;
-
-  for (node = (bNode *)ntree.nodes.last; node; node = node->prev) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     if (node->typeinfo->tweak_area_func) {
       if (node->typeinfo->tweak_area_func(node, (int)mouse.x, (int)mouse.y)) {
         return node;
@@ -214,26 +210,23 @@ void node_deselect_all(SpaceNode &snode)
 
 void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes)
 {
-  bNode *node;
-  bNodeSocket *sock;
-
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (node = (bNode *)snode.edittree->nodes.first; node; node = node->next) {
-    int sel = 0;
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+    bool sel = false;
 
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SELECT;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      socket->flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-        if (sock->flag & SELECT) {
-          sel = 1;
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+        if (socket->flag & SELECT) {
+          sel = true;
           break;
         }
       }
@@ -247,25 +240,22 @@ void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes
 
 void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_nodes)
 {
-  bNode *node;
-  bNodeSocket *sock;
-
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (node = (bNode *)snode.edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
     bool sel = false;
 
-    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SELECT;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      socket->flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-        if (sock->flag & SELECT) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (socket->flag & SELECT) {
           sel = true;
           break;
         }
@@ -305,10 +295,9 @@ static bool node_select_grouped_type(SpaceNode *snode, bNode *node_act)
 
 static bool node_select_grouped_color(SpaceNode *snode, bNode *node_act)
 {
-  bNode *node;
   bool changed = false;
 
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if ((node->flag & SELECT) == 0) {
       if (compare_v3v3(node->color, node_act->color, 0.005f)) {
         nodeSetSelected(node, true);
