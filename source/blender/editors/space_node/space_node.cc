@@ -29,9 +29,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
@@ -53,6 +50,8 @@
 #include "WM_types.h"
 
 #include "node_intern.hh" /* own include */
+
+using blender::float2;
 
 /* ******************** tree path ********************* */
 
@@ -207,19 +206,14 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   }
 }
 
-void space_node_group_offset(SpaceNode *snode, float *x, float *y)
+float2 space_node_group_offset(const SpaceNode &snode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
 
   if (path && path->prev) {
-    float dcenter[2];
-    sub_v2_v2v2(dcenter, path->view_center, path->prev->view_center);
-    *x = dcenter[0];
-    *y = dcenter[1];
+    return float2(path->view_center) - float2(path->prev->view_center);
   }
-  else {
-    *x = *y = 0.0f;
-  }
+  return float2(0);
 }
 
 /* ******************** default callbacks for node space ***************** */

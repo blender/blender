@@ -28,9 +28,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
+#include "BLI_float2.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
@@ -59,6 +59,8 @@
 #include "NOD_common.h"
 #include "NOD_socket.h"
 #include "node_intern.hh" /* own include */
+
+using blender::float2;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -444,24 +446,26 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 /** \name Separate Operator
  * \{ */
 
-/* returns 1 if its OK */
-static int node_group_separate_selected(
-    Main *bmain, bNodeTree *ntree, bNodeTree *ngroup, float offx, float offy, int make_copy)
+/**
+ * \return True if successful.
+ */
+static bool node_group_separate_selected(
+    Main &bmain, bNodeTree &ntree, bNodeTree &ngroup, const float2 &offset, const bool make_copy)
 {
   /* deselect all nodes in the target tree */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     nodeSetSelected(node, false);
   }
 
   /* clear new pointers, set in BKE_node_copy_ex(). */
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ngroup.nodes) {
     node->new_node = nullptr;
   }
 
   ListBase anim_basepaths = {nullptr, nullptr};
 
   /* add selected nodes into the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup->nodes) {
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup.nodes) {
     if (!(node->flag & NODE_SELECT)) {
       continue;
     }
@@ -475,7 +479,7 @@ static int node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       /* make a copy */
-      newnode = BKE_node_copy_store_new_pointers(ngroup, node, LIB_ID_COPY_DEFAULT);
+      newnode = BKE_node_copy_store_new_pointers(&ngroup, node, LIB_ID_COPY_DEFAULT);
     }
     else {
       /* use the existing node */
@@ -485,11 +489,11 @@ static int node_group_separate_selected(
     /* keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old nodetree has animation data which potentially covers this node
      */
-    if (ngroup->adt) {
+    if (ngroup.adt) {
       PointerRNA ptr;
       char *path;
 
-      RNA_pointer_create(&ngroup->id, &RNA_Node, newnode, &ptr);
+      RNA_pointer_create(&ngroup.id, &RNA_Node, newnode, &ptr);
       path = RNA_path_from_ID_to_struct(&ptr);
 
       if (path) {
@@ -503,27 +507,27 @@ static int node_group_separate_selected(
     }
 
     /* migrate node */
-    BLI_remlink(&ngroup->nodes, newnode);
-    BLI_addtail(&ntree->nodes, newnode);
+    BLI_remlink(&ngroup.nodes, newnode);
+    BLI_addtail(&ntree.nodes, newnode);
 
     /* ensure unique node name in the node tree */
-    nodeUniqueName(ntree, newnode);
+    nodeUniqueName(&ntree, newnode);
 
     if (!newnode->parent) {
-      newnode->locx += offx;
-      newnode->locy += offy;
+      newnode->locx += offset.x;
+      newnode->locy += offset.y;
     }
   }
 
   /* add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup->links) {
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup.links) {
     const bool fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT));
     const bool toselect = (link->tonode && (link->tonode->flag & NODE_SELECT));
 
     if (make_copy) {
       /* make a copy of internal links */
       if (fromselect && toselect) {
-        nodeAddLink(ntree,
+        nodeAddLink(&ntree,
                     link->fromnode->new_node,
                     link->fromsock->new_sock,
                     link->tonode->new_node,
@@ -533,20 +537,20 @@ static int node_group_separate_selected(
     else {
       /* move valid links over, delete broken links */
       if (fromselect && toselect) {
-        BLI_remlink(&ngroup->links, link);
-        BLI_addtail(&ntree->links, link);
+        BLI_remlink(&ngroup.links, link);
+        BLI_addtail(&ntree.links, link);
       }
       else if (fromselect || toselect) {
-        nodeRemLink(ngroup, link);
+        nodeRemLink(&ngroup, link);
       }
     }
   }
 
   /* and copy across the animation,
    * note that the animation data's action can be nullptr here */
-  if (ngroup->adt) {
+  if (ngroup.adt) {
     /* now perform the moving */
-    BKE_animdata_transfer_by_basepath(bmain, &ngroup->id, &ntree->id, &anim_basepaths);
+    BKE_animdata_transfer_by_basepath(&bmain, &ngroup.id, &ntree.id, &anim_basepaths);
 
     /* paths + their wrappers need to be freed */
     LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
@@ -554,12 +558,12 @@ static int node_group_separate_selected(
     }
   }
 
-  ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+  ntree.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
   if (!make_copy) {
-    ngroup->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+    ngroup.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
   }
 
-  return 1;
+  return true;
 }
 
 enum eNodeGroupSeparateType {
@@ -590,18 +594,17 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   /* get node tree offset */
-  float offx, offy;
-  space_node_group_offset(snode, &offx, &offy);
+  const float2 offset = space_node_group_offset(*snode);
 
   switch (type) {
     case NODE_GS_COPY:
-      if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, true)) {
+      if (!node_group_separate_selected(*bmain, *nparent, *ngroup, offset, true)) {
         BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
         return OPERATOR_CANCELLED;
       }
       break;
     case NODE_GS_MOVE:
-      if (!node_group_separate_selected(bmain, nparent, ngroup, offx, offy, false)) {
+      if (!node_group_separate_selected(*bmain, *nparent, *ngroup, offset, false)) {
         BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
         return OPERATOR_CANCELLED;
       }

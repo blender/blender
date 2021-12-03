@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "BLI_float2.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_node.h"
@@ -80,7 +81,7 @@ struct SpaceNode_Runtime {
 };
 
 /* Transform between View2Ds in the tree path. */
-void space_node_group_offset(SpaceNode *snode, float *x, float *y);
+blender::float2 space_node_group_offset(const SpaceNode &snode);
 
 float node_socket_calculate_height(const bNodeSocket *socket);
 void node_link_calculate_multi_input_position(const float socket_x,
