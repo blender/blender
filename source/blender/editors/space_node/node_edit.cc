@@ -938,13 +938,15 @@ struct NodeSizeWidget {
   int directions;
 };
 
-static void node_resize_init(
-    bContext *C, wmOperator *op, const wmEvent *UNUSED(event), bNode *node, int dir)
+static void node_resize_init(bContext *C,
+                             wmOperator *op,
+                             const wmEvent *UNUSED(event),
+                             bNode *node,
+                             NodeResizeDirection dir)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  NodeSizeWidget *nsw = (NodeSizeWidget *)MEM_callocN(sizeof(NodeSizeWidget),
-                                                      "size widget op data");
+  NodeSizeWidget *nsw = (NodeSizeWidget *)MEM_callocN(sizeof(NodeSizeWidget), __func__);
 
   op->customdata = nsw;
   nsw->mxstart = snode->runtime->cursor[0] * UI_DPI_FAC;
@@ -1090,15 +1092,14 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
   bNode *node = nodeGetActive(snode->edittree);
-  int dir;
 
   if (node) {
     float cursor[2];
 
     /* convert mouse coordinates to v2d space */
     UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
-    dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
-    if (dir != 0) {
+    const NodeResizeDirection dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+    if (dir != NODE_RESIZE_NONE) {
       node_resize_init(C, op, event, node, dir);
       return OPERATOR_RUNNING_MODAL;
     }

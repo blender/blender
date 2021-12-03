@@ -97,7 +97,7 @@ void node_link_calculate_multi_input_position(const float socket_x,
 
 int node_get_colorid(bNode *node);
 void node_draw_extra_info_panel(const SpaceNode *snode, const bNode *node);
-int node_get_resize_cursor(int directions);
+int node_get_resize_cursor(NodeResizeDirection directions);
 void node_draw_shadow(const SpaceNode *snode, const bNode *node, float radius, float alpha);
 void node_draw_default(const bContext *C,
                        ARegion *region,

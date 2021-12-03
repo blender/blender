@@ -250,7 +250,7 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static int node_resize_area_default(bNode *node, int x, int y)
+static NodeResizeDirection node_resize_area_default(bNode *node, const int x, const int y)
 {
   if (node->flag & NODE_HIDDEN) {
     rctf totr = node->totr;
@@ -260,12 +260,12 @@ static int node_resize_area_default(bNode *node, int x, int y)
       return NODE_RESIZE_RIGHT;
     }
 
-    return 0;
+    return NODE_RESIZE_NONE;
   }
 
   const float size = NODE_RESIZE_MARGIN;
   rctf totr = node->totr;
-  int dir = 0;
+  NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
     dir |= NODE_RESIZE_RIGHT;
@@ -478,17 +478,18 @@ static void node_draw_frame(const bContext *C,
   node->block = nullptr;
 }
 
-static int node_resize_area_frame(bNode *node, int x, int y)
+static NodeResizeDirection node_resize_area_frame(bNode *node, const int x, const int y)
 {
   const float size = 10.0f;
   NodeFrame *data = (NodeFrame *)node->storage;
   rctf totr = node->totr;
-  int dir = 0;
 
   /* shrinking frame size is determined by child nodes */
   if (!(data->flag & NODE_FRAME_RESIZEABLE)) {
-    return 0;
+    return NODE_RESIZE_NONE;
   }
+
+  NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
     dir |= NODE_RESIZE_RIGHT;

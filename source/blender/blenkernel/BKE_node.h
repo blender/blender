@@ -25,6 +25,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
 
@@ -222,6 +223,16 @@ typedef int (*NodeGPUExecFunction)(struct GPUMaterial *mat,
                                    struct GPUNodeStack *in,
                                    struct GPUNodeStack *out);
 
+typedef enum NodeResizeDirection {
+  NODE_RESIZE_NONE = 0,
+  NODE_RESIZE_TOP = (1 << 0),
+  NODE_RESIZE_BOTTOM = (1 << 1),
+  NODE_RESIZE_RIGHT = (1 << 2),
+  NODE_RESIZE_LEFT = (1 << 3),
+} NodeResizeDirection;
+
+ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
+
 /**
  * \brief Defines a node type.
  *
@@ -274,7 +285,7 @@ typedef struct bNodeType {
    */
   void (*labelfunc)(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
   /** Optional custom resize handle polling. */
-  int (*resize_area_func)(struct bNode *node, int x, int y);
+  NodeResizeDirection (*resize_area_func)(struct bNode *node, int x, int y);
   /** Optional selection area polling. */
   int (*select_area_func)(struct bNode *node, int x, int y);
   /** Optional tweak area polling (for grabbing). */
@@ -378,12 +389,6 @@ typedef struct bNodeType {
 #define NODE_CLASS_GEOMETRY 41
 #define NODE_CLASS_ATTRIBUTE 42
 #define NODE_CLASS_LAYOUT 100
-
-/* node resize directions */
-#define NODE_RESIZE_TOP 1
-#define NODE_RESIZE_BOTTOM 2
-#define NODE_RESIZE_RIGHT 4
-#define NODE_RESIZE_LEFT 8
 
 typedef enum eNodeSizePreset {
   NODE_SIZE_DEFAULT,

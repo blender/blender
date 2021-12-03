@@ -2284,7 +2284,7 @@ static void node_draw_hidden(const bContext *C,
   node->block = nullptr;
 }
 
-int node_get_resize_cursor(int directions)
+int node_get_resize_cursor(NodeResizeDirection directions)
 {
   if (directions == 0) {
     return WM_CURSOR_DEFAULT;
@@ -2317,7 +2317,7 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
         }
       }
       if (node) {
-        int dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+        NodeResizeDirection dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
         wmcursor = node_get_resize_cursor(dir);
       }
     }
