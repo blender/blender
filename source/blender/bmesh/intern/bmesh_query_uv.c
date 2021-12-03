@@ -48,14 +48,6 @@ static void uv_aspect(const BMLoop *l,
  */
 #define UV_ASPECT(l, r_uv) uv_aspect(l, aspect, cd_loop_uv_offset, r_uv)
 
-/**
- * Computes the UV center of a face, using the mean average weighted by edge length.
- *
- * See #BM_face_calc_center_median_weighted for matching spatial functionality.
- *
- * \param aspect: Calculate the center scaling by these values, and finally dividing.
- * Since correct weighting depends on having the correct aspect.
- */
 void BM_face_uv_calc_center_median_weighted(const BMFace *f,
                                             const float aspect[2],
                                             const int cd_loop_uv_offset,
@@ -109,9 +101,6 @@ void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset,
   mul_v2_fl(r_cent, 1.0f / (float)f->len);
 }
 
-/**
- * Calculate the UV cross product (use the sign to check the winding).
- */
 float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
 {
   float(*uvs)[2] = BLI_array_alloca(uvs, f->len);
@@ -148,9 +137,6 @@ void BM_face_uv_transform(BMFace *f, const float matrix[2][2], const int cd_loop
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-/**
- * Check if two loops that share an edge also have the same UV coordinates.
- */
 bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->e == l_b->e);
@@ -165,9 +151,6 @@ bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
           equals_v2v2(luv_a_next->uv, luv_b_next->uv));
 }
 
-/**
- * Check if two loops that share a vertex also have the same UV coordinates.
- */
 bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
@@ -179,9 +162,6 @@ bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
   return true;
 }
 
-/**
- * Check if two loops that share a vertex also have the same UV coordinates.
- */
 bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
@@ -204,9 +184,6 @@ bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int 
   return true;
 }
 
-/**
- * Check if the point is inside the UV face.
- */
 bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int cd_loop_uv_offset)
 {
   float(*projverts)[2] = BLI_array_alloca(projverts, f->len);

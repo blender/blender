@@ -176,16 +176,6 @@ static BMFace *bm_face_create_from_mpoly(
   return BM_face_create(bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD);
 }
 
-/**
- * \brief Mesh -> BMesh
- * \param bm: The mesh to write into, while this is typically a newly created BMesh,
- * merging into existing data is supported.
- * Note the custom-data layout isn't used.
- * If more comprehensive merging is needed we should move this into a separate function
- * since this should be kept fast for edit-mode switching and storing undo steps.
- *
- * \warning This function doesn't calculate face normals.
- */
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
@@ -582,10 +572,6 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
   }
 }
 
-/**
- *
- * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
- */
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   MEdge *med;
@@ -1005,23 +991,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BKE_mesh_runtime_clear_geometry(me);
 }
 
-/**
- * A version of #BM_mesh_bm_to_me intended for getting the mesh
- * to pass to the modifier stack for evaluation,
- * instead of mode switching (where we make sure all data is kept
- * and do expensive lookups to maintain shape keys).
- *
- * Key differences:
- *
- * - Don't support merging with existing mesh.
- * - Ignore shape-keys.
- * - Ignore vertex-parents.
- * - Ignore selection history.
- * - Uses simpler method to calculate #ME_EDGEDRAW
- * - Uses #CD_MASK_DERIVEDMESH instead of #CD_MASK_MESH.
- *
- * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
- */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
   /* Must be an empty mesh. */

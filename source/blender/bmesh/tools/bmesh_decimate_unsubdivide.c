@@ -168,8 +168,6 @@ enum {
  * - BMVert.index == -1:         shows we will remove this vert
  */
 
-/**
- * \param tag_only: so we can call this from an operator */
 void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool tag_only)
 {
 #ifdef USE_WALKER

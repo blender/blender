@@ -99,10 +99,6 @@ void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype
   }
 }
 
-/**
- * \warning oflag applies to different types in some contexts,
- * not just the type being removed.
- */
 void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 {
   BMEdge *e;
@@ -275,10 +271,6 @@ void BM_mesh_delete_hflag_tagged(BMesh *bm, const char hflag, const char htype)
   }
 }
 
-/**
- * \warning oflag applies to different types in some contexts,
- * not just the type being removed.
- */
 void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
 {
   BMEdge *e;

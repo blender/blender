@@ -32,10 +32,6 @@
 #include "bmesh_separate.h" /* own include */
 #include "intern/bmesh_private.h"
 
-/**
- * Split all faces that match `filter_fn`.
- * \note
- */
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {
   BMFace **faces_array_all = MEM_mallocN(bm->totface * sizeof(BMFace *), __func__);

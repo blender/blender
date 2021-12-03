@@ -251,14 +251,6 @@ static bool bm_edge_is_face_visible_any(const BMEdge *e)
 
 /** \} */
 
-/**
- * \brief Select Mode Clean
- *
- * Remove isolated selected elements when in a mode doesn't support them.
- * eg: in edge-mode a selected vertex must be connected to a selected edge.
- *
- * \note this could be made a part of #BM_mesh_select_mode_flush_ex
- */
 void BM_mesh_select_mode_clean_ex(BMesh *bm, const short selectmode)
 {
   if (selectmode & SCE_SELECT_VERTEX) {
@@ -424,13 +416,6 @@ static void bm_mesh_select_mode_flush_edge_to_face(BMesh *bm)
   bm->totfacesel += chunk_data.delta_selection_len;
 }
 
-/**
- * \brief Select Mode Flush
- *
- * Makes sure to flush selections 'upwards'
- * (ie: all verts of an edge selects the edge and so on).
- * This should only be called by system and not tool authors.
- */
 void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectionFlushFLags flags)
 {
   if (selectmode & SCE_SELECT_VERTEX) {
@@ -463,9 +448,6 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 
 /** \} */
 
-/**
- * mode independent flushing up/down
- */
 void BM_mesh_deselect_flush(BMesh *bm)
 {
   BMIter eiter;
@@ -498,9 +480,6 @@ void BM_mesh_deselect_flush(BMesh *bm)
   recount_totsels(bm);
 }
 
-/**
- * mode independent flushing up/down
- */
 void BM_mesh_select_flush(BMesh *bm)
 {
   BMEdge *e;
@@ -542,12 +521,6 @@ void BM_mesh_select_flush(BMesh *bm)
   recount_totsels(bm);
 }
 
-/**
- * \brief Select Vert
- *
- * Changes selection state of a single vertex
- * in a mesh
- */
 void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select)
 {
   BLI_assert(v->head.htype == BM_VERT);
@@ -570,11 +543,6 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select)
   }
 }
 
-/**
- * \brief Select Edge
- *
- * Changes selection state of a single edge in a mesh.
- */
 void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 {
   BLI_assert(e->head.htype == BM_EDGE);
@@ -615,12 +583,6 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
   }
 }
 
-/**
- * \brief Select Face
- *
- * Changes selection state of a single
- * face in a mesh.
- */
 void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 {
   BMLoop *l_iter;
@@ -746,12 +708,6 @@ void BM_face_select_set_noflush(BMesh *bm, BMFace *f, const bool select)
 
 /** \} */
 
-/**
- * Select Mode Set
- *
- * Sets the selection mode for the bmesh,
- * updating the selection state.
- */
 void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 {
   BMIter iter;
@@ -867,10 +823,6 @@ int BM_mesh_elem_hflag_count_disabled(BMesh *bm,
   return bm_mesh_flag_count(bm, htype, hflag, respecthide, false);
 }
 
-/**
- * \note use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection
- * \note by design, this will not touch the editselection history stuff
- */
 void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select)
 {
   switch (ele->head.htype) {
@@ -889,7 +841,6 @@ void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select)
   }
 }
 
-/* this replaces the active flag used in uv/face mode */
 void BM_mesh_active_face_set(BMesh *bm, BMFace *f)
 {
   bm->act_face = f;
@@ -974,15 +925,6 @@ BMElem *BM_mesh_active_elem_get(BMesh *bm)
   return NULL;
 }
 
-/**
- * Generic way to get data from an EditSelection type
- * These functions were written to be used by the Modifier widget
- * when in Rotate about active mode, but can be used anywhere.
- *
- * - #BM_editselection_center
- * - #BM_editselection_normal
- * - #BM_editselection_plane
- */
 void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 {
   if (ese->htype == BM_VERT) {
@@ -1027,11 +969,6 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
   }
 }
 
-/**
- * Calculate a plane that is right angles to the edge/vert/faces normal
- * also make the plane run along an axis that is related to the geometry,
- * because this is used for the gizmos Y axis.
- */
 void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 {
   if (ese->htype == BM_VERT) {
@@ -1098,6 +1035,7 @@ static BMEditSelection *bm_select_history_create(BMHeader *ele)
 }
 
 /* --- macro wrapped funcs --- */
+
 bool _bm_select_history_check(BMesh *bm, const BMHeader *ele)
 {
   return (BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele)) != NULL);
@@ -1170,9 +1108,6 @@ void BM_select_history_validate(BMesh *bm)
   }
 }
 
-/**
- * Get the active mesh element (with active-face fallback).
- */
 bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
   BMEditSelection *ese_last = bm->selected.last;
@@ -1209,9 +1144,6 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
   return true;
 }
 
-/**
- * Return a map from BMVert/Edge/Face -> BMEditSelection
- */
 GHash *BM_select_history_map_create(BMesh *bm)
 {
   BMEditSelection *ese;
@@ -1230,9 +1162,6 @@ GHash *BM_select_history_map_create(BMesh *bm)
   return map;
 }
 
-/**
- * Map arguments may all be the same pointer.
- */
 void BM_select_history_merge_from_targetmap(
     BMesh *bm, GHash *vert_map, GHash *edge_map, GHash *face_map, const bool use_chain)
 {

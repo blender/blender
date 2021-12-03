@@ -29,11 +29,10 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* - BMVert.flag & BM_ELEM_TAG:  shows we touched this vert
- * - BMVert.index == -1:         shows we will remove this vert
- */
 void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 {
+  /* - `BMVert.flag & BM_ELEM_TAG`: Shows we touched this vert.
+   * - `BMVert.index == -1`:        Shows we will remove this vert. */
   BMVert *v;
   BMIter iter;
 

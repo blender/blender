@@ -42,7 +42,6 @@ static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char
 static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                       const char *identifier);
 
-/* operator slot type information - size of one element of the type given. */
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
     0,                /*  0: BMO_OP_SLOT_SENTINEL */
     sizeof(int),      /*  1: BMO_OP_SLOT_BOOL */
@@ -70,11 +69,6 @@ void BMO_op_flag_disable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
   op->flag &= ~op_flag;
 }
 
-/**
- * \brief BMESH OPSTACK PUSH
- *
- * Pushes the opstack down one level and allocates a new flag layer if appropriate.
- */
 void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
   bm->toolflag_index++;
@@ -90,13 +84,6 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
   }
 }
 
-/**
- * \brief BMESH OPSTACK POP
- *
- * Pops the opstack one level and frees a flag layer if appropriate
- *
- * BMESH_TODO: investigate NOT freeing flag layers.
- */
 void BMO_pop(BMesh *bm)
 {
   if (bm->toolflag_index > 0) {
@@ -152,11 +139,6 @@ static void bmo_op_slots_free(const BMOSlotType *slot_types, BMOpSlot *slot_args
   }
 }
 
-/**
- * \brief BMESH OPSTACK INIT OP
- *
- * Initializes an operator structure to a certain type
- */
 void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 {
   int opcode = BMO_opcode_from_opname(opname);
@@ -188,15 +170,6 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
   BLI_memarena_use_calloc(op->arena);
 }
 
-/**
- * \brief BMESH OPSTACK EXEC OP
- *
- * Executes a passed in operator.
- *
- * This handles the allocation and freeing of temporary flag
- * layers and starting/stopping the modeling loop.
- * Can be called from other operators exec callbacks as well.
- */
 void BMO_op_exec(BMesh *bm, BMOperator *op)
 {
   /* allocate tool flags on demand */
@@ -216,11 +189,6 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
   BMO_pop(bm);
 }
 
-/**
- * \brief BMESH OPSTACK FINISH OP
- *
- * Does housekeeping chores related to finishing up an operator.
- */
 void BMO_op_finish(BMesh *bm, BMOperator *op)
 {
   bmo_op_slots_free(bmo_opdefines[op->type]->slot_types_in, op->slots_in);
@@ -238,22 +206,12 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
 #endif
 }
 
-/**
- * \brief BMESH OPSTACK HAS SLOT
- *
- * \return Success if the slot if found.
- */
 bool BMO_slot_exists(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
   int slot_code = bmo_name_to_slotcode(slot_args, identifier);
   return (slot_code >= 0);
 }
 
-/**
- * \brief BMESH OPSTACK GET SLOT
- *
- * Returns a pointer to the slot of type 'slot_code'
- */
 BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
   int slot_code = bmo_name_to_slotcode_check(slot_args, identifier);
@@ -267,12 +225,6 @@ BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identif
   return &slot_args[slot_code];
 }
 
-/**
- * \brief BMESH OPSTACK COPY SLOT
- *
- * define used.
- * Copies data from one slot to another.
- */
 void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
                     const char *slot_name_src,
                     BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
@@ -393,7 +345,6 @@ void BMO_slot_bool_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
   slot->data.i = i;
 }
 
-/* only supports square mats */
 void BMO_slot_mat_set(BMOperator *op,
                       BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                       const char *slot_name,
@@ -515,7 +466,6 @@ bool BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
   return slot->data.i;
 }
 
-/* if you want a copy of the elem buffer */
 void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, int *len)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
@@ -698,9 +648,6 @@ int BMO_slot_map_len(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name
   return BLI_ghash_len(slot->data.ghash);
 }
 
-/* inserts a key/value mapping into a mapping slot.  note that it copies the
- * value, it doesn't store a reference to it. */
-
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, const void *data)
 {
   (void)op; /* Ignored in release builds. */
@@ -796,11 +743,6 @@ void *BMO_slot_buffer_alloc(BMOperator *op,
   return slot->data.buf;
 }
 
-/**
- * \brief BMO_ALL_TO_SLOT
- *
- * Copies all elements of a certain type into an operator slot.
- */
 void BMO_slot_buffer_from_all(BMesh *bm,
                               BMOperator *op,
                               BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
@@ -987,9 +929,6 @@ void *BMO_slot_buffer_get_single(BMOpSlot *slot)
   return slot->len ? (BMHeader *)slot->data.buf[0] : NULL;
 }
 
-/**
- * Copies the values from another slot to the end of the output slot.
- */
 void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
                              const char *slot_name_dst,
                              BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
@@ -1115,12 +1054,6 @@ void BMO_slot_buffer_from_disabled_flag(BMesh *bm,
   bmo_slot_buffer_from_flag(bm, op, slot_args, slot_name, htype, oflag, false);
 }
 
-/**
- * \brief BMO_FLAG_BUFFER
- *
- * Header Flags elements in a slots buffer, automatically
- * using the selection API where appropriate.
- */
 void BMO_slot_buffer_hflag_enable(BMesh *bm,
                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                   const char *slot_name,
@@ -1155,12 +1088,6 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
   }
 }
 
-/**
- * \brief BMO_FLAG_BUFFER
- *
- * Removes flags from elements in a slots buffer, automatically
- * using the selection API where appropriate.
- */
 void BMO_slot_buffer_hflag_disable(BMesh *bm,
                                    BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                    const char *slot_name,
@@ -1194,11 +1121,6 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
   }
 }
 
-/**
- * \brief BMO_FLAG_BUFFER
- *
- * Flags elements in a slots buffer
- */
 void BMO_slot_buffer_flag_enable(BMesh *bm,
                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                  const char *slot_name,
@@ -1221,11 +1143,6 @@ void BMO_slot_buffer_flag_enable(BMesh *bm,
   }
 }
 
-/**
- * \brief BMO_FLAG_BUFFER
- *
- * Removes flags from elements in a slots buffer
- */
 void BMO_slot_buffer_flag_disable(BMesh *bm,
                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                   const char *slot_name,
@@ -1434,12 +1351,6 @@ void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char
   return slot->data.buf ? *slot->data.buf : NULL;
 }
 
-/**
- * \brief New Iterator
- *
- * \param restrictmask: restricts the iteration to certain element types
- * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
- * over an element buffer (not a mapping). */
 void *BMO_iter_new(BMOIter *iter,
                    BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                    const char *slot_name,
@@ -1513,10 +1424,6 @@ void *BMO_iter_step(BMOIter *iter)
 
 /* used for iterating over mappings */
 
-/**
- * Returns a pointer to the key-value when iterating over mappings.
- * remember for pointer maps this will be a pointer to a pointer.
- */
 void **BMO_iter_map_value_p(BMOIter *iter)
 {
   return iter->val;
@@ -1584,7 +1491,6 @@ bool BMO_error_occurred_at_level(BMesh *bm, eBMOpErrorLevel level)
   return false;
 }
 
-/* returns error code or 0 if no error */
 bool BMO_error_get(BMesh *bm, const char **r_msg, BMOperator **r_op, eBMOpErrorLevel *r_level)
 {
   BMOpError *err = bm->errorstack.first;
@@ -1693,60 +1599,6 @@ static int BMO_opcode_from_opname_check(const char *opname)
   }
   return i;
 }
-
-/**
- * \brief Format Strings for #BMOperator Initialization.
- *
- * This system is used to execute or initialize an operator,
- * using a formatted-string system.
- *
- * The basic format for the format string is:
- * `[operatorname] [slot_name]=%[code] [slot_name]=%[code]`
- *
- * Example:
- *
- * \code{.c}
- *     BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
- *                  "delete context=%i geom=%hv",
- *                  DEL_ONLYFACES, BM_ELEM_SELECT);
- * \endcode
- * **Primitive Types**
- * - `b` - boolean (same as int but 1/0 only). #BMO_OP_SLOT_BOOL
- * - `i` - int. #BMO_OP_SLOT_INT
- * - `f` - float. #BMO_OP_SLOT_FLT
- * - `p` - pointer (normally to a Scene/Mesh/Object/BMesh). #BMO_OP_SLOT_PTR
- * - `m3` - 3x3 matrix of floats. #BMO_OP_SLOT_MAT
- * - `m4` - 4x4 matrix of floats. #BMO_OP_SLOT_MAT
- * - `v` - 3D vector of floats. #BMO_OP_SLOT_VEC
- * **Utility**
- *
- * Pass an existing slot which is copied to either an input or output slot.
- * Taking the operator and slot-name pair of args (BMOperator *, const char *).
- * - `s` - slot_in (lower case)
- * - `S` - slot_out (upper case)
- * **Element Buffer** (#BMO_OP_SLOT_ELEMENT_BUF)
- * - `e` - single element vert/edge/face (use with #BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE).
- * - `eb` - elem buffer, take an array and a length.
- * - `av` - all verts
- * - `ae` - all edges
- * - `af` - all faces
- * - `hv` - header flagged verts (hflag)
- * - `he` - header flagged edges (hflag)
- * - `hf` - header flagged faces (hflag)
- * - `Hv` - header flagged verts (hflag off)
- * - `He` - header flagged edges (hflag off)
- * - `Hf` - header flagged faces (hflag off)
- * - `fv` - flagged verts (oflag)
- * - `fe` - flagged edges (oflag)
- * - `ff` - flagged faces (oflag)
- * - `Fv` - flagged verts (oflag off)
- * - `Fe` - flagged edges (oflag off)
- * - `Ff` - flagged faces (oflag off)
- *
- * \note The common v/e/f suffix can be mixed,
- * so `avef` is can be used for all verts, edges and faces.
- * Order is not important so `Hfev` is also valid (all un-flagged verts, edges and faces).
- */
 
 bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)
 {

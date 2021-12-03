@@ -47,9 +47,6 @@ const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
     BM_LOOP, /* BM_LOOPS_OF_EDGE */
 };
 
-/**
- * Utility function.
- */
 int BM_iter_mesh_count(const char itype, BMesh *bm)
 {
   int count;
@@ -73,9 +70,6 @@ int BM_iter_mesh_count(const char itype, BMesh *bm)
   return count;
 }
 
-/**
- * \note Use #BM_vert_at_index / #BM_edge_at_index / #BM_face_at_index for mesh arrays.
- */
 void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
 {
   BMIter iter;
@@ -98,12 +92,6 @@ void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index)
   return val;
 }
 
-/**
- * \brief Iterator as Array
- *
- * Sometimes its convenient to get the iterator as an array
- * to avoid multiple calls to #BM_iter_at_index.
- */
 int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len)
 {
   int i = 0;
@@ -124,11 +112,6 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
 
   return i;
 }
-/**
- * \brief Operator Iterator as Array
- *
- * Sometimes its convenient to get the iterator as an array.
- */
 int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                       const char *slot_name,
                       const char restrictmask,
@@ -155,16 +138,6 @@ int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
   return i;
 }
 
-/**
- * \brief Iterator as Array
- *
- * Allocates a new array, has the advantage that you don't need to know the size ahead of time.
- *
- * Takes advantage of less common iterator usage to avoid counting twice,
- * which you might end up doing when #BM_iter_as_array is used.
- *
- * Caller needs to free the array.
- */
 void *BM_iter_as_arrayN(BMesh *bm,
                         const char itype,
                         void *data,
@@ -272,9 +245,6 @@ int BM_iter_mesh_bitmap_from_filter(const char itype,
   return bitmap_enabled;
 }
 
-/**
- * Needed when we want to check faces, but return a loop aligned array.
- */
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
                                              BLI_bitmap *bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
@@ -305,11 +275,6 @@ int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
   return bitmap_enabled;
 }
 
-/**
- * \brief Elem Iter Flag Count
- *
- * Counts how many flagged / unflagged items are found in this element.
- */
 int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value)
 {
   BMIter iter;
@@ -325,11 +290,6 @@ int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, cons
   return count;
 }
 
-/**
- * \brief Elem Iter Tool Flag Count
- *
- * Counts how many flagged / unflagged items are found in this element.
- */
 int BMO_iter_elem_count_flag(
     BMesh *bm, const char itype, void *data, const short oflag, const bool value)
 {
@@ -371,11 +331,6 @@ int BMO_iter_elem_count_flag(
   return count;
 }
 
-/**
- * \brief Mesh Iter Flag Count
- *
- * Counts how many flagged / unflagged items are found in this mesh.
- */
 int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value)
 {
   BMIter iter;

@@ -20,4 +20,13 @@
  * \ingroup bmesh
  */
 
+/**
+ * Fill in faces from an edgenet made up of boundary and wire edges.
+ *
+ * \note New faces currently don't have their normals calculated and are flipped randomly.
+ *       The caller needs to flip faces correctly.
+ *
+ * \param bm: The mesh to operate on.
+ * \param use_edge_tag: Only fill tagged edges.
+ */
 void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face_tag);

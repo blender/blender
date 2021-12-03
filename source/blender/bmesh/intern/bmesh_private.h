@@ -34,6 +34,12 @@
  * it can take most of the CPU time when running some tools. */
 #  define BM_CHECK_ELEMENT(el) (void)(el)
 #else
+/**
+ * Check the element is valid.
+ *
+ * BMESH_TODO, when this raises an error the output is incredibly confusing.
+ * need to have some nice way to print/debug what the heck's going on.
+ */
 int bmesh_elem_check(void *element, const char htype);
 #  define BM_CHECK_ELEMENT(el) \
     { \
@@ -86,6 +92,12 @@ enum {
   } \
   (void)0
 
+/**
+ * \brief POLY ROTATE PLANE
+ *
+ * Rotates a polygon so that its
+ * normal is pointing towards the mesh Z axis
+ */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nverts);
 
 /* include the rest of our private declarations */

@@ -23,6 +23,18 @@
 struct CurveProfile;
 struct MDeformVert;
 
+/**
+ * - Currently only bevels BM_ELEM_TAG'd verts and edges.
+ *
+ * - Newly created faces, edges, and verts are BM_ELEM_TAG'd too,
+ *   the caller needs to ensure these are cleared before calling
+ *   if its going to use this tag.
+ *
+ * - If limit_offset is set, adjusts offset down if necessary
+ *   to avoid geometry collisions.
+ *
+ * \warning all tagged edges _must_ be manifold.
+ */
 void BM_mesh_bevel(BMesh *bm,
                    const float offset,
                    const int offset_type,

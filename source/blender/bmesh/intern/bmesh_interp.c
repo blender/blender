@@ -81,13 +81,6 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
   }
 }
 
-/**
- * \brief Data, Interp From Verts
- *
- * Interpolates per-vertex data from two sources to \a v_dst
- *
- * \note This is an exact match to #BM_data_interp_from_edges
- */
 void BM_data_interp_from_verts(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac)
 {
@@ -95,13 +88,6 @@ void BM_data_interp_from_verts(
       &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
 }
 
-/**
- * \brief Data, Interp From Edges
- *
- * Interpolates per-edge data from two sources to \a e_dst.
- *
- * \note This is an exact match to #BM_data_interp_from_verts
- */
 void BM_data_interp_from_edges(
     BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac)
 {
@@ -120,12 +106,6 @@ static void UNUSED_FUNCTION(BM_Data_Vert_Average)(BMesh *UNUSED(bm), BMFace *UNU
   // BMIter iter;
 }
 
-/**
- * \brief Data Face-Vert Edge Interp
- *
- * Walks around the faces of \a e and interpolates
- * the loop data between two sources.
- */
 void BM_data_interp_face_vert_edge(BMesh *bm,
                                    const BMVert *v_src_1,
                                    const BMVert *UNUSED(v_src_2),
@@ -169,14 +149,6 @@ void BM_data_interp_face_vert_edge(BMesh *bm,
   } while ((l_iter = l_iter->radial_next) != e->l);
 }
 
-/**
- * \brief Data Interp From Face
- *
- * projects target onto source, and pulls interpolated customdata from
- * source.
- *
- * \note Only handles loop customdata. multires is handled.
- */
 void BM_face_interp_from_face_ex(BMesh *bm,
                                  BMFace *f_dst,
                                  const BMFace *f_src,
@@ -570,9 +542,6 @@ void BM_loop_interp_multires_ex(BMesh *UNUSED(bm),
   BLI_task_parallel_range(0, res, &data, loop_interp_multires_cb, &settings);
 }
 
-/**
- * project the multires grid in target onto f_src's set of multires grids
- */
 void BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
 {
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -618,10 +587,6 @@ void BM_face_interp_multires(BMesh *bm, BMFace *f_dst, const BMFace *f_src)
   }
 }
 
-/**
- * smooths boundaries between multires grids,
- * including some borders in adjacent faces
- */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 {
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -730,10 +695,6 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
   }
 }
 
-/**
- * projects a single loop, target, onto f_src for customdata interpolation. multires is handled.
- * if do_vertex is true, target's vert data will also get interpolated.
- */
 void BM_loop_interp_from_face(
     BMesh *bm, BMLoop *l_dst, const BMFace *f_src, const bool do_vertex, const bool do_multires)
 {
@@ -1246,9 +1207,6 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
   }
 }
 
-/**
- * Take existing custom data and merge each fan's data.
- */
 void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, const int layer_n)
 {
   const int type = bm->ldata.layers[layer_n].type;
@@ -1260,10 +1218,6 @@ void BM_vert_loop_groups_data_layer_merge(BMesh *bm, LinkNode *groups, const int
   } while ((groups = groups->next));
 }
 
-/**
- * A version of #BM_vert_loop_groups_data_layer_merge
- * that takes an array of loop-weights (aligned with #BM_LOOPS_OF_VERT iterator)
- */
 void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm,
                                                   LinkNode *groups,
                                                   const int layer_n,

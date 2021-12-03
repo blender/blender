@@ -34,7 +34,6 @@
 
 #include "bmesh.h"
 
-/* used as an extern, defined in bmesh.h */
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
@@ -137,15 +136,6 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
   }
 }
 
-/**
- * \brief BMesh Make Mesh
- *
- * Allocates a new BMesh structure.
- *
- * \return The New bmesh
- *
- * \note ob is needed by multires
- */
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreateParams *params)
 {
   /* allocate the structure */
@@ -167,13 +157,6 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   return bm;
 }
 
-/**
- * \brief BMesh Free Mesh Data
- *
- * Frees a BMesh structure.
- *
- * \note frees mesh, but not actual BMesh struct
- */
 void BM_mesh_data_free(BMesh *bm)
 {
   BMVert *v;
@@ -265,11 +248,6 @@ void BM_mesh_data_free(BMesh *bm)
   BMO_error_clear(bm);
 }
 
-/**
- * \brief BMesh Clear Mesh
- *
- * Clear all data in bm
- */
 void BM_mesh_clear(BMesh *bm)
 {
   const bool use_toolflags = bm->use_toolflags;
@@ -291,11 +269,6 @@ void BM_mesh_clear(BMesh *bm)
   CustomData_reset(&bm->pdata);
 }
 
-/**
- * \brief BMesh Free Mesh
- *
- * Frees a BMesh data and its structure.
- */
 void BM_mesh_free(BMesh *bm)
 {
   BM_mesh_data_free(bm);
@@ -310,13 +283,6 @@ void BM_mesh_free(BMesh *bm)
   MEM_freeN(bm);
 }
 
-/**
- * \brief BMesh Begin Edit
- *
- * Functions for setting up a mesh for editing and cleaning up after
- * the editing operations are done. These are called by the tools/operator
- * API for each time a tool is executed.
- */
 void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
 {
   /* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
@@ -337,9 +303,6 @@ void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
 #endif
 }
 
-/**
- * \brief BMesh End Edit
- */
 void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
   ListBase select_history;
@@ -498,18 +461,6 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 {
   BM_mesh_elem_index_ensure_ex(bm, htype, NULL);
 }
-
-/**
- * Array checking/setting macros
- *
- * Currently vert/edge/loop/face index data is being abused, in a few areas of the code.
- *
- * To avoid correcting them afterwards, set 'bm->elem_index_dirty' however its possible
- * this flag is set incorrectly which could crash blender.
- *
- * Code that calls this functions may depend on dirty indices on being set.
- * Keep this function read-only.
- */
 
 void BM_mesh_elem_index_validate(
     BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b)
@@ -693,7 +644,6 @@ finally:
   bm->elem_table_dirty &= ~htype_needed;
 }
 
-/* use BM_mesh_elem_table_ensure where possible to avoid full rebuild */
 void BM_mesh_elem_table_init(BMesh *bm, const char htype)
 {
   BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
@@ -754,11 +704,6 @@ BMLoop *BM_loop_at_index_find(BMesh *bm, const int index)
   return NULL;
 }
 
-/**
- * Use lookup table when available, else use slower find functions.
- *
- * \note Try to use #BM_mesh_elem_table_ensure instead.
- */
 BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index)
 {
   if ((bm->elem_table_dirty & BM_VERT) == 0) {
@@ -783,9 +728,6 @@ BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index)
   return BM_face_at_index_find(bm, index);
 }
 
-/**
- * Return the amount of element of type 'type' in a given bmesh.
- */
 int BM_mesh_elem_count(BMesh *bm, const char htype)
 {
   BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
@@ -804,20 +746,6 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
-/**
- * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
- * (xxx_idx[org_index] = new_index).
- *
- * A NULL array means no changes.
- *
- * \note
- * - Does not mess with indices, just sets elem_index_dirty flag.
- * - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
- *   on a per-face basis...).
- *
- * \warning Be careful if you keep pointers to affected BM elements,
- * or arrays, when using this func!
- */
 void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx)
 {
   /* Mapping old to new pointers. */
@@ -1106,12 +1034,6 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   }
 }
 
-/**
- * Use new memory pools for this mesh.
- *
- * \note needed for re-sizing elements (adding/removing tool flags)
- * but could also be used for packing fragmented bmeshes.
- */
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,
                      BLI_mempool *vpool_dst,
@@ -1363,9 +1285,6 @@ void BM_mesh_rebuild(BMesh *bm,
   }
 }
 
-/**
- * Re-allocates mesh data with/without toolflags.
- */
 void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 {
   if (bm->use_toolflags == use_toolflags) {

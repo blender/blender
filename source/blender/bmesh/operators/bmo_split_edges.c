@@ -27,7 +27,6 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* keep this operator fast, its used in a modifier */
 void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 {
   const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
