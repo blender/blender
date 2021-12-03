@@ -613,22 +613,22 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
  * \attention defined in imageprocess.c
  */
 void bicubic_interpolation(
-    struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
+    const struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 void nearest_interpolation(
-    struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
+    const struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 void bilinear_interpolation(
-    struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
+    const struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 
 void bicubic_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
@@ -756,11 +756,26 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             ScanlineThreadFunc do_thread,
                                             void *custom_data);
 
-void IMB_transform(struct ImBuf *src,
+/**
+ * \brief Transform modes to use for IMB_transform function.
+ *
+ * These are not flags as the combination of cropping and repeat can lead to different expectation.
+ */
+typedef enum eIMBTransformMode {
+  /** \brief Do not crop or repeat. */
+  IMB_TRANSFORM_MODE_REGULAR = 0,
+  /** \brief Crop the source buffer. */
+  IMB_TRANSFORM_MODE_CROP_SRC = 1,
+  /** \brief Wrap repeat the source buffer. Only supported in with nearest filtering. */
+  IMB_TRANSFORM_MODE_WRAP_REPEAT = 2,
+} eIMBTransformMode;
+
+void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
-                   float transform_matrix[4][4],
-                   struct rctf *src_crop,
-                   const eIMBInterpolationFilterMode filter);
+                   const eIMBTransformMode mode,
+                   const eIMBInterpolationFilterMode filter,
+                   const float transform_matrix[4][4],
+                   const struct rctf *src_crop);
 
 /* ffmpeg */
 void IMB_ffmpeg_init(void);
