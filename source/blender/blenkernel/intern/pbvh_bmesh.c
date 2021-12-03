@@ -5649,7 +5649,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   int cd_face_node = CustomData_get_named_layer_index(
       &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
   int cd_face_area = CustomData_get_named_layer_index(
-      &bm->pdata, CD_PROP_FLOAT, "__dyntopo_face_areas");
+      &bm->pdata, CD_PROP_FLOAT2, "__dyntopo_face_areas");
 
   cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
   cd_face_node = bm->pdata.layers[cd_face_node].offset;
@@ -6070,7 +6070,8 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
   idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   pbvh->cd_face_node_offset = bm->pdata.layers[idx].offset;
 
-  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+  idx = CustomData_get_named_layer_index(
+      &bm->pdata, CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id);
   pbvh->cd_face_area = bm->pdata.layers[idx].offset;
 
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);

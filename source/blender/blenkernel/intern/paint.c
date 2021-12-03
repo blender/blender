@@ -2938,7 +2938,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
       {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
-  BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
+  BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, ARRAY_SIZE(vlayers));
 
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
@@ -2946,7 +2946,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
       {CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
   };
-  BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, 2);
+  BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, ARRAY_SIZE(flayers));
 
   // get indices again, as they might have changed after adding new layers
   cd_node_layer_index = CustomData_get_named_layer_index(
@@ -2971,8 +2971,9 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
   ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
   ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
 
-  ss->cd_face_areas = CustomData_get_named_layer(
-      &ss->bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+  ss->cd_face_areas = CustomData_get_named_layer_index(
+      &ss->bm->pdata, CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id);
+
   ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
 
   AttributeDomain domain;

@@ -3185,7 +3185,7 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
 
   BM_log_edge_topo_pre(log, e);
   BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);
-
+  
   BM_log_edge_topo_post(log, e);
   BM_log_edge_added(log, *newe);
 

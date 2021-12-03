@@ -1306,7 +1306,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 {
   bm_logstack_push();
 
-  int ni = -1;
+  int ni = DYNTOPO_NODE_NONE;
 
   if (force_tree_walk) {
     bke_pbvh_insert_face(pbvh, f);
@@ -3955,6 +3955,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       lnext = l->radial_next;
 
       bool fbad = false;
+#if 1
       do {
 
         if (l2->v == l2->next->v) {
@@ -3973,6 +3974,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
           break;
         }
       } while ((l2 = l2->next) != l->f->l_first);
+#endif
 
       if (!fbad && BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) == DYNTOPO_NODE_NONE) {
         BKE_pbvh_bmesh_add_face(pbvh, l->f, false, false);
@@ -5443,39 +5445,48 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       ni = BM_ELEM_CD_GET_INT(v2, pbvh->cd_vert_node_offset);
     }
 
-    // this should never happen
-    if (true || ni == DYNTOPO_NODE_NONE) {
-      BMIter fiter;
-      BMFace *f;
+    if (ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
+      printf("%s: error\n", __func__);
+    }
+    /* this should rarely happen */
+    // if (ni < 0 || ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
+    if (ni == DYNTOPO_NODE_NONE) {
+      ni = DYNTOPO_NODE_NONE;
 
-      for (int j = 0; j < 3; j++) {
+      for (int j = 0; j < 2; j++) {
         BMVert *v = NULL;
 
         switch (j) {
           case 0:
-            v = newv;
-            break;
-          case 1:
             v = v1;
             break;
-          case 2:
+          case 1:
             v = v2;
             break;
         }
 
-        BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
-          int ni2 = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
+        if (!v->e) {
+          continue;
+        }
 
-          if (ni2 != DYNTOPO_NODE_NONE) {
-            ni = ni2;
+        BMEdge *e2 = v->e;
+        do {
+          if (!e2->l) {
             break;
           }
-        }
 
-        if (ni != DYNTOPO_NODE_NONE) {
-          break;
-        }
+          BMLoop *l = e2->l;
+          do {
+            int ni2 = BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset);
+
+            if (ni2 >= 0 && ni2 < pbvh->totnode && (pbvh->nodes[ni2].flag & PBVH_Leaf)) {
+              ni = ni2;
+              goto outerbreak;
+            }
+          } while ((l = l->radial_next) != e2->l);
+        } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
       }
+    outerbreak:;
     }
 
     if (ni != DYNTOPO_NODE_NONE) {
@@ -5520,6 +5531,11 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
 
+    if (ni < 0 || ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
+      printf("%s: error!\n", __func__);
+      ni = DYNTOPO_NODE_NONE;
+    }
+
     BMLoop *l = f->l_first;
     int j = 0;
     do {
@@ -5531,7 +5547,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     int flen = j;
 
-    if (mask >= (int)ARRAY_SIZE(splitmap)) {
+    if (mask < 0 || mask >= (int)ARRAY_SIZE(splitmap)) {
       printf("splitmap error!\n");
       continue;
     }
@@ -5715,7 +5731,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
   BMCustomLayerReq flayers[] = {
-      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
       {CD_SCULPT_FACE_SETS, NULL, 0},
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
@@ -5733,7 +5749,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
       &bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
 
   pbvh->cd_face_area = CustomData_get_named_offset(
-      &bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+      &bm->pdata, CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id);
 
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
