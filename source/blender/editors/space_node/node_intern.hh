@@ -23,16 +23,13 @@
 
 #pragma once
 
-#include "BKE_node.h"
-#include "UI_interface.h"
-#include "UI_view2d.h"
-
 #include "BLI_vector.hh"
+
+#include "BKE_node.h"
+
+#include "UI_interface.h"
 #include "UI_interface.hh"
-
-#include <stddef.h> /* for size_t */
-
-/* internal exports only */
+#include "UI_view2d.h"
 
 struct ARegion;
 struct ARegionType;
@@ -47,7 +44,7 @@ struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
 
-/* temp data to pass on to modal */
+/** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
   blender::Vector<bNodeLink *> links;
@@ -82,12 +79,9 @@ struct SpaceNode_Runtime {
   struct NodeInsertOfsData *iofsd;
 };
 
-/* space_node.c */
-
-/* transform between View2Ds in the tree path */
+/* Transform between View2Ds in the tree path. */
 void space_node_group_offset(SpaceNode *snode, float *x, float *y);
 
-/* node_draw.cc */
 float node_socket_calculate_height(const bNodeSocket *socket);
 void node_link_calculate_multi_input_position(const float socket_x,
                                               const float socket_y,
@@ -133,14 +127,11 @@ void node_to_view(const bNode *node, float x, float y, float *rx, float *ry);
 void node_to_updated_rect(const bNode *node, rctf *r_rect);
 void node_from_view(const bNode *node, float x, float y, float *rx, float *ry);
 
-/* node_toolbar.c */
 void node_toolbar_register(ARegionType *art);
 
-/* node_ops.c */
 void node_operatortypes(void);
 void node_keymap(wmKeyConfig *keyconf);
 
-/* node_select.c */
 void node_deselect_all(SpaceNode *snode);
 void node_socket_select(bNode *node, bNodeSocket *sock);
 void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_node);
@@ -159,7 +150,6 @@ void NODE_OT_select_grouped(wmOperatorType *ot);
 void NODE_OT_select_same_type_step(wmOperatorType *ot);
 void NODE_OT_find_node(wmOperatorType *ot);
 
-/* node_view.c */
 int space_node_view_flag(
     bContext *C, SpaceNode *snode, ARegion *region, const int node_flag, const int smooth_viewtx);
 
@@ -172,7 +162,6 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot);
 void NODE_OT_backimage_fit(wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
 
-/* drawnode.c */
 void nodelink_batch_start(SpaceNode *snode);
 void nodelink_batch_end(SpaceNode *snode);
 
@@ -201,7 +190,6 @@ void draw_nodespace_back_pix(const bContext *C,
                              SpaceNode *snode,
                              bNodeInstanceKey parent_key);
 
-/* node_add.c */
 bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
@@ -212,7 +200,6 @@ void NODE_OT_add_file(wmOperatorType *ot);
 void NODE_OT_add_mask(wmOperatorType *ot);
 void NODE_OT_new_node_tree(wmOperatorType *ot);
 
-/* node_group.c */
 const char *node_group_idname(bContext *C);
 void NODE_OT_group_make(wmOperatorType *ot);
 void NODE_OT_group_insert(wmOperatorType *ot);
@@ -220,7 +207,6 @@ void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
 
-/* node_relationships.c */
 void sort_multi_input_socket_links(SpaceNode *snode,
                                    bNode *node,
                                    bNodeLink *drag_link,
@@ -242,7 +228,6 @@ void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
 
-/* node_edit.c */
 void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
 void snode_set_context(const bContext *C);
@@ -294,7 +279,6 @@ void NODE_OT_shader_script_update(wmOperatorType *ot);
 void NODE_OT_viewer_border(wmOperatorType *ot);
 void NODE_OT_clear_viewer_border(wmOperatorType *ot);
 
-/* node_widgets.c */
 void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt);
@@ -303,7 +287,6 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
 void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot);
 
-/* node_geometry_attribute_search.cc */
 void node_geometry_add_attribute_search_button(const bContext *C,
                                                const bNodeTree *node_tree,
                                                const bNode *node,
@@ -311,8 +294,6 @@ void node_geometry_add_attribute_search_button(const bContext *C,
                                                uiLayout *layout);
 
 extern const char *node_context_dir[];
-
-/* XXXXXX */
 
 /* Nodes draw without dpi - the view zoom is flexible. */
 #define HIDDEN_RAD (0.75f * U.widget_unit)
@@ -329,5 +310,7 @@ extern const char *node_context_dir[];
 #define NODE_LINK_RESOL 12
 
 namespace blender::ed::space_node {
+
 Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
+
 }
