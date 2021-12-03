@@ -285,7 +285,7 @@ typedef struct bNodeType {
    */
   void (*labelfunc)(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
   /** Optional custom resize handle polling. */
-  NodeResizeDirection (*resize_area_func)(struct bNode *node, int x, int y);
+  NodeResizeDirection (*resize_area_func)(const struct bNode *node, int x, int y);
   /** Optional selection area polling. */
   int (*select_area_func)(struct bNode *node, int x, int y);
   /** Optional tweak area polling (for grabbing). */
@@ -555,7 +555,7 @@ void ntreeInterfaceTypeUpdate(struct bNodeTree *ntree);
 struct bNodeType *nodeTypeFind(const char *idname);
 void nodeRegisterType(struct bNodeType *ntype);
 void nodeUnregisterType(struct bNodeType *ntype);
-bool nodeTypeUndefined(struct bNode *node);
+bool nodeTypeUndefined(const struct bNode *node);
 struct GHashIterator *nodeTypeGetIterator(void);
 
 /* Helper macros for iterating over node types. */

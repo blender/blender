@@ -479,7 +479,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
   /* default now: refresh node is starting preview */
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
-  snode_set_context(C);
+  snode_set_context(*C);
 
   if (snode->nodetree) {
     if (snode->nodetree->type == NTREE_SHADER) {
@@ -595,7 +595,7 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
                            &snode->runtime->cursor[1]);
 
   /* here snode->runtime->cursor is used to detect the node edge for sizing */
-  node_set_cursor(win, snode, snode->runtime->cursor);
+  node_set_cursor(*win, *snode, snode->runtime->cursor);
 
   /* XXX snode->runtime->cursor is in placing new nodes space */
   snode->runtime->cursor[0] /= UI_DPI_FAC;
@@ -629,7 +629,7 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void node_main_region_draw(const bContext *C, ARegion *region)
 {
-  node_draw_space(C, region);
+  node_draw_space(*C, *region);
 }
 
 /* ************* dropboxes ************* */
@@ -752,7 +752,7 @@ static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region
 static void node_header_region_draw(const bContext *C, ARegion *region)
 {
   /* find and set the context */
-  snode_set_context(C);
+  snode_set_context(*C);
 
   ED_region_header(C, region);
 }

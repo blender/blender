@@ -1455,7 +1455,7 @@ void nodeUnregisterType(bNodeType *nt)
   BLI_ghash_remove(nodetypes_hash, nt->idname, nullptr, node_free_type);
 }
 
-bool nodeTypeUndefined(bNode *node)
+bool nodeTypeUndefined(const bNode *node)
 {
   return (node->typeinfo == &NodeTypeUndefined) ||
          ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id &&

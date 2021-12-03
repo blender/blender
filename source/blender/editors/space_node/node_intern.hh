@@ -67,7 +67,7 @@ struct SpaceNode_Runtime {
   float aspect;
 
   /** Mouse position for drawing socket-less links and adding nodes. */
-  float cursor[2];
+  blender::float2 cursor;
 
   /** For auto compositing. */
   bool recalc;
@@ -83,62 +83,62 @@ struct SpaceNode_Runtime {
 /* Transform between View2Ds in the tree path. */
 blender::float2 space_node_group_offset(const SpaceNode &snode);
 
-float node_socket_calculate_height(const bNodeSocket *socket);
+float node_socket_calculate_height(const bNodeSocket &socket);
 void node_link_calculate_multi_input_position(const float socket_x,
                                               const float socket_y,
                                               const int index,
                                               const int total_inputs,
                                               float r[2]);
 
-int node_get_colorid(bNode *node);
-void node_draw_extra_info_panel(const SpaceNode *snode, const bNode *node);
+int node_get_colorid(bNode &node);
+void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);
-void node_draw_shadow(const SpaceNode *snode, const bNode *node, float radius, float alpha);
+void node_draw_shadow(const SpaceNode &snode, const bNode &node, float radius, float alpha);
 void node_draw_default(const bContext *C,
                        ARegion *region,
                        SpaceNode *snode,
                        bNodeTree *ntree,
                        bNode *node,
                        bNodeInstanceKey key);
-void node_draw_sockets(const View2D *v2d,
-                       const bContext *C,
-                       bNodeTree *ntree,
-                       bNode *node,
-                       bool draw_outputs,
-                       bool select_all);
+void node_draw_sockets(const View2D &v2d,
+                       const bContext &C,
+                       bNodeTree &ntree,
+                       bNode &node,
+                       const bool draw_outputs,
+                       const bool select_all);
 void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node);
 int node_select_area_default(bNode *node, int x, int y);
 int node_tweak_area_default(bNode *node, int x, int y);
-void node_socket_color_get(const bContext *C,
-                           bNodeTree *ntree,
-                           PointerRNA *node_ptr,
-                           bNodeSocket *sock,
+void node_socket_color_get(const bContext &C,
+                           const bNodeTree &ntree,
+                           PointerRNA &node_ptr,
+                           const bNodeSocket &sock,
                            float r_color[4]);
-void node_update_nodetree(const bContext *C, bNodeTree *ntree);
-void node_draw_nodetree(const bContext *C,
-                        ARegion *region,
-                        SpaceNode *snode,
-                        bNodeTree *ntree,
+void node_update_nodetree(const bContext &C, bNodeTree &ntree);
+void node_draw_nodetree(const bContext &C,
+                        ARegion &region,
+                        SpaceNode &snode,
+                        bNodeTree &ntree,
                         bNodeInstanceKey parent_key);
-void node_draw_space(const bContext *C, ARegion *region);
+void node_draw_space(const bContext &C, ARegion &region);
 
-void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2]);
+void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
 /* DPI scaled coords */
-void node_to_view(const bNode *node, float x, float y, float *rx, float *ry);
-void node_to_updated_rect(const bNode *node, rctf *r_rect);
-void node_from_view(const bNode *node, float x, float y, float *rx, float *ry);
+void node_to_view(const bNode &node, float x, float y, float *rx, float *ry);
+void node_to_updated_rect(const bNode &node, rctf &r_rect);
+void node_from_view(const bNode &node, float x, float y, float *rx, float *ry);
 
 void node_toolbar_register(ARegionType *art);
 
 void node_operatortypes(void);
 void node_keymap(wmKeyConfig *keyconf);
 
-void node_deselect_all(SpaceNode *snode);
-void node_socket_select(bNode *node, bNodeSocket *sock);
-void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_node);
-void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes);
-void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_nodes);
-void node_select_single(bContext *C, bNode *node);
+void node_deselect_all(SpaceNode &snode);
+void node_socket_select(bNode *node, bNodeSocket &sock);
+void node_socket_deselect(bNode *node, bNodeSocket &sock, const bool deselect_node);
+void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes);
+void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_nodes);
+void node_select_single(bContext &C, bNode &node);
 
 void NODE_OT_select(wmOperatorType *ot);
 void NODE_OT_select_all(wmOperatorType *ot);
@@ -151,8 +151,8 @@ void NODE_OT_select_grouped(wmOperatorType *ot);
 void NODE_OT_select_same_type_step(wmOperatorType *ot);
 void NODE_OT_find_node(wmOperatorType *ot);
 
-int space_node_view_flag(
-    bContext *C, SpaceNode *snode, ARegion *region, const int node_flag, const int smooth_viewtx);
+bool space_node_view_flag(
+    bContext &C, SpaceNode &snode, ARegion &region, int node_flag, int smooth_viewtx);
 
 void NODE_OT_view_all(wmOperatorType *ot);
 void NODE_OT_view_selected(wmOperatorType *ot);
@@ -163,35 +163,35 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot);
 void NODE_OT_backimage_fit(wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
 
-void nodelink_batch_start(SpaceNode *snode);
-void nodelink_batch_end(SpaceNode *snode);
+void nodelink_batch_start(SpaceNode &snode);
+void nodelink_batch_end(SpaceNode &snode);
 
-void node_draw_link(const bContext *C,
-                    const View2D *v2d,
-                    const SpaceNode *snode,
-                    const bNodeLink *link);
-void node_draw_link_bezier(const bContext *C,
-                           const View2D *v2d,
-                           const SpaceNode *snode,
-                           const bNodeLink *link,
+void node_draw_link(const bContext &C,
+                    const View2D &v2d,
+                    const SpaceNode &snode,
+                    const bNodeLink &link);
+void node_draw_link_bezier(const bContext &C,
+                           const View2D &v2d,
+                           const SpaceNode &snode,
+                           const bNodeLink &link,
                            int th_col1,
                            int th_col2,
                            int th_col3);
 bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,
-                             const bNodeLink *link,
+                             const bNodeLink &link,
                              float coord_array[][2],
                              const int resol);
 bool node_link_bezier_handles(const View2D *v2d,
                               const SpaceNode *snode,
-                              const bNodeLink *link,
+                              const bNodeLink &ink,
                               float vec[4][2]);
-void draw_nodespace_back_pix(const bContext *C,
-                             ARegion *region,
-                             SpaceNode *snode,
+void draw_nodespace_back_pix(const bContext &C,
+                             ARegion &region,
+                             SpaceNode &snode,
                              bNodeInstanceKey parent_key);
 
-bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy);
+bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
@@ -208,11 +208,11 @@ void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
 
-void sort_multi_input_socket_links(SpaceNode *snode,
-                                   bNode *node,
+void sort_multi_input_socket_links(SpaceNode &snode,
+                                   bNode &node,
                                    bNodeLink *drag_link,
-                                   float cursor[2]);
-bool node_connected_to_output(Main *bmain, bNodeTree *ntree, bNode *node);
+                                   const blender::float2 *cursor);
+bool node_connected_to_output(Main &bmain, bNodeTree &ntree, bNode &node);
 
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
@@ -229,21 +229,24 @@ void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
 
-void snode_notify(bContext *C, SpaceNode *snode);
-void snode_dag_update(bContext *C, SpaceNode *snode);
-void snode_set_context(const bContext *C);
+void snode_notify(bContext &C, SpaceNode &snode);
+void snode_dag_update(bContext &C, SpaceNode &snode);
+void snode_set_context(const bContext &C);
 
-void snode_update(SpaceNode *snode, bNode *node);
+void snode_update(SpaceNode &snode, bNode *node);
 bool composite_node_active(bContext *C);
 bool composite_node_editable(bContext *C);
 
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
-bool node_find_indicated_socket(
-    SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, const float cursor[2], int in_out);
-float node_link_dim_factor(const View2D *v2d, const bNodeLink *link);
-bool node_link_is_hidden_or_dimmed(const View2D *v2d, const bNodeLink *link);
+bool node_find_indicated_socket(SpaceNode &snode,
+                                bNode **nodep,
+                                bNodeSocket **sockp,
+                                const blender::float2 &cursor,
+                                eNodeSocketInOut in_out);
+float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
+bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
 
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);
@@ -288,11 +291,11 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
 void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot);
 
-void node_geometry_add_attribute_search_button(const bContext *C,
-                                               const bNodeTree *node_tree,
-                                               const bNode *node,
-                                               PointerRNA *socket_ptr,
-                                               uiLayout *layout);
+void node_geometry_add_attribute_search_button(const bContext &C,
+                                               const bNodeTree &node_tree,
+                                               const bNode &node,
+                                               PointerRNA &socket_ptr,
+                                               uiLayout &layout);
 
 extern const char *node_context_dir[];
 
@@ -302,8 +305,8 @@ extern const char *node_context_dir[];
 #define NODE_DYS (U.widget_unit / 2)
 #define NODE_DY U.widget_unit
 #define NODE_SOCKDY (0.1f * U.widget_unit)
-#define NODE_WIDTH(node) (node->width * UI_DPI_FAC)
-#define NODE_HEIGHT(node) (node->height * UI_DPI_FAC)
+#define NODE_WIDTH(node) (node.width * UI_DPI_FAC)
+#define NODE_HEIGHT(node) (node.height * UI_DPI_FAC)
 #define NODE_MARGIN_X (1.2f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
 #define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)

@@ -22,8 +22,6 @@
  * \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 
@@ -78,6 +76,8 @@
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
+
+using blender::float2;
 
 /* Default flags for uiItemR(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS UI_ITEM_R_SPLIT_EMPTY_NAME
@@ -250,7 +250,7 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static NodeResizeDirection node_resize_area_default(bNode *node, const int x, const int y)
+static NodeResizeDirection node_resize_area_default(const bNode *node, const int x, const int y)
 {
   if (node->flag & NODE_HIDDEN) {
     rctf totr = node->totr;
@@ -264,7 +264,7 @@ static NodeResizeDirection node_resize_area_default(bNode *node, const int x, co
   }
 
   const float size = NODE_RESIZE_MARGIN;
-  rctf totr = node->totr;
+  const rctf &totr = node->totr;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -295,9 +295,9 @@ static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree,
 
   /* init rect from current frame size */
   rctf rect;
-  node_to_view(node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
+  node_to_view(*node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
   node_to_view(
-      node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
+      *node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
 
   /* frame can be resized manually only if shrinking is disabled or no children are attached */
   data->flag |= NODE_FRAME_RESIZEABLE;
@@ -328,25 +328,25 @@ static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree,
   }
 
   /* now adjust the frame size from view-space bounding box */
-  node_from_view(node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
+  node_from_view(*node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
   float xmax, ymax;
-  node_from_view(node, rect.xmax, rect.ymin, &xmax, &ymax);
+  node_from_view(*node, rect.xmax, rect.ymin, &xmax, &ymax);
   node->width = xmax - node->offsetx;
   node->height = -ymax + node->offsety;
 
   node->totr = rect;
 }
 
-static void node_draw_frame_label(bNodeTree *ntree, bNode *node, SpaceNode *snode)
+static void node_draw_frame_label(bNodeTree &ntree, bNode &node, SpaceNode &snode)
 {
-  const float aspect = snode->runtime->aspect;
+  const float aspect = snode.runtime->aspect;
   /* XXX font id is crap design */
   const int fontid = UI_style_get()->widgetlabel.uifont_id;
-  NodeFrame *data = (NodeFrame *)node->storage;
+  NodeFrame *data = (NodeFrame *)node.storage;
   const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
-  nodeLabel(ntree, node, label, sizeof(label));
+  nodeLabel(&ntree, &node, label, sizeof(label));
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -365,39 +365,39 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, SpaceNode *snod
   const int label_height = ((margin / aspect) + (ascender * aspect));
 
   /* 'x' doesn't need aspect correction */
-  rctf *rct = &node->totr;
+  const rctf &rct = node.totr;
   /* XXX a bit hacky, should use separate align values for x and y */
-  float x = BLI_rctf_cent_x(rct) - (0.5f * width);
-  float y = rct->ymax - label_height;
+  float x = BLI_rctf_cent_x(&rct) - (0.5f * width);
+  float y = rct.ymax - label_height;
 
   /* label */
-  const bool has_label = node->label[0] != '\0';
+  const bool has_label = node.label[0] != '\0';
   if (has_label) {
     BLF_position(fontid, x, y, 0);
     BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
   }
 
   /* draw text body */
-  if (node->id) {
-    Text *text = (Text *)node->id;
+  if (node.id) {
+    Text *text = (Text *)node.id;
     const int line_height_max = BLF_height_max(fontid);
     const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(rct) - margin) / aspect;
+    const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
 
     /* 'x' doesn't need aspect correction */
-    x = rct->xmin + margin;
-    y = rct->ymax - label_height - (has_label ? line_spacing : 0);
+    x = rct.xmin + margin;
+    y = rct.ymax - label_height - (has_label ? line_spacing : 0);
 
     /* early exit */
-    int y_min = y + ((margin * 2) - (y - rct->ymin));
+    int y_min = y + ((margin * 2) - (y - rct.ymin));
 
     BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
     BLF_clipping(fontid,
-                 rct->xmin,
+                 rct.xmin,
                  /* round to avoid clipping half-way through a line */
-                 y - (floorf(((y - rct->ymin) - (margin * 2)) / line_spacing) * line_spacing),
-                 rct->xmin + line_width,
-                 rct->ymax);
+                 y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
+                 rct.xmin + line_width,
+                 rct.ymax);
 
     BLF_wordwrap(fontid, line_width);
 
@@ -442,7 +442,7 @@ static void node_draw_frame(const bContext *C,
   const float alpha = color[3];
 
   /* shadow */
-  node_draw_shadow(snode, node, BASIS_RAD, alpha);
+  node_draw_shadow(*snode, *node, BASIS_RAD, alpha);
 
   /* body */
   if (node->flag & NODE_CUSTOM_COLOR) {
@@ -452,9 +452,9 @@ static void node_draw_frame(const bContext *C,
     UI_GetThemeColor4fv(TH_NODE_FRAME, color);
   }
 
-  const rctf *rct = &node->totr;
+  const rctf &rct = node->totr;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv(rct, true, BASIS_RAD, color);
+  UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
@@ -465,20 +465,20 @@ static void node_draw_frame(const bContext *C,
       UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
     }
 
-    UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
+    UI_draw_roundbox_aa(&rct, false, BASIS_RAD, color);
   }
 
   /* label and text */
-  node_draw_frame_label(ntree, node, snode);
+  node_draw_frame_label(*ntree, *node, *snode);
 
-  node_draw_extra_info_panel(snode, node);
+  node_draw_extra_info_panel(*snode, *node);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
   node->block = nullptr;
 }
 
-static NodeResizeDirection node_resize_area_frame(bNode *node, const int x, const int y)
+static NodeResizeDirection node_resize_area_frame(const bNode *node, const int x, const int y)
 {
   const float size = 10.0f;
   NodeFrame *data = (NodeFrame *)node->storage;
@@ -522,7 +522,7 @@ static void node_draw_reroute_prepare(const bContext *UNUSED(C),
 {
   /* get "global" coords */
   float locx, locy;
-  node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+  node_to_view(*node, 0.0f, 0.0f, &locx, &locy);
 
   /* reroute node has exactly one input and one output, both in the same place */
   bNodeSocket *nsock = (bNodeSocket *)node->outputs.first;
@@ -549,45 +549,15 @@ static void node_draw_reroute(const bContext *C,
                               bNodeInstanceKey UNUSED(key))
 {
   char showname[128]; /* 128 used below */
-  rctf *rct = &node->totr;
+  const rctf &rct = node->totr;
 
   /* skip if out of view */
-  if (node->totr.xmax < region->v2d.cur.xmin || node->totr.xmin > region->v2d.cur.xmax ||
-      node->totr.ymax < region->v2d.cur.ymin || node->totr.ymin > region->v2d.cur.ymax) {
+  if (rct.xmax < region->v2d.cur.xmin || rct.xmin > region->v2d.cur.xmax ||
+      rct.ymax < region->v2d.cur.ymin || node->totr.ymin > region->v2d.cur.ymax) {
     UI_block_end(C, node->block);
     node->block = nullptr;
     return;
   }
-
-  /* XXX only kept for debugging
-   * selection state is indicated by socket outline below!
-   */
-#if 0
-  float size = NODE_REROUTE_SIZE;
-
-  /* body */
-  float debug_color[4];
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_GetThemeColor4fv(TH_NODE, debug_color);
-  UI_draw_roundbox_aa(true, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
-
-  /* outline active and selected emphasis */
-  if (node->flag & SELECT) {
-    GPU_blend(GPU_BLEND_ALPHA);
-    GPU_line_smooth(true);
-    /* Using different shades of #TH_TEXT_HI for the emphasis, like triangle. */
-    if (node->flag & NODE_ACTIVE) {
-      UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, 0, -40, debug_color);
-    }
-    else {
-      UI_GetThemeColorShadeAlpha4fv(TH_TEXT_HI, -20, -120, debug_color);
-    }
-    UI_draw_roundbox_4fv(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
-
-    GPU_line_smooth(false);
-    GPU_blend(GPU_BLEND_NONE);
-  }
-#endif
 
   if (node->label[0] != '\0') {
     /* draw title (node label) */
@@ -596,8 +566,8 @@ static void node_draw_reroute(const bContext *C,
              UI_BTYPE_LABEL,
              0,
              showname,
-             (int)(rct->xmin - NODE_DYS),
-             (int)(rct->ymax),
+             (int)(rct.xmin - NODE_DYS),
+             (int)(rct.ymax),
              (short)512,
              (short)NODE_DY,
              nullptr,
@@ -611,7 +581,7 @@ static void node_draw_reroute(const bContext *C,
   /* only draw input socket. as they all are placed on the same position.
    * highlight also if node itself is selected, since we don't display the node body separately!
    */
-  node_draw_sockets(&region->v2d, C, ntree, node, false, node->flag & SELECT);
+  node_draw_sockets(region->v2d, *C, *ntree, *node, false, node->flag & SELECT);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
@@ -3615,7 +3585,7 @@ static void std_node_socket_draw(
 
       if (socket_needs_attribute_search(*node, *sock)) {
         const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
-        node_geometry_add_attribute_search_button(C, node_tree, node, ptr, row);
+        node_geometry_add_attribute_search_button(*C, *node_tree, *node, *ptr, *row);
       }
       else {
         uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
@@ -3764,23 +3734,23 @@ void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 
 /* ************** Generic drawing ************** */
 
-void draw_nodespace_back_pix(const bContext *C,
-                             ARegion *region,
-                             SpaceNode *snode,
+void draw_nodespace_back_pix(const bContext &C,
+                             ARegion &region,
+                             SpaceNode &snode,
                              bNodeInstanceKey parent_key)
 {
-  Main *bmain = CTX_data_main(C);
-  bNodeInstanceKey active_viewer_key = (snode->nodetree ? snode->nodetree->active_viewer_key :
-                                                          NODE_INSTANCE_KEY_NONE);
+  Main *bmain = CTX_data_main(&C);
+  bNodeInstanceKey active_viewer_key = (snode.nodetree ? snode.nodetree->active_viewer_key :
+                                                         NODE_INSTANCE_KEY_NONE);
   GPU_matrix_push_projection();
   GPU_matrix_push();
-  wmOrtho2_region_pixelspace(region);
+  wmOrtho2_region_pixelspace(&region);
   GPU_matrix_identity_set();
-  ED_region_draw_cb_draw(C, region, REGION_DRAW_BACKDROP);
+  ED_region_draw_cb_draw(&C, &region, REGION_DRAW_BACKDROP);
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
-  if (!(snode->flag & SNODE_BACKDRAW) || !ED_node_is_compositor(snode)) {
+  if (!(snode.flag & SNODE_BACKDRAW) || !ED_node_is_compositor(&snode)) {
     return;
   }
 
@@ -3795,7 +3765,7 @@ void draw_nodespace_back_pix(const bContext *C,
   GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
   GPU_framebuffer_restore();
   BLI_thread_lock(LOCK_DRAW_IMAGE);
-  DRW_draw_view(C);
+  DRW_draw_view(&C);
   BLI_thread_unlock(LOCK_DRAW_IMAGE);
   GPU_framebuffer_bind_no_srgb(old_fb);
   /* Draw manager changes the depth state. Set it back to NONE. Without this the node preview
@@ -3807,31 +3777,31 @@ void draw_nodespace_back_pix(const bContext *C,
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
   if (ibuf) {
     /* somehow the offset has to be calculated inverse */
-    wmOrtho2_region_pixelspace(region);
-    const float x = (region->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
-    const float y = (region->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
+    wmOrtho2_region_pixelspace(&region);
+    const float x = (region.winx - snode.zoom * ibuf->x) / 2 + snode.xof;
+    const float y = (region.winy - snode.zoom * ibuf->y) / 2 + snode.yof;
 
     /** \note draw selected info on backdrop */
-    if (snode->edittree) {
-      bNode *node = (bNode *)snode->edittree->nodes.first;
-      rctf *viewer_border = &snode->nodetree->viewer_border;
+    if (snode.edittree) {
+      bNode *node = (bNode *)snode.edittree->nodes.first;
+      rctf *viewer_border = &snode.nodetree->viewer_border;
       while (node) {
         if (node->flag & NODE_SELECT) {
           if (node->typeinfo->draw_backdrop) {
-            node->typeinfo->draw_backdrop(snode, ibuf, node, x, y);
+            node->typeinfo->draw_backdrop(&snode, ibuf, node, x, y);
           }
         }
         node = node->next;
       }
 
-      if ((snode->nodetree->flag & NTREE_VIEWER_BORDER) &&
+      if ((snode.nodetree->flag & NTREE_VIEWER_BORDER) &&
           viewer_border->xmin < viewer_border->xmax && viewer_border->ymin < viewer_border->ymax) {
         rcti pixel_border;
         BLI_rcti_init(&pixel_border,
-                      x + snode->zoom * viewer_border->xmin * ibuf->x,
-                      x + snode->zoom * viewer_border->xmax * ibuf->x,
-                      y + snode->zoom * viewer_border->ymin * ibuf->y,
-                      y + snode->zoom * viewer_border->ymax * ibuf->y);
+                      x + snode.zoom * viewer_border->xmin * ibuf->x,
+                      x + snode.zoom * viewer_border->xmax * ibuf->x,
+                      y + snode.zoom * viewer_border->ymin * ibuf->y,
+                      y + snode.zoom * viewer_border->ymax * ibuf->y);
 
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -3853,7 +3823,7 @@ void draw_nodespace_back_pix(const bContext *C,
 /* return quadratic beziers points for a given nodelink and clip if v2d is not nullptr. */
 bool node_link_bezier_handles(const View2D *v2d,
                               const SpaceNode *snode,
-                              const bNodeLink *link,
+                              const bNodeLink &link,
                               float vec[4][2])
 {
   float cursor[2] = {0.0f, 0.0f};
@@ -3867,17 +3837,17 @@ bool node_link_bezier_handles(const View2D *v2d,
 
   /* in v0 and v3 we put begin/end points */
   int toreroute, fromreroute;
-  if (link->fromsock) {
-    vec[0][0] = link->fromsock->locx;
-    vec[0][1] = link->fromsock->locy;
-    if (link->fromsock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link->fromsock->locx,
-                                               link->fromsock->locy,
-                                               link->fromsock->total_inputs - 1,
-                                               link->fromsock->total_inputs,
+  if (link.fromsock) {
+    vec[0][0] = link.fromsock->locx;
+    vec[0][1] = link.fromsock->locy;
+    if (link.fromsock->flag & SOCK_MULTI_INPUT) {
+      node_link_calculate_multi_input_position(link.fromsock->locx,
+                                               link.fromsock->locy,
+                                               link.fromsock->total_inputs - 1,
+                                               link.fromsock->total_inputs,
                                                vec[0]);
     }
-    fromreroute = (link->fromnode && link->fromnode->type == NODE_REROUTE);
+    fromreroute = (link.fromnode && link.fromnode->type == NODE_REROUTE);
   }
   else {
     if (snode == nullptr) {
@@ -3886,17 +3856,17 @@ bool node_link_bezier_handles(const View2D *v2d,
     copy_v2_v2(vec[0], cursor);
     fromreroute = 0;
   }
-  if (link->tosock) {
-    vec[3][0] = link->tosock->locx;
-    vec[3][1] = link->tosock->locy;
-    if (!(link->tonode->flag & NODE_HIDDEN) && link->tosock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link->tosock->locx,
-                                               link->tosock->locy,
-                                               link->multi_input_socket_index,
-                                               link->tosock->total_inputs,
+  if (link.tosock) {
+    vec[3][0] = link.tosock->locx;
+    vec[3][1] = link.tosock->locy;
+    if (!(link.tonode->flag & NODE_HIDDEN) && link.tosock->flag & SOCK_MULTI_INPUT) {
+      node_link_calculate_multi_input_position(link.tosock->locx,
+                                               link.tosock->locy,
+                                               link.multi_input_socket_index,
+                                               link.tosock->total_inputs,
                                                vec[3]);
     }
-    toreroute = (link->tonode && link->tonode->type == NODE_REROUTE);
+    toreroute = (link.tonode && link.tonode->type == NODE_REROUTE);
   }
   else {
     if (snode == nullptr) {
@@ -3962,7 +3932,7 @@ bool node_link_bezier_handles(const View2D *v2d,
 /* if v2d not nullptr, it clips and returns 0 if not visible */
 bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,
-                             const bNodeLink *link,
+                             const bNodeLink &link,
                              float coord_array[][2],
                              const int resol)
 {
@@ -4190,7 +4160,7 @@ static char nodelink_get_color_id(int th_col)
   return 0;
 }
 
-static void nodelink_batch_draw(const SpaceNode *snode)
+static void nodelink_batch_draw(const SpaceNode &snode)
 {
   if (g_batch_link.count == 0) {
     return;
@@ -4210,7 +4180,7 @@ static void nodelink_batch_draw(const SpaceNode *snode)
 
   GPU_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
   GPU_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, colors);
-  GPU_batch_uniform_1f(g_batch_link.batch, "expandSize", snode->runtime->aspect * LINK_WIDTH);
+  GPU_batch_uniform_1f(g_batch_link.batch, "expandSize", snode.runtime->aspect * LINK_WIDTH);
   GPU_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
   GPU_batch_draw(g_batch_link.batch);
 
@@ -4219,22 +4189,22 @@ static void nodelink_batch_draw(const SpaceNode *snode)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void nodelink_batch_start(SpaceNode *UNUSED(snode))
+void nodelink_batch_start(SpaceNode &UNUSED(snode))
 {
   g_batch_link.enabled = true;
 }
 
-void nodelink_batch_end(SpaceNode *snode)
+void nodelink_batch_end(SpaceNode &snode)
 {
   nodelink_batch_draw(snode);
   g_batch_link.enabled = false;
 }
 
-static void nodelink_batch_add_link(const SpaceNode *snode,
-                                    const float p0[2],
-                                    const float p1[2],
-                                    const float p2[2],
-                                    const float p3[2],
+static void nodelink_batch_add_link(const SpaceNode &snode,
+                                    const float2 &p0,
+                                    const float2 &p1,
+                                    const float2 &p2,
+                                    const float2 &p3,
                                     int th_col1,
                                     int th_col2,
                                     int th_col3,
@@ -4277,13 +4247,13 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
 }
 
 /* don't do shadows if th_col3 is -1. */
-void node_draw_link_bezier(const bContext *C,
-                           const View2D *v2d,
-                           const SpaceNode *snode,
-                           const bNodeLink *link,
-                           int th_col1,
-                           int th_col2,
-                           int th_col3)
+void node_draw_link_bezier(const bContext &C,
+                           const View2D &v2d,
+                           const SpaceNode &snode,
+                           const bNodeLink &link,
+                           const int th_col1,
+                           const int th_col2,
+                           const int th_col3)
 {
   const float dim_factor = node_link_dim_factor(v2d, link);
   float thickness = 1.5f;
@@ -4292,8 +4262,8 @@ void node_draw_link_bezier(const bContext *C,
   bTheme *btheme = UI_GetTheme();
   const float dash_alpha = btheme->space_node.dash_alpha;
 
-  if (snode->edittree->type == NTREE_GEOMETRY) {
-    if (link->fromsock && link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+  if (snode.edittree->type == NTREE_GEOMETRY) {
+    if (link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
       /* Make field links a bit thinner. */
       thickness = 1.0f;
       /* Draw field as dashes. */
@@ -4302,11 +4272,11 @@ void node_draw_link_bezier(const bContext *C,
   }
 
   float vec[4][2];
-  const bool highlighted = link->flag & NODE_LINK_TEMP_HIGHLIGHT;
-  if (node_link_bezier_handles(v2d, snode, link, vec)) {
-    int drawarrow = ((link->tonode && (link->tonode->type == NODE_REROUTE)) &&
-                     (link->fromnode && (link->fromnode->type == NODE_REROUTE)));
-    int drawmuted = (link->flag & NODE_LINK_MUTED);
+  const bool highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
+  if (node_link_bezier_handles(&v2d, &snode, link, vec)) {
+    int drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
+                     (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
+    int drawmuted = (link.flag & NODE_LINK_MUTED);
     if (g_batch_link.batch == nullptr) {
       nodelink_batch_init();
     }
@@ -4316,23 +4286,23 @@ void node_draw_link_bezier(const bContext *C,
       UI_GetThemeColor4fv(th_col3, colors[0]);
     }
 
-    if (snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-        snode->overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
+    if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+        snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
       PointerRNA from_node_ptr, to_node_ptr;
-      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->fromnode, &from_node_ptr);
-      RNA_pointer_create((ID *)snode->edittree, &RNA_Node, link->tonode, &to_node_ptr);
-      if (link->fromsock) {
-        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[1]);
+      RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.fromnode, &from_node_ptr);
+      RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.tonode, &to_node_ptr);
+      if (link.fromsock) {
+        node_socket_color_get(C, *snode.edittree, from_node_ptr, *link.fromsock, colors[1]);
       }
       else {
-        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[1]);
+        node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, colors[1]);
       }
 
-      if (link->tosock) {
-        node_socket_color_get(C, snode->edittree, &to_node_ptr, link->tosock, colors[2]);
+      if (link.tosock) {
+        node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, colors[2]);
       }
       else {
-        node_socket_color_get(C, snode->edittree, &from_node_ptr, link->fromsock, colors[2]);
+        node_socket_color_get(C, *snode.edittree, from_node_ptr, *link.fromsock, colors[2]);
       }
     }
     else {
@@ -4341,8 +4311,8 @@ void node_draw_link_bezier(const bContext *C,
     }
 
     /* Highlight links connected to selected nodes. */
-    const bool is_fromnode_selected = link->fromnode && link->fromnode->flag & SELECT;
-    const bool is_tonode_selected = link->tonode && link->tonode->flag & SELECT;
+    const bool is_fromnode_selected = link.fromnode && link.fromnode->flag & SELECT;
+    const bool is_tonode_selected = link.tonode && link.tonode->flag & SELECT;
     if (is_fromnode_selected || is_tonode_selected) {
       float color_selected[4];
       UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
@@ -4389,7 +4359,7 @@ void node_draw_link_bezier(const bContext *C,
       GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
       GPU_batch_uniform_2fv_array(batch, "bezierPts", 4, vec);
       GPU_batch_uniform_4fv_array(batch, "colors", 3, colors);
-      GPU_batch_uniform_1f(batch, "expandSize", snode->runtime->aspect * LINK_WIDTH);
+      GPU_batch_uniform_1f(batch, "expandSize", snode.runtime->aspect * LINK_WIDTH);
       GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
       GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
@@ -4403,36 +4373,36 @@ void node_draw_link_bezier(const bContext *C,
 }
 
 /* NOTE: this is used for fake links in groups too. */
-void node_draw_link(const bContext *C,
-                    const View2D *v2d,
-                    const SpaceNode *snode,
-                    const bNodeLink *link)
+void node_draw_link(const bContext &C,
+                    const View2D &v2d,
+                    const SpaceNode &snode,
+                    const bNodeLink &link)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;
 
-  if (link->fromsock == nullptr && link->tosock == nullptr) {
+  if (link.fromsock == nullptr && link.tosock == nullptr) {
     return;
   }
 
   /* new connection */
-  if (!link->fromsock || !link->tosock) {
+  if (!link.fromsock || !link.tosock) {
     th_col1 = th_col2 = TH_ACTIVE;
   }
   else {
     /* going to give issues once... */
-    if (link->tosock->flag & SOCK_UNAVAIL) {
+    if (link.tosock->flag & SOCK_UNAVAIL) {
       return;
     }
-    if (link->fromsock->flag & SOCK_UNAVAIL) {
+    if (link.fromsock->flag & SOCK_UNAVAIL) {
       return;
     }
 
-    if (link->flag & NODE_LINK_VALID) {
+    if (link.flag & NODE_LINK_VALID) {
       /* special indicated link, on drop-node */
-      if (link->flag & NODE_LINKFLAG_HILITE) {
+      if (link.flag & NODE_LINKFLAG_HILITE) {
         th_col1 = th_col2 = TH_ACTIVE;
       }
-      else if (link->flag & NODE_LINK_MUTED) {
+      else if (link.flag & NODE_LINK_MUTED) {
         th_col1 = th_col2 = TH_REDALERT;
       }
     }
@@ -4443,9 +4413,9 @@ void node_draw_link(const bContext *C,
     }
   }
   /* Links from field to non-field sockets are not allowed. */
-  if (snode->edittree->type == NTREE_GEOMETRY && !(link->flag & NODE_LINK_DRAGGED)) {
-    if ((link->fromsock && link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
-        (link->tosock && link->tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
+  if (snode.edittree->type == NTREE_GEOMETRY && !(link.flag & NODE_LINK_DRAGGED)) {
+    if ((link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
+        (link.tosock && link.tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
       th_col1 = th_col2 = th_col3 = TH_REDALERT;
     }
   }

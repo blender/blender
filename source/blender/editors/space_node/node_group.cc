@@ -419,8 +419,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  snode_notify(C, snode);
-  snode_dag_update(C, snode);
+  snode_notify(*C, *snode);
+  snode_dag_update(*C, *snode);
 
   return OPERATOR_FINISHED;
 }
@@ -616,8 +616,8 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 
   ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
 
-  snode_notify(C, snode);
-  snode_dag_update(C, snode);
+  snode_notify(*C, *snode);
+  snode_dag_update(*C, *snode);
 
   return OPERATOR_FINISHED;
 }
@@ -663,16 +663,16 @@ void NODE_OT_group_separate(wmOperatorType *ot)
 /** \name Make Group Operator
  * \{ */
 
-static bool node_group_make_use_node(bNode *node, bNode *gnode)
+static bool node_group_make_use_node(bNode &node, bNode *gnode)
 {
-  return (node != gnode && !ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT) &&
-          (node->flag & NODE_SELECT));
+  return (&node != gnode && !ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT) &&
+          (node.flag & NODE_SELECT));
 }
 
-static bool node_group_make_test_selected(bNodeTree *ntree,
+static bool node_group_make_test_selected(bNodeTree &ntree,
                                           bNode *gnode,
                                           const char *ntree_idname,
-                                          struct ReportList *reports)
+                                          struct ReportList &reports)
 {
   int ok = true;
 
@@ -680,20 +680,20 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
   bNodeTree *ngroup = ntreeAddTree(nullptr, "Pseudo Node Group", ntree_idname);
 
   /* check poll functions for selected nodes */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node_group_make_use_node(node, gnode)) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    if (node_group_make_use_node(*node, gnode)) {
       const char *disabled_hint = nullptr;
       if (node->typeinfo->poll_instance &&
           !node->typeinfo->poll_instance(node, ngroup, &disabled_hint)) {
         if (disabled_hint) {
-          BKE_reportf(reports,
+          BKE_reportf(&reports,
                       RPT_WARNING,
                       "Can not add node '%s' in a group:\n  %s",
                       node->name,
                       disabled_hint);
         }
         else {
-          BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+          BKE_reportf(&reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
         }
         ok = false;
         break;
@@ -712,15 +712,15 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
 
   /* check if all connections are OK, no unselected node has both
    * inputs and outputs to a selection */
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (node_group_make_use_node(link->fromnode, gnode)) {
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (node_group_make_use_node(*link->fromnode, gnode)) {
       link->tonode->done |= 1;
     }
-    if (node_group_make_use_node(link->tonode, gnode)) {
+    if (node_group_make_use_node(*link->tonode, gnode)) {
       link->fromnode->done |= 2;
     }
   }
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (!(node->flag & NODE_SELECT) && node != gnode && node->done == 3) {
       return false;
     }
@@ -729,13 +729,13 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
 }
 
 static int node_get_selected_minmax(
-    bNodeTree *ntree, bNode *gnode, float *min, float *max, bool use_size)
+    bNodeTree &ntree, bNode *gnode, float2 &min, float2 &max, bool use_size)
 {
   int totselect = 0;
 
   INIT_MINMAX2(min, max);
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node_group_make_use_node(node, gnode)) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    if (node_group_make_use_node(*node, gnode)) {
       float loc[2];
       nodeToView(node, node->offsetx, node->offsety, &loc[0], &loc[1]);
       minmax_v2v2_v2(min, max, loc);
@@ -756,9 +756,9 @@ static int node_get_selected_minmax(
   return totselect;
 }
 
-static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree, bNode *gnode)
+static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree, bNode *gnode)
 {
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(&C);
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
   bool expose_visible = false;
 
@@ -771,12 +771,12 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
     nodeSetSelected(node, false);
   }
 
-  float center[2], min[2], max[2];
+  float2 center, min, max;
   const int totselect = node_get_selected_minmax(ntree, gnode, min, max, false);
   add_v2_v2v2(center, min, max);
   mul_v2_fl(center, 0.5f);
 
-  float real_min[2], real_max[2];
+  float2 real_min, real_max;
   node_get_selected_minmax(ntree, gnode, real_min, real_max, true);
 
   /* auto-add interface for "solo" nodes */
@@ -787,16 +787,16 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   ListBase anim_basepaths = {nullptr, nullptr};
 
   /* move nodes over */
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-    if (node_group_make_use_node(node, gnode)) {
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (node_group_make_use_node(*node, gnode)) {
       /* keep track of this node's RNA "base" path (the part of the pat identifying the node)
        * if the old nodetree has animation data which potentially covers this node
        */
-      if (ntree->adt) {
+      if (ntree.adt) {
         PointerRNA ptr;
         char *path;
 
-        RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+        RNA_pointer_create(&ntree.id, &RNA_Node, node, &ptr);
         path = RNA_path_from_ID_to_struct(&ptr);
 
         if (path) {
@@ -810,7 +810,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
       }
 
       /* change node-collection membership */
-      BLI_remlink(&ntree->nodes, node);
+      BLI_remlink(&ntree.nodes, node);
       BLI_addtail(&ngroup->nodes, node);
 
       /* ensure unique node name in the ngroup */
@@ -819,8 +819,8 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   }
 
   /* move animation data over */
-  if (ntree->adt) {
-    BKE_animdata_transfer_by_basepath(bmain, &ntree->id, &ngroup->id, &anim_basepaths);
+  if (ntree.adt) {
+    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &ngroup->id, &anim_basepaths);
 
     /* paths + their wrappers need to be freed */
     LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
@@ -832,36 +832,36 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   ntreeFreeCache(ngroup);
 
   /* create input node */
-  bNode *input_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_INPUT);
+  bNode *input_node = nodeAddStaticNode(&C, ngroup, NODE_GROUP_INPUT);
   input_node->locx = real_min[0] - center[0] - offsetx;
   input_node->locy = -offsety;
 
   /* create output node */
-  bNode *output_node = nodeAddStaticNode(C, ngroup, NODE_GROUP_OUTPUT);
+  bNode *output_node = nodeAddStaticNode(&C, ngroup, NODE_GROUP_OUTPUT);
   output_node->locx = real_max[0] - center[0] + offsetx * 0.25f;
   output_node->locy = -offsety;
 
   /* relink external sockets */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    int fromselect = node_group_make_use_node(link->fromnode, gnode);
-    int toselect = node_group_make_use_node(link->tonode, gnode);
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    int toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
       /* remove all links to/from the gnode.
        * this can remove link information, but there's no general way to preserve it.
        */
-      nodeRemLink(ntree, link);
+      nodeRemLink(&ntree, link);
     }
     else if (toselect && !fromselect) {
       bNodeSocket *link_sock;
       bNode *link_node;
-      node_socket_skip_reroutes(&ntree->links, link->tonode, link->tosock, &link_node, &link_sock);
+      node_socket_skip_reroutes(&ntree.links, link->tonode, link->tosock, &link_node, &link_sock);
       bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
 
       /* update the group node and interface node sockets,
        * so the new interface socket can be linked.
        */
-      node_group_update(ntree, gnode);
+      node_group_update(&ntree, gnode);
       node_group_input_update(ngroup, input_node);
 
       /* create new internal link */
@@ -890,13 +890,13 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
         bNodeSocket *link_sock;
         bNode *link_node;
         node_socket_skip_reroutes(
-            &ntree->links, link->fromnode, link->fromsock, &link_node, &link_sock);
+            &ntree.links, link->fromnode, link->fromsock, &link_node, &link_sock);
         bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
 
         /* update the group node and interface node sockets,
          * so the new interface socket can be linked.
          */
-        node_group_update(ntree, gnode);
+        node_group_update(&ntree, gnode);
         node_group_output_update(ngroup, output_node);
 
         /* create new internal link */
@@ -911,19 +911,19 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   }
 
   /* move internal links */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    int fromselect = node_group_make_use_node(link->fromnode, gnode);
-    int toselect = node_group_make_use_node(link->tonode, gnode);
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
+    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    int toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if (fromselect && toselect) {
-      BLI_remlink(&ntree->links, link);
+      BLI_remlink(&ntree.links, link);
       BLI_addtail(&ngroup->links, link);
     }
   }
 
   /* move nodes in the group to the center */
   LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-    if (node_group_make_use_node(node, gnode) && !node->parent) {
+    if (node_group_make_use_node(*node, gnode) && !node->parent) {
       node->locx -= center[0];
       node->locy -= center[1];
     }
@@ -932,7 +932,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   /* Expose all unlinked sockets too but only the visible ones. */
   if (expose_visible) {
     LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-      if (node_group_make_use_node(node, gnode)) {
+      if (node_group_make_use_node(*node, gnode)) {
         LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
           bool skip = false;
           LISTBASE_FOREACH (bNodeLink *, link, &ngroup->links) {
@@ -987,17 +987,17 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
   /* update of the group tree */
   ngroup->update |= NTREE_UPDATE | NTREE_UPDATE_LINKS;
   /* update of the tree containing the group instance node */
-  ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+  ntree.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 }
 
-static bNode *node_group_make_from_selected(const bContext *C,
-                                            bNodeTree *ntree,
+static bNode *node_group_make_from_selected(const bContext &C,
+                                            bNodeTree &ntree,
                                             const char *ntype,
                                             const char *ntreetype)
 {
-  Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(&C);
 
-  float min[2], max[2];
+  float2 min, max;
   const int totselect = node_get_selected_minmax(ntree, nullptr, min, max, false);
   /* don't make empty group */
   if (totselect == 0) {
@@ -1008,7 +1008,7 @@ static bNode *node_group_make_from_selected(const bContext *C,
   bNodeTree *ngroup = ntreeAddTree(bmain, "NodeGroup", ntreetype);
 
   /* make group node */
-  bNode *gnode = nodeAddNode(C, ntree, ntype);
+  bNode *gnode = nodeAddNode(&C, &ntree, ntype);
   gnode->id = (ID *)ngroup;
 
   gnode->locx = 0.5f * (min[0] + max[0]);
@@ -1017,44 +1017,44 @@ static bNode *node_group_make_from_selected(const bContext *C,
   node_group_make_insert_selected(C, ntree, gnode);
 
   /* update of the tree containing the group instance node */
-  ntree->update |= NTREE_UPDATE_NODES;
+  ntree.update |= NTREE_UPDATE_NODES;
 
   return gnode;
 }
 
 static int node_group_make_exec(bContext *C, wmOperator *op)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
   const char *ntree_idname = group_ntree_idname(C);
   const char *node_idname = node_group_idname(C);
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  if (!node_group_make_test_selected(ntree, nullptr, ntree_idname, op->reports)) {
+  if (!node_group_make_test_selected(ntree, nullptr, ntree_idname, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
-  bNode *gnode = node_group_make_from_selected(C, ntree, node_idname, ntree_idname);
+  bNode *gnode = node_group_make_from_selected(*C, ntree, node_idname, ntree_idname);
 
   if (gnode) {
     bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
-    nodeSetActive(ntree, gnode);
+    nodeSetActive(&ntree, gnode);
     if (ngroup) {
-      ED_node_tree_push(snode, ngroup, gnode);
+      ED_node_tree_push(&snode, ngroup, gnode);
       LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(snode, node, nullptr, nullptr);
+        sort_multi_input_socket_links(snode, *node, nullptr, nullptr);
       }
       ntreeUpdateTree(bmain, ngroup);
     }
   }
 
-  ntreeUpdateTree(bmain, ntree);
+  ntreeUpdateTree(bmain, &ntree);
 
-  snode_notify(C, snode);
-  snode_dag_update(C, snode);
+  snode_notify(*C, snode);
+  snode_dag_update(*C, snode);
 
   /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);
@@ -1099,11 +1099,11 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
   }
 
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
-  if (!node_group_make_test_selected(ntree, gnode, ngroup->idname, op->reports)) {
+  if (!node_group_make_test_selected(*ntree, gnode, ngroup->idname, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
-  node_group_make_insert_selected(C, ntree, gnode);
+  node_group_make_insert_selected(*C, *ntree, gnode);
 
   nodeSetActive(ntree, gnode);
   ED_node_tree_push(snode, ngroup, gnode);
@@ -1111,8 +1111,8 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 
   ntreeUpdateTree(bmain, ntree);
 
-  snode_notify(C, snode);
-  snode_dag_update(C, snode);
+  snode_notify(*C, *snode);
+  snode_dag_update(*C, *snode);
 
   return OPERATOR_FINISHED;
 }
