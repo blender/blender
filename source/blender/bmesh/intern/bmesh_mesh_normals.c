@@ -520,7 +520,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
                                                float (*r_lnos)[3],
                                                MLoopNorSpaceArray *r_lnors_spacearr)
 {
-  BLI_assert((bm->elem_index_dirty & (BM_FACE | BM_LOOP)) == 0);
+  BLI_assert((bm->elem_index_dirty & BM_LOOP) == 0);
+  BLI_assert((fnos == NULL) || ((bm->elem_index_dirty & BM_FACE) == 0));
   BLI_assert((vcos == NULL) || ((bm->elem_index_dirty & BM_VERT) == 0));
   UNUSED_VARS_NDEBUG(bm);
 
