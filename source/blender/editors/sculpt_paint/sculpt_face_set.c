@@ -633,7 +633,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (modified) {
-    BKE_pbvh_node_mark_update_triangulation(data->nodes[n]);
+    BKE_pbvh_node_mark_update_index_buffer(ss->pbvh, data->nodes[n]);
   }
 
   // restore automasking flag

@@ -508,7 +508,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
     "Smooth iterations applied after calculating the pose factor of each vertex",4,0.0f,100.0f)
   MAKE_INT(pose_ik_segments,"Pose IK Segments",
     "Number of segments of the inverse kinematics chain that will deform the mesh",1,1,20)
-  MAKE_FLOAT(surface_smooth_shape_preservation,"Shape Preservation","How much of the original shape is preserved when smoothing",0.5f,0.0f,1.0f)
+  MAKE_FLOAT(surface_smooth_shape_preservation,"Shape Preservation","How much of the original shape is preserved when smoothing", 0.5f,0.0f,1.0f)
   MAKE_FLOAT(surface_smooth_current_vertex,"Per Vertex Displacement",
     "How much the position of each individual vertex influences the final result",0.5f,0.0f,1.0f)
   MAKE_INT(surface_smooth_iterations,"Iterations","Number of smoothing iterations per brush step",4,1,10)
@@ -591,7 +591,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
     })
   MAKE_FLOAT(elastic_deform_volume_preservation,"Volume Preservation",
     "Poisson ratio for elastic deformation. Higher values preserve volume "
-    "more, but also lead to more bulging",0.0f,0.9f,false)
+    "more, but also lead to more bulging", 0.0f, 0.0f, 0.9f)
 
   MAKE_BOOL(use_ctrl_invert,"Use Ctrl Invert","Take brush addition or subtraction mode into account",true)
 

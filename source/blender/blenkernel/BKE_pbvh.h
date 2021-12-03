@@ -528,6 +528,10 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
 
+/* if pbvh uses a split index buffer, will call BKE_pbvh_node_mark_update_triangulation;
+   otherwise does nothing.  returns true if BKE_pbvh_node_mark_update_triangulation was
+   called.*/
+bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_node_mark_update_triangulation(PBVHNode *node);
 void BKE_pbvh_node_mark_original_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node);

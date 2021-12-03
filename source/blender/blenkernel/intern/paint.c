@@ -2010,7 +2010,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob)
       /* In vertex/weight paint, force maps to be rebuilt. */
       BKE_sculptsession_free_vwpaint_data(ob->sculpt);
     }
-    else {
+    else if (ss->pbvh) {
       PBVHNode **nodes;
       int n, totnode;
 
@@ -2020,7 +2020,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob)
         BKE_pbvh_node_mark_update(nodes[n]);
       }
 
-      MEM_freeN(nodes);
+      MEM_SAFE_FREE(nodes);
     }
   }
 }

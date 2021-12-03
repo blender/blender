@@ -4238,6 +4238,17 @@ PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
   return pbvh->nodes + node;
 }
 
+bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node)
+{
+  bool split_indexed = pbvh->bm && (pbvh->flags & (PBVH_DYNTOPO_SMOOTH_SHADING | PBVH_FAST_DRAW));
+
+  if (split_indexed) {
+    BKE_pbvh_node_mark_update_triangulation(node);
+  }
+
+  return split_indexed;
+}
+
 void BKE_pbvh_node_mark_update_triangulation(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateTris;

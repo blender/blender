@@ -261,19 +261,26 @@ class _draw_tool_settings_context_mode:
             "accumulate" : ["Accu..", 2.5] #needs an icon
         }
         
+        scene_radius = UnifiedPaintPanel.get_channel_value(context, brush, "radius_unit") == "SCENE"
+        
         for ch in brush.channels:
+            show_in_header = ch.show_in_header
+            
+            if ch.idname == "radius" and scene_radius:
+              ch = brush.channels["unprojected_radius"]
+            
             final_ch = ch
-
+            
             if ch.inherit:
                 sculpt.channels.ensure(ch)
                 final_ch = sculpt.channels[ch.idname]
 
-            row = row1.row(align=False).row(align=True)
-            row.use_property_split = False
-            row.use_property_decorate = False
-            layoutuse_property_split = False
+            if show_in_header:
+                row = row1.row(align=False).row(align=True)
+                row.use_property_split = False
+                row.use_property_decorate = False
+                layoutuse_property_split = False
 
-            if ch.show_in_header:
                 text = ch.name if ch.type in ["BOOL", "FLOAT", "INT"] else ""
 
                 if final_ch.type in ["VEC3", "VEC4"]:
