@@ -24,12 +24,22 @@
 #include "node_composite_util.hh"
 
 /* **************** VECTOR BLUR ******************** */
-static bNodeSocketTemplate cmp_node_vecblur_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Z"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, N_("Speed"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
-    {-1, ""}};
-static bNodeSocketTemplate cmp_node_vecblur_out[] = {{SOCK_RGBA, N_("Image")}, {-1, ""}};
+
+namespace blender::nodes {
+
+static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Z")).default_value(0.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Vector>(N_("Speed"))
+      .default_value({0.0f, 0.0f, 0.0f})
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_VELOCITY);
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -45,7 +55,7 @@ void register_node_type_cmp_vecblur(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VECBLUR, "Vector Blur", NODE_CLASS_OP_FILTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_vecblur_in, cmp_node_vecblur_out);
+  ntype.declare = blender::nodes::cmp_node_vec_blur_declare;
   node_type_init(&ntype, node_composit_init_vecblur);
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);

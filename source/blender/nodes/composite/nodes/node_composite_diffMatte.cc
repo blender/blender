@@ -24,17 +24,18 @@
 #include "node_composite_util.hh"
 
 /* ******************* channel Difference Matte ********************************* */
-static bNodeSocketTemplate cmp_node_diff_matte_in[] = {
-    {SOCK_RGBA, N_("Image 1"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, N_("Image 2"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
 
-static bNodeSocketTemplate cmp_node_diff_matte_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {SOCK_FLOAT, N_("Matte")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_diff_matte_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image 1")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>(N_("Image 2")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>(N_("Matte"));
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -50,7 +51,7 @@ void register_node_type_cmp_diff_matte(void)
 
   cmp_node_type_base(
       &ntype, CMP_NODE_DIFF_MATTE, "Difference Key", NODE_CLASS_MATTE, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, cmp_node_diff_matte_in, cmp_node_diff_matte_out);
+  ntype.declare = blender::nodes::cmp_node_diff_matte_declare;
   node_type_init(&ntype, node_composit_init_diff_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

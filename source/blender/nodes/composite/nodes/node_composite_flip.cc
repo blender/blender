@@ -24,22 +24,23 @@
 #include "node_composite_util.hh"
 
 /* **************** Flip  ******************** */
-static bNodeSocketTemplate cmp_node_flip_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
 
-static bNodeSocketTemplate cmp_node_flip_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_flip_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_flip(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, 0);
-  node_type_socket_templates(&ntype, cmp_node_flip_in, cmp_node_flip_out);
+  ntype.declare = blender::nodes::cmp_node_flip_declare;
 
   nodeRegisterType(&ntype);
 }
