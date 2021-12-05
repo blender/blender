@@ -126,7 +126,13 @@ void bm_id_freelist_take(BMesh *bm, uint id)
 
       // swap with end
       void **endval = BLI_ghash_lookup_p(bm->idmap.free_idx_map, POINTER_FROM_UINT(end));
-      *endval = POINTER_FROM_UINT(i);
+      if (endval) {
+        *endval = POINTER_FROM_UINT(i);
+      }
+      else {
+        printf("%s: end id %d was not in free_idx_map; id was %d\n", __func__, end, id);
+        BLI_ghash_insert(bm->idmap.free_idx_map, POINTER_FROM_UINT(end), POINTER_FROM_UINT(i));
+      }
 
       bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
       bm->idmap.freelist_len--;

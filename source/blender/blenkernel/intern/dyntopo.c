@@ -3955,7 +3955,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       lnext = l->radial_next;
 
       bool fbad = false;
-#if 1
+#if 0
       do {
 
         if (l2->v == l2->next->v) {

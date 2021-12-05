@@ -3072,16 +3072,11 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef v
 
 /* Returns true if the stroke will use dynamic topology, false
  * otherwise.
- *
- * Factors: some brushes like grab cannot do dynamic topology.
- * Others, like smooth, are better without.
- * Same goes for alt-key smoothing. */
+ */
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
   return (
       (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
-
-      (!ss->cache || (!ss->cache->alt_smooth)) &&
 
       /* Requires mesh restore, which doesn't work with
        * dynamic-topology. */
@@ -5334,10 +5329,19 @@ void do_brush_action(
     SCULPT_pose_brush_init(sd, ob, ss, brush);
   }
 
-  if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+  if (SCULPT_get_int(ss, deform_target, sd, brush) == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, ob, 1.0f, 1.0f, 0.0f, false, true);
+          ss,
+          ob,
+          1.0f,
+          1.0f,
+          0.0f,
+          SCULPT_get_bool(ss, cloth_use_collision, sd, brush),
+          true,
+          SCULPT_get_bool(ss, cloth_solve_bending, sd, brush));
+      ss->cache->cloth_sim->bend_stiffness = SCULPT_get_float(
+          ss, cloth_bending_stiffness, sd, brush);
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
     SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
@@ -5593,7 +5597,7 @@ void do_brush_action(
     do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
   }
 
-  if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+  if (SCULPT_get_int(ss, deform_target, sd, brush) == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
       SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes, totnode);
       SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
@@ -5879,7 +5883,16 @@ static void SCULPT_run_command(
   if (brush2->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, ob, 1.0f, 1.0f, 0.0f, false, true);
+          ss,
+          ob,
+          1.0f,
+          1.0f,
+          0.0f,
+          SCULPT_get_bool(ss, cloth_use_collision, sd, brush),
+          true,
+          SCULPT_get_bool(ss, cloth_solve_bending, sd, brush));
+      ss->cache->cloth_sim->bend_stiffness = SCULPT_get_float(
+          ss, cloth_bending_stiffness, sd, brush);
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
     SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
@@ -6042,7 +6055,6 @@ static void SCULPT_run_command(
       break;
     case SCULPT_TOOL_DYNTOPO:
       sculpt_topology_update(sd, ob, brush, ups, NULL);
-      // do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
       break;
     case SCULPT_TOOL_AUTO_FSET:
       SCULPT_do_auto_face_set(sd, ob, nodes, totnode);
@@ -6219,7 +6231,7 @@ static void SCULPT_run_commandlist(
     do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
   }
 
-  if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+  if (SCULPT_get_int(ss, deform_target, sd, brush) == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
       SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes, totnode);
       SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
@@ -8451,6 +8463,28 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
   return false;
 }
 
+/* fills in r_settings with brush channel values pulled from
+   chset.*/
+static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
+                                          DynTopoSettings *r_settings,
+                                          BrushMappingData *input_data)
+{
+  memset(r_settings, 0, sizeof(*r_settings));
+
+  if (BRUSHSET_GET_BOOL(chset, dyntopo_disabled, NULL)) {
+    r_settings->flag |= DYNTOPO_DISABLED;
+  }
+
+  r_settings->flag = BRUSHSET_GET_INT(chset, dyntopo_mode, NULL);
+  r_settings->mode = BRUSHSET_GET_INT(chset, dyntopo_detail_mode, NULL);
+  r_settings->radius_scale = BRUSHSET_GET_FLOAT(chset, dyntopo_radius_scale, input_data);
+  r_settings->spacing = BRUSHSET_GET_FLOAT(chset, dyntopo_spacing, input_data);
+  r_settings->detail_size = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_size, input_data);
+  r_settings->detail_range = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_range, input_data);
+  r_settings->detail_percent = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_percent, input_data);
+  r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
+};
+
 void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 
@@ -8500,6 +8534,11 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
   }
 
+  // paranoia check that global dyntopo flag is always respected
+  if (!(sd->flags & SCULPT_DYNTOPO_ENABLED)) {
+    BRUSHSET_SET_BOOL(ss->cache->channels_final, dyntopo_disabled, true);
+  }
+
   sd->smooth_strength_factor = BRUSHSET_GET_FLOAT(
       ss->cache->channels_final, smooth_strength_factor, NULL);
 
@@ -8529,7 +8568,9 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     memset((void *)ss->cache->last_rake_t, 0, sizeof(ss->cache->last_rake_t));
   }
 
-  BKE_brush_get_dyntopo(brush, sd, &brush->cached_dyntopo);
+  sculpt_cache_dyntopo_settings(ss->cache->channels_final,
+                                &brush->cached_dyntopo,
+                                ss->cache ? &ss->cache->input_mapping : NULL);
 
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_SCENE_PROJECT) {
     SCULPT_stroke_cache_snap_context_init(C, ob);

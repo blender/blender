@@ -479,6 +479,10 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
+
+        if not settings:
+            return False
+
         brush = settings.brush
 
         if context.image_paint_object:

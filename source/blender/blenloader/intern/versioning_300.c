@@ -2666,6 +2666,25 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_POSE)) {
+        continue;
+      }
+
+      /* check that all needed channels exist */
+      BKE_brush_builtin_patch(brush, brush->sculpt_tool);
+
+      BrushChannel *ch = BRUSHSET_LOOKUP(brush->channels, cloth_use_collision);
+      ch->flag |= BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU | BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
+
+      ch = BRUSHSET_LOOKUP(brush->channels, cloth_solve_bending);
+      ch->flag |= BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU | BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
+
+      ch = BRUSHSET_LOOKUP(brush->channels, cloth_bending_stiffness);
+      ch->flag |= BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU | BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

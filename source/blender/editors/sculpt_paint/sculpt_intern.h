@@ -602,7 +602,8 @@ struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(
     const float cloth_damping,
     const float cloth_softbody_strength,
     const bool use_collisions,
-    const bool needs_deform_coords);
+    const bool needs_deform_coords,
+    const bool use_bending);
 void SCULPT_cloth_brush_simulation_init(struct SculptSession *ss,
                                         struct SculptClothSimulation *cloth_sim);
 

@@ -2188,7 +2188,8 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
                                                             const float cloth_damping,
                                                             const float cloth_softbody_strength,
                                                             const bool use_collisions,
-                                                            const bool needs_deform_coords)
+                                                            const bool needs_deform_coords,
+                                                            const bool use_bending)
 {
   const int totverts = SCULPT_vertex_count_get(ss);
   SculptClothSimulation *cloth_sim;
@@ -2198,6 +2199,9 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->simulation_area_type = SCULPT_get_int(ss, cloth_simulation_area_type, NULL, NULL);
   cloth_sim->sim_falloff = SCULPT_get_float(ss, cloth_sim_falloff, NULL, NULL);
   cloth_sim->sim_limit = SCULPT_get_float(ss, cloth_sim_limit, NULL, NULL);
+
+  cloth_sim->use_bending = use_bending;
+  cloth_sim->bend_stiffness = 0.5f;
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     if (SCULPT_has_persistent_base(ss)) {
@@ -2382,7 +2386,8 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
           SCULPT_get_float(ss, cloth_damping, sd, brush),
           SCULPT_get_float(ss, cloth_constraint_softbody_strength, sd, brush),
           SCULPT_get_bool(ss, cloth_use_collision, sd, brush),
-          SCULPT_is_cloth_deform_brush(brush));
+          SCULPT_is_cloth_deform_brush(brush),
+          SCULPT_get_bool(ss, cloth_solve_bending, sd, brush));
 
       ss->cache->cloth_sim->bend_stiffness = 0.5f * SCULPT_get_float(
                                                         ss, cloth_bending_stiffness, sd, brush);
@@ -2857,9 +2862,9 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       cloth_damping,
       0.0f,
       use_collisions,
-      cloth_filter_is_deformation_filter(filter_type));
+      cloth_filter_is_deformation_filter(filter_type),
+      RNA_boolean_get(op->ptr, "use_bending"));
 
-  ss->filter_cache->cloth_sim->use_bending = RNA_boolean_get(op->ptr, "use_bending");
   ss->filter_cache->cloth_sim->bend_stiffness = RNA_float_get(op->ptr, "bending_stiffness");
 
   switch (pinch_origin) {

@@ -1199,6 +1199,11 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(deform_target);
 
+  /* stuff for deform_target cloth mode*/
+  ADDCH(cloth_use_collision);
+  ADDCH(cloth_solve_bending);
+  ADDCH(cloth_bending_stiffness);
+  
   switch (tool) {
     case SCULPT_TOOL_CLAY:
       if (set_mappings) {
@@ -1250,8 +1255,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(slide_deform_type);
       break;
     case SCULPT_TOOL_CLOTH:
-      ADDCH(cloth_solve_bending);
-      ADDCH(cloth_bending_stiffness);
       ADDCH(cloth_mass);
       ADDCH(cloth_damping);
       ADDCH(cloth_sim_limit);
@@ -1259,7 +1262,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(cloth_deform_type);
       ADDCH(cloth_force_falloff_type);
       ADDCH(cloth_simulation_area_type);
-      ADDCH(cloth_deform_type);
       ADDCH(cloth_use_collision);
       ADDCH(cloth_pin_simulation_boundary);
       ADDCH(cloth_constraint_softbody_strength);
@@ -1354,6 +1356,12 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
             SCULPT_TOOL_SMEAR,
             SCULPT_TOOL_VCOL_BOUNDARY)) {
     SHOWWRK(hard_edge_mode);
+  }
+
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_POSE)) {
+    SHOW_WRK_CTX(cloth_use_collision);
+    SHOW_WRK_CTX(cloth_solve_bending);
+    SHOW_WRK_CTX(cloth_bending_stiffness);
   }
 
   if (!ELEM(tool,

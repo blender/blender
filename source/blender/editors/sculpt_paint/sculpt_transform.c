@@ -90,7 +90,7 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
     case SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM:
       BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
       ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss, ob, 1.0f, 1.0f, 0.0f, true, false);
+          ss, ob, 1.0f, 1.0f, 0.0f, true, false, false);
       SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);
       SCULPT_cloth_brush_store_simulation_state(ss, ss->filter_cache->cloth_sim);
       SCULPT_cloth_brush_ensure_nodes_constraints(sd,
