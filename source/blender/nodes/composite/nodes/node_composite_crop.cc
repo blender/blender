@@ -45,7 +45,7 @@ static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)
   nxy->y2 = 0;
 }
 
-void register_node_type_cmp_crop(void)
+void register_node_type_cmp_crop()
 {
   static bNodeType ntype;
 

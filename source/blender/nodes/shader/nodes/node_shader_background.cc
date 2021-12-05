@@ -42,7 +42,7 @@ static int node_shader_gpu_background(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_background(void)
+void register_node_type_sh_background()
 {
   static bNodeType ntype;
 

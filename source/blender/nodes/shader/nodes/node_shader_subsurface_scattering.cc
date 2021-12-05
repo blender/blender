@@ -79,7 +79,7 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
 }
 
 /* node type definition */
-void register_node_type_sh_subsurface_scattering(void)
+void register_node_type_sh_subsurface_scattering()
 {
   static bNodeType ntype;
 

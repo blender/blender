@@ -64,7 +64,7 @@ static int gpu_shader_normal(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "normal_new_shading", in, out, vec);
 }
 
-void register_node_type_sh_normal(void)
+void register_node_type_sh_normal()
 {
   static bNodeType ntype;
 

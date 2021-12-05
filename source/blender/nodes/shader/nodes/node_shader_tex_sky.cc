@@ -204,7 +204,7 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 }
 
 /* node type definition */
-void register_node_type_sh_tex_sky(void)
+void register_node_type_sh_tex_sky()
 {
   static bNodeType ntype;
 

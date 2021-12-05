@@ -66,7 +66,7 @@ static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
 }
 
 /* node type definition */
-void register_node_type_sh_tex_pointdensity(void)
+void register_node_type_sh_tex_pointdensity()
 {
   static bNodeType ntype;
 

@@ -38,7 +38,7 @@ static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_sephsva(void)
+void register_node_type_cmp_sephsva()
 {
   static bNodeType ntype;
 
@@ -62,7 +62,7 @@ static void cmp_node_combhsva_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_combhsva(void)
+void register_node_type_cmp_combhsva()
 {
   static bNodeType ntype;
 

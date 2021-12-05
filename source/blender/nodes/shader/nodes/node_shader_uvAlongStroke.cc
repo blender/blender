@@ -27,7 +27,7 @@ static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
 };
 
 /* node type definition */
-void register_node_type_sh_uvalongstroke(void)
+void register_node_type_sh_uvalongstroke()
 {
   static bNodeType ntype;
 

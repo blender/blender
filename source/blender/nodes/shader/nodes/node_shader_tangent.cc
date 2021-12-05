@@ -70,7 +70,7 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_tangent(void)
+void register_node_type_sh_tangent()
 {
   static bNodeType ntype;
 

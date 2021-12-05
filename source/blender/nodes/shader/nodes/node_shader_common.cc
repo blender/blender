@@ -212,7 +212,7 @@ static int gpu_group_execute(
   return 1;
 }
 
-void register_node_type_sh_group(void)
+void register_node_type_sh_group()
 {
   static bNodeType ntype;
 

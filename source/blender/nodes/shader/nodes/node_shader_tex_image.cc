@@ -174,7 +174,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_tex_image(void)
+void register_node_type_sh_tex_image()
 {
   static bNodeType ntype;
 

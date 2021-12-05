@@ -58,7 +58,7 @@ static int node_shader_gpu_gamma(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_gamma", in, out);
 }
 
-void register_node_type_sh_gamma(void)
+void register_node_type_sh_gamma()
 {
   static bNodeType ntype;
 

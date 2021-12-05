@@ -30,7 +30,7 @@ static bNodeSocketTemplate sh_node_output_linestyle_in[] = {
 };
 
 /* node type definition */
-void register_node_type_sh_output_linestyle(void)
+void register_node_type_sh_output_linestyle()
 {
   static bNodeType ntype;
 

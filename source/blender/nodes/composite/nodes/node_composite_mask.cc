@@ -56,7 +56,7 @@ static void node_mask_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, 
   }
 }
 
-void register_node_type_cmp_mask(void)
+void register_node_type_cmp_mask()
 {
   static bNodeType ntype;
 

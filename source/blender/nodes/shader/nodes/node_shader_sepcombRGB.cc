@@ -103,7 +103,7 @@ static void sh_node_seprgb_build_multi_function(blender::nodes::NodeMultiFunctio
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_seprgb(void)
+void register_node_type_sh_seprgb()
 {
   static bNodeType ntype;
 
@@ -163,7 +163,7 @@ static void sh_node_combrgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_combrgb(void)
+void register_node_type_sh_combrgb()
 {
   static bNodeType ntype;
 

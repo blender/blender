@@ -40,7 +40,7 @@ static void node_shader_init_tex_ies(bNodeTree *UNUSED(ntree), bNode *node)
 }
 
 /* node type definition */
-void register_node_type_sh_tex_ies(void)
+void register_node_type_sh_tex_ies()
 {
   static bNodeType ntype;
 

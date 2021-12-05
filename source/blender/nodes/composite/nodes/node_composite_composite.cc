@@ -36,7 +36,7 @@ static void cmp_node_composite_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_composite(void)
+void register_node_type_cmp_composite()
 {
   static bNodeType ntype;
 

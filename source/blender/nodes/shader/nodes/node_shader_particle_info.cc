@@ -63,7 +63,7 @@ static int gpu_shader_particle_info(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_particle_info(void)
+void register_node_type_sh_particle_info()
 {
   static bNodeType ntype;
 

@@ -47,7 +47,7 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
 }
 
-void register_node_type_sh_vertex_color(void)
+void register_node_type_sh_vertex_color()
 {
   static bNodeType ntype;
 

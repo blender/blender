@@ -55,7 +55,7 @@ static int gpu_shader_bevel(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_bevel(void)
+void register_node_type_sh_bevel()
 {
   static bNodeType ntype;
 

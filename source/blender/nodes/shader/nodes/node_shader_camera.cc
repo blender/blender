@@ -44,7 +44,7 @@ static int gpu_shader_camera(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "camera", in, out, viewvec);
 }
 
-void register_node_type_sh_camera(void)
+void register_node_type_sh_camera()
 {
   static bNodeType ntype;
 

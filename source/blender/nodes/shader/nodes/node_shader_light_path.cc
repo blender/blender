@@ -48,7 +48,7 @@ static int node_shader_gpu_light_path(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_light_path(void)
+void register_node_type_sh_light_path()
 {
   static bNodeType ntype;
 

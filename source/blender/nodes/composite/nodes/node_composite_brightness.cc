@@ -42,7 +42,7 @@ static void node_composit_init_brightcontrast(bNodeTree *UNUSED(ntree), bNode *n
   node->custom1 = 1;
 }
 
-void register_node_type_cmp_brightcontrast(void)
+void register_node_type_cmp_brightcontrast()
 {
   static bNodeType ntype;
 

@@ -37,7 +37,7 @@ static void cmp_node_switch_declare(NodeDeclarationBuilder &b)
 }  // namespace blender::nodes
 
 /* custom1 = mix type */
-void register_node_type_cmp_switch(void)
+void register_node_type_cmp_switch()
 {
   static bNodeType ntype;
 

@@ -306,7 +306,7 @@ static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
   return false;
 }
 
-void register_node_type_cmp_cryptomatte(void)
+void register_node_type_cmp_cryptomatte()
 {
   static bNodeType ntype;
 
@@ -361,7 +361,7 @@ int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
   return 1;
 }
 
-void register_node_type_cmp_cryptomatte_legacy(void)
+void register_node_type_cmp_cryptomatte_legacy()
 {
   static bNodeType ntype;
 

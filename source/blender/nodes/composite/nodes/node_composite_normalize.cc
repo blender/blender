@@ -35,7 +35,7 @@ static void cmp_node_normalize_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_normalize(void)
+void register_node_type_cmp_normalize()
 {
   static bNodeType ntype;
 

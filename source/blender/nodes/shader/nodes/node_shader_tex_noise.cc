@@ -249,7 +249,7 @@ static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunction
 }  // namespace blender::nodes
 
 /* node type definition */
-void register_node_type_sh_tex_noise(void)
+void register_node_type_sh_tex_noise()
 {
   static bNodeType ntype;
 

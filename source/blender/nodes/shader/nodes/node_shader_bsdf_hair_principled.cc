@@ -91,7 +91,7 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_hair_principled(void)
+void register_node_type_sh_bsdf_hair_principled()
 {
   static bNodeType ntype;
 

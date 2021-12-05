@@ -137,7 +137,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   return true;
 }
 
-void register_node_type_sh_vect_transform(void)
+void register_node_type_sh_vect_transform()
 {
   static bNodeType ntype;
 

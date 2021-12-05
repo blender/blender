@@ -45,7 +45,7 @@ static int node_shader_gpu_bsdf_hair(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_hair(void)
+void register_node_type_sh_bsdf_hair()
 {
   static bNodeType ntype;
 

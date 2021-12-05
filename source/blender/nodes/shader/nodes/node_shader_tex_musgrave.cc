@@ -531,7 +531,7 @@ static void sh_node_musgrave_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_musgrave(void)
+void register_node_type_sh_tex_musgrave()
 {
   static bNodeType ntype;
 

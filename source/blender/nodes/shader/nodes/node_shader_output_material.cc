@@ -74,7 +74,7 @@ static int node_shader_gpu_output_material(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_output_material(void)
+void register_node_type_sh_output_material()
 {
   static bNodeType ntype;
 

@@ -44,7 +44,7 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_hair_info(void)
+void register_node_type_sh_hair_info()
 {
   static bNodeType ntype;
 

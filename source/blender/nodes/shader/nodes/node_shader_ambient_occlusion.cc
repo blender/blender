@@ -65,7 +65,7 @@ static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *
 }
 
 /* node type definition */
-void register_node_type_sh_ambient_occlusion(void)
+void register_node_type_sh_ambient_occlusion()
 {
   static bNodeType ntype;
 

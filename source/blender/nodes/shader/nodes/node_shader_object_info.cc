@@ -49,7 +49,7 @@ static int node_shader_gpu_object_info(GPUMaterial *mat,
                         GPU_constant(&index));
 }
 
-void register_node_type_sh_object_info(void)
+void register_node_type_sh_object_info()
 {
   static bNodeType ntype;
 

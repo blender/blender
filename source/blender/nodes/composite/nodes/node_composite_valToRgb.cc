@@ -41,7 +41,7 @@ static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = BKE_colorband_add(true);
 }
 
-void register_node_type_cmp_valtorgb(void)
+void register_node_type_cmp_valtorgb()
 {
   static bNodeType ntype;
 
@@ -66,7 +66,7 @@ static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_rgbtobw(void)
+void register_node_type_cmp_rgbtobw()
 {
   static bNodeType ntype;
 

@@ -42,7 +42,7 @@ static int node_shader_gpu_add_shader(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_add_shader(void)
+void register_node_type_sh_add_shader()
 {
   static bNodeType ntype;
 

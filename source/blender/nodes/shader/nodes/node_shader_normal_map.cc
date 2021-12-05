@@ -116,7 +116,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_normal_map(void)
+void register_node_type_sh_normal_map()
 {
   static bNodeType ntype;
 

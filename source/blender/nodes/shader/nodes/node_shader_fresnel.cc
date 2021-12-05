@@ -58,7 +58,7 @@ static void node_shader_exec_fresnel(void *UNUSED(data),
 }
 
 /* node type definition */
-void register_node_type_sh_fresnel(void)
+void register_node_type_sh_fresnel()
 {
   static bNodeType ntype;
 

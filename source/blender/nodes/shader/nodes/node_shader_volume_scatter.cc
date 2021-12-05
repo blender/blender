@@ -43,7 +43,7 @@ static int node_shader_gpu_volume_scatter(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_volume_scatter(void)
+void register_node_type_sh_volume_scatter()
 {
   static bNodeType ntype;
 

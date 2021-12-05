@@ -87,7 +87,7 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_geometry(void)
+void register_node_type_sh_geometry()
 {
   static bNodeType ntype;
 

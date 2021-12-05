@@ -64,7 +64,7 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_vector_displacement(void)
+void register_node_type_sh_vector_displacement()
 {
   static bNodeType ntype;
 

@@ -46,7 +46,7 @@ static int node_shader_gpu_light_falloff(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_light_falloff(void)
+void register_node_type_sh_light_falloff()
 {
   static bNodeType ntype;
 

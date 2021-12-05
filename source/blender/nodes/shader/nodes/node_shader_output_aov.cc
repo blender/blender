@@ -54,7 +54,7 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_output_aov(void)
+void register_node_type_sh_output_aov()
 {
   static bNodeType ntype;
 

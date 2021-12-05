@@ -67,7 +67,7 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_glass(void)
+void register_node_type_sh_bsdf_glass()
 {
   static bNodeType ntype;
 

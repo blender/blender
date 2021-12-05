@@ -57,7 +57,7 @@ static int gpu_shader_sephsv(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "separate_hsv", in, out);
 }
 
-void register_node_type_sh_sephsv(void)
+void register_node_type_sh_sephsv()
 {
   static bNodeType ntype;
 
@@ -105,7 +105,7 @@ static int gpu_shader_combhsv(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_hsv", in, out);
 }
 
-void register_node_type_sh_combhsv(void)
+void register_node_type_sh_combhsv()
 {
   static bNodeType ntype;
 

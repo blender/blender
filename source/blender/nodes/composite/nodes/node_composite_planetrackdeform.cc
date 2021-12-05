@@ -43,7 +43,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-void register_node_type_cmp_planetrackdeform(void)
+void register_node_type_cmp_planetrackdeform()
 {
   static bNodeType ntype;
 

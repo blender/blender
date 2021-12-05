@@ -40,7 +40,7 @@ static int gpu_shader_rgb(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_holdout(void)
+void register_node_type_sh_holdout()
 {
   static bNodeType ntype;
 

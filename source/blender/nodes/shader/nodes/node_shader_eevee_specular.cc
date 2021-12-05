@@ -87,7 +87,7 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_eevee_specular(void)
+void register_node_type_sh_eevee_specular()
 {
   static bNodeType ntype;
 

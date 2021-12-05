@@ -47,7 +47,7 @@ static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-void register_node_type_cmp_boxmask(void)
+void register_node_type_cmp_boxmask()
 {
   static bNodeType ntype;
 

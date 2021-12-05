@@ -48,7 +48,7 @@ static int node_shader_gpu_blackbody(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_blackbody(void)
+void register_node_type_sh_blackbody()
 {
   static bNodeType ntype;
 

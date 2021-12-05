@@ -443,7 +443,7 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
   }
 }
 
-void register_node_type_cmp_image(void)
+void register_node_type_cmp_image()
 {
   static bNodeType ntype;
 
@@ -555,7 +555,7 @@ static void cmp_node_rlayers_update(bNodeTree *ntree, bNode *node)
   cmp_node_update_default(ntree, node);
 }
 
-void register_node_type_cmp_rlayers(void)
+void register_node_type_cmp_rlayers()
 {
   static bNodeType ntype;
 

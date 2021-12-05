@@ -279,7 +279,7 @@ static void sh_node_vector_math_build_multi_function(
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_vect_math(void)
+void register_node_type_sh_vect_math()
 {
   static bNodeType ntype;
 

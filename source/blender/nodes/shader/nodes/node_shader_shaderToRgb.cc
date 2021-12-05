@@ -46,7 +46,7 @@ static int node_shader_gpu_shadertorgb(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_shadertorgb(void)
+void register_node_type_sh_shadertorgb()
 {
   static bNodeType ntype;
 

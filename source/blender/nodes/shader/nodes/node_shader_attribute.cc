@@ -83,7 +83,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_attribute(void)
+void register_node_type_sh_attribute()
 {
   static bNodeType ntype;
 

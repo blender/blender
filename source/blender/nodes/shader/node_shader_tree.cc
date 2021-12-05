@@ -189,7 +189,7 @@ static bool shader_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
 
 bNodeTreeType *ntreeType_Shader;
 
-void register_node_tree_type_sh(void)
+void register_node_tree_type_sh()
 {
   bNodeTreeType *tt = ntreeType_Shader = (bNodeTreeType *)MEM_callocN(sizeof(bNodeTreeType),
                                                                       "shader node tree type");

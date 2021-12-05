@@ -58,7 +58,7 @@ static int node_shader_gpu_wavelength(GPUMaterial *mat,
 }
 
 /* node type definition */
-void register_node_type_sh_wavelength(void)
+void register_node_type_sh_wavelength()
 {
   static bNodeType ntype;
 

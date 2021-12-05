@@ -59,7 +59,7 @@ static void node_copy_script(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = dest_nss;
 }
 
-void register_node_type_sh_script(void)
+void register_node_type_sh_script()
 {
   static bNodeType ntype;
 
