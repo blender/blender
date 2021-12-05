@@ -24,6 +24,9 @@
 #include "node_shader_util.hh"
 
 /* **************** BUMP ******************** */
+
+namespace blender::nodes::node_shader_bump_cc {
+
 /* clang-format off */
 static bNodeSocketTemplate sh_node_bump_in[] = {
     {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -54,15 +57,19 @@ static int gpu_shader_bump(GPUMaterial *mat,
       mat, node, "node_bump", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_constant(&invert));
 }
 
+}  // namespace blender::nodes::node_shader_bump_cc
+
 /* node type definition */
 void register_node_type_sh_bump()
 {
+  namespace file_ns = blender::nodes::node_shader_bump_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
+  node_type_socket_templates(&ntype, file_ns::sh_node_bump_in, file_ns::sh_node_bump_out);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, gpu_shader_bump);
+  node_type_gpu(&ntype, file_ns::gpu_shader_bump);
 
   nodeRegisterType(&ntype);
 }

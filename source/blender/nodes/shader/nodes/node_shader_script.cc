@@ -25,6 +25,8 @@
 
 /* **************** Script ******************** */
 
+namespace blender::nodes::node_shader_script_cc {
+
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeShaderScript *nss = (NodeShaderScript *)MEM_callocN(sizeof(NodeShaderScript),
@@ -59,13 +61,18 @@ static void node_copy_script(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = dest_nss;
 }
 
+}  // namespace blender::nodes::node_shader_script_cc
+
 void register_node_type_sh_script()
 {
+  namespace file_ns = blender::nodes::node_shader_script_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT, 0);
-  node_type_init(&ntype, init);
-  node_type_storage(&ntype, "NodeShaderScript", node_free_script, node_copy_script);
+  node_type_init(&ntype, file_ns::init);
+  node_type_storage(
+      &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 
   nodeRegisterType(&ntype);
 }

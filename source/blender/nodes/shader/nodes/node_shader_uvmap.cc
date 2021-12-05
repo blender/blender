@@ -23,6 +23,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_uvmap_cc {
+
 static bNodeSocketTemplate sh_node_uvmap_out[] = {
     {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
@@ -51,18 +53,22 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat,
   return 1;
 }
 
+}  // namespace blender::nodes::node_shader_uvmap_cc
+
 /* node type definition */
 void register_node_type_sh_uvmap()
 {
+  namespace file_ns = blender::nodes::node_shader_uvmap_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_UVMAP, "UV Map", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, sh_node_uvmap_out);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_uvmap_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_uvmap);
+  node_type_init(&ntype, file_ns::node_shader_init_uvmap);
   node_type_storage(
       &ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_uvmap);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_uvmap);
 
   nodeRegisterType(&ntype);
 }

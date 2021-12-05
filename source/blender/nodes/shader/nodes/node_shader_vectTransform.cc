@@ -24,6 +24,9 @@
 #include "node_shader_util.hh"
 
 /* **************** Vector Transform ******************** */
+
+namespace blender::nodes::node_shader_vectTransform_cc {
+
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, {-1, ""}};
 
@@ -137,17 +140,22 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_vectTransform_cc
+
 void register_node_type_sh_vect_transform()
 {
+  namespace file_ns = blender::nodes::node_shader_vectTransform_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_OP_VECTOR, 0);
-  node_type_init(&ntype, node_shader_init_vect_transform);
-  node_type_socket_templates(&ntype, sh_node_vect_transform_in, sh_node_vect_transform_out);
+  node_type_init(&ntype, file_ns::node_shader_init_vect_transform);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_vect_transform_in, file_ns::sh_node_vect_transform_out);
   node_type_storage(
       &ntype, "NodeShaderVectTransform", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_vect_transform);
-  node_type_gpu(&ntype, gpu_shader_vect_transform);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_vect_transform);
+  node_type_gpu(&ntype, file_ns::gpu_shader_vect_transform);
 
   nodeRegisterType(&ntype);
 }

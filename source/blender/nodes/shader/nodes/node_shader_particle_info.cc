@@ -21,6 +21,8 @@
 
 #include "node_shader_util.hh"
 
+namespace blender::nodes::node_shader_particle_info_cc {
+
 static bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, "Index"},
     {SOCK_FLOAT, "Random"},
@@ -62,15 +64,19 @@ static int gpu_shader_particle_info(GPUMaterial *mat,
                         GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
 }
 
+}  // namespace blender::nodes::node_shader_particle_info_cc
+
 /* node type definition */
 void register_node_type_sh_particle_info()
 {
+  namespace file_ns = blender::nodes::node_shader_particle_info_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, outputs);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_particle_info);
-  node_type_gpu(&ntype, gpu_shader_particle_info);
+  node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_particle_info);
+  node_type_gpu(&ntype, file_ns::gpu_shader_particle_info);
 
   nodeRegisterType(&ntype);
 }

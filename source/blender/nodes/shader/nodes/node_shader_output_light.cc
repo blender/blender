@@ -21,18 +21,24 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_output_light_cc {
+
 static bNodeSocketTemplate sh_node_output_light_in[] = {
     {SOCK_SHADER, N_("Surface"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
 
+}  // namespace blender::nodes::node_shader_output_light_cc
+
 /* node type definition */
 void register_node_type_sh_output_light()
 {
+  namespace file_ns = blender::nodes::node_shader_output_light_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LIGHT, "Light Output", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_output_light_in, nullptr);
+  node_type_socket_templates(&ntype, file_ns::sh_node_output_light_in, nullptr);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
 

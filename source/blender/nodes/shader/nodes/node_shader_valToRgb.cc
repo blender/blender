@@ -29,7 +29,7 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_valToRgb_cc {
 
 static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
@@ -38,8 +38,6 @@ static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Alpha"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_exec_valtorgb(void *UNUSED(data),
                                       int UNUSED(thread),
@@ -172,31 +170,11 @@ static void sh_node_valtorgb_build_multi_function(
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
 }
 
-void register_node_type_sh_valtorgb()
-{
-  static bNodeType ntype;
-
-  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_valtorgb_declare;
-  node_type_init(&ntype, node_shader_init_valtorgb);
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_valtorgb);
-  node_type_gpu(&ntype, gpu_shader_valtorgb);
-  ntype.build_multi_function = sh_node_valtorgb_build_multi_function;
-
-  nodeRegisterType(&ntype);
-}
-
-namespace blender::nodes {
-
 static void sh_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_output<decl::Float>(N_("Val"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_exec_rgbtobw(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -222,14 +200,36 @@ static int gpu_shader_rgbtobw(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "rgbtobw", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_valToRgb_cc
+
+void register_node_type_sh_valtorgb()
+{
+  namespace file_ns = blender::nodes::node_shader_valToRgb_cc;
+
+  static bNodeType ntype;
+
+  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
+  ntype.declare = file_ns::sh_node_valtorgb_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_valtorgb);
+  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_valtorgb);
+  node_type_gpu(&ntype, file_ns::gpu_shader_valtorgb);
+  ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
+
+  nodeRegisterType(&ntype);
+}
+
 void register_node_type_sh_rgbtobw()
 {
+  namespace file_ns = blender::nodes::node_shader_valToRgb_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_rgbtobw_declare;
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_rgbtobw);
-  node_type_gpu(&ntype, gpu_shader_rgbtobw);
+  ntype.declare = file_ns::sh_node_rgbtobw_declare;
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_rgbtobw);
+  node_type_gpu(&ntype, file_ns::gpu_shader_rgbtobw);
 
   nodeRegisterType(&ntype);
 }

@@ -20,6 +20,9 @@
 #include "node_shader_util.hh"
 
 /* **************** Blackbody ******************** */
+
+namespace blender::nodes::node_shader_blackbody_cc {
+
 static bNodeSocketTemplate sh_node_blackbody_in[] = {
     {SOCK_FLOAT, N_("Temperature"), 1500.0f, 0.0f, 0.0f, 0.0f, 800.0f, 12000.0f},
     {-1, ""},
@@ -47,17 +50,22 @@ static int node_shader_gpu_blackbody(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_constant(&layer));
 }
 
+}  // namespace blender::nodes::node_shader_blackbody_cc
+
 /* node type definition */
 void register_node_type_sh_blackbody()
 {
+  namespace file_ns = blender::nodes::node_shader_blackbody_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BLACKBODY, "Blackbody", NODE_CLASS_CONVERTER, 0);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_socket_templates(&ntype, sh_node_blackbody_in, sh_node_blackbody_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_blackbody_in, file_ns::sh_node_blackbody_out);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_blackbody);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_blackbody);
 
   nodeRegisterType(&ntype);
 }

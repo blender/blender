@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_normal_map_cc {
+
 static bNodeSocketTemplate sh_node_normal_map_in[] = {
     {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
     {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f},
@@ -115,19 +117,24 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_normal_map_cc
+
 /* node type definition */
 void register_node_type_sh_normal_map()
 {
+  namespace file_ns = blender::nodes::node_shader_normal_map_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_normal_map_in, sh_node_normal_map_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_normal_map_in, file_ns::sh_node_normal_map_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_normal_map);
+  node_type_init(&ntype, file_ns::node_shader_init_normal_map);
   node_type_storage(
       &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, gpu_shader_normal_map);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_normal_map);
+  node_type_gpu(&ntype, file_ns::gpu_shader_normal_map);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal_map);
 
   nodeRegisterType(&ntype);
 }

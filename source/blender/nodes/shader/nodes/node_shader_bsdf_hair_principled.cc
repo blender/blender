@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
+
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
 static bNodeSocketTemplate sh_node_bsdf_hair_principled_in[] = {
     {SOCK_RGBA, N_("Color"), 0.017513f, 0.005763f, 0.002059f, 1.0f, 0.0f, 1.0f},
@@ -90,19 +92,23 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_hair_principled_cc
+
 /* node type definition */
 void register_node_type_sh_bsdf_hair_principled()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_hair_principled_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER, 0);
   node_type_socket_templates(
-      &ntype, sh_node_bsdf_hair_principled_in, sh_node_bsdf_hair_principled_out);
+      &ntype, file_ns::sh_node_bsdf_hair_principled_in, file_ns::sh_node_bsdf_hair_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, node_shader_init_hair_principled);
+  node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_update(&ntype, node_shader_update_hair_principled);
+  node_type_update(&ntype, file_ns::node_shader_update_hair_principled);
 
   nodeRegisterType(&ntype);
 }

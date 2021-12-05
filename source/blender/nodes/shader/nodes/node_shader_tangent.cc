@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_tangent_cc {
+
 static bNodeSocketTemplate sh_node_tangent_out[] = {
     {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
@@ -69,16 +71,20 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
                         GPU_builtin(GPU_OBJECT_MATRIX));
 }
 
+}  // namespace blender::nodes::node_shader_tangent_cc
+
 /* node type definition */
 void register_node_type_sh_tangent()
 {
+  namespace file_ns = blender::nodes::node_shader_tangent_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, sh_node_tangent_out);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_tangent_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_tangent);
-  node_type_gpu(&ntype, node_shader_gpu_tangent);
+  node_type_init(&ntype, file_ns::node_shader_init_tangent);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tangent);
   node_type_storage(
       &ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
 

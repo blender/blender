@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_geometry_cc {
+
 static bNodeSocketTemplate sh_node_geometry_out[] = {
     {SOCK_VECTOR, N_("Position"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -86,16 +88,20 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
   return success;
 }
 
+}  // namespace blender::nodes::node_shader_geometry_cc
+
 /* node type definition */
 void register_node_type_sh_geometry()
 {
+  namespace file_ns = blender::nodes::node_shader_geometry_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NEW_GEOMETRY, "Geometry", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, sh_node_geometry_out);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_geometry_out);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_geometry);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_geometry);
 
   nodeRegisterType(&ntype);
 }

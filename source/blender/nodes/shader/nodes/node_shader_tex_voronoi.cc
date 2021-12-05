@@ -21,7 +21,7 @@
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_voronoi_cc {
 
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
@@ -46,8 +46,6 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("W")).no_muted_links();
   b.add_output<decl::Float>(N_("Radius")).no_muted_links();
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -164,8 +162,6 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
                                 (ELEM(tex->dimensions, 1, 4)));
   nodeSetSocketAvailability(ntree, outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
-
-namespace blender::nodes {
 
 static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
 
@@ -1321,20 +1317,22 @@ static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFuncti
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_voronoi_cc
 
 void register_node_type_sh_tex_voronoi()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_voronoi_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_voronoi_declare;
-  node_type_init(&ntype, node_shader_init_tex_voronoi);
+  ntype.declare = file_ns::sh_node_tex_voronoi_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_tex_voronoi);
   node_type_storage(
       &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_voronoi);
-  node_type_update(&ntype, node_shader_update_tex_voronoi);
-  ntype.build_multi_function = blender::nodes::sh_node_voronoi_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_voronoi);
+  node_type_update(&ntype, file_ns::node_shader_update_tex_voronoi);
+  ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

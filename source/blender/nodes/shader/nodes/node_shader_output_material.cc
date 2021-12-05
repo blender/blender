@@ -23,6 +23,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_output_material_cc {
+
 static bNodeSocketTemplate sh_node_output_material_in[] = {
     {SOCK_SHADER, N_("Surface")},
     {SOCK_SHADER, N_("Volume")},
@@ -73,16 +75,20 @@ static int node_shader_gpu_output_material(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_output_material_cc
+
 /* node type definition */
 void register_node_type_sh_output_material()
 {
+  namespace file_ns = blender::nodes::node_shader_output_material_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_output_material_in, nullptr);
+  node_type_socket_templates(&ntype, file_ns::sh_node_output_material_in, nullptr);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_output_material);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_output_material);
 
   ntype.no_muting = true;
 

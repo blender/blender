@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_output_linestyle_cc {
+
 static bNodeSocketTemplate sh_node_output_linestyle_in[] = {
     {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 1.0f, 1.0f},
     {SOCK_FLOAT, N_("Color Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -29,13 +31,17 @@ static bNodeSocketTemplate sh_node_output_linestyle_in[] = {
     {-1, ""},
 };
 
+}  // namespace blender::nodes::node_shader_output_linestyle_cc
+
 /* node type definition */
 void register_node_type_sh_output_linestyle()
 {
+  namespace file_ns = blender::nodes::node_shader_output_linestyle_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_output_linestyle_in, nullptr);
+  node_type_socket_templates(&ntype, file_ns::sh_node_output_linestyle_in, nullptr);
   node_type_init(&ntype, nullptr);
 
   ntype.no_muting = true;

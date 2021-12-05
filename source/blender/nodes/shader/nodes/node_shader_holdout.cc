@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_holdout_cc {
+
 static bNodeSocketTemplate sh_node_holdout_in[] = {
     {-1, ""},
 };
@@ -39,16 +41,20 @@ static int gpu_shader_rgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_holdout", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_holdout_cc
+
 /* node type definition */
 void register_node_type_sh_holdout()
 {
+  namespace file_ns = blender::nodes::node_shader_holdout_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_holdout_in, sh_node_holdout_out);
+  node_type_socket_templates(&ntype, file_ns::sh_node_holdout_in, file_ns::sh_node_holdout_out);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, gpu_shader_rgb);
+  node_type_gpu(&ntype, file_ns::gpu_shader_rgb);
 
   nodeRegisterType(&ntype);
 }

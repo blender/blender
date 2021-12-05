@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_bsdf_principled_cc {
+
 static bNodeSocketTemplate sh_node_bsdf_principled_in[] = {
     {SOCK_RGBA, N_("Base Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Subsurface"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -183,18 +185,23 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_principled_cc
+
 /* node type definition */
 void register_node_type_sh_bsdf_principled()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_principled_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_PRINCIPLED, "Principled BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_bsdf_principled_in, sh_node_bsdf_principled_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_bsdf_principled_in, file_ns::sh_node_bsdf_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, node_shader_init_principled);
+  node_type_init(&ntype, file_ns::node_shader_init_principled);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_bsdf_principled);
-  node_type_update(&ntype, node_shader_update_principled);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_principled);
+  node_type_update(&ntype, file_ns::node_shader_update_principled);
 
   nodeRegisterType(&ntype);
 }

@@ -24,6 +24,9 @@
 #include "node_shader_util.hh"
 
 /* **************** MAPPING  ******************** */
+
+namespace blender::nodes::node_shader_mapping_cc {
+
 static bNodeSocketTemplate sh_node_mapping_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_NONE},
     {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
@@ -64,14 +67,18 @@ static void node_shader_update_mapping(bNodeTree *ntree, bNode *node)
       ntree, sock, ELEM(node->custom1, NODE_MAPPING_TYPE_POINT, NODE_MAPPING_TYPE_TEXTURE));
 }
 
+}  // namespace blender::nodes::node_shader_mapping_cc
+
 void register_node_type_sh_mapping()
 {
+  namespace file_ns = blender::nodes::node_shader_mapping_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_mapping_in, sh_node_mapping_out);
-  node_type_gpu(&ntype, gpu_shader_mapping);
-  node_type_update(&ntype, node_shader_update_mapping);
+  node_type_socket_templates(&ntype, file_ns::sh_node_mapping_in, file_ns::sh_node_mapping_out);
+  node_type_gpu(&ntype, file_ns::gpu_shader_mapping);
+  node_type_update(&ntype, file_ns::node_shader_update_mapping);
 
   nodeRegisterType(&ntype);
 }

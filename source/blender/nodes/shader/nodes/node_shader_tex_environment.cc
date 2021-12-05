@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_tex_environment_cc {
+
 static bNodeSocketTemplate sh_node_tex_environment_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
     {-1, ""},
@@ -133,17 +135,22 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_tex_environment_cc
+
 /* node type definition */
 void register_node_type_sh_tex_environment()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_environment_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_environment_in, sh_node_tex_environment_out);
-  node_type_init(&ntype, node_shader_init_tex_environment);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_tex_environment_in, file_ns::sh_node_tex_environment_out);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_environment);
   node_type_storage(
       &ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_environment);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_environment);
   node_type_label(&ntype, node_image_label);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

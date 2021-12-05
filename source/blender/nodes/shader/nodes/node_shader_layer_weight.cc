@@ -21,6 +21,8 @@
 
 /* **************** Layer Weight ******************** */
 
+namespace blender::nodes::node_shader_layer_weight_cc {
+
 static bNodeSocketTemplate sh_node_layer_weight_in[] = {
     {SOCK_FLOAT, N_("Blend"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
@@ -59,17 +61,22 @@ static void node_shader_exec_layer_weight(void *UNUSED(data),
 {
 }
 
+}  // namespace blender::nodes::node_shader_layer_weight_cc
+
 /* node type definition */
 void register_node_type_sh_layer_weight()
 {
+  namespace file_ns = blender::nodes::node_shader_layer_weight_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LAYER_WEIGHT, "Layer Weight", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_layer_weight_in, sh_node_layer_weight_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_layer_weight_in, file_ns::sh_node_layer_weight_out);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_layer_weight);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_layer_weight);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_layer_weight);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_layer_weight);
 
   nodeRegisterType(&ntype);
 }

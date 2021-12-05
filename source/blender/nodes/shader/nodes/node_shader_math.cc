@@ -27,7 +27,7 @@
 
 /* **************** SCALAR MATH ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_math_cc {
 
 static void sh_node_math_declare(NodeDeclarationBuilder &b)
 {
@@ -43,8 +43,6 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .max(10000.0f);
   b.add_output<decl::Float>(N_("Value"));
 };
-
-}  // namespace blender::nodes
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -161,16 +159,20 @@ static void sh_node_math_build_multi_function(blender::nodes::NodeMultiFunctionB
   }
 }
 
+}  // namespace blender::nodes::node_shader_math_cc
+
 void register_node_type_sh_math()
 {
+  namespace file_ns = blender::nodes::node_shader_math_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_math_declare;
+  ntype.declare = file_ns::sh_node_math_declare;
   node_type_label(&ntype, node_math_label);
-  node_type_gpu(&ntype, gpu_shader_math);
+  node_type_gpu(&ntype, file_ns::gpu_shader_math);
   node_type_update(&ntype, node_math_update);
-  ntype.build_multi_function = sh_node_math_build_multi_function;
+  ntype.build_multi_function = file_ns::sh_node_math_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

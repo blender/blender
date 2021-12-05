@@ -24,6 +24,9 @@
 #include "node_shader_util.hh"
 
 /* **************** VALUE SQUEEZE ******************** */
+
+namespace blender::nodes::node_shader_squeeze_cc {
+
 static bNodeSocketTemplate sh_node_squeeze_in[] = {
     {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
     {SOCK_FLOAT, N_("Width"), 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
@@ -57,15 +60,19 @@ static int gpu_shader_squeeze(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "squeeze", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_squeeze_cc
+
 void register_node_type_sh_squeeze()
 {
+  namespace file_ns = blender::nodes::node_shader_squeeze_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_squeeze_in, sh_node_squeeze_out);
+  node_type_socket_templates(&ntype, file_ns::sh_node_squeeze_in, file_ns::sh_node_squeeze_out);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_squeeze);
-  node_type_gpu(&ntype, gpu_shader_squeeze);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_squeeze);
+  node_type_gpu(&ntype, file_ns::gpu_shader_squeeze);
 
   nodeRegisterType(&ntype);
 }

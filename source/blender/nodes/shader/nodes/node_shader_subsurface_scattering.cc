@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_subsurface_scattering_cc {
+
 static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
     {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Scale"), 1.0, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
@@ -78,20 +80,25 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
   }
 }
 
+}  // namespace blender::nodes::node_shader_subsurface_scattering_cc
+
 /* node type definition */
 void register_node_type_sh_subsurface_scattering()
 {
+  namespace file_ns = blender::nodes::node_shader_subsurface_scattering_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, sh_node_subsurface_scattering_in, sh_node_subsurface_scattering_out);
+  node_type_socket_templates(&ntype,
+                             file_ns::sh_node_subsurface_scattering_in,
+                             file_ns::sh_node_subsurface_scattering_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_subsurface_scattering);
+  node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, node_shader_update_subsurface_scattering);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
+  node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
 
   nodeRegisterType(&ntype);
 }

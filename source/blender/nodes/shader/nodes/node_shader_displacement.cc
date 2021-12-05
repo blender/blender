@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_displacement_cc {
+
 static bNodeSocketTemplate sh_node_displacement_in[] = {
     {SOCK_FLOAT, N_("Height"), 0.00f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
     {SOCK_FLOAT, N_("Midlevel"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
@@ -68,16 +70,21 @@ static int gpu_shader_displacement(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_displacement_world", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_displacement_cc
+
 /* node type definition */
 void register_node_type_sh_displacement()
 {
+  namespace file_ns = blender::nodes::node_shader_displacement_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_DISPLACEMENT, "Displacement", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_displacement_in, sh_node_displacement_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_displacement_in, file_ns::sh_node_displacement_out);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_init(&ntype, node_shader_init_displacement);
-  node_type_gpu(&ntype, gpu_shader_displacement);
+  node_type_init(&ntype, file_ns::node_shader_init_displacement);
+  node_type_gpu(&ntype, file_ns::gpu_shader_displacement);
 
   nodeRegisterType(&ntype);
 }

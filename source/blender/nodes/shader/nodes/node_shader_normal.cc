@@ -24,6 +24,9 @@
 #include "node_shader_util.hh"
 
 /* **************** NORMAL  ******************** */
+
+namespace blender::nodes::node_shader_normal_cc {
+
 static bNodeSocketTemplate sh_node_normal_in[] = {
     {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
     {-1, ""},
@@ -64,14 +67,18 @@ static int gpu_shader_normal(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "normal_new_shading", in, out, vec);
 }
 
+}  // namespace blender::nodes::node_shader_normal_cc
+
 void register_node_type_sh_normal()
 {
+  namespace file_ns = blender::nodes::node_shader_normal_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_normal_in, sh_node_normal_out);
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_normal);
-  node_type_gpu(&ntype, gpu_shader_normal);
+  node_type_socket_templates(&ntype, file_ns::sh_node_normal_in, file_ns::sh_node_normal_out);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal);
+  node_type_gpu(&ntype, file_ns::gpu_shader_normal);
 
   nodeRegisterType(&ntype);
 }

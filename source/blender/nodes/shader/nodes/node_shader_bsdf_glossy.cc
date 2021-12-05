@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_bsdf_glossy_cc {
+
 static bNodeSocketTemplate sh_node_bsdf_glossy_in[] = {
     {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -65,17 +67,22 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
                         GPU_constant(&node->ssr_id));
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_glossy_cc
+
 /* node type definition */
 void register_node_type_sh_bsdf_glossy()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_glossy_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_bsdf_glossy_in, sh_node_bsdf_glossy_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_bsdf_glossy_in, file_ns::sh_node_bsdf_glossy_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_glossy);
+  node_type_init(&ntype, file_ns::node_shader_init_glossy);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_bsdf_glossy);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_glossy);
 
   nodeRegisterType(&ntype);
 }

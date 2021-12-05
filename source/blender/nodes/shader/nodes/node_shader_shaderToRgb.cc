@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_shaderToRgb_cc {
+
 static bNodeSocketTemplate sh_node_shadertorgb_in[] = {
     {SOCK_SHADER, N_("Shader")},
     {-1, ""},
@@ -45,16 +47,21 @@ static int node_shader_gpu_shadertorgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_shader_to_rgba", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_shaderToRgb_cc
+
 /* node type definition */
 void register_node_type_sh_shadertorgb()
 {
+  namespace file_ns = blender::nodes::node_shader_shaderToRgb_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, "Shader to RGB", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_shadertorgb_in, sh_node_shadertorgb_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_shadertorgb_in, file_ns::sh_node_shadertorgb_out);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_shadertorgb);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_shadertorgb);
 
   nodeRegisterType(&ntype);
 }

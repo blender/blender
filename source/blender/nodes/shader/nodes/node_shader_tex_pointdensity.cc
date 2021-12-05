@@ -23,6 +23,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_tex_pointdensity_cc {
+
 static bNodeSocketTemplate sh_node_tex_pointdensity_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
     {-1, ""},
@@ -65,18 +67,23 @@ static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
   memset(pd, 0, sizeof(*pd));
 }
 
+}  // namespace blender::nodes::node_shader_tex_pointdensity_cc
+
 /* node type definition */
 void register_node_type_sh_tex_pointdensity()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_pointdensity_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_POINTDENSITY, "Point Density", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_pointdensity_in, sh_node_tex_pointdensity_out);
-  node_type_init(&ntype, node_shader_init_tex_pointdensity);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_tex_pointdensity_in, file_ns::sh_node_tex_pointdensity_out);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_pointdensity);
   node_type_storage(&ntype,
                     "NodeShaderTexPointDensity",
-                    node_shader_free_tex_pointdensity,
-                    node_shader_copy_tex_pointdensity);
+                    file_ns::node_shader_free_tex_pointdensity,
+                    file_ns::node_shader_copy_tex_pointdensity);
 
   nodeRegisterType(&ntype);
 }

@@ -19,6 +19,8 @@
 
 #include "node_shader_util.hh"
 
+namespace blender::nodes::node_shader_vertex_color_cc {
+
 static bNodeSocketTemplate sh_node_vertex_color_out[] = {
     {SOCK_RGBA, N_("Color")},
     {SOCK_FLOAT, N_("Alpha")},
@@ -47,16 +49,20 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
 }
 
+}  // namespace blender::nodes::node_shader_vertex_color_cc
+
 void register_node_type_sh_vertex_color()
 {
+  namespace file_ns = blender::nodes::node_shader_vertex_color_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VERTEX_COLOR, "Vertex Color", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, sh_node_vertex_color_out);
-  node_type_init(&ntype, node_shader_init_vertex_color);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_vertex_color_out);
+  node_type_init(&ntype, file_ns::node_shader_init_vertex_color);
   node_type_storage(
       &ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_vertex_color);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_vertex_color);
 
   nodeRegisterType(&ntype);
 }

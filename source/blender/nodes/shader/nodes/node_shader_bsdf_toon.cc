@@ -21,6 +21,8 @@
 
 /* **************** OUTPUT ******************** */
 
+namespace blender::nodes::node_shader_bsdf_toon_cc {
+
 static bNodeSocketTemplate sh_node_bsdf_toon_in[] = {
     {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Size"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -49,17 +51,22 @@ static int node_shader_gpu_bsdf_toon(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bsdf_toon", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_toon_cc
+
 /* node type definition */
 void register_node_type_sh_bsdf_toon()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_toon_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_TOON, "Toon BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_bsdf_toon_in, sh_node_bsdf_toon_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_bsdf_toon_in, file_ns::sh_node_bsdf_toon_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_bsdf_toon);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_toon);
 
   nodeRegisterType(&ntype);
 }

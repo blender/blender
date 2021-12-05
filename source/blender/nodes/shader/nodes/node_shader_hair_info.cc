@@ -19,6 +19,8 @@
 
 #include "node_shader_util.hh"
 
+namespace blender::nodes::node_shader_hair_info_cc {
+
 static bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Is Strand"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Intercept"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -43,16 +45,20 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_hair_info", in, out, length_link);
 }
 
+}  // namespace blender::nodes::node_shader_hair_info_cc
+
 /* node type definition */
 void register_node_type_sh_hair_info()
 {
+  namespace file_ns = blender::nodes::node_shader_hair_info_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Hair Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, outputs);
+  node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, node_shader_gpu_hair_info);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_hair_info);
 
   nodeRegisterType(&ntype);
 }
