@@ -1099,7 +1099,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* convert mouse coordinates to v2d space */
   float cursor[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
-  const NodeResizeDirection dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+  const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }

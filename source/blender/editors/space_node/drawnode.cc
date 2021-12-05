@@ -250,11 +250,39 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static NodeResizeDirection node_resize_area_default(const bNode *node, const int x, const int y)
+NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
 {
+  if (node->type == NODE_FRAME) {
+    const float size = 10.0f;
+    NodeFrame *data = (NodeFrame *)node->storage;
+
+    /* shrinking frame size is determined by child nodes */
+    if (!(data->flag & NODE_FRAME_RESIZEABLE)) {
+      return NODE_RESIZE_NONE;
+    }
+
+    NodeResizeDirection dir = NODE_RESIZE_NONE;
+
+    const rctf &totr = node->totr;
+    if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+      dir |= NODE_RESIZE_RIGHT;
+    }
+    if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
+      dir |= NODE_RESIZE_LEFT;
+    }
+    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax - size && y < totr.ymax) {
+      dir |= NODE_RESIZE_TOP;
+    }
+    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin + size) {
+      dir |= NODE_RESIZE_BOTTOM;
+    }
+
+    return dir;
+  }
+
   if (node->flag & NODE_HIDDEN) {
-    rctf totr = node->totr;
     /* right part of node */
+    rctf totr = node->totr;
     totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
@@ -282,59 +310,6 @@ static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *p
 {
   uiTemplateIDBrowse(
       layout, C, ptr, "node_tree", nullptr, nullptr, nullptr, UI_TEMPLATE_ID_FILTER_ALL, nullptr);
-}
-
-/* XXX Does a bounding box update by iterating over all children.
- * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
- * since the child node totr rects are not updated properly at that point.
- */
-static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
-{
-  const float margin = 1.5f * U.widget_unit;
-  NodeFrame *data = (NodeFrame *)node->storage;
-
-  /* init rect from current frame size */
-  rctf rect;
-  node_to_view(*node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
-  node_to_view(
-      *node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
-
-  /* frame can be resized manually only if shrinking is disabled or no children are attached */
-  data->flag |= NODE_FRAME_RESIZEABLE;
-  /* for shrinking bbox, initialize the rect from first child node */
-  bool bbinit = (data->flag & NODE_FRAME_SHRINK);
-  /* fit bounding box to all children */
-  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-    if (tnode->parent != node) {
-      continue;
-    }
-
-    /* add margin to node rect */
-    rctf noderect = tnode->totr;
-    noderect.xmin -= margin;
-    noderect.xmax += margin;
-    noderect.ymin -= margin;
-    noderect.ymax += margin;
-
-    /* first child initializes frame */
-    if (bbinit) {
-      bbinit = false;
-      rect = noderect;
-      data->flag &= ~NODE_FRAME_RESIZEABLE;
-    }
-    else {
-      BLI_rctf_union(&rect, &noderect);
-    }
-  }
-
-  /* now adjust the frame size from view-space bounding box */
-  node_from_view(*node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
-  float xmax, ymax;
-  node_from_view(*node, rect.xmax, rect.ymin, &xmax, &ymax);
-  node->width = xmax - node->offsetx;
-  node->height = -ymax + node->offsety;
-
-  node->totr = rect;
 }
 
 static void node_draw_frame_label(bNodeTree &ntree, bNode &node, SpaceNode &snode)
@@ -478,67 +453,11 @@ static void node_draw_frame(const bContext *C,
   node->block = nullptr;
 }
 
-static NodeResizeDirection node_resize_area_frame(const bNode *node, const int x, const int y)
-{
-  const float size = 10.0f;
-  NodeFrame *data = (NodeFrame *)node->storage;
-  rctf totr = node->totr;
-
-  /* shrinking frame size is determined by child nodes */
-  if (!(data->flag & NODE_FRAME_RESIZEABLE)) {
-    return NODE_RESIZE_NONE;
-  }
-
-  NodeResizeDirection dir = NODE_RESIZE_NONE;
-
-  if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
-    dir |= NODE_RESIZE_RIGHT;
-  }
-  if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
-    dir |= NODE_RESIZE_LEFT;
-  }
-  if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax - size && y < totr.ymax) {
-    dir |= NODE_RESIZE_TOP;
-  }
-  if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin + size) {
-    dir |= NODE_RESIZE_BOTTOM;
-  }
-
-  return dir;
-}
-
 static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
   uiItemR(layout, ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
   uiItemR(layout, ptr, "text", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-#define NODE_REROUTE_SIZE 8.0f
-
-static void node_draw_reroute_prepare(const bContext *UNUSED(C),
-                                      bNodeTree *UNUSED(ntree),
-                                      bNode *node)
-{
-  /* get "global" coords */
-  float locx, locy;
-  node_to_view(*node, 0.0f, 0.0f, &locx, &locy);
-
-  /* reroute node has exactly one input and one output, both in the same place */
-  bNodeSocket *nsock = (bNodeSocket *)node->outputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
-
-  nsock = (bNodeSocket *)node->inputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
-
-  const float size = NODE_REROUTE_SIZE;
-  node->width = size * 2;
-  node->totr.xmin = locx - size;
-  node->totr.xmax = locx + size;
-  node->totr.ymax = locy + size;
-  node->totr.ymin = locy - size;
 }
 
 static void node_draw_reroute(const bContext *C,
@@ -588,20 +507,6 @@ static void node_draw_reroute(const bContext *C,
   node->block = nullptr;
 }
 
-/* Special tweak area for reroute node.
- * Since this node is quite small, we use a larger tweak area for grabbing than for selection.
- */
-static int node_tweak_area_reroute(bNode *node, int x, int y)
-{
-  /* square of tweak radius */
-  const float tweak_radius_sq = square_f(24.0f);
-
-  bNodeSocket *sock = (bNodeSocket *)node->inputs.first;
-  float dx = sock->locx - x;
-  float dy = sock->locy - y;
-  return (dx * dx + dy * dy <= tweak_radius_sq);
-}
-
 static void node_common_set_butfunc(bNodeType *ntype)
 {
   switch (ntype->type) {
@@ -610,14 +515,10 @@ static void node_common_set_butfunc(bNodeType *ntype)
       break;
     case NODE_FRAME:
       ntype->draw_nodetype = node_draw_frame;
-      ntype->draw_nodetype_prepare = node_draw_frame_prepare;
       ntype->draw_buttons_ex = node_buts_frame_ex;
-      ntype->resize_area_func = node_resize_area_frame;
       break;
     case NODE_REROUTE:
       ntype->draw_nodetype = node_draw_reroute;
-      ntype->draw_nodetype_prepare = node_draw_reroute_prepare;
-      ntype->tweak_area_func = node_tweak_area_reroute;
       break;
   }
 }
@@ -3373,12 +3274,8 @@ void ED_node_init_butfuncs(void)
 
   /* default ui functions */
   NodeTypeUndefined.draw_nodetype = node_draw_default;
-  NodeTypeUndefined.draw_nodetype_prepare = node_update_default;
-  NodeTypeUndefined.select_area_func = node_select_area_default;
-  NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
   NodeTypeUndefined.draw_buttons = nullptr;
   NodeTypeUndefined.draw_buttons_ex = nullptr;
-  NodeTypeUndefined.resize_area_func = node_resize_area_default;
 
   NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
   NodeSocketTypeUndefined.draw_color = node_socket_undefined_draw_color;
@@ -3389,10 +3286,6 @@ void ED_node_init_butfuncs(void)
   NODE_TYPES_BEGIN (ntype) {
     /* default ui functions */
     ntype->draw_nodetype = node_draw_default;
-    ntype->draw_nodetype_prepare = node_update_default;
-    ntype->select_area_func = node_select_area_default;
-    ntype->tweak_area_func = node_tweak_area_default;
-    ntype->resize_area_func = node_resize_area_default;
 
     node_common_set_butfunc(ntype);
 
@@ -3416,10 +3309,6 @@ void ED_init_custom_node_type(bNodeType *ntype)
 {
   /* default ui functions */
   ntype->draw_nodetype = node_draw_default;
-  ntype->draw_nodetype_prepare = node_update_default;
-  ntype->resize_area_func = node_resize_area_default;
-  ntype->select_area_func = node_select_area_default;
-  ntype->tweak_area_func = node_tweak_area_default;
 }
 
 void ED_init_custom_node_socket_type(bNodeSocketType *stype)

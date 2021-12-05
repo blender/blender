@@ -80,6 +80,15 @@ struct SpaceNode_Runtime {
   struct NodeInsertOfsData *iofsd;
 };
 
+enum NodeResizeDirection {
+  NODE_RESIZE_NONE = 0,
+  NODE_RESIZE_TOP = (1 << 0),
+  NODE_RESIZE_BOTTOM = (1 << 1),
+  NODE_RESIZE_RIGHT = (1 << 2),
+  NODE_RESIZE_LEFT = (1 << 3),
+};
+ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
+
 /* Transform between View2Ds in the tree path. */
 blender::float2 space_node_group_offset(const SpaceNode &snode);
 
@@ -106,8 +115,7 @@ void node_draw_sockets(const View2D &v2d,
                        bNode &node,
                        const bool draw_outputs,
                        const bool select_all);
-void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node);
-int node_select_area_default(bNode *node, int x, int y);
+NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
 int node_tweak_area_default(bNode *node, int x, int y);
 void node_socket_color_get(const bContext &C,
                            const bNodeTree &ntree,

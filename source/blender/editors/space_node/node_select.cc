@@ -103,10 +103,8 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
 static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 {
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->typeinfo->select_area_func) {
-      if (node->typeinfo->select_area_func(node, mx, my)) {
-        return node;
-      }
+    if (BLI_rctf_isect_pt(&node->totr, mx, my)) {
+      return node;
     }
   }
   return nullptr;
@@ -115,10 +113,15 @@ static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
 {
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->typeinfo->tweak_area_func) {
-      if (node->typeinfo->tweak_area_func(node, (int)mouse.x, (int)mouse.y)) {
+    if (node->type == NODE_REROUTE) {
+      bNodeSocket *socket = (bNodeSocket *)node->inputs.first;
+      const float2 location{socket->locx, socket->locy};
+      if (float2::distance(mouse, location) < 24.0f) {
         return node;
       }
+    }
+    if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y)) {
+      return node;
     }
   }
   return nullptr;

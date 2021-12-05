@@ -663,26 +663,6 @@ static void node_update_hidden(bNode &node)
                                node.totr.ymax);
 }
 
-void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node)
-{
-  if (node->flag & NODE_HIDDEN) {
-    node_update_hidden(*node);
-  }
-  else {
-    node_update_basis(*C, *ntree, *node);
-  }
-}
-
-int node_select_area_default(bNode *node, int x, int y)
-{
-  return BLI_rctf_isect_pt(&node->totr, x, y);
-}
-
-int node_tweak_area_default(bNode *node, int x, int y)
-{
-  return BLI_rctf_isect_pt(&node->totr, x, y);
-}
-
 int node_get_colorid(bNode &node)
 {
   switch (node.typeinfo->nclass) {
@@ -2323,7 +2303,7 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
     }
   }
   if (node) {
-    NodeResizeDirection dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+    NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
     wmcursor = node_get_resize_cursor(dir);
   }
 
@@ -2343,13 +2323,6 @@ void node_draw_default(const bContext *C,
   }
   else {
     node_draw_basis(*C, *v2d, *snode, *ntree, *node, key);
-  }
-}
-
-static void node_update(const bContext &C, bNodeTree &ntree, bNode &node)
-{
-  if (node.typeinfo->draw_nodetype_prepare) {
-    node.typeinfo->draw_nodetype_prepare(&C, &ntree, &node);
   }
 }
 
@@ -2381,6 +2354,82 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
   }
 }
 
+/* XXX Does a bounding box update by iterating over all children.
+ * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
+ * since the child node totr rects are not updated properly at that point.
+ */
+static void frame_node_prepare_for_draw(bNodeTree &ntree, bNode &node)
+{
+  const float margin = 1.5f * U.widget_unit;
+  NodeFrame *data = (NodeFrame *)node.storage;
+
+  /* init rect from current frame size */
+  rctf rect;
+  node_to_view(node, node.offsetx, node.offsety, &rect.xmin, &rect.ymax);
+  node_to_view(
+      node, node.offsetx + node.width, node.offsety - node.height, &rect.xmax, &rect.ymin);
+
+  /* frame can be resized manually only if shrinking is disabled or no children are attached */
+  data->flag |= NODE_FRAME_RESIZEABLE;
+  /* for shrinking bbox, initialize the rect from first child node */
+  bool bbinit = (data->flag & NODE_FRAME_SHRINK);
+  /* fit bounding box to all children */
+  LISTBASE_FOREACH (bNode *, tnode, &ntree.nodes) {
+    if (tnode->parent != &node) {
+      continue;
+    }
+
+    /* add margin to node rect */
+    rctf noderect = tnode->totr;
+    noderect.xmin -= margin;
+    noderect.xmax += margin;
+    noderect.ymin -= margin;
+    noderect.ymax += margin;
+
+    /* first child initializes frame */
+    if (bbinit) {
+      bbinit = false;
+      rect = noderect;
+      data->flag &= ~NODE_FRAME_RESIZEABLE;
+    }
+    else {
+      BLI_rctf_union(&rect, &noderect);
+    }
+  }
+
+  /* now adjust the frame size from view-space bounding box */
+  node_from_view(node, rect.xmin, rect.ymax, &node.offsetx, &node.offsety);
+  float xmax, ymax;
+  node_from_view(node, rect.xmax, rect.ymin, &xmax, &ymax);
+  node.width = xmax - node.offsetx;
+  node.height = -ymax + node.offsety;
+
+  node.totr = rect;
+}
+
+static void reroute_node_prepare_for_draw(bNode &node)
+{
+  /* get "global" coords */
+  float locx, locy;
+  node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+
+  /* reroute node has exactly one input and one output, both in the same place */
+  bNodeSocket *nsock = (bNodeSocket *)node.outputs.first;
+  nsock->locx = locx;
+  nsock->locy = locy;
+
+  nsock = (bNodeSocket *)node.inputs.first;
+  nsock->locx = locx;
+  nsock->locy = locy;
+
+  const float size = 8.0f;
+  node.width = size * 2;
+  node.totr.xmin = locx - size;
+  node.totr.xmax = locx + size;
+  node.totr.ymax = locy + size;
+  node.totr.ymin = locy - size;
+}
+
 void node_update_nodetree(const bContext &C, bNodeTree &ntree)
 {
   /* Make sure socket "used" tags are correct, for displaying value buttons. */
@@ -2391,7 +2440,20 @@ void node_update_nodetree(const bContext &C, bNodeTree &ntree)
 
   /* Update nodes front to back, so children sizes get updated before parents. */
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    node_update(C, ntree, *node);
+    if (node->type == NODE_FRAME) {
+      frame_node_prepare_for_draw(ntree, *node);
+    }
+    else if (node->type == NODE_REROUTE) {
+      reroute_node_prepare_for_draw(*node);
+    }
+    else {
+      if (node->flag & NODE_HIDDEN) {
+        node_update_hidden(*node);
+      }
+      else {
+        node_update_basis(C, ntree, *node);
+      }
+    }
   }
 }
 
