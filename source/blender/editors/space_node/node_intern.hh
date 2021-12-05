@@ -100,34 +100,14 @@ void node_link_calculate_multi_input_position(const float socket_x,
                                               float r[2]);
 
 int node_get_colorid(bNode &node);
-void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);
-void node_draw_shadow(const SpaceNode &snode, const bNode &node, float radius, float alpha);
-void node_draw_default(const bContext *C,
-                       ARegion *region,
-                       SpaceNode *snode,
-                       bNodeTree *ntree,
-                       bNode *node,
-                       bNodeInstanceKey key);
-void node_draw_sockets(const View2D &v2d,
-                       const bContext &C,
-                       bNodeTree &ntree,
-                       bNode &node,
-                       const bool draw_outputs,
-                       const bool select_all);
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
-int node_tweak_area_default(bNode *node, int x, int y);
 void node_socket_color_get(const bContext &C,
                            const bNodeTree &ntree,
                            PointerRNA &node_ptr,
                            const bNodeSocket &sock,
                            float r_color[4]);
 void node_update_nodetree(const bContext &C, bNodeTree &ntree);
-void node_draw_nodetree(const bContext &C,
-                        ARegion &region,
-                        SpaceNode &snode,
-                        bNodeTree &ntree,
-                        bNodeInstanceKey parent_key);
 void node_draw_space(const bContext &C, ARegion &region);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);

@@ -247,14 +247,6 @@ typedef struct bNodeType {
 
   char storagename[64]; /* struct name for DNA */
 
-  /* Main draw function for the node */
-  void (*draw_nodetype)(const struct bContext *C,
-                        struct ARegion *region,
-                        struct SpaceNode *snode,
-                        struct bNodeTree *ntree,
-                        struct bNode *node,
-                        bNodeInstanceKey key);
-
   /* Draw the option buttons on the node */
   void (*draw_buttons)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
   /* Additional parameters in the side panel */

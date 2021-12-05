@@ -29,7 +29,6 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -312,199 +311,11 @@ static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *p
       layout, C, ptr, "node_tree", nullptr, nullptr, nullptr, UI_TEMPLATE_ID_FILTER_ALL, nullptr);
 }
 
-static void node_draw_frame_label(bNodeTree &ntree, bNode &node, SpaceNode &snode)
-{
-  const float aspect = snode.runtime->aspect;
-  /* XXX font id is crap design */
-  const int fontid = UI_style_get()->widgetlabel.uifont_id;
-  NodeFrame *data = (NodeFrame *)node.storage;
-  const float font_size = data->label_size / aspect;
-
-  char label[MAX_NAME];
-  nodeLabel(&ntree, &node, label, sizeof(label));
-
-  BLF_enable(fontid, BLF_ASPECT);
-  BLF_aspect(fontid, aspect, aspect, 1.0f);
-  /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
-
-  /* title color */
-  int color_id = node_get_colorid(node);
-  uchar color[3];
-  UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
-  BLF_color3ubv(fontid, color);
-
-  const float margin = (float)(NODE_DY / 4);
-  const float width = BLF_width(fontid, label, sizeof(label));
-  const float ascender = BLF_ascender(fontid);
-  const int label_height = ((margin / aspect) + (ascender * aspect));
-
-  /* 'x' doesn't need aspect correction */
-  const rctf &rct = node.totr;
-  /* XXX a bit hacky, should use separate align values for x and y */
-  float x = BLI_rctf_cent_x(&rct) - (0.5f * width);
-  float y = rct.ymax - label_height;
-
-  /* label */
-  const bool has_label = node.label[0] != '\0';
-  if (has_label) {
-    BLF_position(fontid, x, y, 0);
-    BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
-  }
-
-  /* draw text body */
-  if (node.id) {
-    Text *text = (Text *)node.id;
-    const int line_height_max = BLF_height_max(fontid);
-    const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
-
-    /* 'x' doesn't need aspect correction */
-    x = rct.xmin + margin;
-    y = rct.ymax - label_height - (has_label ? line_spacing : 0);
-
-    /* early exit */
-    int y_min = y + ((margin * 2) - (y - rct.ymin));
-
-    BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-    BLF_clipping(fontid,
-                 rct.xmin,
-                 /* round to avoid clipping half-way through a line */
-                 y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
-                 rct.xmin + line_width,
-                 rct.ymax);
-
-    BLF_wordwrap(fontid, line_width);
-
-    LISTBASE_FOREACH (TextLine *, line, &text->lines) {
-      struct ResultBLF info;
-      if (line->line[0]) {
-        BLF_position(fontid, x, y, 0);
-        BLF_draw_ex(fontid, line->line, line->len, &info);
-        y -= line_spacing * info.lines;
-      }
-      else {
-        y -= line_spacing;
-      }
-      if (y < y_min) {
-        break;
-      }
-    }
-
-    BLF_disable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-  }
-
-  BLF_disable(fontid, BLF_ASPECT);
-}
-
-static void node_draw_frame(const bContext *C,
-                            ARegion *region,
-                            SpaceNode *snode,
-                            bNodeTree *ntree,
-                            bNode *node,
-                            bNodeInstanceKey UNUSED(key))
-{
-
-  /* skip if out of view */
-  if (BLI_rctf_isect(&node->totr, &region->v2d.cur, nullptr) == false) {
-    UI_block_end(C, node->block);
-    node->block = nullptr;
-    return;
-  }
-
-  float color[4];
-  UI_GetThemeColor4fv(TH_NODE_FRAME, color);
-  const float alpha = color[3];
-
-  /* shadow */
-  node_draw_shadow(*snode, *node, BASIS_RAD, alpha);
-
-  /* body */
-  if (node->flag & NODE_CUSTOM_COLOR) {
-    rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], alpha);
-  }
-  else {
-    UI_GetThemeColor4fv(TH_NODE_FRAME, color);
-  }
-
-  const rctf &rct = node->totr;
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
-
-  /* outline active and selected emphasis */
-  if (node->flag & SELECT) {
-    if (node->flag & NODE_ACTIVE) {
-      UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
-    }
-    else {
-      UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
-    }
-
-    UI_draw_roundbox_aa(&rct, false, BASIS_RAD, color);
-  }
-
-  /* label and text */
-  node_draw_frame_label(*ntree, *node, *snode);
-
-  node_draw_extra_info_panel(*snode, *node);
-
-  UI_block_end(C, node->block);
-  UI_block_draw(C, node->block);
-  node->block = nullptr;
-}
-
 static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
   uiItemR(layout, ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
   uiItemR(layout, ptr, "text", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_draw_reroute(const bContext *C,
-                              ARegion *region,
-                              SpaceNode *UNUSED(snode),
-                              bNodeTree *ntree,
-                              bNode *node,
-                              bNodeInstanceKey UNUSED(key))
-{
-  char showname[128]; /* 128 used below */
-  const rctf &rct = node->totr;
-
-  /* skip if out of view */
-  if (rct.xmax < region->v2d.cur.xmin || rct.xmin > region->v2d.cur.xmax ||
-      rct.ymax < region->v2d.cur.ymin || node->totr.ymin > region->v2d.cur.ymax) {
-    UI_block_end(C, node->block);
-    node->block = nullptr;
-    return;
-  }
-
-  if (node->label[0] != '\0') {
-    /* draw title (node label) */
-    BLI_strncpy(showname, node->label, sizeof(showname));
-    uiDefBut(node->block,
-             UI_BTYPE_LABEL,
-             0,
-             showname,
-             (int)(rct.xmin - NODE_DYS),
-             (int)(rct.ymax),
-             (short)512,
-             (short)NODE_DY,
-             nullptr,
-             0,
-             0,
-             0,
-             0,
-             nullptr);
-  }
-
-  /* only draw input socket. as they all are placed on the same position.
-   * highlight also if node itself is selected, since we don't display the node body separately!
-   */
-  node_draw_sockets(region->v2d, *C, *ntree, *node, false, node->flag & SELECT);
-
-  UI_block_end(C, node->block);
-  UI_block_draw(C, node->block);
-  node->block = nullptr;
 }
 
 static void node_common_set_butfunc(bNodeType *ntype)
@@ -514,11 +325,7 @@ static void node_common_set_butfunc(bNodeType *ntype)
       ntype->draw_buttons = node_draw_buttons_group;
       break;
     case NODE_FRAME:
-      ntype->draw_nodetype = node_draw_frame;
       ntype->draw_buttons_ex = node_buts_frame_ex;
-      break;
-    case NODE_REROUTE:
-      ntype->draw_nodetype = node_draw_reroute;
       break;
   }
 }
@@ -3272,8 +3079,6 @@ void ED_node_init_butfuncs(void)
    * Defined in blenkernel, but not registered in type hashes.
    */
 
-  /* default ui functions */
-  NodeTypeUndefined.draw_nodetype = node_draw_default;
   NodeTypeUndefined.draw_buttons = nullptr;
   NodeTypeUndefined.draw_buttons_ex = nullptr;
 
@@ -3284,9 +3089,6 @@ void ED_node_init_butfuncs(void)
 
   /* node type ui functions */
   NODE_TYPES_BEGIN (ntype) {
-    /* default ui functions */
-    ntype->draw_nodetype = node_draw_default;
-
     node_common_set_butfunc(ntype);
 
     node_composit_set_butfunc(ntype);
@@ -3305,15 +3107,12 @@ void ED_node_init_butfuncs(void)
   ntreeType_Geometry->ui_icon = ICON_NODETREE;
 }
 
-void ED_init_custom_node_type(bNodeType *ntype)
+void ED_init_custom_node_type(bNodeType *UNUSED(ntype))
 {
-  /* default ui functions */
-  ntype->draw_nodetype = node_draw_default;
 }
 
 void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 {
-  /* default ui functions */
   stype->draw = node_socket_button_label;
 }
 
