@@ -75,7 +75,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     if (spline->type() == Spline::Type::Bezier) {
       BezierSpline &bezier = static_cast<BezierSpline &>(*spline);
       for (int i : bezier.positions().index_range()) {
-        if (selection[current_mask] == current_point) {
+        if (current_mask < selection.size() && selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
             if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Vector) {
               bezier.ensure_auto_handles();
@@ -103,7 +103,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     }
     else {
       for (int UNUSED(i) : spline->positions().index_range()) {
-        if (selection[current_mask] == current_point) {
+        if (current_mask < selection.size() && selection[current_mask] == current_point) {
           current_mask++;
         }
         current_point++;
