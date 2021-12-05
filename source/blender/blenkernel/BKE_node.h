@@ -229,8 +229,6 @@ typedef int (*NodeGPUExecFunction)(struct GPUMaterial *mat,
  * implementing the node behavior.
  */
 typedef struct bNodeType {
-  void *next, *prev;
-
   char idname[64]; /* identifier name */
   int type;
 
