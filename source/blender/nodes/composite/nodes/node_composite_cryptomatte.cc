@@ -297,8 +297,8 @@ static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
     }
 
     if (scene == nullptr) {
-      *r_disabled_hint =
-          TIP_("The node tree must be the compositing node tree of any scene in the file");
+      *r_disabled_hint = TIP_(
+          "The node tree must be the compositing node tree of any scene in the file");
     }
     return scene != nullptr;
   }

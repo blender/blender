@@ -27,7 +27,7 @@
 
 #include "BLI_color.hh"
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes {
 

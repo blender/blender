@@ -157,97 +157,97 @@ set(SRC
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 
-  shader/nodes/node_shader_add_shader.c
-  shader/nodes/node_shader_ambient_occlusion.c
-  shader/nodes/node_shader_attribute.c
-  shader/nodes/node_shader_background.c
-  shader/nodes/node_shader_bevel.c
-  shader/nodes/node_shader_blackbody.c
-  shader/nodes/node_shader_brightness.c
-  shader/nodes/node_shader_bsdf_anisotropic.c
-  shader/nodes/node_shader_bsdf_diffuse.c
-  shader/nodes/node_shader_bsdf_glass.c
-  shader/nodes/node_shader_bsdf_glossy.c
-  shader/nodes/node_shader_bsdf_hair.c
-  shader/nodes/node_shader_bsdf_hair_principled.c
-  shader/nodes/node_shader_bsdf_principled.c
-  shader/nodes/node_shader_bsdf_refraction.c
-  shader/nodes/node_shader_bsdf_toon.c
-  shader/nodes/node_shader_bsdf_translucent.c
-  shader/nodes/node_shader_bsdf_transparent.c
-  shader/nodes/node_shader_bsdf_velvet.c
-  shader/nodes/node_shader_bump.c
-  shader/nodes/node_shader_camera.c
+  shader/nodes/node_shader_add_shader.cc
+  shader/nodes/node_shader_ambient_occlusion.cc
+  shader/nodes/node_shader_attribute.cc
+  shader/nodes/node_shader_background.cc
+  shader/nodes/node_shader_bevel.cc
+  shader/nodes/node_shader_blackbody.cc
+  shader/nodes/node_shader_brightness.cc
+  shader/nodes/node_shader_bsdf_anisotropic.cc
+  shader/nodes/node_shader_bsdf_diffuse.cc
+  shader/nodes/node_shader_bsdf_glass.cc
+  shader/nodes/node_shader_bsdf_glossy.cc
+  shader/nodes/node_shader_bsdf_hair.cc
+  shader/nodes/node_shader_bsdf_hair_principled.cc
+  shader/nodes/node_shader_bsdf_principled.cc
+  shader/nodes/node_shader_bsdf_refraction.cc
+  shader/nodes/node_shader_bsdf_toon.cc
+  shader/nodes/node_shader_bsdf_translucent.cc
+  shader/nodes/node_shader_bsdf_transparent.cc
+  shader/nodes/node_shader_bsdf_velvet.cc
+  shader/nodes/node_shader_bump.cc
+  shader/nodes/node_shader_camera.cc
   shader/nodes/node_shader_clamp.cc
-  shader/nodes/node_shader_common.c
+  shader/nodes/node_shader_common.cc
   shader/nodes/node_shader_curves.cc
-  shader/nodes/node_shader_displacement.c
-  shader/nodes/node_shader_eevee_specular.c
-  shader/nodes/node_shader_emission.c
-  shader/nodes/node_shader_fresnel.c
-  shader/nodes/node_shader_gamma.c
-  shader/nodes/node_shader_geometry.c
-  shader/nodes/node_shader_hair_info.c
-  shader/nodes/node_shader_holdout.c
-  shader/nodes/node_shader_hueSatVal.c
-  shader/nodes/node_shader_ies_light.c
-  shader/nodes/node_shader_invert.c
-  shader/nodes/node_shader_layer_weight.c
-  shader/nodes/node_shader_light_falloff.c
-  shader/nodes/node_shader_light_path.c
+  shader/nodes/node_shader_displacement.cc
+  shader/nodes/node_shader_eevee_specular.cc
+  shader/nodes/node_shader_emission.cc
+  shader/nodes/node_shader_fresnel.cc
+  shader/nodes/node_shader_gamma.cc
+  shader/nodes/node_shader_geometry.cc
+  shader/nodes/node_shader_hair_info.cc
+  shader/nodes/node_shader_holdout.cc
+  shader/nodes/node_shader_hueSatVal.cc
+  shader/nodes/node_shader_ies_light.cc
+  shader/nodes/node_shader_invert.cc
+  shader/nodes/node_shader_layer_weight.cc
+  shader/nodes/node_shader_light_falloff.cc
+  shader/nodes/node_shader_light_path.cc
   shader/nodes/node_shader_map_range.cc
-  shader/nodes/node_shader_mapping.c
+  shader/nodes/node_shader_mapping.cc
   shader/nodes/node_shader_math.cc
   shader/nodes/node_shader_mixRgb.cc
-  shader/nodes/node_shader_mix_shader.c
-  shader/nodes/node_shader_normal.c
-  shader/nodes/node_shader_normal_map.c
-  shader/nodes/node_shader_object_info.c
-  shader/nodes/node_shader_output_aov.c
-  shader/nodes/node_shader_output_light.c
-  shader/nodes/node_shader_output_linestyle.c
-  shader/nodes/node_shader_output_material.c
-  shader/nodes/node_shader_output_world.c
-  shader/nodes/node_shader_particle_info.c
-  shader/nodes/node_shader_rgb.c
-  shader/nodes/node_shader_script.c
-  shader/nodes/node_shader_sepcombHSV.c
+  shader/nodes/node_shader_mix_shader.cc
+  shader/nodes/node_shader_normal.cc
+  shader/nodes/node_shader_normal_map.cc
+  shader/nodes/node_shader_object_info.cc
+  shader/nodes/node_shader_output_aov.cc
+  shader/nodes/node_shader_output_light.cc
+  shader/nodes/node_shader_output_linestyle.cc
+  shader/nodes/node_shader_output_material.cc
+  shader/nodes/node_shader_output_world.cc
+  shader/nodes/node_shader_particle_info.cc
+  shader/nodes/node_shader_rgb.cc
+  shader/nodes/node_shader_script.cc
+  shader/nodes/node_shader_sepcombHSV.cc
   shader/nodes/node_shader_sepcombRGB.cc
   shader/nodes/node_shader_sepcombXYZ.cc
-  shader/nodes/node_shader_shaderToRgb.c
-  shader/nodes/node_shader_squeeze.c
-  shader/nodes/node_shader_subsurface_scattering.c
-  shader/nodes/node_shader_tangent.c
+  shader/nodes/node_shader_shaderToRgb.cc
+  shader/nodes/node_shader_squeeze.cc
+  shader/nodes/node_shader_subsurface_scattering.cc
+  shader/nodes/node_shader_tangent.cc
   shader/nodes/node_shader_tex_brick.cc
   shader/nodes/node_shader_tex_checker.cc
-  shader/nodes/node_shader_tex_coord.c
-  shader/nodes/node_shader_tex_environment.c
+  shader/nodes/node_shader_tex_coord.cc
+  shader/nodes/node_shader_tex_environment.cc
   shader/nodes/node_shader_tex_gradient.cc
   shader/nodes/node_shader_tex_image.cc
   shader/nodes/node_shader_tex_magic.cc
   shader/nodes/node_shader_tex_musgrave.cc
   shader/nodes/node_shader_tex_noise.cc
-  shader/nodes/node_shader_tex_pointdensity.c
-  shader/nodes/node_shader_tex_sky.c
+  shader/nodes/node_shader_tex_pointdensity.cc
+  shader/nodes/node_shader_tex_sky.cc
   shader/nodes/node_shader_tex_voronoi.cc
   shader/nodes/node_shader_tex_wave.cc
   shader/nodes/node_shader_tex_white_noise.cc
-  shader/nodes/node_shader_uvAlongStroke.c
-  shader/nodes/node_shader_uvmap.c
+  shader/nodes/node_shader_uvAlongStroke.cc
+  shader/nodes/node_shader_uvmap.cc
   shader/nodes/node_shader_valToRgb.cc
   shader/nodes/node_shader_value.cc
-  shader/nodes/node_shader_vectTransform.c
-  shader/nodes/node_shader_vector_displacement.c
+  shader/nodes/node_shader_vectTransform.cc
+  shader/nodes/node_shader_vector_displacement.cc
   shader/nodes/node_shader_vector_math.cc
   shader/nodes/node_shader_vector_rotate.cc
-  shader/nodes/node_shader_vertex_color.c
-  shader/nodes/node_shader_volume_absorption.c
-  shader/nodes/node_shader_volume_info.c
-  shader/nodes/node_shader_volume_principled.c
-  shader/nodes/node_shader_volume_scatter.c
-  shader/nodes/node_shader_wavelength.c
-  shader/nodes/node_shader_wireframe.c
-  shader/node_shader_tree.c
+  shader/nodes/node_shader_vertex_color.cc
+  shader/nodes/node_shader_volume_absorption.cc
+  shader/nodes/node_shader_volume_info.cc
+  shader/nodes/node_shader_volume_principled.cc
+  shader/nodes/node_shader_volume_scatter.cc
+  shader/nodes/node_shader_wavelength.cc
+  shader/nodes/node_shader_wireframe.cc
+  shader/node_shader_tree.cc
   shader/node_shader_util.cc
 
   texture/nodes/node_texture_at.c
@@ -293,7 +293,7 @@ set(SRC
 
   composite/node_composite_util.hh
   function/node_function_util.hh
-  shader/node_shader_util.h
+  shader/node_shader_util.hh
   texture/node_texture_util.h
 
   NOD_common.h

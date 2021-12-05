@@ -17,7 +17,7 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "BLI_noise.hh"
 
