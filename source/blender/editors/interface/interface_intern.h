@@ -359,15 +359,6 @@ typedef struct uiButProgressbar {
   float progress;
 } uiButProgressbar;
 
-/** Derived struct for #UI_BTYPE_DATASETROW. */
-typedef struct uiButDatasetRow {
-  uiBut but;
-
-  uint8_t geometry_component_type;
-  uint8_t attribute_domain;
-  int indentation;
-} uiButDatasetRow;
-
 /** Derived struct for #UI_BTYPE_TREEROW. */
 typedef struct uiButTreeRow {
   uiBut but;
@@ -939,7 +930,10 @@ void ui_draw_but_VECTORSCOPE(struct ARegion *region,
                              const struct uiWidgetColors *wcol,
                              const rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
-void ui_draw_but_UNITVEC(uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
+void ui_draw_but_UNITVEC(uiBut *but,
+                         const struct uiWidgetColors *wcol,
+                         const rcti *rect,
+                         const float radius);
 void ui_draw_but_CURVE(struct ARegion *region,
                        uiBut *but,
                        const struct uiWidgetColors *wcol,

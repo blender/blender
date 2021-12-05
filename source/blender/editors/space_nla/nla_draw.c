@@ -111,11 +111,11 @@ static void nla_action_draw_keyframes(
 
   /* draw a darkened region behind the strips
    * - get and reset the background color, this time without the alpha to stand out better
-   *   (amplified alpha is used instead)
+   *   (amplified alpha is used instead, but clamped to avoid 100% opacity)
    */
   float color[4];
   nla_action_get_color(adt, act, color);
-  color[3] *= 2.5f;
+  color[3] = min_ff(0.7f, color[3] * 2.5f);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -785,6 +785,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         }
         case ANIMTYPE_NLAACTION: {
           AnimData *adt = ale->adt;
+
+          /* Draw the manually set intended playback frame range highlight. */
+          if (ale->data) {
+            ANIM_draw_action_framerange(adt, ale->data, v2d, ymin, ymax);
+          }
 
           uint pos = GPU_vertformat_attr_add(
               immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

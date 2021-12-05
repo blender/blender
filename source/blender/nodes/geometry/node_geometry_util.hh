@@ -43,7 +43,8 @@ bool geo_node_poll_default(struct bNodeType *ntype,
                            const char **r_disabled_hint);
 
 namespace blender::nodes {
-void update_attribute_input_socket_availabilities(bNode &node,
+void update_attribute_input_socket_availabilities(bNodeTree &ntree,
+                                                  bNode &node,
                                                   const StringRef name,
                                                   const GeometryNodeAttributeInputMode mode,
                                                   const bool name_is_available = true);

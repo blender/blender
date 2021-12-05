@@ -172,7 +172,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Common cl_eval data
  *
- * Eval data not dependant on input parameters. All might not be used but unused ones
+ * Eval data not dependent on input parameters. All might not be used but unused ones
  * will be optimized out.
  * \{ */
 
@@ -240,7 +240,7 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
 /* -------------------------------------------------------------------- */
 /** \name Loop data
  *
- * Loop datas are conveniently packed into struct to make it future proof.
+ * Loop data is conveniently packed into struct to make it future proof.
  * \{ */
 
 struct ClosureLightData {

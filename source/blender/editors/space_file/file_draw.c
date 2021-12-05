@@ -178,6 +178,10 @@ static void file_draw_icon(const SpaceFile *sfile,
 
     if ((id = filelist_file_get_id(file))) {
       UI_but_drag_set_id(but, id);
+      ImBuf *preview_image = filelist_file_getimage(file);
+      if (preview_image) {
+        UI_but_drag_attach_image(but, preview_image, UI_DPI_FAC);
+      }
     }
     else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
              (file->typeflag & FILE_TYPE_ASSET) != 0) {
@@ -475,7 +479,7 @@ static void file_draw_preview(const SpaceFile *sfile,
     const uchar light[4] = {255, 255, 255, 255};
     icon_x = xco + ex - UI_UNIT_X;
     icon_y = yco + ey - UI_UNIT_Y;
-    UI_icon_draw_ex(icon_x, icon_y, ICON_FILE_BLEND, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+    UI_icon_draw_ex(icon_x, icon_y, ICON_CURRENT_FILE, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
   }
 
   /* Contrasting outline around some preview types. */
@@ -504,6 +508,7 @@ static void file_draw_preview(const SpaceFile *sfile,
 
     if ((id = filelist_file_get_id(file))) {
       UI_but_drag_set_id(but, id);
+      UI_but_drag_attach_image(but, imb, scale);
     }
     /* path is no more static, cannot give it directly to but... */
     else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&

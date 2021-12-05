@@ -6856,9 +6856,9 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
           /* Compensate for different bevel depth. */
           bool do_radius = false;
           float compensate_radius = 0.0f;
-          if (cu->ext2 != 0.0f && cu_active->ext2 != 0.0f) {
+          if (cu->bevel_radius != 0.0f && cu_active->bevel_radius != 0.0f) {
             float compensate_scale = mat4_to_scale(cmat);
-            compensate_radius = cu->ext2 / cu_active->ext2 * compensate_scale;
+            compensate_radius = cu->bevel_radius / cu_active->bevel_radius * compensate_scale;
             do_radius = true;
           }
 

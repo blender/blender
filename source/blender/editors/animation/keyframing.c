@@ -35,6 +35,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -373,6 +374,43 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   }
 
   return type;
+}
+
+/* Used to make curves newly added to a cyclic Action cycle with the correct period. */
+static void make_new_fcurve_cyclic(const bAction *act, FCurve *fcu)
+{
+  /* The curve must contain one (newly-added) keyframe. */
+  if (fcu->totvert != 1 || !fcu->bezt) {
+    return;
+  }
+
+  const float period = act->frame_end - act->frame_start;
+
+  if (period < 0.1f) {
+    return;
+  }
+
+  /* Move the keyframe into the range. */
+  const float frame_offset = fcu->bezt[0].vec[1][0] - act->frame_start;
+  const float fix = floorf(frame_offset / period) * period;
+
+  fcu->bezt[0].vec[0][0] -= fix;
+  fcu->bezt[0].vec[1][0] -= fix;
+  fcu->bezt[0].vec[2][0] -= fix;
+
+  /* Duplicate and offset the keyframe. */
+  fcu->bezt = MEM_reallocN(fcu->bezt, sizeof(BezTriple) * 2);
+  fcu->totvert = 2;
+
+  fcu->bezt[1] = fcu->bezt[0];
+  fcu->bezt[1].vec[0][0] += period;
+  fcu->bezt[1].vec[1][0] += period;
+  fcu->bezt[1].vec[2][0] += period;
+
+  /* Add the cycles modifier. */
+  if (!fcu->modifiers.first) {
+    add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, fcu);
+  }
 }
 
 /* -------------- BezTriple Insertion -------------------- */
@@ -1352,8 +1390,10 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
 
   /* we may not have a F-Curve when we're replacing only... */
   if (fcu) {
+    const bool is_new_curve = (fcu->totvert == 0);
+
     /* set color mode if the F-Curve is new (i.e. without any keyframes) */
-    if ((fcu->totvert == 0) && (flag & INSERTKEY_XYZ2RGB)) {
+    if (is_new_curve && (flag & INSERTKEY_XYZ2RGB)) {
       /* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
        * is determined by the array index for the F-Curve
        */
@@ -1366,12 +1406,26 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
       }
     }
 
+    /* If the curve has only one key, make it cyclic if appropriate. */
+    const bool is_cyclic_action = (flag & INSERTKEY_CYCLE_AWARE) && BKE_action_is_cyclic(act);
+
+    if (is_cyclic_action && fcu->totvert == 1) {
+      make_new_fcurve_cyclic(act, fcu);
+    }
+
     /* update F-Curve flags to ensure proper behavior for property type */
     update_autoflags_fcurve_direct(fcu, prop);
 
     /* insert keyframe */
-    return insert_keyframe_value(
+    const bool success = insert_keyframe_value(
         reports, ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
+
+    /* If the curve is new, make it cyclic if appropriate. */
+    if (is_cyclic_action && is_new_curve) {
+      make_new_fcurve_cyclic(act, fcu);
+    }
+
+    return success;
   }
 
   return false;

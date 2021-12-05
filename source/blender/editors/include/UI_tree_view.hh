@@ -217,14 +217,10 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   friend class TreeViewLayoutBuilder;
 
  public:
-  using IsActiveFn = std::function<bool()>;
-
  private:
   bool is_open_ = false;
   bool is_active_ = false;
   bool is_renaming_ = false;
-
-  IsActiveFn is_active_fn_;
 
  protected:
   /** This label is used for identifying an item (together with its parent's labels). */
@@ -239,11 +235,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_context_menu(bContext &C, uiLayout &column) const;
 
   virtual void on_activate();
-  /**
-   * Set a custom callback to check if this item should be active. There's a version without
-   * arguments for checking if the item is currently in an active state.
-   */
-  virtual void is_active(IsActiveFn is_active_fn);
 
   /**
    * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
@@ -329,6 +320,17 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   void activate();
 
+  /**
+   * If the result is not empty, it controls whether the item should be active or not,
+   * usually depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_active() const;
+
+  /**
+   * Return whether the item can be collapsed. Used to disable collapsing for items with children.
+   */
+  virtual bool supports_collapsing() const;
+
  private:
   static void rename_button_fn(bContext *, void *, char *);
   static AbstractTreeViewItem *find_tree_item_from_rename_button(const uiBut &but);
@@ -358,11 +360,18 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
  * custom implementation of #AbstractTreeViewItem::create_drag_controller().
  */
 class AbstractTreeViewItemDragController {
+ protected:
+  AbstractTreeView &tree_view_;
+
  public:
+  AbstractTreeViewItemDragController(AbstractTreeView &tree_view);
   virtual ~AbstractTreeViewItemDragController() = default;
 
   virtual int get_drag_type() const = 0;
   virtual void *create_drag_data() const = 0;
+  virtual void on_drag_start();
+
+  template<class TreeViewType> inline TreeViewType &tree_view() const;
 };
 
 /**
@@ -398,7 +407,7 @@ class AbstractTreeViewItemDropController {
    * Execute the logic to apply a drop of the data dragged with \a drag onto/into the item this
    * controller is for.
    */
-  virtual bool on_drop(const wmDrag &drag) = 0;
+  virtual bool on_drop(struct bContext *C, const wmDrag &drag) = 0;
 
   template<class TreeViewType> inline TreeViewType &tree_view() const;
 };
@@ -416,6 +425,7 @@ class AbstractTreeViewItemDropController {
  */
 class BasicTreeViewItem : public AbstractTreeViewItem {
  public:
+  using IsActiveFn = std::function<bool()>;
   using ActivateFn = std::function<void(BasicTreeViewItem &new_active)>;
   BIFIconID icon;
 
@@ -423,7 +433,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
   void build_row(uiLayout &row) override;
   void add_label(uiLayout &layout, StringRefNull label_override = "");
-  void on_activate(ActivateFn fn);
+  void set_on_activate_fn(ActivateFn fn);
+  /**
+   * Set a custom callback to check if this item should be active.
+   */
+  void set_is_active_fn(IsActiveFn fn);
 
  protected:
   /**
@@ -433,9 +447,12 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
    */
   ActivateFn activate_fn_;
 
+  IsActiveFn is_active_fn_;
+
  private:
   static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
 
+  std::optional<bool> should_be_active() const override;
   void on_activate() override;
 };
 
@@ -451,6 +468,13 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
   return dynamic_cast<ItemT &>(
       add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
+}
+
+template<class TreeViewType> TreeViewType &AbstractTreeViewItemDragController::tree_view() const
+{
+  static_assert(std::is_base_of<AbstractTreeView, TreeViewType>::value,
+                "Type must derive from and implement the AbstractTreeView interface");
+  return static_cast<TreeViewType &>(tree_view_);
 }
 
 template<class TreeViewType> TreeViewType &AbstractTreeViewItemDropController::tree_view() const

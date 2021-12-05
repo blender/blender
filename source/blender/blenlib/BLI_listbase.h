@@ -55,6 +55,10 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
                               const void *bytes,
                               const size_t bytes_size,
                               const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+void *BLI_listbase_string_or_index_find(const struct ListBase *listbase,
+                                        const char *string,
+                                        const size_t string_offset,
+                                        const int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* find backwards */
 void *BLI_rfindlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT

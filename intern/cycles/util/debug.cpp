@@ -64,6 +64,11 @@ DebugFlags::HIP::HIP() : adaptive_compile(false)
   reset();
 }
 
+DebugFlags::Metal::Metal() : adaptive_compile(false)
+{
+  reset();
+}
+
 void DebugFlags::CUDA::reset()
 {
   if (getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != NULL)
@@ -73,6 +78,12 @@ void DebugFlags::CUDA::reset()
 void DebugFlags::HIP::reset()
 {
   if (getenv("CYCLES_HIP_ADAPTIVE_COMPILE") != NULL)
+    adaptive_compile = true;
+}
+
+void DebugFlags::Metal::reset()
+{
+  if (getenv("CYCLES_METAL_ADAPTIVE_COMPILE") != NULL)
     adaptive_compile = true;
 }
 
@@ -97,6 +108,7 @@ void DebugFlags::reset()
   cpu.reset();
   cuda.reset();
   optix.reset();
+  metal.reset();
 }
 
 CCL_NAMESPACE_END

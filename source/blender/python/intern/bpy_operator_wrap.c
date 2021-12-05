@@ -115,10 +115,6 @@ static void operator_properties_init(wmOperatorType *ot)
   /* end 'ot->prop' assignment */
 }
 
-/**
- * Generic function used by all Python defined operators
- * it's passed as an argument to #WM_operatortype_append_ptr in for operator registration.
- */
 void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
 {
   /* take care not to overwrite anything set in
@@ -135,10 +131,6 @@ void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
   operator_properties_init(ot);
 }
 
-/**
- * Generic function used by all Python defined macro-operators
- * it's passed as an argument to #WM_operatortype_append_ptr in for operator registration.
- */
 void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata)
 {
   wmOperatorType *data = (wmOperatorType *)userdata;

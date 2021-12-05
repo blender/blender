@@ -97,7 +97,7 @@ TEST_F(AssetLibraryServiceTest, get_destroy)
   AssetLibraryService::destroy();
   AssetLibraryService::destroy();
 
-  /* Note: there used to be a test for the opposite here, that after a call to
+  /* NOTE: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
 }
@@ -113,7 +113,7 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
   EXPECT_EQ(curfile_lib, service->get_asset_library_current_file())
       << "Calling twice without destroying in between should return the same instance.";
 
-  /* Note: there used to be a test for the opposite here, that after a call to
+  /* NOTE: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
 }

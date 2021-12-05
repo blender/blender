@@ -43,8 +43,7 @@ void register_node_type_cmp_composite(void)
   cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_composite_declare;
 
-  /* Do not allow muting for this node. */
-  node_type_internal_links(&ntype, nullptr);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }

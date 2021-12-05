@@ -17,7 +17,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ########################################################################
-# Copy all generated files to the proper strucure as blender prefers
+# Copy all generated files to the proper structure as blender prefers
 ########################################################################
 
 if(NOT DEFINED HARVEST_TARGET)

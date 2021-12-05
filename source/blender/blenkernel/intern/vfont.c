@@ -49,6 +49,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim_path.h"
+#include "BKE_bpath.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -123,6 +124,21 @@ static void vfont_free_data(ID *id)
   }
 }
 
+static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  VFont *vfont = (VFont *)id;
+
+  if (vfont->packedfile != NULL && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+    return;
+  }
+
+  if (BKE_vfont_is_builtin(vfont)) {
+    return;
+  }
+
+  BKE_bpath_foreach_path_fixed_process(bpath_data, vfont->filepath);
+}
+
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   VFont *vf = (VFont *)id;
@@ -162,6 +178,7 @@ IDTypeInfo IDType_ID_VF = {
     .name_plural = "fonts",
     .translation_context = BLT_I18NCONTEXT_ID_VFONT,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = vfont_init_data,
     .copy_data = vfont_copy_data,
@@ -169,6 +186,7 @@ IDTypeInfo IDType_ID_VF = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = vfont_foreach_path,
     .owner_get = NULL,
 
     .blend_write = vfont_blend_write,

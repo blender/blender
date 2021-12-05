@@ -20,13 +20,12 @@
 
 namespace blender::fn {
 
-MFProcedureExecutor::MFProcedureExecutor(std::string name, const MFProcedure &procedure)
-    : procedure_(procedure)
+MFProcedureExecutor::MFProcedureExecutor(const MFProcedure &procedure) : procedure_(procedure)
 {
-  MFSignatureBuilder signature(std::move(name));
+  MFSignatureBuilder signature("Procedure Executor");
 
   for (const ConstMFParameter &param : procedure.params()) {
-    signature.add(param.variable->name(), MFParamType(param.type, param.variable->data_type()));
+    signature.add("Parameter", MFParamType(param.type, param.variable->data_type()));
   }
 
   signature_ = signature.build();
@@ -66,6 +65,7 @@ struct VariableValue_GVArray : public VariableValue {
 
   VariableValue_GVArray(const GVArray &data) : VariableValue(static_type), data(data)
   {
+    BLI_assert(data);
   }
 };
 
@@ -756,7 +756,7 @@ class VariableState : NonCopyable, NonMovable {
 
     switch (value_->type) {
       case ValueType::GVArray: {
-        const GVArray_Typed<bool> varray{this->value_as<VariableValue_GVArray>()->data};
+        const VArray<bool> varray = this->value_as<VariableValue_GVArray>()->data.typed<bool>();
         for (const int i : mask) {
           r_indices[varray[i]].append(i);
         }
@@ -1045,7 +1045,7 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
     }
 
     try {
-      fn.call(mask, params, context);
+      fn.call_auto(mask, params, context);
     }
     catch (...) {
       /* Multi-functions must not throw exceptions. */
@@ -1234,6 +1234,14 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
       }
     }
   }
+}
+
+MultiFunction::ExecutionHints MFProcedureExecutor::get_execution_hints() const
+{
+  ExecutionHints hints;
+  hints.allocates_array = true;
+  hints.min_grain_size = 10000;
+  return hints;
 }
 
 }  // namespace blender::fn

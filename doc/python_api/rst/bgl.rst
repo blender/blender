@@ -106,24 +106,6 @@ including advanced features.
       floating-point values. These values are interpreted as a plane equation.
 
 
-.. function:: glColor (red, green, blue, alpha):
-
-   B{glColor3b, glColor3d, glColor3f, glColor3i, glColor3s, glColor3ub, glColor3ui, glColor3us,
-   glColor4b, glColor4d, glColor4f, glColor4i, glColor4s, glColor4ub, glColor4ui, glColor4us,
-   glColor3bv, glColor3dv, glColor3fv, glColor3iv, glColor3sv, glColor3ubv, glColor3uiv,
-   glColor3usv, glColor4bv, glColor4dv, glColor4fv, glColor4iv, glColor4sv, glColor4ubv,
-   glColor4uiv, glColor4usv}
-
-   Set a new color.
-
-   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glColor.xhtml>`__
-
-   :type red, green, blue, alpha: Depends on function prototype.
-   :arg red, green, blue: Specify new red, green, and blue values for the current color.
-   :arg alpha: Specifies a new alpha value for the current color. Included only in the
-      four-argument glColor4 commands. (With '4' colors only)
-
-
 .. function:: glColorMask(red, green, blue, alpha):
 
    Enable and disable writing of frame buffer color components

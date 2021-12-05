@@ -235,12 +235,6 @@ static float bm_edge_calc_rotate_beauty__angle(const float v1[3],
   return FLT_MAX;
 }
 
-/**
- * Assuming we have 2 triangles sharing an edge (2 - 4),
- * check if the edge running from (1 - 3) gives better results.
- *
- * \return (negative number means the edge can be rotated, lager == better).
- */
 float BM_verts_calc_rotate_beauty(const BMVert *v1,
                                   const BMVert *v2,
                                   const BMVert *v3,
@@ -374,9 +368,6 @@ static void bm_edge_update_beauty_cost(BMEdge *e,
 /* -------------------------------------------------------------------- */
 /* Beautify Fill */
 
-/**
- * \note This function sets the edge indices to invalid values.
- */
 void BM_mesh_beautify_fill(BMesh *bm,
                            BMEdge **edge_array,
                            const int edge_array_len,

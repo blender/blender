@@ -32,8 +32,6 @@
 
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
-using blender::fn::GVArray_Typed;
-using blender::fn::GVArrayPtr;
 
 namespace blender::bke {
 
@@ -76,7 +74,7 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
   Span<float3> positions = spline.evaluated_positions();
   Span<float3> tangents = spline.evaluated_tangents();
   Span<float3> normals = spline.evaluated_normals();
-  GVArray_Typed<float> radii = spline.interpolate_to_evaluated(spline.radii());
+  VArray<float> radii = spline.interpolate_to_evaluated(spline.radii());
   for (const int i : IndexRange(eval_size)) {
     float4x4 point_matrix = float4x4::from_normalized_axis_data(
         positions[i], normals[i], tangents[i]);
@@ -227,7 +225,7 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
   Span<float3> normals = spline.evaluated_normals();
   Span<float3> profile_positions = profile.evaluated_positions();
 
-  GVArray_Typed<float> radii = spline.interpolate_to_evaluated(spline.radii());
+  VArray<float> radii = spline.interpolate_to_evaluated(spline.radii());
   for (const int i_ring : IndexRange(info.spline_vert_len)) {
     float4x4 point_matrix = float4x4::from_normalized_axis_data(
         positions[i_ring], normals[i_ring], tangents[i_ring]);
@@ -495,8 +493,8 @@ static void copy_curve_point_attribute_to_mesh(const GSpan src,
                                                const ResultInfo &info,
                                                ResultAttributeData &dst)
 {
-  GVArrayPtr interpolated_gvarray = info.spline.interpolate_to_evaluated(src);
-  GSpan interpolated = interpolated_gvarray->get_internal_span();
+  GVArray interpolated_gvarray = info.spline.interpolate_to_evaluated(src);
+  GSpan interpolated = interpolated_gvarray.get_internal_span();
 
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
@@ -561,8 +559,8 @@ static void copy_profile_point_attribute_to_mesh(const GSpan src,
                                                  const ResultInfo &info,
                                                  ResultAttributeData &dst)
 {
-  GVArrayPtr interpolated_gvarray = info.profile.interpolate_to_evaluated(src);
-  GSpan interpolated = interpolated_gvarray->get_internal_span();
+  GVArray interpolated_gvarray = info.profile.interpolate_to_evaluated(src);
+  GSpan interpolated = interpolated_gvarray.get_internal_span();
 
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);

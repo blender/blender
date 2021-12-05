@@ -303,7 +303,7 @@ static void rtc_error_func(void *, enum RTCError, const char *str)
   VLOG(1) << str;
 }
 
-static double progress_start_time = 0.0f;
+static double progress_start_time = 0.0;
 
 static bool rtc_progress_func(void *user_ptr, const double n)
 {

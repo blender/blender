@@ -60,6 +60,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -163,6 +164,12 @@ static void movie_clip_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
   key.cache_v = movie_clip->tracking.camera.intrinsics;
   function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
+}
+
+static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  MovieClip *movie_clip = (MovieClip *)id;
+  BKE_bpath_foreach_path_fixed_process(bpath_data, movie_clip->filepath);
 }
 
 static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
@@ -347,6 +354,7 @@ IDTypeInfo IDType_ID_MC = {
     .name_plural = "movieclips",
     .translation_context = BLT_I18NCONTEXT_ID_MOVIECLIP,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = movie_clip_init_data,
     .copy_data = movie_clip_copy_data,
@@ -354,6 +362,7 @@ IDTypeInfo IDType_ID_MC = {
     .make_local = NULL,
     .foreach_id = movie_clip_foreach_id,
     .foreach_cache = movie_clip_foreach_cache,
+    .foreach_path = movie_clip_foreach_path,
     .owner_get = NULL,
 
     .blend_write = movieclip_blend_write,
@@ -1923,6 +1932,11 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,
       IMB_freeImBuf(tmpibuf);
     }
   }
+}
+
+bool BKE_movieclip_proxy_enabled(MovieClip *clip)
+{
+  return clip->flag & MCLIP_USE_PROXY;
 }
 
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)

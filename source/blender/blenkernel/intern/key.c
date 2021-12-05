@@ -213,6 +213,7 @@ IDTypeInfo IDType_ID_KE = {
     .name_plural = "shape_keys",
     .translation_context = BLT_I18NCONTEXT_ID_SHAPEKEY,
     .flags = IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = shapekey_copy_data,
@@ -220,6 +221,7 @@ IDTypeInfo IDType_ID_KE = {
     .make_local = NULL,
     .foreach_id = shapekey_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     /* A bit weird, due to shapekeys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
     .owner_get = shapekey_owner_get,

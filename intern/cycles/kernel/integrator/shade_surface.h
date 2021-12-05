@@ -27,8 +27,6 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
-#include "kernel/sample/mis.h"
-
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
@@ -95,8 +93,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
     /* Multiple importance sampling, get triangle light pdf,
      * and compute weight with respect to BSDF pdf. */
     float pdf = triangle_light_pdf(kg, sd, t);
-    float mis_weight = power_heuristic(bsdf_pdf, pdf);
-
+    float mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
     L *= mis_weight;
   }
 
@@ -155,7 +152,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   bsdf_eval_mul3(&bsdf_eval, light_eval / ls.pdf);
 
   if (ls.shader & SHADER_USE_MIS) {
-    const float mis_weight = power_heuristic(ls.pdf, bsdf_pdf);
+    const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
     bsdf_eval_mul(&bsdf_eval, mis_weight);
   }
 
@@ -195,12 +192,13 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 pass_diffuse_weight = (bounce == 0) ?
-                                           bsdf_eval_pass_diffuse_weight(&bsdf_eval) :
-                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
-    const float3 pass_glossy_weight = (bounce == 0) ?
-                                          bsdf_eval_pass_glossy_weight(&bsdf_eval) :
-                                          INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    const packed_float3 pass_diffuse_weight =
+        (bounce == 0) ? packed_float3(bsdf_eval_pass_diffuse_weight(&bsdf_eval)) :
+                        INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    const packed_float3 pass_glossy_weight = (bounce == 0) ?
+                                                 packed_float3(
+                                                     bsdf_eval_pass_glossy_weight(&bsdf_eval)) :
+                                                 INTEGRATOR_STATE(state, path, pass_glossy_weight);
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }

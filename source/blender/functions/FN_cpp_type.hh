@@ -207,6 +207,18 @@ class CPPType : NonCopyable, NonMovable {
     return is_trivially_destructible_;
   }
 
+  /**
+   * When true, the value is like a normal C type, it can be copied around with #memcpy and does
+   * not have to be destructed.
+   *
+   * C++ equivalent:
+   *   std::is_trivial_v<T>;
+   */
+  bool is_trivial() const
+  {
+    return is_trivial_;
+  }
+
   bool is_default_constructible() const
   {
     return default_construct_ != nullptr;

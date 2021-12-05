@@ -2568,79 +2568,6 @@ static void calc_overlap_itts(Map<std::pair<int, int>, ITT_value> &itt_map,
 }
 
 /**
- * Data needed for parallelization of calc_subdivided_non_cluster_tris.
- */
-struct OverlapTriRange {
-  int tri_index;
-  int overlap_start;
-  int len;
-};
-struct SubdivideTrisData {
-  Array<IMesh> &r_tri_subdivided;
-  const IMesh &tm;
-  const Map<std::pair<int, int>, ITT_value> &itt_map;
-  Span<BVHTreeOverlap> overlap;
-  IMeshArena *arena;
-
-  /* This vector gives, for each triangle in tm that has an intersection
-   * we want to calculate: what the index of that triangle in tm is,
-   * where it starts in the ov structure as indexA, and how many
-   * overlap pairs have that same indexA (they will be continuous). */
-  Vector<OverlapTriRange> overlap_tri_range;
-
-  SubdivideTrisData(Array<IMesh> &r_tri_subdivided,
-                    const IMesh &tm,
-                    const Map<std::pair<int, int>, ITT_value> &itt_map,
-                    Span<BVHTreeOverlap> overlap,
-                    IMeshArena *arena)
-      : r_tri_subdivided(r_tri_subdivided),
-        tm(tm),
-        itt_map(itt_map),
-        overlap(overlap),
-        arena(arena)
-  {
-  }
-};
-
-static void calc_subdivided_tri_range_func(void *__restrict userdata,
-                                           const int iter,
-                                           const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  constexpr int dbg_level = 0;
-  SubdivideTrisData *data = static_cast<SubdivideTrisData *>(userdata);
-  OverlapTriRange &otr = data->overlap_tri_range[iter];
-  int t = otr.tri_index;
-  if (dbg_level > 0) {
-    std::cout << "calc_subdivided_tri_range_func\nt=" << t << " start=" << otr.overlap_start
-              << " len=" << otr.len << "\n";
-  }
-  constexpr int inline_capacity = 100;
-  Vector<ITT_value, inline_capacity> itts(otr.len);
-  for (int j = otr.overlap_start; j < otr.overlap_start + otr.len; ++j) {
-    int t_other = data->overlap[j].indexB;
-    std::pair<int, int> key = canon_int_pair(t, t_other);
-    ITT_value itt;
-    if (data->itt_map.contains(key)) {
-      itt = data->itt_map.lookup(key);
-    }
-    if (itt.kind != INONE) {
-      itts.append(itt);
-    }
-    if (dbg_level > 0) {
-      std::cout << "  tri t" << t_other << "; result = " << itt << "\n";
-    }
-  }
-  if (itts.size() > 0) {
-    CDT_data cd_data = prepare_cdt_input(data->tm, t, itts);
-    do_cdt(cd_data);
-    data->r_tri_subdivided[t] = extract_subdivided_tri(cd_data, data->tm, t, data->arena);
-    if (dbg_level > 0) {
-      std::cout << "subdivide output\n" << data->r_tri_subdivided[t];
-    }
-  }
-}
-
-/**
  * For each triangle in tm, fill in the corresponding slot in
  * r_tri_subdivided with the result of intersecting it with
  * all the other triangles in the mesh, if it intersects any others.
@@ -2658,10 +2585,14 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
     std::cout << "\nCALC_SUBDIVIDED_TRIS\n\n";
   }
   Span<BVHTreeOverlap> overlap = ov.overlap();
-  SubdivideTrisData data(r_tri_subdivided, tm, itt_map, overlap, arena);
+  struct OverlapTriRange {
+    int tri_index;
+    int overlap_start;
+    int len;
+  };
+  Vector<OverlapTriRange> overlap_tri_range;
   int overlap_tot = overlap.size();
-  data.overlap_tri_range = Vector<OverlapTriRange>();
-  data.overlap_tri_range.reserve(overlap_tot);
+  overlap_tri_range.reserve(overlap_tot);
   int overlap_index = 0;
   while (overlap_index < overlap_tot) {
     int t = overlap[overlap_index].indexA;
@@ -2676,7 +2607,7 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
       int len = i - overlap_index + 1;
       if (!(len == 1 && overlap[overlap_index].indexB == t)) {
         OverlapTriRange range = {t, overlap_index, len};
-        data.overlap_tri_range.append(range);
+        overlap_tri_range.append(range);
 #  ifdef PERFDEBUG
         bumpperfcount(0, len); /* Non-cluster overlaps. */
 #  endif
@@ -2684,13 +2615,50 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
     }
     overlap_index = i + 1;
   }
-  int overlap_tri_range_tot = data.overlap_tri_range.size();
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.min_iter_per_thread = 50;
-  settings.use_threading = intersect_use_threading;
-  BLI_task_parallel_range(
-      0, overlap_tri_range_tot, &data, calc_subdivided_tri_range_func, &settings);
+  int overlap_tri_range_tot = overlap_tri_range.size();
+  Array<CDT_data> cd_data(overlap_tri_range_tot);
+  int grain_size = 64;
+  threading::parallel_for(overlap_tri_range.index_range(), grain_size, [&](IndexRange range) {
+    for (int otr_index : range) {
+      OverlapTriRange &otr = overlap_tri_range[otr_index];
+      int t = otr.tri_index;
+      if (dbg_level > 0) {
+        std::cout << "handling overlap range\nt=" << t << " start=" << otr.overlap_start
+                  << " len=" << otr.len << "\n";
+      }
+      constexpr int inline_capacity = 100;
+      Vector<ITT_value, inline_capacity> itts(otr.len);
+      for (int j = otr.overlap_start; j < otr.overlap_start + otr.len; ++j) {
+        int t_other = overlap[j].indexB;
+        std::pair<int, int> key = canon_int_pair(t, t_other);
+        ITT_value itt;
+        if (itt_map.contains(key)) {
+          itt = itt_map.lookup(key);
+        }
+        if (itt.kind != INONE) {
+          itts.append(itt);
+        }
+        if (dbg_level > 0) {
+          std::cout << "  tri t" << t_other << "; result = " << itt << "\n";
+        }
+      }
+      if (itts.size() > 0) {
+        cd_data[otr_index] = prepare_cdt_input(tm, t, itts);
+        do_cdt(cd_data[otr_index]);
+      }
+    }
+  });
+  /* Extract the new faces serially, so that Boolean is repeatable regardless of parallelism. */
+  for (int otr_index : overlap_tri_range.index_range()) {
+    CDT_data &cdd = cd_data[otr_index];
+    if (cdd.vert.size() > 0) {
+      int t = overlap_tri_range[otr_index].tri_index;
+      r_tri_subdivided[t] = extract_subdivided_tri(cdd, tm, t, arena);
+      if (dbg_level > 1) {
+        std::cout << "subdivide output for tri " << t << " = " << r_tri_subdivided[t];
+      }
+    }
+  }
   /* Now have to put in the triangles that are the same as the input ones, and not in clusters.
    */
   threading::parallel_for(tm.face_index_range(), 2048, [&](IndexRange range) {

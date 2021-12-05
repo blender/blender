@@ -368,14 +368,26 @@ void Session::draw()
 
 int2 Session::get_effective_tile_size() const
 {
+  const int image_width = buffer_params_.width;
+  const int image_height = buffer_params_.height;
+
   /* No support yet for baking with tiles. */
   if (!params.use_auto_tile || scene->bake_manager->get_baking()) {
-    return make_int2(buffer_params_.width, buffer_params_.height);
+    return make_int2(image_width, image_height);
   }
 
-  /* TODO(sergey): Take available memory into account, and if there is enough memory do not tile
-   * and prefer optimal performance. */
+  const int64_t image_area = static_cast<int64_t>(image_width) * image_height;
+
+  /* TODO(sergey): Take available memory into account, and if there is enough memory do not
+   * tile and prefer optimal performance. */
+
   const int tile_size = tile_manager_.compute_render_tile_size(params.tile_size);
+  const int64_t actual_tile_area = static_cast<int64_t>(tile_size) * tile_size;
+
+  if (actual_tile_area >= image_area) {
+    return make_int2(image_width, image_height);
+  }
+
   return make_int2(tile_size, tile_size);
 }
 
@@ -505,8 +517,8 @@ void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 
 double Session::get_estimated_remaining_time() const
 {
-  const float completed = progress.get_progress();
-  if (completed == 0.0f) {
+  const double completed = progress.get_progress();
+  if (completed == 0.0) {
     return 0.0;
   }
 
@@ -574,7 +586,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
   }
 
   /* Sample. */
-  if (num_samples == Integrator::MAX_SAMPLES) {
+  if (!params.background && num_samples == Integrator::MAX_SAMPLES) {
     substatus = status_append(substatus, string_printf("Sample %d", current_sample));
   }
   else {

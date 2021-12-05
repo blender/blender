@@ -1270,7 +1270,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
   else if (!prv_img->rect[size]) {
     prv_img->w[size] = render_size;
     prv_img->h[size] = render_size;
-    prv_img->flag[size] |= (PRV_CHANGED | PRV_UNFINISHED);
+    prv_img->flag[size] |= PRV_CHANGED;
     prv_img->changed_timestamp[size] = 0;
     prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect");
   }
@@ -1419,6 +1419,7 @@ static void icon_set_image(const bContext *C,
 
   const bool delay = prv_img->rect[size] != NULL;
   icon_create_rect(prv_img, size);
+  prv_img->flag[size] |= PRV_RENDERING;
 
   if (use_job && (!id || BKE_previewimg_id_supports_jobs(id))) {
     /* Job (background) version */
@@ -2037,8 +2038,19 @@ void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
-
   if (pi == NULL) {
+    return;
+  }
+
+  /* For objects, first try if a preview can created via the object data. */
+  if (GS(id->name) == ID_OB) {
+    Object *ob = (Object *)id;
+    if (ED_preview_id_is_supported(ob->data)) {
+      id = ob->data;
+    }
+  }
+
+  if (!ED_preview_id_is_supported(id)) {
     return;
   }
 

@@ -55,6 +55,7 @@ typedef struct ThumbnailDrawJob {
   rctf *view_area;
   float pixelx;
   float pixely;
+  float thumb_height;
 } ThumbnailDrawJob;
 
 typedef struct ThumbDataItem {
@@ -108,7 +109,7 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
                                            float pixelx,
                                            float pixely,
                                            float *r_thumb_width,
-                                           float *r_thumb_height,
+                                           float thumb_height,
                                            float *r_image_width,
                                            float *r_image_height)
 {
@@ -127,20 +128,15 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
   }
 
   /* Calculate thumb dimensions. */
-  float thumb_height = (SEQ_STRIP_OFSTOP - SEQ_STRIP_OFSBOTTOM) - (20 * U.dpi_fac * pixely);
   aspect_ratio = ((float)image_width) / image_height;
   float thumb_h_px = thumb_height / pixely;
   float thumb_width = aspect_ratio * thumb_h_px * pixelx;
 
-  if (r_thumb_height == NULL) {
-    *r_thumb_width = thumb_width;
-    return;
-  }
-
-  *r_thumb_height = thumb_height;
-  *r_image_width = image_width;
-  *r_image_height = image_height;
   *r_thumb_width = thumb_width;
+  if (r_image_width && r_image_height) {
+    *r_image_width = image_width;
+    *r_image_height = image_height;
+  }
 }
 
 static float seq_thumbnail_get_start_frame(Sequence *seq, float frame_step, rctf *view_area)
@@ -174,7 +170,7 @@ static void thumbnail_start_job(void *data,
 
     if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
       seq_get_thumb_image_dimensions(
-          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, NULL, NULL, NULL);
+          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, NULL, NULL);
       start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails(
           &tj->context, val->seq_dupli, seq_orig, start_frame, frame_step, tj->view_area, stop);
@@ -191,7 +187,7 @@ static void thumbnail_start_job(void *data,
 
     if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
       seq_get_thumb_image_dimensions(
-          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, NULL, NULL, NULL);
+          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, NULL, NULL);
       start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
@@ -243,7 +239,10 @@ static GHash *sequencer_thumbnail_ghash_init(const bContext *C, View2D *v2d, Edi
   return thumb_data_hash;
 }
 
-static void sequencer_thumbnail_init_job(const bContext *C, View2D *v2d, Editing *ed)
+static void sequencer_thumbnail_init_job(const bContext *C,
+                                         View2D *v2d,
+                                         Editing *ed,
+                                         float thumb_height)
 {
   wmJob *wm_job;
   ThumbnailDrawJob *tj = NULL;
@@ -273,6 +272,7 @@ static void sequencer_thumbnail_init_job(const bContext *C, View2D *v2d, Editing
     tj->sequences_ghash = sequencer_thumbnail_ghash_init(C, v2d, ed);
     tj->pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
     tj->pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+    tj->thumb_height = thumb_height;
     WM_jobs_customdata_set(wm_job, tj, thumbnail_freejob);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
     WM_jobs_callbacks(wm_job, thumbnail_start_job, NULL, NULL, thumbnail_endjob);
@@ -296,10 +296,8 @@ static bool sequencer_thumbnail_v2d_is_navigating(const bContext *C)
   return (v2d->flag & V2D_IS_NAVIGATING) != 0;
 }
 
-static void sequencer_thumbnail_start_job_if_necessary(const bContext *C,
-                                                       Editing *ed,
-                                                       View2D *v2d,
-                                                       bool thumbnail_is_missing)
+static void sequencer_thumbnail_start_job_if_necessary(
+    const bContext *C, Editing *ed, View2D *v2d, bool thumbnail_is_missing, float thumb_height)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -326,7 +324,7 @@ static void sequencer_thumbnail_start_job_if_necessary(const bContext *C,
     WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
   }
 
-  sequencer_thumbnail_init_job(C, v2d, ed);
+  sequencer_thumbnail_init_job(C, v2d, ed, thumb_height);
   sseq->runtime.last_thumbnail_area = v2d->cur;
 }
 
@@ -450,7 +448,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
                               float pixely)
 {
   bool clipped = false;
-  float image_height, image_width, thumb_width, thumb_height;
+  float image_height, image_width, thumb_width;
   rcti crop;
 
   /* If width of the strip too small ignore drawing thumbnails. */
@@ -464,10 +462,11 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     return;
   }
 
+  const float thumb_height = y2 - y1;
   seq_get_thumb_image_dimensions(
-      seq, pixelx, pixely, &thumb_width, &thumb_height, &image_width, &image_height);
+      seq, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
 
-  float thumb_y_end = y1 + thumb_height - pixely;
+  float thumb_y_end = y1 + thumb_height;
 
   float cut_off = 0;
   float upper_thumb_bound = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
@@ -537,7 +536,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     ImBuf *ibuf = SEQ_get_thumbnail(&context, seq, timeline_frame, &crop, clipped);
 
     if (!ibuf) {
-      sequencer_thumbnail_start_job_if_necessary(C, scene->ed, v2d, true);
+      sequencer_thumbnail_start_job_if_necessary(C, scene->ed, v2d, true, thumb_height);
 
       ibuf = sequencer_thumbnail_closest_from_memory(
           &context, seq, timeline_frame, last_displayed_thumbnails, &crop, clipped);

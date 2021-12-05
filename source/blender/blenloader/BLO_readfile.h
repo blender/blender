@@ -212,14 +212,6 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
   /** Force loaded ID to be tagged as #LIB_TAG_INDIRECT (used in reload context only). */
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
-  /**
-   * When set, tag ID types that pass the internal check #library_link_idcode_needs_tag_check
-   *
-   * Currently this is only used to instantiate objects in the scene.
-   * Set this from #BLO_library_link_params_init_with_context so callers
-   * don't need to remember to set this flag.
-   */
-  BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
   /** Set fake user on appended IDs. */
   BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
   /** Append (make local) also indirect dependencies of appended IDs coming from other libraries.
@@ -241,7 +233,7 @@ typedef enum eBLOLibLinkFlags {
  * #BLO_library_link_begin, #BLO_library_link_named_part & #BLO_library_link_end.
  * Wrap these in parameters since it's important both functions receive matching values.
  */
-struct LibraryLink_Params {
+typedef struct LibraryLink_Params {
   /** The current main database, e.g. #G_MAIN or `CTX_data_main(C)`. */
   struct Main *bmain;
   /** Options for linking, used for instantiating. */
@@ -257,7 +249,7 @@ struct LibraryLink_Params {
     /** The active 3D viewport (only used to define local-view). */
     const struct View3D *v3d;
   } context;
-};
+} LibraryLink_Params;
 
 void BLO_library_link_params_init(struct LibraryLink_Params *params,
                                   struct Main *bmain,
@@ -282,8 +274,6 @@ struct ID *BLO_library_link_named_part(struct Main *mainl,
 void BLO_library_link_end(struct Main *mainl,
                           BlendHandle **bh,
                           const struct LibraryLink_Params *params);
-
-int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const uint64_t id_types_mask);
 
 /**
  * Struct for temporarily loading datablocks from a blend file.
@@ -336,14 +326,6 @@ void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
 
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
-
-void BLO_object_instantiate_object_base_instance_init(struct Main *bmain,
-                                                      struct Collection *collection,
-                                                      struct Object *ob,
-                                                      struct ViewLayer *view_layer,
-                                                      const struct View3D *v3d,
-                                                      const int flag,
-                                                      bool set_active);
 
 /* datafiles (generated theme) */
 extern const struct bTheme U_theme_default;

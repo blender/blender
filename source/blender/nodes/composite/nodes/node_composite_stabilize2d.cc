@@ -26,17 +26,17 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
-/* **************** Translate  ******************** */
+/* **************** Stabilize 2D ******************** */
 
-static bNodeSocketTemplate cmp_node_stabilize2d_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate cmp_node_stabilize2d_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
@@ -55,7 +55,7 @@ void register_node_type_cmp_stabilize2d(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, 0);
-  node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
+  ntype.declare = blender::nodes::cmp_node_stabilize2d_declare;
   ntype.initfunc_api = init;
 
   nodeRegisterType(&ntype);

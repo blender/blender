@@ -18,7 +18,7 @@
  * \ingroup GHOST
  */
 
-/* Note: Requires OpenXR headers to be included before this one for OpenXR types (XrInstance,
+/* NOTE: Requires OpenXR headers to be included before this one for OpenXR types (XrInstance,
  * XrSession, etc.). */
 
 #pragma once

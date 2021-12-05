@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
@@ -44,6 +45,7 @@
 #include "WM_types.h"
 
 #include "ED_asset.h"
+#include "ED_asset_indexer.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -58,6 +60,10 @@
 #include "file_intern.h" /* own include */
 #include "filelist.h"
 #include "fsmenu.h"
+
+/* Enable asset indexing. Currently disabled as ID properties aren't indexed yet and is needed for
+ * object snapping. See {D12990}. */
+//#define SPACE_FILE_ENABLE_ASSET_INDEXING
 
 static ARegion *file_ui_region_ensure(ScrArea *area, ARegion *region_prev)
 {
@@ -352,6 +358,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
     filelist_set_asset_catalog_filter_options(
         sfile->files, asset_params->asset_catalog_visibility, &asset_params->catalog_id);
   }
+
+#ifdef SPACE_FILE_ENABLE_ASSET_INDEXING
+  if (ED_fileselect_is_asset_browser(sfile)) {
+    filelist_setindexer(sfile->files, &file_indexer_asset);
+  }
+#endif
 
   /* Update the active indices of bookmarks & co. */
   sfile->systemnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM, params->dir);
@@ -688,7 +700,6 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_previous);
   WM_operatortype_append(FILE_OT_next);
   WM_operatortype_append(FILE_OT_refresh);
-  WM_operatortype_append(FILE_OT_asset_library_refresh);
   WM_operatortype_append(FILE_OT_bookmark_add);
   WM_operatortype_append(FILE_OT_bookmark_delete);
   WM_operatortype_append(FILE_OT_bookmark_cleanup);

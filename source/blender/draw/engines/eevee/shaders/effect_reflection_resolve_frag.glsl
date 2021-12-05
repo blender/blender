@@ -134,7 +134,7 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
     vec3 V, P, N;
     if (planar_index != -1) {
       PlanarData pd = planars_data[planar_index];
-      /* Evaluate everything in refected space. */
+      /* Evaluate everything in reflected space. */
       P = line_plane_intersect(cl_common.P, cl_common.V, pd.pl_plane_eq);
       V = reflect(cl_common.V, pd.pl_normal);
       N = reflect(cl_in.N, pd.pl_normal);

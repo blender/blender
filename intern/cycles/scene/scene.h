@@ -81,9 +81,9 @@ class DeviceScene {
   device_vector<float2> prim_time;
 
   /* mesh */
-  device_vector<float4> tri_verts;
+  device_vector<packed_float3> tri_verts;
   device_vector<uint> tri_shader;
-  device_vector<float4> tri_vnormal;
+  device_vector<packed_float3> tri_vnormal;
   device_vector<uint4> tri_vindex;
   device_vector<uint> tri_patch;
   device_vector<float2> tri_patch_uv;
@@ -100,6 +100,7 @@ class DeviceScene {
   device_vector<DecomposedTransform> object_motion;
   device_vector<uint> object_flag;
   device_vector<float> object_volume_step;
+  device_vector<uint> object_prim_offset;
 
   /* cameras */
   device_vector<DecomposedTransform> camera_motion;
@@ -108,7 +109,8 @@ class DeviceScene {
   device_vector<uint4> attributes_map;
   device_vector<float> attributes_float;
   device_vector<float2> attributes_float2;
-  device_vector<float4> attributes_float3;
+  device_vector<packed_float3> attributes_float3;
+  device_vector<float4> attributes_float4;
   device_vector<uchar4> attributes_uchar4;
 
   /* lights */

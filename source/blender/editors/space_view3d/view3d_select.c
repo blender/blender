@@ -1279,40 +1279,6 @@ static bool do_lasso_select_paintface(ViewContext *vc,
   return changed;
 }
 
-#if 0
-static void do_lasso_select_node(int mcoords[][2], const int mcoords_len, const eSelectOp sel_op)
-{
-  SpaceNode *snode = area->spacedata.first;
-
-  bNode *node;
-  rcti rect;
-  int node_cent[2];
-  float node_centf[2];
-  bool changed = false;
-
-  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
-
-  /* store selection in temp test flag */
-  for (node = snode->edittree->nodes.first; node; node = node->next) {
-    node_centf[0] = BLI_RCT_CENTER_X(&node->totr);
-    node_centf[1] = BLI_RCT_CENTER_Y(&node->totr);
-
-    ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
-    const bool is_select = node->flag & SELECT;
-    const bool is_inside = (BLI_rcti_isect_pt_v(&rect, node_cent) &&
-                            BLI_lasso_is_point_inside(mcoords, mcoords_len, node_cent[0], node_cent[1]));
-    const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-    if (sel_op_result != -1) {
-      SET_FLAG_FROM_TEST(node->flag, sel_op_result, SELECT);
-      changed = true;
-    }
-  }
-  if (changed) {
-    BIF_undo_push("Lasso select nodes");
-  }
-}
-#endif
-
 static bool view3d_lasso_select(bContext *C,
                                 ViewContext *vc,
                                 const int mcoords[][2],

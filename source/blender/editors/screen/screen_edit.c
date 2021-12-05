@@ -955,7 +955,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
        * because it can undo setting the right button as active due
        * to delayed notifier handling. */
       if (C) {
-        UI_screen_free_active_but(C, screen);
+        UI_screen_free_active_but_highlight(C, screen);
       }
     }
   }
@@ -1495,8 +1495,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
      * switching screens with tooltip open because region and tooltip
      * are no longer in the same screen */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      UI_blocklist_free(C, &region->uiblocks);
-
+      UI_blocklist_free(C, region);
       if (region->regiontimer) {
         WM_event_remove_timer(wm, NULL, region->regiontimer);
         region->regiontimer = NULL;

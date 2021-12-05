@@ -46,12 +46,6 @@ bool CUDADevice::have_precompiled_kernels()
   return path_exists(cubins_path);
 }
 
-bool CUDADevice::show_samples() const
-{
-  /* The CUDADevice only processes one tile at a time, so showing samples is fine. */
-  return true;
-}
-
 BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
 {
   return BVH_LAYOUT_BVH2;
@@ -240,6 +234,10 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
 
 #  ifdef WITH_NANOVDB
   cflags += " -DWITH_NANOVDB";
+#  endif
+
+#  ifdef WITH_CYCLES_DEBUG
+  cflags += " -DWITH_CYCLES_DEBUG";
 #  endif
 
   return cflags;
@@ -479,10 +477,10 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
      * still to make it faster. */
     CUDADeviceQueue queue(this);
 
-    void *d_path_index = nullptr;
-    void *d_render_buffer = nullptr;
+    device_ptr d_path_index = 0;
+    device_ptr d_render_buffer = 0;
     int d_work_size = 0;
-    void *args[] = {&d_path_index, &d_render_buffer, &d_work_size};
+    DeviceKernelArguments args(&d_path_index, &d_render_buffer, &d_work_size);
 
     queue.init_execution();
     queue.enqueue(test_kernel, 1, args);
@@ -777,6 +775,7 @@ void CUDADevice::generic_free(device_memory &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     /* If cmem.use_mapped_host is true, reference counting is used
@@ -1143,6 +1142,7 @@ void CUDADevice::tex_free(device_texture &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     if (cmem.texobject) {

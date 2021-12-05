@@ -21,8 +21,12 @@
 
 /** \file
  * \ingroup blenloader
- * \brief external writefile function prototypes.
+ * \brief external `writefile.c` function prototypes.
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BlendThumbnail;
 struct Main;
@@ -72,3 +76,7 @@ extern bool BLO_write_file_mem(struct Main *mainvar,
                                int write_flags);
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

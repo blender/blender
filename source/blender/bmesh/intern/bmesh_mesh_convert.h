@@ -50,6 +50,16 @@ struct BMeshFromMeshParams {
 };
 
 struct Object;
+/**
+ * \brief Mesh -> BMesh
+ * \param bm: The mesh to write into, while this is typically a newly created BMesh,
+ * merging into existing data is supported.
+ * Note the custom-data layout isn't used.
+ * If more comprehensive merging is needed we should move this into a separate function
+ * since this should be kept fast for edit-mode switching and storing undo steps.
+ *
+ * \warning This function doesn't calculate face normals.
+ */
 void BM_mesh_bm_from_me(struct Object *ob,
                         BMesh *bm,
                         const struct Mesh *me,
@@ -75,12 +85,33 @@ struct BMeshToMeshParams {
 
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
 
+/**
+ *
+ * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
+ */
 void BM_mesh_bm_to_me(struct Main *bmain,
                       struct Object *ob,
                       BMesh *bm,
                       struct Mesh *me,
                       const struct BMeshToMeshParams *params) ATTR_NONNULL(3, 4, 5);
 
+/**
+ * A version of #BM_mesh_bm_to_me intended for getting the mesh
+ * to pass to the modifier stack for evaluation,
+ * instead of mode switching (where we make sure all data is kept
+ * and do expensive lookups to maintain shape keys).
+ *
+ * Key differences:
+ *
+ * - Don't support merging with existing mesh.
+ * - Ignore shape-keys.
+ * - Ignore vertex-parents.
+ * - Ignore selection history.
+ * - Uses simpler method to calculate #ME_EDGEDRAW
+ * - Uses #CD_MASK_DERIVEDMESH instead of #CD_MASK_MESH.
+ *
+ * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
+ */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
                                const struct CustomData_MeshMasks *cd_mask_extra)

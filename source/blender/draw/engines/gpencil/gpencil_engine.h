@@ -106,7 +106,7 @@ typedef struct gpLight {
 BLI_STATIC_ASSERT_ALIGN(gpMaterial, 16)
 BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
 
-/* *********** Draw Datas *********** */
+/* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
   /* Linklist. */
   struct GPENCIL_MaterialPool *next;

@@ -530,6 +530,34 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   }
 }
 
+void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
+{
+  BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
+  if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
+    return;
+  }
+
+  /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection
+   * handlers need to apply the offset manually. */
+  uint *object_prim_offset = dscene->object_prim_offset.alloc(scene->objects.size());
+  foreach (Object *ob, scene->objects) {
+    uint32_t prim_offset = 0;
+    if (Geometry *const geom = ob->geometry) {
+      if (geom->geometry_type == Geometry::HAIR) {
+        prim_offset = ((Hair *const)geom)->curve_segment_offset;
+      }
+      else {
+        prim_offset = geom->prim_offset;
+      }
+    }
+    uint obj_index = ob->get_device_index();
+    object_prim_offset[obj_index] = prim_offset;
+  }
+
+  dscene->object_prim_offset.copy_to_device();
+  dscene->object_prim_offset.clear_modified();
+}
+
 void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, Progress &progress)
 {
   UpdateObjectTransformState state;
@@ -840,6 +868,7 @@ void ObjectManager::device_free(Device *, DeviceScene *dscene, bool force_free)
   dscene->object_motion.free_if_need_realloc(force_free);
   dscene->object_flag.free_if_need_realloc(force_free);
   dscene->object_volume_step.free_if_need_realloc(force_free);
+  dscene->object_prim_offset.free_if_need_realloc(force_free);
 }
 
 void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress &progress)

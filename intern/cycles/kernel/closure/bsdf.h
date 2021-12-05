@@ -438,7 +438,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
   if (label & LABEL_TRANSMIT) {
     float threshold_squared = kernel_data.background.transparent_roughness_squared_threshold;
 
-    if (threshold_squared >= 0.0f) {
+    if (threshold_squared >= 0.0f && !(label & LABEL_DIFFUSE)) {
       if (bsdf_get_specular_roughness_squared(sc) <= threshold_squared) {
         label |= LABEL_TRANSMIT_TRANSPARENT;
       }

@@ -133,7 +133,7 @@ function which generates skydome states for different solar emission spectra
 and solar radii: 'arhosekskymodelstate_alienworld_alloc_init()'.
 
 See the notes about the "Alien World" functionality provided further down for a
-discussion of the usefulness and limits of that second initalisation function.
+discussion of the usefulness and limits of that second initialisation function.
 Sky model states that have been initialized with either function behave in a
 completely identical fashion during use and cleanup.
 
@@ -368,7 +368,7 @@ SKY_ArHosekSkyModelState *SKY_arhosekskymodelstate_alloc_init(const double solar
     with a sun of a surface temperature given in 'kelvin'. The parameter
     'solar_intensity' controls the overall brightness of the sky, relative
     to the solar irradiance on Earth. A value of 1.0 yields a sky dome that
-    is, on average over the wavelenghts covered in the model (!), as bright
+    is, on average over the wavelengths covered in the model (!), as bright
     as the terrestrial sky in radiometric terms.
 
     Which means that the solar radius has to be adjusted, since the

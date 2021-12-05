@@ -762,7 +762,8 @@ static ShaderNode *add_node(Scene *scene,
         int scene_frame = b_scene.frame_current();
         int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         image->handle = scene->image_manager->add_image(
-            new BlenderImageLoader(b_image, image_frame), image->image_params());
+            new BlenderImageLoader(b_image, image_frame, b_engine.is_preview()),
+            image->image_params());
       }
       else {
         ustring filename = ustring(
@@ -797,8 +798,9 @@ static ShaderNode *add_node(Scene *scene,
       if (is_builtin) {
         int scene_frame = b_scene.frame_current();
         int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
-        env->handle = scene->image_manager->add_image(new BlenderImageLoader(b_image, image_frame),
-                                                      env->image_params());
+        env->handle = scene->image_manager->add_image(
+            new BlenderImageLoader(b_image, image_frame, b_engine.is_preview()),
+            env->image_params());
       }
       else {
         env->set_filename(

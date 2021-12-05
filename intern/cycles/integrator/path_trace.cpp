@@ -296,13 +296,13 @@ static BufferParams scale_buffer_params(const BufferParams &params, int resoluti
 
   scaled_params.window_x = params.window_x / resolution_divider;
   scaled_params.window_y = params.window_y / resolution_divider;
-  scaled_params.window_width = params.window_width / resolution_divider;
-  scaled_params.window_height = params.window_height / resolution_divider;
+  scaled_params.window_width = max(1, params.window_width / resolution_divider);
+  scaled_params.window_height = max(1, params.window_height / resolution_divider);
 
   scaled_params.full_x = params.full_x / resolution_divider;
   scaled_params.full_y = params.full_y / resolution_divider;
-  scaled_params.full_width = params.full_width / resolution_divider;
-  scaled_params.full_height = params.full_height / resolution_divider;
+  scaled_params.full_width = max(1, params.full_width / resolution_divider);
+  scaled_params.full_height = max(1, params.full_height / resolution_divider);
 
   scaled_params.update_offset_stride();
 
@@ -482,7 +482,11 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
   }
 
   denoiser_ = Denoiser::create(device_, params);
-  denoiser_->is_cancelled_cb = [this]() { return is_cancel_requested(); };
+
+  /* Only take into account the "immediate" cancel to have interactive rendering responding to
+   * navigation as quickly as possible, but allow to run denoiser after user hit Esc button while
+   * doing offline rendering. */
+  denoiser_->is_cancelled_cb = [this]() { return render_cancel_.is_requested; };
 }
 
 void PathTrace::set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling)
@@ -850,7 +854,8 @@ void PathTrace::progress_update_if_needed(const RenderWork &render_work)
 {
   if (progress_ != nullptr) {
     const int2 tile_size = get_render_tile_size();
-    const int num_samples_added = tile_size.x * tile_size.y * render_work.path_trace.num_samples;
+    const uint64_t num_samples_added = uint64_t(tile_size.x) * tile_size.y *
+                                       render_work.path_trace.num_samples;
     const int current_sample = render_work.path_trace.start_sample +
                                render_work.path_trace.num_samples -
                                render_work.path_trace.sample_offset;

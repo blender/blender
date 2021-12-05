@@ -210,7 +210,7 @@ typedef struct KnifeBVH {
 typedef struct KnifeTool_OpData {
   ARegion *region;   /* Region that knifetool was activated in. */
   void *draw_handle; /* For drawing preview loop. */
-  ViewContext vc;    /* Note: _don't_ use 'mval', instead use the one we define below. */
+  ViewContext vc;    /* NOTE: _don't_ use 'mval', instead use the one we define below. */
   float mval[2];     /* Mouse value with snapping applied. */
 
   Scene *scene;
@@ -4143,7 +4143,7 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   for (int i = 0; i < kcd->objects_len; i++) {
     knifetool_free_cagecos(kcd, i);
   }
-  MEM_freeN(kcd->cagecos);
+  MEM_freeN((void *)kcd->cagecos);
   knife_bvh_free(kcd);
 
   /* Line-hits cleanup. */

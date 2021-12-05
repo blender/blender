@@ -111,6 +111,7 @@
 #include "ED_fileselect.h"
 #include "ED_image.h"
 #include "ED_outliner.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 #include "ED_util.h"
@@ -620,6 +621,8 @@ static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef
   /* Always do this as both startup and preferences may have loaded in many font's
    * at a different zoom level to the file being loaded. */
   UI_view2d_zoom_cache_reset();
+
+  ED_preview_restart_queue_free();
 }
 
 /**

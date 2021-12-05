@@ -1415,7 +1415,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     }
     else {
       if (interp_depth) {
-        interp_sparse_array(tgpf->depth_arr, totpoints, FLT_MAX);
+        interp_sparse_array(tgpf->depth_arr, totpoints, DEPTH_INVALID);
       }
     }
   }

@@ -44,7 +44,6 @@ void register_node_type_cmp_group(void)
   ntype.poll = cmp_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
-  ntype.update_internal_links = node_update_internal_links_default;
   ntype.rna_ext.srna = RNA_struct_find("CompositorNodeGroup");
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
@@ -65,8 +64,5 @@ void register_node_type_cmp_custom_group(bNodeType *ntype)
   }
   if (ntype->insert_link == nullptr) {
     ntype->insert_link = node_insert_link_default;
-  }
-  if (ntype->update_internal_links == nullptr) {
-    ntype->update_internal_links = node_update_internal_links_default;
   }
 }

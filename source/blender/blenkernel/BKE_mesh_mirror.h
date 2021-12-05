@@ -43,10 +43,12 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                           const int axis,
                                           const float dist);
 
-struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(struct MirrorModifierData *mmd,
-                                                               struct Object *ob,
-                                                               const struct Mesh *mesh,
-                                                               const int axis);
+struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+    struct MirrorModifierData *mmd,
+    struct Object *ob,
+    const struct Mesh *mesh,
+    const int axis,
+    const bool use_correct_order_on_merge);
 
 #ifdef __cplusplus
 }

@@ -149,10 +149,6 @@ class Device {
     fprintf(stderr, "%s\n", error.c_str());
     fflush(stderr);
   }
-  virtual bool show_samples() const
-  {
-    return false;
-  }
   virtual BVHLayoutMask get_bvh_layout_mask() const = 0;
 
   /* statistics */

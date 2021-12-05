@@ -82,7 +82,7 @@ class BlenderSession {
   void tag_redraw();
   void tag_update();
   void get_status(string &status, string &substatus);
-  void get_progress(float &progress, double &total_time, double &render_time);
+  void get_progress(double &progress, double &total_time, double &render_time);
   void test_cancel();
   void update_status_progress();
   void update_bake_progress();
@@ -108,7 +108,7 @@ class BlenderSession {
 
   string last_status;
   string last_error;
-  float last_progress;
+  double last_progress;
   double last_status_time;
 
   int width, height;

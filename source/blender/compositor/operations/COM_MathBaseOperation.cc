@@ -52,7 +52,7 @@ void MathBaseOperation::deinit_execution()
 void MathBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   NodeOperationInput *socket;
-  rcti temp_area;
+  rcti temp_area = COM_AREA_NONE;
   socket = this->get_input_socket(0);
   const bool determined = socket->determine_canvas(COM_AREA_NONE, temp_area);
   if (determined) {

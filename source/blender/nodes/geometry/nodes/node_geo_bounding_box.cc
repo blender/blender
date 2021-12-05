@@ -16,9 +16,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_bounding_box_cc {
 
-static void geo_node_bounding_box_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_output<decl::Geometry>(N_("Bounding Box"));
@@ -26,7 +26,7 @@ static void geo_node_bounding_box_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Max"));
 }
 
-static void geo_node_bounding_box_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -78,14 +78,16 @@ static void geo_node_bounding_box_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_bounding_box_cc
 
 void register_node_type_geo_bounding_box()
 {
+  namespace file_ns = blender::nodes::node_geo_bounding_box_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_BOUNDING_BOX, "Bounding Box", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_bounding_box_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_bounding_box_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

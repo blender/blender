@@ -24,9 +24,6 @@
 
 namespace blender::bke {
 
-using fn::GVArrayPtr;
-using fn::GVMutableArrayPtr;
-
 /**
  * Utility to group together multiple functions that are used to access custom data on geometry
  * components in a generic way.
@@ -86,7 +83,7 @@ class BuiltinAttributeProvider {
   {
   }
 
-  virtual GVArrayPtr try_get_for_read(const GeometryComponent &component) const = 0;
+  virtual GVArray try_get_for_read(const GeometryComponent &component) const = 0;
   virtual WriteAttributeLookup try_get_for_write(GeometryComponent &component) const = 0;
   virtual bool try_delete(GeometryComponent &component) const = 0;
   virtual bool try_create(GeometryComponent &UNUSED(component),
@@ -188,8 +185,8 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  */
 class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  private:
-  using AsReadAttribute = GVArrayPtr (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = GVMutableArrayPtr (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArray (*)(const void *data, const int domain_size);
+  using AsWriteAttribute = GVMutableArray (*)(void *data, const int domain_size);
   const AttributeDomain domain_;
   const CustomDataType attribute_type_;
   const CustomDataType stored_type_;
@@ -232,8 +229,8 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using AsReadAttribute = GVArrayPtr (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = GVMutableArrayPtr (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArray (*)(const void *data, const int domain_size);
+  using AsWriteAttribute = GVMutableArray (*)(void *data, const int domain_size);
   using UpdateOnRead = void (*)(const GeometryComponent &component);
   using UpdateOnWrite = void (*)(GeometryComponent &component);
   const CustomDataType stored_type_;
@@ -266,7 +263,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  GVArrayPtr try_get_for_read(const GeometryComponent &component) const final;
+  GVArray try_get_for_read(const GeometryComponent &component) const final;
   WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final;
   bool try_delete(GeometryComponent &component) const final;
   bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final;

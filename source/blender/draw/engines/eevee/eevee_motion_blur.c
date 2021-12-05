@@ -29,6 +29,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
+#include "BKE_duplilist.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 
@@ -315,6 +316,14 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
                          (has_rigidbody && (rbo->flag & RBO_FLAG_USE_DEFORM) != 0);
 
   if (!(object_moves || is_deform)) {
+    return;
+  }
+
+  const DupliObject *dup = DRW_object_get_dupli(ob);
+  if (dup != NULL && dup->ob->data != dup->ob_data) {
+    /* Geometry instances do not support motion blur correctly yet. The #key used in
+     * #motion_blur_deform_data_get has to take ids of instances (#DupliObject.persistent_id) into
+     * account. Otherwise it can't find matching geometry instances at different points in time. */
     return;
   }
 

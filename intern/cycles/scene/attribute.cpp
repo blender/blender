@@ -404,6 +404,10 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
     return AttrKernelDataType::FLOAT2;
   }
 
+  if (attr.type == TypeFloat4 || attr.type == TypeRGBA || attr.type == TypeDesc::TypeMatrix) {
+    return AttrKernelDataType::FLOAT4;
+  }
+
   return AttrKernelDataType::FLOAT3;
 }
 
@@ -585,7 +589,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
         break;
       case ATTR_STD_MOTION_VERTEX_POSITION:
-        attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY_MOTION);
+        attr = add(name, TypeDesc::TypeFloat4, ATTR_ELEMENT_CURVE_KEY_MOTION);
         break;
       case ATTR_STD_CURVE_INTERCEPT:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);

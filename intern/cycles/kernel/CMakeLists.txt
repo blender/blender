@@ -207,6 +207,7 @@ set(SRC_KERNEL_BVH_HEADERS
   bvh/volume.h
   bvh/volume_all.h
   bvh/embree.h
+  bvh/metal.h
 )
 
 set(SRC_KERNEL_CAMERA_HEADERS
@@ -273,6 +274,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 )
 
 set(SRC_KERNEL_TYPES_HEADERS
+  tables.h
   textures.h
   types.h
 )
@@ -412,17 +414,17 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
       --use_fast_math
-      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
-
-    if(${experimental})
-      set(cuda_flags ${cuda_flags} -D __KERNEL_EXPERIMENTAL__)
-      set(name ${name}_experimental)
-    endif()
+      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file}
+      -Wno-deprecated-gpu-targets)
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+
+    if(WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     if(WITH_CYCLES_CUBIN_COMPILER)
@@ -573,13 +575,14 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -ffast-math
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
-    if(${experimental})
-      set(hip_flags ${hip_flags} -D __KERNEL_EXPERIMENTAL__)
-      set(name ${name}_experimental)
+    if(WITH_NANOVDB)
+      set(hip_flags ${hip_flags}
+        -D WITH_NANOVDB
+        -I "${NANOVDB_INCLUDE_DIR}")
     endif()
 
     if(WITH_CYCLES_DEBUG)
-      set(hip_flags ${hip_flags} -D __KERNEL_DEBUG__)
+      set(hip_flags ${hip_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     add_custom_command(
@@ -618,6 +621,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+
+    if(WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     if(WITH_CYCLES_CUBIN_COMPILER)
@@ -708,7 +715,7 @@ if(WITH_COMPILER_ASAN)
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
   elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    # With OSL, Cycles disables rtti in some modules, wich then breaks at linking
+    # With OSL, Cycles disables rtti in some modules, which then breaks at linking
     # when trying to use vptr sanitizer (included into 'undefined' general option).
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=vptr")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")

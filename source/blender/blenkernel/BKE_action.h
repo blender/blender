@@ -91,8 +91,15 @@ short action_get_item_transforms(struct bAction *act,
 /* Some kind of bounding box operation on the action */
 void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
 
+/* Retrieve the intended playback frame range, using the manually set range if available,
+ * or falling back to scanning F-Curves for their first & last frames otherwise. */
+void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float *r_end);
+
 /* Does action have any motion data at all? */
 bool action_has_motion(const struct bAction *act);
+
+/* Is the action configured as cyclic. */
+bool BKE_action_is_cyclic(const struct bAction *act);
 
 /* Action Groups API ----------------- */
 

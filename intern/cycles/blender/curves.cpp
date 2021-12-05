@@ -199,7 +199,7 @@ static bool ObtainCacheParticleUV(Hair *hair,
           b_mesh->uv_layers.begin(l);
 
           float2 uv = zero_float2();
-          if (b_mesh->uv_layers.length())
+          if (!b_mesh->uv_layers.empty())
             b_psys.uv_on_emitter(psmd, *b_pa, pa_no, uv_num, &uv.x);
           CData->curve_uv.push_back_slow(uv);
 
@@ -261,7 +261,7 @@ static bool ObtainCacheParticleVcol(Hair *hair,
           b_mesh->vertex_colors.begin(l);
 
           float4 vcol = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-          if (b_mesh->vertex_colors.length())
+          if (!b_mesh->vertex_colors.empty())
             b_psys.mcol_on_emitter(psmd, *b_pa, pa_no, vcol_num, &vcol.x);
           CData->curve_vcol.push_back_slow(vcol);
 
@@ -819,11 +819,14 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
+#ifdef WITH_HAIR_NODES
     if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
-    else {
+    else
+#endif
+    {
       /* Particle hair. */
       bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
@@ -870,12 +873,15 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
+#ifdef WITH_HAIR_NODES
     if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
-    else {
+    else
+#endif
+    {
       /* Particle hair. */
       BL::Mesh b_mesh = object_to_mesh(
           b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);

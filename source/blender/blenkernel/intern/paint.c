@@ -158,6 +158,7 @@ IDTypeInfo IDType_ID_PAL = {
     .name_plural = "palettes",
     .translation_context = BLT_I18NCONTEXT_ID_PALETTE,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = palette_init_data,
     .copy_data = palette_copy_data,
@@ -165,6 +166,7 @@ IDTypeInfo IDType_ID_PAL = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = palette_blend_write,
@@ -223,6 +225,7 @@ IDTypeInfo IDType_ID_PC = {
     .name_plural = "paint_curves",
     .translation_context = BLT_I18NCONTEXT_ID_PAINTCURVE,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = paint_curve_copy_data,
@@ -230,6 +233,7 @@ IDTypeInfo IDType_ID_PC = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = paint_curve_blend_write,

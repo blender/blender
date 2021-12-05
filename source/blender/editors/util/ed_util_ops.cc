@@ -110,7 +110,7 @@ static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
   ot->invoke = WM_operator_filesel;
 
   /* flags */
-  ot->flag = OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,

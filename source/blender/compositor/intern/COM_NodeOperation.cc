@@ -150,7 +150,7 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
     modify_determined_canvas_fn_(r_area);
   }
 
-  rcti unused_area;
+  rcti unused_area = COM_AREA_NONE;
   const rcti &local_preferred_area = r_area;
   for (unsigned int index = 0; index < inputs_.size(); index++) {
     if (index == used_canvas_index) {

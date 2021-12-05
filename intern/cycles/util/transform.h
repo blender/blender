@@ -53,6 +53,15 @@ typedef struct DecomposedTransform {
 
 /* Functions */
 
+#ifdef __KERNEL_METAL__
+/* transform_point specialized for ccl_global */
+ccl_device_inline float3 transform_point(ccl_global const Transform *t, const float3 a)
+{
+  ccl_global const float3x3 &b(*(ccl_global const float3x3 *)t);
+  return (a * b).xyz + make_float3(t->x.w, t->y.w, t->z.w);
+}
+#endif
+
 ccl_device_inline float3 transform_point(ccl_private const Transform *t, const float3 a)
 {
   /* TODO(sergey): Disabled for now, causes crashes in certain cases. */
@@ -73,6 +82,9 @@ ccl_device_inline float3 transform_point(ccl_private const Transform *t, const f
   tmp += w;
 
   return float3(tmp.m128);
+#elif defined(__KERNEL_METAL__)
+  ccl_private const float3x3 &b(*(ccl_private const float3x3 *)t);
+  return (a * b).xyz + make_float3(t->x.w, t->y.w, t->z.w);
 #else
   float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z + t->x.w,
                          a.x * t->y.x + a.y * t->y.y + a.z * t->y.z + t->y.w,
@@ -99,6 +111,9 @@ ccl_device_inline float3 transform_direction(ccl_private const Transform *t, con
   tmp = madd(shuffle<2>(aa), z, tmp);
 
   return float3(tmp.m128);
+#elif defined(__KERNEL_METAL__)
+  ccl_private const float3x3 &b(*(ccl_private const float3x3 *)t);
+  return (a * b).xyz;
 #else
   float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z,
                          a.x * t->y.x + a.y * t->y.y + a.z * t->y.z,
@@ -351,11 +366,11 @@ ccl_device_inline Transform transform_empty()
 
 ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
-  /* Optix is using lerp to interpolate motion transformations. */
-#ifdef __KERNEL_OPTIX__
+  /* Optix and MetalRT are using lerp to interpolate motion transformations. */
+#if defined(__KERNEL_GPU_RAYTRACING__)
   return normalize((1.0f - t) * q1 + t * q2);
-#else  /* __KERNEL_OPTIX__ */
-  /* note: this does not ensure rotation around shortest angle, q1 and q2
+#else  /* defined(__KERNEL_GPU_RAYTRACING__) */
+  /* NOTE: this does not ensure rotation around shortest angle, q1 and q2
    * are assumed to be matched already in transform_motion_decompose */
   float costheta = dot(q1, q2);
 
@@ -372,7 +387,7 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
     float thetap = theta * t;
     return q1 * cosf(thetap) + qperp * sinf(thetap);
   }
-#endif /* __KERNEL_OPTIX__ */
+#endif /* defined(__KERNEL_GPU_RAYTRACING__) */
 }
 
 ccl_device_inline Transform transform_quick_inverse(Transform M)
@@ -450,8 +465,8 @@ ccl_device_inline void transform_compose(ccl_private Transform *tfm,
 }
 
 /* Interpolate from array of decomposed transforms. */
-ccl_device void transform_motion_array_interpolate(Transform *tfm,
-                                                   const DecomposedTransform *motion,
+ccl_device void transform_motion_array_interpolate(ccl_private Transform *tfm,
+                                                   ccl_global const DecomposedTransform *motion,
                                                    uint numsteps,
                                                    float time)
 {
@@ -460,8 +475,8 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
   int step = min((int)(time * maxstep), maxstep - 1);
   float t = time * maxstep - step;
 
-  const DecomposedTransform *a = motion + step;
-  const DecomposedTransform *b = motion + step + 1;
+  ccl_global const DecomposedTransform *a = motion + step;
+  ccl_global const DecomposedTransform *b = motion + step + 1;
 
   /* Interpolate rotation, translation and scale. */
   DecomposedTransform decomp;

@@ -123,7 +123,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out, GPU_constant(&metric));
 }
 
-static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
@@ -138,30 +138,36 @@ static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node
 
   NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
 
-  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
-  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree, inVectorSock, tex->dimensions != 1);
   nodeSetSocketAvailability(
+      ntree,
       inExponentSock,
       tex->distance == SHD_VORONOI_MINKOWSKI && tex->dimensions != 1 &&
           !ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  nodeSetSocketAvailability(inSmoothnessSock, tex->feature == SHD_VORONOI_SMOOTH_F1);
+  nodeSetSocketAvailability(ntree, inSmoothnessSock, tex->feature == SHD_VORONOI_SMOOTH_F1);
 
-  nodeSetSocketAvailability(outDistanceSock, tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outColorSock,
+  nodeSetSocketAvailability(ntree, outDistanceSock, tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree,
+                            outColorSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outPositionSock,
+  nodeSetSocketAvailability(ntree,
+                            outPositionSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                 tex->dimensions != 1);
-  nodeSetSocketAvailability(outWSock,
+  nodeSetSocketAvailability(ntree,
+                            outWSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                 (ELEM(tex->dimensions, 1, 4)));
-  nodeSetSocketAvailability(outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree, outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
 namespace blender::nodes {
+
+static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
 
 class VoronoiMinowskiFunction : public fn::MultiFunction {
  private:
@@ -220,22 +226,22 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_smoothness = [&](int param_index) -> const VArray<float> & {
+    auto get_smoothness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Smoothness");
     };
-    auto get_exponent = [&](int param_index) -> const VArray<float> & {
+    auto get_exponent = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Exponent");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
@@ -588,6 +594,11 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
       }
     }
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
 class VoronoiMetricFunction : public fn::MultiFunction {
@@ -651,19 +662,19 @@ class VoronoiMetricFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_smoothness = [&](int param_index) -> const VArray<float> & {
+    auto get_smoothness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Smoothness");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
@@ -1102,6 +1113,11 @@ class VoronoiMetricFunction : public fn::MultiFunction {
       }
     }
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
 class VoronoiEdgeFunction : public fn::MultiFunction {
@@ -1153,16 +1169,16 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_randomness = [&](int param_index) -> const VArray<float> & {
+    auto get_randomness = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Randomness");
     };
     auto get_r_distance = [&](int param_index) -> MutableSpan<float> {
@@ -1278,7 +1294,12 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
         break;
       }
     }
-  };
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
 static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)

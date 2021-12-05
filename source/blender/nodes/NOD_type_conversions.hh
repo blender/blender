@@ -21,7 +21,6 @@
 namespace blender::nodes {
 
 using fn::CPPType;
-using fn::GVArray;
 
 struct ConversionFunctions {
   const fn::MultiFunction *multi_function;
@@ -73,9 +72,9 @@ class DataTypeConversions {
                                 const void *from_value,
                                 void *to_value) const;
 
-  fn::GVArrayPtr try_convert(fn::GVArrayPtr varray, const CPPType &to_type) const;
+  fn::GVArray try_convert(fn::GVArray varray, const CPPType &to_type) const;
 
-  fn::GVMutableArrayPtr try_convert(fn::GVMutableArrayPtr varray, const CPPType &to_type) const;
+  fn::GVMutableArray try_convert(fn::GVMutableArray varray, const CPPType &to_type) const;
 };
 
 const DataTypeConversions &get_implicit_type_conversions();

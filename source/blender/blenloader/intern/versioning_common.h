@@ -64,6 +64,14 @@ void version_node_id(struct bNodeTree *ntree, const int node_type, const char *n
 
 void version_node_socket_id_delim(bNodeSocket *socket);
 
+struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree,
+                                                         struct bNode *node,
+                                                         eNodeSocketInOut in_out,
+                                                         int type,
+                                                         int subtype,
+                                                         const char *identifier,
+                                                         const char *name);
+
 #ifdef __cplusplus
 }
 #endif

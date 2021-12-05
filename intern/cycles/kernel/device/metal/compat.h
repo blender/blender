@@ -32,8 +32,13 @@
 
 using namespace metal;
 
+#ifdef __METALRT__
+using namespace metal::raytracing;
+#endif
+
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
+#pragma clang diagnostic ignored "-Wuninitialized"
 
 /* Qualifiers */
 
@@ -42,10 +47,11 @@ using namespace metal;
 #define ccl_device_forceinline ccl_device
 #define ccl_device_noinline ccl_device __attribute__((noinline))
 #define ccl_device_noinline_cpu ccl_device
+#define ccl_device_inline_method ccl_device
 #define ccl_global device
-#define ccl_static_constant static constant constexpr
+#define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
-#define ccl_constant const device
+#define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
 #define ccl_may_alias
@@ -64,7 +70,7 @@ using namespace metal;
 #define ccl_gpu_thread_mask(thread_warp) uint64_t((1ull << thread_warp) - 1)
 
 #define ccl_gpu_ballot(predicate) ((uint64_t)((simd_vote::vote_t)simd_ballot(predicate)))
-#define ccl_gpu_popc(x) popcount(x)
+#define ccl_gpu_syncthreads() threadgroup_barrier(mem_flags::mem_threadgroup);
 
 // clang-format off
 
@@ -123,7 +129,6 @@ kernel void kernel_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
                                 uint num_simd_groups [[simdgroups_per_threadgroup]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
-  INIT_DEBUG_BUFFER \
   params_struct->run(context, simdgroup_offset, metal_global_id, metal_local_id, metal_local_size, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
 void kernel_gpu_##name::run(thread MetalKernelContext& context, \
@@ -149,6 +154,31 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
   } ccl_gpu_kernel_lambda_pass(context)
 
 // clang-format on
+
+/* volumetric lambda functions - use function objects for lambda-like functionality */
+#define VOLUME_READ_LAMBDA(function_call) \
+  struct FnObjectRead { \
+    KernelGlobals kg; \
+    ccl_private MetalKernelContext *context; \
+    int state; \
+\
+    VolumeStack operator()(const int i) const \
+    { \
+      return context->function_call; \
+    } \
+  } volume_read_lambda_pass{kg, this, state};
+
+#define VOLUME_WRITE_LAMBDA(function_call) \
+  struct FnObjectWrite { \
+    KernelGlobals kg; \
+    ccl_private MetalKernelContext *context; \
+    int state; \
+\
+    void operator()(const int i, VolumeStack entry) const \
+    { \
+      context->function_call; \
+    } \
+  } volume_write_lambda_pass{kg, this, state};
 
 /* make_type definitions with Metal style element initializers */
 #ifdef make_float2
@@ -204,6 +234,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #define sinhf(x) sinh(float(x))
 #define coshf(x) cosh(float(x))
 #define tanhf(x) tanh(float(x))
+#define saturatef(x) saturate(float(x))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */
@@ -217,6 +248,24 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 #define NULL 0
 
+#define __device__
+
+#ifdef __METALRT__
+
+#  define __KERNEL_GPU_RAYTRACING__
+
+#  if defined(__METALRT_MOTION__)
+#    define METALRT_TAGS instancing, instance_motion, primitive_motion
+#  else
+#    define METALRT_TAGS instancing
+#  endif /* __METALRT_MOTION__ */
+
+typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
+typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
+typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+
+#endif /* __METALRT__ */
+
 /* texture bindings and sampler setup */
 
 struct Texture2DParamsMetal {
@@ -229,7 +278,17 @@ struct Texture3DParamsMetal {
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
+
+#ifdef __METALRT__
+  metalrt_as_type accel_struct;
+  metalrt_ift_type ift_default;
+  metalrt_ift_type ift_shadow;
+  metalrt_ift_type ift_local;
+#endif
 };
+
+#include "util/half.h"
+#include "util/types.h"
 
 enum SamplerType {
   SamplerFilterNearest_AddressRepeat,

@@ -23,7 +23,7 @@ static bool fn_node_poll_default(bNodeType *UNUSED(ntype),
 {
   /* Function nodes are only supported in simulation node trees so far. */
   if (!STREQ(ntree->idname, "GeometryNodeTree")) {
-    *r_disabled_hint = "Not a geometry node tree";
+    *r_disabled_hint = TIP_("Not a geometry node tree");
     return false;
   }
   return true;
@@ -33,6 +33,5 @@ void fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
 {
   node_type_base(ntype, type, name, nclass, flag);
   ntype->poll = fn_node_poll_default;
-  ntype->update_internal_links = node_update_internal_links_default;
   ntype->insert_link = node_insert_link_default;
 }

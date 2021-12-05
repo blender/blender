@@ -82,6 +82,9 @@ typedef struct tGraphSliderOp {
 
   struct tSlider *slider;
 
+  /* Each operator has a specific update function. */
+  void (*modal_update)(struct bContext *, struct wmOperator *);
+
   NumInput num;
 } tGraphSliderOp;
 
@@ -177,6 +180,154 @@ static void reset_bezts(tGraphSliderOp *gso)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Common Modal Functions
+ * \{ */
+
+static void graph_slider_exit(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = op->customdata;
+  wmWindow *win = CTX_wm_window(C);
+
+  /* If data exists, clear its data and exit. */
+  if (gso == NULL) {
+    return;
+  }
+
+  ScrArea *area = gso->area;
+  LinkData *link;
+
+  ED_slider_destroy(C, gso->slider);
+
+  for (link = gso->bezt_arr_list.first; link != NULL; link = link->next) {
+    tBeztCopyData *copy = link->data;
+    MEM_freeN(copy->bezt);
+    MEM_freeN(link->data);
+  }
+
+  BLI_freelistN(&gso->bezt_arr_list);
+  MEM_freeN(gso);
+
+  /* Return to normal cursor and header status. */
+  WM_cursor_modal_restore(win);
+  ED_area_status_text(area, NULL);
+
+  /* cleanup */
+  op->customdata = NULL;
+}
+
+static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  tGraphSliderOp *gso = op->customdata;
+
+  const bool has_numinput = hasNumInput(&gso->num);
+
+  ED_slider_modal(gso->slider, event);
+
+  switch (event->type) {
+    /* Confirm */
+    case LEFTMOUSE:
+    case EVT_RETKEY:
+    case EVT_PADENTER: {
+      if (event->val == KM_PRESS) {
+        graph_slider_exit(C, op);
+
+        return OPERATOR_FINISHED;
+      }
+      break;
+    }
+
+    /* Cancel */
+    case EVT_ESCKEY:
+    case RIGHTMOUSE: {
+      if (event->val == KM_PRESS) {
+        reset_bezts(gso);
+
+        WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+        graph_slider_exit(C, op);
+
+        return OPERATOR_CANCELLED;
+      }
+      break;
+    }
+
+    /* When the mouse is moved, the percentage and the keyframes update. */
+    case MOUSEMOVE: {
+      if (has_numinput == false) {
+        /* Do the update as specified by the operator. */
+        gso->modal_update(C, op);
+      }
+      break;
+    }
+    default: {
+      if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
+        float value;
+        float percentage = RNA_property_float_get(op->ptr, gso->percentage_prop);
+
+        /* Grab percentage from numeric input, and store this new value for redo
+         * NOTE: users see ints, while internally we use a 0-1 float.
+         */
+        value = percentage * 100.0f;
+        applyNumInput(&gso->num, &value);
+
+        percentage = value / 100.0f;
+        ED_slider_factor_set(gso->slider, percentage);
+        RNA_property_float_set(op->ptr, gso->percentage_prop, percentage);
+
+        gso->modal_update(C, op);
+        break;
+      }
+
+      /* Unhandled event - maybe it was some view manip? */
+      /* Allow to pass through. */
+      return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
+    }
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+/* Allocate tGraphSliderOp and assign to op->customdata. */
+static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  tGraphSliderOp *gso;
+
+  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
+
+  /* Init slide-op data. */
+  gso = op->customdata = MEM_callocN(sizeof(tGraphSliderOp), "tGraphSliderOp");
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &gso->ac) == 0) {
+    graph_slider_exit(C, op);
+    return OPERATOR_CANCELLED;
+  }
+
+  gso->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
+
+  gso->scene = CTX_data_scene(C);
+  gso->area = CTX_wm_area(C);
+  gso->region = CTX_wm_region(C);
+
+  store_original_bezt_arrays(gso);
+
+  gso->slider = ED_slider_create(C);
+  ED_slider_init(gso->slider, event);
+
+  if (gso->bezt_arr_list.first == NULL) {
+    WM_report(RPT_WARNING,
+              "Fcurve Slider: Can't work on baked channels. Unbake them and try again.");
+    graph_slider_exit(C, op);
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Decimate Keyframes Operator
  * \{ */
 
@@ -207,38 +358,6 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
   ANIM_animdata_freelist(&anim_data);
 }
 
-static void decimate_exit(bContext *C, wmOperator *op)
-{
-  tGraphSliderOp *gso = op->customdata;
-  wmWindow *win = CTX_wm_window(C);
-
-  /* If data exists, clear its data and exit. */
-  if (gso == NULL) {
-    return;
-  }
-
-  ScrArea *area = gso->area;
-  LinkData *link;
-
-  ED_slider_destroy(C, gso->slider);
-
-  for (link = gso->bezt_arr_list.first; link != NULL; link = link->next) {
-    tBeztCopyData *copy = link->data;
-    MEM_freeN(copy->bezt);
-    MEM_freeN(link->data);
-  }
-
-  BLI_freelistN(&gso->bezt_arr_list);
-  MEM_freeN(gso);
-
-  /* Return to normal cursor and header status. */
-  WM_cursor_modal_restore(win);
-  ED_area_status_text(area, NULL);
-
-  /* Cleanup. */
-  op->customdata = NULL;
-}
-
 /* Draw a percentage indicator in workspace footer. */
 static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 {
@@ -264,46 +383,6 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
   ED_workspace_status_text(C, status_str);
 }
 
-static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  tGraphSliderOp *gso;
-
-  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
-
-  /* Init slide-op data. */
-  gso = op->customdata = MEM_callocN(sizeof(tGraphSliderOp), "tGraphSliderOp");
-
-  /* Get editor data. */
-  if (ANIM_animdata_get_context(C, &gso->ac) == 0) {
-    decimate_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-
-  gso->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
-
-  gso->scene = CTX_data_scene(C);
-  gso->area = CTX_wm_area(C);
-  gso->region = CTX_wm_region(C);
-
-  store_original_bezt_arrays(gso);
-
-  gso->slider = ED_slider_create(C);
-  ED_slider_init(gso->slider, event);
-  ED_slider_allow_overshoot_set(gso->slider, false);
-
-  decimate_draw_status(C, gso);
-
-  if (gso->bezt_arr_list.first == NULL) {
-    WM_report(RPT_WARNING,
-              "Fcurve Decimate: Can't decimate baked channels. Unbake them and try again.");
-    decimate_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
-
 static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
 {
   /* Perform decimate updates - in response to some user action
@@ -324,79 +403,19 @@ static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
-static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* This assumes that we are in "DECIM_RATIO" mode. This is because the error margin is very hard
-   * and finicky to control with this modal mouse grab method. Therefore, it is expected that the
-   * error margin mode is not adjusted by the modal operator but instead tweaked via the redo
-   * panel. */
-  tGraphSliderOp *gso = op->customdata;
+  const int invoke_result = graph_slider_invoke(C, op, event);
 
-  const bool has_numinput = hasNumInput(&gso->num);
-
-  ED_slider_modal(gso->slider, event);
-
-  switch (event->type) {
-    case LEFTMOUSE: /* Confirm */
-    case EVT_RETKEY:
-    case EVT_PADENTER: {
-      if (event->val == KM_PRESS) {
-        decimate_exit(C, op);
-
-        return OPERATOR_FINISHED;
-      }
-      break;
-    }
-
-    case EVT_ESCKEY: /* Cancel */
-    case RIGHTMOUSE: {
-      if (event->val == KM_PRESS) {
-        reset_bezts(gso);
-
-        WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-
-        decimate_exit(C, op);
-
-        return OPERATOR_CANCELLED;
-      }
-      break;
-    }
-
-    /* Percentage Change... */
-    case MOUSEMOVE: /* Calculate new position. */
-    {
-      if (has_numinput == false) {
-        /* Update pose to reflect the new values. */
-        graphkeys_decimate_modal_update(C, op);
-      }
-      break;
-    }
-    default: {
-      if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
-        float value;
-        float percentage = RNA_property_float_get(op->ptr, gso->percentage_prop);
-
-        /* Grab percentage from numeric input, and store this new value for redo
-         * NOTE: users see ints, while internally we use a 0-1 float.
-         */
-        value = percentage * 100.0f;
-        applyNumInput(&gso->num, &value);
-
-        percentage = value / 100.0f;
-        RNA_property_float_set(op->ptr, gso->percentage_prop, percentage);
-
-        /* Update decimate output to reflect the new values. */
-        graphkeys_decimate_modal_update(C, op);
-        break;
-      }
-
-      /* Unhandled event - maybe it was some view manipulation? */
-      /* Allow to pass through. */
-      return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
-    }
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  tGraphSliderOp *gso = op->customdata;
+  gso->modal_update = graphkeys_decimate_modal_update;
+  ED_slider_allow_overshoot_set(gso->slider, false);
+
+  return invoke_result;
 }
 
 static int graphkeys_decimate_exec(bContext *C, wmOperator *op)
@@ -500,7 +519,7 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
   ot->poll_property = graphkeys_decimate_poll_property;
   ot->get_description = graphkeys_decimate_desc;
   ot->invoke = graphkeys_decimate_invoke;
-  ot->modal = graphkeys_decimate_modal;
+  ot->modal = graph_slider_modal;
   ot->exec = graphkeys_decimate_exec;
   ot->poll = graphop_editable_keyframes_poll;
 

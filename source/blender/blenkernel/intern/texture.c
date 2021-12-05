@@ -211,6 +211,7 @@ IDTypeInfo IDType_ID_TE = {
     .name_plural = "textures",
     .translation_context = BLT_I18NCONTEXT_ID_TEXTURE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = texture_init_data,
     .copy_data = texture_copy_data,
@@ -218,6 +219,7 @@ IDTypeInfo IDType_ID_TE = {
     .make_local = NULL,
     .foreach_id = texture_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = texture_blend_write,

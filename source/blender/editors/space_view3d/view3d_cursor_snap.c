@@ -94,7 +94,7 @@ typedef struct SnapCursorDataIntern {
 } SnapCursorDataIntern;
 
 static SnapCursorDataIntern g_data_intern = {
-    .state_default = {.prevpoint = NULL,
+    .state_default = {.flag = V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL,
                       .snap_elem_force = SCE_SNAP_MODE_GEOM,
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},

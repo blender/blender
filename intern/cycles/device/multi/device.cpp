@@ -109,14 +109,6 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual bool show_samples() const override
-  {
-    if (devices.size() > 1) {
-      return false;
-    }
-    return devices.front().device->show_samples();
-  }
-
   virtual BVHLayoutMask get_bvh_layout_mask() const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
@@ -136,6 +128,10 @@ class MultiDevice : public Device {
     const BVHLayoutMask BVH_LAYOUT_OPTIX_EMBREE = (BVH_LAYOUT_OPTIX | BVH_LAYOUT_EMBREE);
     if ((bvh_layout_mask_all & BVH_LAYOUT_OPTIX_EMBREE) == BVH_LAYOUT_OPTIX_EMBREE) {
       return BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+    }
+    const BVHLayoutMask BVH_LAYOUT_METAL_EMBREE = (BVH_LAYOUT_METAL | BVH_LAYOUT_EMBREE);
+    if ((bvh_layout_mask_all & BVH_LAYOUT_METAL_EMBREE) == BVH_LAYOUT_METAL_EMBREE) {
+      return BVH_LAYOUT_MULTI_METAL_EMBREE;
     }
 
     return bvh_layout_mask;
@@ -159,7 +155,8 @@ class MultiDevice : public Device {
     }
 
     assert(bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
-           bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE);
+           bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
+           bvh->params.bvh_layout == BVH_LAYOUT_MULTI_METAL_EMBREE);
 
     BVHMulti *const bvh_multi = static_cast<BVHMulti *>(bvh);
     bvh_multi->sub_bvhs.resize(devices.size());

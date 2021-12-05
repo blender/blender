@@ -27,6 +27,8 @@
 
 #include "ED_numinput.h"
 
+#define DEPTH_INVALID 1.0f
+
 /* internal exports only */
 struct Material;
 struct bGPDspoint;

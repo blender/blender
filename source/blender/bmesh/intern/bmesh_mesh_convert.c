@@ -1068,8 +1068,8 @@ void BM_mesh_bm_to_me(
 #endif
   }
 
-  //undo mesh?
-  //bool non_id_mesh = GS(me->id.name) != ID_ME;
+  // undo mesh?
+  // bool non_id_mesh = GS(me->id.name) != ID_ME;
 
   /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
@@ -1489,23 +1489,6 @@ void BM_mesh_bm_to_me(
   }
 }
 
-/**
- * A version of #BM_mesh_bm_to_me intended for getting the mesh
- * to pass to the modifier stack for evaluation,
- * instead of mode switching (where we make sure all data is kept
- * and do expensive lookups to maintain shape keys).
- *
- * Key differences:
- *
- * - Don't support merging with existing mesh.
- * - Ignore shape-keys.
- * - Ignore vertex-parents.
- * - Ignore selection history.
- * - Uses simpler method to calculate #ME_EDGEDRAW
- * - Uses #CD_MASK_DERIVEDMESH instead of #CD_MASK_MESH.
- *
- * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
- */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
   /* Must be an empty mesh. */

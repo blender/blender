@@ -334,7 +334,6 @@ DEG_COMPONENT_NODE_DEFINE(Pose, EVAL_POSE, ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(Proxy, PROXY, ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(Sequencer, SEQUENCER, 0);
 DEG_COMPONENT_NODE_DEFINE(Shading, SHADING, ID_RECALC_SHADING);
-DEG_COMPONENT_NODE_DEFINE(ShadingParameters, SHADING_PARAMETERS, ID_RECALC_SHADING);
 DEG_COMPONENT_NODE_DEFINE(Transform, TRANSFORM, ID_RECALC_TRANSFORM);
 DEG_COMPONENT_NODE_DEFINE(ObjectFromLayer, OBJECT_FROM_LAYER, 0);
 DEG_COMPONENT_NODE_DEFINE(Dupli, DUPLI, 0);
@@ -342,6 +341,7 @@ DEG_COMPONENT_NODE_DEFINE(Synchronization, SYNCHRONIZATION, 0);
 DEG_COMPONENT_NODE_DEFINE(Audio, AUDIO, 0);
 DEG_COMPONENT_NODE_DEFINE(Armature, ARMATURE, 0);
 DEG_COMPONENT_NODE_DEFINE(GenericDatablock, GENERIC_DATABLOCK, 0);
+DEG_COMPONENT_NODE_DEFINE(Visibility, VISIBILITY, 0);
 DEG_COMPONENT_NODE_DEFINE(Simulation, SIMULATION, 0);
 
 /* Node Types Register =================================== */
@@ -364,7 +364,6 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_EVAL_POSE);
   register_node_typeinfo(&DNTI_SEQUENCER);
   register_node_typeinfo(&DNTI_SHADING);
-  register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
   register_node_typeinfo(&DNTI_TRANSFORM);
   register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
   register_node_typeinfo(&DNTI_DUPLI);
@@ -372,6 +371,7 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_AUDIO);
   register_node_typeinfo(&DNTI_ARMATURE);
   register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
+  register_node_typeinfo(&DNTI_VISIBILITY);
   register_node_typeinfo(&DNTI_SIMULATION);
 }
 

@@ -25,13 +25,9 @@
 
 #include "node_geometry_util.hh"
 
-using blender::fn::GVArray_For_GSpan;
-using blender::fn::GVArray_For_Span;
-using blender::fn::GVArray_Typed;
+namespace blender::nodes::node_geo_curve_subdivide_cc {
 
-namespace blender::nodes {
-
-static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>(N_("Cuts")).default_value(1).min(0).max(1000).supports_field();
@@ -326,7 +322,7 @@ static std::unique_ptr<CurveEval> subdivide_curve(const CurveEval &input_curve,
   return output_curve;
 }
 
-static void geo_node_subdivide_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> cuts_field = params.extract_input<Field<int>>("Cuts");
@@ -355,14 +351,16 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
   params.set_output("Curve", geometry_set);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_subdivide_cc
 
 void register_node_type_geo_curve_subdivide()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_subdivide_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

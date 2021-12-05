@@ -17,7 +17,9 @@
 #ifndef __UTIL_TYPES_H__
 #define __UTIL_TYPES_H__
 
-#include <stdlib.h>
+#if !defined(__KERNEL_METAL__)
+#  include <stdlib.h>
+#endif
 
 /* Standard Integer Types */
 

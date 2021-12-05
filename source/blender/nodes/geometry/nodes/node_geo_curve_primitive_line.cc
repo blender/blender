@@ -21,9 +21,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_line_cc {
 
-static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Start"))
       .subtype(PROP_TRANSLATION)
@@ -43,14 +43,12 @@ static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_primitive_line_layout(uiLayout *layout,
-                                                 bContext *UNUSED(C),
-                                                 PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_primitive_line_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurvePrimitiveLine *data = (NodeGeometryCurvePrimitiveLine *)MEM_callocN(
       sizeof(NodeGeometryCurvePrimitiveLine), __func__);
@@ -59,7 +57,7 @@ static void geo_node_curve_primitive_line_init(bNodeTree *UNUSED(tree), bNode *n
   node->storage = data;
 }
 
-static void geo_node_curve_primitive_line_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurvePrimitiveLine *node_storage = (NodeGeometryCurvePrimitiveLine *)
                                                            node->storage;
@@ -70,10 +68,11 @@ static void geo_node_curve_primitive_line_update(bNodeTree *UNUSED(ntree), bNode
   bNodeSocket *direction_socket = p2_socket->next;
   bNodeSocket *length_socket = direction_socket->next;
 
-  nodeSetSocketAvailability(p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
-  nodeSetSocketAvailability(direction_socket,
-                            mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
-  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(ntree, p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, direction_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(
+      ntree, length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
 }
 
 static std::unique_ptr<CurveEval> create_point_line_curve(const float3 start, const float3 end)
@@ -111,7 +110,7 @@ static std::unique_ptr<CurveEval> create_direction_line_curve(const float3 start
   return curve;
 }
 
-static void geo_node_curve_primitive_line_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
 
   const NodeGeometryCurvePrimitiveLine *node_storage =
@@ -133,20 +132,22 @@ static void geo_node_curve_primitive_line_exec(GeoNodeExecParams params)
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_line_cc
 
 void register_node_type_geo_curve_primitive_line()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_line_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_line_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_line_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_line_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_line_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_line_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

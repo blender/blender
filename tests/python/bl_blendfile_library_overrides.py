@@ -59,7 +59,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         self.assertIsNone(local_id.data.override_library)
         assert(len(local_id.override_library.properties) == 0)
 
-        ##### Generate an override property & operation automaticaly by editing the local override data.
+        ##### Generate an override property & operation automatically by editing the local override data.
         local_id.location.y = 1.0
         local_id.override_library.operations_update()
         assert(len(local_id.override_library.properties) == 1)
@@ -68,7 +68,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'REPLACE')
-        # Setting location.y overridded all elements in the location array. -1 is a wildcard.
+        # Setting location.y overrode all elements in the location array. -1 is a wildcard.
         assert(override_operation.subitem_local_index == -1)
 
         ##### Reset the override to its linked reference data.
@@ -86,7 +86,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'REPLACE')
-        # Setting location.y overridded all elements in the location array. -1 is a wildcard.
+        # Setting location.y overrode all elements in the location array. -1 is a wildcard.
         assert(override_operation.subitem_local_index == -1)
 
         override_property = local_id.override_library.properties[0]

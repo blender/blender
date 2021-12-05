@@ -17,19 +17,19 @@
 #include "BKE_spline.hh"
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_length_cc {
 
-static void geo_node_curve_length_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_output<decl::Float>(N_("Length"));
 }
 
-static void geo_node_curve_length_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
   if (!curve_set.has_curve()) {
-    params.set_output("Length", 0.0f);
+    params.set_default_remaining_outputs();
     return;
   }
   const CurveEval &curve = *curve_set.get_curve_for_read();
@@ -40,14 +40,16 @@ static void geo_node_curve_length_exec(GeoNodeExecParams params)
   params.set_output("Length", length);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_length_cc
 
 void register_node_type_geo_curve_length()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_length_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_LENGTH, "Curve Length", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_length_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_length_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

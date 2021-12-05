@@ -211,6 +211,11 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
             filelist_setrecursion(sfile->files, params->recursion_level);
           }
         }
+        else if (file->redirection_path) {
+          BLI_strncpy(params->dir, file->redirection_path, sizeof(params->dir));
+          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+          BLI_path_slash_ensure(params->dir);
+        }
         else {
           BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
           strcat(params->dir, file->relpath);
@@ -1413,8 +1418,13 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
     return 0;
   }
 
-  numfiles = filelist_files_ensure(sfile->files);
   params = ED_fileselect_get_active_params(sfile);
+  /* In case #SpaceFile.browse_mode just changed, the area may be pending a refresh still, which is
+   * what creates the params for the current browse mode. See T93508. */
+  if (!params) {
+    return false;
+  }
+  numfiles = filelist_files_ensure(sfile->files);
 
   origfile = params->highlight_file;
 
@@ -1951,35 +1961,6 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
   /* api callbacks */
   ot->exec = file_refresh_exec;
   ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Refresh Asset Library Operator
- * \{ */
-
-static int file_asset_library_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  SpaceFile *sfile = CTX_wm_space_file(C);
-
-  ED_fileselect_clear(wm, sfile);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
-
-  return OPERATOR_FINISHED;
-}
-
-void FILE_OT_asset_library_refresh(struct wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Refresh Asset Library";
-  ot->description = "Reread assets and asset catalogs from the asset library on disk";
-  ot->idname = "FILE_OT_asset_library_refresh";
-
-  /* api callbacks */
-  ot->exec = file_asset_library_refresh_exec;
-  ot->poll = ED_operator_asset_browsing_active;
 }
 
 /** \} */

@@ -35,13 +35,17 @@
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
+#include <chrono>
+
 namespace blender::modifiers::geometry_nodes {
 
 using fn::CPPType;
 using fn::Field;
-using fn::FieldCPPType;
 using fn::GField;
 using fn::GValueMap;
+using fn::GVArray;
+using fn::ValueOrField;
+using fn::ValueOrFieldCPPType;
 using nodes::GeoNodeExecParams;
 using namespace fn::multi_function_types;
 
@@ -309,10 +313,10 @@ class LockedNode : NonCopyable, NonMovable {
 static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 {
   const bNodeSocketType *typeinfo = socket.typeinfo();
-  if (typeinfo->get_geometry_nodes_cpp_type == nullptr) {
+  if (typeinfo->geometry_nodes_cpp_type == nullptr) {
     return nullptr;
   }
-  const CPPType *type = typeinfo->get_geometry_nodes_cpp_type();
+  const CPPType *type = typeinfo->geometry_nodes_cpp_type;
   if (type == nullptr) {
     return nullptr;
   }
@@ -348,18 +352,19 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
                                  GEO_NODE_CURVE_HANDLE_LEFT ?
                              "handle_left" :
                              "handle_right";
-        new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>(side));
+        new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
         return true;
       }
-      new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>("position"));
+      new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
       return true;
     }
     if (socket.typeinfo()->type == SOCK_INT) {
       if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
-        new (r_value) Field<int>(std::make_shared<bke::IDAttributeFieldInput>());
+        new (r_value)
+            ValueOrField<int>(Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
         return true;
       }
-      new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
+      new (r_value) ValueOrField<int>(Field<int>(std::make_shared<fn::IndexFieldInput>()));
       return true;
     }
   }
@@ -381,14 +386,23 @@ static bool node_supports_laziness(const DNode node)
   return node->typeinfo()->geometry_node_execute_supports_laziness;
 }
 
+struct NodeTaskRunState {
+  /** The node that should be run on the same thread after the current node finished. */
+  DNode next_node_to_run;
+};
+
 /** Implements the callbacks that might be called when a node is executed. */
 class NodeParamsProvider : public nodes::GeoNodeExecParamsProvider {
  private:
   GeometryNodesEvaluator &evaluator_;
   NodeState &node_state_;
+  NodeTaskRunState *run_state_;
 
  public:
-  NodeParamsProvider(GeometryNodesEvaluator &evaluator, DNode dnode, NodeState &node_state);
+  NodeParamsProvider(GeometryNodesEvaluator &evaluator,
+                     DNode dnode,
+                     NodeState &node_state,
+                     NodeTaskRunState *run_state);
 
   bool can_get_input(StringRef identifier) const override;
   bool can_set_output(StringRef identifier) const override;
@@ -402,6 +416,8 @@ class NodeParamsProvider : public nodes::GeoNodeExecParamsProvider {
 
   bool lazy_require_input(StringRef identifier) override;
   bool lazy_output_is_required(StringRef identifier) const override;
+
+  void set_default_remaining_outputs() override;
 };
 
 class GeometryNodesEvaluator {
@@ -640,7 +656,7 @@ class GeometryNodesEvaluator {
         value.destruct();
         continue;
       }
-      this->forward_output(socket, value);
+      this->forward_output(socket, value, nullptr);
     }
   }
 
@@ -649,7 +665,7 @@ class GeometryNodesEvaluator {
     for (const DInputSocket &socket : params_.output_sockets) {
       const DNode node = socket.node();
       NodeState &node_state = this->get_node_state(node);
-      this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      this->with_locked_node(node, node_state, nullptr, [&](LockedNode &locked_node) {
         /* Setting an input as required will schedule any linked node. */
         this->set_input_required(locked_node, socket);
       });
@@ -657,7 +673,7 @@ class GeometryNodesEvaluator {
     for (const DSocket socket : params_.force_compute_sockets) {
       const DNode node = socket.node();
       NodeState &node_state = this->get_node_state(node);
-      this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      this->with_locked_node(node, node_state, nullptr, [&](LockedNode &locked_node) {
         if (socket->is_input()) {
           this->set_input_required(locked_node, DInputSocket(socket));
         }
@@ -702,12 +718,24 @@ class GeometryNodesEvaluator {
   {
     void *user_data = BLI_task_pool_user_data(task_pool);
     GeometryNodesEvaluator &evaluator = *(GeometryNodesEvaluator *)user_data;
-    const NodeWithState *node_with_state = (const NodeWithState *)task_data;
+    const NodeWithState *root_node_with_state = (const NodeWithState *)task_data;
 
-    evaluator.node_task_run(node_with_state->node, *node_with_state->state);
+    /* First, the node provided by the task pool is executed. During the execution other nodes
+     * might be scheduled. One of those nodes is not added to the task pool but is executed in the
+     * loop below directly. This has two main benefits:
+     * - Fewer round trips through the task pool which add threading overhead.
+     * - Helps with cpu cache efficiency, because a thread is more likely to process data that it
+     *   has processed shortly before.
+     */
+    DNode next_node_to_run = root_node_with_state->node;
+    while (next_node_to_run) {
+      NodeTaskRunState run_state;
+      evaluator.node_task_run(next_node_to_run, &run_state);
+      next_node_to_run = run_state.next_node_to_run;
+    }
   }
 
-  void node_task_run(const DNode node, NodeState &node_state)
+  void node_task_run(const DNode node, NodeTaskRunState *run_state)
   {
     /* These nodes are sometimes scheduled. We could also check for them in other places, but
      * it's the easiest to do it here. */
@@ -715,21 +743,25 @@ class GeometryNodesEvaluator {
       return;
     }
 
-    const bool do_execute_node = this->node_task_preprocessing(node, node_state);
+    NodeState &node_state = *node_states_.lookup_key_as(node).state;
+
+    const bool do_execute_node = this->node_task_preprocessing(node, node_state, run_state);
 
     /* Only execute the node if all prerequisites are met. There has to be an output that is
      * required and all required inputs have to be provided already. */
     if (do_execute_node) {
-      this->execute_node(node, node_state);
+      this->execute_node(node, node_state, run_state);
     }
 
-    this->node_task_postprocessing(node, node_state);
+    this->node_task_postprocessing(node, node_state, do_execute_node, run_state);
   }
 
-  bool node_task_preprocessing(const DNode node, NodeState &node_state)
+  bool node_task_preprocessing(const DNode node,
+                               NodeState &node_state,
+                               NodeTaskRunState *run_state)
   {
     bool do_execute_node = false;
-    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+    this->with_locked_node(node, node_state, run_state, [&](LockedNode &locked_node) {
       BLI_assert(node_state.schedule_state == NodeScheduleState::Scheduled);
       node_state.schedule_state = NodeScheduleState::Running;
 
@@ -888,7 +920,7 @@ class GeometryNodesEvaluator {
    * Actually execute the node. All the required inputs are available and at least one output is
    * required.
    */
-  void execute_node(const DNode node, NodeState &node_state)
+  void execute_node(const DNode node, NodeState &node_state, NodeTaskRunState *run_state)
   {
     const bNode &bnode = *node->bnode();
 
@@ -902,40 +934,49 @@ class GeometryNodesEvaluator {
 
     /* Use the geometry node execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
-      this->execute_geometry_node(node, node_state);
+      this->execute_geometry_node(node, node_state, run_state);
       return;
     }
 
     /* Use the multi-function implementation if it exists. */
     const nodes::NodeMultiFunctions::Item &fn_item = params_.mf_by_node->try_get(node);
     if (fn_item.fn != nullptr) {
-      this->execute_multi_function_node(node, fn_item, node_state);
+      this->execute_multi_function_node(node, fn_item, node_state, run_state);
       return;
     }
 
-    this->execute_unknown_node(node, node_state);
+    this->execute_unknown_node(node, node_state, run_state);
   }
 
-  void execute_geometry_node(const DNode node, NodeState &node_state)
+  void execute_geometry_node(const DNode node, NodeState &node_state, NodeTaskRunState *run_state)
   {
     const bNode &bnode = *node->bnode();
 
-    NodeParamsProvider params_provider{*this, node, node_state};
+    NodeParamsProvider params_provider{*this, node, node_state, run_state};
     GeoNodeExecParams params{params_provider};
     if (node->idname().find("Legacy") != StringRef::not_found) {
       params.error_message_add(geo_log::NodeWarningType::Legacy,
                                TIP_("Legacy node will be removed before Blender 4.0"));
     }
+    using Clock = std::chrono::steady_clock;
+    Clock::time_point begin = Clock::now();
     bnode.typeinfo->geometry_node_execute(params);
+    Clock::time_point end = Clock::now();
+    const std::chrono::microseconds duration =
+        std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    if (params_.geo_logger != nullptr) {
+      params_.geo_logger->local().log_execution_time(node, duration);
+    }
   }
 
   void execute_multi_function_node(const DNode node,
                                    const nodes::NodeMultiFunctions::Item &fn_item,
-                                   NodeState &node_state)
+                                   NodeState &node_state,
+                                   NodeTaskRunState *run_state)
   {
     if (node->idname().find("Legacy") != StringRef::not_found) {
       /* Create geometry nodes params just for creating an error message. */
-      NodeParamsProvider params_provider{*this, node, node_state};
+      NodeParamsProvider params_provider{*this, node, node_state, run_state};
       GeoNodeExecParams params{params_provider};
       params.error_message_add(geo_log::NodeWarningType::Legacy,
                                TIP_("Legacy node will be removed before Blender 4.0"));
@@ -943,8 +984,9 @@ class GeometryNodesEvaluator {
 
     LinearAllocator<> &allocator = local_allocators_.local();
 
-    /* Prepare the inputs for the multi function. */
-    Vector<GField> input_fields;
+    bool any_input_is_field = false;
+    Vector<const void *, 16> input_values;
+    Vector<const ValueOrFieldCPPType *, 16> input_types;
     for (const int i : node->inputs().index_range()) {
       const InputSocketRef &socket_ref = node->input(i);
       if (!socket_ref.is_available()) {
@@ -955,7 +997,38 @@ class GeometryNodesEvaluator {
       BLI_assert(input_state.was_ready_for_execution);
       SingleInputValue &single_value = *input_state.value.single;
       BLI_assert(single_value.value != nullptr);
-      input_fields.append(std::move(*(GField *)single_value.value));
+      const ValueOrFieldCPPType &field_cpp_type = static_cast<const ValueOrFieldCPPType &>(
+          *input_state.type);
+      input_values.append(single_value.value);
+      input_types.append(&field_cpp_type);
+      if (field_cpp_type.is_field(single_value.value)) {
+        any_input_is_field = true;
+      }
+    }
+
+    if (any_input_is_field) {
+      this->execute_multi_function_node__field(
+          node, fn_item, node_state, allocator, input_values, input_types, run_state);
+    }
+    else {
+      this->execute_multi_function_node__value(
+          node, *fn_item.fn, node_state, allocator, input_values, input_types, run_state);
+    }
+  }
+
+  void execute_multi_function_node__field(const DNode node,
+                                          const nodes::NodeMultiFunctions::Item &fn_item,
+                                          NodeState &node_state,
+                                          LinearAllocator<> &allocator,
+                                          Span<const void *> input_values,
+                                          Span<const ValueOrFieldCPPType *> input_types,
+                                          NodeTaskRunState *run_state)
+  {
+    Vector<GField> input_fields;
+    for (const int i : input_values.index_range()) {
+      const void *input_value_or_field = input_values[i];
+      const ValueOrFieldCPPType &field_cpp_type = *input_types[i];
+      input_fields.append(field_cpp_type.as_field(input_value_or_field));
     }
 
     std::shared_ptr<fn::FieldOperation> operation;
@@ -966,7 +1039,6 @@ class GeometryNodesEvaluator {
       operation = std::make_shared<fn::FieldOperation>(*fn_item.fn, std::move(input_fields));
     }
 
-    /* Forward outputs. */
     int output_index = 0;
     for (const int i : node->outputs().index_range()) {
       const OutputSocketRef &socket_ref = node->output(i);
@@ -975,17 +1047,70 @@ class GeometryNodesEvaluator {
       }
       OutputState &output_state = node_state.outputs[i];
       const DOutputSocket socket{node.context(), &socket_ref};
-      const CPPType *cpp_type = get_socket_cpp_type(socket_ref);
+      const ValueOrFieldCPPType *cpp_type = static_cast<const ValueOrFieldCPPType *>(
+          get_socket_cpp_type(socket_ref));
       GField new_field{operation, output_index};
-      new_field = fn::make_field_constant_if_possible(std::move(new_field));
-      GField &field_to_forward = *allocator.construct<GField>(std::move(new_field)).release();
-      this->forward_output(socket, {cpp_type, &field_to_forward});
+      void *buffer = allocator.allocate(cpp_type->size(), cpp_type->alignment());
+      cpp_type->construct_from_field(buffer, std::move(new_field));
+      this->forward_output(socket, {cpp_type, buffer}, run_state);
       output_state.has_been_computed = true;
       output_index++;
     }
   }
 
-  void execute_unknown_node(const DNode node, NodeState &node_state)
+  void execute_multi_function_node__value(const DNode node,
+                                          const MultiFunction &fn,
+                                          NodeState &node_state,
+                                          LinearAllocator<> &allocator,
+                                          Span<const void *> input_values,
+                                          Span<const ValueOrFieldCPPType *> input_types,
+                                          NodeTaskRunState *run_state)
+  {
+    MFParamsBuilder params{fn, 1};
+    for (const int i : input_values.index_range()) {
+      const void *input_value_or_field = input_values[i];
+      const ValueOrFieldCPPType &field_cpp_type = *input_types[i];
+      const CPPType &base_type = field_cpp_type.base_type();
+      const void *input_value = field_cpp_type.get_value_ptr(input_value_or_field);
+      params.add_readonly_single_input(GVArray::ForSingleRef(base_type, 1, input_value));
+    }
+
+    Vector<GMutablePointer, 16> output_buffers;
+    for (const int i : node->outputs().index_range()) {
+      const DOutputSocket socket = node.output(i);
+      if (!socket->is_available()) {
+        output_buffers.append({});
+        continue;
+      }
+      const ValueOrFieldCPPType *value_or_field_type = static_cast<const ValueOrFieldCPPType *>(
+          get_socket_cpp_type(socket));
+      const CPPType &base_type = value_or_field_type->base_type();
+      void *value_or_field_buffer = allocator.allocate(value_or_field_type->size(),
+                                                       value_or_field_type->alignment());
+      value_or_field_type->default_construct(value_or_field_buffer);
+      void *value_buffer = value_or_field_type->get_value_ptr(value_or_field_buffer);
+      base_type.destruct(value_buffer);
+      params.add_uninitialized_single_output(GMutableSpan{base_type, value_buffer, 1});
+      output_buffers.append({value_or_field_type, value_or_field_buffer});
+    }
+
+    MFContextBuilder context;
+    fn.call(IndexRange(1), params, context);
+
+    for (const int i : output_buffers.index_range()) {
+      GMutablePointer buffer = output_buffers[i];
+      if (buffer.get() == nullptr) {
+        continue;
+      }
+      const DOutputSocket socket = node.output(i);
+      this->forward_output(socket, buffer, run_state);
+
+      OutputState &output_state = node_state.outputs[i];
+      output_state.has_been_computed = true;
+    }
+  }
+
+  void execute_unknown_node(const DNode node, NodeState &node_state, NodeTaskRunState *run_state)
   {
     LinearAllocator<> &allocator = local_allocators_.local();
     for (const OutputSocketRef *socket : node->outputs()) {
@@ -1002,13 +1127,16 @@ class GeometryNodesEvaluator {
       output_state.has_been_computed = true;
       void *buffer = allocator.allocate(type->size(), type->alignment());
       this->construct_default_value(*type, buffer);
-      this->forward_output({node.context(), socket}, {*type, buffer});
+      this->forward_output({node.context(), socket}, {*type, buffer}, run_state);
     }
   }
 
-  void node_task_postprocessing(const DNode node, NodeState &node_state)
+  void node_task_postprocessing(const DNode node,
+                                NodeState &node_state,
+                                bool was_executed,
+                                NodeTaskRunState *run_state)
   {
-    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+    this->with_locked_node(node, node_state, run_state, [&](LockedNode &locked_node) {
       const bool node_has_finished = this->finish_node_if_possible(locked_node);
       const bool reschedule_requested = node_state.schedule_state ==
                                         NodeScheduleState::RunningAndRescheduled;
@@ -1017,8 +1145,9 @@ class GeometryNodesEvaluator {
         /* Either the node rescheduled itself or another node tried to schedule it while it ran. */
         this->schedule_node(locked_node);
       }
-
-      this->assert_expected_outputs_have_been_computed(locked_node);
+      if (was_executed) {
+        this->assert_expected_outputs_have_been_computed(locked_node);
+      }
     });
   }
 
@@ -1088,10 +1217,9 @@ class GeometryNodesEvaluator {
 
   /**
    * Load the required input from the socket or trigger nodes to the left to compute the value.
-   * When this function is called, the node will always be executed again eventually (either
-   * immediately, or when all required inputs have been computed by other nodes).
+   * \return True when the node will be triggered by another node again when the value is computed.
    */
-  void set_input_required(LockedNode &locked_node, const DInputSocket input_socket)
+  bool set_input_required(LockedNode &locked_node, const DInputSocket input_socket)
   {
     BLI_assert(locked_node.node == input_socket.node());
     InputState &input_state = locked_node.node_state.inputs[input_socket->index()];
@@ -1099,19 +1227,16 @@ class GeometryNodesEvaluator {
     /* Value set as unused cannot become used again. */
     BLI_assert(input_state.usage != ValueUsage::Unused);
 
+    if (input_state.was_ready_for_execution) {
+      return false;
+    }
+
     if (input_state.usage == ValueUsage::Required) {
-      /* The value is already required, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      /* Returning here also ensure that the code below is executed at most once per input. */
-      return;
+      /* If the input was not ready for execution but is required, the node will be triggered again
+       * once the input has been computed. */
+      return true;
     }
     input_state.usage = ValueUsage::Required;
-
-    if (input_state.was_ready_for_execution) {
-      /* The value was already ready, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      return;
-    }
 
     /* Count how many values still have to be added to this input until it is "complete". */
     int missing_values = 0;
@@ -1126,9 +1251,7 @@ class GeometryNodesEvaluator {
       }
     }
     if (missing_values == 0) {
-      /* The input is fully available already, but the node might expect to be evaluated again. */
-      this->schedule_node(locked_node);
-      return;
+      return false;
     }
     /* Increase the total number of missing required inputs. This ensures that the node will be
      * scheduled correctly when all inputs have been provided. */
@@ -1143,30 +1266,28 @@ class GeometryNodesEvaluator {
       /* If there are no origin sockets, just load the value from the socket directly. */
       this->load_unlinked_input_value(locked_node, input_socket, input_state, input_socket);
       locked_node.node_state.missing_required_inputs -= 1;
-      this->schedule_node(locked_node);
-      return;
+      return false;
     }
-    bool will_be_triggered_by_other_node = false;
+    bool requested_from_other_node = false;
     for (const DSocket &origin_socket : origin_sockets) {
       if (origin_socket->is_input()) {
         /* Load the value directly from the origin socket. In most cases this is an unlinked
          * group input. */
         this->load_unlinked_input_value(locked_node, input_socket, input_state, origin_socket);
         locked_node.node_state.missing_required_inputs -= 1;
-        this->schedule_node(locked_node);
       }
       else {
         /* The value has not been computed yet, so when it will be forwarded by another node, this
          * node will be triggered. */
-        will_be_triggered_by_other_node = true;
-
+        requested_from_other_node = true;
         locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
       }
     }
     /* If this node will be triggered by another node, we don't have to schedule it now. */
-    if (!will_be_triggered_by_other_node) {
-      this->schedule_node(locked_node);
+    if (requested_from_other_node) {
+      return true;
     }
+    return false;
   }
 
   void set_input_unused(LockedNode &locked_node, const DInputSocket socket)
@@ -1202,13 +1323,13 @@ class GeometryNodesEvaluator {
     });
   }
 
-  void send_output_required_notification(const DOutputSocket socket)
+  void send_output_required_notification(const DOutputSocket socket, NodeTaskRunState *run_state)
   {
     const DNode node = socket.node();
     NodeState &node_state = this->get_node_state(node);
     OutputState &output_state = node_state.outputs[socket->index()];
 
-    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+    this->with_locked_node(node, node_state, run_state, [&](LockedNode &locked_node) {
       if (output_state.output_usage == ValueUsage::Required) {
         /* Output is marked as required already. So the node is scheduled already. */
         return;
@@ -1220,13 +1341,13 @@ class GeometryNodesEvaluator {
     });
   }
 
-  void send_output_unused_notification(const DOutputSocket socket)
+  void send_output_unused_notification(const DOutputSocket socket, NodeTaskRunState *run_state)
   {
     const DNode node = socket.node();
     NodeState &node_state = this->get_node_state(node);
     OutputState &output_state = node_state.outputs[socket->index()];
 
-    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+    this->with_locked_node(node, node_state, run_state, [&](LockedNode &locked_node) {
       output_state.potential_users -= 1;
       if (output_state.potential_users == 0) {
         /* The socket might be required even though the output is not used by other sockets. That
@@ -1252,8 +1373,11 @@ class GeometryNodesEvaluator {
 
   /**
    * Moves a newly computed value from an output socket to all the inputs that might need it.
+   * Takes ownership of the value and destructs if it is unused.
    */
-  void forward_output(const DOutputSocket from_socket, GMutablePointer value_to_forward)
+  void forward_output(const DOutputSocket from_socket,
+                      GMutablePointer value_to_forward,
+                      NodeTaskRunState *run_state)
   {
     BLI_assert(value_to_forward.get() != nullptr);
 
@@ -1306,12 +1430,12 @@ class GeometryNodesEvaluator {
           }
           else {
             /* The value has been converted. */
-            this->add_value_to_input_socket(to_socket, from_socket, current_value);
+            this->add_value_to_input_socket(to_socket, from_socket, current_value, run_state);
           }
         });
     this->log_socket_value(log_original_value_sockets, value_to_forward);
     this->forward_to_sockets_with_same_type(
-        allocator, forward_original_value_sockets, value_to_forward, from_socket);
+        allocator, forward_original_value_sockets, value_to_forward, from_socket, run_state);
   }
 
   bool should_forward_to_socket(const DInputSocket socket)
@@ -1333,7 +1457,8 @@ class GeometryNodesEvaluator {
   void forward_to_sockets_with_same_type(LinearAllocator<> &allocator,
                                          Span<DInputSocket> to_sockets,
                                          GMutablePointer value_to_forward,
-                                         const DOutputSocket from_socket)
+                                         const DOutputSocket from_socket,
+                                         NodeTaskRunState *run_state)
   {
     if (to_sockets.is_empty()) {
       /* Value is not used anymore, so it can be destructed. */
@@ -1342,7 +1467,7 @@ class GeometryNodesEvaluator {
     else if (to_sockets.size() == 1) {
       /* Value is only used by one input socket, no need to copy it. */
       const DInputSocket to_socket = to_sockets[0];
-      this->add_value_to_input_socket(to_socket, from_socket, value_to_forward);
+      this->add_value_to_input_socket(to_socket, from_socket, value_to_forward, run_state);
     }
     else {
       /* Multiple inputs use the value, make a copy for every input except for one. */
@@ -1352,17 +1477,18 @@ class GeometryNodesEvaluator {
       for (const DInputSocket &to_socket : to_sockets.drop_front(1)) {
         void *buffer = allocator.allocate(type.size(), type.alignment());
         type.copy_construct(value_to_forward.get(), buffer);
-        this->add_value_to_input_socket(to_socket, from_socket, {type, buffer});
+        this->add_value_to_input_socket(to_socket, from_socket, {type, buffer}, run_state);
       }
       /* Forward the original value to one of the targets. */
       const DInputSocket to_socket = to_sockets[0];
-      this->add_value_to_input_socket(to_socket, from_socket, value_to_forward);
+      this->add_value_to_input_socket(to_socket, from_socket, value_to_forward, run_state);
     }
   }
 
   void add_value_to_input_socket(const DInputSocket socket,
                                  const DOutputSocket origin,
-                                 GMutablePointer value)
+                                 GMutablePointer value,
+                                 NodeTaskRunState *run_state)
   {
     BLI_assert(socket->is_available());
 
@@ -1370,7 +1496,7 @@ class GeometryNodesEvaluator {
     NodeState &node_state = this->get_node_state(node);
     InputState &input_state = node_state.inputs[socket->index()];
 
-    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+    this->with_locked_node(node, node_state, run_state, [&](LockedNode &locked_node) {
       if (socket->is_multi_input_socket()) {
         /* Add a new value to the multi-input. */
         MultiInputValue &multi_value = *input_state.value.multi;
@@ -1397,6 +1523,14 @@ class GeometryNodesEvaluator {
     });
   }
 
+  /**
+   * Loads the value of a socket that is not computed by another node. Note that the socket may
+   * still be linked to e.g. a Group Input node, but the socket on the outside is not connected to
+   * anything.
+   *
+   * \param input_socket: The socket of the node that wants to use the value.
+   * \param origin_socket: The socket that we want to load the value from.
+   */
   void load_unlinked_input_value(LockedNode &locked_node,
                                  const DInputSocket input_socket,
                                  InputState &input_state,
@@ -1416,7 +1550,15 @@ class GeometryNodesEvaluator {
     else {
       SingleInputValue &single_value = *input_state.value.single;
       single_value.value = value.get();
-      this->log_socket_value({input_socket}, value);
+      Vector<DSocket> sockets_to_log_to = {input_socket};
+      if (origin_socket != input_socket) {
+        /* This might log the socket value for the #origin_socket more than once, but this is
+         * handled by the logging system gracefully. */
+        sockets_to_log_to.append(origin_socket);
+      }
+      /* TODO: Log to the intermediate sockets between the group input and where the value is
+       * actually used as well. */
+      this->log_socket_value(sockets_to_log_to, value);
     }
   }
 
@@ -1465,19 +1607,28 @@ class GeometryNodesEvaluator {
       from_type.copy_construct(from_value, to_value);
       return;
     }
-
-    const FieldCPPType *from_field_type = dynamic_cast<const FieldCPPType *>(&from_type);
-    const FieldCPPType *to_field_type = dynamic_cast<const FieldCPPType *>(&to_type);
+    const ValueOrFieldCPPType *from_field_type = dynamic_cast<const ValueOrFieldCPPType *>(
+        &from_type);
+    const ValueOrFieldCPPType *to_field_type = dynamic_cast<const ValueOrFieldCPPType *>(&to_type);
 
     if (from_field_type != nullptr && to_field_type != nullptr) {
-      const CPPType &from_base_type = from_field_type->field_type();
-      const CPPType &to_base_type = to_field_type->field_type();
+      const CPPType &from_base_type = from_field_type->base_type();
+      const CPPType &to_base_type = to_field_type->base_type();
       if (conversions_.is_convertible(from_base_type, to_base_type)) {
-        const MultiFunction &fn = *conversions_.get_conversion_multi_function(
-            MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
-        const GField &from_field = *(const GField *)from_value;
-        auto operation = std::make_shared<fn::FieldOperation>(fn, Vector<GField>{from_field});
-        new (to_value) GField(std::move(operation), 0);
+        if (from_field_type->is_field(from_value)) {
+          const GField &from_field = *from_field_type->get_field_ptr(from_value);
+          const MultiFunction &fn = *conversions_.get_conversion_multi_function(
+              MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
+          auto operation = std::make_shared<fn::FieldOperation>(fn, Vector<GField>{from_field});
+          to_field_type->construct_from_field(to_value, GField(std::move(operation), 0));
+        }
+        else {
+          to_field_type->default_construct(to_value);
+          const void *from_value_ptr = from_field_type->get_value_ptr(from_value);
+          void *to_value_ptr = to_field_type->get_value_ptr(to_value);
+          conversions_.get_conversion_functions(from_base_type, to_base_type)
+              ->convert_single_to_initialized(from_value_ptr, to_value_ptr);
+        }
         return;
       }
     }
@@ -1493,14 +1644,6 @@ class GeometryNodesEvaluator {
 
   void construct_default_value(const CPPType &type, void *r_value)
   {
-    if (const FieldCPPType *field_cpp_type = dynamic_cast<const FieldCPPType *>(&type)) {
-      const CPPType &base_type = field_cpp_type->field_type();
-      auto constant_fn = std::make_unique<fn::CustomMF_GenericConstant>(
-          base_type, base_type.default_value(), false);
-      auto operation = std::make_shared<fn::FieldOperation>(std::move(constant_fn));
-      new (r_value) GField(std::move(operation), 0);
-      return;
-    }
     type.copy_construct(type.default_value(), r_value);
   }
 
@@ -1532,10 +1675,21 @@ class GeometryNodesEvaluator {
     params_.geo_logger->local().log_value_for_sockets(sockets, value);
   }
 
+  void log_debug_message(DNode node, std::string message)
+  {
+    if (params_.geo_logger == nullptr) {
+      return;
+    }
+    params_.geo_logger->local().log_debug_message(node, std::move(message));
+  }
+
   /* In most cases when `NodeState` is accessed, the node has to be locked first to avoid race
    * conditions. */
   template<typename Function>
-  void with_locked_node(const DNode node, NodeState &node_state, const Function &function)
+  void with_locked_node(const DNode node,
+                        NodeState &node_state,
+                        NodeTaskRunState *run_state,
+                        const Function &function)
   {
     LockedNode locked_node{node, node_state};
 
@@ -1548,21 +1702,32 @@ class GeometryNodesEvaluator {
     /* Then send notifications to the other nodes after the node state is unlocked. This avoids
      * locking two nodes at the same time on this thread and helps to prevent deadlocks. */
     for (const DOutputSocket &socket : locked_node.delayed_required_outputs) {
-      this->send_output_required_notification(socket);
+      this->send_output_required_notification(socket, run_state);
     }
     for (const DOutputSocket &socket : locked_node.delayed_unused_outputs) {
-      this->send_output_unused_notification(socket);
+      this->send_output_unused_notification(socket, run_state);
     }
-    for (const DNode &node : locked_node.delayed_scheduled_nodes) {
-      this->add_node_to_task_pool(node);
+    for (const DNode &node_to_schedule : locked_node.delayed_scheduled_nodes) {
+      if (run_state != nullptr && !run_state->next_node_to_run) {
+        /* Execute the node on the same thread after the current node finished. */
+        /* Currently, this assumes that it is always best to run the first node that is scheduled
+         * on the same thread. That is usually correct, because the geometry socket which carries
+         * the most data usually comes first in nodes. */
+        run_state->next_node_to_run = node_to_schedule;
+      }
+      else {
+        /* Push the node to the task pool so that another thread can start working on it. */
+        this->add_node_to_task_pool(node_to_schedule);
+      }
     }
   }
 };
 
 NodeParamsProvider::NodeParamsProvider(GeometryNodesEvaluator &evaluator,
                                        DNode dnode,
-                                       NodeState &node_state)
-    : evaluator_(evaluator), node_state_(node_state)
+                                       NodeState &node_state,
+                                       NodeTaskRunState *run_state)
+    : evaluator_(evaluator), node_state_(node_state), run_state_(run_state)
 {
   this->dnode = dnode;
   this->self_object = evaluator.params_.self_object;
@@ -1670,7 +1835,7 @@ void NodeParamsProvider::set_output(StringRef identifier, GMutablePointer value)
 
   OutputState &output_state = node_state_.outputs[socket->index()];
   BLI_assert(!output_state.has_been_computed);
-  evaluator_.forward_output(socket, value);
+  evaluator_.forward_output(socket, value, run_state_);
   output_state.has_been_computed = true;
 }
 
@@ -1684,8 +1849,12 @@ bool NodeParamsProvider::lazy_require_input(StringRef identifier)
   if (input_state.was_ready_for_execution) {
     return false;
   }
-  evaluator_.with_locked_node(this->dnode, node_state_, [&](LockedNode &locked_node) {
-    evaluator_.set_input_required(locked_node, socket);
+  evaluator_.with_locked_node(this->dnode, node_state_, run_state_, [&](LockedNode &locked_node) {
+    if (!evaluator_.set_input_required(locked_node, socket)) {
+      /* Schedule the currently executed node again because the value is available now but was not
+       * ready for the current execution. */
+      evaluator_.schedule_node(locked_node);
+    }
   });
   return true;
 }
@@ -1695,7 +1864,7 @@ void NodeParamsProvider::set_input_unused(StringRef identifier)
   const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
-  evaluator_.with_locked_node(this->dnode, node_state_, [&](LockedNode &locked_node) {
+  evaluator_.with_locked_node(this->dnode, node_state_, run_state_, [&](LockedNode &locked_node) {
     evaluator_.set_input_unused(locked_node, socket);
   });
 }
@@ -1723,6 +1892,29 @@ bool NodeParamsProvider::lazy_output_is_required(StringRef identifier) const
     return false;
   }
   return output_state.output_usage_for_execution == ValueUsage::Required;
+}
+
+void NodeParamsProvider::set_default_remaining_outputs()
+{
+  LinearAllocator<> &allocator = evaluator_.local_allocators_.local();
+
+  for (const int i : this->dnode->outputs().index_range()) {
+    OutputState &output_state = node_state_.outputs[i];
+    if (output_state.has_been_computed) {
+      continue;
+    }
+    if (output_state.output_usage_for_execution == ValueUsage::Unused) {
+      continue;
+    }
+
+    const DOutputSocket socket = this->dnode.output(i);
+    const CPPType *type = get_socket_cpp_type(socket);
+    BLI_assert(type != nullptr);
+    void *buffer = allocator.allocate(type->size(), type->alignment());
+    type->copy_construct(type->default_value(), buffer);
+    evaluator_.forward_output(socket, {type, buffer}, run_state_);
+    output_state.has_been_computed = true;
+  }
 }
 
 void evaluate_geometry_nodes(GeometryNodesEvaluationParams &params)

@@ -41,6 +41,10 @@ class Integrator : public Node {
   NODE_SOCKET_API(int, max_transmission_bounce)
   NODE_SOCKET_API(int, max_volume_bounce)
 
+#ifdef WITH_CYCLES_DEBUG
+  NODE_SOCKET_API(DirectLightSamplingType, direct_light_sampling_type)
+#endif
+
   NODE_SOCKET_API(int, transparent_min_bounce)
   NODE_SOCKET_API(int, transparent_max_bounce)
 

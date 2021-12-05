@@ -100,6 +100,7 @@ set(SRC
   intern/blender_undo.c
   intern/blender_user_menu.c
   intern/blendfile.c
+  intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
   intern/brush.c
@@ -169,7 +170,7 @@ set(SRC
   intern/idtype.c
   intern/image.c
   intern/image_gen.c
-  intern/image_gpu.c
+  intern/image_gpu.cc
   intern/image_save.c
   intern/ipo.c
   intern/kelvinlet.c
@@ -332,6 +333,7 @@ set(SRC
   BKE_blender_user_menu.h
   BKE_blender_version.h
   BKE_blendfile.h
+  BKE_blendfile_link_append.h
   BKE_boids.h
   BKE_bpath.h
   BKE_brush.h
@@ -824,6 +826,7 @@ if(WITH_GTESTS)
     intern/asset_library_service_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
+    intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc

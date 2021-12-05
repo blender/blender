@@ -682,6 +682,10 @@ typedef struct bAction {
   int idroot;
   char _pad[4];
 
+  /** Start and end of the manually set intended playback frame range. Used by UI and
+   *  some editing tools, but doesn't directly affect animation evaluation in any way. */
+  float frame_start, frame_end;
+
   PreviewImage *preview;
 } bAction;
 
@@ -695,6 +699,10 @@ typedef enum eAction_Flags {
   ACT_MUTED = (1 << 9),
   /* ACT_PROTECTED = (1 << 10), */ /* UNUSED */
   /* ACT_DISABLED = (1 << 11), */  /* UNUSED */
+  /** The action has a manually set intended playback frame range. */
+  ACT_FRAME_RANGE = (1 << 12),
+  /** The action is intended to be a cycle (requires ACT_FRAME_RANGE). */
+  ACT_CYCLIC = (1 << 13),
 } eAction_Flags;
 
 /* ************************************************ */

@@ -63,6 +63,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_bpath.h"
 #include "BKE_colortools.h"
 #include "BKE_cryptomatte.h"
 #include "BKE_global.h"
@@ -130,10 +131,6 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
 static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
                                        struct bNode *node,
                                        const bool mute);
-static FieldInferencingInterface *node_field_inferencing_interface_copy(
-    const FieldInferencingInterface &field_inferencing_interface);
-static void node_field_inferencing_interface_free(
-    const FieldInferencingInterface *field_inferencing_interface);
 
 static void ntree_init_data(ID *id)
 {
@@ -246,7 +243,7 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   ntree_dst->interface_type = nullptr;
 
   if (ntree_src->field_inferencing_interface) {
-    ntree_dst->field_inferencing_interface = node_field_inferencing_interface_copy(
+    ntree_dst->field_inferencing_interface = new FieldInferencingInterface(
         *ntree_src->field_inferencing_interface);
   }
 
@@ -301,7 +298,7 @@ static void ntree_free_data(ID *id)
     MEM_freeN(sock);
   }
 
-  node_field_inferencing_interface_free(ntree->field_inferencing_interface);
+  delete ntree->field_inferencing_interface;
 
   /* free preview hash */
   if (ntree->previews) {
@@ -420,6 +417,29 @@ static void node_foreach_cache(ID *id,
   }
 }
 
+static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+
+  switch (ntree->type) {
+    case NTREE_SHADER: {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == SH_NODE_SCRIPT) {
+          NodeShaderScript *nss = reinterpret_cast<NodeShaderScript *>(node->storage);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath);
+        }
+        else if (node->type == SH_NODE_TEX_IES) {
+          NodeShaderTexIES *ies = reinterpret_cast<NodeShaderTexIES *>(node->storage);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath);
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 static ID *node_owner_get(Main *bmain, ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
@@ -490,8 +510,10 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
     case SOCK_MATERIAL:
       BLO_write_struct(writer, bNodeSocketValueMaterial, sock->default_value);
       break;
-    case __SOCK_MESH:
     case SOCK_CUSTOM:
+      /* Custom node sockets where default_value is defined uses custom properties for storage. */
+      break;
+    case __SOCK_MESH:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
       BLI_assert_unreachable();
@@ -1049,6 +1071,7 @@ IDTypeInfo IDType_ID_NT = {
     /* name_plural */ "node_groups",
     /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ ntree_init_data,
     /* copy_data */ ntree_copy_data,
@@ -1056,6 +1079,7 @@ IDTypeInfo IDType_ID_NT = {
     /* make_local */ nullptr,
     /* foreach_id */ node_foreach_id,
     /* foreach_cache */ node_foreach_cache,
+    /* foreach_path */ node_foreach_path,
     /* owner_get */ node_owner_get,
 
     /* blend_write */ ntree_blend_write,
@@ -1431,7 +1455,7 @@ void nodeUnregisterType(bNodeType *nt)
   BLI_ghash_remove(nodetypes_hash, nt->idname, nullptr, node_free_type);
 }
 
-bool nodeTypeUndefined(bNode *node)
+bool nodeTypeUndefined(const bNode *node)
 {
   return (node->typeinfo == &NodeTypeUndefined) ||
          ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id &&
@@ -3994,8 +4018,10 @@ int nodeSocketIsHidden(const bNodeSocket *sock)
   return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
 }
 
-void nodeSetSocketAvailability(bNodeSocket *sock, bool is_available)
+void nodeSetSocketAvailability(bNodeTree *UNUSED(ntree), bNodeSocket *sock, bool is_available)
 {
+  /* #ntree is not needed right now, but it's generally necessary when changing the tree because we
+   * want to tag it as changed in the future. */
   if (is_available) {
     sock->flag &= ~SOCK_UNAVAIL;
   }
@@ -4544,18 +4570,6 @@ void ntreeUpdateAllNew(Main *main)
     }
   }
   FOREACH_NODETREE_END;
-}
-
-static FieldInferencingInterface *node_field_inferencing_interface_copy(
-    const FieldInferencingInterface &field_inferencing_interface)
-{
-  return new FieldInferencingInterface(field_inferencing_interface);
-}
-
-static void node_field_inferencing_interface_free(
-    const FieldInferencingInterface *field_inferencing_interface)
-{
-  delete field_inferencing_interface;
 }
 
 namespace blender::bke::node_field_inferencing {
@@ -5249,9 +5263,8 @@ bool nodeUpdateID(bNodeTree *ntree, ID *id)
 void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 {
   BLI_freelistN(&node->internal_links);
-
-  if (node->typeinfo && node->typeinfo->update_internal_links) {
-    node->typeinfo->update_internal_links(ntree, node);
+  if (!node->typeinfo->no_muting) {
+    node_internal_links_create(ntree, node);
   }
 }
 
@@ -5514,12 +5527,6 @@ void node_type_exec(struct bNodeType *ntype,
 void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn)
 {
   ntype->gpu_fn = gpu_fn;
-}
-
-void node_type_internal_links(bNodeType *ntype,
-                              void (*update_internal_links)(bNodeTree *, bNode *))
-{
-  ntype->update_internal_links = update_internal_links;
 }
 
 /* callbacks for undefined types */
@@ -5846,6 +5853,7 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_compare();
   register_node_type_geo_attribute_convert();
   register_node_type_geo_attribute_curve_map();
+  register_node_type_geo_attribute_domain_size();
   register_node_type_geo_attribute_fill();
   register_node_type_geo_attribute_map_range();
   register_node_type_geo_attribute_math();
@@ -5864,7 +5872,6 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_fillet();
   register_node_type_geo_curve_handle_type_selection();
   register_node_type_geo_curve_length();
-  register_node_type_geo_curve_parameter();
   register_node_type_geo_curve_primitive_bezier_segment();
   register_node_type_geo_curve_primitive_circle();
   register_node_type_geo_curve_primitive_line();
@@ -5876,6 +5883,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_reverse();
   register_node_type_geo_curve_sample();
   register_node_type_geo_curve_set_handles();
+  register_node_type_geo_curve_spline_parameter();
   register_node_type_geo_curve_spline_type();
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
@@ -5883,6 +5891,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_trim();
   register_node_type_geo_delete_geometry();
   register_node_type_geo_distribute_points_on_faces();
+  register_node_type_geo_dual_mesh();
   register_node_type_geo_edge_split();
   register_node_type_geo_image_texture();
   register_node_type_geo_input_curve_handles();
@@ -5962,7 +5971,7 @@ static void registerFunctionNodes()
 
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
-  register_node_type_fn_float_compare();
+  register_node_type_fn_compare();
   register_node_type_fn_float_to_int();
   register_node_type_fn_input_bool();
   register_node_type_fn_input_color();

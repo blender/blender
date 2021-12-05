@@ -28,7 +28,7 @@ bool cmp_node_poll_default(bNodeType *UNUSED(ntype),
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = "Not a compositor node tree";
+    *r_disabled_hint = TIP_("Not a compositor node tree");
     return false;
   }
   return true;
@@ -52,5 +52,4 @@ void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
   ntype->poll = cmp_node_poll_default;
   ntype->updatefunc = cmp_node_update_default;
   ntype->insert_link = node_insert_link_default;
-  ntype->update_internal_links = node_update_internal_links_default;
 }

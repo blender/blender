@@ -12,6 +12,6 @@ Build pipeline snap tracks and channels
         - Test builds for the upcoming stable release - *not used for now*
     <track>/beta              
         - Nightly automated builds provided by a release branch
-    <track>/egde/<branch>
+    <track>/edge/<branch>
         - Nightly or on demand builds - will also make use of branch
 ```

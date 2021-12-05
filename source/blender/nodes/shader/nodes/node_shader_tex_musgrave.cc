@@ -104,7 +104,7 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out);
 }
 
-static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
 {
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
 
@@ -113,12 +113,14 @@ static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *nod
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
-  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
-  nodeSetSocketAvailability(inOffsetSock,
+  nodeSetSocketAvailability(ntree, inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree,
+                            inOffsetSock,
                             tex->musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
                                 tex->musgrave_type != SHD_MUSGRAVE_FBM);
-  nodeSetSocketAvailability(inGainSock,
+  nodeSetSocketAvailability(ntree,
+                            inGainSock,
                             tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
                                 tex->musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
@@ -199,28 +201,28 @@ class MusgraveFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    auto get_vector = [&](int param_index) -> const VArray<float3> & {
+    auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
     };
-    auto get_w = [&](int param_index) -> const VArray<float> & {
+    auto get_w = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "W");
     };
-    auto get_scale = [&](int param_index) -> const VArray<float> & {
+    auto get_scale = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Scale");
     };
-    auto get_detail = [&](int param_index) -> const VArray<float> & {
+    auto get_detail = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Detail");
     };
-    auto get_dimension = [&](int param_index) -> const VArray<float> & {
+    auto get_dimension = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Dimension");
     };
-    auto get_lacunarity = [&](int param_index) -> const VArray<float> & {
+    auto get_lacunarity = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Lacunarity");
     };
-    auto get_offset = [&](int param_index) -> const VArray<float> & {
+    auto get_offset = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Offset");
     };
-    auto get_gain = [&](int param_index) -> const VArray<float> & {
+    auto get_gain = [&](int param_index) -> VArray<float> {
       return params.readonly_single_input<float>(param_index, "Gain");
     };
 

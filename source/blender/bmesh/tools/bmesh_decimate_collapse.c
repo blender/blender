@@ -1277,20 +1277,6 @@ static bool bm_decim_edge_collapse(BMesh *bm,
 /* Main Decimate Function
  * ********************** */
 
-/**
- * \brief BM_mesh_decimate
- * \param bm: The mesh
- * \param factor: face count multiplier [0 - 1]
- * \param vweights: Optional array of vertex  aligned weights [0 - 1],
- *        a vertex group is the usual source for this.
- * \param symmetry_axis: Axis of symmetry, -1 to disable mirror decimate.
- * \param symmetry_eps: Threshold when matching mirror verts.
- *
- * \note The caller is responsible for recalculating face and vertex normals.
- * - Vertex normals are maintained while decimating,
- *   although they won't necessarily match the final recalculated normals.
- * - Face normals are not maintained at all.
- */
 void BM_mesh_decimate_collapse(BMesh *bm,
                                const float factor,
                                float *vweights,

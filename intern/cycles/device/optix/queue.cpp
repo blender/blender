@@ -47,7 +47,9 @@ static bool is_optix_specific_kernel(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK);
 }
 
-bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *args[])
+bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
+                               const int work_size,
+                               DeviceKernelArguments const &args)
 {
   if (!is_optix_specific_kernel(kernel)) {
     return CUDADeviceQueue::enqueue(kernel, work_size, args);
@@ -69,7 +71,7 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *a
   cuda_device_assert(
       cuda_device_,
       cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, path_index_array),
-                        args[0],  // &d_path_index
+                        args.values[0],  // &d_path_index
                         sizeof(device_ptr),
                         cuda_stream_));
 
@@ -78,7 +80,7 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *a
     cuda_device_assert(
         cuda_device_,
         cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, render_buffer),
-                          args[1],  // &d_render_buffer
+                          args.values[1],  // &d_render_buffer
                           sizeof(device_ptr),
                           cuda_stream_));
   }

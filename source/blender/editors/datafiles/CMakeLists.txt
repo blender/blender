@@ -619,6 +619,7 @@ set(ICON_NAMES
   outliner_ob_volume
   outliner_data_volume
   volume_data
+  current_file
   home
   documents
   temp

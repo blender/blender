@@ -126,7 +126,7 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti image_canvas = r_area;
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     get_input_socket(X_INPUT_INDEX)->determine_canvas(image_canvas, unused);
     get_input_socket(Y_INPUT_INDEX)->determine_canvas(image_canvas, unused);
     get_input_socket(DEGREE_INPUT_INDEX)->determine_canvas(image_canvas, unused);

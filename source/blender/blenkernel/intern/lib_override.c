@@ -1028,7 +1028,7 @@ static void lib_override_library_proxy_convert_do(Main *bmain,
   if (success) {
     CLOG_INFO(&LOG,
               4,
-              "Proxy object '%s' successfuly converted to library overrides",
+              "Proxy object '%s' successfully converted to library overrides",
               ob_proxy->id.name);
     /* Remove the instance empty from this scene, the items now have an overridden collection
      * instead. */
@@ -2874,7 +2874,10 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * Not impossible to do, but would rather see first if extra useless usual user handling
    * is actually a (performances) issue here. */
 
-  ID *tmp_id = BKE_id_copy(bmain, local->override_library->reference);
+  ID *tmp_id = BKE_id_copy_ex(bmain,
+                              local->override_library->reference,
+                              NULL,
+                              LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG);
 
   if (tmp_id == NULL) {
     return;

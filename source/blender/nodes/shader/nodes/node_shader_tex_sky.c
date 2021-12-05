@@ -195,12 +195,12 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tex_sky_nishita", in, out);
 }
 
-static void node_shader_update_sky(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
 
   NodeTexSky *tex = (NodeTexSky *)node->storage;
-  nodeSetSocketAvailability(sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
+  nodeSetSocketAvailability(ntree, sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
 }
 
 /* node type definition */

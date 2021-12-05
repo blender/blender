@@ -30,7 +30,7 @@ def draw_callback_px(self, context):
 
 class ModalDrawOperator(bpy.types.Operator):
     """Draw a line with the mouse"""
-    bl_idname = "view3d.modal_operator"
+    bl_idname = "view3d.modal_draw_operator"
     bl_label = "Simple Modal View3D Operator"
 
     def modal(self, context, event):
@@ -65,13 +65,18 @@ class ModalDrawOperator(bpy.types.Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
+def menu_func(self, context):
+    self.layout.operator(ModalDrawOperator.bl_idname, text = "Modal Draw Operator")
 
+# Register and add to the "view" menu (required to also use F3 search "Modal Draw Operator" for quick access)
 def register():
     bpy.utils.register_class(ModalDrawOperator)
+    bpy.types.VIEW3D_MT_view.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(ModalDrawOperator)
+    bpy.types.VIEW3D_MT_view.remove(menu_func)
 
 
 if __name__ == "__main__":

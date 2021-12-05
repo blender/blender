@@ -118,15 +118,6 @@ static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
   mul_v3_fl(r_cent, 1.0f / f->len);
 }
 
-/**
- * For tools that insist on using triangles, ideally we would cache this data.
- *
- * \param use_fixed_quad: When true,
- * always split quad along (0 -> 2) regardless of concave corners,
- * (as done in #BM_mesh_calc_tessellation).
- * \param r_loops: Store face loop pointers, (f->len)
- * \param r_index: Store triangle triples, indices into \a r_loops,  `((f->len - 2) * 3)`
- */
 void BM_face_calc_tessellation(const BMFace *f,
                                const bool use_fixed_quad,
                                BMLoop **r_loops,
@@ -178,9 +169,6 @@ void BM_face_calc_tessellation(const BMFace *f,
   }
 }
 
-/**
- * Return a point inside the face.
- */
 void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
 {
   const BMLoop *l_tri[3];
@@ -219,9 +207,6 @@ void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
   mid_v3_v3v3v3(r_co, l_tri[0]->v->co, l_tri[1]->v->co, l_tri[2]->v->co);
 }
 
-/**
- * get the area of the face
- */
 float BM_face_calc_area(const BMFace *f)
 {
   /* inline 'area_poly_v3' logic, avoid creating a temp array */
@@ -236,9 +221,6 @@ float BM_face_calc_area(const BMFace *f)
   return len_v3(n) * 0.5f;
 }
 
-/**
- * Get the area of the face in world space.
- */
 float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3])
 {
   /* inline 'area_poly_v3' logic, avoid creating a temp array */
@@ -258,9 +240,6 @@ float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3])
   return len_v3(n) * 0.5f;
 }
 
-/**
- * get the area of UV face
- */
 float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
 {
   /* inline 'area_poly_v2' logic, avoid creating a temp array */
@@ -277,9 +256,6 @@ float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
   return fabsf(cross * 0.5f);
 }
 
-/**
- * compute the perimeter of an ngon
- */
 float BM_face_calc_perimeter(const BMFace *f)
 {
   const BMLoop *l_iter, *l_first;
@@ -293,9 +269,6 @@ float BM_face_calc_perimeter(const BMFace *f)
   return perimeter;
 }
 
-/**
- * Calculate the perimeter of a ngon in world space.
- */
 float BM_face_calc_perimeter_with_mat3(const BMFace *f, const float mat3[3][3])
 {
   const BMLoop *l_iter, *l_first;
@@ -356,14 +329,6 @@ static int bm_vert_tri_find_unique_edge(BMVert *verts[3])
   return order[0];
 }
 
-/**
- * Calculate a tangent from any 3 vertices.
- *
- * The tangent aligns to the most *unique* edge
- * (the edge most unlike the other two).
- *
- * \param r_tangent: Calculated unit length tangent (return value).
- */
 void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
 {
   const int index = bm_vert_tri_find_unique_edge(verts);
@@ -373,14 +338,6 @@ void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-/**
- * Calculate a tangent from any 3 vertices,
- *
- * The tangent follows the center-line formed by the most unique edges center
- * and the opposite vertex.
- *
- * \param r_tangent: Calculated unit length tangent (return value).
- */
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
 {
   const int index = bm_vert_tri_find_unique_edge(verts);
@@ -395,9 +352,6 @@ void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-/**
- * Compute the tangent of the face, using the longest edge.
- */
 void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
 {
   const BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
@@ -407,11 +361,6 @@ void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-/**
- * Compute the tangent of the face, using the two longest disconnected edges.
- *
- * \param r_tangent: Calculated unit length tangent (return value).
- */
 void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
 {
   if (f->len == 3) {
@@ -472,11 +421,6 @@ void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
   }
 }
 
-/**
- * Compute the tangent of the face, using the edge farthest away from any vertex in the face.
- *
- * \param r_tangent: Calculated unit length tangent (return value).
- */
 void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
@@ -509,11 +453,6 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-/**
- * Compute the tangent of the face, using longest distance between vertices on the face.
- *
- * \note The logic is almost identical to #BM_face_calc_tangent_edge_diagonal
- */
 void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
 {
   BMLoop *l_iter, *l_first;
@@ -542,11 +481,6 @@ void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
   normalize_v3(r_tangent);
 }
 
-/**
- * Compute a meaningful direction along the face (use for gizmo axis).
- *
- * \note Callers shouldn't depend on the *exact* method used here.
- */
 void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
 {
   if (f->len == 3) {
@@ -565,9 +499,6 @@ void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
   }
 }
 
-/**
- * expands bounds (min/max must be initialized).
- */
 void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3])
 {
   const BMLoop *l_iter, *l_first;
@@ -577,9 +508,6 @@ void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3])
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-/**
- * computes center of face in 3d.  uses center of bounding box.
- */
 void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 {
   const BMLoop *l_iter, *l_first;
@@ -595,9 +523,6 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
   mid_v3_v3v3(r_cent, min, max);
 }
 
-/**
- * computes center of face in 3d.  uses center of bounding box.
- */
 void BM_face_calc_center_bounds_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
@@ -620,9 +545,6 @@ void BM_face_calc_center_bounds_vcos(const BMesh *bm,
   mid_v3_v3v3(r_cent, min, max);
 }
 
-/**
- * computes the center of a face, using the mean average
- */
 void BM_face_calc_center_median(const BMFace *f, float r_cent[3])
 {
   const BMLoop *l_iter, *l_first;
@@ -636,10 +558,6 @@ void BM_face_calc_center_median(const BMFace *f, float r_cent[3])
   mul_v3_fl(r_cent, 1.0f / (float)f->len);
 }
 
-/**
- * computes the center of a face, using the mean average
- * weighted by edge length
- */
 void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
 {
   const BMLoop *l_iter;
@@ -664,12 +582,6 @@ void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
   }
 }
 
-/**
- * \brief POLY ROTATE PLANE
- *
- * Rotates a polygon so that its
- * normal is pointing towards the mesh Z axis
- */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nverts)
 {
   float mat[3][3];
@@ -685,9 +597,6 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nver
   }
 }
 
-/**
- * updates face and vertex normals incident on an edge
- */
 void BM_edge_normals_update(BMEdge *e)
 {
   BMIter iter;
@@ -801,23 +710,10 @@ void BM_vert_normal_update_all(BMVert *v)
   }
 }
 
-/**
- * update a vert normal (but not the faces incident on it)
- */
 void BM_vert_normal_update(BMVert *v)
 {
   BM_vert_calc_normal(v, v->no);
 }
-
-/**
- * \brief BMESH UPDATE FACE NORMAL
- *
- * Updates the stored normal for the
- * given face. Requires that a buffer
- * of sufficient length to store projected
- * coordinates for all of the face's vertices
- * is passed in as well.
- */
 
 float BM_face_calc_normal(const BMFace *f, float r_no[3])
 {
@@ -850,7 +746,6 @@ void BM_face_normal_update(BMFace *f)
   BM_face_calc_normal(f, f->no);
 }
 
-/* exact same as 'BM_face_calc_normal' but accepts vertex coords */
 float BM_face_calc_normal_vcos(const BMesh *bm,
                                const BMFace *f,
                                float r_no[3],
@@ -885,12 +780,6 @@ float BM_face_calc_normal_vcos(const BMesh *bm,
   }
 }
 
-/**
- * Calculate a normal from a vertex cloud.
- *
- * \note We could make a higher quality version that takes all vertices into account.
- * Currently it finds 4 outer most points returning its normal.
- */
 void BM_verts_calc_normal_from_cloud_ex(
     BMVert **varr, int varr_len, float r_normal[3], float r_center[3], int *r_index_tangent)
 {
@@ -992,9 +881,6 @@ void BM_verts_calc_normal_from_cloud(BMVert **varr, int varr_len, float r_normal
   BM_verts_calc_normal_from_cloud_ex(varr, varr_len, r_normal, NULL, NULL);
 }
 
-/**
- * Calculates the face subset normal.
- */
 float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, float r_no[3])
 {
   const float *v_prev, *v_curr;
@@ -1015,7 +901,6 @@ float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, fl
   return normalize_v3(r_no);
 }
 
-/* exact same as 'BM_face_calc_normal' but accepts vertex coords */
 void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
@@ -1028,12 +913,6 @@ void BM_face_calc_center_median_vcos(const BMesh *bm,
   bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vertexCos);
 }
 
-/**
- * \brief Face Flip Normal
- *
- * Reverses the winding of a face.
- * \note This updates the calculated normal.
- */
 void BM_face_normal_flip_ex(BMesh *bm,
                             BMFace *f,
                             const int cd_loop_mdisp_offset,
@@ -1049,16 +928,6 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
   BM_face_normal_flip_ex(bm, f, cd_loop_mdisp_offset, true);
 }
 
-/**
- * BM POINT IN FACE
- *
- * Projects co onto face f, and returns true if it is inside
- * the face bounds.
- *
- * \note this uses a best-axis projection test,
- * instead of projecting co directly into f's orientation space,
- * so there might be accuracy issues.
- */
 bool BM_face_point_inside_test(const BMFace *f, const float co[3])
 {
   float axis_mat[3][3];
@@ -1081,29 +950,6 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
   return isect_point_poly_v2(co_2d, projverts, f->len, false);
 }
 
-/**
- * \brief BMESH TRIANGULATE FACE
- *
- * Breaks all quads and ngons down to triangles.
- * It uses polyfill for the ngons splitting, and
- * the beautify operator when use_beauty is true.
- *
- * \param r_faces_new: if non-null, must be an array of BMFace pointers,
- * with a length equal to (f->len - 3). It will be filled with the new
- * triangles (not including the original triangle).
- *
- * \param r_faces_double: When newly created faces are duplicates of existing faces,
- * they're added to this list. Caller must handle de-duplication.
- * This is done because its possible _all_ faces exist already,
- * and in that case we would have to remove all faces including the one passed,
- * which causes complications adding/removing faces while looking over them.
- *
- * \note The number of faces is _almost_ always (f->len - 3),
- *       However there may be faces that already occupying the
- *       triangles we would make, so the caller must check \a r_faces_new_tot.
- *
- * \note use_tag tags new flags and edges.
- */
 void BM_face_triangulate(BMesh *bm,
                          BMFace *f,
                          BMFace **r_faces_new,
@@ -1326,14 +1172,6 @@ void BM_face_triangulate(BMesh *bm,
   }
 }
 
-/**
- * each pair of loops defines a new edge, a split.  this function goes
- * through and sets pairs that are geometrically invalid to null.  a
- * split is invalid, if it forms a concave angle or it intersects other
- * edges in the face, or it intersects another split.  in the case of
- * intersecting splits, only the first of the set of intersecting
- * splits survives
- */
 void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
   float out[2] = {-FLT_MAX, -FLT_MAX};
@@ -1431,10 +1269,6 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 #undef EDGE_SHARE_VERT
 }
 
-/**
- * This simply checks that the verts don't connect faces which would have more optimal splits.
- * but _not_ check for correctness.
- */
 void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len)
 {
   int i;
@@ -1452,6 +1286,7 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len)
  * faster alternative to:
  * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
  */
+
 void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
@@ -1467,10 +1302,26 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
   r_verts[3] = l->v;
 }
 
+<<<<<<< HEAD
 /**
  * faster alternative to:
  * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
  */
+=======
+void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
+{
+  BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+  BLI_assert(f->len == 3);
+
+  r_loops[0] = l;
+  l = l->next;
+  r_loops[1] = l;
+  l = l->next;
+  r_loops[2] = l;
+}
+
+>>>>>>> master
 void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);

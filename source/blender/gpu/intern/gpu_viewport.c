@@ -590,11 +590,12 @@ GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
 /* Overlay framebuffer for drawing outside of DRW module. */
 GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
 {
-  GPU_framebuffer_ensure_config(&viewport->overlay_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
-                                    GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[0]),
-                                });
+  GPU_framebuffer_ensure_config(
+      &viewport->overlay_fb,
+      {
+          GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
+          GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[viewport->active_view]),
+      });
   return viewport->overlay_fb;
 }
 

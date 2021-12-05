@@ -50,12 +50,6 @@
       (void)0
 #  endif
 
-/**
- * Check of this BMesh is valid,
- * this function can be slow since its intended to help with debugging.
- *
- * \return true when the mesh is valid.
- */
 bool BM_mesh_validate(BMesh *bm)
 {
   EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, bm->totedge);

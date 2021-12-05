@@ -34,7 +34,7 @@ This catches the following kinds of issues:
   An escape key could have the value "NORTH" instead of "PRESS".
 
 This works by taking the keymap data (before it's loaded into Blender),
-then comparing it with that same keymap after exporting and imporing.
+then comparing it with that same keymap after exporting and importing.
 
 NOTE:
 

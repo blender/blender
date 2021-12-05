@@ -25,9 +25,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_primitive_line_cc {
 
-static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Count"))
       .default_value(10)
@@ -51,9 +51,7 @@ static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -63,7 +61,7 @@ static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
   }
 }
 
-static void geo_node_mesh_primitive_line_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryMeshLine *node_storage = (NodeGeometryMeshLine *)MEM_callocN(
       sizeof(NodeGeometryMeshLine), __func__);
@@ -74,7 +72,7 @@ static void geo_node_mesh_primitive_line_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = node_storage;
 }
 
-static void geo_node_mesh_primitive_line_update(bNodeTree *UNUSED(tree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *count_socket = (bNodeSocket *)node->inputs.first;
   bNodeSocket *resolution_socket = count_socket->next;
@@ -90,48 +88,17 @@ static void geo_node_mesh_primitive_line_update(bNodeTree *UNUSED(tree), bNode *
                   (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
                                                                  N_("Offset"));
 
-  nodeSetSocketAvailability(resolution_socket,
+  nodeSetSocketAvailability(ntree,
+                            resolution_socket,
                             mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  nodeSetSocketAvailability(count_socket,
+  nodeSetSocketAvailability(ntree,
+                            count_socket,
                             mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
-static void fill_edge_data(MutableSpan<MEdge> edges)
-{
-  for (const int i : edges.index_range()) {
-    edges[i].v1 = i;
-    edges[i].v2 = i + 1;
-    edges[i].flag |= ME_LOOSEEDGE;
-  }
-}
-
-Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
-{
-  if (count < 1) {
-    return nullptr;
-  }
-
-  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-
-  short normal[3];
-  normal_float_to_short_v3(normal, delta.normalized());
-
-  for (const int i : verts.index_range()) {
-    copy_v3_v3(verts[i].co, start + delta * i);
-    copy_v3_v3_short(verts[i].no, normal);
-  }
-
-  fill_edge_data(edges);
-
-  return mesh;
-}
-
-static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshLine &storage = *(const NodeGeometryMeshLine *)params.node().storage;
   const GeometryNodeMeshLineMode mode = (const GeometryNodeMeshLineMode)storage.mode;
@@ -172,19 +139,58 @@ static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
+}  // namespace blender::nodes::node_geo_mesh_primitive_line_cc
+
+namespace blender::nodes {
+
+static void fill_edge_data(MutableSpan<MEdge> edges)
+{
+  for (const int i : edges.index_range()) {
+    edges[i].v1 = i;
+    edges[i].v2 = i + 1;
+    edges[i].flag |= ME_LOOSEEDGE;
+  }
+}
+
+Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
+{
+  if (count < 1) {
+    return nullptr;
+  }
+
+  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
+  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
+  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
+
+  short normal[3];
+  normal_float_to_short_v3(normal, delta.normalized());
+
+  for (const int i : verts.index_range()) {
+    copy_v3_v3(verts[i].co, start + delta * i);
+    copy_v3_v3_short(verts[i].no, normal);
+  }
+
+  fill_edge_data(edges);
+
+  return mesh;
+}
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_mesh_primitive_line()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_line_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, "Mesh Line", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_line_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_line_init);
-  node_type_update(&ntype, blender::nodes::geo_node_mesh_primitive_line_update);
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_line_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_mesh_primitive_line_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

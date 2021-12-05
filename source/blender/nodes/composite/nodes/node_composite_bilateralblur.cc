@@ -24,15 +24,17 @@
 #include "node_composite_util.hh"
 
 /* **************** BILATERALBLUR ******************** */
-static bNodeSocketTemplate cmp_node_bilateralblur_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, N_("Determinator"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""}};
 
-static bNodeSocketTemplate cmp_node_bilateralblur_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>(N_("Determinator")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -49,7 +51,7 @@ void register_node_type_cmp_bilateralblur(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BILATERALBLUR, "Bilateral Blur", NODE_CLASS_OP_FILTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_bilateralblur_in, cmp_node_bilateralblur_out);
+  ntype.declare = blender::nodes::cmp_node_bilateralblur_declare;
   node_type_init(&ntype, node_composit_init_bilateralblur);
   node_type_storage(
       &ntype, "NodeBilateralBlurData", node_free_standard_storage, node_copy_standard_storage);

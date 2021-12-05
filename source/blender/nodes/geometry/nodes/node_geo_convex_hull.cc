@@ -28,9 +28,9 @@
 #  include "RBI_hull_api.h"
 #endif
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_convex_hull_cc {
 
-static void geo_node_convex_hull_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_output<decl::Geometry>(N_("Convex Hull"));
@@ -169,10 +169,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     span_count++;
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    total_size += varray->size();
-    positions_span = varray->get_internal_span();
+    total_size += varray.size();
+    positions_span = varray.get_internal_span();
   }
 
   if (geometry_set.has_curve()) {
@@ -200,18 +200,18 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (geometry_set.has_mesh()) {
     const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray->materialize(positions.as_mutable_span().slice(offset, varray.size()));
+    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }
 
   if (geometry_set.has_pointcloud()) {
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    GVArray_Typed<float3> varray = component->attribute_get_for_read<float3>(
+    VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray->materialize(positions.as_mutable_span().slice(offset, varray.size()));
+    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }
 
@@ -235,16 +235,16 @@ static void read_positions(const GeometryComponent &component,
                                            Span<float4x4> transforms,
                                            Vector<float3> *r_coords)
 {
-  GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
+  VArray<float3> positions = component.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   /* NOTE: could use convex hull operation here to
    * cut out some vertices, before accumulating,
    * but can also be done by the user beforehand. */
 
-  r_coords->reserve(r_coords->size() + positions.size() * transforms.size());
+  r_coords->reserve(r_coords->size() + positions->size() * transforms.size());
   for (const float4x4 &transform : transforms) {
-    for (const int i : positions.index_range()) {
+    for (const int i : positions->index_range()) {
       const float3 position = positions[i];
       const float3 transformed_position = transform * position;
       r_coords->append(transformed_position);
@@ -296,7 +296,7 @@ static Mesh *convex_hull_from_instances(const GeometrySet &geometry_set)
 
 #endif /* WITH_BULLET */
 
-static void geo_node_convex_hull_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -312,18 +312,20 @@ static void geo_node_convex_hull_exec(GeoNodeExecParams params)
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without Bullet"));
-  params.set_output("Convex Hull", geometry_set);
+  params.set_default_remaining_outputs();
 #endif /* WITH_BULLET */
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_convex_hull_cc
 
 void register_node_type_geo_convex_hull()
 {
+  namespace file_ns = blender::nodes::node_geo_convex_hull_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CONVEX_HULL, "Convex Hull", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_convex_hull_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_convex_hull_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

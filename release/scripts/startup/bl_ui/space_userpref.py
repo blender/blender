@@ -1790,7 +1790,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     _support_icon_mapping = {
-        'OFFICIAL': 'FILE_BLEND',
+        'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
         'TESTING': 'EXPERIMENTAL',
     }
@@ -1833,11 +1833,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         addon_user_dirs = tuple(p for p in (os.path.join(prefs.filepaths.script_directory, "addons"),
                 bpy.utils.user_resource('SCRIPTS', path="addons"),)
             if p)
-
-        # Development option for 2.8x, don't show users bundled addons
-        # unless they have been updated for 2.8x.
-        # Developers can turn them on with '--debug'
-        show_official_27x_addons = bpy.app.debug
 
         # collect the categories that can be filtered on
         addons = [
@@ -1905,12 +1900,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 if search and not ((search in info["name"].lower()) or (info["author"] and (search in info["author"].lower())) or ((filter == "All") and (search in info["category"].lower()))):
                     continue
 
-                # Skip 2.7x add-ons included with Blender, unless in debug
-                # mode.
-                is_addon_27x = info.get("blender", (0,)) < (2, 80)
-                if (is_addon_27x and (not show_official_27x_addons) and (not mod.__file__.startswith(addon_user_dirs))):
-                    continue
-
                 # Addon UI Code
                 col_box = col.column()
                 box = col_box.box()
@@ -1929,14 +1918,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 sub.active = is_enabled
                 sub.label(text="%s: %s" % (info["category"], info["name"]))
 
-                # WARNING: 2.8x exception, may be removed
-                # use disabled state for old add-ons, chances are they are
-                # broken.
-                if is_addon_27x:
-                    sub.label(text="Upgrade to 2.8x required")
-                    sub.label(icon='ERROR')
-                # Remove code above after 2.8x migration is complete.
-                elif info["warning"]:
+                if info["warning"]:
                     sub.label(icon='ERROR')
 
                 # icon showing support level.
@@ -2252,7 +2234,10 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
                 ({"property": "override_auto_resync"}, "T83811"),
                 ({"property": "proxy_to_override_auto_conversion"}, "T91671"),
                 ({"property": "use_cycles_debug"}, None),
-                ({"property": "use_geometry_nodes_legacy"}, "T91274"),),)
+                ({"property": "use_geometry_nodes_legacy"}, "T91274"),
+                ({"property": "show_asset_debug_info"}, None),
+            ),
+        )
 
 
 # -----------------------------------------------------------------------------

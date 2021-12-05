@@ -34,7 +34,7 @@
     .pathlen = 100, \
     .resolu = 12, \
     .resolv = 12, \
-    .width = 1.0, \
+    .offset = 1.0, \
     .wordspace = 1.0, \
     .spacing = 1.0f, \
     .linedist = 1.0, \

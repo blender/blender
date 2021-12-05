@@ -189,6 +189,7 @@ IDTypeInfo IDType_ID_MB = {
     .name_plural = "metaballs",
     .translation_context = BLT_I18NCONTEXT_ID_METABALL,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = metaball_init_data,
     .copy_data = metaball_copy_data,
@@ -196,6 +197,7 @@ IDTypeInfo IDType_ID_MB = {
     .make_local = NULL,
     .foreach_id = metaball_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = metaball_blend_write,

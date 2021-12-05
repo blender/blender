@@ -650,6 +650,7 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
   Object *ob = (Object *)id;
   bConstraint *con = con_ptr->data;
   bConstraint *new_con = BKE_constraint_copy_for_pose(ob, pchan, con);
+  new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
   ED_object_constraint_dependency_tag_update(bmain, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
@@ -681,29 +682,18 @@ bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' constraint in both _src *and* _dst */
-  bConstraint *con_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_anchor = BLI_findstring(
-        &pchan_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_anchor == NULL && opop->subitem_local_index >= 0) {
-    con_anchor = BLI_findlink(&pchan_dst->constraints, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(bConstraint, name);
+  bConstraint *con_anchor = BLI_listbase_string_or_index_find(&pchan_dst->constraints,
+                                                              opop->subitem_reference_name,
+                                                              name_offset,
+                                                              opop->subitem_reference_index);
+  /* If `con_anchor` is NULL, `con_src` will be inserted in first position. */
 
-  bConstraint *con_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_src = BLI_findstring(
-        &pchan_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_src == NULL && opop->subitem_local_index >= 0) {
-    con_src = BLI_findlink(&pchan_src->constraints, opop->subitem_local_index);
-  }
-  con_src = con_src ? con_src->next : pchan_src->constraints.first;
+  bConstraint *con_src = BLI_listbase_string_or_index_find(
+      &pchan_src->constraints, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
   if (con_src == NULL) {
-    printf("%s: Could not find constraint to insert, doing nothing...\n", __func__);
-    BLI_assert(0);
+    BLI_assert(con_src != NULL);
     return false;
   }
 

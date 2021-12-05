@@ -56,9 +56,6 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
   return (report_str == NULL) ? 0 : -1;
 }
 
-/**
- * A version of #BKE_report_write_file_fp that uses Python's stdout.
- */
 void BPy_reports_write_stdout(const ReportList *reports, const char *header)
 {
   if (header) {

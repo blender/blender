@@ -181,7 +181,7 @@ TEST(action_assets, BKE_action_has_single_frame)
 
   /* No FCurves. */
   {
-    const bAction empty = {nullptr};
+    const bAction empty = {{nullptr}};
     EXPECT_FALSE(BKE_action_has_single_frame(&empty))
         << "Action without FCurves cannot have a single frame.";
   }
@@ -192,7 +192,7 @@ TEST(action_assets, BKE_action_has_single_frame)
     std::unique_ptr<BezTriple[]> bezt = allocate_keyframes(&fcu, 1);
     add_keyframe(&fcu, 1.0f, 2.0f);
 
-    bAction action = {nullptr};
+    bAction action = {{nullptr}};
     BLI_addtail(&action.curves, &fcu);
 
     EXPECT_TRUE(BKE_action_has_single_frame(&action))
@@ -208,7 +208,7 @@ TEST(action_assets, BKE_action_has_single_frame)
     add_keyframe(&fcu1, 1.0f, 327.0f);
     add_keyframe(&fcu2, 1.0f, 47.0f); /* Same X-coordinate as the other one. */
 
-    bAction action = {nullptr};
+    bAction action = {{nullptr}};
     BLI_addtail(&action.curves, &fcu1);
     BLI_addtail(&action.curves, &fcu2);
 
@@ -228,7 +228,7 @@ TEST(action_assets, BKE_action_has_single_frame)
     add_keyframe(&fcu, 1.0f, 2.0f);
     add_keyframe(&fcu, 2.0f, 2.5f);
 
-    bAction action = {nullptr};
+    bAction action = {{nullptr}};
     BLI_addtail(&action.curves, &fcu);
 
     EXPECT_FALSE(BKE_action_has_single_frame(&action))

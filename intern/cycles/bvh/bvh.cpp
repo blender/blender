@@ -40,8 +40,11 @@ const char *bvh_layout_name(BVHLayout layout)
       return "EMBREE";
     case BVH_LAYOUT_OPTIX:
       return "OPTIX";
+    case BVH_LAYOUT_METAL:
+      return "METAL";
     case BVH_LAYOUT_MULTI_OPTIX:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
+    case BVH_LAYOUT_MULTI_METAL_EMBREE:
       return "MULTI";
     case BVH_LAYOUT_ALL:
       return "ALL";
@@ -105,7 +108,10 @@ BVH *BVH::create(const BVHParams &params,
 #endif
     case BVH_LAYOUT_MULTI_OPTIX:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
+    case BVH_LAYOUT_MULTI_METAL_EMBREE:
       return new BVHMulti(params, geometry, objects);
+    case BVH_LAYOUT_METAL:
+      /* host-side changes for BVH_LAYOUT_METAL are imminent */
     case BVH_LAYOUT_NONE:
     case BVH_LAYOUT_ALL:
       break;

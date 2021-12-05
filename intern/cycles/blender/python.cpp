@@ -1054,5 +1054,13 @@ void *CCL_python_module_init()
     Py_INCREF(Py_False);
   }
 
+#ifdef WITH_CYCLES_DEBUG
+  PyModule_AddObject(mod, "with_debug", Py_True);
+  Py_INCREF(Py_True);
+#else  /* WITH_CYCLES_DEBUG */
+  PyModule_AddObject(mod, "with_debug", Py_False);
+  Py_INCREF(Py_False);
+#endif /* WITH_CYCLES_DEBUG */
+
   return (void *)mod;
 }

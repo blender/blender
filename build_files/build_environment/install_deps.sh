@@ -1826,7 +1826,7 @@ compile_OCIO() {
     # Force linking against static libs
     #rm -f $_inst/lib/*.so*
 
-    # Additional depencencies
+    # Additional dependencies
     #cp ext/dist/lib/libtinyxml.a $_inst/lib
     #cp ext/dist/lib/libyaml-cpp.a $_inst/lib
 

@@ -93,11 +93,6 @@ CPUDevice::~CPUDevice()
   texture_info.free();
 }
 
-bool CPUDevice::show_samples() const
-{
-  return (info.cpu_threads == 1);
-}
-
 BVHLayoutMask CPUDevice::get_bvh_layout_mask() const
 {
   BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
@@ -279,7 +274,8 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
 #ifdef WITH_EMBREE
   if (bvh->params.bvh_layout == BVH_LAYOUT_EMBREE ||
-      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE) {
+      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
+      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_METAL_EMBREE) {
     BVHEmbree *const bvh_embree = static_cast<BVHEmbree *>(bvh);
     if (refit) {
       bvh_embree->refit(progress);

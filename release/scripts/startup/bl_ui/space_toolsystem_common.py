@@ -64,7 +64,7 @@ from collections import namedtuple
 ToolDef = namedtuple(
     "ToolDef",
     (
-        # Unique tool name (withing space & mode context).
+        # Unique tool name (within space & mode context).
         "idname",
         # The name to display in the interface.
         "label",

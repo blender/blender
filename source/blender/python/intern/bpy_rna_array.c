@@ -990,9 +990,10 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop)
   return pyrna_prop_CreatePyObject(ptr, prop);
 }
 
-/* TODO: multi-dimensional arrays. */
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
+  /* TODO: multi-dimensional arrays. */
+
   const int len = RNA_property_array_length(ptr, prop);
   int type;
   int i;

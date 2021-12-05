@@ -29,6 +29,7 @@ extern "C" {
 
 struct AssetLibraryReference;
 struct BlendHandle;
+struct FileIndexerType;
 struct FileList;
 struct FileSelection;
 struct bUUID;
@@ -72,6 +73,7 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const bool filter_assets_only,
                                 const char *filter_glob,
                                 const char *filter_search);
+void filelist_setindexer(struct FileList *filelist, const struct FileIndexerType *indexer);
 void filelist_set_asset_catalog_filter_options(
     struct FileList *filelist,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,

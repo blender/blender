@@ -18,9 +18,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_star_cc {
 
-static void geo_node_curve_primitive_star_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Points"))
       .default_value(8)
@@ -85,7 +85,7 @@ static void create_selection_output(CurveComponent &component,
   attribute.save();
 }
 
-static void geo_node_curve_primitive_star_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   std::unique_ptr<CurveEval> curve = create_star_curve(
       std::max(params.extract_input<float>("Inner Radius"), 0.0f),
@@ -103,13 +103,15 @@ static void geo_node_curve_primitive_star_exec(GeoNodeExecParams params)
   }
   params.set_output("Curve", std::move(output));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_star_cc
 
 void register_node_type_geo_curve_primitive_star()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_star_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_STAR, "Star", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_star_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_star_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

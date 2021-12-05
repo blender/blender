@@ -42,6 +42,9 @@ void BKE_preferences_asset_library_name_set(struct UserDef *userdef,
                                             struct bUserAssetLibrary *library,
                                             const char *name) ATTR_NONNULL();
 
+void BKE_preferences_asset_library_path_set(struct bUserAssetLibrary *library, const char *path)
+    ATTR_NONNULL();
+
 struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(
     const struct UserDef *userdef, int index) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(

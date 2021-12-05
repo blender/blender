@@ -686,12 +686,6 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 /** \name Mapping Get/Set (Internal Access)
  * \{ */
 
-/**
- * \note group can be a pointer array or a group.
- * assume we already checked key is a string.
- *
- * \return success.
- */
 bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
 {
   IDProperty *prop = idp_from_PyObject(name_obj, ob);
@@ -779,7 +773,6 @@ static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
   return BPy_IDGroup_ViewKeys_CreatePyObject(self);
 }
 
-/* for simple, non nested types this is the same as BPy_IDGroup_WrapData */
 PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
   switch (prop->type) {

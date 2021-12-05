@@ -52,8 +52,9 @@ typedef unsigned long long uint64_t;
 #endif
 #define ccl_device_noinline __device__ __noinline__
 #define ccl_device_noinline_cpu ccl_device
+#define ccl_device_inline_method ccl_device
 #define ccl_global
-#define ccl_static_constant __constant__
+#define ccl_inline_constant __constant__
 #define ccl_device_constant __constant__ __device__
 #define ccl_constant const
 #define ccl_gpu_shared __shared__
@@ -85,7 +86,6 @@ typedef unsigned long long uint64_t;
 #define ccl_gpu_syncthreads() __syncthreads()
 #define ccl_gpu_ballot(predicate) __ballot_sync(0xFFFFFFFF, predicate)
 #define ccl_gpu_shfl_down_sync(mask, var, detla) __shfl_down_sync(mask, var, detla)
-#define ccl_gpu_popc(x) __popc(x)
 
 /* GPU texture objects */
 

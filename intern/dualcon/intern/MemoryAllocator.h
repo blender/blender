@@ -55,7 +55,7 @@ class VirtualMemoryAllocator {
 /**
  * Dynamic memory allocator - allows allocation/deallocation
  *
- * Note: there are 4 bytes overhead for each allocated yet unused object.
+ * NOTE: there are 4 bytes overhead for each allocated yet unused object.
  */
 template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
  private:

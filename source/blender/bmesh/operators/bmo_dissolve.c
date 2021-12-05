@@ -488,7 +488,6 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   /* done with cleanup */
 }
 
-/* Limited Dissolve */
 void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 {
   BMOpSlot *einput = BMO_slot_get(op->slots_in, "edges");

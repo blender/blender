@@ -20,9 +20,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_tangent_cc {
 
-static void geo_node_input_tangent_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Vector>(N_("Tangent")).field_source();
 }
@@ -84,9 +84,9 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
   return tangents;
 }
 
-static const GVArray *construct_curve_tangent_gvarray(const CurveComponent &component,
+static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
                                                       const AttributeDomain domain,
-                                                      ResourceScope &scope)
+                                                      ResourceScope &UNUSED(scope))
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
@@ -100,20 +100,19 @@ static const GVArray *construct_curve_tangent_gvarray(const CurveComponent &comp
      * This is only possible when there is only one poly spline. */
     if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
       const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
-      return &scope.construct<fn::GVArray_For_Span<float3>>(spline.evaluated_tangents());
+      return VArray<float3>::ForSpan(spline.evaluated_tangents());
     }
 
     Array<float3> tangents = curve_tangent_point_domain(*curve);
-    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float3>>>(std::move(tangents));
+    return VArray<float3>::ForContainer(std::move(tangents));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
     Array<float3> point_tangents = curve_tangent_point_domain(*curve);
-    GVArrayPtr gvarray = std::make_unique<fn::GVArray_For_ArrayContainer<Array<float3>>>(
-        std::move(point_tangents));
-    GVArrayPtr spline_tangents = component.attribute_try_adapt_domain(
-        std::move(gvarray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
-    return scope.add_value(std::move(spline_tangents)).get();
+    return component.attribute_try_adapt_domain<float3>(
+        VArray<float3>::ForContainer(std::move(point_tangents)),
+        ATTR_DOMAIN_POINT,
+        ATTR_DOMAIN_CURVE);
   }
 
   return nullptr;
@@ -126,9 +125,9 @@ class TangentFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask UNUSED(mask),
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask UNUSED(mask),
+                                 ResourceScope &scope) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -141,7 +140,7 @@ class TangentFieldInput final : public fn::FieldInput {
         return construct_curve_tangent_gvarray(curve_component, domain, scope);
       }
     }
-    return nullptr;
+    return {};
   }
 
   uint64_t hash() const override
@@ -156,20 +155,22 @@ class TangentFieldInput final : public fn::FieldInput {
   }
 };
 
-static void geo_node_input_tangent_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float3> tangent_field{std::make_shared<TangentFieldInput>()};
   params.set_output("Tangent", std::move(tangent_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_tangent_cc
 
 void register_node_type_geo_input_tangent()
 {
+  namespace file_ns = blender::nodes::node_geo_input_tangent_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_TANGENT, "Curve Tangent", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_tangent_exec;
-  ntype.declare = blender::nodes::geo_node_input_tangent_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

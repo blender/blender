@@ -254,6 +254,10 @@ bool BKE_where_on_path(const Object *ob,
     CLOG_WARN(&LOG, "No curve cache!");
     return false;
   }
+  if (ob->runtime.curve_cache->anim_path_accum_length == NULL) {
+    CLOG_WARN(&LOG, "No anim path!");
+    return false;
+  }
   /* We only use the first curve. */
   BevList *bl = ob->runtime.curve_cache->bev.first;
   if (bl == NULL || !bl->nr) {

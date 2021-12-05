@@ -92,6 +92,7 @@ IDTypeInfo IDType_ID_LP = {
     .name_plural = "lightprobes",
     .translation_context = BLT_I18NCONTEXT_ID_LIGHTPROBE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = lightprobe_init_data,
     .copy_data = NULL,
@@ -99,6 +100,7 @@ IDTypeInfo IDType_ID_LP = {
     .make_local = NULL,
     .foreach_id = lightprobe_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = lightprobe_blend_write,

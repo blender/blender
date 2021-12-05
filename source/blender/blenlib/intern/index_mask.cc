@@ -18,6 +18,11 @@
 
 namespace blender {
 
+IndexMask IndexMask::slice(IndexRange slice) const
+{
+  return IndexMask(indices_.slice(slice));
+}
+
 /**
  * Create a sub-mask that is also shifted to the beginning. The shifting to the beginning allows
  * code to work with smaller indices, which is more memory efficient.

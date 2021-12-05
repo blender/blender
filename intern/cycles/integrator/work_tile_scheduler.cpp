@@ -28,6 +28,11 @@ WorkTileScheduler::WorkTileScheduler()
 {
 }
 
+void WorkTileScheduler::set_accelerated_rt(bool accelerated_rt)
+{
+  accelerated_rt_ = accelerated_rt;
+}
+
 void WorkTileScheduler::set_max_num_path_states(int max_num_path_states)
 {
   max_num_path_states_ = max_num_path_states;
@@ -61,7 +66,7 @@ void WorkTileScheduler::reset(const BufferParams &buffer_params,
 void WorkTileScheduler::reset_scheduler_state()
 {
   tile_size_ = tile_calculate_best_size(
-      image_size_px_, samples_num_, max_num_path_states_, scrambling_distance_);
+      accelerated_rt_, image_size_px_, samples_num_, max_num_path_states_, scrambling_distance_);
 
   VLOG(3) << "Will schedule tiles of size " << tile_size_;
 

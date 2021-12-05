@@ -277,46 +277,59 @@ static void apply_curve_transform(
   *r_radius = (radius + *r_radius) / 2;
 }
 
+static float dist_to_sphere_shell(const float sphere_origin[3],
+                                  const float sphere_radius,
+                                  const float point[3])
+{
+  float vec[3];
+  sub_v3_v3v3(vec, sphere_origin, point);
+  return sphere_radius - len_v3(vec);
+}
+
 /* This function positions the tail of the bone so that it preserves the length of it.
  * The length of the bone can be seen as a sphere radius.
  */
 static int position_tail_on_spline(bSplineIKConstraint *ik_data,
                                    const float head_pos[3],
                                    const float sphere_radius,
-                                   const int prev_seg_idx,
+                                   int prev_seg_idx,
                                    float r_tail_pos[3],
                                    float *r_new_curve_pos,
                                    float *r_radius)
 {
   /* This is using the tessellated curve data.
    * So we are working with piece-wise linear curve segments.
-   * The same method is use in #BKE_where_on_path to get curve location data. */
+   * The same method is used in #BKE_where_on_path to get curve location data. */
   const CurveCache *cache = ik_data->tar->runtime.curve_cache;
-  const BevList *bl = cache->bev.first;
-  BevPoint *bp = bl->bevpoints;
-  const float spline_len = BKE_anim_path_get_length(cache);
   const float *seg_accum_len = cache->anim_path_accum_length;
 
   int max_seg_idx = BKE_anim_path_get_array_size(cache) - 1;
 
-  /* Convert our initial intersection point guess to a point index.
-   * If the curve was a straight line, then pointEnd would be the correct location.
+  /* Make an initial guess of where our intersection point will be.
+   * If the curve was a straight line, then the faction passed in r_new_curve_pos
+   * would be the correct location.
    * So make it our first initial guess.
    */
+  const float spline_len = BKE_anim_path_get_length(cache);
   const float guessed_len = *r_new_curve_pos * spline_len;
 
   BLI_assert(prev_seg_idx >= 0);
-
   int cur_seg_idx = prev_seg_idx;
   while (cur_seg_idx < max_seg_idx && guessed_len > seg_accum_len[cur_seg_idx]) {
     cur_seg_idx++;
   }
 
+  /* Convert the segment to bev points.
+   * For example, the segment with index 0 will have bev points 0 and 1.
+   */
   int bp_idx = cur_seg_idx + 1;
 
-  bp = bp + bp_idx;
+  const BevList *bl = cache->bev.first;
   bool is_cyclic = bl->poly >= 0;
-  BevPoint *prev_bp = bp - 1;
+  BevPoint *bp = bl->bevpoints;
+  BevPoint *prev_bp;
+  bp = bp + bp_idx;
+  prev_bp = bp - 1;
 
   /* Go to the next tessellated curve point until we cross to outside of the sphere. */
   while (len_v3v3(head_pos, bp->vec) < sphere_radius) {
@@ -337,35 +350,53 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
     bp_idx++;
   }
 
-  float isect_1[3], isect_2[3];
+  /* Calculate the intersection point using the secant root finding method */
+  float x0 = 0.0f, x1 = 1.0f, x2 = 0.5f;
+  float x0_point[3], x1_point[3], start_p[3];
+  float epsilon = max_fff(1.0f, len_v3(head_pos), len_v3(bp->vec)) * FLT_EPSILON;
 
-  /* Calculate the intersection point. */
-  int ret = isect_line_sphere_v3(prev_bp->vec, bp->vec, head_pos, sphere_radius, isect_1, isect_2);
-
-  if (ret > 0) {
-    /* Because of how `isect_line_sphere_v3` works, we know that `isect_1` contains the
-     * intersection point we want. And it will always intersect as we go from inside to outside
-     * of the sphere.
+  if (prev_seg_idx == bp_idx - 1) {
+    /* The intersection lies inside the same segment as the last point.
+     * Set the last point to be the start search point so we minimize the risks of going backwards
+     * on the curve.
      */
-    copy_v3_v3(r_tail_pos, isect_1);
+    copy_v3_v3(start_p, head_pos);
   }
   else {
-    /* Couldn't find an intersection point. This means that the floating point
-     * values are too small and thus the intersection check fails.
-     * So assume that the distance is so small that tail_pos == head_pos.
-     */
-    copy_v3_v3(r_tail_pos, head_pos);
+    copy_v3_v3(start_p, prev_bp->vec);
   }
 
-  cur_seg_idx = bp_idx - 2;
+  for (int i = 0; i < 10; i++) {
+    interp_v3_v3v3(x0_point, start_p, bp->vec, x0);
+    interp_v3_v3v3(x1_point, start_p, bp->vec, x1);
+
+    float f_x0 = dist_to_sphere_shell(head_pos, sphere_radius, x0_point);
+    float f_x1 = dist_to_sphere_shell(head_pos, sphere_radius, x1_point);
+
+    if (fabsf(f_x1) <= epsilon || f_x0 == f_x1) {
+      break;
+    }
+
+    x2 = x1 - f_x1 * (x1 - x0) / (f_x1 - f_x0);
+    x0 = x1;
+    x1 = x2;
+  }
+  /* Found the bone tail position! */
+  copy_v3_v3(r_tail_pos, x1_point);
+
+  /* Because our intersection point lies inside the current segment,
+   * Convert our bevpoint index back to the previous segment index (-2 instead of -1).
+   * This is because our actual location is prev_seg_len + isect_seg_len.
+   */
+  prev_seg_idx = bp_idx - 2;
   float prev_seg_len = 0;
 
-  if (cur_seg_idx < 0) {
-    cur_seg_idx = 0;
+  if (prev_seg_idx < 0) {
+    prev_seg_idx = 0;
     prev_seg_len = 0;
   }
   else {
-    prev_seg_len = seg_accum_len[cur_seg_idx];
+    prev_seg_len = seg_accum_len[prev_seg_idx];
   }
 
   /* Convert the point back into the 0-1 interpolation range. */
@@ -380,7 +411,8 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
     *r_radius = (1.0f - frac) * prev_bp->radius + frac * bp->radius;
   }
 
-  return cur_seg_idx;
+  /* Return the current segment. */
+  return bp_idx - 1;
 }
 
 /* Evaluate spline IK for a given bone. */

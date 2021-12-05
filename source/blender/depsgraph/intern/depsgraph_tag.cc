@@ -193,12 +193,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       *component_type = NodeType::COPY_ON_WRITE;
       break;
     case ID_RECALC_SHADING:
-      if (id_type == ID_NT) {
-        *component_type = NodeType::SHADING_PARAMETERS;
-      }
-      else {
-        *component_type = NodeType::SHADING;
-      }
+      *component_type = NodeType::SHADING;
       break;
     case ID_RECALC_SELECT:
       depsgraph_select_tag_to_component_opcode(id, component_type, operation_code);

@@ -111,13 +111,13 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeTrimCurve")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputCurveHandlePositions")
-    yield NodeItem("GeometryNodeCurveParameter")
     yield NodeItem("GeometryNodeInputTangent")
     yield NodeItem("GeometryNodeInputCurveTilt")
     yield NodeItem("GeometryNodeCurveEndpointSelection")
     yield NodeItem("GeometryNodeCurveHandleTypeSelection")
     yield NodeItem("GeometryNodeInputSplineCyclic")
     yield NodeItem("GeometryNodeSplineLength")
+    yield NodeItem("GeometryNodeSplineParameter")
     yield NodeItem("GeometryNodeInputSplineResolution")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetCurveRadius")
@@ -141,6 +141,7 @@ def mesh_node_items(context):
         yield NodeItem("GeometryNodeLegacySubdivisionSurface", poll=geometry_nodes_legacy_poll)
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
+    yield NodeItem("GeometryNodeDualMesh")
     yield NodeItem("GeometryNodeMeshBoolean")
     yield NodeItem("GeometryNodeMeshToCurve")
     yield NodeItem("GeometryNodeMeshToPoints")
@@ -675,6 +676,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeRemove", poll=geometry_nodes_legacy_poll),
 
         NodeItem("GeometryNodeCaptureAttribute"),
+        NodeItem("GeometryNodeAttributeDomainSize"),
         NodeItem("GeometryNodeAttributeStatistic"),
         NodeItem("GeometryNodeAttributeTransfer"),
     ]),
@@ -749,7 +751,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeMath"),
         NodeItem("FunctionNodeBooleanMath"),
         NodeItem("FunctionNodeRotateEuler"),
-        NodeItem("FunctionNodeCompareFloats"),
+        NodeItem("FunctionNodeCompare"),
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
         NodeItem("FunctionNodeRandomValue"),

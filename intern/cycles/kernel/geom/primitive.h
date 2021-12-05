@@ -284,18 +284,33 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals kg,
     int numverts, numkeys;
     object_motion_info(kg, sd->object, NULL, &numverts, &numkeys);
 
-    /* lookup attributes */
-    motion_pre = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
-
-    desc.offset += (sd->type & PRIMITIVE_ALL_TRIANGLE) ? numverts : numkeys;
-    motion_post = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
-
 #ifdef __HAIR__
-    if (is_curve_primitive && (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
-      object_position_transform(kg, sd, &motion_pre);
-      object_position_transform(kg, sd, &motion_post);
+    if (is_curve_primitive) {
+      motion_pre = float4_to_float3(curve_attribute_float4(kg, sd, desc, NULL, NULL));
+      desc.offset += numkeys;
+      motion_post = float4_to_float3(curve_attribute_float4(kg, sd, desc, NULL, NULL));
+
+      /* Curve */
+      if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
+        object_position_transform(kg, sd, &motion_pre);
+        object_position_transform(kg, sd, &motion_post);
+      }
     }
+    else
 #endif
+        if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+      /* Triangle */
+      if (subd_triangle_patch(kg, sd) == ~0) {
+        motion_pre = triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        desc.offset += numverts;
+        motion_post = triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+      }
+      else {
+        motion_pre = subd_triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        desc.offset += numverts;
+        motion_post = subd_triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+      }
+    }
   }
 
   /* object motion. note that depending on the mesh having motion vectors, this

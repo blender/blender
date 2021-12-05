@@ -109,7 +109,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         assert(len(bpy.data.meshes) == 0)
         assert(orig_data != read_data)
 
-        # Simple link of a single ObData with obdata instanciation.
+        # Simple link of a single ObData with obdata instantiation.
         self.reset_blender()
 
         link_dir = os.path.join(output_lib_path, "Mesh")
@@ -147,7 +147,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         assert(orig_data == read_data)
 
-        # Simple link of a single Collection, with Empty-instanciation.
+        # Simple link of a single Collection, with Empty-instantiation.
         self.reset_blender()
 
         link_dir = os.path.join(output_lib_path, "Collection")
@@ -166,7 +166,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         assert(orig_data == read_data)
 
-        # Simple link of a single Collection, with ViewLayer-instanciation.
+        # Simple link of a single Collection, with ViewLayer-instantiation.
         self.reset_blender()
 
         link_dir = os.path.join(output_lib_path, "Collection")
@@ -216,7 +216,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         assert(len(bpy.data.objects) == 0)
         assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
 
-        # Simple append of a single ObData with obdata instanciation.
+        # Simple append of a single ObData with obdata instantiation.
         self.reset_blender()
 
         link_dir = os.path.join(output_lib_path, "Mesh")

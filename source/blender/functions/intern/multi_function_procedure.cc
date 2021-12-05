@@ -782,7 +782,7 @@ class MFProcedureDotExport {
   void instruction_to_string(const MFCallInstruction &instruction, std::stringstream &ss)
   {
     const MultiFunction &fn = instruction.fn();
-    this->instruction_name_format(fn.name() + ": ", ss);
+    this->instruction_name_format(fn.debug_name() + ": ", ss);
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
       const MFVariable *variable = instruction.params()[param_index];

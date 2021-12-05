@@ -34,6 +34,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_session_uuid.h"
 #include "BLI_string.h"
 
 #ifdef WIN32
@@ -54,6 +55,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
+#include "SEQ_iterator.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
@@ -79,6 +81,7 @@ typedef struct SeqIndexBuildContext {
   Depsgraph *depsgraph;
   Scene *scene;
   Sequence *seq, *orig_seq;
+  SessionUUID orig_seq_uuid;
 } SeqIndexBuildContext;
 
 int SEQ_rendersize_to_proxysize(int render_size)
@@ -458,6 +461,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = seq;
+    context->orig_seq_uuid = seq->runtime.session_uuid;
     context->seq = nseq;
 
     context->view_id = i; /* only for images */
@@ -560,6 +564,18 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
   }
 }
 
+static bool seq_orig_free_anims(Sequence *seq_iter, void *data)
+{
+  SessionUUID orig_seq_uuid = ((SeqIndexBuildContext *)data)->orig_seq_uuid;
+
+  if (BLI_session_uuid_is_equal(&seq_iter->runtime.session_uuid, &orig_seq_uuid)) {
+    for (StripAnim *sanim = seq_iter->anims.first; sanim; sanim = sanim->next) {
+      IMB_close_anim_proxies(sanim->anim);
+    }
+  }
+  return true;
+}
+
 void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
 {
   if (context->index_context) {
@@ -569,9 +585,8 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
       IMB_close_anim_proxies(sanim->anim);
     }
 
-    for (sanim = context->orig_seq->anims.first; sanim; sanim = sanim->next) {
-      IMB_close_anim_proxies(sanim->anim);
-    }
+    /* `context->seq_orig` may have been removed during building. */
+    SEQ_for_each_callback(&context->scene->ed->seqbase, seq_orig_free_anims, context);
 
     IMB_anim_index_rebuild_finish(context->index_context, stop);
   }

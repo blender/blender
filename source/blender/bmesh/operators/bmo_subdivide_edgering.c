@@ -1061,9 +1061,10 @@ static bool bm_edge_rim_test_cb(BMEdge *e, void *bm_v)
   return BMO_edge_flag_test_bool(bm, e, EDGE_RIM);
 }
 
-/* keep this operator fast, its used in a modifier */
 void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 {
+  /* NOTE: keep this operator fast, its used in a modifier. */
+
   ListBase eloops_rim = {NULL};
   BMOIter siter;
   BMEdge *e;

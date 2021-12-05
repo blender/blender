@@ -31,6 +31,9 @@ class WorkTileScheduler {
  public:
   WorkTileScheduler();
 
+  /* To indicate if there is accelerated RT support. */
+  void set_accelerated_rt(bool state);
+
   /* MAximum path states which are allowed to be used by a single scheduled work tile.
    *
    * Affects the scheduled work size: the work size will be as big as possible, but will not exceed
@@ -54,6 +57,9 @@ class WorkTileScheduler {
 
  protected:
   void reset_scheduler_state();
+
+  /* Used to indicate if there is accelerated ray tracing. */
+  bool accelerated_rt_ = false;
 
   /* Maximum allowed path states to be used.
    *

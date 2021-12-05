@@ -28,6 +28,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -184,7 +185,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.cur = region->v2d.tot;
 
   region->v2d.min[0] = 10.0f;
-  region->v2d.min[1] = 4.0f;
+  region->v2d.min[1] = 1.0f;
 
   region->v2d.max[0] = MAXFRAMEF;
   region->v2d.max[1] = MAXSEQ;
@@ -400,7 +401,7 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
     }
   }
 
-  return 0;
+  return WM_drag_is_ID_type(drag, ID_IM);
 }
 
 static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -416,7 +417,8 @@ static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
       }
     }
   }
-  return 0;
+
+  return WM_drag_is_ID_type(drag, ID_MC);
 }
 
 static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -432,41 +434,75 @@ static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
       }
     }
   }
-  return 0;
+
+  return WM_drag_is_ID_type(drag, ID_SO);
 }
 
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-  /* Copy drag path to properties. */
-  if (RNA_struct_find_property(drop->ptr, "filepath")) {
-    RNA_string_set(drop->ptr, "filepath", drag->path);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  /* ID dropped. */
+  if (id != NULL) {
+    const ID_Type id_type = GS(id->name);
+    if (id_type == ID_IM) {
+      Image *ima = (Image *)id;
+      PointerRNA itemptr;
+      char dir[FILE_MAX], file[FILE_MAX];
+      BLI_split_dirfile(ima->filepath, dir, file, sizeof(dir), sizeof(file));
+      RNA_string_set(drop->ptr, "directory", dir);
+      RNA_collection_clear(drop->ptr, "files");
+      RNA_collection_add(drop->ptr, "files", &itemptr);
+      RNA_string_set(&itemptr, "name", file);
+    }
+    else if (id_type == ID_MC) {
+      MovieClip *clip = (MovieClip *)id;
+      RNA_string_set(drop->ptr, "filepath", clip->filepath);
+      RNA_struct_property_unset(drop->ptr, "name");
+    }
+    else if (id_type == ID_SO) {
+      bSound *sound = (bSound *)id;
+      RNA_string_set(drop->ptr, "filepath", sound->filepath);
+      RNA_struct_property_unset(drop->ptr, "name");
+    }
   }
+  /* Path dropped. */
+  else if (drag->path[0]) {
+    if (RNA_struct_find_property(drop->ptr, "filepath")) {
+      RNA_string_set(drop->ptr, "filepath", drag->path);
+    }
+    if (RNA_struct_find_property(drop->ptr, "directory")) {
+      PointerRNA itemptr;
+      char dir[FILE_MAX], file[FILE_MAX];
 
-  if (RNA_struct_find_property(drop->ptr, "directory")) {
-    PointerRNA itemptr;
-    char dir[FILE_MAX], file[FILE_MAX];
+      BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
 
-    BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
+      RNA_string_set(drop->ptr, "directory", dir);
 
-    RNA_string_set(drop->ptr, "directory", dir);
-
-    RNA_collection_clear(drop->ptr, "files");
-    RNA_collection_add(drop->ptr, "files", &itemptr);
-    RNA_string_set(&itemptr, "name", file);
+      RNA_collection_clear(drop->ptr, "files");
+      RNA_collection_add(drop->ptr, "files", &itemptr);
+      RNA_string_set(&itemptr, "name", file);
+    }
   }
 }
 
 /* This region dropbox definition. */
-static void sequencer_dropboxes(void)
-{
-  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
+static void sequencer_dropboxes_add_to_lb(ListBase *lb)
+{
   WM_dropbox_add(
       lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
   WM_dropbox_add(
       lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
   WM_dropbox_add(
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
+}
+
+static void sequencer_dropboxes(void)
+{
+  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
+  sequencer_dropboxes_add_to_lb(lb);
+  lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
+  sequencer_dropboxes_add_to_lb(lb);
 }
 
 /* ************* end drop *********** */
@@ -757,6 +793,9 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+
+  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
 static void sequencer_preview_region_layout(const bContext *C, ARegion *region)

@@ -25,9 +25,9 @@
 
 #include "BKE_spline.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_fillet_cc {
 
-static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Int>(N_("Count")).default_value(1).min(1).max(1000).supports_field();
@@ -41,12 +41,12 @@ static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_fillet_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_fillet_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurveFillet *data = (NodeGeometryCurveFillet *)MEM_callocN(
       sizeof(NodeGeometryCurveFillet), __func__);
@@ -59,10 +59,10 @@ struct FilletParam {
   GeometryNodeCurveFilletMode mode;
 
   /* Number of points to be added. */
-  const VArray<int> *counts;
+  VArray<int> counts;
 
   /* Radii for fillet arc at all vertices. */
-  const VArray<float> *radii;
+  VArray<float> radii;
 
   /* Whether or not fillets are allowed to overlap. */
   bool limit_radius;
@@ -76,14 +76,14 @@ struct FilletData {
   Array<int> counts;
 };
 
-static void geo_node_curve_fillet_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)node->storage;
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
 
   bNodeSocket *poly_socket = ((bNodeSocket *)node->inputs.first)->next;
 
-  nodeSetSocketAvailability(poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 /* Function to get the center of a fillet. */
@@ -160,7 +160,7 @@ static Array<int> calculate_counts(const FilletParam &fillet_param,
   Array<int> counts(size, 1);
   if (fillet_param.mode == GEO_NODE_CURVE_FILLET_POLY) {
     for (const int i : IndexRange(size)) {
-      counts[i] = (*fillet_param.counts)[spline_offset + i];
+      counts[i] = fillet_param.counts[spline_offset + i];
     }
   }
   if (!cyclic) {
@@ -178,12 +178,12 @@ static Array<float> calculate_radii(const FilletParam &fillet_param,
   Array<float> radii(size, 0.0f);
   if (fillet_param.limit_radius) {
     for (const int i : IndexRange(size)) {
-      radii[i] = std::max((*fillet_param.radii)[spline_offset + i], 0.0f);
+      radii[i] = std::max(fillet_param.radii[spline_offset + i], 0.0f);
     }
   }
   else {
     for (const int i : IndexRange(size)) {
-      radii[i] = (*fillet_param.radii)[spline_offset + i];
+      radii[i] = fillet_param.radii[spline_offset + i];
     }
   }
 
@@ -332,14 +332,17 @@ static void copy_common_attributes_by_mapping(const Spline &src,
   copy_attribute_by_mapping(src.radii(), dst.radii(), mapping);
   copy_attribute_by_mapping(src.tilts(), dst.tilts(), mapping);
 
-  dst.attributes.reallocate(1);
   src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         std::optional<GSpan> src_attribute = src.attributes.get_for_read(attribute_id);
         if (dst.attributes.create(attribute_id, meta_data.data_type)) {
           std::optional<GMutableSpan> dst_attribute = dst.attributes.get_for_write(attribute_id);
           if (dst_attribute) {
-            src_attribute->type().copy_assign(src_attribute->data(), dst_attribute->data());
+            attribute_math::convert_to_static_type(dst_attribute->type(), [&](auto dummy) {
+              using T = decltype(dummy);
+              copy_attribute_by_mapping(
+                  src_attribute->typed<T>(), dst_attribute->typed<T>(), mapping);
+            });
             return true;
           }
         }
@@ -590,13 +593,13 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
 
   field_evaluator.evaluate();
 
-  fillet_param.radii = &field_evaluator.get_evaluated<float>(0);
-  if (fillet_param.radii->is_single() && fillet_param.radii->get_internal_single() < 0.0f) {
+  fillet_param.radii = field_evaluator.get_evaluated<float>(0);
+  if (fillet_param.radii.is_single() && fillet_param.radii.get_internal_single() < 0.0f) {
     return;
   }
 
   if (mode == GEO_NODE_CURVE_FILLET_POLY) {
-    fillet_param.counts = &field_evaluator.get_evaluated<int>(1);
+    fillet_param.counts = field_evaluator.get_evaluated<int>(1);
   }
 
   fillet_param.limit_radius = limit_radius;
@@ -607,7 +610,7 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
   geometry_set.replace_curve(output_curve.release());
 }
 
-static void geo_node_fillet_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
@@ -629,19 +632,21 @@ static void geo_node_fillet_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_fillet_cc
 
 void register_node_type_geo_curve_fillet()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_fillet_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_FILLET_CURVE, "Fillet Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.draw_buttons = blender::nodes::geo_node_curve_fillet_layout;
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_fillet_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_curve_fillet_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_fillet_update);
-  ntype.geometry_node_execute = blender::nodes::geo_node_fillet_exec;
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

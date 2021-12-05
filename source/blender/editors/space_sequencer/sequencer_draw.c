@@ -1389,7 +1389,8 @@ static void draw_seq_strip(const bContext *C,
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
       (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))) {
-    draw_seq_strip_thumbnail(v2d, C, scene, seq, y1, y2, pixelx, pixely);
+    draw_seq_strip_thumbnail(
+        v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
@@ -2096,6 +2097,10 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
 static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
+  const ARegion *region = CTX_wm_region(C);
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return;
+  }
   if ((seq->flag & SELECT) == 0) {
     return;
   }
@@ -2721,8 +2726,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  /* Get timeline bound-box, needed for the scroll-bars. */
-  SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &v2d->tot);
   draw_seq_backdrop(v2d);
   if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_GRID)) {
     U.v2d_min_gridsize *= 3;
@@ -2806,5 +2809,8 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   }
 
   ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES));
+
+  const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
   UI_view2d_scrollers_draw(v2d, NULL);
 }

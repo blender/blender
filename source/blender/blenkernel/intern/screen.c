@@ -304,6 +304,7 @@ IDTypeInfo IDType_ID_SCR = {
     .name_plural = "screens",
     .translation_context = BLT_I18NCONTEXT_ID_SCREEN,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,
@@ -311,6 +312,7 @@ IDTypeInfo IDType_ID_SCR = {
     .make_local = NULL,
     .foreach_id = screen_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = screen_blend_write,

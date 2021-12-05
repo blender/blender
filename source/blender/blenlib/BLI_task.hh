@@ -67,14 +67,19 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
     return;
   }
 #ifdef WITH_TBB
-  tbb::parallel_for(tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
-                    [&](const tbb::blocked_range<int64_t> &subrange) {
-                      function(IndexRange(subrange.begin(), subrange.size()));
-                    });
+  /* Invoking tbb for small workloads has a large overhead. */
+  if (range.size() >= grain_size) {
+    tbb::parallel_for(
+        tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
+        [&](const tbb::blocked_range<int64_t> &subrange) {
+          function(IndexRange(subrange.begin(), subrange.size()));
+        });
+    return;
+  }
 #else
   UNUSED_VARS(grain_size);
-  function(range);
 #endif
+  function(range);
 }
 
 template<typename Value, typename Function, typename Reduction>

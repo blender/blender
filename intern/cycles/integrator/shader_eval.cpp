@@ -158,14 +158,16 @@ bool ShaderEval::eval_gpu(Device *device,
 
   /* Execute work on GPU in chunk, so we can cancel.
    * TODO : query appropriate size from device.*/
-  const int64_t chunk_size = 65536;
+  const int32_t chunk_size = 65536;
 
-  void *d_input = (void *)input.device_pointer;
-  void *d_output = (void *)output.device_pointer;
+  device_ptr d_input = input.device_pointer;
+  device_ptr d_output = output.device_pointer;
 
-  for (int64_t d_offset = 0; d_offset < work_size; d_offset += chunk_size) {
-    int64_t d_work_size = std::min(chunk_size, work_size - d_offset);
-    void *args[] = {&d_input, &d_output, &d_offset, &d_work_size};
+  assert(work_size <= 0x7fffffff);
+  for (int32_t d_offset = 0; d_offset < int32_t(work_size); d_offset += chunk_size) {
+    int32_t d_work_size = std::min(chunk_size, int32_t(work_size) - d_offset);
+
+    DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
 
     queue->enqueue(kernel, d_work_size, args);
     queue->synchronize();

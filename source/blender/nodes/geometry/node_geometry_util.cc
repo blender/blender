@@ -35,7 +35,8 @@ using bke::GeometryInstanceGroup;
  * \param mode: Controls which socket of the group to make available.
  * \param name_is_available: If false, make all sockets with this name unavailable.
  */
-void update_attribute_input_socket_availabilities(bNode &node,
+void update_attribute_input_socket_availabilities(bNodeTree &ntree,
+                                                  bNode &node,
                                                   const StringRef name,
                                                   const GeometryNodeAttributeInputMode mode,
                                                   const bool name_is_available)
@@ -50,7 +51,7 @@ void update_attribute_input_socket_availabilities(bNode &node,
            (socket->type == SOCK_INT && mode_ == GEO_NODE_ATTRIBUTE_INPUT_INTEGER) ||
            (socket->type == SOCK_VECTOR && mode_ == GEO_NODE_ATTRIBUTE_INPUT_VECTOR) ||
            (socket->type == SOCK_RGBA && mode_ == GEO_NODE_ATTRIBUTE_INPUT_COLOR));
-      nodeSetSocketAvailability(socket, socket_is_available);
+      nodeSetSocketAvailability(&ntree, socket, socket_is_available);
     }
   }
 }
@@ -62,7 +63,7 @@ bool geo_node_poll_default(bNodeType *UNUSED(ntype),
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "GeometryNodeTree")) {
-    *r_disabled_hint = "Not a geometry node tree";
+    *r_disabled_hint = TIP_("Not a geometry node tree");
     return false;
   }
   return true;
@@ -72,6 +73,5 @@ void geo_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
 {
   node_type_base(ntype, type, name, nclass, flag);
   ntype->poll = geo_node_poll_default;
-  ntype->update_internal_links = node_update_internal_links_default;
   ntype->insert_link = node_insert_link_default;
 }

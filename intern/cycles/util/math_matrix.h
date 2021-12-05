@@ -116,7 +116,7 @@ ccl_device_inline void math_vec3_add_strided(
 }
 
 /* Elementary matrix operations.
- * Note: TriMatrix refers to a square matrix that is symmetric,
+ * NOTE: TriMatrix refers to a square matrix that is symmetric,
  * and therefore its upper-triangular part isn't stored. */
 
 ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A,
@@ -162,7 +162,7 @@ ccl_device_inline void math_trimatrix_add_gramian(ccl_global float *A,
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
-      MATHS(A, row, col, 1) += v[row] * v[col] * weight;
+      atomic_add_and_fetch_float(&MATHS(A, row, col, 1), v[row] * v[col] * weight);
     }
   }
 }

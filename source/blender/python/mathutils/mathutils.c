@@ -77,11 +77,6 @@ static int mathutils_array_parse_fast(float *array,
   return size;
 }
 
-/**
- * helper function that returns a Python `__hash__`.
- *
- * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
- */
 Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
 {
   int i;
@@ -114,7 +109,6 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
   return x;
 }
 
-/* helper function returns length of the 'value', -1 on error */
 int mathutils_array_parse(
     float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
@@ -211,7 +205,6 @@ int mathutils_array_parse(
   return size;
 }
 
-/* on error, -1 is returned and no allocation is made */
 int mathutils_array_parse_alloc(float **array,
                                 int array_min,
                                 PyObject *value,
@@ -279,7 +272,6 @@ int mathutils_array_parse_alloc(float **array,
   return ret;
 }
 
-/* parse an array of vectors */
 int mathutils_array_parse_alloc_v(float **array,
                                   int array_dim,
                                   PyObject *value,
@@ -321,7 +313,6 @@ int mathutils_array_parse_alloc_v(float **array,
   return size;
 }
 
-/* Parse an sequence array_dim integers into array. */
 int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const char *error_prefix)
 {
   int size, i;
@@ -357,7 +348,6 @@ int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const 
   return size;
 }
 
-/* Parse sequence of array_dim sequences of integers and return allocated result. */
 int mathutils_array_parse_alloc_vi(int **array,
                                    int array_dim,
                                    PyObject *value,
@@ -395,12 +385,6 @@ int mathutils_array_parse_alloc_vi(int **array,
   return size;
 }
 
-/* Parse sequence of variable-length sequences of int and return allocated
- * triple of arrays to represent the result:
- * The flattened sequences are put into *array.
- * The start index of each sequence goes into start_table.
- * The length of each index goes into len_table.
- */
 int mathutils_array_parse_alloc_viseq(
     int **array, int **start_table, int **len_table, PyObject *value, const char *error_prefix)
 {
@@ -560,7 +544,6 @@ int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int flo
 }
 
 #ifndef MATH_STANDALONE
-/* dynstr as python string utility functions, frees 'ds'! */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 {
   const int ds_len = BLI_dynstr_get_len(ds); /* space for \0 */

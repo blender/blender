@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-/* Don't forget, new effects also in writefile.c for DNA! */
+/* Don't forget, new effects also in `writefile.c` for DNA! */
 
 #define PAF_MAXMULT 4
 

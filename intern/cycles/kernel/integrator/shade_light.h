@@ -84,7 +84,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
     /* multiple importance sampling, get regular light pdf,
      * and compute weight with respect to BSDF pdf */
     const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float mis_weight = power_heuristic(mis_ray_pdf, ls.pdf);
+    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
     light_eval *= mis_weight;
   }
 

@@ -75,8 +75,8 @@ typedef struct CVKeyIndex {
 #define SEGMENTSV(nu) (((nu)->flagv & CU_NURB_CYCLIC) ? (nu)->pntsv : (nu)->pntsv - 1)
 
 #define CU_DO_RADIUS(cu, nu) \
-  ((((cu)->flag & (CU_PATH_RADIUS | CU_3D)) || (cu)->bevobj || (cu)->ext1 != 0.0f || \
-    (cu)->ext2 != 0.0f) ? \
+  ((((cu)->flag & (CU_PATH_RADIUS | CU_3D)) || (cu)->bevobj || (cu)->extrude != 0.0f || \
+    (cu)->bevel_radius != 0.0f) ? \
        1 : \
        0)
 

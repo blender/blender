@@ -115,6 +115,7 @@ if(WITH_GTESTS)
     tests/blendfile_loading_base_test.h
   )
   set(TEST_INC
+    ../../../intern/ghost
   )
   set(TEST_LIB
     bf_blenloader

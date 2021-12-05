@@ -23,10 +23,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-// NOTE: For some reason gcc-7.2 does not instantiate this versio of allocator
-// gere (used in IESTextParser). Works fine for gcc-6, gcc-7.3 and gcc-8.
+// NOTE: For some reason gcc-7.2 does not instantiate this version of the
+// allocator here (used in IESTextParser). Works fine for gcc-6, gcc-7.3 and gcc-8.
 //
-// TODO(sergey): Get to the root of this issue, or confirm this i a compiler
+// TODO(sergey): Get to the root of this issue, or confirm this is a compiler
 // issue.
 template class GuardedAllocator<char>;
 

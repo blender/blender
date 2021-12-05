@@ -255,6 +255,7 @@ IDTypeInfo IDType_ID_MSK = {
     .name_plural = "masks",
     .translation_context = BLT_I18NCONTEXT_ID_MASK,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = mask_copy_data,
@@ -262,6 +263,7 @@ IDTypeInfo IDType_ID_MSK = {
     .make_local = NULL,
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = mask_blend_write,

@@ -19,14 +19,16 @@ CCL_NAMESPACE_BEGIN
 
 /* Linear Congruential Generator */
 
-ccl_device uint lcg_step_uint(uint *rng)
+/* This is templated to handle multiple address spaces on Metal. */
+template<class T> ccl_device uint lcg_step_uint(T rng)
 {
   /* implicit mod 2^32 */
   *rng = (1103515245 * (*rng) + 12345);
   return *rng;
 }
 
-ccl_device float lcg_step_float(uint *rng)
+/* This is templated to handle multiple address spaces on Metal. */
+template<class T> ccl_device float lcg_step_float(T rng)
 {
   /* implicit mod 2^32 */
   *rng = (1103515245 * (*rng) + 12345);

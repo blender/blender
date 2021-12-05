@@ -33,6 +33,8 @@
 
 #include "RNA_access.h"
 
+#include "GHOST_Path-api.h"
+
 namespace blender::bke::tests {
 
 TEST(view_layer, aov_unique_names)
@@ -94,6 +96,7 @@ TEST(view_layer, aov_unique_names)
   IMB_exit();
   BKE_appdir_exit();
   CLG_exit();
+  GHOST_DisposeSystemPaths();
 }
 
 static void test_render_pass_conflict(Scene *scene,
@@ -173,6 +176,7 @@ TEST(view_layer, aov_conflict)
   IMB_exit();
   BKE_appdir_exit();
   CLG_exit();
+  GHOST_DisposeSystemPaths();
 }
 
 }  // namespace blender::bke::tests

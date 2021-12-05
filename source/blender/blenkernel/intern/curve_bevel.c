@@ -64,8 +64,8 @@ static void bevel_quarter_fill(const Curve *curve,
     float angle = 0.0f;
     const float dangle = (float)M_PI_2 / (curve->bevresol + 1);
     for (int i = 0; i < curve->bevresol + 1; i++) {
-      quarter_coords_x[i] = (float)(cosf(angle) * (curve->ext2));
-      quarter_coords_y[i] = (float)(sinf(angle) * (curve->ext2));
+      quarter_coords_x[i] = (float)(cosf(angle) * (curve->bevel_radius));
+      quarter_coords_y[i] = (float)(sinf(angle) * (curve->bevel_radius));
       angle += dangle;
     }
   }
@@ -76,11 +76,11 @@ static void bevel_quarter_fill(const Curve *curve,
 
     /* If there aren't enough samples, the curveprofile won't
      * sample the start vertex, so set it manually instead. */
-    quarter_coords_x[0] = curve->ext2;
+    quarter_coords_x[0] = curve->bevel_radius;
     quarter_coords_y[0] = 0.0f;
     for (int i = 1; i < curve->bevresol + 1; i++) {
-      quarter_coords_x[i] = (float)(curve->bevel_profile->segments[i].x * (curve->ext2));
-      quarter_coords_y[i] = (float)(curve->bevel_profile->segments[i].y * (curve->ext2));
+      quarter_coords_x[i] = (float)(curve->bevel_profile->segments[i].x * (curve->bevel_radius));
+      quarter_coords_y[i] = (float)(curve->bevel_profile->segments[i].y * (curve->bevel_radius));
     }
   }
 }
@@ -133,13 +133,13 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
     /* Add the bottom vertex. */
     fp[0] = 0.0f;
     fp[1] = 0.0f;
-    fp[2] = -cu->ext1 - cu->ext2;
+    fp[2] = -cu->extrude - cu->bevel_radius;
     fp += 3;
 
     for (int i = cu->bevresol; i >= 0; i--) {
       fp[0] = 0.0f;
       fp[1] = quarter_coords_x[i];
-      fp[2] = -quarter_coords_y[i] - cu->ext1;
+      fp[2] = -quarter_coords_y[i] - cu->extrude;
       fp += 3;
     }
   }
@@ -147,8 +147,8 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
   /* Add the extrusion if we're only building either the back or the front. */
   if (use_extrude && ELEM(fill_type, FRONT, BACK)) {
     fp[0] = 0.0f;
-    fp[1] = cu->ext2;
-    fp[2] = (fill_type == FRONT) ? -cu->ext1 : cu->ext1;
+    fp[1] = cu->bevel_radius;
+    fp[2] = (fill_type == FRONT) ? -cu->extrude : cu->extrude;
     fp += 3;
   }
 
@@ -159,13 +159,13 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
     for (int i = front_start; i < cu->bevresol + 1; i++) {
       fp[0] = 0.0f;
       fp[1] = quarter_coords_x[i];
-      fp[2] = quarter_coords_y[i] + cu->ext1;
+      fp[2] = quarter_coords_y[i] + cu->extrude;
       fp += 3;
     }
     /* Add the top vertex. */
     fp[0] = 0.0f;
     fp[1] = 0.0f;
-    fp[2] = cu->ext1 + cu->ext2;
+    fp[2] = cu->extrude + cu->bevel_radius;
     fp += 3;
   }
 
@@ -174,22 +174,22 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
     for (int i = cu->bevresol; i > 0; i--) {
       fp[0] = 0.0f;
       fp[1] = -quarter_coords_x[i];
-      fp[2] = quarter_coords_y[i] + cu->ext1;
+      fp[2] = quarter_coords_y[i] + cu->extrude;
       fp += 3;
     }
 
     if (use_extrude) {
       /* Add the extrusion. */
       fp[0] = 0.0f;
-      fp[1] = -cu->ext2;
-      fp[2] = cu->ext1;
+      fp[1] = -cu->bevel_radius;
+      fp[2] = cu->extrude;
       fp += 3;
     }
 
     for (int i = 0; i < cu->bevresol + 1; i++) {
       fp[0] = 0.0f;
       fp[1] = -quarter_coords_x[i];
-      fp[2] = -quarter_coords_y[i] - cu->ext1;
+      fp[2] = -quarter_coords_y[i] - cu->extrude;
       fp += 3;
     }
   }
@@ -213,8 +213,8 @@ static void curve_bevel_make_full_circle(const Curve *cu, ListBase *disp)
 
   for (int i = 0; i < nr; i++) {
     fp[0] = 0.0;
-    fp[1] = (cosf(angle) * (cu->ext2));
-    fp[2] = (sinf(angle) * (cu->ext2)) - cu->ext1;
+    fp[1] = (cosf(angle) * (cu->bevel_radius));
+    fp[2] = (sinf(angle) * (cu->bevel_radius)) - cu->extrude;
     angle += dangle;
     fp += 3;
   }
@@ -232,9 +232,9 @@ static void curve_bevel_make_only_extrude(const Curve *cu, ListBase *disp)
 
   float *fp = dl->verts;
   fp[0] = fp[1] = 0.0;
-  fp[2] = -cu->ext1;
+  fp[2] = -cu->extrude;
   fp[3] = fp[4] = 0.0;
-  fp[5] = cu->ext1;
+  fp[5] = cu->extrude;
 }
 
 static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
@@ -247,7 +247,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
   }
 
   Curve *bevcu = cu->bevobj->data;
-  if (bevcu->ext1 == 0.0f && bevcu->ext2 == 0.0f) {
+  if (bevcu->extrude == 0.0f && bevcu->bevel_radius == 0.0f) {
     ListBase bevdisp = {NULL, NULL};
     float facx = cu->bevobj->scale[0];
     float facy = cu->bevobj->scale[1];
@@ -299,8 +299,8 @@ ListBase BKE_curve_bevel_make(const Curve *curve)
     }
   }
   else {
-    const bool use_extrude = curve->ext1 != 0.0f;
-    const bool use_bevel = curve->ext2 != 0.0f;
+    const bool use_extrude = curve->extrude != 0.0f;
+    const bool use_bevel = curve->bevel_radius != 0.0f;
     /* Pass. */
     if (use_extrude && !use_bevel) {
       curve_bevel_make_only_extrude(curve, &bevel_shape);

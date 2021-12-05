@@ -63,6 +63,8 @@
 
 #include "node_intern.hh" /* own include */
 
+using blender::float2;
+
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
  * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
@@ -98,11 +100,9 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
 /** \name Public Node Selection API
  * \{ */
 
-static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
+static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 {
-  bNode *node;
-
-  for (node = (bNode *)ntree->nodes.last; node; node = node->prev) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     if (node->typeinfo->select_area_func) {
       if (node->typeinfo->select_area_func(node, mx, my)) {
         return node;
@@ -112,13 +112,11 @@ static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
   return nullptr;
 }
 
-static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
+static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
 {
-  bNode *node;
-
-  for (node = (bNode *)ntree->nodes.last; node; node = node->prev) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     if (node->typeinfo->tweak_area_func) {
-      if (node->typeinfo->tweak_area_func(node, mx, my)) {
+      if (node->typeinfo->tweak_area_func(node, (int)mouse.x, (int)mouse.y)) {
         return node;
       }
     }
@@ -126,15 +124,16 @@ static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
   return nullptr;
 }
 
-static bool is_position_over_node_or_socket(SpaceNode *snode, float mouse[2])
+static bool is_position_over_node_or_socket(SpaceNode &snode, const float2 &mouse)
 {
-  if (node_under_mouse_tweak(snode->edittree, mouse[0], mouse[1])) {
+  if (node_under_mouse_tweak(*snode.edittree, mouse)) {
     return true;
   }
 
   bNode *node;
   bNodeSocket *sock;
-  if (node_find_indicated_socket(snode, &node, &sock, mouse, SOCK_IN | SOCK_OUT)) {
+  if (node_find_indicated_socket(
+          snode, &node, &sock, mouse, (eNodeSocketInOut)(SOCK_IN | SOCK_OUT))) {
     return true;
   }
 
@@ -145,9 +144,9 @@ static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  float mouse[2];
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &mouse[0], &mouse[1]);
-  return is_position_over_node_or_socket(snode, mouse);
+  float2 mouse;
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &mouse.x, &mouse.y);
+  return is_position_over_node_or_socket(*snode, mouse);
 }
 
 static void node_toggle(bNode *node)
@@ -155,9 +154,9 @@ static void node_toggle(bNode *node)
   nodeSetSelected(node, !(node->flag & SELECT));
 }
 
-void node_socket_select(bNode *node, bNodeSocket *sock)
+void node_socket_select(bNode *node, bNodeSocket &sock)
 {
-  sock->flag |= SELECT;
+  sock.flag |= SELECT;
 
   /* select node too */
   if (node) {
@@ -165,22 +164,22 @@ void node_socket_select(bNode *node, bNodeSocket *sock)
   }
 }
 
-void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_node)
+void node_socket_deselect(bNode *node, bNodeSocket &sock, const bool deselect_node)
 {
-  sock->flag &= ~SELECT;
+  sock.flag &= ~SELECT;
 
   if (node && deselect_node) {
     bool sel = false;
 
     /* if no selected sockets remain, also deselect the node */
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-      if (sock->flag & SELECT) {
+    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+      if (input->flag & SELECT) {
         sel = true;
         break;
       }
     }
-    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-      if (sock->flag & SELECT) {
+    LISTBASE_FOREACH (bNodeSocket *, output, &node->outputs) {
+      if (output->flag & SELECT) {
         sel = true;
         break;
       }
@@ -192,9 +191,9 @@ void node_socket_deselect(bNode *node, bNodeSocket *sock, const bool deselect_no
   }
 }
 
-static void node_socket_toggle(bNode *node, bNodeSocket *sock, int deselect_node)
+static void node_socket_toggle(bNode *node, bNodeSocket &sock, bool deselect_node)
 {
-  if (sock->flag & SELECT) {
+  if (sock.flag & SELECT) {
     node_socket_deselect(node, sock, deselect_node);
   }
   else {
@@ -202,38 +201,32 @@ static void node_socket_toggle(bNode *node, bNodeSocket *sock, int deselect_node
   }
 }
 
-/* no undo here! */
-void node_deselect_all(SpaceNode *snode)
+void node_deselect_all(SpaceNode &snode)
 {
-  bNode *node;
-
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
     nodeSetSelected(node, false);
   }
 }
 
-void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes)
+void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes)
 {
-  bNode *node;
-  bNodeSocket *sock;
-
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
-    int sel = 0;
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+    bool sel = false;
 
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SELECT;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      socket->flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-        if (sock->flag & SELECT) {
-          sel = 1;
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+        if (socket->flag & SELECT) {
+          sel = true;
           break;
         }
       }
@@ -245,27 +238,24 @@ void node_deselect_all_input_sockets(SpaceNode *snode, const bool deselect_nodes
   }
 }
 
-void node_deselect_all_output_sockets(SpaceNode *snode, const bool deselect_nodes)
+void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_nodes)
 {
-  bNode *node;
-  bNodeSocket *sock;
-
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
     bool sel = false;
 
-    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SELECT;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      socket->flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-        if (sock->flag & SELECT) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (socket->flag & SELECT) {
           sel = true;
           break;
         }
@@ -305,10 +295,9 @@ static bool node_select_grouped_type(SpaceNode *snode, bNode *node_act)
 
 static bool node_select_grouped_color(SpaceNode *snode, bNode *node_act)
 {
-  bNode *node;
   bool changed = false;
 
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if ((node->flag & SELECT) == 0) {
       if (compare_v3v3(node->color, node_act->color, 0.005f)) {
         nodeSetSelected(node, true);
@@ -455,24 +444,24 @@ void NODE_OT_select_grouped(wmOperatorType *ot)
 /** \name Select (Cursor Pick) Operator
  * \{ */
 
-void node_select_single(bContext *C, bNode *node)
+void node_select_single(bContext &C, bNode &node)
 {
-  Main *bmain = CTX_data_main(C);
-  SpaceNode *snode = CTX_wm_space_node(C);
-  const Object *ob = CTX_data_active_object(C);
-  const Scene *scene = CTX_data_scene(C);
-  const wmWindowManager *wm = CTX_wm_manager(C);
+  Main *bmain = CTX_data_main(&C);
+  SpaceNode *snode = CTX_wm_space_node(&C);
+  const Object *ob = CTX_data_active_object(&C);
+  const Scene *scene = CTX_data_scene(&C);
+  const wmWindowManager *wm = CTX_wm_manager(&C);
   bool active_texture_changed = false;
   bNode *tnode;
 
   for (tnode = (bNode *)snode->edittree->nodes.first; tnode; tnode = tnode->next) {
-    if (tnode != node) {
+    if (tnode != &node) {
       nodeSetSelected(tnode, false);
     }
   }
-  nodeSetSelected(node, true);
+  nodeSetSelected(&node, true);
 
-  ED_node_set_active(bmain, snode, snode->edittree, node, &active_texture_changed);
+  ED_node_set_active(bmain, snode, snode->edittree, &node, &active_texture_changed);
   ED_node_set_active_viewer_key(snode);
 
   ED_node_sort(snode->edittree);
@@ -480,7 +469,7 @@ void node_select_single(bContext *C, bNode *node)
     DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
   }
 
-  WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+  WM_event_add_notifier(&C, NC_NODE | NA_SELECTED, nullptr);
 }
 
 static int node_mouse_select(bContext *C,
@@ -488,9 +477,9 @@ static int node_mouse_select(bContext *C,
                              const int mval[2],
                              bool wait_to_deselect_others)
 {
-  Main *bmain = CTX_data_main(C);
-  SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *region = CTX_wm_region(C);
+  Main &bmain = *CTX_data_main(C);
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  ARegion &region = *CTX_wm_region(C);
   const Object *ob = CTX_data_active_object(C);
   const Scene *scene = CTX_data_scene(C);
   const wmWindowManager *wm = CTX_wm_manager(C);
@@ -511,20 +500,20 @@ static int node_mouse_select(bContext *C,
   }
 
   /* get mouse coordinates in view2d space */
-  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region.v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
 
   /* first do socket selection, these generally overlap with nodes. */
   if (socket_select) {
     if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
       /* NOTE: SOCK_IN does not take into account the extend case...
        * This feature is not really used anyway currently? */
-      node_socket_toggle(node, sock, true);
+      node_socket_toggle(node, *sock, true);
       ret_value = OPERATOR_FINISHED;
     }
     else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
       if (sock->flag & SELECT) {
         if (extend) {
-          node_socket_deselect(node, sock, true);
+          node_socket_deselect(node, *sock, true);
         }
         else {
           ret_value = OPERATOR_FINISHED;
@@ -538,20 +527,20 @@ static int node_mouse_select(bContext *C,
             if (tsock == sock) {
               continue;
             }
-            node_socket_deselect(node, tsock, true);
+            node_socket_deselect(node, *tsock, true);
           }
         }
         if (!extend) {
-          for (tnode = (bNode *)snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+          for (tnode = (bNode *)snode.edittree->nodes.first; tnode; tnode = tnode->next) {
             if (tnode == node) {
               continue;
             }
             for (tsock = (bNodeSocket *)tnode->outputs.first; tsock; tsock = tsock->next) {
-              node_socket_deselect(tnode, tsock, true);
+              node_socket_deselect(tnode, *tsock, true);
             }
           }
         }
-        node_socket_select(node, sock);
+        node_socket_select(node, *sock);
         ret_value = OPERATOR_FINISHED;
       }
     }
@@ -559,7 +548,7 @@ static int node_mouse_select(bContext *C,
 
   if (!sock) {
     /* find the closest visible node */
-    node = node_under_mouse_select(snode->edittree, (int)cursor[0], (int)cursor[1]);
+    node = node_under_mouse_select(*snode.edittree, (int)cursor[0], (int)cursor[1]);
 
     if (extend) {
       if (node != nullptr) {
@@ -580,7 +569,7 @@ static int node_mouse_select(bContext *C,
       }
       else {
         /* Deselect in empty space. */
-        for (tnode = (bNode *)snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+        for (tnode = (bNode *)snode.edittree->nodes.first; tnode; tnode = tnode->next) {
           nodeSetSelected(tnode, false);
         }
         ret_value = OPERATOR_FINISHED;
@@ -595,7 +584,7 @@ static int node_mouse_select(bContext *C,
       else {
         nodeSetSelected(node, true);
 
-        for (tnode = (bNode *)snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+        for (tnode = (bNode *)snode.edittree->nodes.first; tnode; tnode = tnode->next) {
           if (tnode != node) {
             nodeSetSelected(tnode, false);
           }
@@ -612,16 +601,16 @@ static int node_mouse_select(bContext *C,
     bool viewer_node_changed = false;
     if (node != nullptr && ret_value != OPERATOR_RUNNING_MODAL) {
       viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 && node->type == GEO_NODE_VIEWER;
-      ED_node_set_active(bmain, snode, snode->edittree, node, &active_texture_changed);
+      ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
     }
     else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
-      ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
+      ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
     }
-    ED_node_set_active_viewer_key(snode);
-    ED_node_sort(snode->edittree);
+    ED_node_set_active_viewer_key(&snode);
+    ED_node_sort(snode.edittree);
     if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
         viewer_node_changed) {
-      DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
     }
 
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
@@ -1149,13 +1138,13 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
       }
     }
 
-    node_select_single(C, active);
+    node_select_single(*C, *active);
 
     /* is note outside view? */
     if (active->totr.xmax < region->v2d.cur.xmin || active->totr.xmin > region->v2d.cur.xmax ||
         active->totr.ymax < region->v2d.cur.ymin || active->totr.ymin > region->v2d.cur.ymax) {
       const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-      space_node_view_flag(C, snode, region, NODE_SELECT, smooth_viewtx);
+      space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx);
     }
   }
 
@@ -1239,12 +1228,12 @@ static void node_find_exec_fn(struct bContext *C, void *UNUSED(arg1), void *arg2
 
   if (active) {
     ARegion *region = CTX_wm_region(C);
-    node_select_single(C, active);
+    node_select_single(*C, *active);
 
     /* is note outside view? */
     if (active->totr.xmax < region->v2d.cur.xmin || active->totr.xmin > region->v2d.cur.xmax ||
         active->totr.ymax < region->v2d.cur.ymin || active->totr.ymin > region->v2d.cur.ymax) {
-      space_node_view_flag(C, snode, region, NODE_SELECT, U.smooth_viewtx);
+      space_node_view_flag(*C, *snode, *region, NODE_SELECT, U.smooth_viewtx);
     }
   }
 }

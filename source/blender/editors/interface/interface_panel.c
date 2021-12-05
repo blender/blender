@@ -486,8 +486,12 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   /* Set the bit to tell the interface to instanced the list. */
   drag_panel->flag |= PNL_INSTANCED_LIST_ORDER_CHANGED;
 
+  CTX_store_set(C, drag_panel->runtime.context);
+
   /* Finally, move this panel's list item to the new index in its list. */
   drag_panel->type->reorder(C, drag_panel, move_to_index);
+
+  CTX_store_set(C, NULL);
 }
 
 /**
@@ -1118,7 +1122,8 @@ static void panel_draw_highlight_border(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
+  const float aspect = panel->runtime.block->aspect;
+  const float radius = (btheme->tui.panel_roundness * U.widget_unit * 0.5f) / aspect;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
   float color[4];
@@ -1241,7 +1246,8 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   }
 
   const bTheme *btheme = UI_GetTheme();
-  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
+  const float aspect = panel->runtime.block->aspect;
+  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1326,6 +1332,24 @@ void ui_draw_aligned_panel(const uiStyle *style,
   if (panel_custom_data_active_get(panel)) {
     panel_draw_highlight_border(panel, rect, &header_rect);
   }
+}
+
+bool UI_panel_should_show_background(const ARegion *region, const PanelType *panel_type)
+{
+  if (region->alignment == RGN_ALIGN_FLOAT) {
+    return false;
+  }
+
+  if (panel_type && panel_type->flag & PANEL_TYPE_NO_HEADER) {
+    if (region->regiontype == RGN_TYPE_TOOLS) {
+      /* We never want a background around active tools. */
+      return false;
+    }
+    /* Without a header there is no background except for region overlap. */
+    return region->overlap != 0;
+  }
+
+  return true;
 }
 
 /** \} */
@@ -1740,17 +1764,22 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   const int region_offset_x = panel_region_offset_x_get(region);
   for (int i = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
-    const bool no_header = ps->panel->type->flag & PANEL_TYPE_NO_HEADER;
+    const bool show_background = UI_panel_should_show_background(region, ps->panel->type);
     ps->panel->runtime.region_ofsx = region_offset_x;
-    ps->new_offset_x = region_offset_x + (no_header ? 0 : UI_PANEL_MARGIN_X);
+    ps->new_offset_x = region_offset_x + (show_background ? UI_PANEL_MARGIN_X : 0);
   }
 
   /* Y offset. */
   for (int i = 0, y = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
+    const bool show_background = UI_panel_should_show_background(region, ps->panel->type);
+
     y -= get_panel_real_size_y(ps->panel);
 
-    y -= UI_PANEL_MARGIN_Y;
+    /* Separate panel boxes a bit further (if they are drawn). */
+    if (show_background) {
+      y -= UI_PANEL_MARGIN_Y;
+    }
     ps->new_offset_y = y;
     /* The header still draws offset by the size of closed panels, so apply the offset here. */
     if (UI_panel_is_closed(ps->panel)) {
@@ -1796,6 +1825,7 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
 {
   int sizex = 0;
   int sizey = 0;
+  bool has_panel_with_background = false;
 
   /* Compute size taken up by panels, for setting in view2d. */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
@@ -1805,6 +1835,9 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
 
       sizex = max_ii(sizex, pa_sizex);
       sizey = min_ii(sizey, pa_sizey);
+      if (UI_panel_should_show_background(region, panel->type)) {
+        has_panel_with_background = true;
+      }
     }
   }
 
@@ -1813,6 +1846,11 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
   }
   if (sizey == 0) {
     sizey = -UI_PANEL_WIDTH;
+  }
+  /* Extra margin after the list so the view scrolls a few pixels further than the panel border.
+   * Also makes the bottom match the top margin. */
+  if (has_panel_with_background) {
+    sizey -= UI_PANEL_MARGIN_Y;
   }
 
   *r_x = sizex;
@@ -2456,6 +2494,17 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     ui_panel_custom_data_set_recursive(child_panel, custom_data);
   }
+}
+
+/**
+ * Set a context for this entire panel and its current layout. This should be used whenever panel
+ * callbacks that are called outside of regular drawing might require context. Currently it affects
+ * the #PanelType.reorder callback only.
+ */
+void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
+{
+  uiLayoutSetContextPointer(panel->layout, name, ptr);
+  panel->runtime.context = uiLayoutGetContextStore(panel->layout);
 }
 
 void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)

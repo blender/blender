@@ -500,6 +500,7 @@ IDTypeInfo IDType_ID_PA = {
     .name_plural = "particles",
     .translation_context = BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
     .flags = 0,
+    .asset_type_info = NULL,
 
     .init_data = particle_settings_init,
     .copy_data = particle_settings_copy_data,
@@ -507,6 +508,7 @@ IDTypeInfo IDType_ID_PA = {
     .make_local = NULL,
     .foreach_id = particle_settings_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = particle_settings_blend_write,
@@ -1149,7 +1151,27 @@ void psys_copy_particles(ParticleSystem *psys_dst, ParticleSystem *psys_src)
   /* Copy particles and children. */
   psys_dst->particles = MEM_dupallocN(psys_src->particles);
   psys_dst->child = MEM_dupallocN(psys_src->child);
-  if (psys_dst->part->type == PART_HAIR) {
+
+  /* Ideally this should only be performed if `(psys_dst->part->type == PART_HAIR)`.
+   *
+   * But #ParticleData (`psys_dst`) is some sub-data of the #Object ID, while #ParticleSettings
+   * (`psys_dst->part`) is another ID. In case the particle settings is a linked ID that gets
+   * missing, it will be replaced (in readfile code) by a place-holder, which defaults to a
+   * `PART_EMITTER` type of particle settings.
+   *
+   * This leads to a situation where each particle of `psys_dst` still has a valid allocated `hair`
+   * data, which should still be preserved in case the missing particle settings ID becomes valid
+   * again.
+   *
+   * Furthermore, #free_hair() always frees `pa->hair` if it's not NULL, regardless of the
+   * particle type. So *not* copying here would cause a double free (or more), e.g. freeing the
+   * copy-on-write copy and the original data will crash Blender.
+   * In any case, sharing pointers between `psys_src` and `psys_dst` should be forbidden.
+   *
+   * So while we could in theory 'sanitize' the situation by setting `pa->hair` to NULL in the new
+   * copy (in case of non-`PART_HAIR` type), it is probably safer for now to systematically
+   * duplicate the `hair` data if available. */
+  {
     ParticleData *pa;
     int p;
     for (p = 0, pa = psys_dst->particles; p < psys_dst->totpart; p++, pa++) {

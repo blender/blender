@@ -1127,7 +1127,7 @@ bool ED_view3d_depth_read_cached_seg(
 
   data.vd = vd;
   data.margin = margin;
-  data.depth = FLT_MAX;
+  data.depth = 1.0f;
 
   copy_v2_v2_int(p1, mval_sta);
   copy_v2_v2_int(p2, mval_end);
@@ -1136,7 +1136,7 @@ bool ED_view3d_depth_read_cached_seg(
 
   *depth = data.depth;
 
-  return (*depth != FLT_MAX);
+  return (*depth != 1.0f);
 }
 
 /** \} */
@@ -1647,6 +1647,9 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
                                  int margin,
                                  float *r_depth)
 {
+  BLI_assert(1.0 <= vd->depth_range[1]);
+  *r_depth = 1.0f;
+
   if (!vd || !vd->depths) {
     return false;
   }
@@ -1676,15 +1679,11 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
     depth = vd->depths[y * vd->w + x];
   }
 
-  BLI_assert(1.0 <= vd->depth_range[1]);
   if (depth != 1.0f) {
     *r_depth = depth;
     return true;
   }
 
-  /* Grease-pencil and annotations also need the returned depth value to be high
-   * so the caller can detect it's invalid. */
-  *r_depth = FLT_MAX;
   return false;
 }
 

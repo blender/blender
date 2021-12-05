@@ -78,7 +78,8 @@ extern short (*MEM_testN)(void *vmemh);
 
 /**
  * Duplicates a block of memory, and returns a pointer to the
- * newly allocated block. */
+ * newly allocated block.
+ * NULL-safe; will return NULL when receiving a NULL pointer. */
 extern void *(*MEM_dupallocN)(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 /**

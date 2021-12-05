@@ -549,9 +549,6 @@ static int bmesh_calc_tessellation_for_face_beauty(BMLoop *(*looptris)[3],
   }
 }
 
-/**
- * A version of #BM_mesh_calc_tessellation that avoids degenerate triangles.
- */
 void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
 {
 #ifndef NDEBUG

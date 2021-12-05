@@ -50,7 +50,7 @@
  * Almost all data in Blender are structures. Each struct saved
  * gets a BHead header.  With BHead the struct can be linked again
  * and compared with #StructDNA.
-
+ *
  * WRITE
  * =====
  *
@@ -1332,7 +1332,8 @@ bool BLO_write_file(Main *mainvar,
 
   /* path backup/restore */
   void *path_list_backup = NULL;
-  const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
+  const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
+                                            BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
   if (G.debug & G_DEBUG_IO && mainvar->lock != NULL) {
     BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");

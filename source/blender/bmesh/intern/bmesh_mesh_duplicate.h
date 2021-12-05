@@ -20,6 +20,9 @@
  * \ingroup bmesh
  */
 
+/**
+ * Geometry must be completely isolated.
+ */
 void BM_mesh_copy_arrays(BMesh *bm_src,
                          BMesh *bm_dst,
                          BMVert **verts_src,

@@ -64,6 +64,7 @@
 #include "ED_asset.h"
 #include "ED_fileselect.h"
 #include "ED_info.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 #include "ED_util.h"
@@ -456,6 +457,9 @@ void wm_event_do_notifiers(bContext *C)
         }
         else if (note->data == ND_DATACHANGED) {
           wm_window_title(wm, win);
+        }
+        else if (note->data == ND_UNDO) {
+          ED_preview_restart_queue_work(C);
         }
       }
       if (note->window == win) {
@@ -1612,6 +1616,16 @@ int WM_operator_name_call(bContext *C,
   }
 
   return 0;
+}
+
+bool WM_operator_name_poll(bContext *C, const char *opstring)
+{
+  wmOperatorType *ot = WM_operatortype_find(opstring, 0);
+  if (!ot) {
+    return false;
+  }
+
+  return WM_operator_poll(C, ot);
 }
 
 int WM_operator_name_call_with_properties(struct bContext *C,

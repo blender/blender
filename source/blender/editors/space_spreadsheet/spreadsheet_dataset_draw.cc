@@ -14,288 +14,226 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <array>
-
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_volume.h"
 
-#include "BLF_api.h"
-
-#include "BLI_rect.h"
-
 #include "RNA_access.h"
 
 #include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_tree_view.hh"
 
 #include "WM_types.h"
+
+#include "BLT_translation.h"
 
 #include "spreadsheet_dataset_draw.hh"
 #include "spreadsheet_draw.hh"
 #include "spreadsheet_intern.hh"
 
-static int is_component_row_selected(struct uiBut *but, const void *arg)
-{
-  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)arg;
-
-  GeometryComponentType component = (GeometryComponentType)UI_but_datasetrow_component_get(but);
-  AttributeDomain domain = (AttributeDomain)UI_but_datasetrow_domain_get(but);
-
-  const bool is_component_selected = (GeometryComponentType)
-                                         sspreadsheet->geometry_component_type == component;
-  const bool is_domain_selected = (AttributeDomain)sspreadsheet->attribute_domain == domain;
-  bool is_selected = is_component_selected && is_domain_selected;
-
-  if (ELEM(component, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
-    is_selected = is_component_selected;
-  }
-
-  return is_selected;
-}
-
 namespace blender::ed::spreadsheet {
 
-/* -------------------------------------------------------------------- */
-/* Draw Context */
+class GeometryDataSetTreeView;
 
-class DatasetDrawContext {
-  std::array<int, 2> mval_;
+class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
+  GeometryComponentType component_type_;
+  std::optional<AttributeDomain> domain_;
+  BIFIconID icon_;
 
  public:
-  const SpaceSpreadsheet *sspreadsheet;
-  Object *object_eval;
-  /* Current geometry set, changes per component. */
-  GeometrySet current_geometry_set;
+  GeometryDataSetTreeViewItem(GeometryComponentType component_type,
+                              StringRef label,
+                              BIFIconID icon);
+  GeometryDataSetTreeViewItem(GeometryComponentType component_type,
+                              AttributeDomain domain,
+                              StringRef label,
+                              BIFIconID icon);
 
-  DatasetDrawContext(const bContext *C);
+  void on_activate() override;
 
-  GeometrySet geometry_set_from_component(GeometryComponentType component);
-  const std::array<int, 2> &cursor_mval() const;
+  void build_row(uiLayout &row) override;
+
+ protected:
+  std::optional<bool> should_be_active() const override;
+  bool supports_collapsing() const override;
+
+ private:
+  GeometryDataSetTreeView &get_tree() const;
+  std::optional<int> count() const;
 };
 
-DatasetDrawContext::DatasetDrawContext(const bContext *C)
-    : sspreadsheet(CTX_wm_space_spreadsheet(C)),
-      object_eval(spreadsheet_get_object_eval(sspreadsheet, CTX_data_depsgraph_pointer(C)))
+class GeometryDataSetTreeView : public ui::AbstractTreeView {
+  GeometrySet geometry_set_;
+  const bContext &C_;
+  SpaceSpreadsheet &sspreadsheet_;
+  bScreen &screen_;
+
+  friend class GeometryDataSetTreeViewItem;
+
+ public:
+  GeometryDataSetTreeView(GeometrySet geometry_set, const bContext &C)
+      : geometry_set_(std::move(geometry_set)),
+        C_(C),
+        sspreadsheet_(*CTX_wm_space_spreadsheet(&C)),
+        screen_(*CTX_wm_screen(&C))
+  {
+  }
+
+  void build_tree() override
+  {
+    GeometryDataSetTreeViewItem &mesh = this->add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_MESH, IFACE_("Mesh"), ICON_MESH_DATA);
+    mesh.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_MESH, ATTR_DOMAIN_POINT, IFACE_("Vertex"), ICON_VERTEXSEL);
+    mesh.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_MESH, ATTR_DOMAIN_EDGE, IFACE_("Edge"), ICON_EDGESEL);
+    mesh.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_MESH, ATTR_DOMAIN_FACE, IFACE_("Face"), ICON_FACESEL);
+    mesh.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_MESH, ATTR_DOMAIN_CORNER, IFACE_("Face Corner"), ICON_NODE_CORNER);
+
+    GeometryDataSetTreeViewItem &curve = this->add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_CURVE, IFACE_("Curve"), ICON_CURVE_DATA);
+    curve.add_tree_item<GeometryDataSetTreeViewItem>(GEO_COMPONENT_TYPE_CURVE,
+                                                     ATTR_DOMAIN_POINT,
+                                                     IFACE_("Control Point"),
+                                                     ICON_CURVE_BEZCIRCLE);
+    curve.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_CURVE, ATTR_DOMAIN_CURVE, IFACE_("Spline"), ICON_CURVE_PATH);
+
+    GeometryDataSetTreeViewItem &pointcloud = this->add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_POINT_CLOUD, IFACE_("Point Cloud"), ICON_POINTCLOUD_DATA);
+    pointcloud.add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_POINT_CLOUD, ATTR_DOMAIN_POINT, IFACE_("Point"), ICON_PARTICLE_POINT);
+
+    this->add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_VOLUME, IFACE_("Volume Grids"), ICON_VOLUME_DATA);
+
+    this->add_tree_item<GeometryDataSetTreeViewItem>(
+        GEO_COMPONENT_TYPE_INSTANCES, ATTR_DOMAIN_INSTANCE, IFACE_("Instances"), ICON_EMPTY_AXIS);
+  }
+};
+
+GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(GeometryComponentType component_type,
+                                                         StringRef label,
+                                                         BIFIconID icon)
+    : component_type_(component_type), domain_(std::nullopt), icon_(icon)
 {
-  const wmWindow *win = CTX_wm_window(C);
-  const ARegion *region = CTX_wm_region(C);
-  mval_ = {win->eventstate->xy[0] - region->winrct.xmin,
-           win->eventstate->xy[1] - region->winrct.ymin};
+  label_ = label;
+  this->set_collapsed(false);
+}
+GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(GeometryComponentType component_type,
+                                                         AttributeDomain domain,
+                                                         StringRef label,
+                                                         BIFIconID icon)
+    : component_type_(component_type), domain_(domain), icon_(icon)
+{
+  label_ = label;
 }
 
-GeometrySet DatasetDrawContext::geometry_set_from_component(GeometryComponentType component)
+void GeometryDataSetTreeViewItem::on_activate()
 {
-  return spreadsheet_get_display_geometry_set(sspreadsheet, object_eval, component);
+  GeometryDataSetTreeView &tree_view = this->get_tree();
+  bContext &C = const_cast<bContext &>(tree_view.C_);
+  SpaceSpreadsheet &sspreadsheet = tree_view.sspreadsheet_;
+  tree_view.sspreadsheet_.geometry_component_type = component_type_;
+  if (domain_) {
+    tree_view.sspreadsheet_.attribute_domain = *domain_;
+  }
+  PointerRNA ptr;
+  RNA_pointer_create(&tree_view.screen_.id, &RNA_SpaceSpreadsheet, &sspreadsheet, &ptr);
+  RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "attribute_domain"));
+  RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "geometry_component_type"));
 }
 
-const std::array<int, 2> &DatasetDrawContext::cursor_mval() const
+void GeometryDataSetTreeViewItem::build_row(uiLayout &row)
 {
-  return mval_;
+  uiItemL(&row, label_.c_str(), icon_);
+
+  if (const std::optional<int> count = this->count()) {
+    /* Using the tree row button instead of a separate right aligned button gives padding
+     * to the right side of the number, which it didn't have with the button. */
+    char element_count[7];
+    BLI_str_format_attribute_domain_size(element_count, *count);
+    UI_but_hint_drawstr_set((uiBut *)this->tree_row_button(), element_count);
+  }
 }
 
-/* -------------------------------------------------------------------- */
-/* Drawer */
-
-DatasetRegionDrawer::DatasetRegionDrawer(const ARegion *region,
-                                         uiBlock &block,
-                                         DatasetDrawContext &draw_context)
-    : row_height(UI_UNIT_Y),
-      xmin(region->v2d.cur.xmin),
-      xmax(region->v2d.cur.xmax),
-      block(block),
-      v2d(region->v2d),
-      draw_context(draw_context)
+std::optional<bool> GeometryDataSetTreeViewItem::should_be_active() const
 {
+  GeometryDataSetTreeView &tree_view = this->get_tree();
+  SpaceSpreadsheet &sspreadsheet = tree_view.sspreadsheet_;
+
+  if (component_type_ == GEO_COMPONENT_TYPE_VOLUME) {
+    return sspreadsheet.geometry_component_type == component_type_;
+  }
+
+  if (!domain_) {
+    return false;
+  }
+
+  return sspreadsheet.geometry_component_type == component_type_ &&
+         sspreadsheet.attribute_domain == *domain_;
 }
 
-void DatasetRegionDrawer::draw_hierarchy(const DatasetLayoutHierarchy &layout)
+bool GeometryDataSetTreeViewItem::supports_collapsing() const
 {
-  for (const DatasetComponentLayoutInfo &component : layout.components) {
-    draw_context.current_geometry_set = draw_context.geometry_set_from_component(component.type);
+  return false;
+}
 
-    draw_component_row(component);
+GeometryDataSetTreeView &GeometryDataSetTreeViewItem::get_tree() const
+{
+  return static_cast<GeometryDataSetTreeView &>(this->get_tree_view());
+}
 
-    /* Iterate attribute domains, skip unset ones (storage has to be in a enum-based, fixed size
-     * array so uses optionals to support skipping enum values that shouldn't be displayed for a
-     * component). */
-    for (const auto &optional_domain : component.attr_domains) {
-      if (!optional_domain) {
-        continue;
-      }
+std::optional<int> GeometryDataSetTreeViewItem::count() const
+{
+  GeometryDataSetTreeView &tree_view = this->get_tree();
+  GeometrySet &geometry = tree_view.geometry_set_;
 
-      const DatasetAttrDomainLayoutInfo &domain_info = *optional_domain;
-      draw_attribute_domain_row(component, domain_info);
+  /* Special case for volumes since there is no grid domain. */
+  if (component_type_ == GEO_COMPONENT_TYPE_VOLUME) {
+    if (const Volume *volume = geometry.get_volume_for_read()) {
+      return BKE_volume_num_grids(volume);
     }
+    return 0;
   }
-}
 
-static int element_count_from_instances(const GeometrySet &geometry_set)
-{
-  if (geometry_set.has_instances()) {
-    const InstancesComponent *instances_component =
-        geometry_set.get_component_for_read<InstancesComponent>();
-    return instances_component->instances_amount();
+  if (!domain_) {
+    return std::nullopt;
   }
+
+  if (const GeometryComponent *component = geometry.get_component_for_read(component_type_)) {
+    return component->attribute_domain_size(*domain_);
+  }
+
   return 0;
 }
 
-static int element_count_from_volume(const GeometrySet &geometry_set)
+void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
 {
-  if (const Volume *volume = geometry_set.get_volume_for_read()) {
-    return BKE_volume_num_grids(volume);
-  }
-  return 0;
-}
-
-static int element_count_from_component_domain(const GeometrySet &geometry_set,
-                                               GeometryComponentType component,
-                                               AttributeDomain domain)
-{
-  if (geometry_set.has_mesh() && component == GEO_COMPONENT_TYPE_MESH) {
-    const MeshComponent *mesh_component = geometry_set.get_component_for_read<MeshComponent>();
-    return mesh_component->attribute_domain_size(domain);
-  }
-
-  if (geometry_set.has_pointcloud() && component == GEO_COMPONENT_TYPE_POINT_CLOUD) {
-    const PointCloudComponent *point_cloud_component =
-        geometry_set.get_component_for_read<PointCloudComponent>();
-    return point_cloud_component->attribute_domain_size(domain);
-  }
-
-  if (geometry_set.has_volume() && component == GEO_COMPONENT_TYPE_VOLUME) {
-    const VolumeComponent *volume_component =
-        geometry_set.get_component_for_read<VolumeComponent>();
-    return volume_component->attribute_domain_size(domain);
-  }
-
-  if (geometry_set.has_curve() && component == GEO_COMPONENT_TYPE_CURVE) {
-    const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
-    return curve_component->attribute_domain_size(domain);
-  }
-
-  return 0;
-}
-
-void DatasetRegionDrawer::draw_dataset_row(const int indentation,
-                                           const GeometryComponentType component,
-                                           const std::optional<AttributeDomain> domain,
-                                           BIFIconID icon,
-                                           const char *label,
-                                           const bool is_active)
-{
-
-  const float row_height = UI_UNIT_Y;
-  const float padding_x = UI_UNIT_X * 0.25f;
-
-  const rctf rect = {float(xmin) + padding_x,
-                     float(xmax) - V2D_SCROLL_HANDLE_WIDTH,
-                     ymin_offset - row_height,
-                     ymin_offset};
-
-  char element_count[7];
-  if (component == GEO_COMPONENT_TYPE_INSTANCES) {
-    BLI_str_format_attribute_domain_size(
-        element_count, element_count_from_instances(draw_context.current_geometry_set));
-  }
-  else if (component == GEO_COMPONENT_TYPE_VOLUME) {
-    BLI_str_format_attribute_domain_size(
-        element_count, element_count_from_volume(draw_context.current_geometry_set));
-  }
-  else {
-    BLI_str_format_attribute_domain_size(
-        element_count,
-        domain ? element_count_from_component_domain(
-                     draw_context.current_geometry_set, component, *domain) :
-                 0);
-  }
-
-  std::string label_and_element_count = label;
-  label_and_element_count += UI_SEP_CHAR;
-  label_and_element_count += element_count;
-
-  uiBut *bt = uiDefIconTextButO(&block,
-                                UI_BTYPE_DATASETROW,
-                                "SPREADSHEET_OT_change_spreadsheet_data_source",
-                                WM_OP_INVOKE_DEFAULT,
-                                icon,
-                                label,
-                                rect.xmin,
-                                rect.ymin,
-                                BLI_rctf_size_x(&rect),
-                                BLI_rctf_size_y(&rect),
-                                nullptr);
-
-  UI_but_datasetrow_indentation_set(bt, indentation);
-
-  if (is_active) {
-    UI_but_hint_drawstr_set(bt, element_count);
-    UI_but_datasetrow_component_set(bt, component);
-    if (domain) {
-      UI_but_datasetrow_domain_set(bt, *domain);
-    }
-    UI_but_func_pushed_state_set(bt, &is_component_row_selected, draw_context.sspreadsheet);
-
-    PointerRNA *but_ptr = UI_but_operator_ptr_get((uiBut *)bt);
-    RNA_int_set(but_ptr, "component_type", component);
-    if (domain) {
-      RNA_int_set(but_ptr, "attribute_domain_type", *domain);
-    }
-  }
-
-  ymin_offset -= row_height;
-}
-
-void DatasetRegionDrawer::draw_component_row(const DatasetComponentLayoutInfo &component_info)
-{
-  if (ELEM(component_info.type, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES)) {
-    draw_dataset_row(
-        0, component_info.type, std::nullopt, component_info.icon, component_info.label, true);
-  }
-  else {
-    draw_dataset_row(
-        0, component_info.type, std::nullopt, component_info.icon, component_info.label, false);
-  }
-}
-
-void DatasetRegionDrawer::draw_attribute_domain_row(
-    const DatasetComponentLayoutInfo &component_info,
-    const DatasetAttrDomainLayoutInfo &domain_info)
-{
-  draw_dataset_row(
-      1, component_info.type, domain_info.type, domain_info.icon, domain_info.label, true);
-}
-
-/* -------------------------------------------------------------------- */
-/* Drawer */
-
-void draw_dataset_in_region(const bContext *C, ARegion *region)
-{
-  DatasetDrawContext draw_context{C};
-  if (!draw_context.object_eval) {
-    /* No object means nothing to display. Keep the region empty. */
+  const SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  Object *object = spreadsheet_get_object_eval(sspreadsheet, CTX_data_depsgraph_pointer(C));
+  if (!object) {
     return;
   }
+  uiLayout *layout = panel->layout;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = uiLayoutGetBlock(layout);
 
-  DatasetRegionDrawer drawer{region, *block, draw_context};
+  UI_block_layout_set_current(block, layout);
 
-  /* Start with an offset to align buttons to spreadsheet rows. Use spreadsheet drawing info for
-   * that. */
-  drawer.ymin_offset = -SpreadsheetDrawer().top_row_height + drawer.row_height;
+  ui::AbstractTreeView *tree_view = UI_block_add_view(
+      *block,
+      "Data Set Tree View",
+      std::make_unique<GeometryDataSetTreeView>(
+          spreadsheet_get_display_geometry_set(sspreadsheet, object), *C));
 
-  const DatasetLayoutHierarchy hierarchy = dataset_layout_hierarchy();
-  drawer.draw_hierarchy(hierarchy);
-#ifndef NDEBUG
-  dataset_layout_hierarchy_sanity_check(hierarchy);
-#endif
-
-  UI_block_end(C, block);
-  UI_view2d_totRect_set(&region->v2d, region->winx, abs(drawer.ymin_offset));
-  UI_block_draw(C, block);
+  ui::TreeViewBuilder builder(*block);
+  builder.build_tree_view(*tree_view);
 }
 
 }  // namespace blender::ed::spreadsheet

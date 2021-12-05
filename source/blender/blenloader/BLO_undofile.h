@@ -77,7 +77,7 @@ typedef struct {
   bool memchunk_identical;
 } UndoReader;
 
-/* actually only used writefile.c */
+/* Actually only used `writefile.c`. */
 
 void BLO_memfile_write_init(MemFileWriteData *mem_data,
                             MemFile *written_memfile,

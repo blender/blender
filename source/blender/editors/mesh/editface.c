@@ -369,7 +369,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
       continue;
     }
 
-    ml = me->mloop + mp->totloop;
+    ml = me->mloop + mp->loopstart;
     for (b = 0; b < mp->totloop; b++, ml++) {
       mul_v3_m3v3(vec, bmat, mvert[ml->v].co);
       add_v3_v3v3(vec, vec, ob->obmat[3]);

@@ -261,6 +261,7 @@ IDTypeInfo IDType_ID_MA = {
     .name_plural = "materials",
     .translation_context = BLT_I18NCONTEXT_ID_MATERIAL,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = material_init_data,
     .copy_data = material_copy_data,
@@ -268,6 +269,7 @@ IDTypeInfo IDType_ID_MA = {
     .make_local = NULL,
     .foreach_id = material_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = material_blend_write,
@@ -902,7 +904,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
   if ((ob->id.tag & LIB_TAG_MISSING) == 0 && (id->tag & LIB_TAG_MISSING) != 0) {
     /* Exception: In case the object is a valid data, but its obdata is an empty place-holder,
      * use object's material slots amount as reference.
-     * This avoids loosing materials in a local object when its linked obdata gets missing.
+     * This avoids losing materials in a local object when its linked obdata goes missing.
      * See T92780. */
     BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
   }

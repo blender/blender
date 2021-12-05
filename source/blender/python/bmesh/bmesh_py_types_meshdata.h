@@ -50,4 +50,5 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol);
 int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value);
 PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert);
 
+/* call to init all types */
 void BPy_BM_init_types_meshdata(void);

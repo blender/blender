@@ -30,15 +30,17 @@ BVHOptiX::BVHOptiX(const BVHParams &params_,
     : BVH(params_, geometry_, objects_),
       device(device),
       traversable_handle(0),
-      as_data(device, params_.top_level ? "optix tlas" : "optix blas", false),
-      motion_transform_data(device, "optix motion transform", false)
+      as_data(make_unique<device_only_memory<char>>(
+          device, params.top_level ? "optix tlas" : "optix blas", false)),
+      motion_transform_data(
+          make_unique<device_only_memory<char>>(device, "optix motion transform", false))
 {
 }
 
 BVHOptiX::~BVHOptiX()
 {
-  // Acceleration structure memory is delayed freed on device, since deleting the
-  // BVH may happen while still being used for rendering.
+  /* Acceleration structure memory is delayed freed on device, since deleting the
+   * BVH may happen while still being used for rendering. */
   device->release_optix_bvh(this);
 }
 

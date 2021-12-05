@@ -183,6 +183,7 @@ static ViewLayer *view_layer_add(const char *name)
   view_layer->passflag = SCE_PASS_COMBINED;
   view_layer->pass_alpha_threshold = 0.5f;
   view_layer->cryptomatte_levels = 6;
+  view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
   BKE_freestyle_config_init(&view_layer->freestyle_config);
 
   return view_layer;

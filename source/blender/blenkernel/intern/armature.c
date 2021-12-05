@@ -322,6 +322,7 @@ IDTypeInfo IDType_ID_AR = {
     .name_plural = "armatures",
     .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = armature_init_data,
     .copy_data = armature_copy_data,
@@ -329,6 +330,7 @@ IDTypeInfo IDType_ID_AR = {
     .make_local = NULL,
     .foreach_id = armature_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = armature_blend_write,

@@ -2010,7 +2010,7 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     /* We must get compatible eulers from the beginning because
      * some of them can be modified below (see bug T21875).
      * Additionally, since this constraint is based on euler rotation math, it doesn't work well
-     * with shear. The Y axis is chosen as the main axis when we orthoganalize the matrix because
+     * with shear. The Y axis is chosen as the main axis when we orthogonalize the matrix because
      * constraints are used most commonly on bones. */
     float mat[4][4];
     copy_m4_m4(mat, ct->matrix);
@@ -6022,7 +6022,6 @@ bConstraint *BKE_constraint_duplicate_ex(bConstraint *src, const int flag, const
   bConstraint *dst = MEM_dupallocN(src);
   constraint_copy_data_ex(dst, src, flag, do_extern);
   dst->next = dst->prev = NULL;
-  dst->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
   return dst;
 }
 
@@ -6057,7 +6056,9 @@ void BKE_constraints_copy_ex(ListBase *dst, const ListBase *src, const int flag,
   for (con = dst->first, srccon = src->first; con && srccon;
        srccon = srccon->next, con = con->next) {
     constraint_copy_data_ex(con, srccon, flag, do_extern);
-    con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+    if ((flag & LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG) == 0) {
+      con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+    }
   }
 }
 

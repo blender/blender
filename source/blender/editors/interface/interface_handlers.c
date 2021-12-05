@@ -439,11 +439,11 @@ typedef struct uiHandleButtonData {
   float ungrab_mval[2];
 #endif
 
-  /* menu open (watch UI_screen_free_active_but) */
+  /* Menu open, see: #UI_screen_free_active_but_highlight. */
   uiPopupBlockHandle *menu;
   int menuretval;
 
-  /* search box (watch UI_screen_free_active_but) */
+  /* Search box see: #UI_screen_free_active_but_highlight. */
   ARegion *searchbox;
 #ifdef USE_KEYNAV_LIMIT
   struct uiKeyNavLock searchbox_keynav_state;
@@ -1266,12 +1266,22 @@ static void ui_apply_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
   if (data->str) {
+    /* This is intended to avoid unnecessary updates when the value stays the same, however there
+     * are issues with the current implementation. It does not work with multi-button editing
+     * (T89996) or operator popups where a number button requires an update even if the value is
+     * unchanged (T89996).
+     *
+     * Trying to detect changes at this level is not reliable. Instead it could be done at the
+     * level of RNA update/set, skipping RNA update if RNA set did not change anything, instead
+     * of skipping all button updates. */
+#if 0
     double value;
     /* Check if the string value is a number and cancel if it's equal to the startvalue. */
     if (ui_but_string_eval_number(C, but, data->str, &value) && (value == data->startvalue)) {
       data->cancel = true;
       return;
     }
+#endif
 
     if (ui_but_string_set(C, but, data->str)) {
       data->value = ui_but_value_get(but);
@@ -2333,9 +2343,6 @@ static void ui_apply_but(
       break;
     case UI_BTYPE_LISTROW:
       ui_apply_but_LISTROW(C, block, but, data);
-      break;
-    case UI_BTYPE_DATASETROW:
-      ui_apply_but_ROW(C, block, but, data);
       break;
     case UI_BTYPE_TAB:
       ui_apply_but_TAB(C, but, data);
@@ -8015,7 +8022,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_CHECKBOX:
     case UI_BTYPE_CHECKBOX_N:
     case UI_BTYPE_ROW:
-    case UI_BTYPE_DATASETROW:
       retval = ui_do_but_TOG(C, but, data, event);
       break;
     case UI_BTYPE_TREEROW:
@@ -10319,7 +10325,7 @@ static int ui_handle_menu_event(bContext *C,
           retval = WM_UI_HANDLER_BREAK;
           break;
 
-        /* Smooth scrolling for pocopy_v2_v2_int(&povers. */
+        /* Smooth scrolling for popovers. */
         case MOUSEPAN: {
           if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
             /* pass */
@@ -11351,8 +11357,7 @@ static void ui_region_handler_remove(bContext *C, void *UNUSED(userdata))
     return;
   }
 
-  UI_blocklist_free(C, &region->uiblocks);
-
+  UI_blocklist_free(C, region);
   bScreen *screen = CTX_wm_screen(C);
   if (screen == NULL) {
     return;
@@ -11676,8 +11681,20 @@ bool UI_textbutton_activate_but(const bContext *C, uiBut *actbut)
 /** \name Public Utilities
  * \{ */
 
+void UI_region_free_active_but_all(bContext *C, ARegion *region)
+{
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+      if (but->active == NULL) {
+        continue;
+      }
+      ui_but_active_free(C, but);
+    }
+  }
+}
+
 /* is called by notifier */
-void UI_screen_free_active_but(const bContext *C, bScreen *screen)
+void UI_screen_free_active_but_highlight(const bContext *C, bScreen *screen)
 {
   wmWindow *win = CTX_wm_window(C);
 

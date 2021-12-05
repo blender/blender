@@ -23,14 +23,16 @@
 
 #include "node_composite_util.hh"
 
-static bNodeSocketTemplate cmp_node_planetrackdeform_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE}, {-1, ""}};
+namespace blender::nodes {
 
-static bNodeSocketTemplate cmp_node_planetrackdeform_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {SOCK_FLOAT, N_("Plane")},
-    {-1, ""},
-};
+static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Float>(N_("Plane"));
+}
+
+}  // namespace blender::nodes
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -47,7 +49,7 @@ void register_node_type_cmp_planetrackdeform(void)
 
   cmp_node_type_base(
       &ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT, 0);
-  node_type_socket_templates(&ntype, cmp_node_planetrackdeform_in, cmp_node_planetrackdeform_out);
+  ntype.declare = blender::nodes::cmp_node_planetrackdeform_declare;
   node_type_init(&ntype, init);
   node_type_storage(
       &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);

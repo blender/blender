@@ -20,13 +20,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Patch index for triangle, -1 if not subdivision triangle */
-
-ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd)
-{
-  return (sd->prim != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, sd->prim) : ~0;
-}
-
 /* UV coords of triangle within patch */
 
 ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,
@@ -443,8 +436,8 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
     if (dy)
       *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-    return float4_to_float3(
-        kernel_tex_fetch(__attributes_float3, desc.offset + subd_triangle_patch_face(kg, patch)));
+    return kernel_tex_fetch(__attributes_float3,
+                            desc.offset + subd_triangle_patch_face(kg, patch));
   }
   else if (desc.element == ATTR_ELEMENT_VERTEX || desc.element == ATTR_ELEMENT_VERTEX_MOTION) {
     float2 uv[3];
@@ -452,10 +445,10 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
 
     uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + v.x));
-    float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + v.y));
-    float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + v.z));
-    float3 f3 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + v.w));
+    float3 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + v.x);
+    float3 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + v.y);
+    float3 f2 = kernel_tex_fetch(__attributes_float3, desc.offset + v.z);
+    float3 f3 = kernel_tex_fetch(__attributes_float3, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
       f1 = (f1 + f0) * 0.5f;
@@ -484,10 +477,10 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
 
     float3 f0, f1, f2, f3;
 
-    f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, corners[0] + desc.offset));
-    f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, corners[1] + desc.offset));
-    f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, corners[2] + desc.offset));
-    f3 = float4_to_float3(kernel_tex_fetch(__attributes_float3, corners[3] + desc.offset));
+    f0 = kernel_tex_fetch(__attributes_float3, corners[0] + desc.offset);
+    f1 = kernel_tex_fetch(__attributes_float3, corners[1] + desc.offset);
+    f2 = kernel_tex_fetch(__attributes_float3, corners[2] + desc.offset);
+    f3 = kernel_tex_fetch(__attributes_float3, corners[3] + desc.offset);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
       f1 = (f1 + f0) * 0.5f;
@@ -513,7 +506,7 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
     if (dy)
       *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-    return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset));
+    return kernel_tex_fetch(__attributes_float3, desc.offset);
   }
   else {
     if (dx)
@@ -590,7 +583,7 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
     if (dy)
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    return kernel_tex_fetch(__attributes_float3,
+    return kernel_tex_fetch(__attributes_float4,
                             desc.offset + subd_triangle_patch_face(kg, patch));
   }
   else if (desc.element == ATTR_ELEMENT_VERTEX || desc.element == ATTR_ELEMENT_VERTEX_MOTION) {
@@ -599,10 +592,10 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
 
     uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float4 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + v.x);
-    float4 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + v.y);
-    float4 f2 = kernel_tex_fetch(__attributes_float3, desc.offset + v.z);
-    float4 f3 = kernel_tex_fetch(__attributes_float3, desc.offset + v.w);
+    float4 f0 = kernel_tex_fetch(__attributes_float4, desc.offset + v.x);
+    float4 f1 = kernel_tex_fetch(__attributes_float4, desc.offset + v.y);
+    float4 f2 = kernel_tex_fetch(__attributes_float4, desc.offset + v.z);
+    float4 f3 = kernel_tex_fetch(__attributes_float4, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
       f1 = (f1 + f0) * 0.5f;
@@ -642,10 +635,10 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
           color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset)));
     }
     else {
-      f0 = kernel_tex_fetch(__attributes_float3, corners[0] + desc.offset);
-      f1 = kernel_tex_fetch(__attributes_float3, corners[1] + desc.offset);
-      f2 = kernel_tex_fetch(__attributes_float3, corners[2] + desc.offset);
-      f3 = kernel_tex_fetch(__attributes_float3, corners[3] + desc.offset);
+      f0 = kernel_tex_fetch(__attributes_float4, corners[0] + desc.offset);
+      f1 = kernel_tex_fetch(__attributes_float4, corners[1] + desc.offset);
+      f2 = kernel_tex_fetch(__attributes_float4, corners[2] + desc.offset);
+      f3 = kernel_tex_fetch(__attributes_float4, corners[3] + desc.offset);
     }
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -672,7 +665,7 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
     if (dy)
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    return kernel_tex_fetch(__attributes_float3, desc.offset);
+    return kernel_tex_fetch(__attributes_float4, desc.offset);
   }
   else {
     if (dx)

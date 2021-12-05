@@ -530,7 +530,7 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
   return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
-/* TOOD(sergey): Make the Python API more clear that evaluation might happen, or requite
+/* TODO(sergey): Make the Python API more clear that evaluation might happen, or require
  * passing fully evaluated depsgraph. */
 static Object *eval_object_ensure(Object *ob,
                                   bContext *C,

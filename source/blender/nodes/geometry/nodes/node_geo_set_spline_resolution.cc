@@ -18,13 +18,13 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_set_spline_resolution_cc {
 
-static void geo_node_set_spline_resolution_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Resolution")).default_value(12).supports_field();
+  b.add_input<decl::Int>(N_("Resolution")).min(1).default_value(12).supports_field();
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
@@ -51,7 +51,7 @@ static void set_resolution_in_component(GeometryComponent &component,
   resolutions.save();
 }
 
-static void geo_node_set_spline_resolution_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -81,15 +81,17 @@ static void geo_node_set_spline_resolution_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_set_spline_resolution_cc
 
 void register_node_type_geo_set_spline_resolution()
 {
+  namespace file_ns = blender::nodes::node_geo_set_spline_resolution_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_SET_SPLINE_RESOLUTION, "Set Spline Resolution", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_set_spline_resolution_exec;
-  ntype.declare = blender::nodes::geo_node_set_spline_resolution_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

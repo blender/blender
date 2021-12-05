@@ -25,9 +25,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc {
 
-static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Segments"))
       .default_value(32)
@@ -292,7 +292,7 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
   return mesh;
 }
 
-static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const int segments_num = params.extract_input<int>("Segments");
   const int rings_num = params.extract_input<int>("Rings");
@@ -303,7 +303,7 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
     if (rings_num < 3) {
       params.error_message_add(NodeWarningType::Info, TIP_("Rings must be at least 3"));
     }
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -313,15 +313,17 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc
 
 void register_node_type_geo_mesh_primitive_uv_sphere()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_uv_sphere_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_uv_shpere_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_uv_sphere_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

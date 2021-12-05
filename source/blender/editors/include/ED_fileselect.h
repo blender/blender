@@ -109,6 +109,7 @@ struct FileSelectParams *ED_fileselect_ensure_active_params(struct SpaceFile *sf
 struct FileSelectParams *ED_fileselect_get_active_params(const struct SpaceFile *sfile);
 struct FileSelectParams *ED_fileselect_get_file_params(const struct SpaceFile *sfile);
 struct FileAssetSelectParams *ED_fileselect_get_asset_params(const struct SpaceFile *sfile);
+bool ED_fileselect_is_local_asset_library(const struct SpaceFile *sfile);
 
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,

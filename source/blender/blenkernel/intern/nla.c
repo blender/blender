@@ -390,6 +390,16 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
    */
   strip->flag = NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_SYNC_LENGTH;
 
+  /* Disable sync for actions with a manual frame range, since it only syncs to range anyway. */
+  if (act->flag & ACT_FRAME_RANGE) {
+    strip->flag &= ~NLASTRIP_FLAG_SYNC_LENGTH;
+  }
+
+  /* Enable cyclic time for known cyclic actions. */
+  if (BKE_action_is_cyclic(act)) {
+    strip->flag |= NLASTRIP_FLAG_USR_TIME_CYCLIC;
+  }
+
   /* assign the action reference */
   strip->act = act;
   id_us_plus(&act->id);
@@ -397,7 +407,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
   /* determine initial range
    * - strip length cannot be 0... ever...
    */
-  calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+  BKE_action_get_frame_range(strip->act, &strip->actstart, &strip->actend);
 
   strip->start = strip->actstart;
   strip->end = (IS_EQF(strip->actstart, strip->actend)) ? (strip->actstart + 1.0f) :
@@ -1444,7 +1454,7 @@ void BKE_nlastrip_recalculate_bounds_sync_action(NlaStrip *strip)
 
   prev_actstart = strip->actstart;
 
-  calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+  BKE_action_get_frame_range(strip->act, &strip->actstart, &strip->actend);
 
   /* Set start such that key's do not visually move, to preserve the overall animation result. */
   strip->start += (strip->actstart - prev_actstart) * strip->scale;

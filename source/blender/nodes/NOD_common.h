@@ -45,6 +45,8 @@ struct bNodeSocket *node_group_output_find_socket(struct bNode *node, const char
 void node_group_input_update(struct bNodeTree *ntree, struct bNode *node);
 void node_group_output_update(struct bNodeTree *ntree, struct bNode *node);
 
+void node_internal_links_create(struct bNodeTree *ntree, struct bNode *node);
+
 #ifdef __cplusplus
 }
 #endif

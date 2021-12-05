@@ -267,7 +267,7 @@ DefNode(FunctionNode, FN_NODE_LEGACY_RANDOM_FLOAT, 0, "LEGACY_RANDOM_FLOAT", Leg
 
 DefNode(FunctionNode, FN_NODE_ALIGN_EULER_TO_VECTOR, def_fn_align_euler_to_vector, "ALIGN_EULER_TO_VECTOR", AlignEulerToVector, "Align Euler To Vector", "")
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
-DefNode(FunctionNode, FN_NODE_COMPARE_FLOATS, def_float_compare, "COMPARE_FLOATS", CompareFloats, "Compare Floats", "")
+DefNode(FunctionNode, FN_NODE_COMPARE, def_compare, "COMPARE", Compare, "Compare", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_TO_INT, def_float_to_int, "FLOAT_TO_INT", FloatToInt, "Float to Integer", "")
 DefNode(FunctionNode, FN_NODE_INPUT_BOOL, def_fn_input_bool, "INPUT_BOOL", InputBool, "Boolean", "")
 DefNode(FunctionNode, FN_NODE_INPUT_COLOR, def_fn_input_color, "INPUT_COLOR", InputColor, "Color", "")
@@ -325,6 +325,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_VOLUME_TO_MESH, def_geo_volume_to_mesh, "L
 
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, def_geo_attribute_statistic, "ATTRIBUTE_STATISTIC", AttributeStatistic, "Attribute Statistic", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, def_geo_attribute_domain_size, "ATTRIBUTE_DOMAIN_SIZE", AttributeDomainSize, "Domain Size", "")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
 DefNode(GeometryNode, GEO_NODE_CAPTURE_ATTRIBUTE, def_geo_attribute_capture, "CAPTURE_ATTRIBUTE", CaptureAttribute, "Capture Attribute", "")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")
@@ -332,7 +333,7 @@ DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Conve
 DefNode(GeometryNode, GEO_NODE_CURVE_ENDPOINT_SELECTION, 0, "CURVE_ENDPOINT_SELECTION", CurveEndpointSelection, "Endpoint Selection", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, def_geo_curve_handle_type_selection, "CURVE_HANDLE_TYPE_SELECTION", CurveHandleTypeSelection, "Handle Type Selection", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_LENGTH, 0, "CURVE_LENGTH", CurveLength, "Curve Length", "")
-DefNode(GeometryNode, GEO_NODE_CURVE_PARAMETER, 0, "CURVE_PARAMETER", CurveParameter, "Curve Parameter", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SPLINE_PARAMETER, 0, "SPLINE_PARAMETER", SplineParameter, "Spline Parameter", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT, def_geo_curve_primitive_bezier_segment, "CURVE_PRIMITIVE_BEZIER_SEGMENT", CurvePrimitiveBezierSegment, "Bezier Segment", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, def_geo_curve_primitive_circle, "CURVE_PRIMITIVE_CIRCLE", CurvePrimitiveCircle, "Curve Circle", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_LINE, def_geo_curve_primitive_line, "CURVE_PRIMITIVE_LINE", CurvePrimitiveLine, "Curve Line", "")
@@ -346,6 +347,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")
 DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, def_geo_delete_geometry, "DELETE_GEOMETRY", DeleteGeometry, "Delete Geometry", "")
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "")
+DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh", "")
 DefNode(GeometryNode, GEO_NODE_FILL_CURVE, def_geo_curve_fill, "FILL_CURVE", FillCurve, "Fill Curve", "")
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, def_geo_curve_fillet, "FILLET_CURVE", FilletCurve, "Fillet Curve", "")
 DefNode(GeometryNode, GEO_NODE_IMAGE_TEXTURE, def_geo_image_texture, "IMAGE_TEXTURE", ImageTexture, "Image Texture", "")

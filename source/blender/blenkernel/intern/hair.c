@@ -80,7 +80,7 @@ static void hair_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, co
 {
   Hair *hair_dst = (Hair *)id_dst;
   const Hair *hair_src = (const Hair *)id_src;
-  hair_dst->mat = MEM_dupallocN(hair_dst->mat);
+  hair_dst->mat = MEM_dupallocN(hair_src->mat);
 
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
   CustomData_copy(&hair_src->pdata, &hair_dst->pdata, CD_MASK_ALL, alloc_type, hair_dst->totpoint);
@@ -182,6 +182,7 @@ IDTypeInfo IDType_ID_HA = {
     .name_plural = "hairs",
     .translation_context = BLT_I18NCONTEXT_ID_HAIR,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = hair_init_data,
     .copy_data = hair_copy_data,
@@ -189,6 +190,7 @@ IDTypeInfo IDType_ID_HA = {
     .make_local = NULL,
     .foreach_id = hair_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = hair_blend_write,

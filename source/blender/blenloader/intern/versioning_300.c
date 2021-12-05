@@ -22,6 +22,8 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -47,6 +49,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_asset.h"
@@ -59,6 +62,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -72,10 +76,13 @@
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "RNA_access.h"
 
 #include "versioning_common.h"
+
+static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
 static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
 {
@@ -1288,6 +1295,158 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
   }
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
+/* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
+ * anchor and source items in the given list of modifiers, constraints etc., using only the
+ * `subitem_local` data of the override property operation.
+ *
+ * Then they convert it into the new, proper `subitem_reference` data for the anchor, and
+ * `subitem_local` for the source.
+ *
+ * NOTE: Here only the stored override ID is available, unlike in the `override_apply` functions.
+ */
+
+static void version_liboverride_rnacollections_insertion_object_constraints(
+    ListBase *constraints, IDOverrideLibraryProperty *op)
+{
+  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+    if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      continue;
+    }
+    bConstraint *constraint_anchor = BLI_listbase_string_or_index_find(constraints,
+                                                                       opop->subitem_local_name,
+                                                                       offsetof(bConstraint, name),
+                                                                       opop->subitem_local_index);
+    bConstraint *constraint_src = constraint_anchor != NULL ? constraint_anchor->next :
+                                                              constraints->first;
+
+    if (constraint_src == NULL) {
+      /* Invalid case, just remove that override property operation. */
+      CLOG_ERROR(&LOG, "Could not find source constraint in stored override data");
+      BKE_lib_override_library_property_operation_delete(op, opop);
+      continue;
+    }
+
+    opop->subitem_reference_name = opop->subitem_local_name;
+    opop->subitem_local_name = BLI_strdup(constraint_src->name);
+    opop->subitem_reference_index = opop->subitem_local_index;
+    opop->subitem_local_index++;
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_object(Object *object)
+{
+  IDOverrideLibrary *liboverride = object->id.override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&object->modifiers,
+                                                                   opop->subitem_local_name,
+                                                                   offsetof(ModifierData, name),
+                                                                   opop->subitem_local_index);
+      ModifierData *mod_src = mod_anchor != NULL ? mod_anchor->next : object->modifiers.first;
+
+      if (mod_src == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find source modifier in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "grease_pencil_modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      GpencilModifierData *gp_mod_anchor = BLI_listbase_string_or_index_find(
+          &object->greasepencil_modifiers,
+          opop->subitem_local_name,
+          offsetof(GpencilModifierData, name),
+          opop->subitem_local_index);
+      GpencilModifierData *gp_mod_src = gp_mod_anchor != NULL ?
+                                            gp_mod_anchor->next :
+                                            object->greasepencil_modifiers.first;
+
+      if (gp_mod_src == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find source GP modifier in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(gp_mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "constraints");
+  if (op != NULL) {
+    version_liboverride_rnacollections_insertion_object_constraints(&object->constraints, op);
+  }
+
+  if (object->pose != NULL) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+      char rna_path[FILE_MAXFILE];
+      BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].constraints", pchan->name);
+      op = BKE_lib_override_library_property_find(liboverride, rna_path);
+      if (op != NULL) {
+        version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
+      }
+    }
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_animdata(ID *id)
+{
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data == NULL) {
+    return;
+  }
+
+  IDOverrideLibrary *liboverride = id->override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "animation_data.nla_tracks");
+  if (op != NULL) {
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      /* NLA tracks are only referenced by index, which limits possibilities, basically they are
+       * always added at the end of the list, see #rna_NLA_tracks_override_apply.
+       *
+       * This makes things simple here. */
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = NULL;
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -2089,7 +2248,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ntree->type != NTREE_GEOMETRY) {
         continue;
       }
-      version_node_id(ntree, FN_NODE_COMPARE_FLOATS, "FunctionNodeCompareFloats");
+      version_node_id(ntree, FN_NODE_COMPARE, "FunctionNodeCompareFloats");
       version_node_id(ntree, GEO_NODE_CAPTURE_ATTRIBUTE, "GeometryNodeCaptureAttribute");
       version_node_id(ntree, GEO_NODE_MESH_BOOLEAN, "GeometryNodeMeshBoolean");
       version_node_id(ntree, GEO_NODE_FILL_CURVE, "GeometryNodeFillCurve");
@@ -2217,6 +2376,121 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42)) {
+    /* Use consistent socket identifiers for the math node.
+     * The code to make unique identifiers from the names was inconsistent. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_CUSTOM) {
+        version_node_tree_socket_id_delim(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.min[1] = 1.0f;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Change minimum zoom to 0.05f in the node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                if (region->v2d.minzoom > 0.05f) {
+                  region->v2d.minzoom = 0.05f;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      /* Make sure range of meta strips is correct.
+       * It was possible to save .blend file with incorrect state of meta strip
+       * range. The root cause is expected to be fixed, but need to ensure files
+       * with invalid meta strip range are corrected. */
+      if (ed != NULL) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      }
+    }
+  }
+
+  /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
+   * merged in master. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42) ||
+      (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3))) {
+    /* Update LibOverride operations regarding insertions in RNA collections (i.e. modifiers,
+     * constraints and NLA tracks). */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+        version_liboverride_rnacollections_insertion_animdata(id_iter);
+        if (GS(id_iter->name) == ID_OB) {
+          version_liboverride_rnacollections_insertion_object((Object *)id_iter);
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 4)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, GEO_NODE_CURVE_SPLINE_PARAMETER, "GeometryNodeSplineParameter");
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_CURVE_SPLINE_PARAMETER) {
+          version_node_add_socket_if_not_exist(
+              ntree, node, SOCK_OUT, SOCK_INT, PROP_NONE, "Index", "Index");
+        }
+
+        /* Convert float compare into a more general compare node. */
+        if (node->type == FN_NODE_COMPARE) {
+          if (node->storage == NULL) {
+            NodeFunctionCompare *data = (NodeFunctionCompare *)MEM_callocN(
+                sizeof(NodeFunctionCompare), __func__);
+            data->data_type = SOCK_FLOAT;
+            data->operation = node->custom1;
+            strcpy(node->idname, "FunctionNodeCompare");
+            node->update = NODE_UPDATE;
+            node->storage = data;
+          }
+        }
+      }
+    }
+
+    /* Add a toggle for the breadcrumbs overlay in the node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)space;
+            snode->overlay.flag |= SN_OVERLAY_SHOW_PATH;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -2228,13 +2502,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_CUSTOM) {
-        version_node_tree_socket_id_delim(ntree);
-      }
-    }
-    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {

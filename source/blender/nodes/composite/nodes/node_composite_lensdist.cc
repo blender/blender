@@ -23,16 +23,17 @@
 
 #include "node_composite_util.hh"
 
-static bNodeSocketTemplate cmp_node_lensdist_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Distort"), 0.0f, 0.0f, 0.0f, 0.0f, -0.999f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Dispersion"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_lensdist_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Distort")).default_value(0.0f).min(-0.999f).max(1.0f);
+  b.add_input<decl::Float>(N_("Dispersion")).default_value(0.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -46,7 +47,7 @@ void register_node_type_cmp_lensdist(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_LENSDIST, "Lens Distortion", NODE_CLASS_DISTORT, 0);
-  node_type_socket_templates(&ntype, cmp_node_lensdist_in, cmp_node_lensdist_out);
+  ntype.declare = blender::nodes::cmp_node_lensdist_declare;
   node_type_init(&ntype, node_composit_init_lensdist);
   node_type_storage(
       &ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);

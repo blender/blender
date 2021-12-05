@@ -33,6 +33,9 @@ struct ReportList;
 
 /* error reporting */
 short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
+/**
+ * A version of #BKE_report_write_file_fp that uses Python's stdout.
+ */
 void BPy_reports_write_stdout(const struct ReportList *reports, const char *header);
 bool BPy_errors_to_report_ex(struct ReportList *reports,
                              const char *error_prefix,

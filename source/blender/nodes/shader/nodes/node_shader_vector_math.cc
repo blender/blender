@@ -119,7 +119,7 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
   return 0;
 }
 
-static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
@@ -128,7 +128,8 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_OUT, "Vector");
   bNodeSocket *sockValue = nodeFindSocket(node, SOCK_OUT, "Value");
 
-  nodeSetSocketAvailability(sockB,
+  nodeSetSocketAvailability(ntree,
+                            sockB,
                             !ELEM(node->custom1,
                                   NODE_VECTOR_MATH_SINE,
                                   NODE_VECTOR_MATH_COSINE,
@@ -140,19 +141,22 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
                                   NODE_VECTOR_MATH_ABSOLUTE,
                                   NODE_VECTOR_MATH_FRACTION,
                                   NODE_VECTOR_MATH_NORMALIZE));
-  nodeSetSocketAvailability(sockC,
+  nodeSetSocketAvailability(ntree,
+                            sockC,
                             ELEM(node->custom1,
                                  NODE_VECTOR_MATH_WRAP,
                                  NODE_VECTOR_MATH_FACEFORWARD,
                                  NODE_VECTOR_MATH_MULTIPLY_ADD));
-  nodeSetSocketAvailability(sockScale,
-                            ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
-  nodeSetSocketAvailability(sockVector,
+  nodeSetSocketAvailability(
+      ntree, sockScale, ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
+  nodeSetSocketAvailability(ntree,
+                            sockVector,
                             !ELEM(node->custom1,
                                   NODE_VECTOR_MATH_LENGTH,
                                   NODE_VECTOR_MATH_DISTANCE,
                                   NODE_VECTOR_MATH_DOT_PRODUCT));
-  nodeSetSocketAvailability(sockValue,
+  nodeSetSocketAvailability(ntree,
+                            sockValue,
                             ELEM(node->custom1,
                                  NODE_VECTOR_MATH_LENGTH,
                                  NODE_VECTOR_MATH_DISTANCE,
@@ -197,8 +201,8 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{info.title_case_name,
-                                                                         function};
+        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+            info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -208,7 +212,7 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
   blender::nodes::try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
         static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
-            info.title_case_name, function};
+            info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -218,7 +222,7 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
   blender::nodes::try_dispatch_float_math_fl3_fl3_fl_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
         static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            info.title_case_name, function};
+            info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -227,8 +231,8 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{info.title_case_name,
-                                                                        function};
+        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{
+            info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -237,8 +241,8 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl3_fl_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float, float3> fn{info.title_case_name,
-                                                                        function};
+        static blender::fn::CustomMF_SI_SI_SO<float3, float, float3> fn{
+            info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -247,7 +251,8 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl3_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SO<float3, float3> fn{info.title_case_name, function};
+        static blender::fn::CustomMF_SI_SO<float3, float3> fn{info.title_case_name.c_str(),
+                                                              function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -256,7 +261,8 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 
   blender::nodes::try_dispatch_float_math_fl3_to_fl(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SO<float3, float> fn{info.title_case_name, function};
+        static blender::fn::CustomMF_SI_SO<float3, float> fn{info.title_case_name.c_str(),
+                                                             function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {

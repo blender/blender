@@ -21,9 +21,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_object_info_cc {
 
-static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Object>(N_("Object")).hide_label();
   b.add_input<decl::Bool>(N_("As Instance"))
@@ -35,12 +35,12 @@ static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_object_info_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &bnode = params.node();
   NodeGeometryObjectInfo *node_storage = (NodeGeometryObjectInfo *)bnode.storage;
@@ -49,54 +49,57 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
 
   Object *object = params.get_input<Object *>("Object");
 
-  float3 location = {0, 0, 0};
-  float3 rotation = {0, 0, 0};
-  float3 scale = {0, 0, 0};
-  GeometrySet geometry_set;
-
   const Object *self_object = params.self_object();
-
-  if (object != nullptr) {
-    const float4x4 transform = float4x4(self_object->imat) * float4x4(object->obmat);
-
-    float quaternion[4];
-    if (transform_space_relative) {
-      mat4_decompose(location, quaternion, scale, transform.values);
-    }
-    else {
-      mat4_decompose(location, quaternion, scale, object->obmat);
-    }
-    quat_to_eul(rotation, quaternion);
-
-    if (object != self_object) {
-      if (params.get_input<bool>("As Instance")) {
-        InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-        const int handle = instances.add_reference(*object);
-        if (transform_space_relative) {
-          instances.add_instance(handle, transform);
-        }
-        else {
-          float unit_transform[4][4];
-          unit_m4(unit_transform);
-          instances.add_instance(handle, unit_transform);
-        }
-      }
-      else {
-        geometry_set = bke::object_get_evaluated_geometry_set(*object);
-        if (transform_space_relative) {
-          transform_geometry_set(geometry_set, transform, *params.depsgraph());
-        }
-      }
-    }
+  if (object == nullptr) {
+    params.set_default_remaining_outputs();
+    return;
   }
 
-  params.set_output("Location", location);
-  params.set_output("Rotation", rotation);
-  params.set_output("Scale", scale);
-  params.set_output("Geometry", geometry_set);
+  const float4x4 &object_matrix = object->obmat;
+  const float4x4 transform = float4x4(self_object->imat) * object_matrix;
+
+  if (transform_space_relative) {
+    params.set_output("Location", transform.translation());
+    params.set_output("Rotation", transform.to_euler());
+    params.set_output("Scale", transform.scale());
+  }
+  else {
+    params.set_output("Location", object_matrix.translation());
+    params.set_output("Rotation", object_matrix.to_euler());
+    params.set_output("Scale", object_matrix.scale());
+  }
+
+  if (params.output_is_required("Geometry")) {
+    if (object == self_object) {
+      params.error_message_add(NodeWarningType::Error,
+                               TIP_("Geometry cannot be retrieved from the modifier object"));
+      params.set_default_remaining_outputs();
+      return;
+    }
+
+    GeometrySet geometry_set;
+    if (params.get_input<bool>("As Instance")) {
+      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+      const int handle = instances.add_reference(*object);
+      if (transform_space_relative) {
+        instances.add_instance(handle, transform);
+      }
+      else {
+        instances.add_instance(handle, float4x4::identity());
+      }
+    }
+    else {
+      geometry_set = bke::object_get_evaluated_geometry_set(*object);
+      if (transform_space_relative) {
+        transform_geometry_set(geometry_set, transform, *params.depsgraph());
+      }
+    }
+
+    params.set_output("Geometry", geometry_set);
+  }
 }
 
-static void geo_node_object_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
       sizeof(NodeGeometryObjectInfo), __func__);
@@ -104,18 +107,20 @@ static void geo_node_object_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_object_info_cc
 
 void register_node_type_geo_object_info()
 {
+  namespace file_ns = blender::nodes::node_geo_object_info_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_object_info_node_init);
+  node_type_init(&ntype, file_ns::node_node_init);
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_object_info_layout;
-  ntype.declare = blender::nodes::geo_node_object_info_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

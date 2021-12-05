@@ -21,9 +21,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_endpoint_select_cc {
 
-static void geo_node_curve_endpoint_selection_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Start Size"))
       .min(0)
@@ -64,9 +64,9 @@ class EndpointFieldInput final : public fn::FieldInput {
     category_ = Category::Generated;
   }
 
-  const GVArray *get_varray_for_context(const fn::FieldContext &context,
-                                        IndexMask UNUSED(mask),
-                                        ResourceScope &scope) const final
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask UNUSED(mask),
+                                 ResourceScope &UNUSED(scope)) const final
   {
     if (const GeometryComponentFieldContext *geometry_context =
             dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
@@ -111,9 +111,9 @@ class EndpointFieldInput final : public fn::FieldInput {
         }
         current_point += spline->size();
       }
-      return &scope.construct<fn::GVArray_For_ArrayContainer<Array<bool>>>(std::move(selection));
+      return VArray<bool>::ForContainer(std::move(selection));
     }
-    return nullptr;
+    return {};
   };
 
   uint64_t hash() const override
@@ -131,23 +131,25 @@ class EndpointFieldInput final : public fn::FieldInput {
   }
 };
 
-static void geo_node_curve_endpoint_selection_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> start_size = params.extract_input<Field<int>>("Start Size");
   Field<int> end_size = params.extract_input<Field<int>>("End Size");
   Field<bool> selection_field{std::make_shared<EndpointFieldInput>(start_size, end_size)};
   params.set_output("Selection", std::move(selection_field));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_endpoint_select_cc
 
 void register_node_type_geo_curve_endpoint_selection()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_endpoint_select_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_ENDPOINT_SELECTION, "Endpoint Selection", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::geo_node_curve_endpoint_selection_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoint_selection_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);
 }

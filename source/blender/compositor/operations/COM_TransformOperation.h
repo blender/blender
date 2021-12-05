@@ -35,9 +35,9 @@ class TransformOperation : public MultiThreadedOperation {
   int translate_x_;
   int translate_y_;
   float scale_;
-  rcti scale_canvas_;
-  rcti rotate_canvas_;
-  rcti translate_canvas_;
+  rcti scale_canvas_ = COM_AREA_NONE;
+  rcti rotate_canvas_ = COM_AREA_NONE;
+  rcti translate_canvas_ = COM_AREA_NONE;
 
   /* Set variables. */
   PixelSampler sampler_;

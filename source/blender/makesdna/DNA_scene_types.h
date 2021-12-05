@@ -720,6 +720,7 @@ typedef struct RenderData {
 
   /* path to render output */
   /** 1024 = FILE_MAX. */
+  /* NOTE: Excluded from `BKE_bpath_foreach_path_` / `scene_foreach_path` code. */
   char pic[1024];
 
   /* stamps flags. */

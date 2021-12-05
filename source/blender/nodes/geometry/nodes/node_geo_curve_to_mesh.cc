@@ -23,9 +23,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_to_mesh_cc {
 
-static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Geometry>(N_("Profile Curve"))
@@ -54,7 +54,7 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
   }
 }
 
-static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
@@ -72,14 +72,16 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(curve_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_to_mesh_cc
 
 void register_node_type_geo_curve_to_mesh()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_to_mesh_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_to_mesh_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_to_mesh_exec;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

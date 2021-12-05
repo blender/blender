@@ -56,15 +56,16 @@ void register_node_type_cmp_curve_time(void)
 }
 
 /* **************** CURVE VEC  ******************** */
-static bNodeSocketTemplate cmp_node_curve_vec_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
 
-static bNodeSocketTemplate cmp_node_curve_vec_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_curve_vec_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Vector")).default_value({0.0f, 0.0f, 0.0f}).min(-1.0f).max(1.0f);
+  b.add_output<decl::Vector>(N_("Vector"));
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -76,7 +77,7 @@ void register_node_type_cmp_curve_vec(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_curve_vec_in, cmp_node_curve_vec_out);
+  ntype.declare = blender::nodes::cmp_node_curve_vec_declare;
   node_type_size(&ntype, 200, 140, 320);
   node_type_init(&ntype, node_composit_init_curve_vec);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);

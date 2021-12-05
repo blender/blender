@@ -846,6 +846,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
   else if (RNA_struct_is_a(ptr->type, &RNA_Keyframe)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_keyframes");
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_Action)) {
+    *r_lb = CTX_data_collection_get(C, "selected_editable_actions");
+  }
   else if (RNA_struct_is_a(ptr->type, &RNA_NlaStrip)) {
     *r_lb = CTX_data_collection_get(C, "selected_nla_strips");
   }
@@ -1405,7 +1408,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
     int ret;
 
     /* needed else the active button does not get tested */
-    UI_screen_free_active_but(C, CTX_wm_screen(C));
+    UI_screen_free_active_but_highlight(C, CTX_wm_screen(C));
 
     // printf("%s: begin\n", __func__);
 
@@ -1977,7 +1980,7 @@ static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const w
   const ARegion *region = CTX_wm_region(C);
   uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region, event->xy);
 
-  if (!UI_tree_view_item_drop_handle(hovered_tree_item, event->customdata)) {
+  if (!UI_tree_view_item_drop_handle(C, hovered_tree_item, event->customdata)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 

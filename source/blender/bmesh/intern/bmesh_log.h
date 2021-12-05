@@ -65,6 +65,14 @@ BMLog *BM_log_create(BMesh *bm, int cd_sculpt_vert);
 void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
+/* Allocate and initialize a new BMLog using existing BMLogEntries
+ *
+ * The 'entry' should be the last entry in the BMLog. Its prev pointer
+ * will be followed back to find the first entry.
+ *
+ * The unused IDs field of the log will be initialized by taking all
+ * keys from all GHashes in the log entry.
+ */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
 
 /* Free all the data in a BMLog including the log itself */
@@ -75,9 +83,11 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
 void BM_log_set_bm(BMesh *bm, BMLog *log);
 
 /* Get the number of log entries */
+/* Get the number of log entries */
 int BM_log_length(const BMLog *log);
 
 /* Apply a consistent ordering to BMesh vertices and faces */
+/* Apply a consistent ordering to BMesh vertices */
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
 
 /* Start a new log entry and update the log entry list */
@@ -113,46 +123,101 @@ void BM_log_vert_before_modified(BMLog *log,
 void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
 
 /* Log a new vertex as added to the BMesh */
+/* Log a new vertex as added to the BMesh
+ *
+ * The new vertex gets a unique ID assigned. It is then added to a map
+ * of added vertices, with the key being its ID and the value
+ * containing everything needed to reconstruct that vertex.
+ */
 void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
 
 /* Log a new edge as added to the BMesh */
 void BM_log_edge_added(BMLog *log, BMEdge *e);
 
 /* Log a face before it is modified */
+/* Log a face before it is modified
+ *
+ * This is intended to handle only header flags and we always
+ * assume face has been added before
+ */
 void BM_log_face_modified(BMLog *log, struct BMFace *f);
 
 /* Log a new face as added to the BMesh */
+/* Log a new face as added to the BMesh
+ *
+ * The new face gets a unique ID assigned. It is then added to a map
+ * of added faces, with the key being its ID and the value containing
+ * everything needed to reconstruct that face.
+ */
 void BM_log_face_added(BMLog *log, struct BMFace *f);
 
 /* Log a vertex as removed from the BMesh */
+/* Log a vertex as removed from the BMesh
+ *
+ * A couple things can happen here:
+ *
+ * If the vertex was added as part of the current log entry, then it's
+ * deleted and forgotten about entirely. Its unique ID is returned to
+ * the unused pool.
+ *
+ * If the vertex was already part of the BMesh before the current log
+ * entry, it is added to a map of deleted vertices, with the key being
+ * its ID and the value containing everything needed to reconstruct
+ * that vertex.
+ *
+ * If there's a move record for the vertex, that's used as the
+ * vertices original location, then the move record is deleted.
+ */
 void BM_log_vert_removed(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
 
 /* Log an edge as removed from the BMesh */
 void BM_log_edge_removed(BMLog *log, BMEdge *e);
 
 /* Log a face as removed from the BMesh */
+/* Log a face as removed from the BMesh
+ *
+ * A couple things can happen here:
+ *
+ * If the face was added as part of the current log entry, then it's
+ * deleted and forgotten about entirely. Its unique ID is returned to
+ * the unused pool.
+ *
+ * If the face was already part of the BMesh before the current log
+ * entry, it is added to a map of deleted faces, with the key being
+ * its ID and the value containing everything needed to reconstruct
+ * that face.
+ */
 void BM_log_face_removed(BMLog *log, struct BMFace *f);
 
+/* Log all vertices/faces in the BMesh as added */
 /* Log all vertices/faces in the BMesh as added */
 void BM_log_all_added(BMesh *bm, BMLog *log);
 
 void BM_log_full_mesh(BMesh *bm, BMLog *log);
 
 /* Log all vertices/faces in the BMesh as removed */
+/* Log all vertices/faces in the BMesh as removed */
 void BM_log_before_all_removed(BMesh *bm, BMLog *log);
 
 /* Get the logged coordinates of a vertex */
+/* Get the logged coordinates of a vertex
+ *
+ * Does not modify the log or the vertex */
 const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
 
 /* Get the logged normal of a vertex */
 const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
 
 /* Get the logged mask of a vertex */
+/* Get the logged mask of a vertex
+ *
+ * Does not modify the log or the vertex */
 float BM_log_original_mask(BMLog *log, BMVert *v);
 
 /* Get the logged data of a vertex (avoid multiple lookups) */
 void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no);
 
+/* For internal use only (unit testing) */
 /* For internal use only (unit testing) */
 BMLogEntry *BM_log_current_entry(BMLog *log);
 void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry);

@@ -25,22 +25,23 @@
 
 /* **************** Map UV  ******************** */
 
-static bNodeSocketTemplate cmp_node_mapuv_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_VECTOR, N_("UV"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_mapuv_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("UV")).default_value({1.0f, 0.0f, 0.0f}).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>(N_("Image"));
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_mapuv(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, 0);
-  node_type_socket_templates(&ntype, cmp_node_mapuv_in, cmp_node_mapuv_out);
+  ntype.declare = blender::nodes::cmp_node_map_uv_declare;
 
   nodeRegisterType(&ntype);
 }

@@ -42,7 +42,9 @@ class HIPDeviceQueue : public DeviceQueue {
 
   virtual bool kernel_available(DeviceKernel kernel) const override;
 
-  virtual bool enqueue(DeviceKernel kernel, const int work_size, void *args[]) override;
+  virtual bool enqueue(DeviceKernel kernel,
+                       const int work_size,
+                       DeviceKernelArguments const &args) override;
 
   virtual bool synchronize() override;
 

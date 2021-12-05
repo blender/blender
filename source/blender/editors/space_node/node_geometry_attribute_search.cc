@@ -100,13 +100,13 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   ED_undo_push(C, "Assign Attribute Name");
 }
 
-void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
-                                               const bNodeTree *node_tree,
-                                               const bNode *node,
-                                               PointerRNA *socket_ptr,
-                                               uiLayout *layout)
+void node_geometry_add_attribute_search_button(const bContext &UNUSED(C),
+                                               const bNodeTree &node_tree,
+                                               const bNode &node,
+                                               PointerRNA &socket_ptr,
+                                               uiLayout &layout)
 {
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,
@@ -116,7 +116,7 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
                                  0,
                                  10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
                                  UI_UNIT_Y,
-                                 socket_ptr,
+                                 &socket_ptr,
                                  "default_value",
                                  0,
                                  0.0f,
@@ -126,7 +126,7 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
                                  "");
 
   AttributeSearchData *data = OBJECT_GUARDED_NEW(
-      AttributeSearchData, {node_tree, node, (bNodeSocket *)socket_ptr->data});
+      AttributeSearchData, {&node_tree, &node, (bNodeSocket *)socket_ptr.data});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

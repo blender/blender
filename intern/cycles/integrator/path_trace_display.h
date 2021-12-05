@@ -76,7 +76,7 @@ class PathTraceDisplay {
 
   /* Copy buffer of rendered pixels of a given size into a given position of the texture.
    *
-   * This function does not acquire a lock. The reason for this is is to allow use of this function
+   * This function does not acquire a lock. The reason for this is to allow use of this function
    * for partial updates from different devices. In this case the caller will acquire the lock
    * once, update all the slices and release
    * the lock once. This will ensure that draw() will never use partially updated texture. */

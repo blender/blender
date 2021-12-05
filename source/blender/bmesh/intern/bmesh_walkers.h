@@ -67,6 +67,12 @@ typedef struct BMWalker {
 /* define to make BMW_init more clear */
 #define BMW_MASK_NOP 0
 
+/**
+ * \brief Init Walker
+ *
+ * Allocates and returns a new mesh walker of a given type.
+ * The elements visited are filtered by the bitmask 'searchmask'.
+ */
 void BMW_init(struct BMWalker *walker,
               BMesh *bm,
               int type,
@@ -76,15 +82,61 @@ void BMW_init(struct BMWalker *walker,
               BMWFlag flag,
               int layer);
 void *BMW_begin(BMWalker *walker, void *start);
+/**
+ * \brief Step Walker
+ */
 void *BMW_step(struct BMWalker *walker);
+/**
+ * \brief End Walker
+ *
+ * Frees a walker's worklist.
+ */
 void BMW_end(struct BMWalker *walker);
+/**
+ * \brief Walker Current Depth
+ *
+ * Returns the current depth of the walker.
+ */
 int BMW_current_depth(BMWalker *walker);
 
 /* These are used by custom walkers. */
+/**
+ * \brief Current Walker State
+ *
+ * Returns the first state from the walker state
+ * worklist. This state is the next in the
+ * worklist for processing.
+ */
 void *BMW_current_state(BMWalker *walker);
+/**
+ * \brief Add a new Walker State
+ *
+ * Allocate a new empty state and put it on the worklist.
+ * A pointer to the new state is returned so that the caller
+ * can fill in the state data. The new state will be inserted
+ * at the front for depth-first walks, and at the end for
+ * breadth-first walks.
+ */
 void *BMW_state_add(BMWalker *walker);
+/**
+ * \brief Remove Current Walker State
+ *
+ * Remove and free an item from the end of the walker state
+ * worklist.
+ */
 void BMW_state_remove(BMWalker *walker);
+/**
+ * \brief Main Walking Function
+ *
+ * Steps a mesh walker forward by one element
+ */
 void *BMW_walk(BMWalker *walker);
+/**
+ * \brief Reset Walker
+ *
+ * Frees all states from the worklist, resetting the walker
+ * for reuse in a new walk.
+ */
 void BMW_reset(BMWalker *walker);
 
 #define BMW_ITER(ele, walker, data) \

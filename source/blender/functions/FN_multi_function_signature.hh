@@ -30,8 +30,15 @@
 namespace blender::fn {
 
 struct MFSignature {
-  std::string function_name;
-  Vector<std::string> param_names;
+  /**
+   * The name should be statically allocated so that it lives longer than this signature. This is
+   * used instead of an #std::string because of the overhead when many functions are created.
+   * If the name of the function has to be more dynamic for debugging purposes, override
+   * #MultiFunction::debug_name() instead. Then the dynamic name will only be computed when it is
+   * actually needed.
+   */
+  const char *function_name;
+  Vector<const char *> param_names;
   Vector<MFParamType> param_types;
   Vector<int> param_data_indices;
   bool depends_on_context = false;
@@ -51,9 +58,9 @@ class MFSignatureBuilder {
   int vector_array_count_ = 0;
 
  public:
-  MFSignatureBuilder(std::string function_name)
+  MFSignatureBuilder(const char *function_name)
   {
-    signature_.function_name = std::move(function_name);
+    signature_.function_name = function_name;
   }
 
   MFSignature build() const
@@ -63,23 +70,23 @@ class MFSignatureBuilder {
 
   /* Input Parameter Types */
 
-  template<typename T> void single_input(StringRef name)
+  template<typename T> void single_input(const char *name)
   {
     this->single_input(name, CPPType::get<T>());
   }
-  void single_input(StringRef name, const CPPType &type)
+  void single_input(const char *name, const CPPType &type)
   {
     this->input(name, MFDataType::ForSingle(type));
   }
-  template<typename T> void vector_input(StringRef name)
+  template<typename T> void vector_input(const char *name)
   {
     this->vector_input(name, CPPType::get<T>());
   }
-  void vector_input(StringRef name, const CPPType &base_type)
+  void vector_input(const char *name, const CPPType &base_type)
   {
     this->input(name, MFDataType::ForVector(base_type));
   }
-  void input(StringRef name, MFDataType data_type)
+  void input(const char *name, MFDataType data_type)
   {
     signature_.param_names.append(name);
     signature_.param_types.append(MFParamType(MFParamType::Input, data_type));
@@ -96,23 +103,23 @@ class MFSignatureBuilder {
 
   /* Output Parameter Types */
 
-  template<typename T> void single_output(StringRef name)
+  template<typename T> void single_output(const char *name)
   {
     this->single_output(name, CPPType::get<T>());
   }
-  void single_output(StringRef name, const CPPType &type)
+  void single_output(const char *name, const CPPType &type)
   {
     this->output(name, MFDataType::ForSingle(type));
   }
-  template<typename T> void vector_output(StringRef name)
+  template<typename T> void vector_output(const char *name)
   {
     this->vector_output(name, CPPType::get<T>());
   }
-  void vector_output(StringRef name, const CPPType &base_type)
+  void vector_output(const char *name, const CPPType &base_type)
   {
     this->output(name, MFDataType::ForVector(base_type));
   }
-  void output(StringRef name, MFDataType data_type)
+  void output(const char *name, MFDataType data_type)
   {
     signature_.param_names.append(name);
     signature_.param_types.append(MFParamType(MFParamType::Output, data_type));
@@ -129,23 +136,23 @@ class MFSignatureBuilder {
 
   /* Mutable Parameter Types */
 
-  template<typename T> void single_mutable(StringRef name)
+  template<typename T> void single_mutable(const char *name)
   {
     this->single_mutable(name, CPPType::get<T>());
   }
-  void single_mutable(StringRef name, const CPPType &type)
+  void single_mutable(const char *name, const CPPType &type)
   {
     this->mutable_(name, MFDataType::ForSingle(type));
   }
-  template<typename T> void vector_mutable(StringRef name)
+  template<typename T> void vector_mutable(const char *name)
   {
     this->vector_mutable(name, CPPType::get<T>());
   }
-  void vector_mutable(StringRef name, const CPPType &base_type)
+  void vector_mutable(const char *name, const CPPType &base_type)
   {
     this->mutable_(name, MFDataType::ForVector(base_type));
   }
-  void mutable_(StringRef name, MFDataType data_type)
+  void mutable_(const char *name, MFDataType data_type)
   {
     signature_.param_names.append(name);
     signature_.param_types.append(MFParamType(MFParamType::Mutable, data_type));
@@ -160,7 +167,7 @@ class MFSignatureBuilder {
     }
   }
 
-  void add(StringRef name, const MFParamType &param_type)
+  void add(const char *name, const MFParamType &param_type)
   {
     switch (param_type.interface_type()) {
       case MFParamType::Input:

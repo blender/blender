@@ -167,14 +167,14 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem modifier_modify_color_items[] = {
-    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke and Fill", "Modify fill and stroke colors"},
+    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
     {GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
     {GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem modifier_modify_opacity_items[] = {
-    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke and Fill", "Modify fill and stroke colors"},
+    {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
     {GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
     {GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
     {GP_MODIFY_COLOR_HARDNESS, "HARDNESS", 0, "Hardness", "Modify stroke hardness"},
@@ -1450,7 +1450,7 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
   static EnumPropertyItem tint_mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Vertex Color affects to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Vertex Color affects to Fill only"},
-      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke and Fill", "Vertex Color affects to Stroke and Fill"},
+      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Vertex Color affects to Stroke and Fill"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2677,7 +2677,7 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
       {STROKE_AND_FILL,
        "STROKE_AND_FILL",
        0,
-       "Stroke and Fill",
+       "Stroke & Fill",
        "Manipulate both stroke and fill texture coordinates"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -3737,6 +3737,16 @@ void RNA_def_greasepencil_modifier(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+
+  prop = RNA_def_boolean(srna,
+                         "is_override_data",
+                         false,
+                         "Override Modifier",
+                         "In a local override object, whether this modifier comes from the linked "
+                         "reference object, or is local to the override");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, NULL, "flag", eGpencilModifierFlag_OverrideLibrary_Local);
 
   /* types */
   rna_def_modifier_gpencilnoise(brna);

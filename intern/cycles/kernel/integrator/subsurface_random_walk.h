@@ -212,7 +212,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
 
-#ifndef __KERNEL_OPTIX__
+#ifndef __KERNEL_GPU_RAYTRACING__
   /* Compute or fetch object transforms. */
   Transform ob_itfm ccl_optional_struct_init;
   Transform ob_tfm = object_fetch_transform_motion_test(kg, object, time, &ob_itfm);
@@ -382,8 +382,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {
-#ifdef __KERNEL_OPTIX__
-      /* t is always in world space with OptiX. */
+#ifdef __KERNEL_GPU_RAYTRACING__
+      /* t is always in world space with OptiX and MetalRT. */
       ray.t = ss_isect.hits[0].t;
 #else
       /* Compute world space distance to surface hit. */

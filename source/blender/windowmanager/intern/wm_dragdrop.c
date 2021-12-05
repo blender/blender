@@ -736,10 +736,12 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
 static void wm_drop_redalert_draw(const char *redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
-  float col_fg[4];
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
+  float col_fg[4], col_bg[4];
   UI_GetThemeColor4fv(TH_REDALERT, col_fg);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }
@@ -776,6 +778,12 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
                               const int xy[2])
 {
   int x, y;
+
+  /* This could also get the preview image of an ID when dragging one. But the big preview icon may
+   * actually not always be wanted, for example when dragging objects in the Outliner it gets in
+   * the way). So make the drag user set an image buffer explicitly (e.g. through
+   * #UI_but_drag_attach_image()). */
+
   if (drag->imb) {
     x = xy[0] - drag->sx / 2;
     y = xy[1] - drag->sy / 2;

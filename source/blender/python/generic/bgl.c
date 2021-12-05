@@ -666,13 +666,6 @@ static Buffer *BGL_MakeBuffer_FromData(
   return buffer;
 }
 
-/**
- * Create a buffer object
- *
- * \param dimensions: An array of ndimensions integers representing the size of each dimension.
- * \param initbuffer: When not NULL holds a contiguous buffer
- * with the correct format from which the buffer will be initialized
- */
 Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer)
 {
   Buffer *buffer;

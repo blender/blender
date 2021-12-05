@@ -761,8 +761,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   /* This is not working so well with index-based insertion, especially in case some tracks get
    * added to lib linked data. So we simply add locale tracks at the end of the list always, order
    * of override operations should ensure order of local tracks is preserved properly. */
-  if (opop->subitem_local_index >= 0) {
-    nla_track_anchor = BLI_findlink(&anim_data_dst->nla_tracks, opop->subitem_local_index);
+  if (opop->subitem_reference_index >= 0) {
+    nla_track_anchor = BLI_findlink(&anim_data_dst->nla_tracks, opop->subitem_reference_index);
   }
   /* Otherwise we just insert in first position. */
 #  else
@@ -773,9 +773,11 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   if (opop->subitem_local_index >= 0) {
     nla_track_src = BLI_findlink(&anim_data_src->nla_tracks, opop->subitem_local_index);
   }
-  nla_track_src = nla_track_src ? nla_track_src->next : anim_data_src->nla_tracks.first;
 
-  BLI_assert(nla_track_src != NULL);
+  if (nla_track_src == NULL) {
+    BLI_assert(nla_track_src != NULL);
+    return false;
+  }
 
   NlaTrack *nla_track_dst = BKE_nlatrack_copy(bmain, nla_track_src, true, 0);
 

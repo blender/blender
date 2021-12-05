@@ -22,11 +22,11 @@
 
 #include "node_geometry_util.hh"
 
+namespace blender::nodes::node_geo_curve_trim_cc {
+
 using blender::attribute_math::mix2;
 
-namespace blender::nodes {
-
-static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Float>(N_("Start")).min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
@@ -48,12 +48,12 @@ static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_trim_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_trim_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryCurveTrim *data = (NodeGeometryCurveTrim *)MEM_callocN(sizeof(NodeGeometryCurveTrim),
                                                                      __func__);
@@ -62,7 +62,7 @@ static void geo_node_curve_trim_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)node->storage;
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
@@ -72,10 +72,10 @@ static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *start_len = end_fac->next;
   bNodeSocket *end_len = start_len->next;
 
-  nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(ntree, start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(ntree, end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(ntree, start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(ntree, end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 struct TrimLocation {
@@ -216,9 +216,9 @@ static PolySpline trim_nurbs_spline(const Spline &spline,
 
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          GVArray_Typed<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
+          VArray<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
           linear_trim_to_output_data<T>(
-              start, end, eval_data->get_internal_span(), dst->typed<T>());
+              start, end, eval_data.get_internal_span(), dst->typed<T>());
         });
         return true;
       },
@@ -227,13 +227,13 @@ static PolySpline trim_nurbs_spline(const Spline &spline,
   linear_trim_to_output_data<float3>(
       start, end, spline.evaluated_positions(), new_spline.positions());
 
-  GVArray_Typed<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
+  VArray<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
   linear_trim_to_output_data<float>(
-      start, end, evaluated_radii->get_internal_span(), new_spline.radii());
+      start, end, evaluated_radii.get_internal_span(), new_spline.radii());
 
-  GVArray_Typed<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
+  VArray<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
   linear_trim_to_output_data<float>(
-      start, end, evaluated_tilts->get_internal_span(), new_spline.tilts());
+      start, end, evaluated_tilts.get_internal_span(), new_spline.tilts());
 
   return new_spline;
 }
@@ -427,8 +427,8 @@ static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::Look
         std::optional<GMutableSpan> dst = new_spline.attributes.get_for_write(attribute_id);
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          GVArray_Typed<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
-          to_single_point_data<T>(trim, eval_data->get_internal_span(), dst->typed<T>());
+          VArray<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
+          to_single_point_data<T>(trim, eval_data.get_internal_span(), dst->typed<T>());
         });
         return true;
       },
@@ -436,11 +436,11 @@ static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::Look
 
   to_single_point_data<float3>(trim, spline.evaluated_positions(), new_spline.positions());
 
-  GVArray_Typed<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
-  to_single_point_data<float>(trim, evaluated_radii->get_internal_span(), new_spline.radii());
+  VArray<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
+  to_single_point_data<float>(trim, evaluated_radii.get_internal_span(), new_spline.radii());
 
-  GVArray_Typed<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
-  to_single_point_data<float>(trim, evaluated_tilts->get_internal_span(), new_spline.tilts());
+  VArray<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
+  to_single_point_data<float>(trim, evaluated_tilts.get_internal_span(), new_spline.tilts());
 
   return new_spline;
 }
@@ -532,7 +532,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   });
 }
 
-static void geo_node_curve_trim_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
@@ -557,18 +557,20 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_trim_cc
 
 void register_node_type_geo_curve_trim()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_trim_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TRIM_CURVE, "Trim Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_trim_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_trim_layout;
-  ntype.declare = blender::nodes::geo_node_curve_trim_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_trim_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_trim_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   nodeRegisterType(&ntype);
 }

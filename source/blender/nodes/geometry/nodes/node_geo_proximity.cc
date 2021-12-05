@@ -27,9 +27,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_proximity_cc {
 
-static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
       .only_realized_data()
@@ -39,7 +39,7 @@ static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Distance")).dependent_field();
 }
 
-static void geo_node_proximity_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target_element", 0, "", ICON_NONE);
 }
@@ -206,18 +206,14 @@ class ProximityFunction : public fn::MultiFunction {
   }
 };
 
-static void geo_node_proximity_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
   geometry_set_target.ensure_owns_direct_data();
 
-  auto return_default = [&]() {
-    params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Distance", fn::make_constant_field<float>(0.0f));
-  };
-
   if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   const NodeGeometryProximity &storage = *(const NodeGeometryProximity *)params.node().storage;
@@ -233,18 +229,20 @@ static void geo_node_proximity_exec(GeoNodeExecParams params)
   params.set_output("Distance", Field<float>(proximity_op, 1));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_proximity_cc
 
 void register_node_type_geo_proximity()
 {
+  namespace file_ns = blender::nodes::node_geo_proximity_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_proximity_init);
+  node_type_init(&ntype, file_ns::geo_proximity_init);
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_proximity_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_proximity_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_proximity_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

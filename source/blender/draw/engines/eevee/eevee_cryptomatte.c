@@ -139,6 +139,8 @@ void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
     g_data->cryptomatte_session = session;
 
     g_data->render_passes |= EEVEE_RENDER_PASS_CRYPTOMATTE | EEVEE_RENDER_PASS_VOLUME_LIGHT;
+    g_data->cryptomatte_accurate_mode = (view_layer->cryptomatte_flag &
+                                         VIEW_LAYER_CRYPTOMATTE_ACCURATE) != 0;
   }
 }
 
@@ -403,6 +405,7 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_PrivateData *g_data = stl->g_data;
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PassList *psl = vedata->psl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -410,9 +413,10 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
   const int cryptomatte_levels = view_layer->cryptomatte_levels;
   const int current_sample = effects->taa_current_sample;
 
-  /* Render samples used by cryptomatte are limited to the number of cryptomatte levels. This will
-   * reduce the overhead of downloading the GPU buffer and integrating it into the accum buffer. */
-  if (current_sample < cryptomatte_levels) {
+  /* In accurate mode all render samples are evaluated. In inaccurate mode this is limited to the
+   * number of cryptomatte levels. This will reduce the overhead of downloading the GPU buffer and
+   * integrating it into the accum buffer. */
+  if (g_data->cryptomatte_accurate_mode || current_sample < cryptomatte_levels) {
     static float clear_color[4] = {0.0};
     GPU_framebuffer_bind(fbl->cryptomatte_fb);
     GPU_framebuffer_clear_color(fbl->cryptomatte_fb, clear_color);

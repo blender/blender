@@ -179,7 +179,7 @@ uniform mat4 ModelMatrixInverse;
  * transpose(ViewMatrixInverse) * transpose(ModelMatrixInverse)
  *
  * Knowing that the view matrix is orthogonal, the transpose is also the inverse.
- * Note: This is only valid because we are only using the mat3 of the ViewMatrixInverse.
+ * NOTE: This is only valid because we are only using the mat3 of the ViewMatrixInverse.
  * ViewMatrix * transpose(ModelMatrixInverse)
  */
 #define NormalMatrix transpose(mat3(ModelMatrixInverse))

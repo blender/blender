@@ -128,8 +128,9 @@ struct bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(struct bGPdata *gpd,
                                                            struct bGPDstroke *gps,
                                                            struct bGPDstroke *next_stroke,
                                                            int tag_flags,
-                                                           bool select,
-                                                           int limit);
+                                                           const bool select,
+                                                           const bool flat_cap,
+                                                           const int limit);
 void BKE_gpencil_curve_delete_tagged_points(struct bGPdata *gpd,
                                             struct bGPDframe *gpf,
                                             struct bGPDstroke *gps,

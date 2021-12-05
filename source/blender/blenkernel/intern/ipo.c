@@ -185,6 +185,7 @@ IDTypeInfo IDType_ID_IP = {
     .name_plural = "ipos",
     .translation_context = "",
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,
@@ -192,6 +193,7 @@ IDTypeInfo IDType_ID_IP = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = NULL,

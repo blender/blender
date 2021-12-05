@@ -117,7 +117,7 @@ PointerRNA *shaderfx_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
     RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
   }
 
-  uiLayoutSetContextPointer(panel->layout, "shaderfx", ptr);
+  UI_panel_context_pointer_set(panel, "shaderfx", ptr);
 
   return ptr;
 }

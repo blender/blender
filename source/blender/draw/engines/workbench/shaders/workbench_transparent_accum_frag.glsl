@@ -11,7 +11,7 @@
 layout(location = 0) out vec4 transparentAccum;
 layout(location = 1) out vec4 revealageAccum;
 
-/* Note: Blending will be skipped on objectId because output is a non-normalized integer buffer. */
+/* NOTE: Blending will be skipped on objectId because output is a non-normalized integer buffer. */
 layout(location = 2) out uint objectId;
 
 /* Special function only to be used with calculate_transparent_weight(). */

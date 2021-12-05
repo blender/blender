@@ -41,7 +41,7 @@ def _space_view_types(st):
     view_type = st.view_type
     return (
         view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'},
-        view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'},
+        view_type == 'PREVIEW',
     )
 
 
@@ -196,10 +196,6 @@ class SEQUENCER_HT_header(Header):
             row = layout.row(align=True)
             row.prop(sequencer_tool_settings, "overlap_mode", text="")
 
-        if st.view_type == 'SEQUENCER_PREVIEW':
-            row = layout.row(align=True)
-            row.prop(sequencer_tool_settings, "pivot_point", text="", icon_only=True)
-
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap_sequencer", text="")
@@ -248,7 +244,8 @@ class SEQUENCER_MT_editor_menus(Menu):
 
         layout.menu("SEQUENCER_MT_strip")
 
-        layout.menu("SEQUENCER_MT_image")
+        if st.view_type in {'SEQUENCER', 'PREVIEW'}:
+            layout.menu("SEQUENCER_MT_image")
 
 
 class SEQUENCER_PT_gizmo_display(Panel):
@@ -576,10 +573,6 @@ class SEQUENCER_MT_select(Menu):
         st = context.space_data
         has_sequencer, has_preview = _space_view_types(st)
 
-        # FIXME: this doesn't work for both preview + window region.
-        if has_preview:
-            layout.operator_context = 'INVOKE_REGION_PREVIEW'
-
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
         layout.operator("sequencer.select_all", text="None").action = 'DESELECT'
         layout.operator("sequencer.select_all", text="Invert").action = 'INVERT'
@@ -821,7 +814,6 @@ class SEQUENCER_MT_strip_transform(Menu):
         else:
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-        # FIXME: mixed preview/sequencer views.
         if has_preview:
             layout.operator("transform.translate", text="Move")
             layout.operator("transform.rotate", text="Rotate")
@@ -916,12 +908,6 @@ class SEQUENCER_MT_strip(Menu):
         layout = self.layout
         st = context.space_data
         has_sequencer, has_preview = _space_view_types(st)
-
-        # FIXME: this doesn't work for both preview + window region.
-        if has_preview:
-            layout.operator_context = 'INVOKE_REGION_PREVIEW'
-        else:
-            layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.menu("SEQUENCER_MT_strip_transform")
         layout.separator()

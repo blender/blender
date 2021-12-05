@@ -84,8 +84,7 @@ void register_node_type_sh_output_material(void)
   node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_output_material);
 
-  /* Do not allow muting output node. */
-  node_type_internal_links(&ntype, NULL);
+  ntype.no_muting = true;
 
   nodeRegisterType(&ntype);
 }

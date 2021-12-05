@@ -73,7 +73,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->P = zero_float3();
     ls->Ng = zero_float3();
     ls->D = zero_float3();
-    ls->pdf = true;
+    ls->pdf = 1.0f;
     ls->t = FLT_MAX;
     return true;
   }
@@ -112,33 +112,56 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   else {
     ls->P = make_float3(klight->co[0], klight->co[1], klight->co[2]);
 
-    if (type == LIGHT_POINT || type == LIGHT_SPOT) {
+    if (type == LIGHT_SPOT) {
+      ls->Ng = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
       float radius = klight->spot.radius;
 
       if (radius > 0.0f)
         /* sphere light */
-        ls->P += sphere_light_sample(P, ls->P, radius, randu, randv);
+        ls->P += disk_light_sample(ls->Ng, randu, randv) * radius;
 
       ls->D = normalize_len(ls->P - P, &ls->t);
-      ls->Ng = -ls->D;
 
       float invarea = klight->spot.invarea;
       ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
       ls->pdf = invarea;
 
-      if (type == LIGHT_SPOT) {
-        /* spot light attenuation */
-        float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
-        ls->eval_fac *= spot_light_attenuation(
-            dir, klight->spot.spot_angle, klight->spot.spot_smooth, ls->Ng);
-        if (ls->eval_fac == 0.0f) {
-          return false;
-        }
+      /* spot light attenuation */
+      ls->eval_fac *= spot_light_attenuation(
+          ls->Ng, klight->spot.spot_angle, klight->spot.spot_smooth, -ls->D);
+      if (!in_volume_segment && ls->eval_fac == 0.0f) {
+        return false;
       }
+
       float2 uv = map_to_sphere(ls->Ng);
       ls->u = uv.x;
       ls->v = uv.y;
 
+      ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
+    }
+    else if (type == LIGHT_POINT) {
+      float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+      float radius = klight->spot.radius;
+      ls->P = center;
+      float pdf = 1.0;
+
+      if (radius > 0.0f) {
+        ls->Ng = normalize(P - center);
+        ls->P += disk_light_sample(ls->Ng, randu, randv) * radius;
+        pdf = klight->spot.invarea;
+        ls->D = normalize_len(ls->P - P, &ls->t);
+      }
+      else {
+        ls->Ng = normalize(P - center);
+      }
+
+      ls->D = normalize_len(ls->P - P, &ls->t);
+      ls->pdf = pdf;
+      ls->eval_fac = M_1_PI_F * 0.25f * klight->spot.invarea;
+
+      float2 uv = map_to_sphere(ls->Ng);
+      ls->u = uv.x;
+      ls->v = uv.y;
       ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
     }
     else {
@@ -170,7 +193,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         float3 sample_axisu = axisu;
         float3 sample_axisv = axisv;
 
-        if (klight->area.tan_spread > 0.0f) {
+        if (!in_volume_segment && klight->area.tan_spread > 0.0f) {
           if (!light_spread_clamp_area_light(
                   P, Ng, &ls->P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
             return false;
@@ -203,10 +226,11 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
 
   ls->pdf *= kernel_data.integrator.pdf_lights;
 
-  return (ls->pdf > 0.0f);
+  return in_volume_segment || (ls->pdf > 0.0f);
 }
 
 ccl_device bool lights_intersect(KernelGlobals kg,
+                                 IntegratorState state,
                                  ccl_private const Ray *ccl_restrict ray,
                                  ccl_private Intersection *ccl_restrict isect,
                                  const int last_prim,
@@ -237,8 +261,31 @@ ccl_device bool lights_intersect(KernelGlobals kg,
     LightType type = (LightType)klight->type;
     float t = 0.0f, u = 0.0f, v = 0.0f;
 
-    if (type == LIGHT_POINT || type == LIGHT_SPOT) {
-      /* Sphere light. */
+    if (type == LIGHT_SPOT) {
+      /* Spot/Disk light. */
+      const float3 lightP = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+      const float3 lightN = make_float3(
+          klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
+      const float radius = klight->spot.radius;
+      if (radius == 0.0f) {
+        continue;
+      }
+
+      /* One sided. */
+      if (dot(ray->D, lightN) >= 0.0f) {
+        continue;
+      }
+
+      float3 P;
+      if (!ray_disk_intersect(ray->P, ray->D, ray->t, lightP, lightN, radius, &P, &t)) {
+        continue;
+      }
+    }
+    else if (type == LIGHT_POINT) {
+      /* Sphere light (aka, aligned disk light). */
+      const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
+      const float3 ray_P = ray->P - ray->D * mis_ray_t;
+
       const float3 lightP = make_float3(klight->co[0], klight->co[1], klight->co[2]);
       const float radius = klight->spot.radius;
       if (radius == 0.0f) {
@@ -246,7 +293,8 @@ ccl_device bool lights_intersect(KernelGlobals kg,
       }
 
       float3 P;
-      if (!ray_aligned_disk_intersect(ray->P, ray->D, ray->t, lightP, radius, &P, &t)) {
+      const float3 lsN = normalize(ray_P - lightP);
+      if (!ray_disk_intersect(ray->P, ray->D, ray->t, lightP, lsN, radius, &P, &t)) {
         continue;
       }
     }
@@ -378,23 +426,21 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;
 
-  if (type == LIGHT_POINT || type == LIGHT_SPOT) {
-    ls->Ng = -ray_D;
+  if (type == LIGHT_SPOT) {
+    ls->Ng = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
 
     float invarea = klight->spot.invarea;
     ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
     ls->pdf = invarea;
 
-    if (type == LIGHT_SPOT) {
-      /* spot light attenuation */
-      float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
-      ls->eval_fac *= spot_light_attenuation(
-          dir, klight->spot.spot_angle, klight->spot.spot_smooth, ls->Ng);
+    /* spot light attenuation */
+    ls->eval_fac *= spot_light_attenuation(
+        ls->Ng, klight->spot.spot_angle, klight->spot.spot_smooth, -ls->D);
 
-      if (ls->eval_fac == 0.0f) {
-        return false;
-      }
+    if (ls->eval_fac == 0.0f) {
+      return false;
     }
+
     float2 uv = map_to_sphere(ls->Ng);
     ls->u = uv.x;
     ls->v = uv.y;
@@ -402,6 +448,24 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
     /* compute pdf */
     if (ls->t != FLT_MAX)
       ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
+  }
+  else if (type == LIGHT_POINT) {
+    float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+
+    ls->Ng = normalize(ray_P - center);
+    float invarea = klight->spot.invarea;
+    ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
+    ls->pdf = invarea;
+
+    float2 uv = map_to_sphere(ls->Ng);
+    ls->u = uv.x;
+    ls->v = uv.y;
+
+    /* compute pdf */
+    if (ls->t != FLT_MAX)
+      ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
+    else
+      ls->pdf = 0.f;
   }
   else if (type == LIGHT_AREA) {
     /* area light */
@@ -676,19 +740,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals kg,
     ls->D = z * B + safe_sqrtf(1.0f - z * z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
-    if (!ray_triangle_intersect(P,
-                                ls->D,
-                                FLT_MAX,
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                                (ssef *)V,
-#else
-                                V[0],
-                                V[1],
-                                V[2],
-#endif
-                                &ls->u,
-                                &ls->v,
-                                &ls->t)) {
+    if (!ray_triangle_intersect(P, ls->D, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t)) {
       ls->pdf = 0.0f;
       return;
     }

@@ -1366,6 +1366,28 @@ static float rna_Sequence_fps_get(PointerRNA *ptr)
   return SEQ_time_sequence_get_fps(scene, seq);
 }
 
+static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
+{
+  Scene *scene = (Scene *)id;
+
+  /* Find the appropriate seqbase */
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seqm);
+
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, &seqm->seqbase) {
+    SEQ_edit_move_strip_to_seqbase(scene, &seqm->seqbase, seq, seqbase);
+  }
+
+  SEQ_edit_flag_for_removal(scene, seqbase, seqm);
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+
+  /* Update depsgraph. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -2250,7 +2272,8 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_REVERSE_FRAMES);
   RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse frame order");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "mul");
@@ -2272,7 +2295,8 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "strobe", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 1.0f, 30.0f);
   RNA_def_property_ui_text(prop, "Strobe", "Only display every nth frame");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");
@@ -2438,6 +2462,7 @@ static void rna_def_image(BlenderRNA *brna)
 static void rna_def_meta(BlenderRNA *brna)
 {
   StructRNA *srna;
+  FunctionRNA *func;
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
@@ -2450,6 +2475,10 @@ static void rna_def_meta(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Sequence");
   RNA_def_property_ui_text(prop, "Sequences", "Sequences nested in meta strip");
   RNA_api_sequences(brna, prop, true);
+
+  func = RNA_def_function(srna, "separate", "rna_Sequence_separate");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_ui_description(func, "Separate meta");
 
   rna_def_filter_video(srna);
   rna_def_proxy(srna);

@@ -404,7 +404,13 @@ class FILEBROWSER_PT_advanced_filter(Panel):
 
 
 def is_option_region_visible(context, space):
-    if not space.active_operator:
+    from bpy_extras.asset_utils import SpaceAssetInfo
+
+    if SpaceAssetInfo.is_asset_browser(space):
+        pass
+    # For the File Browser, there must be an operator for there to be options
+    # (irrelevant for the Asset Browser).
+    elif not space.active_operator:
         return False
 
     for region in context.area.regions:
@@ -701,13 +707,14 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         asset_file_handle = context.asset_file_handle
 
         if asset_file_handle is None:
-            layout.label(text="No asset selected", icon='INFO')
+            layout.label(text="No active asset", icon='INFO')
             return
 
         asset_library_ref = context.asset_library_ref
         asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
 
-        show_developer_ui = context.preferences.view.show_developer_ui
+        prefs = context.preferences
+        show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -716,7 +723,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             # If the active file is an ID, use its name directly so renaming is possible from right here.
             layout.prop(asset_file_handle.local_id, "name")
 
-            if show_developer_ui:
+            if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.label(text="Asset Catalog:")
                 col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
@@ -724,7 +731,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         else:
             layout.prop(asset_file_handle, "name")
 
-            if show_developer_ui:
+            if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.enabled = False
                 col.label(text="Asset Catalog:")
@@ -792,7 +799,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         st = context.space_data
         params = st.params
 
-        layout.operator("file.asset_library_refresh")
+        layout.operator("asset.library_refresh")
 
         layout.separator()
 

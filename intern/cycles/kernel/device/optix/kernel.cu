@@ -21,6 +21,8 @@
 
 #include "kernel/device/gpu/image.h"  /* Texture lookup uses normal CUDA intrinsics. */
 
+#include "kernel/tables.h"
+
 #include "kernel/integrator/state.h"
 #include "kernel/integrator/state_flow.h"
 #include "kernel/integrator/state_util.h"
@@ -29,8 +31,10 @@
 #include "kernel/integrator/intersect_shadow.h"
 #include "kernel/integrator/intersect_subsurface.h"
 #include "kernel/integrator/intersect_volume_stack.h"
-
 // clang-format on
+
+#define OPTIX_DEFINE_ABI_VERSION_ONLY
+#include <optix_function_table.h>
 
 template<typename T> ccl_device_forceinline T *get_payload_ptr_0()
 {
@@ -44,7 +48,7 @@ template<typename T> ccl_device_forceinline T *get_payload_ptr_2()
 ccl_device_forceinline int get_object_id()
 {
 #ifdef __OBJECT_MOTION__
-  /* Always get the the instance ID from the TLAS
+  /* Always get the instance ID from the TLAS
    * There might be a motion transform node between TLAS and BLAS which does not have one. */
   return optixGetInstanceIdFromHandle(optixGetTransformListHandle(0));
 #else
@@ -159,9 +163,9 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 
   /* Record geometric normal. */
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0));
-  const float3 tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1));
-  const float3 tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
+  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0);
+  const float3 tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1);
+  const float3 tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */
@@ -198,10 +202,12 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     type = segment.type;
     prim = segment.prim;
 
+#    if OPTIX_ABI_VERSION < 55
     /* Filter out curve endcaps. */
     if (u == 0.0f || u == 1.0f) {
       return optixIgnoreIntersection();
     }
+#    endif
   }
 #  endif
 
@@ -230,7 +236,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_hits + 1));
 
     if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      optixSetPayload_4(true);
+      optixSetPayload_5(true);
       return optixTerminateRay();
     }
     else {
@@ -308,6 +314,7 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
 extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 {
 #ifdef __HAIR__
+#  if OPTIX_ABI_VERSION < 55
   if (!optixIsTriangleHit()) {
     /* Filter out curve endcaps. */
     const float u = __uint_as_float(optixGetAttribute_0());
@@ -315,6 +322,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
       return optixIgnoreIntersection();
     }
   }
+#  endif
 #endif
 
 #ifdef __VISIBILITY_FLAG__

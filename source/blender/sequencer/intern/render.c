@@ -459,11 +459,46 @@ static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
   transform_pivot_set_m4(transform_matrix, pivot);
   invert_m4(transform_matrix);
 
-  /* No crop. */
-  rctf source_crop;
-  BLI_rctf_init(&source_crop, 0, in->x, 0, in->y);
+  IMB_transform(in, out, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, transform_matrix, NULL);
+}
 
-  IMB_transform(in, out, transform_matrix, &source_crop, IMB_FILTER_NEAREST);
+/* Check whether transform introduces transparent ares in the result (happens when the transformed
+ * image does not fully cover the render frame).
+ *
+ * The check is done by checking whether all corners of viewport fit inside of the transformed
+ * image. If they do not the image will have transparent areas. */
+static bool seq_image_transform_transparency_gained(const SeqRenderData *context, Sequence *seq)
+{
+  Scene *scene = context->scene;
+  const int x = context->rectx;
+  const int y = context->recty;
+
+  float seq_image_quad[4][2];
+  SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
+  for (int i = 0; i < 4; i++) {
+    add_v2_v2(seq_image_quad[i], (float[]){x / 2, y / 2});
+  }
+
+  return !isect_point_quad_v2((float[]){x, y},
+                              seq_image_quad[0],
+                              seq_image_quad[1],
+                              seq_image_quad[2],
+                              seq_image_quad[3]) ||
+         !isect_point_quad_v2((float[]){0, y},
+                              seq_image_quad[0],
+                              seq_image_quad[1],
+                              seq_image_quad[2],
+                              seq_image_quad[3]) ||
+         !isect_point_quad_v2((float[]){x, 0},
+                              seq_image_quad[0],
+                              seq_image_quad[1],
+                              seq_image_quad[2],
+                              seq_image_quad[3]) ||
+         !isect_point_quad_v2((float[]){0, 0},
+                              seq_image_quad[0],
+                              seq_image_quad[1],
+                              seq_image_quad[2],
+                              seq_image_quad[3]);
 }
 
 static void sequencer_preprocess_transform_crop(
@@ -489,7 +524,14 @@ static void sequencer_preprocess_transform_crop(
 
   const eIMBInterpolationFilterMode filter = context->for_render ? IMB_FILTER_BILINEAR :
                                                                    IMB_FILTER_NEAREST;
-  IMB_transform(in, out, transform_matrix, &source_crop, filter);
+  IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
+
+  if (!seq_image_transform_transparency_gained(context, seq)) {
+    out->planes = in->planes;
+  }
+  else {
+    out->planes = R_IMF_PLANES_RGBA;
+  }
 }
 
 static void multibuf(ImBuf *ibuf, const float fmul)
@@ -524,6 +566,10 @@ static void multibuf(ImBuf *ibuf, const float fmul)
 
       rt_float += 4;
     }
+  }
+
+  if (ELEM(ibuf->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB) && fmul < 1.0f) {
+    ibuf->planes = R_IMF_PLANES_RGBA;
   }
 }
 
@@ -1181,7 +1227,8 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context,
   /* Try to get a proxy image. */
   ibuf = seq_get_movieclip_ibuf(seq, user);
 
-  if (ibuf != NULL && psize != IMB_PROXY_NONE) {
+  /* If clip doesn't use proxies, it will fallback to full size render of original file. */
+  if (ibuf != NULL && psize != IMB_PROXY_NONE && BKE_movieclip_proxy_enabled(seq->clip)) {
     *r_is_proxy_image = true;
   }
 
@@ -1803,6 +1850,20 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 
     early_out = seq_get_early_out_for_blend_mode(seq);
 
+    /* Early out for alpha over. It requires image to be rendered, so it can't use
+     * `seq_get_early_out_for_blend_mode`. */
+    if (out == NULL && seq->blend_mode == SEQ_TYPE_ALPHAOVER && seq->blend_opacity == 100.0f) {
+      ImBuf *test = seq_render_strip(context, state, seq, timeline_frame);
+      if (ELEM(test->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB)) {
+        early_out = EARLY_USE_INPUT_2;
+      }
+      else {
+        early_out = EARLY_DO_EFFECT;
+      }
+      /* Free the image. It is stored in cache, so this doesn't affect performance. */
+      IMB_freeImBuf(test);
+    }
+
     switch (early_out) {
       case EARLY_NO_INPUT:
       case EARLY_USE_INPUT_2:
@@ -1827,6 +1888,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
         }
         break;
     }
+
     if (out) {
       break;
     }
@@ -2046,7 +2108,7 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
   /* Arbitrary, but due to performance reasons should be as low as possible. */
   const int thumbnails_base_set_count = min_ii(content_len / 100, 30);
   if (thumbnails_base_set_count <= 0) {
-    return 0;
+    return content_len;
   }
   return content_len / thumbnails_base_set_count;
 }

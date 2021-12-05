@@ -71,6 +71,10 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   }
 #  endif
 
+  if (sd->flag & SD_BACKFACING) {
+    path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
+  }
+
   INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight;
   INTEGRATOR_STATE_WRITE(state, path, flag) = path_flag;
 

@@ -155,7 +155,7 @@ void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*
   if (rd->mode & R_BORDER && rd->mode & R_CROP) {
     /**
      * When using cropped render result, need to re-position area of interest,
-     * so it'll natch bounds of render border within frame. By default, canvas
+     * so it'll match bounds of render border within frame. By default, canvas
      * will be centered between full frame and cropped frame, so we use such
      * scheme to map cropped coordinates to full-frame coordinates
      *

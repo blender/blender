@@ -25,11 +25,11 @@
 
 #include "node_geometry_util.hh"
 
+namespace blender::nodes::node_geo_raycast_cc {
+
 using namespace blender::bke::mesh_surface_sample;
 
-namespace blender::nodes {
-
-static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target Geometry"))
       .only_realized_data()
@@ -63,13 +63,13 @@ static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({1, 2, 3, 4, 5, 6});
 }
 
-static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "mapping", 0, "", ICON_NONE);
 }
 
-static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryRaycast *data = (NodeGeometryRaycast *)MEM_callocN(sizeof(NodeGeometryRaycast),
                                                                  __func__);
@@ -78,7 +78,7 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
@@ -89,11 +89,11 @@ static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_vector = (bNodeSocket *)BLI_findlink(&node->outputs, 4);
   bNodeSocket *out_socket_float = out_socket_vector->next;
@@ -101,11 +101,11 @@ static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
 
-  nodeSetSocketAvailability(out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(out_socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(out_socket_int32, data_type == CD_PROP_INT32);
+  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
+  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static eAttributeMapMode get_map_mode(GeometryNodeRaycastMapMode map_mode)
@@ -205,10 +205,10 @@ class RaycastFunction : public fn::MultiFunction {
   std::unique_ptr<FieldEvaluator> target_evaluator_;
   const GVArray *target_data_ = nullptr;
 
-  /* Always evaluate the target domain data on the point domain. Eventually this could be
-   * exposed as an option or determined automatically from the field inputs in order to avoid
-   * losing information if the target field is on a different domain. */
-  const AttributeDomain domain_ = ATTR_DOMAIN_POINT;
+  /* Always evaluate the target domain data on the face corner domain because it contains the most
+   * information. Eventually this could be exposed as an option or determined automatically from
+   * the field inputs for better performance. */
+  const AttributeDomain domain_ = ATTR_DOMAIN_CORNER;
 
   fn::MFSignature signature_;
 
@@ -375,35 +375,27 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
   }
 }
 
-static void geo_node_raycast_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
   const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)params.node().storage;
   const GeometryNodeRaycastMapMode mapping = static_cast<GeometryNodeRaycastMapMode>(data.mapping);
   const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
 
-  auto return_default = [&]() {
-    params.set_output("Is Hit", fn::make_constant_field<bool>(false));
-    params.set_output("Hit Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Hit Normal", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Hit Distance", fn::make_constant_field<float>(0.0f));
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      output_attribute_field(params, fn::make_constant_field<T>(T()));
-    });
-  };
-
   if (target.is_empty()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   if (!target.has_mesh()) {
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   if (target.get_mesh_for_read()->totpoly == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The target mesh must have faces"));
-    return return_default();
+    params.set_default_remaining_outputs();
+    return;
   }
 
   GField field = get_input_attribute_field(params, data_type);
@@ -426,20 +418,22 @@ static void geo_node_raycast_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_raycast_cc
 
 void register_node_type_geo_raycast()
 {
+  namespace file_ns = blender::nodes::node_geo_raycast_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, blender::nodes::geo_node_raycast_init);
-  node_type_update(&ntype, blender::nodes::geo_node_raycast_update);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_raycast_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_raycast_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_raycast_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

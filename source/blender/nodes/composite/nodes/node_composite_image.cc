@@ -372,7 +372,8 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
   for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock_next, sock_index++) {
     sock_next = sock->next;
     if (BLI_linklist_index(available_sockets.list, sock) >= 0) {
-      sock->flag &= ~(SOCK_UNAVAIL | SOCK_HIDDEN);
+      sock->flag &= ~SOCK_HIDDEN;
+      nodeSetSocketAvailability(ntree, sock, true);
     }
     else {
       bNodeLink *link;
@@ -386,7 +387,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
         nodeRemoveSocket(ntree, node, sock);
       }
       else {
-        sock->flag |= SOCK_UNAVAIL;
+        nodeSetSocketAvailability(ntree, sock, false);
       }
     }
   }
@@ -498,7 +499,7 @@ static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype),
                                        const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = "Not a compositor node tree";
+    *r_disabled_hint = TIP_("Not a compositor node tree");
     return false;
   }
 
@@ -515,7 +516,8 @@ static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype),
   }
 
   if (scene == nullptr) {
-    *r_disabled_hint = "The node tree must be the compositing node tree of any scene in the file";
+    *r_disabled_hint = TIP_(
+        "The node tree must be the compositing node tree of any scene in the file");
     return false;
   }
   return true;

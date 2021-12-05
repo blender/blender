@@ -98,7 +98,7 @@ typedef enum {
   eModifierTypeFlag_RequiresOriginalData = (1 << 5),
 
   /**
-   * For modifiers that support pointcache,
+   * For modifiers that support point-cache,
    * so we can check to see if it has files we need to deal with.
    */
   eModifierTypeFlag_UsesPointCache = (1 << 6),

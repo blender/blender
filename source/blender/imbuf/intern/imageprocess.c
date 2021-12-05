@@ -76,7 +76,8 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
   }
 }
 
-static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
+static void pixel_from_buffer(
+    const struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
 
 {
   size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
@@ -95,7 +96,7 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
  * \{ */
 
 void bicubic_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bicubic_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
@@ -105,7 +106,7 @@ void bicubic_interpolation_color(
   }
 }
 
-void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
   unsigned char *outI = NULL;
   float *outF = NULL;
@@ -127,7 +128,7 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
  * \{ */
 
 BLI_INLINE void bilinear_interpolation_color_fl(
-    struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
@@ -135,7 +136,7 @@ BLI_INLINE void bilinear_interpolation_color_fl(
 }
 
 BLI_INLINE void bilinear_interpolation_color_char(
-    struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
@@ -143,7 +144,7 @@ BLI_INLINE void bilinear_interpolation_color_char(
 }
 
 void bilinear_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bilinear_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
@@ -161,7 +162,7 @@ void bilinear_interpolation_color(
  * This the same as bilinear_interpolation_color except it wraps
  * rather than using empty and emptyI. */
 void bilinear_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
   float *row1, *row2, *row3, *row4, a, b;
   unsigned char *row1I, *row2I, *row3I, *row4I;
@@ -232,7 +233,7 @@ void bilinear_interpolation_color_wrap(
   }
 }
 
-void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
   unsigned char *outI = NULL;
   float *outF = NULL;
@@ -255,7 +256,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 
 /* functions assumes out to be zero'ed, only does RGBA */
 BLI_INLINE void nearest_interpolation_color_char(
-    struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
@@ -278,7 +279,7 @@ BLI_INLINE void nearest_interpolation_color_char(
 }
 
 BLI_INLINE void nearest_interpolation_color_fl(
-    struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
@@ -298,7 +299,7 @@ BLI_INLINE void nearest_interpolation_color_fl(
 }
 
 void nearest_interpolation_color(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     nearest_interpolation_color_fl(in, outI, outF, u, v);
@@ -309,7 +310,7 @@ void nearest_interpolation_color(
 }
 
 void nearest_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
   const float *dataF;
   unsigned char *dataI;
@@ -347,7 +348,7 @@ void nearest_interpolation_color_wrap(
   }
 }
 
-void nearest_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+void nearest_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
   unsigned char *outI = NULL;
   float *outF = NULL;
@@ -366,7 +367,7 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
 /** \name Image transform
  * \{ */
 typedef struct TransformUserData {
-  ImBuf *src;
+  const ImBuf *src;
   ImBuf *dst;
   float start_uv[2];
   float add_x[2];
@@ -416,7 +417,7 @@ static void imb_transform_calc_add_y(const float transform_matrix[4][4],
 }
 
 typedef void (*InterpolationColorFunction)(
-    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 BLI_INLINE void imb_transform_scanlines(const TransformUserData *user_data,
                                         int scanline,
                                         InterpolationColorFunction interpolation)
@@ -431,10 +432,7 @@ BLI_INLINE void imb_transform_scanlines(const TransformUserData *user_data,
   pixel_from_buffer(user_data->dst, &outI, &outF, 0, scanline);
 
   for (int xi = 0; xi < width; xi++) {
-    if (uv[0] >= user_data->src_crop.xmin && uv[0] < user_data->src_crop.xmax &&
-        uv[1] >= user_data->src_crop.ymin && uv[1] < user_data->src_crop.ymax) {
-      interpolation(user_data->src, outI, outF, uv[0], uv[1]);
-    }
+    interpolation(user_data->src, outI, outF, uv[0], uv[1]);
     add_v2_v2(uv, user_data->add_x);
     if (outI) {
       outI += 4;
@@ -471,34 +469,123 @@ static void imb_transform_bilinear_scanlines(void *custom_data, int scanline)
   imb_transform_scanlines(user_data, scanline, interpolation);
 }
 
-static ScanlineThreadFunc imb_transform_scanline_func(const eIMBInterpolationFilterMode filter)
+BLI_INLINE void imb_transform_scanlines_with_crop(const TransformUserData *user_data,
+                                                  int scanline,
+                                                  InterpolationColorFunction interpolation)
+{
+  const int width = user_data->dst->x;
+
+  float uv[2];
+  madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
+
+  unsigned char *outI = NULL;
+  float *outF = NULL;
+  pixel_from_buffer(user_data->dst, &outI, &outF, 0, scanline);
+
+  for (int xi = 0; xi < width; xi++) {
+    if (uv[0] >= user_data->src_crop.xmin && uv[0] < user_data->src_crop.xmax &&
+        uv[1] >= user_data->src_crop.ymin && uv[1] < user_data->src_crop.ymax) {
+      interpolation(user_data->src, outI, outF, uv[0], uv[1]);
+    }
+    add_v2_v2(uv, user_data->add_x);
+    if (outI) {
+      outI += 4;
+    }
+    if (outF) {
+      outF += 4;
+    }
+  }
+}
+
+static void imb_transform_nearest_scanlines_with_crop(void *custom_data, int scanline)
+{
+  const TransformUserData *user_data = custom_data;
+  InterpolationColorFunction interpolation = NULL;
+  if (user_data->dst->rect_float) {
+    interpolation = nearest_interpolation_color_fl;
+  }
+  else {
+    interpolation = nearest_interpolation_color_char;
+  }
+  imb_transform_scanlines_with_crop(user_data, scanline, interpolation);
+}
+
+static void imb_transform_bilinear_scanlines_with_crop(void *custom_data, int scanline)
+{
+  const TransformUserData *user_data = custom_data;
+  InterpolationColorFunction interpolation = NULL;
+  if (user_data->dst->rect_float) {
+    interpolation = bilinear_interpolation_color_fl;
+  }
+  else if (user_data->dst->rect) {
+    interpolation = bilinear_interpolation_color_char;
+  }
+  imb_transform_scanlines_with_crop(user_data, scanline, interpolation);
+}
+
+static void imb_transform_nearest_scanlines_with_repeat(void *custom_data, int scanline)
+{
+  const TransformUserData *user_data = custom_data;
+  InterpolationColorFunction interpolation = nearest_interpolation_color_wrap;
+  imb_transform_scanlines(user_data, scanline, interpolation);
+}
+
+static ScanlineThreadFunc imb_transform_scanline_func(const eIMBInterpolationFilterMode filter,
+                                                      const eIMBTransformMode mode)
 {
   ScanlineThreadFunc scanline_func = NULL;
-  switch (filter) {
-    case IMB_FILTER_NEAREST:
-      scanline_func = imb_transform_nearest_scanlines;
+  switch (mode) {
+    case IMB_TRANSFORM_MODE_REGULAR:
+      switch (filter) {
+        case IMB_FILTER_NEAREST:
+          scanline_func = imb_transform_nearest_scanlines;
+          break;
+        case IMB_FILTER_BILINEAR:
+          scanline_func = imb_transform_bilinear_scanlines;
+          break;
+      }
       break;
-    case IMB_FILTER_BILINEAR:
-      scanline_func = imb_transform_bilinear_scanlines;
+
+    case IMB_TRANSFORM_MODE_CROP_SRC:
+      switch (filter) {
+        case IMB_FILTER_NEAREST:
+          scanline_func = imb_transform_nearest_scanlines_with_crop;
+          break;
+        case IMB_FILTER_BILINEAR:
+          scanline_func = imb_transform_bilinear_scanlines_with_crop;
+          break;
+      }
+      break;
+
+    case IMB_TRANSFORM_MODE_WRAP_REPEAT:
+      BLI_assert_msg(filter == IMB_FILTER_NEAREST,
+                     "Repeat mode is only supported with nearest interpolation.");
+      scanline_func = imb_transform_nearest_scanlines_with_repeat;
       break;
   }
   return scanline_func;
 }
 
-void IMB_transform(struct ImBuf *src,
+void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
-                   float transform_matrix[4][4],
-                   struct rctf *src_crop,
-                   const eIMBInterpolationFilterMode filter)
+                   const eIMBTransformMode mode,
+                   const eIMBInterpolationFilterMode filter,
+                   const float transform_matrix[4][4],
+                   const struct rctf *src_crop)
 {
+  BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != NULL,
+                 "No source crop rect given, but crop source is requested. Or source crop rect "
+                 "was given, but crop source was not requested.");
   TransformUserData user_data;
   user_data.src = src;
   user_data.dst = dst;
-  user_data.src_crop = *src_crop;
+  if (mode == IMB_TRANSFORM_MODE_CROP_SRC) {
+    user_data.src_crop = *src_crop;
+  }
   imb_transform_calc_start_uv(transform_matrix, user_data.start_uv);
   imb_transform_calc_add_x(transform_matrix, user_data.start_uv, src->x, user_data.add_x);
   imb_transform_calc_add_y(transform_matrix, user_data.start_uv, src->y, user_data.add_y);
-  ScanlineThreadFunc scanline_func = imb_transform_scanline_func(filter);
+  ScanlineThreadFunc scanline_func = imb_transform_scanline_func(filter, mode);
   IMB_processor_apply_threaded_scanlines(dst->y, scanline_func, &user_data);
 }
 

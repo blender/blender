@@ -73,6 +73,30 @@
 
 #include "RNA_enum_types.h"
 
+const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
+    {GEO_COMPONENT_TYPE_MESH,
+     "MESH",
+     ICON_MESH_DATA,
+     "Mesh",
+     "Mesh component containing point, corner, edge and face data"},
+    {GEO_COMPONENT_TYPE_POINT_CLOUD,
+     "POINTCLOUD",
+     ICON_POINTCLOUD_DATA,
+     "Point Cloud",
+     "Point cloud component containing only point data"},
+    {GEO_COMPONENT_TYPE_CURVE,
+     "CURVE",
+     ICON_CURVE_DATA,
+     "Curve",
+     "Curve component containing spline and control point data"},
+    {GEO_COMPONENT_TYPE_INSTANCES,
+     "INSTANCES",
+     ICON_EMPTY_AXIS,
+     "Instances",
+     "Instances of objects or collections"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_space_type_items[] = {
     /* empty must be here for python, is skipped for UI */
     {SPACE_EMPTY, "EMPTY", ICON_NONE, "Empty", ""},
@@ -3091,7 +3115,7 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
       break;
     }
     case GEO_COMPONENT_TYPE_INSTANCES: {
-      sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+      sspreadsheet->attribute_domain = ATTR_DOMAIN_INSTANCE;
       break;
     }
     case GEO_COMPONENT_TYPE_VOLUME: {
@@ -7129,6 +7153,18 @@ static void rna_def_space_node_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Show Wire Colors", "Color node links based on their connected sockets");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
+  prop = RNA_def_property(srna, "show_timing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SN_OVERLAY_SHOW_TIMINGS);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(prop, "Show Timing", "Display each node's last execution time");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
+  prop = RNA_def_property(srna, "show_context_path", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SN_OVERLAY_SHOW_PATH);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Tree Path", "Display breadcrumbs for the editor's context");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 }
 
 static void rna_def_space_node(BlenderRNA *brna)
@@ -7845,30 +7881,6 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   PropertyRNA *prop;
   StructRNA *srna;
 
-  static const EnumPropertyItem geometry_component_type_items[] = {
-      {GEO_COMPONENT_TYPE_MESH,
-       "MESH",
-       ICON_MESH_DATA,
-       "Mesh",
-       "Mesh component containing point, corner, edge and face data"},
-      {GEO_COMPONENT_TYPE_POINT_CLOUD,
-       "POINTCLOUD",
-       ICON_POINTCLOUD_DATA,
-       "Point Cloud",
-       "Point cloud component containing only point data"},
-      {GEO_COMPONENT_TYPE_CURVE,
-       "CURVE",
-       ICON_CURVE_DATA,
-       "Curve",
-       "Curve component containing spline and control point data"},
-      {GEO_COMPONENT_TYPE_INSTANCES,
-       "INSTANCES",
-       ICON_EMPTY_AXIS,
-       "Instances",
-       "Instances of objects or collections"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem object_eval_state_items[] = {
       {SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED,
        "EVALUATED",
@@ -7927,7 +7939,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
   prop = RNA_def_property(srna, "geometry_component_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, geometry_component_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_geometry_component_type_items);
   RNA_def_property_ui_text(
       prop, "Geometry Component", "Part of the geometry to display data from");
   RNA_def_property_update(prop,

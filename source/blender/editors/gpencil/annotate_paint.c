@@ -78,6 +78,8 @@
 /* ******************************************* */
 /* 'Globals' and Defines */
 
+#define DEPTH_INVALID 1.0f
+
 /* values for tGPsdata->status */
 typedef enum eGPencil_PaintStatus {
   GP_STATUS_IDLING = 0, /* stroke isn't in progress yet */
@@ -324,6 +326,9 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
                                             float *depth)
 {
   bGPdata *gpd = p->gpd;
+  if (depth && (*depth == DEPTH_INVALID)) {
+    depth = NULL;
+  }
 
   /* in 3d-space - pt->x/y/z are 3 side-by-side floats */
   if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
@@ -1003,14 +1008,14 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
           int last_valid = 0;
 
           for (i = 0; i < gpd->runtime.sbuffer_used; i++) {
-            if (depth_arr[i] != FLT_MAX) {
+            if (depth_arr[i] != DEPTH_INVALID) {
               break;
             }
           }
           first_valid = i;
 
           for (i = gpd->runtime.sbuffer_used - 1; i >= 0; i--) {
-            if (depth_arr[i] != FLT_MAX) {
+            if (depth_arr[i] != DEPTH_INVALID) {
               break;
             }
           }
@@ -1018,14 +1023,14 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
           /* invalidate non-endpoints, so only blend between first and last */
           for (i = first_valid + 1; i < last_valid; i++) {
-            depth_arr[i] = FLT_MAX;
+            depth_arr[i] = DEPTH_INVALID;
           }
 
           interp_depth = true;
         }
 
         if (interp_depth) {
-          interp_sparse_array(depth_arr, gpd->runtime.sbuffer_used, FLT_MAX);
+          interp_sparse_array(depth_arr, gpd->runtime.sbuffer_used, DEPTH_INVALID);
         }
       }
     }
@@ -1195,7 +1200,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
     /* Second Pass: Remove any points that are tagged */
     if (do_cull) {
       BKE_gpencil_stroke_delete_tagged_points(
-          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, 0);
+          p->gpd, gpf, gps, gps->next, GP_SPOINT_TAG, false, false, 0);
     }
   }
 }
@@ -1661,6 +1666,7 @@ static void annotation_paint_initstroke(tGPsdata *p,
 static void annotation_paint_strokeend(tGPsdata *p)
 {
   ToolSettings *ts = p->scene->toolsettings;
+  const bool is_eraser = (p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) != 0;
   /* for surface sketching, need to set the right OpenGL context stuff so that
    * the conversions will project the values correctly...
    */
@@ -1676,11 +1682,11 @@ static void annotation_paint_strokeend(tGPsdata *p)
                              (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             NULL);
+                             is_eraser ? NULL : &p->depths);
   }
 
   /* check if doing eraser or not */
-  if ((p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
+  if (!is_eraser) {
     /* transfer stroke to frame */
     annotation_stroke_newfrombuffer(p);
   }

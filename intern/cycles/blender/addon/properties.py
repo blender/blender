@@ -218,6 +218,12 @@ enum_denoising_prefilter = (
     ('ACCURATE', "Accurate", "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time", 3),
 )
 
+enum_direct_light_sampling_type = (
+    ('MULTIPLE_IMPORTANCE_SAMPLING', "Multiple Importance Sampling", "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing", 0),
+    ('FORWARD_PATH_TRACING', "Forward Path Tracing", "Direct light contributions are only sampled using forward path tracing", 1),
+    ('NEXT_EVENT_ESTIMATION', "Next-Event Estimation", "Direct light contributions are only sampled using next-event estimation", 2),
+)
+
 def update_render_passes(self, context):
     scene = context.scene
     view_layer = context.view_layer
@@ -353,7 +359,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Scrambling Distance",
         default=1.0,
         min=0.0, max=1.0,
-        description="Lower values give faster rendering with GPU rendering and less noise with all devices at the cost of possible artifacts if set too low. Only works when not using adaptive sampling",
+        description="Reduce randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts if set too low. Only works when not using adaptive sampling",
     )
     preview_scrambling_distance: BoolProperty(
         name="Scrambling Distance viewport",
@@ -361,10 +367,10 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Uses the Scrambling Distance value for the viewport. Faster but may flicker",
     )
 
-    adaptive_scrambling_distance: BoolProperty(
-        name="Adaptive Scrambling Distance",
+    auto_scrambling_distance: BoolProperty(
+        name="Automatic Scrambling Distance",
         default=False,
-        description="Uses a formula to adapt the scrambling distance strength based on the sample count",
+        description="Automatically reduce the randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts. Only works when not using adaptive sampling",
     )
 
     use_layer_samples: EnumProperty(
@@ -420,6 +426,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Minimum AA samples for adaptive sampling, to discover noisy features before stopping sampling. Zero for automatic setting based on noise threshold, for viewport renders",
         min=0, max=4096,
         default=0,
+    )
+
+    direct_light_sampling_type: EnumProperty(
+        name="Direct Light Sampling",
+        description="The type of strategy used for sampling direct light contributions",
+        items=enum_direct_light_sampling_type,
+        default='MULTIPLE_IMPORTANCE_SAMPLING',
     )
 
     min_light_bounces: IntProperty(
@@ -777,8 +790,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
 
     use_auto_tile: BoolProperty(
-        name="Auto Tiles",
-        description="Automatically render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory",
+        name="Use Tiling",
+        description="Render high resolution images in tiles to reduce memory usage, using the specified tile size. Tiles are cached to disk while rendering to save memory",
         default=True,
     )
     tile_size: IntProperty(

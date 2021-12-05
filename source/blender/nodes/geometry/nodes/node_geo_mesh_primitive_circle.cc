@@ -25,9 +25,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_primitive_circle_cc {
 
-static void geo_node_mesh_primitive_circle_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Vertices"))
       .default_value(32)
@@ -41,16 +41,14 @@ static void geo_node_mesh_primitive_circle_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void geo_node_mesh_primitive_circle_layout(uiLayout *layout,
-                                                  bContext *UNUSED(C),
-                                                  PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "fill_type", 0, nullptr, ICON_NONE);
 }
 
-static void geo_node_mesh_primitive_circle_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryMeshCircle *node_storage = (NodeGeometryMeshCircle *)MEM_callocN(
       sizeof(NodeGeometryMeshCircle), __func__);
@@ -199,7 +197,7 @@ static Mesh *create_circle_mesh(const float radius,
   return mesh;
 }
 
-static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
   const NodeGeometryMeshCircle &storage = *(const NodeGeometryMeshCircle *)node.storage;
@@ -211,7 +209,7 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -222,19 +220,21 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_primitive_circle_cc
 
 void register_node_type_geo_mesh_primitive_circle()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_circle_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Mesh Circle", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_circle_init);
+  node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeGeometryMeshCircle", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_circle_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_mesh_primitive_circle_layout;
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_circle_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

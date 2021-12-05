@@ -48,13 +48,17 @@ typedef enum eBMOpErrorLevel {
   BMO_ERROR_FATAL = 2,
 } eBMOpErrorLevel;
 
-/* Pushes an error onto the bmesh error stack.
- * if msg is null, then the default message for the `errcode` is used. */
+/**
+ * Pushes an error onto the bmesh error stack.
+ * if msg is null, then the default message for the `errcode` is used.
+ */
 void BMO_error_raise(BMesh *bm, BMOperator *owner, eBMOpErrorLevel level, const char *msg)
     ATTR_NONNULL(1, 2, 4);
 
-/* Gets the topmost error from the stack.
- * returns error code or 0 if no error. */
+/**
+ * Gets the topmost error from the stack.
+ * returns error code or 0 if no error.
+ */
 bool BMO_error_get(BMesh *bm, const char **r_msg, BMOperator **r_op, eBMOpErrorLevel *r_level);
 bool BMO_error_get_at_level(BMesh *bm,
                             eBMOpErrorLevel level,
@@ -83,8 +87,10 @@ void BMO_error_clear(BMesh *bm);
 #  define _BMESH_DUMMY_ABORT() (void)0
 #endif
 
-/* This is meant to be higher level than BLI_assert(),
- * its enabled even when in Release mode. */
+/**
+ * This is meant to be higher level than BLI_assert(),
+ * its enabled even when in Release mode.
+ */
 #define BMESH_ASSERT(a) \
   (void)((!(a)) ? ((fprintf(stderr, \
                             "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n", \

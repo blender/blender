@@ -180,8 +180,7 @@ typedef struct Sequence {
   int startdisp, enddisp;
   float sat;
   float mul;
-  char tmp_tag;
-  char _pad[3];
+  float _pad;
 
   short anim_preseek; /* UNUSED. */
   /** Streamindex for movie or sound files with several streams. */

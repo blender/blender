@@ -75,6 +75,9 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
                                    unsigned char cb_type,
                                    unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
 
+/**
+ * \param mat: Initialized matrix value to use in-place, allocated with #PyMem_Malloc
+ */
 PyObject *Matrix_CreatePyObject_alloc(float *mat,
                                       const ushort num_col,
                                       const ushort num_row,

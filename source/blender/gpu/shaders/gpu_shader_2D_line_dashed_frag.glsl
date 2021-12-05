@@ -13,7 +13,7 @@ uniform float dash_factor; /* if > 1.0, solid line. */
 
 /* More advanced mode, allowing for complex, multi-colored patterns.
  * Enabled when colors_len > 0. */
-/* Note: max number of steps/colors in pattern is 32! */
+/* NOTE: max number of steps/colors in pattern is 32! */
 uniform int colors_len; /* Enabled if > 0, 1 for solid line. */
 uniform vec4 colors[32];
 

@@ -28,6 +28,9 @@ struct GSet;
 struct ListBase;
 
 /* multiple edgeloops (ListBase) */
+/**
+ * \return listbase of listbases, each linking to a vertex.
+ */
 int BM_mesh_edgeloops_find(BMesh *bm,
                            struct ListBase *r_eloops,
                            bool (*test_fn)(BMEdge *, void *user_data),
@@ -47,7 +50,10 @@ void BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm,
                                            const float no_align[3]);
 void BM_mesh_edgeloops_calc_order(BMesh *bm, ListBase *eloops, const bool use_normals);
 
-/* single edgeloop */
+/**
+ * Copy a single edge-loop.
+ * \return new edge-loops.
+ */
 struct BMEdgeLoopStore *BM_edgeloop_copy(struct BMEdgeLoopStore *el_store);
 struct BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr,
                                                const int v_arr_tot,
@@ -59,9 +65,18 @@ int BM_edgeloop_length_get(struct BMEdgeLoopStore *el_store);
 struct ListBase *BM_edgeloop_verts_get(struct BMEdgeLoopStore *el_store);
 const float *BM_edgeloop_normal_get(struct BMEdgeLoopStore *el_store);
 const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store);
+/**
+ * Edges are assigned to one vert -> the next.
+ */
 void BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr);
 void BM_edgeloop_calc_center(BMesh *bm, struct BMEdgeLoopStore *el_store);
 bool BM_edgeloop_calc_normal(BMesh *bm, struct BMEdgeLoopStore *el_store);
+/**
+ * For open loops that are straight lines,
+ * calculating the normal as if it were a polygon is meaningless.
+ *
+ * Instead use an alignment vector and calculate the normal based on that.
+ */
 bool BM_edgeloop_calc_normal_aligned(BMesh *bm,
                                      struct BMEdgeLoopStore *el_store,
                                      const float no_align[3]);

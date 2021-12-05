@@ -24,7 +24,7 @@ if(MSVC)
     add_custom_command(
       OUTPUT ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND echo packaging python
-      COMMAND echo this should ouput at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
+      COMMAND echo this should output at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PYTARGET}/libs
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}.lib ${PYTARGET}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/python.exe ${PYTARGET}/bin/python.exe
@@ -43,7 +43,7 @@ if(MSVC)
     add_custom_command(
       OUTPUT ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND echo packaging python
-      COMMAND echo this should ouput at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
+      COMMAND echo this should output at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PYTARGET}/libs
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib ${PYTARGET}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/python${PYTHON_POSTFIX}.exe ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe

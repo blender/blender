@@ -23,7 +23,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline bool svm_node_aov_check(const uint32_t path_flag,
                                           ccl_global float *render_buffer)
 {
-  bool is_primary = (path_flag & PATH_RAY_CAMERA) && (!(path_flag & PATH_RAY_SINGLE_PASS_DONE));
+  bool is_primary = (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND) &&
+                    (!(path_flag & PATH_RAY_SINGLE_PASS_DONE));
 
   return ((render_buffer != NULL) && is_primary);
 }

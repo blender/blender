@@ -237,7 +237,7 @@ typedef struct Curve {
   int pathlen;
   short bevresol, totcol;
   int flag;
-  float width, ext1, ext2;
+  float offset, extrude, bevel_radius;
 
   /* default */
   short resolu, resolv;
@@ -457,6 +457,8 @@ enum {
 typedef enum eBezTriple_Flag {
   /* SELECT */
   BEZT_FLAG_TEMP_TAG = (1 << 1), /* always clear. */
+  /* Can be used to ignore keyframe points for certain operations. */
+  BEZT_FLAG_IGNORE_TAG = (1 << 2),
 } eBezTriple_Flag;
 
 /* h1 h2 (beztriple) */

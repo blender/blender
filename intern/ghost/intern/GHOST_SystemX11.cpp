@@ -714,7 +714,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       anyProcessed = true;
 
 #ifdef USE_UNITY_WORKAROUND
-      /* note: processEvent() can't include this code because
+      /* NOTE: processEvent() can't include this code because
        * KeymapNotify event have no valid window information. */
 
       /* the X server generates KeymapNotify event immediately after
@@ -1514,7 +1514,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * around tablet surface */
           window->GetTabletData().Active = xtablet.mode;
 
-          /* Note: This event might be generated with incomplete data-set
+          /* NOTE: This event might be generated with incomplete data-set
            * (don't exactly know why, looks like in some cases, if the value does not change,
            * it is not included in subsequent #XDeviceMotionEvent events).
            * So we have to check which values this event actually contains!

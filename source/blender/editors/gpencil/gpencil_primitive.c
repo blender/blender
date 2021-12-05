@@ -841,7 +841,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
           /* find first valid contact point */
           int i;
           for (i = 0; i < gps->totpoints; i++) {
-            if (depth_arr[i] != FLT_MAX) {
+            if (depth_arr[i] != DEPTH_INVALID) {
               break;
             }
           }
@@ -853,7 +853,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
           }
           else {
             for (i = gps->totpoints - 1; i >= 0; i--) {
-              if (depth_arr[i] != FLT_MAX) {
+              if (depth_arr[i] != DEPTH_INVALID) {
                 break;
               }
             }
@@ -864,14 +864,14 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
            * first and last contact in an imaginary line between them */
           for (i = 0; i < gps->totpoints; i++) {
             if (!ELEM(i, first_valid, last_valid)) {
-              depth_arr[i] = FLT_MAX;
+              depth_arr[i] = DEPTH_INVALID;
             }
           }
           interp_depth = true;
         }
 
         if (interp_depth) {
-          interp_sparse_array(depth_arr, gps->totpoints, FLT_MAX);
+          interp_sparse_array(depth_arr, gps->totpoints, DEPTH_INVALID);
         }
       }
     }
@@ -1041,7 +1041,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
 
     /* add small offset to keep stroke over the surface */
-    if ((depth_arr) && (gpd->zdepth_offset > 0.0f)) {
+    if ((depth_arr) && (gpd->zdepth_offset > 0.0f) && (depth_arr[i] != DEPTH_INVALID)) {
       depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
     }
 

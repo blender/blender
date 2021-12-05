@@ -29,9 +29,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
@@ -53,6 +50,8 @@
 #include "WM_types.h"
 
 #include "node_intern.hh" /* own include */
+
+using blender::float2;
 
 /* ******************** tree path ********************* */
 
@@ -207,19 +206,14 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   }
 }
 
-void space_node_group_offset(SpaceNode *snode, float *x, float *y)
+float2 space_node_group_offset(const SpaceNode &snode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
 
   if (path && path->prev) {
-    float dcenter[2];
-    sub_v2_v2v2(dcenter, path->view_center, path->prev->view_center);
-    *x = dcenter[0];
-    *y = dcenter[1];
+    return float2(path->view_center) - float2(path->prev->view_center);
   }
-  else {
-    *x = *y = 0.0f;
-  }
+  return float2(0);
 }
 
 /* ******************** default callbacks for node space ***************** */
@@ -230,8 +224,8 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+  snode->overlay.flag = (SN_OVERLAY_SHOW_OVERLAYS | SN_OVERLAY_SHOW_WIRE_COLORS |
+                         SN_OVERLAY_SHOW_PATH);
 
   /* backdrop */
   snode->zoom = 1.0f;
@@ -285,7 +279,7 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->v2d.max[0] = 32000.0f;
   region->v2d.max[1] = 32000.0f;
 
-  region->v2d.minzoom = 0.09f;
+  region->v2d.minzoom = 0.05f;
   region->v2d.maxzoom = 2.31f;
 
   region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
@@ -303,7 +297,10 @@ static void node_free(SpaceLink *sl)
     MEM_freeN(path);
   }
 
-  MEM_SAFE_FREE(snode->runtime);
+  if (snode->runtime) {
+    snode->runtime->linkdrag.reset();
+    MEM_freeN(snode->runtime);
+  }
 }
 
 /* spacetype; init callback */
@@ -482,7 +479,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
   /* default now: refresh node is starting preview */
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
-  snode_set_context(C);
+  snode_set_context(*C);
 
   if (snode->nodetree) {
     if (snode->nodetree->type == NTREE_SHADER) {
@@ -534,10 +531,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
-  if (snode->runtime != nullptr) {
-    snoden->runtime = (SpaceNode_Runtime *)MEM_dupallocN(snode->runtime);
-    BLI_listbase_clear(&snoden->runtime->linkdrag);
-  }
+  snoden->runtime = nullptr;
 
   /* NOTE: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
@@ -601,7 +595,7 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
                            &snode->runtime->cursor[1]);
 
   /* here snode->runtime->cursor is used to detect the node edge for sizing */
-  node_set_cursor(win, snode, snode->runtime->cursor);
+  node_set_cursor(*win, *snode, snode->runtime->cursor);
 
   /* XXX snode->runtime->cursor is in placing new nodes space */
   snode->runtime->cursor[0] /= UI_DPI_FAC;
@@ -635,7 +629,7 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void node_main_region_draw(const bContext *C, ARegion *region)
 {
-  node_draw_space(C, region);
+  node_draw_space(*C, *region);
 }
 
 /* ************* dropboxes ************* */
@@ -687,7 +681,7 @@ static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
-  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
 }
 
 static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -758,7 +752,7 @@ static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region
 static void node_header_region_draw(const bContext *C, ARegion *region)
 {
   /* find and set the context */
-  snode_set_context(C);
+  snode_set_context(*C);
 
   ED_region_header(C, region);
 }

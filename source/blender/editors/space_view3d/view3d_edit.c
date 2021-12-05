@@ -3059,6 +3059,23 @@ static int viewselected_exec(bContext *C, wmOperator *op)
       if ((gps->flag & GP_STROKE_SELECT) && (gps->flag & GP_STROKE_3DSPACE)) {
         ok |= BKE_gpencil_stroke_minmax(gps, true, min, max);
       }
+      if (gps->editcurve != NULL) {
+        for (int i = 0; i < gps->editcurve->tot_curve_points; i++) {
+          BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
+          if ((bezt->f1 & SELECT)) {
+            minmax_v3v3_v3(min, max, bezt->vec[0]);
+            ok = true;
+          }
+          if ((bezt->f2 & SELECT)) {
+            minmax_v3v3_v3(min, max, bezt->vec[1]);
+            ok = true;
+          }
+          if ((bezt->f3 & SELECT)) {
+            minmax_v3v3_v3(min, max, bezt->vec[2]);
+            ok = true;
+          }
+        }
+      }
     }
     CTX_DATA_END;
 

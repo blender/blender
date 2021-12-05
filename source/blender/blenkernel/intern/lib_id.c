@@ -99,6 +99,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .name_plural = "link_placeholders",
     .translation_context = BLT_I18NCONTEXT_ID_ID,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,
@@ -106,6 +107,8 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
+    .owner_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = NULL,
@@ -124,18 +127,56 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
 /* ************* general ************************ */
 
 /**
+ * Rewrites a relative path to be relative to the main file - unless the path is
+ * absolute, in which case it is not altered.
+ */
+static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data,
+                                                char *r_path_dst,
+                                                const char *path_src)
+{
+  const char **data = bpath_data->user_data;
+  /* be sure there is low chance of the path being too short */
+  char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+  const char *base_new = data[0];
+  const char *base_old = data[1];
+
+  if (BLI_path_is_rel(base_old)) {
+    CLOG_ERROR(&LOG, "old base path '%s' is not absolute.", base_old);
+    return false;
+  }
+
+  /* Make referenced file absolute. This would be a side-effect of
+   * BLI_path_normalize, but we do it explicitly so we know if it changed. */
+  BLI_strncpy(filepath, path_src, FILE_MAX);
+  if (BLI_path_abs(filepath, base_old)) {
+    /* Path was relative and is now absolute. Remap.
+     * Important BLI_path_normalize runs before the path is made relative
+     * because it won't work for paths that start with "//../" */
+    BLI_path_normalize(base_new, filepath);
+    BLI_path_rel(filepath, base_new);
+    BLI_strncpy(r_path_dst, filepath, FILE_MAX);
+    return true;
+  }
+
+  /* Path was not relative to begin with. */
+  return false;
+}
+
+/**
  * This has to be called from each make_local_* func, we could call from BKE_lib_id_make_local()
  * but then the make local functions would not be self contained.
  * Also note that the id _must_ have a library - campbell */
+/* TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase. */
 static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
   const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath_abs};
 
-  BKE_bpath_traverse_id(bmain,
-                        id,
-                        BKE_bpath_relocate_visitor,
-                        BKE_BPATH_TRAVERSE_SKIP_MULTIFILE,
-                        (void *)bpath_user_data);
+  BKE_bpath_foreach_path_id(
+      &(BPathForeachPathData){.bmain = bmain,
+                              .callback_function = lib_id_library_local_paths_callback,
+                              .flag = BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE,
+                              .user_data = (void *)bpath_user_data},
+      id);
 }
 
 static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *cb_data)
@@ -153,7 +194,7 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  *
- * \param flags Same set of `LIB_ID_MAKELOCAL_` flags as passed to `BKE_lib_id_make_local`.
+ * \param flags: Same set of `LIB_ID_MAKELOCAL_` flags as passed to `BKE_lib_id_make_local`.
  */
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 {
@@ -179,8 +220,14 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     BKE_lib_libblock_session_uuid_renew(id);
   }
 
-  if ((flags & LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR) != 0 && id->asset_data != NULL) {
-    BKE_asset_metadata_free(&id->asset_data);
+  if (ID_IS_ASSET(id)) {
+    if ((flags & LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR) != 0) {
+      BKE_asset_metadata_free(&id->asset_data);
+    }
+    else {
+      /* Assets should always have a fake user. Ensure this is the case after "Make Local". */
+      id_fake_user_set(id);
+    }
   }
 
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
@@ -1813,7 +1860,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const boo
   return result;
 }
 
-/* next to indirect usage in read/writefile also in editobject.c scene.c */
+/* Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.c`. */
 void BKE_main_id_newptr_and_tag_clear(Main *bmain)
 {
   ID *id;

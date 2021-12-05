@@ -159,7 +159,7 @@ Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDat
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SCENE);
-  seq->blend_mode = SEQ_TYPE_CROSS;
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->scene = load_data->scene;
   seq->len = load_data->scene->r.efra - load_data->scene->r.sfra + 1;
   id_us_ensure_real((ID *)load_data->scene);
@@ -180,7 +180,7 @@ Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoa
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIECLIP);
-  seq->blend_mode = SEQ_TYPE_CROSS;
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->clip = load_data->clip;
   seq->len = BKE_movieclip_get_duration(load_data->clip);
   id_us_ensure_real((ID *)load_data->clip);
@@ -201,7 +201,7 @@ Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MASK);
-  seq->blend_mode = SEQ_TYPE_CROSS;
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->mask = load_data->mask;
   seq->len = BKE_mask_get_duration(load_data->mask);
   id_us_ensure_real((ID *)load_data->mask);
@@ -230,17 +230,11 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
   seq->seq2 = load_data->effect.seq2;
   seq->seq3 = load_data->effect.seq3;
 
-  if (seq->type == SEQ_TYPE_COLOR) {
-    seq->blend_mode = SEQ_TYPE_CROSS;
-  }
-  else if (seq->type == SEQ_TYPE_ADJUSTMENT) {
-    seq->blend_mode = SEQ_TYPE_CROSS;
-  }
-  else if (seq->type == SEQ_TYPE_TEXT) {
-    seq->blend_mode = SEQ_TYPE_ALPHAOVER;
-  }
-  else if (SEQ_effect_get_num_inputs(seq->type) == 1) {
+  if (SEQ_effect_get_num_inputs(seq->type) == 1) {
     seq->blend_mode = seq->seq1->blend_mode;
+  }
+  else {
+    seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   }
 
   if (!load_data->effect.seq1) {
@@ -248,7 +242,6 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
     SEQ_transform_set_right_handle_frame(seq, load_data->effect.end_frame);
   }
 
-  SEQ_relations_update_changed_seq_and_deps(scene, seq, 1, 1); /* Runs SEQ_time_update_sequence. */
   seq_add_set_name(scene, seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
 
@@ -327,7 +320,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_IMAGE);
-  seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER; /* so alpha adjustment fade to the strip below */
   seq->len = load_data->image.len;
   Strip *strip = seq->strip;
   strip->stripdata = MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem");
@@ -588,7 +581,7 @@ Sequence *SEQ_add_movie_strip(
     }
   }
 
-  seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER; /* so alpha adjustment fade to the strip below */
 
   if (anim_arr[0] != NULL) {
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
@@ -798,6 +791,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   SEQ_time_update_sequence(scene, seqbase, seq);
+  SEQ_relations_invalidate_cache_raw(scene, seq);
 }
 
 void SEQ_add_movie_reload_if_needed(struct Main *bmain,

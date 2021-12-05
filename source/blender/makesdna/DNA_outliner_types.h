@@ -41,13 +41,13 @@ typedef struct TreeStoreElem {
 
 /** Used only to store data in blend files. */
 typedef struct TreeStore {
-  /** Was previously used for memory preallocation. */
+  /** Was previously used for memory pre-allocation. */
   int totelem DNA_DEPRECATED;
   /** Number of elements in data array. */
   int usedelem;
   /**
-   * Elements to be packed from mempool in writefile.c
-   * or extracted to mempool in readfile.c
+   * Elements to be packed from mempool in `writefile.c`
+   * or extracted to mempool in `readfile.c`.
    */
   TreeStoreElem *data;
 } TreeStore;

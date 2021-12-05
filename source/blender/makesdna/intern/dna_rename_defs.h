@@ -145,3 +145,6 @@ DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_flags, mask_swit
 DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(SurfaceDeformModifierData, numverts, num_bind_verts)
 DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
+DNA_STRUCT_RENAME_ELEM(Curve, width, offset)
+DNA_STRUCT_RENAME_ELEM(Curve, ext1, extrude)
+DNA_STRUCT_RENAME_ELEM(Curve, ext2, bevel_radius)

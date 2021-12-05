@@ -470,10 +470,6 @@ PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], co
 /** \name Tuple/List Filling
  * \{ */
 
-/**
- * Caller needs to ensure tuple is uninitialized.
- * Handy for filling a tuple with None for eg.
- */
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
 {
   const uint tot = PyTuple_GET_SIZE(tuple);
@@ -502,11 +498,6 @@ void PyC_List_Fill(PyObject *list, PyObject *value)
 /** \name Bool/Enum Argument Parsing
  * \{ */
 
-/**
- * Use with PyArg_ParseTuple's "O&" formatting.
- *
- * \see #PyC_Long_AsBool for a similar function to use outside of argument parsing.
- */
 int PyC_ParseBool(PyObject *o, void *p)
 {
   bool *bool_p = p;
@@ -520,9 +511,6 @@ int PyC_ParseBool(PyObject *o, void *p)
   return 1;
 }
 
-/**
- * Use with PyArg_ParseTuple's "O&" formatting.
- */
 int PyC_ParseStringEnum(PyObject *o, void *p)
 {
   struct PyC_StringEnum *e = p;
@@ -598,10 +586,6 @@ void PyC_ObSpit(const char *name, PyObject *var)
   }
 }
 
-/**
- * A version of #PyC_ObSpit that writes into a string (and doesn't take a name argument).
- * Use for logging.
- */
 void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var)
 {
   /* No name, creator of string can manage that. */
@@ -789,13 +773,6 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
 /** \name Exception Utilities
  * \{ */
 
-/**
- * Similar to #PyErr_Format(),
- *
- * Implementation - we can't actually prepend the existing exception,
- * because it could have _any_ arguments given to it, so instead we get its
- * `__str__` output and raise our own exception including it.
- */
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
 {
   PyObject *error_value_prefix;
@@ -835,10 +812,6 @@ PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *
   return PyC_Err_Format_Prefix(exception_type_prefix, "%s", str);
 }
 
-/**
- * Use for Python callbacks run directly from C,
- * when we can't use normal methods of raising exceptions.
- */
 void PyC_Err_PrintWithFunc(PyObject *py_func)
 {
   /* since we return to C code we can't leave the error */
@@ -1014,7 +987,6 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
  * In some cases we need to coerce strings, avoid doing this inline.
  * \{ */
 
-/* string conversion, escape non-unicode chars, coerce must be set to NULL */
 const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
 {
   const char *result;
@@ -1093,18 +1065,6 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 /** \name Name Space Creation/Manipulation
  * \{ */
 
-/*****************************************************************************
- * Description: This function creates a new Python dictionary object.
- * NOTE: dict is owned by sys.modules["__main__"] module, reference is borrowed
- * NOTE: important we use the dict from __main__, this is what python expects
- * for 'pickle' to work as well as strings like this...
- * >> foo = 10
- * >> print(__import__("__main__").foo)
- *
- * NOTE: this overwrites __main__ which gives problems with nested calls.
- * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
- * any chance that python is in the call stack.
- ****************************************************************************/
 PyObject *PyC_DefaultNameSpace(const char *filename)
 {
   PyObject *modules = PyImport_GetModuleDict();
@@ -1143,7 +1103,6 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
   return true;
 }
 
-/* restore MUST be called after this */
 void PyC_MainModule_Backup(PyObject **r_main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
@@ -1468,11 +1427,6 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
 /** \name Run String (Evaluate to Primitive Types)
  * \{ */
 
-/**
- * \return success
- *
- * \note it is caller's responsibility to acquire & release GIL!
- */
 bool PyC_RunString_AsNumber(const char *imports[],
                             const char *expr,
                             const char *filename,
@@ -1648,32 +1602,6 @@ bool PyC_RunString_AsString(const char *imports[],
 #  pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
-/**
- *
- * Comparison with #PyObject_IsTrue
- * ================================
- *
- * Even though Python provides a way to retrieve the boolean value for an object,
- * in many cases it's far too relaxed, with the following examples coercing values.
- *
- * \code{.py}
- * data.value = "Text"    # True.
- * data.value = ""        # False.
- * data.value = {1, 2}    # True
- * data.value = {}        # False.
- * data.value = None      # False.
- * \endcode
- *
- * In practice this is often a mistake by the script author that doesn't behave as they expect.
- * So it's better to be more strict for attribute assignment and function arguments,
- * only accepting True/False 0/1.
- *
- * If coercing a value is desired, it can be done explicitly: `data.value = bool(value)`
- *
- * \see #PyC_ParseBool for use with #PyArg_ParseTuple and related functions.
- *
- * \note Don't use `bool` return type, so -1 can be used as an error value.
- */
 int PyC_Long_AsBool(PyObject *value)
 {
   const int test = _PyLong_AsInt(value);

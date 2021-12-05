@@ -67,6 +67,17 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
       mat, node, "node_subsurface_scattering", in, out, GPU_constant(&node->sss_id));
 }
 
+static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *node)
+{
+  const int sss_method = node->custom1;
+
+  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+    if (STR_ELEM(sock->name, "IOR", "Anisotropy")) {
+      nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
+    }
+  }
+}
+
 /* node type definition */
 void register_node_type_sh_subsurface_scattering(void)
 {
@@ -80,6 +91,7 @@ void register_node_type_sh_subsurface_scattering(void)
   node_type_init(&ntype, node_shader_init_subsurface_scattering);
   node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_subsurface_scattering);
+  node_type_update(&ntype, node_shader_update_subsurface_scattering);
 
   nodeRegisterType(&ntype);
 }

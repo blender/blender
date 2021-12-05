@@ -152,12 +152,6 @@ static bool bm_loop_is_radial_boundary(BMLoop *l_first)
   return true;
 }
 
-/**
- * \param defgrp_index: Vertex group index, -1 for no vertex groups.
- *
- * \note All edge tags must be cleared.
- * \note Behavior matches MOD_solidify.c
- */
 void BM_mesh_wireframe(BMesh *bm,
                        const float offset,
                        const float offset_fac,

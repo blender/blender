@@ -46,7 +46,7 @@ struct ViewLink : public Link {
   using TreeViewPtr = std::unique_ptr<AbstractTreeView>;
 
   std::string idname;
-  /* Note: Can't use std::get() on this until minimum macOS deployment target is 10.14. */
+  /* NOTE: Can't use std::get() on this until minimum macOS deployment target is 10.14. */
   std::variant<TreeViewPtr> view;
 };
 

@@ -42,6 +42,7 @@
 
 from abc import ABC, abstractmethod
 import bpy
+import bmesh
 import functools
 import inspect
 import os
@@ -102,14 +103,22 @@ class OperatorSpecEditMode:
     """
     Holds one operator and its parameters.
     """
-
-    def __init__(self, operator_name: str, operator_parameters: dict, select_mode: str, selection: set):
+    def __init__(
+            self,
+            operator_name: str,
+            operator_parameters: dict,
+            select_mode: str,
+            selection,
+            *,
+            select_history: bool = False,
+    ):
         """
         Constructs an OperatorSpecEditMode. Raises ValueError if selec_mode is invalid.
         :param operator_name: str - name of mesh operator from bpy.ops.mesh, e.g. "bevel" or "fill"
         :param operator_parameters: dict - {name : val} dictionary containing operator parameters.
         :param select_mode: str - mesh selection mode, must be either 'VERT', 'EDGE' or 'FACE'
-        :param selection: set - set of vertices/edges/faces indices to select, e.g. [0, 9, 10].
+        :param selection: sequence - vertices/edges/faces indices to select, e.g. [0, 9, 10].
+        :param: select_history: bool - load selection into bmesh selection history.
         """
         self.operator_name = operator_name
         self.operator_parameters = operator_parameters
@@ -117,10 +126,12 @@ class OperatorSpecEditMode:
             raise ValueError("select_mode must be either {}, {} or {}".format('VERT', 'EDGE', 'FACE'))
         self.select_mode = select_mode
         self.selection = selection
+        self.select_history = select_history
 
     def __str__(self):
         return "Operator: " + self.operator_name + " with parameters: " + str(self.operator_parameters) + \
-               " in selection mode: " + self.select_mode + ", selecting " + str(self.selection)
+               " in selection mode: " + self.select_mode + ", selecting " + str(self.selection) + \
+               ("and loading bmesh selection history" if (self.select_history) else "")
 
 
 class OperatorSpecObjectMode:
@@ -306,32 +317,50 @@ class MeshTest(ABC):
         print("\nPASSED {} test successfully.".format(self.test_name))
         self._print_result(result)
 
-    def do_selection(self, mesh: bpy.types.Mesh, select_mode: str, selection: set):
+    def do_selection(self, mesh: bpy.types.Mesh, select_mode: str, selection, select_history: bool):
         """
         Do selection on a mesh.
         :param mesh: bpy.types.Mesh - input mesh
         :param: select_mode: str - selection mode. Must be 'VERT', 'EDGE' or 'FACE'
-        :param: selection: set - indices of selection.
+        :param: selection: sequence - indices of selection.
+        :param: select_history: bool - load selection into bmesh selection history
 
         Example: select_mode='VERT' and selection={1,2,3} selects veritces 1, 2 and 3 of input mesh
         """
+        if select_history and isinstance(selection, set):
+            raise Exception("'selection' must be an ordered sequence, not a 'set' type when 'select_history=True'")
+
         # Deselect all objects.
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.mode_set(mode='OBJECT')
+
+        bm = bmesh.from_edit_mesh(mesh)
+
+        #bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.context.tool_settings.mesh_select_mode = (select_mode == 'VERT',
                                                       select_mode == 'EDGE',
                                                       select_mode == 'FACE')
 
-        items = (mesh.vertices if select_mode == 'VERT'
-                 else mesh.edges if select_mode == 'EDGE'
-                 else mesh.polygons if select_mode == 'FACE'
-                 else None)
+        items = (
+            bm.verts if select_mode == 'VERT' else
+            bm.edges if select_mode == 'EDGE' else
+            bm.faces if select_mode == 'FACE' else None
+        )
+
+        items.ensure_lookup_table()
+
         if items is None:
             raise ValueError("Invalid selection mode")
         for index in selection:
             items[index].select = True
+
+        if select_history:
+            for index in selection:
+                bm.select_history.add(items[index])
+            bm.select_history.validate()
+
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     def update_failed_test(self):
         """
@@ -344,8 +373,7 @@ class MeshTest(ABC):
 
         bpy.data.objects.remove(self.expected_object, do_unlink=True)
         self.evaluated_object.name = expected_object_name
-        self.do_selection(self.evaluated_object.data,
-                          "VERT", evaluated_selection)
+        self.do_selection(self.evaluated_object.data, "VERT", evaluated_selection, False)
 
         # Save file.
         bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
@@ -639,7 +667,11 @@ class SpecMeshTest(MeshTest):
         :param operator: OperatorSpecEditMode - OperatorSpecEditMode object with parameters.
         """
         self.do_selection(
-            test_object.data, operator.select_mode, operator.selection)
+            test_object.data,
+            operator.select_mode,
+            operator.selection,
+            select_history=operator.select_history,
+        )
 
         # Apply operator in edit mode.
         bpy.ops.object.mode_set(mode='EDIT')
@@ -654,7 +686,7 @@ class SpecMeshTest(MeshTest):
             raise TypeError("Incorrect operator parameters {!r} raised {!r}".format(operator.operator_parameters, ex))
 
         if retval != {'FINISHED'}:
-            raise RuntimeError("Unexpected operator return value: {}".format(retval))
+            raise RuntimeError("Unexpected operator return value: {}".format(operator.operator_name))
         if self.verbose:
             print("Applied {}".format(operator))
 

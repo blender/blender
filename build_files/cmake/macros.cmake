@@ -529,7 +529,7 @@ function(SETUP_LIBDIRS)
 
   # NOTE: For all new libraries, use absolute library paths.
   # This should eventually be phased out.
-  # APPLE plaform uses full paths for linking libraries, and avoids link_directories.
+  # APPLE platform uses full paths for linking libraries, and avoids link_directories.
   if(NOT MSVC AND NOT APPLE)
     link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 

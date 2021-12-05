@@ -33,6 +33,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_bpath.h"
 #include "BKE_brush.h"
 #include "BKE_brush_engine.h"
 #include "BKE_colortools.h"
@@ -240,6 +241,14 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 
   if (brush->channels) {
     /* TODO: deal with textures once they've been moved into the brush channel system */
+  }
+}
+
+static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Brush *brush = (Brush *)id;
+  if (brush->icon_filepath[0] != '\0') {
+    BKE_bpath_foreach_path_fixed_process(bpath_data, brush->icon_filepath);
   }
 }
 
@@ -535,6 +544,7 @@ IDTypeInfo IDType_ID_BR = {
     .name_plural = "brushes",
     .translation_context = BLT_I18NCONTEXT_ID_BRUSH,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = brush_init_data,
     .copy_data = brush_copy_data,
@@ -542,6 +552,7 @@ IDTypeInfo IDType_ID_BR = {
     .make_local = brush_make_local,
     .foreach_id = brush_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = brush_foreach_path,
     .owner_get = NULL,
 
     .blend_write = brush_blend_write,
@@ -2869,7 +2880,7 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
-float BKE_brush_curve_strength_clamped(Brush *br, float p, const float len)
+float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)
 {
   float strength = BKE_brush_curve_strength(br, p, len);
 

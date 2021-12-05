@@ -190,7 +190,7 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
   }
 
   // CURVATURE LAYER
-  // store all the curvature datas for each vertex
+  // store all the curvature data for each vertex
 
   // soc unused - real K1, K2
   real cos2theta, sin2theta;

@@ -16,27 +16,29 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_input_shade_smooth_cc {
 
-static void geo_node_input_shade_smooth_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>(N_("Smooth")).field_source();
 }
 
-static void geo_node_input_shade_smooth_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<bool> shade_smooth_field = AttributeFieldInput::Create<bool>("shade_smooth");
   params.set_output("Smooth", std::move(shade_smooth_field));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_input_shade_smooth_cc
 
 void register_node_type_geo_input_shade_smooth()
 {
+  namespace file_ns = blender::nodes::node_geo_input_shade_smooth_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_SHADE_SMOOTH, "Is Shade Smooth", NODE_CLASS_INPUT, 0);
-  ntype.geometry_node_execute = blender::nodes::geo_node_input_shade_smooth_exec;
-  ntype.declare = blender::nodes::geo_node_input_shade_smooth_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }

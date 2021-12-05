@@ -49,6 +49,7 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_bpath.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -169,6 +170,15 @@ static void text_free_data(ID *id)
 #endif
 }
 
+static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Text *text = (Text *)id;
+
+  if (text->filepath != NULL) {
+    BKE_bpath_foreach_path_allocated_process(bpath_data, &text->filepath);
+  }
+}
+
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Text *text = (Text *)id;
@@ -242,6 +252,7 @@ IDTypeInfo IDType_ID_TXT = {
     .name_plural = "texts",
     .translation_context = BLT_I18NCONTEXT_ID_TEXT,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = text_init_data,
     .copy_data = text_copy_data,
@@ -249,6 +260,7 @@ IDTypeInfo IDType_ID_TXT = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = text_foreach_path,
     .owner_get = NULL,
 
     .blend_write = text_blend_write,
@@ -1977,7 +1989,7 @@ static char tab_to_spaces[] = "    ";
 static void txt_convert_tab_to_spaces(Text *text)
 {
   /* sb aims to pad adjust the tab-width needed so that the right number of spaces
-   * is added so that the indention of the line is the right width (i.e. aligned
+   * is added so that the indentation of the line is the right width (i.e. aligned
    * to multiples of TXT_TABSIZE)
    */
   const char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];

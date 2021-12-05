@@ -97,7 +97,7 @@ def extract_release_notes(version: str, task_id: int):
 
     # Process
 
-    1. Retrieval of description of the gived `task_id`.
+    1. Retrieval of description of the given `task_id`.
     2. Find rows for the given `version` and convert to `ReleaseLogLine`.
     3. based on the associated task or commit retrieves the title of the log
        line.

@@ -122,23 +122,20 @@ ccl_device_inline void shader_prepare_surface_closures(KernelGlobals kg,
       for (int i = 0; i < sd->num_closure; i++) {
         ccl_private ShaderClosure *sc = &sd->closure[i];
 
-        if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
+        if ((CLOSURE_IS_BSDF_DIFFUSE(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE)) ||
+            (CLOSURE_IS_BSDF_GLOSSY(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY)) ||
+            (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION))) {
+          sc->type = CLOSURE_NONE_ID;
+          sc->sample_weight = 0.0f;
         }
-        else if (CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
-        }
-        else if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
+        else if ((CLOSURE_IS_BSDF_TRANSPARENT(sc->type) &&
+                  (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSPARENT))) {
+          sc->type = CLOSURE_HOLDOUT_ID;
+          sc->sample_weight = 0.0f;
+          sd->flag |= SD_HOLDOUT;
         }
       }
     }

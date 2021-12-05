@@ -89,6 +89,7 @@
 
 #include "atomic_ops.h"
 
+#include "file_indexer.h"
 #include "file_intern.h"
 #include "filelist.h"
 
@@ -352,9 +353,6 @@ typedef struct FileListEntryPreview {
   char path[FILE_MAX];
   uint flags;
   int index;
-  /* Some file types load the memory from runtime data, not from disk. We just wait until it's done
-   * generating (BKE_previewimg_is_finished()). */
-  PreviewImage *in_memory_preview;
 
   int icon_id;
 } FileListEntryPreview;
@@ -398,6 +396,11 @@ typedef struct FileList {
   short sort;
 
   FileListFilter filter_data;
+
+  /**
+   * File indexer to use. Attribute is always set.
+   */
+  const struct FileIndexerType *indexer;
 
   struct FileListIntern filelist_intern;
 
@@ -922,19 +925,6 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
 }
 
 /**
- * Copy a string from source to `dest`, but prefix and suffix it with a single space.
- * Assumes `dest` has at least space enough for the two spaces.
- */
-static void tag_copy_with_spaces(char *dest, const char *source, const size_t dest_size)
-{
-  BLI_assert(dest_size > 2);
-  const size_t source_length = BLI_strncpy_rlen(dest + 1, source, dest_size - 2);
-  dest[0] = ' ';
-  dest[source_length + 1] = ' ';
-  dest[source_length + 2] = '\0';
-}
-
-/**
  * Return whether at least one tag matches the search filter.
  * Tags are searched as "entire words", so instead of searching for "tag" in the
  * filter string, this function searches for " tag ". Assumes the search filter
@@ -949,9 +939,7 @@ static void tag_copy_with_spaces(char *dest, const char *source, const size_t de
 static bool asset_tag_matches_filter(const char *filter_search, const AssetMetaData *asset_data)
 {
   LISTBASE_FOREACH (const AssetTag *, asset_tag, &asset_data->tags) {
-    char tag_name[MAX_NAME + 2]; /* sizeof(AssetTag::name) + 2 */
-    tag_copy_with_spaces(tag_name, asset_tag->name, sizeof(tag_name));
-    if (BLI_strcasestr(filter_search, tag_name) != NULL) {
+    if (BLI_strcasestr(asset_tag->name, filter_search) != NULL) {
       return true;
     }
   }
@@ -982,13 +970,7 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   if (BLI_strcasestr(file->name, filter_search + 1) != NULL) {
     return true;
   }
-
-  /* Replace the asterisks with spaces, so that we can do matching on " sometag "; that way
-   * an artist searching for "redder" doesn't result in a match for the tag "red". */
-  filter_search[string_length - 1] = ' ';
-  filter_search[0] = ' ';
-
-  return asset_tag_matches_filter(filter_search, asset_data);
+  return asset_tag_matches_filter(filter_search + 1, asset_data);
 }
 
 static bool is_filtered_lib_type(FileListInternEntry *file,
@@ -1147,6 +1129,19 @@ void filelist_setfilter_options(FileList *filelist,
     /* And now, free filtered data so that we know we have to filter again. */
     filelist_tag_needs_filtering(filelist);
   }
+}
+
+/**
+ * Set the indexer to be used by the filelist.
+ *
+ * The given indexer allocation should be handled by the caller or defined statically.
+ */
+void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
+{
+  BLI_assert(filelist);
+  BLI_assert(indexer);
+
+  filelist->indexer = indexer;
 }
 
 /**
@@ -1372,7 +1367,7 @@ static int filelist_geticon_ex(const FileDirEntry *file,
   }
 
   if (typeflag & FILE_TYPE_BLENDER) {
-    return ICON_FILE_BLEND;
+    return (is_main || file->preview_icon_id) ? ICON_FILE_BLEND : ICON_BLENDER;
   }
   if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
     return ICON_FILE_BACKUP;
@@ -1598,57 +1593,39 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   FileListEntryPreview *preview = preview_taskdata->preview;
 
   ThumbSource source = 0;
-  bool done = false;
 
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
-  if (preview->in_memory_preview) {
-    if (BKE_previewimg_is_finished(preview->in_memory_preview, ICON_SIZE_PREVIEW)) {
-      ImBuf *imbuf = BKE_previewimg_to_imbuf(preview->in_memory_preview, ICON_SIZE_PREVIEW);
-      if (imbuf) {
-        preview->icon_id = BKE_icon_imbuf_create(imbuf);
-      }
-      done = true;
-    }
+  //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+  BLI_assert(preview->flags &
+             (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
+              FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
+
+  if (preview->flags & FILE_TYPE_IMAGE) {
+    source = THB_SOURCE_IMAGE;
   }
-  else {
-    //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-    BLI_assert(preview->flags &
-               (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
-                FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
-
-    if (preview->flags & FILE_TYPE_IMAGE) {
-      source = THB_SOURCE_IMAGE;
-    }
-    else if (preview->flags &
-             (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
-      source = THB_SOURCE_BLEND;
-    }
-    else if (preview->flags & FILE_TYPE_MOVIE) {
-      source = THB_SOURCE_MOVIE;
-    }
-    else if (preview->flags & FILE_TYPE_FTFONT) {
-      source = THB_SOURCE_FONT;
-    }
-
-    IMB_thumb_path_lock(preview->path);
-    /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
-     * in case user switch to a bigger preview size. */
-    ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
-    IMB_thumb_path_unlock(preview->path);
-    if (imbuf) {
-      preview->icon_id = BKE_icon_imbuf_create(imbuf);
-    }
-
-    done = true;
+  else if (preview->flags &
+           (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
+    source = THB_SOURCE_BLEND;
+  }
+  else if (preview->flags & FILE_TYPE_MOVIE) {
+    source = THB_SOURCE_MOVIE;
+  }
+  else if (preview->flags & FILE_TYPE_FTFONT) {
+    source = THB_SOURCE_FONT;
   }
 
-  if (done) {
-    /* That way task freeing function won't free th preview, since it does not own it anymore. */
-    atomic_cas_ptr((void **)&preview_taskdata->preview, preview, NULL);
-    BLI_thread_queue_push(cache->previews_done, preview);
-    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
+  IMB_thumb_path_lock(preview->path);
+  /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
+   * in case user switch to a bigger preview size. */
+  ImBuf *imbuf = IMB_thumb_manage(preview->path, THB_LARGE, source);
+  IMB_thumb_path_unlock(preview->path);
+  if (imbuf) {
+    preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
+
+  BLI_thread_queue_push(cache->previews_done, preview);
+  atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
 }
@@ -1656,16 +1633,6 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
   FileListEntryPreviewTaskData *preview_taskdata = taskdata;
-  FileListEntryPreview *preview = preview_taskdata->preview;
-
-  /* preview_taskdata->preview is atomically set to NULL once preview has been processed and sent
-   * to previews_done queue. */
-  if (preview != NULL) {
-    if (preview->icon_id) {
-      BKE_icon_delete(preview->icon_id);
-    }
-    MEM_freeN(preview);
-  }
   MEM_freeN(preview_taskdata);
 }
 
@@ -1731,7 +1698,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
-  if (entry->flags & FILE_ENTRY_INVALID_PREVIEW) {
+  if (entry->flags & (FILE_ENTRY_INVALID_PREVIEW | FILE_ENTRY_PREVIEW_LOADING)) {
     return;
   }
 
@@ -1740,33 +1707,51 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     return;
   }
 
-  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
   FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
-
-  if (entry->redirection_path) {
-    BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+  PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
+  if (preview_in_memory && !BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW)) {
+    /* Nothing to set yet. Wait for next call. */
+    return;
   }
-  else {
-    BLI_join_dirfile(
-        preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
-  }
-
-  preview->index = index;
-  preview->flags = entry->typeflag;
-  preview->in_memory_preview = intern_entry->local_data.preview_image;
-  preview->icon_id = 0;
-  // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
 
   filelist_cache_preview_ensure_running(cache);
+  entry->flags |= FILE_ENTRY_PREVIEW_LOADING;
 
-  FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
-                                                               __func__);
-  preview_taskdata->preview = preview;
-  BLI_task_pool_push(cache->previews_pool,
-                     filelist_cache_preview_runf,
-                     preview_taskdata,
-                     true,
-                     filelist_cache_preview_freef);
+  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
+  preview->index = index;
+  preview->flags = entry->typeflag;
+  preview->icon_id = 0;
+
+  if (preview_in_memory) {
+    /* TODO(mano-wii): No need to use the thread API here. */
+    BLI_assert(BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW));
+    preview->path[0] = '\0';
+    ImBuf *imbuf = BKE_previewimg_to_imbuf(preview_in_memory, ICON_SIZE_PREVIEW);
+    if (imbuf) {
+      preview->icon_id = BKE_icon_imbuf_create(imbuf);
+    }
+    BLI_thread_queue_push(cache->previews_done, preview);
+    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
+  }
+  else {
+    if (entry->redirection_path) {
+      BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+    }
+    else {
+      BLI_join_dirfile(
+          preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+    }
+    // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
+
+    FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
+                                                                 __func__);
+    preview_taskdata->preview = preview;
+    BLI_task_pool_push(cache->previews_pool,
+                       filelist_cache_preview_runf,
+                       preview_taskdata,
+                       true,
+                       filelist_cache_preview_freef);
+  }
 }
 
 static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
@@ -1863,6 +1848,8 @@ FileList *filelist_new(short type)
   p->selection_state = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
   p->filelist.nbr_entries = FILEDIR_NBR_ENTRIES_UNSET;
   filelist_settype(p, type);
+
+  p->indexer = &file_indexer_noop;
 
   return p;
 }
@@ -2680,24 +2667,27 @@ bool filelist_cache_previews_update(FileList *filelist)
 
     //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 
-    if (preview->icon_id) {
-      /* Due to asynchronous process, a preview for a given image may be generated several times,
-       * i.e. entry->image may already be set at this point. */
-      if (entry && !entry->preview_icon_id) {
+    if (entry) {
+      if (preview->icon_id) {
+        /* The FILE_ENTRY_PREVIEW_LOADING flag should have prevented any other asynchronous
+         * process from trying to generate the same preview icon. */
+        BLI_assert_msg(!entry->preview_icon_id, "Preview icon should not have been generated yet");
+
         /* Move ownership over icon. */
         entry->preview_icon_id = preview->icon_id;
         preview->icon_id = 0;
         changed = true;
       }
       else {
-        BKE_icon_delete(preview->icon_id);
+        /* We want to avoid re-processing this entry continuously!
+         * Note that, since entries only live in cache,
+         * preview will be retried quite often anyway. */
+        entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
       }
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
     }
-    else if (entry) {
-      /* We want to avoid re-processing this entry continuously!
-       * Note that, since entries only live in cache,
-       * preview will be retried quite often anyway. */
-      entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
+    else {
+      BKE_icon_delete(preview->icon_id);
     }
 
     MEM_freeN(preview);
@@ -3151,6 +3141,29 @@ static FileListInternEntry *filelist_readjob_list_lib_group_create(const int idc
   return entry;
 }
 
+static void filelist_readjob_list_lib_add_datablock(ListBase *entries,
+                                                    const BLODataBlockInfo *datablock_info,
+                                                    const bool prefix_relpath_with_group_name,
+                                                    const int idcode,
+                                                    const char *group_name)
+{
+  FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
+  if (prefix_relpath_with_group_name) {
+    entry->relpath = BLI_sprintfN("%s/%s", group_name, datablock_info->name);
+  }
+  else {
+    entry->relpath = BLI_strdup(datablock_info->name);
+  }
+  entry->typeflag |= FILE_TYPE_BLENDERLIB;
+  if (datablock_info && datablock_info->asset_data) {
+    entry->typeflag |= FILE_TYPE_ASSET;
+    /* Moves ownership! */
+    entry->imported_asset_data = datablock_info->asset_data;
+  }
+  entry->blentype = idcode;
+  BLI_addtail(entries, entry);
+}
+
 static void filelist_readjob_list_lib_add_datablocks(ListBase *entries,
                                                      LinkNode *datablock_infos,
                                                      const bool prefix_relpath_with_group_name,
@@ -3158,29 +3171,71 @@ static void filelist_readjob_list_lib_add_datablocks(ListBase *entries,
                                                      const char *group_name)
 {
   for (LinkNode *ln = datablock_infos; ln; ln = ln->next) {
-    struct BLODataBlockInfo *info = ln->link;
-    FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
-    if (prefix_relpath_with_group_name) {
-      entry->relpath = BLI_sprintfN("%s/%s", group_name, info->name);
-    }
-    else {
-      entry->relpath = BLI_strdup(info->name);
-    }
-    entry->typeflag |= FILE_TYPE_BLENDERLIB;
-    if (info && info->asset_data) {
-      entry->typeflag |= FILE_TYPE_ASSET;
-      /* Moves ownership! */
-      entry->imported_asset_data = info->asset_data;
-    }
-    entry->blentype = idcode;
-    BLI_addtail(entries, entry);
+    struct BLODataBlockInfo *datablock_info = ln->link;
+    filelist_readjob_list_lib_add_datablock(
+        entries, datablock_info, prefix_relpath_with_group_name, idcode, group_name);
   }
+}
+
+static void filelist_readjob_list_lib_add_from_indexer_entries(
+    ListBase *entries,
+    const FileIndexerEntries *indexer_entries,
+    const bool prefix_relpath_with_group_name)
+{
+  for (const LinkNode *ln = indexer_entries->entries; ln; ln = ln->next) {
+    const FileIndexerEntry *indexer_entry = (const FileIndexerEntry *)ln->link;
+    const char *group_name = BKE_idtype_idcode_to_name(indexer_entry->idcode);
+    filelist_readjob_list_lib_add_datablock(entries,
+                                            &indexer_entry->datablock_info,
+                                            prefix_relpath_with_group_name,
+                                            indexer_entry->idcode,
+                                            group_name);
+  }
+}
+
+static FileListInternEntry *filelist_readjob_list_lib_navigate_to_parent_entry_create(void)
+{
+  FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
+  entry->relpath = BLI_strdup(FILENAME_PARENT);
+  entry->typeflag |= (FILE_TYPE_BLENDERLIB | FILE_TYPE_DIR);
+  return entry;
+}
+
+/**
+ * Structure to keep the file indexer and its user data together.
+ */
+typedef struct FileIndexer {
+  const FileIndexerType *callbacks;
+
+  /**
+   * User data. Contains the result of `callbacks.init_user_data`.
+   */
+  void *user_data;
+} FileIndexer;
+
+static int filelist_readjob_list_lib_populate_from_index(ListBase *entries,
+                                                         const ListLibOptions options,
+                                                         const int read_from_index,
+                                                         const FileIndexerEntries *indexer_entries)
+{
+  int navigate_to_parent_len = 0;
+  if (options & LIST_LIB_ADD_PARENT) {
+    FileListInternEntry *entry = filelist_readjob_list_lib_navigate_to_parent_entry_create();
+    BLI_addtail(entries, entry);
+    navigate_to_parent_len = 1;
+  }
+
+  filelist_readjob_list_lib_add_from_indexer_entries(entries, indexer_entries, true);
+  return read_from_index + navigate_to_parent_len;
 }
 
 static int filelist_readjob_list_lib(const char *root,
                                      ListBase *entries,
-                                     const ListLibOptions options)
+                                     const ListLibOptions options,
+                                     FileIndexer *indexer_runtime)
 {
+  BLI_assert(indexer_runtime);
+
   char dir[FILE_MAX_LIBEXTRA], *group;
 
   struct BlendHandle *libfiledata = NULL;
@@ -3188,11 +3243,35 @@ static int filelist_readjob_list_lib(const char *root,
   /* Check if the given root is actually a library. All folders are passed to
    * `filelist_readjob_list_lib` and based on the number of found entries `filelist_readjob_do`
    * will do a dir listing only when this function does not return any entries. */
-  /* TODO: We should consider introducing its own function to detect if it is a lib and
+  /* TODO(jbakker): We should consider introducing its own function to detect if it is a lib and
    * call it directly from `filelist_readjob_do` to increase readability. */
   const bool is_lib = BLO_library_path_explode(root, dir, &group, NULL);
   if (!is_lib) {
     return 0;
+  }
+
+  const bool group_came_from_path = group != NULL;
+
+  /* Try read from indexer_runtime. */
+  /* Indexing returns all entries in a blend file. We should ignore the index when listing a group
+   * inside a blend file, so the `entries` isn't filled with undesired entries.
+   * This happens when linking or appending data-blocks, where you can navigate into a group (ie
+   * Materials/Objects) where you only want to work with partial indexes.
+   *
+   * Adding support for partial reading/updating indexes would increase the complexity.
+   */
+  const bool use_indexer = !group_came_from_path;
+  FileIndexerEntries indexer_entries = {NULL};
+  if (use_indexer) {
+    int read_from_index = 0;
+    eFileIndexerResult indexer_result = indexer_runtime->callbacks->read_index(
+        dir, &indexer_entries, &read_from_index, indexer_runtime->user_data);
+    if (indexer_result == FILE_INDEXER_ENTRIES_LOADED) {
+      int entries_read = filelist_readjob_list_lib_populate_from_index(
+          entries, options, read_from_index, &indexer_entries);
+      ED_file_indexer_entries_clear(&indexer_entries);
+      return entries_read;
+    }
   }
 
   /* Open the library file. */
@@ -3203,18 +3282,18 @@ static int filelist_readjob_list_lib(const char *root,
   }
 
   /* Add current parent when requested. */
-  int parent_len = 0;
+  /* Is the navigate to previous level added to the list of entries. When added the return value
+   * should be increased to match the actual number of entries added. It is introduced to keep
+   * the code clean and readable and not counting in a single variable. */
+  int navigate_to_parent_len = 0;
   if (options & LIST_LIB_ADD_PARENT) {
-    FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
-    entry->relpath = BLI_strdup(FILENAME_PARENT);
-    entry->typeflag |= (FILE_TYPE_BLENDERLIB | FILE_TYPE_DIR);
+    FileListInternEntry *entry = filelist_readjob_list_lib_navigate_to_parent_entry_create();
     BLI_addtail(entries, entry);
-    parent_len = 1;
+    navigate_to_parent_len = 1;
   }
 
   int group_len = 0;
   int datablock_len = 0;
-  const bool group_came_from_path = group != NULL;
   if (group_came_from_path) {
     const int idcode = groupname_to_code(group);
     LinkNode *datablock_infos = BLO_blendhandle_get_datablock_info(
@@ -3239,6 +3318,10 @@ static int filelist_readjob_list_lib(const char *root,
             libfiledata, idcode, options & LIST_LIB_ASSETS_ONLY, &group_datablock_len);
         filelist_readjob_list_lib_add_datablocks(
             entries, group_datablock_infos, true, idcode, group_name);
+        if (use_indexer) {
+          ED_file_indexer_entries_extend_from_datablock_infos(
+              &indexer_entries, group_datablock_infos, idcode);
+        }
         BLI_linklist_freeN(group_datablock_infos);
         datablock_len += group_datablock_len;
       }
@@ -3249,8 +3332,14 @@ static int filelist_readjob_list_lib(const char *root,
 
   BLO_blendhandle_close(libfiledata);
 
+  /* Update the index. */
+  if (use_indexer) {
+    indexer_runtime->callbacks->update_index(dir, &indexer_entries, indexer_runtime->user_data);
+    ED_file_indexer_entries_clear(&indexer_entries);
+  }
+
   /* Return the number of items added to entries. */
-  int added_entries_len = group_len + datablock_len + parent_len;
+  int added_entries_len = group_len + datablock_len + navigate_to_parent_len;
   return added_entries_len;
 }
 
@@ -3442,11 +3531,11 @@ typedef struct FileListReadJob {
    * The job system calls #filelist_readjob_update which moves any read file from #tmp_filelist
    * into #filelist in a thread-safe way.
    *
-   * #tmp_filelist also keeps an `AssetLibrary *` so that it can be loaded in the same thread, and
-   * moved to #filelist once all categories are loaded.
+   * #tmp_filelist also keeps an `AssetLibrary *` so that it can be loaded in the same thread,
+   * and moved to #filelist once all categories are loaded.
    *
-   * NOTE: #tmp_filelist is freed in #filelist_readjob_free, so any copied pointers need to be set
-   * to NULL to avoid double-freeing them. */
+   * NOTE: #tmp_filelist is freed in #filelist_readjob_free, so any copied pointers need to be
+   * set to NULL to avoid double-freeing them. */
   struct FileList *tmp_filelist;
 } FileListReadJob;
 
@@ -3483,8 +3572,8 @@ static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
     /* No more levels of recursion left. */
     return false;
   }
-  /* Show entries when recursion is set to `Blend file` even when `current_recursion_level` exceeds
-   * `max_recursion`. */
+  /* Show entries when recursion is set to `Blend file` even when `current_recursion_level`
+   * exceeds `max_recursion`. */
   if (!is_lib && (current_recursion_level >= max_recursion) &&
       ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0)) {
     return false;
@@ -3532,6 +3621,12 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   BLI_path_normalize_dir(job_params->main_name, dir);
   td_dir->dir = BLI_strdup(dir);
 
+  /* Init the file indexer. */
+  FileIndexer indexer_runtime = {.callbacks = filelist->indexer};
+  if (indexer_runtime.callbacks->init_user_data) {
+    indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dir, sizeof(dir));
+  }
+
   while (!BLI_stack_is_empty(todo_dirs) && !(*stop)) {
     FileListInternEntry *entry;
     int nbr_entries = 0;
@@ -3574,7 +3669,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
       if (filelist->asset_library_ref) {
         list_lib_options |= LIST_LIB_ASSETS_ONLY;
       }
-      nbr_entries = filelist_readjob_list_lib(subdir, &entries, list_lib_options);
+      nbr_entries = filelist_readjob_list_lib(
+          subdir, &entries, list_lib_options, &indexer_runtime);
       if (nbr_entries > 0) {
         is_lib = true;
       }
@@ -3614,6 +3710,15 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
     nbr_done_dirs++;
     *progress = (float)nbr_done_dirs / (float)nbr_todo_dirs;
     MEM_freeN(subdir);
+  }
+
+  /* Finalize and free indexer. */
+  if (indexer_runtime.callbacks->filelist_finished && BLI_stack_is_empty(todo_dirs)) {
+    indexer_runtime.callbacks->filelist_finished(indexer_runtime.user_data);
+  }
+  if (indexer_runtime.callbacks->free_user_data && indexer_runtime.user_data) {
+    indexer_runtime.callbacks->free_user_data(indexer_runtime.user_data);
+    indexer_runtime.user_data = NULL;
   }
 
   /* If we were interrupted by stop, stack may not be empty and we need to free
@@ -3717,7 +3822,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
   BKE_main_lock(job_params->current_main);
 
   FOREACH_MAIN_ID_BEGIN (job_params->current_main, id_iter) {
-    if (!id_iter->asset_data) {
+    if (!id_iter->asset_data || ID_IS_LINKED(id_iter)) {
       continue;
     }
 
