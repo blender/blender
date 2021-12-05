@@ -18,6 +18,7 @@
  */
 
 #include "RE_texture.h"
+
 #include "node_shader_util.hh"
 
 static bNodeSocketTemplate outputs[] = {
