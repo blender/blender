@@ -262,7 +262,8 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
 struct GeometrySet {
  private:
   using GeometryComponentPtr = blender::UserCounter<class GeometryComponent>;
-  blender::Map<GeometryComponentType, GeometryComponentPtr> components_;
+  /* Indexed by #GeometryComponentType. */
+  std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
 
  public:
   GeometrySet();

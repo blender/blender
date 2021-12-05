@@ -118,25 +118,20 @@ GeometrySet &GeometrySet::operator=(GeometrySet &&other) = default;
  */
 GeometryComponent &GeometrySet::get_component_for_write(GeometryComponentType component_type)
 {
-  return components_.add_or_modify(
-      component_type,
-      [&](GeometryComponentPtr *value_ptr) -> GeometryComponent & {
-        /* If the component did not exist before, create a new one. */
-        new (value_ptr) GeometryComponentPtr(GeometryComponent::create(component_type));
-        return **value_ptr;
-      },
-      [&](GeometryComponentPtr *value_ptr) -> GeometryComponent & {
-        GeometryComponentPtr &value = *value_ptr;
-        if (value->is_mutable()) {
-          /* If the referenced component is already mutable, return it directly. */
-          return *value;
-        }
-        /* If the referenced component is shared, make a copy. The copy is not shared and is
-         * therefore mutable. */
-        GeometryComponent *copied_component = value->copy();
-        value = GeometryComponentPtr{copied_component};
-        return *copied_component;
-      });
+  GeometryComponentPtr &component_ptr = components_[component_type];
+  if (!component_ptr) {
+    /* If the component did not exist before, create a new one. */
+    component_ptr = GeometryComponent::create(component_type);
+    return *component_ptr;
+  }
+  if (component_ptr->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    return *component_ptr;
+  }
+  /* If the referenced component is shared, make a copy. The copy is not shared and is
+   * therefore mutable. */
+  component_ptr = component_ptr->copy();
+  return *component_ptr;
 }
 
 /**
@@ -155,21 +150,17 @@ GeometryComponent *GeometrySet::get_component_ptr(GeometryComponentType type)
 const GeometryComponent *GeometrySet::get_component_for_read(
     GeometryComponentType component_type) const
 {
-  const GeometryComponentPtr *component = components_.lookup_ptr(component_type);
-  if (component != nullptr) {
-    return component->get();
-  }
-  return nullptr;
+  return components_[component_type].get();
 }
 
 bool GeometrySet::has(const GeometryComponentType component_type) const
 {
-  return components_.contains(component_type);
+  return components_[component_type].has_value();
 }
 
 void GeometrySet::remove(const GeometryComponentType component_type)
 {
-  components_.remove(component_type);
+  components_[component_type].reset();
 }
 
 /**
@@ -177,20 +168,20 @@ void GeometrySet::remove(const GeometryComponentType component_type)
  */
 void GeometrySet::keep_only(const blender::Span<GeometryComponentType> component_types)
 {
-  for (auto it = components_.keys().begin(); it != components_.keys().end(); ++it) {
-    const GeometryComponentType type = *it;
-    if (!component_types.contains(type)) {
-      components_.remove(it);
+  for (GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (!component_types.contains(component_ptr->type())) {
+        component_ptr.reset();
+      }
     }
   }
 }
 
 void GeometrySet::add(const GeometryComponent &component)
 {
-  BLI_assert(!components_.contains(component.type()));
+  BLI_assert(!components_[component.type()]);
   component.user_add();
-  GeometryComponentPtr component_ptr{const_cast<GeometryComponent *>(&component)};
-  components_.add_new(component.type(), std::move(component_ptr));
+  components_[component.type()] = const_cast<GeometryComponent *>(&component);
 }
 
 /**
@@ -199,8 +190,10 @@ void GeometrySet::add(const GeometryComponent &component)
 Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
 {
   Vector<const GeometryComponent *> components;
-  for (const GeometryComponentPtr &ptr : components_.values()) {
-    components.append(ptr.get());
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      components.append(component_ptr.get());
+    }
   }
   return components;
 }
@@ -236,27 +229,34 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 /* Remove all geometry components from the geometry set. */
 void GeometrySet::clear()
 {
-  components_.clear();
+  for (GeometryComponentPtr &component_ptr : components_) {
+    component_ptr.reset();
+  }
 }
 
 /* Make sure that the geometry can be cached. This does not ensure ownership of object/collection
  * instances. */
 void GeometrySet::ensure_owns_direct_data()
 {
-  for (GeometryComponentType type : components_.keys()) {
-    const GeometryComponent *component = this->get_component_for_read(type);
-    if (!component->owns_direct_data()) {
-      GeometryComponent &component_for_write = this->get_component_for_write(type);
-      component_for_write.ensure_owns_direct_data();
+  for (GeometryComponentPtr &component_ptr : components_) {
+    if (!component_ptr) {
+      continue;
     }
+    if (component_ptr->owns_direct_data()) {
+      continue;
+    }
+    GeometryComponent &component_for_write = this->get_component_for_write(component_ptr->type());
+    component_for_write.ensure_owns_direct_data();
   }
 }
 
 bool GeometrySet::owns_direct_data() const
 {
-  for (const GeometryComponentPtr &component : components_.values()) {
-    if (!component->owns_direct_data()) {
-      return false;
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (!component_ptr->owns_direct_data()) {
+        return false;
+      }
     }
   }
   return true;
@@ -328,23 +328,20 @@ bool GeometrySet::has_curve() const
 /* Returns true when the geometry set has any data that is not an instance. */
 bool GeometrySet::has_realized_data() const
 {
-  if (components_.is_empty()) {
-    return false;
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (component_ptr->type() != GEO_COMPONENT_TYPE_INSTANCES) {
+        return true;
+      }
+    }
   }
-  if (components_.size() > 1) {
-    return true;
-  }
-  /* Check if the only component is an #InstancesComponent. */
-  return this->get_component_for_read<InstancesComponent>() == nullptr;
+  return false;
 }
 
 /* Return true if the geometry set has any component that isn't empty. */
 bool GeometrySet::is_empty() const
 {
-  if (components_.is_empty()) {
-    return true;
-  }
-  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() ||
+  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() || this->has_volume() ||
            this->has_instances());
 }
 
