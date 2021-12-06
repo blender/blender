@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
 
@@ -21,17 +21,15 @@
  * \ingroup shdnodes
  */
 
-#include "IMB_colormanagement.h"
-
 #include "DNA_texture_types.h"
 
 #include "BLI_color.hh"
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_valToRgb_cc {
+namespace blender::nodes::node_shader_color_ramp_cc {
 
-static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
+static void sh_node_color_ramp_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("Fac")).default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
@@ -39,12 +37,12 @@ static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 };
 
-static void node_shader_exec_valtorgb(void *UNUSED(data),
-                                      int UNUSED(thread),
-                                      bNode *node,
-                                      bNodeExecData *UNUSED(execdata),
-                                      bNodeStack **in,
-                                      bNodeStack **out)
+static void node_shader_exec_color_ramp(void *UNUSED(data),
+                                        int UNUSED(thread),
+                                        bNode *node,
+                                        bNodeExecData *UNUSED(execdata),
+                                        bNodeStack **in,
+                                        bNodeStack **out)
 {
   /* stack order in: fac */
   /* stack order out: col, alpha */
@@ -58,16 +56,16 @@ static void node_shader_exec_valtorgb(void *UNUSED(data),
   }
 }
 
-static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_init_color_ramp(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_colorband_add(true);
 }
 
-static int gpu_shader_valtorgb(GPUMaterial *mat,
-                               bNode *node,
-                               bNodeExecData *UNUSED(execdata),
-                               GPUNodeStack *in,
-                               GPUNodeStack *out)
+static int gpu_shader_color_ramp(GPUMaterial *mat,
+                                 bNode *node,
+                                 bNodeExecData *UNUSED(execdata),
+                                 GPUNodeStack *in,
+                                 GPUNodeStack *out)
 {
   struct ColorBand *coba = (ColorBand *)node->storage;
   float *array, layer;
@@ -162,7 +160,7 @@ class ColorBandFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_valtorgb_build_multi_function(
+static void sh_node_color_ramp_build_multi_function(
     blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   bNode &bnode = builder.node();
@@ -170,66 +168,22 @@ static void sh_node_valtorgb_build_multi_function(
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
 }
 
-static void sh_node_rgbtobw_declare(NodeDeclarationBuilder &b)
+}  // namespace blender::nodes::node_shader_color_ramp_cc
+
+void register_node_type_sh_color_ramp()
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_output<decl::Float>(N_("Val"));
-};
-
-static void node_shader_exec_rgbtobw(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *UNUSED(node),
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **in,
-                                     bNodeStack **out)
-{
-  /* Stack order out: BW. */
-  /* Stack order in: COL. */
-  float col[3];
-  nodestack_get_vec(col, SOCK_VECTOR, in[0]);
-
-  out[0]->vec[0] = IMB_colormanagement_get_luminance(col);
-}
-
-static int gpu_shader_rgbtobw(GPUMaterial *mat,
-                              bNode *node,
-                              bNodeExecData *UNUSED(execdata),
-                              GPUNodeStack *in,
-                              GPUNodeStack *out)
-{
-  return GPU_stack_link(mat, node, "rgbtobw", in, out);
-}
-
-}  // namespace blender::nodes::node_shader_valToRgb_cc
-
-void register_node_type_sh_valtorgb()
-{
-  namespace file_ns = blender::nodes::node_shader_valToRgb_cc;
+  namespace file_ns = blender::nodes::node_shader_color_ramp_cc;
 
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = file_ns::sh_node_valtorgb_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_valtorgb);
+  ntype.declare = file_ns::sh_node_color_ramp_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_color_ramp);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_valtorgb);
-  node_type_gpu(&ntype, file_ns::gpu_shader_valtorgb);
-  ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
-
-  nodeRegisterType(&ntype);
-}
-
-void register_node_type_sh_rgbtobw()
-{
-  namespace file_ns = blender::nodes::node_shader_valToRgb_cc;
-
-  static bNodeType ntype;
-
-  sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = file_ns::sh_node_rgbtobw_declare;
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_rgbtobw);
-  node_type_gpu(&ntype, file_ns::gpu_shader_rgbtobw);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_color_ramp);
+  node_type_gpu(&ntype, file_ns::gpu_shader_color_ramp);
+  ntype.build_multi_function = file_ns::sh_node_color_ramp_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

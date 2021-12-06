@@ -25,7 +25,7 @@
 
 /* **************** Vector Transform ******************** */
 
-namespace blender::nodes::node_shader_vectTransform_cc {
+namespace blender::nodes::node_shader_vector_transform_cc {
 
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, {-1, ""}};
@@ -140,11 +140,11 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   return true;
 }
 
-}  // namespace blender::nodes::node_shader_vectTransform_cc
+}  // namespace blender::nodes::node_shader_vector_transform_cc
 
 void register_node_type_sh_vect_transform()
 {
-  namespace file_ns = blender::nodes::node_shader_vectTransform_cc;
+  namespace file_ns = blender::nodes::node_shader_vector_transform_cc;
 
   static bNodeType ntype;
 

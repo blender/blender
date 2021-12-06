@@ -21,19 +21,19 @@
 
 /* **************** OUTPUT ******************** */
 
-namespace blender::nodes::node_shader_uvAlongStroke_cc {
+namespace blender::nodes::node_shader_uv_along_stroke_cc {
 
 static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
     {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
 
-}  // namespace blender::nodes::node_shader_uvAlongStroke_cc
+}  // namespace blender::nodes::node_shader_uv_along_stroke_cc
 
 /* node type definition */
 void register_node_type_sh_uvalongstroke()
 {
-  namespace file_ns = blender::nodes::node_shader_uvAlongStroke_cc;
+  namespace file_ns = blender::nodes::node_shader_uv_along_stroke_cc;
 
   static bNodeType ntype;
 

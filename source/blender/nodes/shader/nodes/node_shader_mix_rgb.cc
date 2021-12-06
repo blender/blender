@@ -23,7 +23,7 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_mixRgb_cc {
+namespace blender::nodes::node_shader_mix_rgb_cc {
 
 static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
 {
@@ -181,11 +181,11 @@ static void sh_node_mix_rgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
 }
 
-}  // namespace blender::nodes::node_shader_mixRgb_cc
+}  // namespace blender::nodes::node_shader_mix_rgb_cc
 
 void register_node_type_sh_mix_rgb()
 {
-  namespace file_ns = blender::nodes::node_shader_mixRgb_cc;
+  namespace file_ns = blender::nodes::node_shader_mix_rgb_cc;
 
   static bNodeType ntype;
 

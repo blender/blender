@@ -21,7 +21,7 @@
 
 /* **************** OUTPUT ******************** */
 
-namespace blender::nodes::node_shader_shaderToRgb_cc {
+namespace blender::nodes::node_shader_shader_to_rgb_cc {
 
 static bNodeSocketTemplate sh_node_shadertorgb_in[] = {
     {SOCK_SHADER, N_("Shader")},
@@ -47,12 +47,12 @@ static int node_shader_gpu_shadertorgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_shader_to_rgba", in, out);
 }
 
-}  // namespace blender::nodes::node_shader_shaderToRgb_cc
+}  // namespace blender::nodes::node_shader_shader_to_rgb_cc
 
 /* node type definition */
 void register_node_type_sh_shadertorgb()
 {
-  namespace file_ns = blender::nodes::node_shader_shaderToRgb_cc;
+  namespace file_ns = blender::nodes::node_shader_shader_to_rgb_cc;
 
   static bNodeType ntype;
 
