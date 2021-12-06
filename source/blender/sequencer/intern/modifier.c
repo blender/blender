@@ -1161,6 +1161,7 @@ static void maskmodifier_apply(struct SequenceModifierData *UNUSED(smd), ImBuf *
   // SequencerMaskModifierData *bcmd = (SequencerMaskModifierData *)smd;
 
   modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, NULL);
+  ibuf->planes = R_IMF_PLANES_RGBA;
 }
 
 static SequenceModifierTypeInfo seqModifier_Mask = {
