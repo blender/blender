@@ -86,6 +86,7 @@ class SocketDeclaration {
   std::string description_;
   bool hide_label_ = false;
   bool hide_value_ = false;
+  bool compact_ = false;
   bool is_multi_input_ = false;
   bool no_mute_links_ = false;
   bool is_attribute_name_ = false;

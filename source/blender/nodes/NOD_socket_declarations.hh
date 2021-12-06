@@ -104,6 +104,7 @@ class VectorBuilder : public SocketDeclarationBuilder<Vector> {
   VectorBuilder &subtype(PropertySubType subtype);
   VectorBuilder &min(const float min);
   VectorBuilder &max(const float max);
+  VectorBuilder &compact();
 };
 
 class BoolBuilder;
@@ -312,6 +313,12 @@ inline VectorBuilder &VectorBuilder::min(const float min)
 inline VectorBuilder &VectorBuilder::max(const float max)
 {
   decl_->soft_max_value_ = max;
+  return *this;
+}
+
+inline VectorBuilder &VectorBuilder::compact()
+{
+  decl_->compact_ = true;
   return *this;
 }
 
