@@ -61,6 +61,15 @@
 
 static CLG_LogRef LOG = {"bke.nla"};
 
+/**
+ * Find the active track and strip.
+ *
+ * The active strip may or may not be on the active track.
+ */
+static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
+                                      NlaTrack **r_track_of_active_strip,
+                                      NlaStrip **r_active_strip);
+
 /* *************************************************** */
 /* Data Management */
 
@@ -309,6 +318,14 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
 
     track_dest = track_dest->next;
   }
+
+  /* If the above assumption failed to hold, do a more thorough search for the active strip. */
+  if (adt_source->actstrip != NULL && adt_dest->actstrip == NULL) {
+    nla_tweakmode_find_active(&adt_source->nla_tracks, &track_dest, &adt_dest->actstrip);
+  }
+
+  BLI_assert_msg((adt_source->actstrip == NULL) == (adt_dest->actstrip == NULL),
+                 "Active strip did not copy correctly");
 }
 
 void BKE_nla_tracks_copy_from_adt(Main *bmain,
@@ -2086,29 +2103,17 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
   BKE_nlastrip_set_active(adt, strip);
 }
 
-/* Find the active strip + track combo, and set them up as the tweaking track,
- * and return if successful or not.
- */
-bool BKE_nla_tweakmode_enter(AnimData *adt)
+static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
+                                      NlaTrack **r_track_of_active_strip,
+                                      NlaStrip **r_active_strip)
 {
   NlaTrack *nlt, *activeTrack = NULL;
   NlaStrip *strip, *activeStrip = NULL;
 
-  /* verify that data is valid */
-  if (ELEM(NULL, adt, adt->nla_tracks.first)) {
-    return false;
-  }
-
-  /* If block is already in tweak-mode, just leave, but we should report
-   * that this block is in tweak-mode (as our returncode). */
-  if (adt->flag & ADT_NLA_EDIT_ON) {
-    return true;
-  }
-
   /* go over the tracks, finding the active one, and its active strip
    * - if we cannot find both, then there's nothing to do
    */
-  for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+  for (nlt = nla_tracks->first; nlt; nlt = nlt->next) {
     /* check if active */
     if (nlt->flag & NLATRACK_ACTIVE) {
       /* store reference to this active track */
@@ -2127,7 +2132,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
    */
   if (activeTrack == NULL) {
     /* try last selected track for active strip */
-    for (nlt = adt->nla_tracks.last; nlt; nlt = nlt->prev) {
+    for (nlt = nla_tracks->last; nlt; nlt = nlt->prev) {
       if (nlt->flag & NLATRACK_SELECTED) {
         /* assume this is the active track */
         activeTrack = nlt;
@@ -2148,6 +2153,31 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
       }
     }
   }
+
+  *r_track_of_active_strip = activeTrack;
+  *r_active_strip = activeStrip;
+}
+
+/* Find the active strip + track combo, and set them up as the tweaking track,
+ * and return if successful or not.
+ */
+bool BKE_nla_tweakmode_enter(AnimData *adt)
+{
+  NlaTrack *nlt, *activeTrack = NULL;
+  NlaStrip *strip, *activeStrip = NULL;
+
+  /* verify that data is valid */
+  if (ELEM(NULL, adt, adt->nla_tracks.first)) {
+    return false;
+  }
+
+  /* If block is already in tweak-mode, just leave, but we should report
+   * that this block is in tweak-mode (as our returncode). */
+  if (adt->flag & ADT_NLA_EDIT_ON) {
+    return true;
+  }
+
+  nla_tweakmode_find_active(&adt->nla_tracks, &activeTrack, &activeStrip);
 
   if (ELEM(NULL, activeTrack, activeStrip, activeStrip->act)) {
     if (G.debug & G_DEBUG) {
