@@ -303,8 +303,6 @@ static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event
     return OPERATOR_CANCELLED;
   }
 
-  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-
   gso->scene = CTX_data_scene(C);
   gso->area = CTX_wm_area(C);
   gso->region = CTX_wm_region(C);
@@ -412,6 +410,7 @@ static int decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   tGraphSliderOp *gso = op->customdata;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
   gso->modal_update = decimate_modal_update;
   ED_slider_allow_overshoot_set(gso->slider, false);
 
