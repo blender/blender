@@ -189,7 +189,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         BLI_assert(mode_param.count);
-        if (selections[i]) {
+        if (selections[i] && input_splines[i]->evaluated_points_size() > 0) {
           output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
         }
         else {
@@ -208,7 +208,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        if (selections[i]) {
+        if (selections[i] && input_splines[i]->evaluated_points_size() > 0) {
           /* Don't allow asymptotic count increase for low resolution values. */
           const float divide_length = std::max(lengths[i], 0.0001f);
           const float spline_length = input_splines[i]->length();
@@ -229,7 +229,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        if (selections[i]) {
+        if (selections[i] && input_splines[i]->evaluated_points_size() > 0) {
           output_splines[i] = resample_spline_evaluated(*input_splines[i]);
         }
         else {
