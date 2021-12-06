@@ -85,7 +85,7 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_2(vertex_, 9872922352ULL);
+    return vertex_ == VERTEX_ONE ? 23847562893465 : 92384598734567;
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
@@ -147,7 +147,7 @@ class EdgePositionFieldInput final : public GeometryFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_2(vertex_, 2359867235ULL);
+    return vertex_ == VERTEX_ONE ? 987456978362 : 374587679866;
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
