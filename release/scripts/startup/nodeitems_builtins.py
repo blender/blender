@@ -150,7 +150,11 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeSubdivisionSurface")
     yield NodeItem("GeometryNodeTriangulate")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputMeshEdgeVertices")
+    yield NodeItem("GeometryNodeInputMeshFaceArea")
+    yield NodeItem("GeometryNodeInputMeshFaceNeighbors")
     yield NodeItem("GeometryNodeInputShadeSmooth")
+    yield NodeItem("GeometryNodeInputMeshVertexNeighbors")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetShadeSmooth")
 
