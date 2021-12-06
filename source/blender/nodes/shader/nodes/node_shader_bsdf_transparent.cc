@@ -23,15 +23,11 @@
 
 namespace blender::nodes::node_shader_bsdf_transparent_cc {
 
-static bNodeSocketTemplate sh_node_bsdf_transparent_in[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_bsdf_transparent_out[] = {
-    {SOCK_SHADER, N_("BSDF")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Shader>(N_("BSDF"));
+}
 
 static int node_shader_gpu_bsdf_transparent(GPUMaterial *mat,
                                             bNode *node,
@@ -52,8 +48,7 @@ void register_node_type_sh_bsdf_transparent()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_TRANSPARENT, "Transparent BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_bsdf_transparent_in, file_ns::sh_node_bsdf_transparent_out);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_transparent);

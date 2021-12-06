@@ -23,57 +23,60 @@
 
 namespace blender::nodes::node_shader_bsdf_principled_cc {
 
-static bNodeSocketTemplate sh_node_bsdf_principled_in[] = {
-    {SOCK_RGBA, N_("Base Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Subsurface"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR,
-     N_("Subsurface Radius"),
-     1.0f,
-     0.2f,
-     0.1f,
-     0.0f,
-     0.0f,
-     100.0f,
-     PROP_NONE,
-     SOCK_COMPACT},
-    {SOCK_RGBA, N_("Subsurface Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Subsurface IOR"), 1.4f, 0.0f, 0.0f, 0.0f, 1.01f, 3.8f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Subsurface Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Metallic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Specular"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Specular Tint"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Anisotropic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Anisotropic Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Sheen"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Sheen Tint"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Clearcoat"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Clearcoat Roughness"), 0.03f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("IOR"), 1.45f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Transmission"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Transmission Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Emission"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Emission Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_VECTOR,
-     N_("Clearcoat Normal"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_bsdf_principled_out[] = {
-    {SOCK_SHADER, N_("BSDF")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Base Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>(N_("Subsurface")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Vector>(N_("Subsurface Radius"))
+      .default_value({1.0f, 0.2f, 0.1f})
+      .min(0.0f)
+      .max(100.0f)
+      .compact();
+  b.add_input<decl::Color>(N_("Subsurface Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>(N_("Subsurface IOR"))
+      .default_value(1.4f)
+      .min(1.01f)
+      .max(3.8f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Subsurface Anisotropy")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Metallic")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Specular")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Specular Tint")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Roughness"))
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Anisotropic")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Anisotropic Rotation")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Sheen")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Sheen Tint"))
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Clearcoat")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Clearcoat Roughness"))
+      .default_value(0.03f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("IOR")).default_value(1.45f).min(0.0f).max(1000.0f).subtype(
+      PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Transmission")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Transmission Roughness")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Emission")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Emission Strength")).default_value(1.0f).min(0.0f).max(1000000.0f);
+  b.add_input<decl::Float>(N_("Alpha"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Vector>(N_("Normal")).min(-1.0f).max(1.0f).hide_value();
+  b.add_input<decl::Vector>(N_("Clearcoat Normal")).min(-1.0f).max(1.0f).hide_value();
+  b.add_input<decl::Vector>(N_("Tangent")).min(-1.0f).max(1.0f).hide_value();
+  b.add_output<decl::Shader>(N_("BSDF"));
+}
 
 static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -195,8 +198,7 @@ void register_node_type_sh_bsdf_principled()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_PRINCIPLED, "Principled BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_bsdf_principled_in, file_ns::sh_node_bsdf_principled_out);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_shader_init_principled);
   node_type_storage(&ntype, "", nullptr, nullptr);

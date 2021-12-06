@@ -23,17 +23,13 @@
 
 namespace blender::nodes::node_shader_mix_shader_cc {
 
-static bNodeSocketTemplate sh_node_mix_shader_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_SHADER, N_("Shader")},
-    {SOCK_SHADER, N_("Shader")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_mix_shader_out[] = {
-    {SOCK_SHADER, N_("Shader")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Fac")).default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Shader>(N_("Shader"));
+  b.add_input<decl::Shader>(N_("Shader"), "Shader_001");
+  b.add_output<decl::Shader>(N_("Shader"));
+}
 
 static int node_shader_gpu_mix_shader(GPUMaterial *mat,
                                       bNode *node,
@@ -54,8 +50,7 @@ void register_node_type_sh_mix_shader()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_MIX_SHADER, "Mix Shader", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_mix_shader_in, file_ns::sh_node_mix_shader_out);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, nullptr);
   node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_mix_shader);
