@@ -47,18 +47,18 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_color.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
-
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
@@ -75,8 +75,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-#include "BLI_ghash.h"
-#include "BLI_threads.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
 

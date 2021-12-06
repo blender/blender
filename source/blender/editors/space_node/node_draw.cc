@@ -22,12 +22,13 @@
  * \brief higher level node drawing for the node editor.
  */
 
+#include <iomanip>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -36,7 +37,6 @@
 #include "DNA_world_types.h"
 
 #include "BLI_map.hh"
-#include "BLI_math.h"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
@@ -86,12 +86,6 @@
 #include "FN_field_cpp_type.hh"
 
 #include "node_intern.hh" /* own include */
-
-#include <iomanip>
-
-#ifdef WITH_COMPOSITOR
-#  include "COM_compositor.h"
-#endif
 
 using blender::float2;
 using blender::Map;
