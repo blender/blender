@@ -75,7 +75,7 @@ typedef struct tGraphSliderOp {
   ARegion *region;
 
   /** A 0-1 value for determining how much we should decimate. */
-  PropertyRNA *percentage_prop;
+  PropertyRNA *factor_prop;
 
   /** The original bezt curve data (used for restoring fcurves). */
   ListBase bezt_arr_list;
@@ -262,7 +262,7 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
     default: {
       if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
         float value;
-        float percentage = RNA_property_float_get(op->ptr, gso->percentage_prop);
+        float percentage = RNA_property_float_get(op->ptr, gso->factor_prop);
 
         /* Grab percentage from numeric input, and store this new value for redo
          * NOTE: users see ints, while internally we use a 0-1 float.
@@ -272,7 +272,7 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         percentage = value / 100.0f;
         ED_slider_factor_set(gso->slider, percentage);
-        RNA_property_float_set(op->ptr, gso->percentage_prop, percentage);
+        RNA_property_float_set(op->ptr, gso->factor_prop, percentage);
 
         gso->modal_update(C, op);
         break;
@@ -303,7 +303,7 @@ static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event
     return OPERATOR_CANCELLED;
   }
 
-  gso->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
 
   gso->scene = CTX_data_scene(C);
   gso->area = CTX_wm_area(C);
@@ -336,7 +336,7 @@ typedef enum tDecimModes {
   DECIM_ERROR,
 } tDecimModes;
 
-static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float error_sq_max)
+static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_max)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
@@ -346,7 +346,7 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
 
   /* Loop through filtered data and clean curves. */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    if (!decimate_fcurve(ale, remove_ratio, error_sq_max)) {
+    if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
       WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
     }
@@ -383,7 +383,7 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
   ED_workspace_status_text(C, status_str);
 }
 
-static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
+static void decimate_modal_update(bContext *C, wmOperator *op)
 {
   /* Perform decimate updates - in response to some user action
    * (e.g. pressing a key or moving the mouse). */
@@ -395,15 +395,15 @@ static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
 
   /* Apply... */
-  float remove_ratio = ED_slider_factor_get(gso->slider);
-  RNA_property_float_set(op->ptr, gso->percentage_prop, remove_ratio);
+  float factor = ED_slider_factor_get(gso->slider);
+  RNA_property_float_set(op->ptr, gso->factor_prop, factor);
   /* We don't want to limit the decimation to a certain error margin. */
   const float error_sq_max = FLT_MAX;
-  decimate_graph_keys(&gso->ac, remove_ratio, error_sq_max);
+  decimate_graph_keys(&gso->ac, factor, error_sq_max);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
-static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const int invoke_result = graph_slider_invoke(C, op, event);
 
@@ -412,13 +412,13 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
   }
 
   tGraphSliderOp *gso = op->customdata;
-  gso->modal_update = graphkeys_decimate_modal_update;
+  gso->modal_update = decimate_modal_update;
   ED_slider_allow_overshoot_set(gso->slider, false);
 
   return invoke_result;
 }
 
-static int graphkeys_decimate_exec(bContext *C, wmOperator *op)
+static int decimate_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -429,13 +429,13 @@ static int graphkeys_decimate_exec(bContext *C, wmOperator *op)
 
   tDecimModes mode = RNA_enum_get(op->ptr, "mode");
   /* We want to be able to work on all available keyframes. */
-  float remove_ratio = 1.0f;
+  float factor = 1.0f;
   /* We don't want to limit the decimation to a certain error margin. */
   float error_sq_max = FLT_MAX;
 
   switch (mode) {
     case DECIM_RATIO:
-      remove_ratio = RNA_float_get(op->ptr, "remove_ratio");
+      factor = RNA_float_get(op->ptr, "factor");
       break;
     case DECIM_ERROR:
       error_sq_max = RNA_float_get(op->ptr, "remove_error_margin");
@@ -445,12 +445,12 @@ static int graphkeys_decimate_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  if (remove_ratio == 0.0f || error_sq_max == 0.0f) {
+  if (factor == 0.0f || error_sq_max == 0.0f) {
     /* Nothing to remove. */
     return OPERATOR_FINISHED;
   }
 
-  decimate_graph_keys(&ac, remove_ratio, error_sq_max);
+  decimate_graph_keys(&ac, factor, error_sq_max);
 
   /* Set notifier that keyframes have changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -458,16 +458,16 @@ static int graphkeys_decimate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool graphkeys_decimate_poll_property(const bContext *UNUSED(C),
-                                             wmOperator *op,
-                                             const PropertyRNA *prop)
+static bool decimate_poll_property(const bContext *UNUSED(C),
+                                   wmOperator *op,
+                                   const PropertyRNA *prop)
 {
   const char *prop_id = RNA_property_identifier(prop);
 
   if (STRPREFIX(prop_id, "remove")) {
     int mode = RNA_enum_get(op->ptr, "mode");
 
-    if (STREQ(prop_id, "remove_ratio") && mode != DECIM_RATIO) {
+    if (STREQ(prop_id, "factor") && mode != DECIM_RATIO) {
       return false;
     }
     if (STREQ(prop_id, "remove_error_margin") && mode != DECIM_ERROR) {
@@ -478,9 +478,7 @@ static bool graphkeys_decimate_poll_property(const bContext *UNUSED(C),
   return true;
 }
 
-static char *graphkeys_decimate_desc(bContext *UNUSED(C),
-                                     wmOperatorType *UNUSED(op),
-                                     PointerRNA *ptr)
+static char *decimate_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op), PointerRNA *ptr)
 {
 
   if (RNA_enum_get(ptr, "mode") == DECIM_ERROR) {
@@ -516,11 +514,11 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
       "Decimate F-Curves by removing keyframes that influence the curve shape the least";
 
   /* API callbacks */
-  ot->poll_property = graphkeys_decimate_poll_property;
-  ot->get_description = graphkeys_decimate_desc;
-  ot->invoke = graphkeys_decimate_invoke;
+  ot->poll_property = decimate_poll_property;
+  ot->get_description = decimate_desc;
+  ot->invoke = decimate_invoke;
   ot->modal = graph_slider_modal;
-  ot->exec = graphkeys_decimate_exec;
+  ot->exec = decimate_exec;
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags */
@@ -535,7 +533,7 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
                "Which mode to use for decimation");
 
   RNA_def_float_factor(ot->srna,
-                       "remove_ratio",
+                       "factor",
                        1.0f / 3.0f,
                        0.0f,
                        1.0f,
