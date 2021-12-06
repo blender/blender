@@ -83,44 +83,40 @@ static void select_by_handle_type(const CurveEval &curve,
   }
 }
 
-class HandleTypeFieldInput final : public fn::FieldInput {
+class HandleTypeFieldInput final : public GeometryFieldInput {
   BezierSpline::HandleType type_;
   GeometryNodeCurveHandleMode mode_;
 
  public:
   HandleTypeFieldInput(BezierSpline::HandleType type, GeometryNodeCurveHandleMode mode)
-      : FieldInput(CPPType::get<bool>(), "Handle Type Selection node"), type_(type), mode_(mode)
+      : GeometryFieldInput(CPPType::get<bool>(), "Handle Type Selection node"),
+        type_(type),
+        mode_(mode)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
+    if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
+      return {};
+    }
 
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
-        return {};
-      }
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    const CurveEval *curve = curve_component.get_for_read();
+    if (curve == nullptr) {
+      return {};
+    }
 
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-      if (curve == nullptr) {
-        return {};
-      }
-
-      if (domain == ATTR_DOMAIN_POINT) {
-        Array<bool> selection(mask.min_array_size());
-        select_by_handle_type(*curve, type_, mode_, selection);
-        return VArray<bool>::ForContainer(std::move(selection));
-      }
+    if (domain == ATTR_DOMAIN_POINT) {
+      Array<bool> selection(mask.min_array_size());
+      select_by_handle_type(*curve, type_, mode_, selection);
+      return VArray<bool>::ForContainer(std::move(selection));
     }
     return {};
-  };
+  }
 
   uint64_t hash() const override
   {

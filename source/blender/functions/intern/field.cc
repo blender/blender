@@ -531,7 +531,7 @@ IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
   category_ = Category::Generated;
 }
 
-GVArray IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &UNUSED(scope))
+GVArray IndexFieldInput::get_index_varray(IndexMask mask)
 {
   auto index_func = [](int i) { return i; };
   return VArray<int>::ForFunc(mask.min_array_size(), index_func);
@@ -539,10 +539,10 @@ GVArray IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &UNUSED(
 
 GVArray IndexFieldInput::get_varray_for_context(const fn::FieldContext &UNUSED(context),
                                                 IndexMask mask,
-                                                ResourceScope &scope) const
+                                                ResourceScope &UNUSED(scope)) const
 {
   /* TODO: Investigate a similar method to IndexRange::as_span() */
-  return get_index_varray(mask, scope);
+  return get_index_varray(mask);
 }
 
 uint64_t IndexFieldInput::hash() const

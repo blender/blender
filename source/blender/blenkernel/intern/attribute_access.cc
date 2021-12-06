@@ -1421,21 +1421,25 @@ OutputAttribute GeometryComponent::attribute_try_get_for_output_only(
 
 namespace blender::bke {
 
-GVArray AttributeFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                    IndexMask UNUSED(mask),
-                                                    ResourceScope &UNUSED(scope)) const
+GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
+                                                   IndexMask mask,
+                                                   ResourceScope &UNUSED(scope)) const
 {
   if (const GeometryComponentFieldContext *geometry_context =
           dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
     const GeometryComponent &component = geometry_context->geometry_component();
     const AttributeDomain domain = geometry_context->domain();
-    const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-    GVArray attribute = component.attribute_try_get_for_read(name_, domain, data_type);
-    if (attribute) {
-      return attribute;
-    }
+    return this->get_varray_for_context(component, domain, mask);
   }
   return {};
+}
+
+GVArray AttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                    const AttributeDomain domain,
+                                                    IndexMask UNUSED(mask)) const
+{
+  const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
+  return component.attribute_try_get_for_read(name_, domain, data_type);
 }
 
 std::string AttributeFieldInput::socket_inspection_name() const
@@ -1469,25 +1473,20 @@ static StringRef get_random_id_attribute_name(const AttributeDomain domain)
   }
 }
 
-GVArray IDAttributeFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                      IndexMask mask,
-                                                      ResourceScope &scope) const
+GVArray IDAttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                      const AttributeDomain domain,
+                                                      IndexMask mask) const
 {
-  if (const GeometryComponentFieldContext *geometry_context =
-          dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-    const GeometryComponent &component = geometry_context->geometry_component();
-    const AttributeDomain domain = geometry_context->domain();
-    const StringRef name = get_random_id_attribute_name(domain);
-    GVArray attribute = component.attribute_try_get_for_read(name, domain, CD_PROP_INT32);
-    if (attribute) {
-      BLI_assert(attribute.size() == component.attribute_domain_size(domain));
-      return attribute;
-    }
 
-    /* Use the index as the fallback if no random ID attribute exists. */
-    return fn::IndexFieldInput::get_index_varray(mask, scope);
+  const StringRef name = get_random_id_attribute_name(domain);
+  GVArray attribute = component.attribute_try_get_for_read(name, domain, CD_PROP_INT32);
+  if (attribute) {
+    BLI_assert(attribute.size() == component.attribute_domain_size(domain));
+    return attribute;
   }
-  return {};
+
+  /* Use the index as the fallback if no random ID attribute exists. */
+  return fn::IndexFieldInput::get_index_varray(mask);
 }
 
 std::string IDAttributeFieldInput::socket_inspection_name() const
@@ -1507,20 +1506,12 @@ bool IDAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const IDAttributeFieldInput *>(&other) != nullptr;
 }
 
-GVArray AnonymousAttributeFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                             IndexMask UNUSED(mask),
-                                                             ResourceScope &UNUSED(scope)) const
+GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                             const AttributeDomain domain,
+                                                             IndexMask UNUSED(mask)) const
 {
-  if (const GeometryComponentFieldContext *geometry_context =
-          dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-    const GeometryComponent &component = geometry_context->geometry_component();
-    const AttributeDomain domain = geometry_context->domain();
-    const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-    GVArray attribute = component.attribute_try_get_for_read(
-        anonymous_id_.get(), domain, data_type);
-    return attribute;
-  }
-  return {};
+  const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
+  return component.attribute_try_get_for_read(anonymous_id_.get(), domain, data_type);
 }
 
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const

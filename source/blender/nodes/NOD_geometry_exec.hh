@@ -38,6 +38,7 @@ using bke::AttributeFieldInput;
 using bke::AttributeIDRef;
 using bke::geometry_set_realize_instances;
 using bke::GeometryComponentFieldContext;
+using bke::GeometryFieldInput;
 using bke::OutputAttribute;
 using bke::OutputAttribute_Typed;
 using bke::ReadAttributeLookup;

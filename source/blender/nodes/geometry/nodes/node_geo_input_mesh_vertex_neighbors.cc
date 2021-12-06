@@ -52,25 +52,20 @@ static VArray<int> construct_vertex_count_gvarray(const MeshComponent &component
   return {};
 }
 
-class VertexCountFieldInput final : public fn::FieldInput {
+class VertexCountFieldInput final : public GeometryFieldInput {
  public:
-  VertexCountFieldInput() : fn::FieldInput(CPPType::get<int>(), "Vertex Count Field")
+  VertexCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Vertex Count Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-        const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-        return construct_vertex_count_gvarray(mesh_component, domain);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
+      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+      return construct_vertex_count_gvarray(mesh_component, domain);
     }
     return {};
   }
@@ -106,25 +101,20 @@ static VArray<int> construct_face_count_gvarray(const MeshComponent &component,
   return {};
 }
 
-class VertexFaceCountFieldInput final : public fn::FieldInput {
+class VertexFaceCountFieldInput final : public GeometryFieldInput {
  public:
-  VertexFaceCountFieldInput() : fn::FieldInput(CPPType::get<int>(), "Vertex Face Count Field")
+  VertexFaceCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Vertex Face Count Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-        const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-        return construct_face_count_gvarray(mesh_component, domain);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
+      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+      return construct_face_count_gvarray(mesh_component, domain);
     }
     return {};
   }

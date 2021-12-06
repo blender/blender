@@ -51,69 +51,61 @@ static void select_by_spline(const int start, const int end, MutableSpan<bool> r
   r_selection.slice(size - end_use, end_use).fill(true);
 }
 
-class EndpointFieldInput final : public fn::FieldInput {
+class EndpointFieldInput final : public GeometryFieldInput {
   Field<int> start_size_;
   Field<int> end_size_;
 
  public:
   EndpointFieldInput(Field<int> start_size, Field<int> end_size)
-      : FieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
+      : GeometryFieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
         start_size_(start_size),
         end_size_(end_size)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
-        return nullptr;
-      }
-
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-
-      Array<int> control_point_offsets = curve->control_point_offsets();
-
-      if (curve == nullptr || control_point_offsets.last() == 0) {
-        return nullptr;
-      }
-
-      GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
-      fn::FieldEvaluator evaluator{size_context, curve->splines().size()};
-      evaluator.add(start_size_);
-      evaluator.add(end_size_);
-      evaluator.evaluate();
-      const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
-      const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
-
-      const int point_size = control_point_offsets.last();
-      Array<bool> selection(point_size, false);
-      int current_point = 0;
-      MutableSpan<bool> selection_span = selection.as_mutable_span();
-      for (int i : IndexRange(curve->splines().size())) {
-        const SplinePtr &spline = curve->splines()[i];
-        if (start_size[i] <= 0 && end_size[i] <= 0) {
-          selection_span.slice(current_point, spline->size()).fill(false);
-        }
-        else {
-          int start_use = std::max(start_size[i], 0);
-          int end_use = std::max(end_size[i], 0);
-          select_by_spline(
-              start_use, end_use, selection_span.slice(current_point, spline->size()));
-        }
-        current_point += spline->size();
-      }
-      return VArray<bool>::ForContainer(std::move(selection));
+    if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
+      return nullptr;
     }
-    return {};
+
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    const CurveEval *curve = curve_component.get_for_read();
+
+    Array<int> control_point_offsets = curve->control_point_offsets();
+
+    if (curve == nullptr || control_point_offsets.last() == 0) {
+      return nullptr;
+    }
+
+    GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
+    fn::FieldEvaluator evaluator{size_context, curve->splines().size()};
+    evaluator.add(start_size_);
+    evaluator.add(end_size_);
+    evaluator.evaluate();
+    const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
+    const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
+
+    const int point_size = control_point_offsets.last();
+    Array<bool> selection(point_size, false);
+    int current_point = 0;
+    MutableSpan<bool> selection_span = selection.as_mutable_span();
+    for (int i : IndexRange(curve->splines().size())) {
+      const SplinePtr &spline = curve->splines()[i];
+      if (start_size[i] <= 0 && end_size[i] <= 0) {
+        selection_span.slice(current_point, spline->size()).fill(false);
+      }
+      else {
+        int start_use = std::max(start_size[i], 0);
+        int end_use = std::max(end_size[i], 0);
+        select_by_spline(start_use, end_use, selection_span.slice(current_point, spline->size()));
+      }
+      current_point += spline->size();
+    }
+    return VArray<bool>::ForContainer(std::move(selection));
   };
 
   uint64_t hash() const override

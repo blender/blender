@@ -47,25 +47,20 @@ static VArray<float> construct_face_area_gvarray(const MeshComponent &component,
       VArray<float>::ForFunc(mesh->totpoly, area_fn), ATTR_DOMAIN_FACE, domain);
 }
 
-class FaceAreaFieldInput final : public fn::FieldInput {
+class FaceAreaFieldInput final : public GeometryFieldInput {
  public:
-  FaceAreaFieldInput() : fn::FieldInput(CPPType::get<float>(), "Face Area Field")
+  FaceAreaFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Face Area Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-        const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-        return construct_face_area_gvarray(mesh_component, domain);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
+      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+      return construct_face_area_gvarray(mesh_component, domain);
     }
     return {};
   }

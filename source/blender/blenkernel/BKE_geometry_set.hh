@@ -744,13 +744,26 @@ class GeometryComponentFieldContext : public fn::FieldContext {
   }
 };
 
-class AttributeFieldInput : public fn::FieldInput {
+class GeometryFieldInput : public fn::FieldInput {
+ public:
+  using fn::FieldInput::FieldInput;
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 IndexMask mask,
+                                 ResourceScope &scope) const override;
+
+  virtual GVArray get_varray_for_context(const GeometryComponent &component,
+                                         const AttributeDomain domain,
+                                         IndexMask mask) const = 0;
+};
+
+class AttributeFieldInput : public GeometryFieldInput {
  private:
   std::string name_;
 
  public:
   AttributeFieldInput(std::string name, const CPPType &type)
-      : fn::FieldInput(type, name), name_(std::move(name))
+      : GeometryFieldInput(type, name), name_(std::move(name))
   {
     category_ = Category::NamedAttribute;
   }
@@ -767,9 +780,9 @@ class AttributeFieldInput : public fn::FieldInput {
     return name_;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
 
@@ -777,16 +790,16 @@ class AttributeFieldInput : public fn::FieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
-class IDAttributeFieldInput : public fn::FieldInput {
+class IDAttributeFieldInput : public GeometryFieldInput {
  public:
-  IDAttributeFieldInput() : fn::FieldInput(CPPType::get<int>())
+  IDAttributeFieldInput() : GeometryFieldInput(CPPType::get<int>())
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
 
@@ -794,7 +807,7 @@ class IDAttributeFieldInput : public fn::FieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
-class AnonymousAttributeFieldInput : public fn::FieldInput {
+class AnonymousAttributeFieldInput : public GeometryFieldInput {
  private:
   /**
    * A strong reference is required to make sure that the referenced attribute is not removed
@@ -807,7 +820,7 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
   AnonymousAttributeFieldInput(StrongAnonymousAttributeID anonymous_id,
                                const CPPType &type,
                                std::string producer_name)
-      : fn::FieldInput(type, anonymous_id.debug_name()),
+      : GeometryFieldInput(type, anonymous_id.debug_name()),
         anonymous_id_(std::move(anonymous_id)),
         producer_name_(producer_name)
   {
@@ -823,9 +836,9 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
     return fn::Field<T>{field_input};
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &scope) const override;
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
 

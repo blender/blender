@@ -61,29 +61,24 @@ static VArray<int> construct_edge_vertices_gvarray(const MeshComponent &componen
   return {};
 }
 
-class EdgeVerticesFieldInput final : public fn::FieldInput {
+class EdgeVerticesFieldInput final : public GeometryFieldInput {
  private:
   VertexNumber vertex_;
 
  public:
   EdgeVerticesFieldInput(VertexNumber vertex)
-      : fn::FieldInput(CPPType::get<int>(), "Edge Vertices Field"), vertex_(vertex)
+      : GeometryFieldInput(CPPType::get<int>(), "Edge Vertices Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-        const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-        return construct_edge_vertices_gvarray(mesh_component, vertex_, domain);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
+      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+      return construct_edge_vertices_gvarray(mesh_component, vertex_, domain);
     }
     return {};
   }
@@ -128,29 +123,24 @@ static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &comp
       domain);
 }
 
-class EdgePositionFieldInput final : public fn::FieldInput {
+class EdgePositionFieldInput final : public GeometryFieldInput {
  private:
   VertexNumber vertex_;
 
  public:
   EdgePositionFieldInput(VertexNumber vertex)
-      : fn::FieldInput(CPPType::get<float3>(), "Edge Position Field"), vertex_(vertex)
+      : GeometryFieldInput(CPPType::get<float3>(), "Edge Position Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-        const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-        return construct_edge_positions_gvarray(mesh_component, vertex_, domain);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
+      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+      return construct_edge_positions_gvarray(mesh_component, vertex_, domain);
     }
     return {};
   }

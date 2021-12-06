@@ -440,7 +440,7 @@ class IndexFieldInput final : public FieldInput {
  public:
   IndexFieldInput();
 
-  static GVArray get_index_varray(IndexMask mask, ResourceScope &scope);
+  static GVArray get_index_varray(IndexMask mask);
 
   GVArray get_varray_for_context(const FieldContext &context,
                                  IndexMask mask,
