@@ -93,11 +93,9 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 blender::float2 space_node_group_offset(const SpaceNode &snode);
 
 float node_socket_calculate_height(const bNodeSocket &socket);
-void node_link_calculate_multi_input_position(const float socket_x,
-                                              const float socket_y,
-                                              const int index,
-                                              const int total_inputs,
-                                              float r[2]);
+blender::float2 node_link_calculate_multi_input_position(const blender::float2 &socket_position,
+                                                         int index,
+                                                         int total_inputs);
 
 int node_get_colorid(bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);

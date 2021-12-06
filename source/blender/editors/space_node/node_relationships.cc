@@ -440,17 +440,6 @@ struct LinkAndPosition {
   float2 multi_socket_position;
 };
 
-static int compare_link_by_y_position(const void *a, const void *b)
-{
-  const LinkAndPosition *link_and_position_a = *(const LinkAndPosition **)a;
-  const LinkAndPosition *link_and_position_b = *(const LinkAndPosition **)b;
-
-  BLI_assert(link_and_position_a->link->tosock == link_and_position_b->link->tosock);
-  const float link_a_y = link_and_position_a->multi_socket_position[1];
-  const float link_b_y = link_and_position_b->multi_socket_position[1];
-  return link_a_y > link_b_y ? 1 : -1;
-}
-
 void sort_multi_input_socket_links(SpaceNode &snode,
                                    bNode &node,
                                    bNodeLink *drag_link,
@@ -460,50 +449,34 @@ void sort_multi_input_socket_links(SpaceNode &snode,
     if (!(socket->flag & SOCK_MULTI_INPUT)) {
       continue;
     }
-    /* The total is calculated in #node_update_nodetree, which runs before this draw step. */
-    int total_inputs = socket->total_inputs + 1;
-    struct LinkAndPosition **input_links = (LinkAndPosition **)MEM_malloc_arrayN(
-        total_inputs, sizeof(LinkAndPosition *), __func__);
+    Vector<LinkAndPosition, 8> links;
 
-    int index = 0;
     LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
       if (link->tosock == socket) {
-        struct LinkAndPosition *link_and_position = (LinkAndPosition *)MEM_callocN(
-            sizeof(struct LinkAndPosition), __func__);
-        link_and_position->link = link;
-        node_link_calculate_multi_input_position(link->tosock->locx,
-                                                 link->tosock->locy,
-                                                 link->multi_input_socket_index,
-                                                 link->tosock->total_inputs,
-                                                 link_and_position->multi_socket_position);
-        input_links[index] = link_and_position;
-        index++;
+        links.append(
+            {link,
+             node_link_calculate_multi_input_position({link->tosock->locx, link->tosock->locy},
+                                                      link->multi_input_socket_index,
+                                                      link->tosock->total_inputs)});
       }
     }
 
     if (drag_link) {
-      LinkAndPosition *link_and_position = (LinkAndPosition *)MEM_callocN(sizeof(LinkAndPosition),
-                                                                          __func__);
-      link_and_position->link = drag_link;
+      LinkAndPosition link_and_position{};
+      link_and_position.link = drag_link;
       if (cursor) {
-        link_and_position->multi_socket_position = *cursor;
+        link_and_position.multi_socket_position = *cursor;
       }
-      input_links[index] = link_and_position;
-      index++;
+      links.append(link_and_position);
     }
 
-    qsort(input_links, index, sizeof(bNodeLink *), compare_link_by_y_position);
+    std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
+      return a.multi_socket_position.y < b.multi_socket_position.y;
+    });
 
-    for (int i = 0; i < index; i++) {
-      input_links[i]->link->multi_input_socket_index = i;
+    for (const int i : links.index_range()) {
+      links[i].link->multi_input_socket_index = i;
     }
-
-    for (int i = 0; i < index; i++) {
-      if (input_links[i]) {
-        MEM_freeN(input_links[i]);
-      }
-    }
-    MEM_freeN(input_links);
   }
 }
 

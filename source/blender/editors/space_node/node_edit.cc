@@ -111,15 +111,14 @@ float node_socket_calculate_height(const bNodeSocket &socket)
   return sock_height;
 }
 
-void node_link_calculate_multi_input_position(const float socket_x,
-                                              const float socket_y,
-                                              const int index,
-                                              const int total_inputs,
-                                              float r[2])
+float2 node_link_calculate_multi_input_position(const float2 &socket_position,
+                                                const int index,
+                                                const int total_inputs)
 {
-  float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) * 0.5;
-  r[0] = socket_x - NODE_SOCKSIZE * 0.5f;
-  r[1] = socket_y - offset + (index * NODE_MULTI_INPUT_LINK_GAP);
+  const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
+                       0.5f;
+  return {socket_position.x - NODE_SOCKSIZE * 0.5f,
+          socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
 }
 
 static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)

@@ -3529,11 +3529,11 @@ bool node_link_bezier_handles(const View2D *v2d,
     vec[0][0] = link.fromsock->locx;
     vec[0][1] = link.fromsock->locy;
     if (link.fromsock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link.fromsock->locx,
-                                               link.fromsock->locy,
-                                               link.fromsock->total_inputs - 1,
-                                               link.fromsock->total_inputs,
-                                               vec[0]);
+      const float2 position = node_link_calculate_multi_input_position(
+          {link.fromsock->locx, link.fromsock->locy},
+          link.fromsock->total_inputs - 1,
+          link.fromsock->total_inputs);
+      copy_v2_v2(vec[0], position);
     }
     fromreroute = (link.fromnode && link.fromnode->type == NODE_REROUTE);
   }
@@ -3548,11 +3548,11 @@ bool node_link_bezier_handles(const View2D *v2d,
     vec[3][0] = link.tosock->locx;
     vec[3][1] = link.tosock->locy;
     if (!(link.tonode->flag & NODE_HIDDEN) && link.tosock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link.tosock->locx,
-                                               link.tosock->locy,
-                                               link.multi_input_socket_index,
-                                               link.tosock->total_inputs,
-                                               vec[3]);
+      const float2 position = node_link_calculate_multi_input_position(
+          {link.tosock->locx, link.tosock->locy},
+          link.multi_input_socket_index,
+          link.tosock->total_inputs);
+      copy_v2_v2(vec[3], position);
     }
     toreroute = (link.tonode && link.tonode->type == NODE_REROUTE);
   }
