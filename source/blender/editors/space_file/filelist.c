@@ -1624,6 +1624,9 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
 
+  /* Move ownership to the done queue. */
+  preview_taskdata->preview = NULL;
+
   BLI_thread_queue_push(cache->previews_done, preview);
   atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
 
@@ -1633,6 +1636,12 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
   FileListEntryPreviewTaskData *preview_taskdata = taskdata;
+
+  /* In case the preview wasn't moved to the "done" queue yet. */
+  if (preview_taskdata->preview) {
+    MEM_freeN(preview_taskdata->preview);
+  }
+
   MEM_freeN(preview_taskdata);
 }
 
