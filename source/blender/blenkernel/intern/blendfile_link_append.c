@@ -1056,12 +1056,6 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     }
     BLI_assert(item->userdata == NULL);
 
-    /* Linked IDs should never be marked as needing post-processing (instantiation of loose
-     * objects etc.).
-     * NOTE: This is a developer test check, can be removed once we get rid of instantiation code
-     * in BLO completely.*/
-    BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
-
     ID *existing_local_id = BKE_idtype_idcode_append_is_reusable(GS(id->name)) ?
                                 BKE_main_library_weak_reference_search_item(
                                     lapp_context->library_weak_reference_mapping,
@@ -1380,12 +1374,6 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
         continue;
       }
       BLI_assert(item->userdata == NULL);
-
-      /* Linked IDs should never be marked as needing post-processing (instantiation of loose
-       * objects etc.).
-       * NOTE: This is developer test check, can be removed once we get rid of instantiation code
-       * in BLO completely.*/
-      BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
 
       BlendfileLinkAppendContextCallBack cb_data = {
           .lapp_context = lapp_context, .item = item, .reports = reports};
