@@ -919,6 +919,14 @@ static void v3d_cursor_snap_free(void)
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
 {
   g_data_intern.state_default = *state;
+
+  /* These values are temporarily set by the tool.
+   * They are not convenient as default values.
+   * So reset to null. */
+  g_data_intern.state_default.gzgrp_type = NULL;
+  g_data_intern.state_default.prevpoint = NULL;
+  g_data_intern.state_default.draw_plane = false;
+  g_data_intern.state_default.draw_box = false;
 }
 
 V3DSnapCursorState *ED_view3d_cursor_snap_active(void)
