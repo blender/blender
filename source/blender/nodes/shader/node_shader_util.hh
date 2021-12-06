@@ -39,10 +39,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_color.hh"
 #include "BLI_float3.hh"
-#include "BLI_math.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"

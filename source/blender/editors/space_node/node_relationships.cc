@@ -26,9 +26,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_easing.h"
-#include "BLI_math.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"

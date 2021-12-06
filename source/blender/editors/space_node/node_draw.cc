@@ -35,7 +35,6 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_set.hh"
