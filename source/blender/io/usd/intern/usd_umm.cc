@@ -95,75 +95,85 @@ static void print_obj(PyObject *obj)
   }
 }
 
-static bool report_notification(PyObject *dict)
+namespace {
+
+enum eUMMNotification {
+  UMM_NOTIFICATION_NONE = 0,
+  UMM_NOTIFICATION_SUCCESS,
+  UMM_NOTIFICATION_FAILURE
+};
+
+}  // anonymous namespace
+
+static eUMMNotification report_notification(PyObject *dict)
 {
   if (!dict) {
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   if (!PyDict_Check(dict)) {
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   PyObject *notification_item = PyDict_GetItemString(dict, "umm_notification");
 
   if (!notification_item) {
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   PyObject *message_item = PyDict_GetItemString(dict, "message");
 
   if (!message_item) {
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   if (!PyUnicode_Check(notification_item)) {
     std::cerr << "WARNING: 'umm_notification' value is not a string" << std::endl;
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   const char *notification_str = PyUnicode_AsUTF8(notification_item);
 
   if (!notification_str) {
     std::cerr << "WARNING: couldn't get 'umm_notification' string value" << std::endl;
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   if (strcmp(notification_str, "success") == 0) {
     /* We don't report success, do nothing. */
-    return true;
+    return UMM_NOTIFICATION_SUCCESS;
   }
 
   if (!PyUnicode_Check(message_item)) {
     std::cerr << "WARNING: 'message' value is not a string" << std::endl;
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   const char *message_str = PyUnicode_AsUTF8(message_item);
 
   if (!message_str) {
     std::cerr << "WARNING: couldn't get 'message' string value" << std::endl;
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   if (strlen(message_str) == 0) {
     std::cerr << "WARNING: empty 'message' string value" << std::endl;
-    return false;
+    return UMM_NOTIFICATION_NONE;
   }
 
   if (strcmp(notification_str, "incomplete_process") == 0) {
     WM_reportf(RPT_WARNING, message_str);
-    return true;
+    return UMM_NOTIFICATION_FAILURE;
   }
 
   if (strcmp(notification_str, "unexpected_error") == 0) {
     WM_reportf(RPT_ERROR, message_str);
-    return true;
+    return UMM_NOTIFICATION_FAILURE;
   }
 
   std::cout << "WARNING: unknown notification type: " << notification_str << std::endl;
 
-  return false;
+  return UMM_NOTIFICATION_NONE;
 }
 
 static bool is_none_value(PyObject *tup)
@@ -394,6 +404,8 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
 
     pxr::UsdAttribute usd_attr = input.GetAttr();
 
+    bool have_connected_source = false;
+
     if (input.HasConnectedSource()) {
       pxr::UsdShadeConnectableAPI source;
       pxr::TfToken source_name;
@@ -401,6 +413,7 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
 
       if (input.GetConnectedSource(&source, &source_name, &source_type)) {
         usd_attr = source.GetInput(source_name).GetAttr();
+        have_connected_source = true;
       }
       else {
         std::cerr << "ERROR: couldn't get connected source for usd shader input "
@@ -440,6 +453,12 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
       }
 
       pxr::TfToken color_space_tok = usd_attr.GetColorSpace();
+
+      if (color_space_tok.IsEmpty() && have_connected_source) {
+        /* The connected asset input has no color space specified,
+         * so we also check the shader's asset input for this data. */
+        color_space_tok = input.GetAttr().GetColorSpace();
+      }
 
       std::string color_space_str = !color_space_tok.IsEmpty() ? color_space_tok.GetString() :
                                                                  "sRGB";
@@ -576,8 +595,8 @@ static bool import_material(Material *mtl,
   if (ret) {
     std::cout << "result:\n";
     print_obj(ret);
-    if (report_notification(ret)) {
-      /* The function returned a notification object,
+    if (report_notification(ret) == UMM_NOTIFICATION_FAILURE) {
+      /* The function returned a notification object
        * indicating a failure. */
       success = false;
     }
@@ -715,7 +734,10 @@ bool umm_module_loaded()
   return loaded;
 }
 
-bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_material, bool verbose)
+bool umm_import_mdl_material(Material *mtl,
+                             const pxr::UsdShadeMaterial &usd_material,
+                             bool verbose,
+                             bool *r_has_mdl)
 {
   if (!(mtl && usd_material)) {
     return false;
@@ -731,6 +753,9 @@ bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_materia
       if (verbose) {
         std::cout << "No mdl source asset for shader " << surf_shader.GetPath() << std::endl;
       }
+      if (r_has_mdl) {
+        *r_has_mdl = false;
+      }
       return false;
     }
     pxr::TfToken source_asset_sub_identifier;
@@ -739,7 +764,14 @@ bool umm_import_material(Material *mtl, const pxr::UsdShadeMaterial &usd_materia
         std::cout << "No mdl source asset sub identifier for shader " << surf_shader.GetPath()
                   << std::endl;
       }
+      if (r_has_mdl) {
+        *r_has_mdl = false;
+      }
       return false;
+    }
+
+    if (r_has_mdl) {
+      *r_has_mdl = true;
     }
 
     std::string path = source_asset.GetAssetPath();
@@ -820,8 +852,8 @@ bool umm_export_material(const USDExporterContext &usd_export_context,
     std::cout << "result:\n";
     print_obj(ret);
 
-    if (report_notification(ret)) {
-      /* The function returned a notification object,
+    if (report_notification(ret) == UMM_NOTIFICATION_FAILURE) {
+      /* The function returned a notification object
        * indicating a failure. */
       success = false;
     }

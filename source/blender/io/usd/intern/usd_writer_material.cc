@@ -141,6 +141,60 @@ static void ensure_forward_slashes(char *buf, int size)
   }
 }
 
+static std::string get_in_memory_texture_filename(bNode *node)
+{
+  if (!node) {
+    return "";
+  }
+
+  Image *ima = reinterpret_cast<Image *>(node->id);
+
+  if (!ima) {
+    return "";
+  }
+
+  if (strlen(ima->filepath) > 0) {
+    /* We only generate a filename if the image
+     * doesn't already have one. */
+    return "";
+  }
+
+  /* TODO(makowalsk): the following code overlaps with
+   * export_in_memory_texture(), see if we can consolidate
+   * the common functionality. */
+
+  bool is_dirty = BKE_image_is_dirty(ima);
+  bool is_generated = ima->source == IMA_SRC_GENERATED;
+  bool is_packed = BKE_image_has_packedfile(ima);
+
+  if (!(is_generated || is_dirty || is_packed)) {
+    return "";
+  }
+
+  char file_name[FILE_MAX];
+  file_name[0] = '\0';
+
+  /* Try using the iamge name for the file name. */
+  /* Sanity check. */
+  if (strlen(ima->id.name) < 3) {
+    return "";
+  }
+
+  strcpy(file_name, ima->id.name + 2);
+
+  ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
+  if (!imbuf) {
+    return "";
+  }
+
+  ImageFormatData imageFormat;
+  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+
+  BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
+
+  return file_name;
+}
+
 static void export_in_memory_texture(Image *ima, const std::string &export_dir)
 {
   if (!ima) {
@@ -1136,7 +1190,7 @@ bNode *traverse_channel(bNodeSocket *input, short target_type)
 /* Creates a USD Preview Surface node based on given cycles shading node */
 pxr::UsdShadeShader create_usd_preview_shader_node(USDExporterContext const &usd_export_context_,
                                                    pxr::UsdShadeMaterial &material,
-                                                   char *name,
+                                                   const char *name,
                                                    int type,
                                                    bNode *node)
 {
@@ -2017,7 +2071,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
             pxr::UsdShadeShader uvShader = create_usd_preview_shader_node(
                 usd_export_context_,
                 usd_material,
-                const_cast<char *>("uvmap"),
+                "uvmap",
                 SH_NODE_TEX_COORD,
                 NULL);
             if (!uvShader.GetPrim().IsValid())
@@ -2287,6 +2341,13 @@ std::string get_node_tex_image_filepath(bNode *node,
                                         const USDExportParams &export_params)
 {
   std::string image_path = get_node_tex_image_filepath(node);
+
+  if (image_path.empty() && export_params.export_textures) {
+    /* The path may be empty because this is an in-memory texture.
+     * Since we are exporting textures, check if this is an
+     * in-memory texture for which we can generate a file name. */
+    image_path = get_in_memory_texture_filename(node);
+  }
 
   return get_texture_filepath(image_path, stage, export_params);
 }

@@ -116,6 +116,8 @@ static void link_nodes(
   nodeAddLink(ntree, source, source_socket, dest, dest_socket);
 }
 
+/* Returns a layer handle retrieved from the given attribute's property specs.
+ * Note that the returned handle may be invalid if no layer could be found. */
 static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &Attribute)
 {
   for (auto PropertySpec : Attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
@@ -128,36 +130,78 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &Attribute)
   return pxr::SdfLayerHandle();
 }
 
-static void add_udim_tiles(Image *image)
+/* If the given file path contains a UDIM token, examine files
+ * on disk to determine the indices of the UDIM tiles that are available
+ * to load.  Returns the path to the file corresponding to the lowest tile
+ * index and an array containing valid tile indices in 'r_first_tile_path'
+ * and 'r_tile_indices', respctively.  The function returns true if the
+ * given arguments are valid, if 'file_path' is a UDIM path and
+ * if any tiles were found on disk; it returns false otherwise. */
+static bool get_udim_tiles(const std::string &file_path,
+                           std::string *r_first_tile_path,
+                           std::vector<int> *r_tile_indices)
 {
-  if (!image || strlen(image->filepath) == 0) {
-    return;
+  if (file_path.empty()) {
+    return false;
   }
 
-  char filename[FILE_MAX], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(image->filepath, dirname, filename, sizeof(dirname), sizeof(filename));
+  if (!(r_first_tile_path && r_tile_indices)) {
+    return false;
+  }
 
-  ushort digits;
+  /* Check if we have a UDIM path. */
+  std::size_t udim_token_offset = file_path.find("<UDIM>");
+
+  if (udim_token_offset == std::string::npos) {
+    /* No UDIM token. */
+    return false;
+  }
+
+  /* Create a dummy UDIM path by replacing the '<UDIM>' token
+   * with an arbitrary index, since this is the format expected
+   * as input to the call BLI_path_sequence_decode().  We use the
+   * index 1001, but this will be rplaced by the actual index
+   * of the first tile found on disk. */
+  std::string base_udim_path(file_path);
+  base_udim_path.replace(udim_token_offset, 6, "1001");
+
+  /* Exctract the file and directory names from the path. */
+  char filename[FILE_MAX], dirname[FILE_MAXDIR];
+  BLI_split_dirfile(base_udim_path.c_str(), dirname, filename, sizeof(dirname), sizeof(filename));
+
+  /* Split the base and head portions of the file name. */
+  ushort digits = 0;
   char base_head[FILE_MAX], base_tail[FILE_MAX];
+  base_head[0] = '\0';
+  base_tail[0] = '\0';
   int id = BLI_path_sequence_decode(filename, base_head, base_tail, &digits);
 
+  /* As a sanity check, confirm that we got our original index. */
   if (id != 1001) {
-    return;
+    return false;
   }
 
-  image->source = IMA_SRC_TILED;
-
-  struct direntry *dir;
+  /* Iterate over the directory contents to find files
+   * with matching names and with the expected index format
+   * for UDIMS. */
+  struct direntry *dir = nullptr;
   uint totfile = BLI_filelist_dir_contents(dirname, &dir);
 
-  for (int i = 0; i < totfile; i++) {
+  if (!dir) {
+    return false;
+  }
+
+  for (int i = 0; i < totfile; ++i) {
     if (!(dir[i].type & S_IFREG)) {
       continue;
     }
-    char head[FILE_MAX], tail[FILE_MAX];
-    id = BLI_path_sequence_decode(dir[i].relname, head, tail, &digits);
 
-    if (digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
+    char head[FILE_MAX], tail[FILE_MAX];
+    head[0] = '\0';
+    tail[0] = '\0';
+    int id = BLI_path_sequence_decode(dir[i].relname, head, tail, &digits);
+
+    if (digits == 0 || digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
         !(STREQLEN(base_tail, tail, FILE_MAX))) {
       continue;
     }
@@ -166,10 +210,36 @@ static void add_udim_tiles(Image *image)
       continue;
     }
 
-    BKE_image_add_tile(image, id, nullptr);
+    r_tile_indices->push_back(id);
   }
 
   BLI_filelist_free(dir, totfile);
+
+  if (r_tile_indices->empty()) {
+    return false;
+  }
+
+  std::sort(r_tile_indices->begin(), r_tile_indices->end());
+
+  /* Finally, use the lowest index we found to create the first tile path. */
+  (*r_first_tile_path) = file_path;
+  r_first_tile_path->replace(udim_token_offset, 6, std::to_string(r_tile_indices->front()));
+
+  return true;
+}
+
+/* Add tiles with the given indices to the given image. */
+static void add_udim_tiles(Image *image, const std::vector<int> &indices)
+{
+  if (!image || indices.empty()) {
+    return;
+  }
+
+  image->source = IMA_SRC_TILED;
+
+  for (int i = 0; i < indices.size(); ++i) {
+    BKE_image_add_tile(image, indices[i], nullptr);
+  }
 }
 
 /* Returns true if the given shader may have opacity < 1.0, based
@@ -359,14 +429,14 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     import_usd_preview(mtl, usd_preview);
   }
   else if (params_.import_shaders_mode == USD_IMPORT_MDL) {
-    bool imported_mdl = false;
+    bool has_mdl = false;
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
-    imported_mdl = umm_import_material(mtl, usd_material, true /* Verbose */);
+    umm_import_mdl_material(mtl, usd_material, true /* Verbose */, &has_mdl);
 #endif
-    if (!imported_mdl && usd_preview) {
-      /* We failed to import an MDL, so fall back on importing UsdPreviewSuface. */
-      std::string message = "Couldn't import MDL shaders for material " + mtl_name +
+    if (!has_mdl && usd_preview) {
+      /* The material has no MDL shader, so fall back on importing UsdPreviewSuface. */
+      std::string message = "Material has no MDL shader " + mtl_name +
                             ", importing USD Preview Surface shaders instead";
       WM_reportf(RPT_INFO, message.c_str());
       import_usd_preview(mtl, usd_preview);
@@ -684,6 +754,22 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   /* Try to load the texture image. */
   pxr::UsdShadeInput file_input = usd_shader.GetInput(usdtokens::file);
 
+  /* File input may have a connected source, e.g., if it's been overridden by
+   * an input on the mateial. */
+  if (file_input.HasConnectedSource()) {
+    pxr::UsdShadeConnectableAPI source;
+    pxr::TfToken source_name;
+    pxr::UsdShadeAttributeType source_type;
+
+    if (file_input.GetConnectedSource(&source, &source_name, &source_type)) {
+      file_input = source.GetInput(source_name);
+    }
+    else {
+      std::cerr << "ERROR: couldn't get connected source for file input "
+        << file_input.GetPrim().GetPath() << " " << file_input.GetFullName() << std::endl;
+    }
+  }
+
   if (!file_input) {
     std::cerr << "WARNING: Couldn't get file input for USD shader " << usd_shader.GetPath()
               << std::endl;
@@ -701,22 +787,22 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   std::string file_path = asset_path.GetResolvedPath();
 
-  bool have_udim = false;
-
   if (file_path.empty()) {
+    /* No resolved path, so use the asset path (usually
+     * necessary for UDIM paths). */
     file_path = asset_path.GetAssetPath();
 
-    /* Check if we have a UDIM path. */
-    std::size_t udim_token_offset = file_path.find("<UDIM>");
-
-    if (udim_token_offset != std::string::npos) {
-      have_udim = true;
-      file_path.replace(udim_token_offset, 6, "1001");
-      if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
-        file_path = layer_handle->ComputeAbsolutePath(file_path);
-      }
+    /* Texture paths are frequently relative to the USD, so get
+     * the absolute path. */
+    if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
+      file_path = layer_handle->ComputeAbsolutePath(file_path);
     }
   }
+
+  /* If this is a UDIM texture, this array will store the
+   * UDIM tile indices. */
+  std::vector<int> udim_tile_indices;
+  get_udim_tiles(file_path, &file_path, &udim_tile_indices);
 
   if (file_path.empty()) {
     std::cerr << "WARNING: Couldn't resolve image asset '" << asset_path
@@ -734,8 +820,8 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
-  if (have_udim) {
-    add_udim_tiles(image);
+  if (!udim_tile_indices.empty()) {
+    add_udim_tiles(image, udim_tile_indices);
   }
 
   tex_image->id = &image->id;
@@ -749,6 +835,9 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   if (color_space.IsEmpty()) {
     color_space = file_input.GetAttr().GetColorSpace();
+    /* TODO(makowalski): if the input is from a connected source
+     * and fails to return a color space, should we also check the
+     * color space on the current shader's file input? */
   }
 
   if (ELEM(color_space, usdtokens::RAW, usdtokens::raw)) {

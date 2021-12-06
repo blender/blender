@@ -31,9 +31,10 @@ struct USDExporterContext;
 
 bool umm_module_loaded();
 
-bool umm_import_material(Material *mtl,
-                         const pxr::UsdShadeMaterial &usd_material,
-                         bool verbose = false);
+bool umm_import_mdl_material(Material *mtl,
+                             const pxr::UsdShadeMaterial &usd_material,
+                             bool verbose,
+                             bool *r_has_material);
 
 bool umm_export_material(const USDExporterContext &usd_export_context,
                          const Material *mtl,
