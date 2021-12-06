@@ -714,6 +714,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   float *co_depth = snap_elem ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
   if (snap_elem == 0) {
+    RegionView3D *rv3d = region->regiondata;
     float plane[4];
     if (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) {
       const float *plane_normal = omat[state->plane_axis];
@@ -721,7 +722,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     }
 
     if ((state->plane_depth == V3D_PLACE_DEPTH_CURSOR_VIEW) ||
-        !ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, true, co)) {
+        !ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, rv3d->is_persp, co)) {
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
     }
 
