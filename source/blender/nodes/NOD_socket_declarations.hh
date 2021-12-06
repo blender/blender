@@ -369,26 +369,3 @@ inline Image::Image() : IDSocketDeclaration("NodeSocketImage")
 /** \} */
 
 }  // namespace blender::nodes::decl
-
-/* -------------------------------------------------------------------- */
-/** \name External Template Instantiations
- *
- * Defined in `intern/extern_implementations.cc`.
- * \{ */
-
-namespace blender::nodes {
-#define MAKE_EXTERN_SOCKET_DECLARATION(TYPE) \
-  extern template class SocketDeclarationBuilder<TYPE>; \
-  extern template TYPE::Builder &NodeDeclarationBuilder::add_input<TYPE>(StringRef, StringRef); \
-  extern template TYPE::Builder &NodeDeclarationBuilder::add_output<TYPE>(StringRef, StringRef);
-
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Float)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Int)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Vector)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Bool)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Color)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::String)
-
-}  // namespace blender::nodes
-
-/** \} */

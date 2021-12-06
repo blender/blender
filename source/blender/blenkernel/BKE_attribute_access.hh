@@ -516,19 +516,3 @@ template<typename T> inline MutableSpan<T> OutputAttribute::as_span()
 /** \} */
 
 }  // namespace blender::bke
-
-/* -------------------------------------------------------------------- */
-/** \name External Template Instantiations
- *
- * Defined in `intern/extern_implementations.cc`.
- * \{ */
-
-namespace blender::bke {
-extern template class OutputAttribute_Typed<float>;
-extern template class OutputAttribute_Typed<int>;
-extern template class OutputAttribute_Typed<float3>;
-extern template class OutputAttribute_Typed<bool>;
-extern template class OutputAttribute_Typed<ColorGeometry4f>;
-}  // namespace blender::bke
-
-/** \} */
