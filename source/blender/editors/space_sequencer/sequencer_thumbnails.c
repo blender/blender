@@ -452,7 +452,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   rcti crop;
 
   /* If width of the strip too small ignore drawing thumbnails. */
-  if ((y2 - y1) / pixely <= 40 * U.dpi_fac) {
+  if ((y2 - y1) / pixely <= 20 * U.dpi_fac) {
     return;
   }
 
