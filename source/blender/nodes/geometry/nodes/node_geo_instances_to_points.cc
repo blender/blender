@@ -87,7 +87,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
 
-  for (const auto &item : attributes_to_propagate.items()) {
+  for (const auto item : attributes_to_propagate.items()) {
     const AttributeIDRef &attribute_id = item.key;
     const AttributeKind attribute_kind = item.value;
 
