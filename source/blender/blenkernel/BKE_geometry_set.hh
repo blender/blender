@@ -62,7 +62,9 @@ class ComponentAttributeProviders;
 class GeometryComponent;
 
 /**
- * This is the base class for specialized geometry component types.
+ * This is the base class for specialized geometry component types. A geometry component handles
+ * a user count to allow avoiding duplication when it is wrapped with #UserCounter. It also handles
+ * the attribute API, which generalizes storing and modifying generic information on a geometry.
  */
 class GeometryComponent {
  private:
@@ -256,12 +258,22 @@ template<typename T>
 inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryComponent, T>;
 
 /**
- * A geometry set contains zero or more geometry components. There is at most one component of each
- * type. Individual components might be shared between multiple geometries. Shared components are
- * copied automatically when write access is requested.
+ * A geometry set is a container for multiple kinds of geometry. It does not own geometry directly
+ * itself, instead geometry is owned by multiple #GeometryComponents, and the geometry set
+ * increases the user count of each component, so they avoid losing the data. This means
+ * individual components might be shared between multiple geometries and other code. Shared
+ * components are copied automatically when write access is requested.
+ *
+ * The components usually do not store data by themself, but keep a reference to a data structure
+ * defined elsewhere in Blender. There is at most one component of each type:
+ *  - #MeshComponent
+ *  - #CurveComponent
+ *  - #PointCloudComponent
+ *  - #InstancesComponent
+ *  - #VolumeComponent
  *
  * Copying a geometry set is a relatively cheap operation, because it does not copy the referenced
- * geometry components.
+ * geometry components, so #GeometrySet can often be passed or moved by value.
  */
 struct GeometrySet {
  private:
@@ -339,7 +351,8 @@ struct GeometrySet {
   bool owns_direct_data() const;
   /**
    * Make sure that the geometry can be cached. This does not ensure ownership of object/collection
-   * instances.
+   * instances. This is necessary because sometimes components only have read-only or editing
+   * access to their data, which might be freed later if this geometry set outlasts the data.
    */
   void ensure_owns_direct_data();
 
@@ -472,7 +485,6 @@ struct GeometrySet {
                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
-  /* Utility to retrieve a mutable component without creating it. */
   /**
    * Retrieve the pointer to a component without creating it if it does not exist,
    * unlike #get_component_for_write.
@@ -485,7 +497,13 @@ struct GeometrySet {
   }
 };
 
-/** A geometry component that can store a mesh. */
+/**
+ * A geometry component that can store a mesh, storing the #Mesh data structure.
+ *
+ * Attributes are stored in the mesh itself, on any of the four attribute domains. Generic
+ * attributes are stored in contiguous arrays, but often built-in attributes are stored in an
+ * array of structs fashion for historical reasons, requiring more complex attribute access.
+ */
 class MeshComponent : public GeometryComponent {
  private:
   Mesh *mesh_ = nullptr;
@@ -537,7 +555,16 @@ class MeshComponent : public GeometryComponent {
       const AttributeDomain to_domain) const final;
 };
 
-/** A geometry component that stores a point cloud. */
+/**
+ * A geometry component that stores a point cloud, corresponding to the #PointCloud data structure.
+ * While a point cloud is technically a subset of a mesh in some respects, it is useful because of
+ * its simplicity, partly on a conceptual level for the user, but also in the code, though partly
+ * for historical reasons. Pointclouds can also be rendered in special ways, based on the built-in
+ * `radius` attribute.
+ *
+ * Attributes on point clouds are all stored in contiguous arrays in its #CustomData,
+ * which makes them efficient to process, relative to some legacy built-in mesh attributes.
+ */
 class PointCloudComponent : public GeometryComponent {
  private:
   PointCloud *pointcloud_ = nullptr;
@@ -587,7 +614,13 @@ class PointCloudComponent : public GeometryComponent {
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
-/** A geometry component that stores curve data, in other words, a group of splines. */
+/**
+ * A geometry component that stores curve data, in other words, a group of splines.
+ * Curves are stored differently than other geometry components, because the data structure used
+ * here does not correspond exactly to the #Curve DNA data structure. A #CurveEval is stored here
+ * instead, though the component does give access to a #Curve for interfacing with render engines
+ * and other areas of Blender that expect to use a data-block with an #ID.
+ */
 class CurveComponent : public GeometryComponent {
  private:
   CurveEval *curve_ = nullptr;
@@ -642,6 +675,10 @@ class CurveComponent : public GeometryComponent {
       const AttributeDomain to_domain) const final;
 };
 
+/**
+ * Holds a reference to conceptually unique geometry or a pointer to object/collection data
+ * that is is instanced with a transform in #InstancesComponent.
+ */
 class InstanceReference {
  public:
   enum class Type {
@@ -764,7 +801,19 @@ class InstanceReference {
   }
 };
 
-/** A geometry component that stores instances. */
+/**
+ * A geometry component that stores instances. The instance data can be any type described by
+ * #InstanceReference. Geometry instances can even contain instances themselves, for nested
+ * instancing. Each instance has an index into an array of unique instance data, and a transform.
+ * The component can also store generic attributes for each instance.
+ *
+ * The component works differently from other geometry components in that it stores
+ * data about instancing directly, rather than owning a pointer to a separate data structure.
+ *
+ * This component is not responsible for handling the interface to a render engine, or other
+ * areas that work with all visible geometry, that is handled by the dependency graph iterator
+ * (see `DEG_depsgraph_query.h`).
+ */
 class InstancesComponent : public GeometryComponent {
  private:
   /**
@@ -778,10 +827,10 @@ class InstancesComponent : public GeometryComponent {
   /** Transformation of the instances. */
   blender::Vector<blender::float4x4> instance_transforms_;
 
-  /* These almost unique ids are generated based on `ids_`, which might not contain unique ids at
-   * all. They are *almost* unique, because under certain very unlikely circumstances, they are not
-   * unique. Code using these ids should not crash when they are not unique but can generally
-   * expect them to be unique. */
+  /* These almost unique ids are generated based on the `id` attribute, which might not contain
+   * unique ids at all. They are *almost* unique, because under certain very unlikely
+   * circumstances, they are not unique. Code using these ids should not crash when they are not
+   * unique but can generally expect them to be unique. */
   mutable std::mutex almost_unique_ids_mutex_;
   mutable blender::Array<int> almost_unique_ids_;
 
@@ -796,7 +845,7 @@ class InstancesComponent : public GeometryComponent {
 
   void reserve(int min_capacity);
   /**
-   * Resize the transform, handles, and ID vectors to the specified capacity.
+   * Resize the transform, handles, and attributes to the specified capacity.
    *
    * \note This function should be used carefully, only when it's guaranteed
    * that the data will be filled.
@@ -809,6 +858,11 @@ class InstancesComponent : public GeometryComponent {
    * Otherwise a new handle is added.
    */
   int add_reference(const InstanceReference &reference);
+  /**
+   * Add a reference to the instance reference with an index specified by the #instance_handle
+   * argument. For adding many instances, using #resize and accessing the transform array directly
+   * is preferred.
+   */
   void add_instance(int instance_handle, const blender::float4x4 &transform);
 
   blender::Span<InstanceReference> references() const;
@@ -856,7 +910,11 @@ class InstancesComponent : public GeometryComponent {
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
-/** A geometry component that stores volume grids. */
+/**
+ * A geometry component that stores volume grids, corresponding to the #Volume data structure.
+ * This component does not implement an attribute API, partly because storage of sparse volume
+ * information in grids is much more complicated than it is for other types
+ */
 class VolumeComponent : public GeometryComponent {
  private:
   Volume *volume_ = nullptr;
