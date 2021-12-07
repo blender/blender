@@ -19,7 +19,6 @@
 #include "kernel/device/gpu/parallel_active_index.h"
 #include "kernel/device/gpu/parallel_prefix_sum.h"
 #include "kernel/device/gpu/parallel_sorted_index.h"
-#include "kernel/device/gpu/work_stealing.h"
 
 #include "kernel/sample/lcg.h"
 
@@ -29,6 +28,8 @@
 #ifdef __KERNEL_METAL__
 #  include "kernel/device/metal/context_begin.h"
 #endif
+
+#include "kernel/device/gpu/work_stealing.h"
 
 #include "kernel/integrator/state.h"
 #include "kernel/integrator/state_flow.h"
@@ -96,7 +97,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int state = tile->path_index_offset + tile_work_index;
 
   uint x, y, sample;
-  get_work_pixel(tile, tile_work_index, &x, &y, &sample);
+  ccl_gpu_kernel_call(get_work_pixel(tile, tile_work_index, &x, &y, &sample));
 
   ccl_gpu_kernel_call(
       integrator_init_from_camera(nullptr, state, tile, render_buffer, x, y, sample));
@@ -127,7 +128,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int state = tile->path_index_offset + tile_work_index;
 
   uint x, y, sample;
-  get_work_pixel(tile, tile_work_index, &x, &y, &sample);
+  ccl_gpu_kernel_call(get_work_pixel(tile, tile_work_index, &x, &y, &sample));
 
   ccl_gpu_kernel_call(
       integrator_init_from_bake(nullptr, state, tile, render_buffer, x, y, sample));

@@ -263,6 +263,7 @@ class device_memory {
   friend class CUDADevice;
   friend class OptiXDevice;
   friend class HIPDevice;
+  friend class MetalDevice;
 
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);

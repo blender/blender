@@ -43,7 +43,7 @@ if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
   add_definitions(-DWITH_HIP_DYNLOAD)
 endif()
 
-set(SRC
+set(SRC_BASE
   device.cpp
   denoise.cpp
   graphics_interop.cpp
@@ -104,6 +104,21 @@ set(SRC_MULTI
   multi/device.h
 )
 
+set(SRC_METAL
+  metal/bvh.mm
+  metal/bvh.h
+  metal/device.mm
+  metal/device.h
+  metal/device_impl.mm
+  metal/device_impl.h
+  metal/kernel.mm
+  metal/kernel.h
+  metal/queue.mm
+  metal/queue.h
+  metal/util.mm
+  metal/util.h
+)
+
 set(SRC_OPTIX
   optix/device.cpp
   optix/device.h
@@ -121,6 +136,17 @@ set(SRC_HEADERS
   memory.h
   kernel.h
   queue.h
+)
+
+set(SRC
+  ${SRC_BASE}
+  ${SRC_CPU}
+  ${SRC_CUDA}
+  ${SRC_HIP}
+  ${SRC_DUMMY}
+  ${SRC_MULTI}
+  ${SRC_OPTIX}
+  ${SRC_HEADERS}
 )
 
 set(LIB
@@ -158,6 +184,15 @@ endif()
 if(WITH_CYCLES_DEVICE_OPTIX)
   add_definitions(-DWITH_OPTIX)
 endif()
+if(WITH_CYCLES_DEVICE_METAL)
+  list(APPEND LIB
+    ${METAL_LIBRARY}
+  )
+  add_definitions(-DWITH_METAL)
+  list(APPEND SRC
+    ${SRC_METAL}
+  )
+endif()
 
 if(WITH_OPENIMAGEDENOISE)
   list(APPEND LIB
@@ -168,20 +203,12 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-cycles_add_library(cycles_device "${LIB}"
-  ${SRC}
-  ${SRC_CPU}
-  ${SRC_CUDA}
-  ${SRC_HIP}
-  ${SRC_DUMMY}
-  ${SRC_MULTI}
-  ${SRC_OPTIX}
-  ${SRC_HEADERS}
-)
+cycles_add_library(cycles_device "${LIB}" ${SRC})
 
 source_group("cpu" FILES ${SRC_CPU})
 source_group("cuda" FILES ${SRC_CUDA})
 source_group("dummy" FILES ${SRC_DUMMY})
 source_group("multi" FILES ${SRC_MULTI})
+source_group("metal" FILES ${SRC_METAL})
 source_group("optix" FILES ${SRC_OPTIX})
 source_group("common" FILES ${SRC} ${SRC_HEADERS})

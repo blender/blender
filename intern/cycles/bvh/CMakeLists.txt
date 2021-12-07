@@ -31,6 +31,7 @@ set(SRC
   sort.cpp
   split.cpp
   unaligned.cpp
+  metal.mm
 )
 
 set(SRC_HEADERS
@@ -46,6 +47,7 @@ set(SRC_HEADERS
   sort.h
   split.h
   unaligned.h
+  metal.h
 )
 
 set(LIB

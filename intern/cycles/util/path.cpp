@@ -750,6 +750,170 @@ bool path_remove(const string &path)
   return remove(path.c_str()) == 0;
 }
 
+struct SourceReplaceState {
+  typedef map<string, string> ProcessedMapping;
+  /* Base director for all relative include headers. */
+  string base;
+  /* Result of processed files. */
+  ProcessedMapping processed_files;
+  /* Set of files containing #pragma once which have been included. */
+  set<string> pragma_onced;
+};
+
+static string path_source_replace_includes_recursive(const string &source,
+                                                     const string &source_filepath,
+                                                     SourceReplaceState *state);
+
+static string path_source_handle_preprocessor(const string &preprocessor_line,
+                                              const string &source_filepath,
+                                              const size_t line_number,
+                                              SourceReplaceState *state)
+{
+  string result = preprocessor_line;
+
+  string rest_of_line = string_strip(preprocessor_line.substr(1));
+
+  if (0 == strncmp(rest_of_line.c_str(), "include", 7)) {
+    rest_of_line = string_strip(rest_of_line.substr(8));
+    if (rest_of_line[0] == '"') {
+      const size_t n_start = 1;
+      const size_t n_end = rest_of_line.find("\"", n_start);
+      const string filename = rest_of_line.substr(n_start, n_end - n_start);
+
+      string filepath = path_join(state->base, filename);
+      if (!path_exists(filepath)) {
+        filepath = path_join(path_dirname(source_filepath), filename);
+      }
+      string text;
+      if (path_read_text(filepath, text)) {
+        text = path_source_replace_includes_recursive(text, filepath, state);
+        /* Use line directives for better error messages. */
+        return "\n" + text + "\n";
+      }
+    }
+  }
+
+  return result;
+}
+
+/* Our own little c preprocessor that replaces #includes with the file
+ * contents, to work around issue of OpenCL drivers not supporting
+ * include paths with spaces in them.
+ */
+static string path_source_replace_includes_recursive(const string &_source,
+                                                     const string &source_filepath,
+                                                     SourceReplaceState *state)
+{
+  const string *psource = &_source;
+  string source_new;
+
+  auto pragma_once = _source.find("#pragma once");
+  if (pragma_once != string::npos) {
+    if (state->pragma_onced.find(source_filepath) != state->pragma_onced.end()) {
+      return "";
+    }
+    state->pragma_onced.insert(source_filepath);
+
+    //                                 "#pragma once"
+    //                                 "//prgma once"
+    source_new = _source;
+    memcpy(source_new.data() + pragma_once, "//pr", 4);
+    psource = &source_new;
+  }
+
+  /* Try to re-use processed file without spending time on replacing all
+   * include directives again.
+   */
+  SourceReplaceState::ProcessedMapping::iterator replaced_file = state->processed_files.find(
+      source_filepath);
+  if (replaced_file != state->processed_files.end()) {
+    return replaced_file->second;
+  }
+
+  const string &source = *psource;
+
+  /* Perform full file processing. */
+  string result = "";
+  const size_t source_length = source.length();
+  size_t index = 0;
+  /* Information about where we are in the source. */
+  size_t line_number = 0, column_number = 1;
+  /* Currently gathered non-preprocessor token.
+   * Store as start/length rather than token itself to avoid overhead of
+   * memory re-allocations on each character concatenation.
+   */
+  size_t token_start = 0, token_length = 0;
+  /* Denotes whether we're inside of preprocessor line, together with
+   * preprocessor line itself.
+   *
+   * TODO(sergey): Investigate whether using token start/end position
+   * gives measurable speedup.
+   */
+  bool inside_preprocessor = false;
+  string preprocessor_line = "";
+  /* Actual loop over the whole source. */
+  while (index < source_length) {
+    char ch = source[index];
+
+    if (ch == '\n') {
+      if (inside_preprocessor) {
+        string block = path_source_handle_preprocessor(
+            preprocessor_line, source_filepath, line_number, state);
+
+        if (!block.empty()) {
+          result += block;
+        }
+
+        /* Start gathering net part of the token. */
+        token_start = index;
+        token_length = 0;
+        inside_preprocessor = false;
+        preprocessor_line = "";
+      }
+      column_number = 0;
+      ++line_number;
+    }
+    else if (ch == '#' && column_number == 1 && !inside_preprocessor) {
+      /* Append all possible non-preprocessor token to the result. */
+      if (token_length != 0) {
+        result.append(source, token_start, token_length);
+        token_start = index;
+        token_length = 0;
+      }
+      inside_preprocessor = true;
+    }
+
+    if (inside_preprocessor) {
+      preprocessor_line += ch;
+    }
+    else {
+      ++token_length;
+    }
+    ++index;
+    ++column_number;
+  }
+  /* Append possible tokens which happened before special events handled
+   * above.
+   */
+  if (token_length != 0) {
+    result.append(source, token_start, token_length);
+  }
+  if (inside_preprocessor) {
+    result += path_source_handle_preprocessor(
+        preprocessor_line, source_filepath, line_number, state);
+  }
+  /* Store result for further reuse. */
+  state->processed_files[source_filepath] = result;
+  return result;
+}
+
+string path_source_replace_includes(const string &source, const string &path)
+{
+  SourceReplaceState state;
+  state.base = path;
+  return path_source_replace_includes_recursive(source, path, &state);
+}
+
 FILE *path_fopen(const string &path, const string &mode)
 {
 #ifdef _WIN32

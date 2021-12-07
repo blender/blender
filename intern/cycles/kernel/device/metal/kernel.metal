@@ -126,7 +126,7 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 
 [[intersection(triangle, triangle_data, METALRT_TAGS)]]
 TriangleIntersectionResult
-__anyhit__kernel_metalrt_local_hit_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+__anyhit__cycles_metalrt_local_hit_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                                        ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
                                        uint instance_id [[user_instance_id]],
                                        uint primitive_id [[primitive_id]],
@@ -139,7 +139,7 @@ __anyhit__kernel_metalrt_local_hit_tri(constant KernelParamsMetal &launch_params
 
 [[intersection(bounding_box, triangle_data, METALRT_TAGS)]]
 BoundingBoxIntersectionResult
-__anyhit__kernel_metalrt_local_hit_box(const float ray_tmax [[max_distance]])
+__anyhit__cycles_metalrt_local_hit_box(const float ray_tmax [[max_distance]])
 {
   /* unused function */
   BoundingBoxIntersectionResult result;
@@ -274,7 +274,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
 
 [[intersection(triangle, triangle_data, METALRT_TAGS)]]
 TriangleIntersectionResult
-__anyhit__kernel_metalrt_shadow_all_hit_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+__anyhit__cycles_metalrt_shadow_all_hit_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                                             ray_data MetalKernelContext::MetalRTIntersectionShadowPayload &payload [[payload]],
                                             unsigned int object [[user_instance_id]],
                                             unsigned int primitive_id [[primitive_id]],
@@ -292,7 +292,7 @@ __anyhit__kernel_metalrt_shadow_all_hit_tri(constant KernelParamsMetal &launch_p
 
 [[intersection(bounding_box, triangle_data, METALRT_TAGS)]]
 BoundingBoxIntersectionResult
-__anyhit__kernel_metalrt_shadow_all_hit_box(const float ray_tmax [[max_distance]])
+__anyhit__cycles_metalrt_shadow_all_hit_box(const float ray_tmax [[max_distance]])
 {
   /* unused function */
   BoundingBoxIntersectionResult result;
@@ -345,7 +345,7 @@ inline TReturnType metalrt_visibility_test(constant KernelParamsMetal &launch_pa
 
 [[intersection(triangle, triangle_data, METALRT_TAGS)]]
 TriangleIntersectionResult
-__anyhit__kernel_metalrt_visibility_test_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+__anyhit__cycles_metalrt_visibility_test_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                                              ray_data MetalKernelContext::MetalRTIntersectionPayload &payload [[payload]],
                                              unsigned int object [[user_instance_id]],
                                              unsigned int primitive_id [[primitive_id]])
@@ -362,7 +362,7 @@ __anyhit__kernel_metalrt_visibility_test_tri(constant KernelParamsMetal &launch_
 
 [[intersection(bounding_box, triangle_data, METALRT_TAGS)]]
 BoundingBoxIntersectionResult
-__anyhit__kernel_metalrt_visibility_test_box(const float ray_tmax [[max_distance]])
+__anyhit__cycles_metalrt_visibility_test_box(const float ray_tmax [[max_distance]])
 {
   /* Unused function */
   BoundingBoxIntersectionResult result;

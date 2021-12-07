@@ -111,7 +111,8 @@ enum_device_type = (
     ('CPU', "CPU", "CPU", 0),
     ('CUDA', "CUDA", "CUDA", 1),
     ('OPTIX', "OptiX", "OptiX", 3),
-    ("HIP", "HIP", "HIP", 4)
+    ('HIP', "HIP", "HIP", 4),
+    ('METAL', "Metal", "Metal", 5)
 )
 
 enum_texture_limit = (
@@ -1312,8 +1313,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_device_types(self, context):
         import _cycles
-        has_cuda, has_optix, has_hip = _cycles.get_device_types()
-
+        has_cuda, has_optix, has_hip, has_metal = _cycles.get_device_types()
         list = [('NONE', "None", "Don't use compute device", 0)]
         if has_cuda:
             list.append(('CUDA', "CUDA", "Use CUDA for GPU acceleration", 1))
@@ -1321,6 +1321,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             list.append(('OPTIX', "OptiX", "Use OptiX for GPU acceleration", 3))
         if has_hip:
             list.append(('HIP', "HIP", "Use HIP for GPU acceleration", 4))
+        if has_metal:
+            list.append(('METAL', "Metal", "Use Metal for GPU acceleration", 5))
 
         return list
 
@@ -1346,7 +1348,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def update_device_entries(self, device_list):
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP'}:
+            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP', 'METAL'}:
                 continue
             # Try to find existing Device entry
             entry = self.find_existing_device_entry(device)
@@ -1390,7 +1392,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import _cycles
         # Ensure `self.devices` is not re-allocated when the second call to
         # get_devices_for_type is made, freeing items from the first list.
-        for device_type in ('CUDA', 'OPTIX', 'HIP'):
+        for device_type in ('CUDA', 'OPTIX', 'HIP', 'METAL'):
             self.update_device_entries(_cycles.available_devices(device_type))
 
     # Deprecated: use refresh_devices instead.

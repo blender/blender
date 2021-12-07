@@ -101,6 +101,11 @@ add_definitions(${GL_DEFINITIONS})
 if(WITH_CYCLES_DEVICE_HIP)
   add_definitions(-DWITH_HIP)
 endif()
+
+if(WITH_CYCLES_DEVICE_METAL)
+  add_definitions(-DWITH_METAL)
+endif()
+
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
