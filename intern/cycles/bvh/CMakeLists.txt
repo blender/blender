@@ -41,6 +41,7 @@ if(WITH_CYCLES_DEVICE_METAL)
   list(APPEND SRC
     ${SRC_METAL}
   )
+  add_definitions(-DWITH_METAL)
 endif()
 
 set(SRC_HEADERS
