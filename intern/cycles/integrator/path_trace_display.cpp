@@ -26,20 +26,15 @@ PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(m
 {
 }
 
-void PathTraceDisplay::reset(const BufferParams &buffer_params, const bool reset_rendering)
+void PathTraceDisplay::reset(const BufferParams &buffer_params)
 {
   thread_scoped_lock lock(mutex_);
 
-  params_.full_offset = make_int2(buffer_params.full_x + buffer_params.window_x,
-                                  buffer_params.full_y + buffer_params.window_y);
+  params_.full_offset = make_int2(buffer_params.full_x, buffer_params.full_y);
   params_.full_size = make_int2(buffer_params.full_width, buffer_params.full_height);
-  params_.size = make_int2(buffer_params.window_width, buffer_params.window_height);
+  params_.size = make_int2(buffer_params.width, buffer_params.height);
 
   texture_state_.is_outdated = true;
-
-  if (!reset_rendering) {
-    driver_->next_tile_begin();
-  }
 }
 
 void PathTraceDisplay::mark_texture_updated()

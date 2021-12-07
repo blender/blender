@@ -122,12 +122,6 @@ class TileManager {
   /* Tile size in the image file. */
   static const int IMAGE_TILE_SIZE = 128;
 
-  /* Maximum supported tile size.
-   * Needs to be safe from allocation on a GPU point of view: the display driver needs to be able
-   * to allocate texture with the side size of this value.
-   * Use conservative value which is safe for most of OpenGL drivers and GPUs. */
-  static const int MAX_TILE_SIZE = 8192;
-
  protected:
   /* Get tile configuration for its index.
    * The tile index must be within [0, state_.tile_state_). */

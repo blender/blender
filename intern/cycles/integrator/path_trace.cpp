@@ -115,9 +115,7 @@ bool PathTrace::ready_to_reset()
   return false;
 }
 
-void PathTrace::reset(const BufferParams &full_params,
-                      const BufferParams &big_tile_params,
-                      const bool reset_rendering)
+void PathTrace::reset(const BufferParams &full_params, const BufferParams &big_tile_params)
 {
   if (big_tile_params_.modified(big_tile_params)) {
     big_tile_params_ = big_tile_params;
@@ -130,7 +128,7 @@ void PathTrace::reset(const BufferParams &full_params,
    * It is requires to inform about reset whenever it happens, so that the redraw state tracking is
    * properly updated. */
   if (display_) {
-    display_->reset(big_tile_params, reset_rendering);
+    display_->reset(full_params);
   }
 
   render_state_.has_denoised_result = false;
@@ -624,8 +622,9 @@ void PathTrace::update_display(const RenderWork &render_work)
   if (display_) {
     VLOG(3) << "Perform copy to GPUDisplay work.";
 
-    const int texture_width = render_state_.effective_big_tile_params.window_width;
-    const int texture_height = render_state_.effective_big_tile_params.window_height;
+    const int resolution_divider = render_work.resolution_divider;
+    const int texture_width = max(1, full_params_.width / resolution_divider);
+    const int texture_height = max(1, full_params_.height / resolution_divider);
     if (!display_->update_begin(texture_width, texture_height)) {
       LOG(ERROR) << "Error beginning GPUDisplay update.";
       return;

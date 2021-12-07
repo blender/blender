@@ -45,10 +45,8 @@ void CUDADeviceGraphicsInterop::set_display_interop(
 
   need_clear_ = display_interop.need_clear;
 
-  if (!display_interop.need_recreate) {
-    if (opengl_pbo_id_ == display_interop.opengl_pbo_id && buffer_area_ == new_buffer_area) {
-      return;
-    }
+  if (opengl_pbo_id_ == display_interop.opengl_pbo_id && buffer_area_ == new_buffer_area) {
+    return;
   }
 
   CUDAContextScope scope(device_);
