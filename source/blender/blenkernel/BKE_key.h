@@ -108,7 +108,7 @@ struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
  */
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
 /**
- * \brief copy shape-key attributes, but not key data.or name/UID
+ * \brief copy shape-key attributes, but not key data or name/UID.
  */
 void BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *kb_src);
 /**

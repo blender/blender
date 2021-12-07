@@ -124,7 +124,6 @@ bDeformGroup *BKE_object_defgroup_add(Object *ob)
   return BKE_object_defgroup_add_name(ob, DATA_("Group"));
 }
 
-/* Can't include BKE_object_deform.h right now, due to an enum forward declaration. */
 MDeformVert *BKE_object_defgroup_data_create(ID *id)
 {
   if (GS(id->name) == ID_ME) {

@@ -927,43 +927,27 @@ void BKE_modifiers_test_object(Object *ob)
   }
 }
 
-/* where should this go?, it doesn't fit well anywhere :S - campbell */
-
-/* elubie: changed this to default to the same dir as the render output
- * to prevent saving to C:\ on Windows */
-
-/* campbell: logic behind this...
- *
- * - if the ID is from a library, return library path
- * - else if the file has been saved return the blend file path.
- * - else if the file isn't saved and the ID isn't from a library, return the temp dir.
- */
 const char *BKE_modifier_path_relbase(Main *bmain, Object *ob)
 {
+  /* - If the ID is from a library, return library path.
+   * - Else if the file has been saved return the blend file path.
+   * - Else if the file isn't saved and the ID isn't from a library, return the temp dir.
+   */
   if (G.relbase_valid || ID_IS_LINKED(ob)) {
     return ID_BLEND_PATH(bmain, &ob->id);
   }
 
-  /* last resort, better than using "" which resolves to the current
-   * working directory */
+  /* Last resort, better than using "" which resolves to the current working directory. */
   return BKE_tempdir_session();
 }
 
 const char *BKE_modifier_path_relbase_from_global(Object *ob)
 {
-  if (G.relbase_valid || ID_IS_LINKED(ob)) {
-    return ID_BLEND_PATH_FROM_GLOBAL(&ob->id);
-  }
-
-  /* last resort, better than using "" which resolves to the current
-   * working directory */
-  return BKE_tempdir_session();
+  return BKE_modifier_path_relbase(G_MAIN, ob);
 }
 
 void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
 {
-  /* elubie: changed this to default to the same dir as the render output
-   * to prevent saving to C:\ on Windows */
   BLI_join_dirfile(path, path_maxlen, G.relbase_valid ? "//" : BKE_tempdir_session(), name);
 }
 
