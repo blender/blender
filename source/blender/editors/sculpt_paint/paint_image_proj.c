@@ -4649,13 +4649,7 @@ static void project_paint_end(ProjPaintState *ps)
 /* 1 = an undo, -1 is a redo. */
 static void partial_redraw_single_init(ImagePaintPartialRedraw *pr)
 {
-  pr->x1 = INT_MAX;
-  pr->y1 = INT_MAX;
-
-  pr->x2 = -1;
-  pr->y2 = -1;
-
-  pr->enabled = 1;
+  BLI_rcti_init_minmax(&pr->dirty_region);
 }
 
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
@@ -4671,16 +4665,11 @@ static bool partial_redraw_array_merge(ImagePaintPartialRedraw *pr,
                                        ImagePaintPartialRedraw *pr_other,
                                        int tot)
 {
-  bool touch = 0;
+  bool touch = false;
   while (tot--) {
-    pr->x1 = min_ii(pr->x1, pr_other->x1);
-    pr->y1 = min_ii(pr->y1, pr_other->y1);
-
-    pr->x2 = max_ii(pr->x2, pr_other->x2);
-    pr->y2 = max_ii(pr->y2, pr_other->y2);
-
-    if (pr->x2 != -1) {
-      touch = 1;
+    BLI_rcti_do_minmax_rcti(&pr->dirty_region, &pr_other->dirty_region);
+    if (!BLI_rcti_is_empty(&pr->dirty_region)) {
+      touch = true;
     }
 
     pr++;
@@ -4703,7 +4692,7 @@ static bool project_image_refresh_tagged(ProjPaintState *ps)
       /* look over each bound cell */
       for (i = 0; i < PROJ_BOUNDBOX_SQUARED; i++) {
         pr = &(projIma->partRedrawRect[i]);
-        if (pr->x2 != -1) { /* TODO: use 'enabled' ? */
+        if (BLI_rcti_is_valid(&pr->dirty_region)) {
           set_imapaintpartial(pr);
           imapaint_image_update(NULL, projIma->ima, projIma->ibuf, &projIma->iuser, true);
           redraw = 1;
@@ -5117,11 +5106,10 @@ static void do_projectpaint_mask_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
                                               const ProjPixel *projPixel)
 {
-  cell->x1 = min_ii(cell->x1, (int)projPixel->x_px);
-  cell->y1 = min_ii(cell->y1, (int)projPixel->y_px);
-
-  cell->x2 = max_ii(cell->x2, (int)projPixel->x_px + 1);
-  cell->y2 = max_ii(cell->y2, (int)projPixel->y_px + 1);
+  rcti rect_to_add;
+  BLI_rcti_init(
+      &rect_to_add, projPixel->x_px, projPixel->x_px + 1, projPixel->y_px, projPixel->y_px + 1);
+  BLI_rcti_do_minmax_rcti(&cell->dirty_region, &rect_to_add);
 }
 
 static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)

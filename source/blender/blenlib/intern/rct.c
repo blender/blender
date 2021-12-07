@@ -30,6 +30,7 @@
 #include <float.h>
 #include <limits.h>
 
+#include "BLI_math_base.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -539,6 +540,14 @@ void BLI_rcti_do_minmax_v(rcti *rect, const int xy[2])
   if (xy[1] > rect->ymax) {
     rect->ymax = xy[1];
   }
+}
+
+void BLI_rcti_do_minmax_rcti(rcti *rect, const rcti *other)
+{
+  rect->xmin = min_ii(rect->xmin, other->xmin);
+  rect->xmax = max_ii(rect->xmax, other->xmax);
+  rect->ymin = min_ii(rect->ymin, other->ymin);
+  rect->ymax = max_ii(rect->ymax, other->ymax);
 }
 
 void BLI_rctf_do_minmax_v(rctf *rect, const float xy[2])

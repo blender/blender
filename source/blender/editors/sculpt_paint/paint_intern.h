@@ -24,6 +24,9 @@
 #pragma once
 
 #include "BKE_paint.h"
+
+#include "BLI_rect.h"
+
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
@@ -45,7 +48,6 @@ struct Scene;
 struct VPaint;
 struct ViewContext;
 struct bContext;
-struct rcti;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
@@ -180,8 +182,7 @@ void ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle);
 
 /* paint_image.c */
 typedef struct ImagePaintPartialRedraw {
-  int x1, y1, x2, y2; /* XXX, could use 'rcti' */
-  int enabled;
+  rcti dirty_region;
 } ImagePaintPartialRedraw;
 
 bool image_texture_paint_poll(struct bContext *C);

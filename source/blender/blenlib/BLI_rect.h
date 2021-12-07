@@ -48,6 +48,7 @@ void BLI_rcti_init_minmax(struct rcti *rect);
 void BLI_rctf_init_minmax(struct rctf *rect);
 void BLI_rcti_do_minmax_v(struct rcti *rect, const int xy[2]);
 void BLI_rctf_do_minmax_v(struct rctf *rect, const float xy[2]);
+void BLI_rcti_do_minmax_rcti(struct rcti *rect, const struct rcti *other);
 
 void BLI_rctf_transform_pt_v(const rctf *dst,
                              const rctf *src,

@@ -87,7 +87,7 @@
  * Maybe it should be exposed as part of the paint operation,
  * but for now just give a public interface.
  */
-static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
+static ImagePaintPartialRedraw imapaintpartial = {{0}};
 
 ImagePaintPartialRedraw *get_imapaintpartial(void)
 {
@@ -103,7 +103,7 @@ void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr)
 
 void ED_imapaint_clear_partial_redraw(void)
 {
-  memset(&imapaintpartial, 0, sizeof(imapaintpartial));
+  BLI_rcti_init_minmax(&imapaintpartial.dirty_region);
 }
 
 void imapaint_region_tiles(
@@ -132,19 +132,9 @@ void ED_imapaint_dirty_region(
     return;
   }
 
-  if (!imapaintpartial.enabled) {
-    imapaintpartial.x1 = x;
-    imapaintpartial.y1 = y;
-    imapaintpartial.x2 = x + w;
-    imapaintpartial.y2 = y + h;
-    imapaintpartial.enabled = 1;
-  }
-  else {
-    imapaintpartial.x1 = min_ii(imapaintpartial.x1, x);
-    imapaintpartial.y1 = min_ii(imapaintpartial.y1, y);
-    imapaintpartial.x2 = max_ii(imapaintpartial.x2, x + w);
-    imapaintpartial.y2 = max_ii(imapaintpartial.y2, y + h);
-  }
+  rcti rect_to_merge;
+  BLI_rcti_init(&rect_to_merge, x, x + w, y, y + h);
+  BLI_rcti_do_minmax_rcti(&imapaintpartial.dirty_region, &rect_to_merge);
 
   imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
 
@@ -167,23 +157,27 @@ void ED_imapaint_dirty_region(
 void imapaint_image_update(
     SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint)
 {
-  if (imapaintpartial.x1 != imapaintpartial.x2 && imapaintpartial.y1 != imapaintpartial.y2) {
-    IMB_partial_display_buffer_update_delayed(
-        ibuf, imapaintpartial.x1, imapaintpartial.y1, imapaintpartial.x2, imapaintpartial.y2);
+  if (BLI_rcti_is_empty(&imapaintpartial.dirty_region)) {
+    return;
   }
 
   if (ibuf->mipmap[0]) {
     ibuf->userflags |= IB_MIPMAP_INVALID;
   }
 
+  IMB_partial_display_buffer_update_delayed(ibuf,
+                                            imapaintpartial.dirty_region.xmin,
+                                            imapaintpartial.dirty_region.ymin,
+                                            imapaintpartial.dirty_region.xmax,
+                                            imapaintpartial.dirty_region.ymax);
+
   /* TODO: should set_tpage create ->rect? */
   if (texpaint || (sima && sima->lock)) {
-    int w = imapaintpartial.x2 - imapaintpartial.x1;
-    int h = imapaintpartial.y2 - imapaintpartial.y1;
-    if (w && h) {
-      /* Testing with partial update in uv editor too */
-      BKE_image_update_gputexture(image, iuser, imapaintpartial.x1, imapaintpartial.y1, w, h);
-    }
+    const int w = BLI_rcti_size_x(&imapaintpartial.dirty_region);
+    const int h = BLI_rcti_size_y(&imapaintpartial.dirty_region);
+    /* Testing with partial update in uv editor too */
+    BKE_image_update_gputexture(
+        image, iuser, imapaintpartial.dirty_region.xmin, imapaintpartial.dirty_region.ymin, w, h);
   }
 }
 
