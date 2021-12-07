@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_curve_primitive_bezier_segment_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveBezierSegment)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Resolution"))
@@ -120,10 +122,9 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurvePrimitiveBezierSegment *node_storage =
-      (NodeGeometryCurvePrimitiveBezierSegment *)params.node().storage;
+  const NodeGeometryCurvePrimitiveBezierSegment &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveBezierSegmentMode mode =
-      (const GeometryNodeCurvePrimitiveBezierSegmentMode)node_storage->mode;
+      (const GeometryNodeCurvePrimitiveBezierSegmentMode)storage.mode;
 
   std::unique_ptr<CurveEval> curve = create_bezier_segment_curve(
       params.extract_input<float3>("Start"),

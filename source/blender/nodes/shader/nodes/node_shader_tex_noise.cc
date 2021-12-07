@@ -21,6 +21,8 @@
 
 #include "BLI_noise.hh"
 
+NODE_STORAGE_FUNCS(NodeTexNoise)
+
 namespace blender::nodes {
 
 static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
@@ -71,8 +73,8 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexNoise *tex = (NodeTexNoise *)node->storage;
-  const char *name = gpu_shader_get_name(tex->dimensions);
+  const NodeTexNoise &storage = node_storage(*node);
+  const char *name = gpu_shader_get_name(storage.dimensions);
   return GPU_stack_link(mat, node, name, in, out);
 }
 
@@ -81,9 +83,9 @@ static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
 
-  NodeTexNoise *tex = (NodeTexNoise *)node->storage;
-  nodeSetSocketAvailability(ntree, sockVector, tex->dimensions != 1);
-  nodeSetSocketAvailability(ntree, sockW, tex->dimensions == 1 || tex->dimensions == 4);
+  const NodeTexNoise &storage = node_storage(*node);
+  nodeSetSocketAvailability(ntree, sockVector, storage.dimensions != 1);
+  nodeSetSocketAvailability(ntree, sockW, storage.dimensions == 1 || storage.dimensions == 4);
 }
 
 namespace blender::nodes {
@@ -241,9 +243,8 @@ class NoiseFunction : public fn::MultiFunction {
 
 static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
-  NodeTexNoise *tex = (NodeTexNoise *)node.storage;
-  builder.construct_and_set_matching_fn<NoiseFunction>(tex->dimensions);
+  const NodeTexNoise &storage = node_storage(builder.node());
+  builder.construct_and_set_matching_fn<NoiseFunction>(storage.dimensions);
 }
 
 }  // namespace blender::nodes

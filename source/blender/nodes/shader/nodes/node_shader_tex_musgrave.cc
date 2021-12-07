@@ -21,6 +21,8 @@
 
 #include "BLI_noise.hh"
 
+NODE_STORAGE_FUNCS(NodeTexMusgrave)
+
 namespace blender::nodes {
 
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
@@ -106,23 +108,23 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
 
 static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
 {
-  NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
+  const NodeTexMusgrave &storage = node_storage(*node);
 
   bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(ntree, inVectorSock, tex->dimensions != 1);
-  nodeSetSocketAvailability(ntree, inWSock, tex->dimensions == 1 || tex->dimensions == 4);
+  nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
   nodeSetSocketAvailability(ntree,
                             inOffsetSock,
-                            tex->musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
-                                tex->musgrave_type != SHD_MUSGRAVE_FBM);
+                            storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                storage.musgrave_type != SHD_MUSGRAVE_FBM);
   nodeSetSocketAvailability(ntree,
                             inGainSock,
-                            tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
-                                tex->musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+                            storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+                                storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
   bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
   node_sock_label(outFacSock, "Height");

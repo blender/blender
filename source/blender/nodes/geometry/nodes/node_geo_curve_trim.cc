@@ -26,6 +26,8 @@ namespace blender::nodes::node_geo_curve_trim_cc {
 
 using blender::attribute_math::mix2;
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -64,8 +66,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)node->storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const NodeGeometryCurveTrim &storage = node_storage(*node);
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   bNodeSocket *start_fac = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *end_fac = start_fac->next;
@@ -534,8 +536,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const NodeGeometryCurveTrim &storage = node_storage(params.node());
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 

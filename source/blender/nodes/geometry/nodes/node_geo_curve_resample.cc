@@ -28,6 +28,8 @@
 
 namespace blender::nodes::node_geo_curve_resample_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveResample)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -57,8 +59,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)node->storage;
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
+  const NodeGeometryCurveResample &storage = node_storage(*node);
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next->next;
   bNodeSocket *length_socket = count_socket->next;
@@ -259,8 +261,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)params.node().storage;
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
+  const NodeGeometryCurveResample &storage = node_storage(params.node());
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
   SampleModeParam mode_param;
   mode_param.mode = mode;

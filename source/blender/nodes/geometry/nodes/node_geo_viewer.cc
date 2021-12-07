@@ -21,6 +21,8 @@
 
 namespace blender::nodes::node_geo_viewer_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryViewer)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
@@ -66,7 +68,7 @@ static eNodeSocketDatatype custom_data_type_to_socket_type(const CustomDataType 
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryViewer &storage = *(const NodeGeometryViewer *)node->storage;
+  const NodeGeometryViewer &storage = node_storage(*node);
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
   const eNodeSocketDatatype socket_type = custom_data_type_to_socket_type(data_type);
 

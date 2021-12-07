@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_curve_primitive_circle_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveCircle)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Resolution"))
@@ -73,10 +75,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryCurvePrimitiveCircle *node_storage = (NodeGeometryCurvePrimitiveCircle *)
-                                                             node->storage;
-  const GeometryNodeCurvePrimitiveCircleMode mode = (const GeometryNodeCurvePrimitiveCircleMode)
-                                                        node_storage->mode;
+  const NodeGeometryCurvePrimitiveCircle &storage = node_storage(*node);
+  const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
+                                                        storage.mode;
 
   bNodeSocket *start_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *middle_socket = start_socket->next;
@@ -195,11 +196,9 @@ static std::unique_ptr<CurveEval> create_radius_circle_curve(const int resolutio
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurvePrimitiveCircle *node_storage =
-      (NodeGeometryCurvePrimitiveCircle *)params.node().storage;
-
+  const NodeGeometryCurvePrimitiveCircle &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
-                                                        node_storage->mode;
+                                                        storage.mode;
 
   std::unique_ptr<CurveEval> curve;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS) {

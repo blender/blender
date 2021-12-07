@@ -1759,3 +1759,13 @@ extern struct bNodeSocketType NodeSocketTypeUndefined;
 #ifdef __cplusplus
 }
 #endif
+
+#define NODE_STORAGE_FUNCS(StorageT) \
+  [[maybe_unused]] static StorageT &node_storage(bNode &node) \
+  { \
+    return *static_cast<StorageT *>(node.storage); \
+  } \
+  [[maybe_unused]] static const StorageT &node_storage(const bNode &node) \
+  { \
+    return *static_cast<const StorageT *>(node.storage); \
+  }

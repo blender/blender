@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_set_curve_handles_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometrySetCurveHandlePositions)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -132,9 +134,8 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometrySetCurveHandlePositions *node_storage =
-      (NodeGeometrySetCurveHandlePositions *)params.node().storage;
-  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)node_storage->mode;
+  const NodeGeometrySetCurveHandlePositions &storage = node_storage(params.node());
+  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");

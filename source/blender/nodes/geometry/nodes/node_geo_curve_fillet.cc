@@ -27,6 +27,8 @@
 
 namespace blender::nodes::node_geo_curve_fillet_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveFillet)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -78,8 +80,8 @@ struct FilletData {
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)node->storage;
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
+  const NodeGeometryCurveFillet &storage = node_storage(*node);
+  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
 
   bNodeSocket *poly_socket = ((bNodeSocket *)node->inputs.first)->next;
 
@@ -614,8 +616,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)params.node().storage;
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
+  const NodeGeometryCurveFillet &storage = node_storage(params.node());
+  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
 
   Field<float> radius_field = params.extract_input<Field<float>>("Radius");
   const bool limit_radius = params.extract_input<bool>("Limit Radius");

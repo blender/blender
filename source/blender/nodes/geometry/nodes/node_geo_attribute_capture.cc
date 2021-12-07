@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_attribute_capture_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryAttributeCapture)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
@@ -60,8 +62,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryAttributeCapture &storage = *(const NodeGeometryAttributeCapture *)
-                                                     node->storage;
+  const NodeGeometryAttributeCapture &storage = node_storage(*node);
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
   bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
@@ -115,9 +116,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  const bNode &node = params.node();
-  const NodeGeometryAttributeCapture &storage = *(const NodeGeometryAttributeCapture *)
-                                                     node.storage;
+  const NodeGeometryAttributeCapture &storage = node_storage(params.node());
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 

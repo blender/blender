@@ -25,6 +25,8 @@
 
 namespace blender::nodes::node_geo_curve_spline_type_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveSplineType)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -238,9 +240,8 @@ static SplinePtr convert_to_nurbs(const Spline &input)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurveSplineType *storage =
-      (const NodeGeometryCurveSplineType *)params.node().storage;
-  const GeometryNodeSplineType output_type = (const GeometryNodeSplineType)storage->spline_type;
+  const NodeGeometryCurveSplineType &storage = node_storage(params.node());
+  const GeometryNodeSplineType output_type = (const GeometryNodeSplineType)storage.spline_type;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");

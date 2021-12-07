@@ -29,6 +29,8 @@ namespace blender::nodes::node_geo_raycast_cc {
 
 using namespace blender::bke::mesh_surface_sample;
 
+NODE_STORAGE_FUNCS(NodeGeometryRaycast)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target Geometry"))
@@ -80,8 +82,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)node->storage;
-  const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
+  const NodeGeometryRaycast &storage = node_storage(*node);
+  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
   bNodeSocket *socket_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *socket_float = socket_vector->next;
@@ -378,9 +380,9 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
-  const NodeGeometryRaycast &data = *(const NodeGeometryRaycast *)params.node().storage;
-  const GeometryNodeRaycastMapMode mapping = static_cast<GeometryNodeRaycastMapMode>(data.mapping);
-  const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
+  const NodeGeometryRaycast &storage = node_storage(params.node());
+  const GeometryNodeRaycastMapMode mapping = (GeometryNodeRaycastMapMode)storage.mapping;
+  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
   if (target.is_empty()) {
     params.set_default_remaining_outputs();

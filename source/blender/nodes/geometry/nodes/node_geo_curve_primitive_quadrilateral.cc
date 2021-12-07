@@ -21,6 +21,8 @@
 
 namespace blender::nodes::node_geo_curve_primitive_quadrilaterial_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveQuad)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Width"))
@@ -92,9 +94,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryCurvePrimitiveQuad &node_storage = *(NodeGeometryCurvePrimitiveQuad *)node->storage;
+  const NodeGeometryCurvePrimitiveQuad &storage = node_storage(*node);
   GeometryNodeCurvePrimitiveQuadMode mode = static_cast<GeometryNodeCurvePrimitiveQuadMode>(
-      node_storage.mode);
+      storage.mode);
 
   bNodeSocket *width = ((bNodeSocket *)node->inputs.first);
   bNodeSocket *height = width->next;
@@ -197,10 +199,8 @@ static void create_kite_curve(MutableSpan<float3> positions,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurvePrimitiveQuad &node_storage =
-      *(NodeGeometryCurvePrimitiveQuad *)(params.node()).storage;
-  const GeometryNodeCurvePrimitiveQuadMode mode = static_cast<GeometryNodeCurvePrimitiveQuadMode>(
-      node_storage.mode);
+  const NodeGeometryCurvePrimitiveQuad &storage = node_storage(params.node());
+  const GeometryNodeCurvePrimitiveQuadMode mode = (GeometryNodeCurvePrimitiveQuadMode)storage.mode;
 
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();

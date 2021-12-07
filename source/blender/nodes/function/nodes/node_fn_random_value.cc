@@ -24,6 +24,8 @@
 
 namespace blender::nodes {
 
+NODE_STORAGE_FUNCS(NodeRandomValue)
+
 static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Min")).supports_field();
@@ -65,7 +67,7 @@ static void fn_node_random_value_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeRandomValue &storage = *(const NodeRandomValue *)node->storage;
+  const NodeRandomValue &storage = node_storage(*node);
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
   bNodeSocket *sock_min_vector = (bNodeSocket *)node->inputs.first;
@@ -251,7 +253,7 @@ class RandomBoolFunction : public fn::MultiFunction {
 
 static void fn_node_random_value_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const NodeRandomValue &storage = *(const NodeRandomValue *)builder.node().storage;
+  const NodeRandomValue &storage = node_storage(builder.node());
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
   switch (data_type) {

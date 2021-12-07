@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_curve_handle_type_selection_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveSelectHandles)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>(N_("Selection")).field_source();
@@ -136,11 +138,10 @@ class HandleTypeFieldInput final : public GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryCurveSelectHandles *storage =
-      (const NodeGeometryCurveSelectHandles *)params.node().storage;
+  const NodeGeometryCurveSelectHandles &storage = node_storage(params.node());
   const BezierSpline::HandleType handle_type = handle_type_from_input_type(
-      (GeometryNodeCurveHandleType)storage->handle_type);
-  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage->mode;
+      (GeometryNodeCurveHandleType)storage.handle_type);
+  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
 
   Field<bool> selection_field{std::make_shared<HandleTypeFieldInput>(handle_type, mode)};
   params.set_output("Selection", std::move(selection_field));

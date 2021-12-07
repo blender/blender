@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_curve_primitive_line_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveLine)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Start"))
@@ -59,10 +61,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryCurvePrimitiveLine *node_storage = (NodeGeometryCurvePrimitiveLine *)
-                                                           node->storage;
-  const GeometryNodeCurvePrimitiveLineMode mode = (const GeometryNodeCurvePrimitiveLineMode)
-                                                      node_storage->mode;
+  const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
+  const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
   bNodeSocket *p2_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *direction_socket = p2_socket->next;
@@ -112,11 +112,8 @@ static std::unique_ptr<CurveEval> create_direction_line_curve(const float3 start
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-
-  const NodeGeometryCurvePrimitiveLine *node_storage =
-      (NodeGeometryCurvePrimitiveLine *)params.node().storage;
-
-  GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)node_storage->mode;
+  const NodeGeometryCurvePrimitiveLine &storage = node_storage(params.node());
+  const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
   std::unique_ptr<CurveEval> curve;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS) {

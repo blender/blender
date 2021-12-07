@@ -30,6 +30,8 @@
 
 namespace blender::nodes::node_geo_points_to_volume_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryPointsToVolume)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Points"));
@@ -61,16 +63,16 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
+  const NodeGeometryPointsToVolume &storage = node_storage(*node);
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
   nodeSetSocketAvailability(ntree,
                             voxel_amount_socket,
-                            data->resolution_mode ==
+                            storage.resolution_mode ==
                                 GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
   nodeSetSocketAvailability(ntree,
                             voxel_size_socket,
-                            data->resolution_mode ==
+                            storage.resolution_mode ==
                                 GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
 }
 
@@ -134,8 +136,7 @@ static float compute_voxel_size(const GeoNodeExecParams &params,
                                 Span<float3> positions,
                                 const float radius)
 {
-  const NodeGeometryPointsToVolume &storage =
-      *(const NodeGeometryPointsToVolume *)params.node().storage;
+  const NodeGeometryPointsToVolume &storage = node_storage(params.node());
 
   if (storage.resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE) {
     return params.get_input<float>("Voxel Size");

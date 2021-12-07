@@ -27,6 +27,8 @@
 
 namespace blender::nodes::node_geo_mesh_primitive_line_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryMeshLine)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Count"))
@@ -79,9 +81,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *start_socket = resolution_socket->next;
   bNodeSocket *end_and_offset_socket = start_socket->next;
 
-  const NodeGeometryMeshLine &storage = *(const NodeGeometryMeshLine *)node->storage;
-  const GeometryNodeMeshLineMode mode = (const GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (const GeometryNodeMeshLineCountMode)
+  const NodeGeometryMeshLine &storage = node_storage(*node);
+  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
+  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
                                                        storage.count_mode;
 
   node_sock_label(end_and_offset_socket,
@@ -100,9 +102,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryMeshLine &storage = *(const NodeGeometryMeshLine *)params.node().storage;
-  const GeometryNodeMeshLineMode mode = (const GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (const GeometryNodeMeshLineCountMode)
+  const NodeGeometryMeshLine &storage = node_storage(params.node());
+  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
+  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
                                                        storage.count_mode;
 
   Mesh *mesh = nullptr;
