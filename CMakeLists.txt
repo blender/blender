@@ -851,7 +851,7 @@ if(WITH_AUDASPACE)
 endif()
 
 # Auto-enable CUDA dynload if toolkit is not found.
-if(NOT WITH_CUDA_DYNLOAD)
+if(WITH_CYCLES AND WITH_CYCLES_DEVICE_CUDA AND NOT WITH_CUDA_DYNLOAD)
   find_package(CUDA)
   if(NOT CUDA_FOUND)
     message(STATUS "CUDA toolkit not found, using dynamic runtime loading of libraries (WITH_CUDA_DYNLOAD) instead")
