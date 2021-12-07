@@ -333,7 +333,6 @@ IDTypeInfo IDType_ID_CU = {
     .lib_override_apply_post = NULL,
 };
 
-/* frees editcurve entirely */
 void BKE_curve_editfont_free(Curve *cu)
 {
   if (cu->editfont) {
@@ -424,7 +423,6 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   return cu;
 }
 
-/* Get list of nurbs from editnurbs structure */
 ListBase *BKE_curve_editNurbs_get(Curve *cu)
 {
   if (cu->editnurb) {
@@ -697,7 +695,6 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
   return newnu;
 }
 
-/* copy the nurb but allow for different number of points (to be copied after this) */
 Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 {
   Nurb *newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "copyNurb");
@@ -759,10 +756,6 @@ void BKE_nurb_project_2d(Nurb *nu)
   }
 }
 
-/**
- * if use_radius is truth, minmax will take points' radius into account,
- * which will make boundbox closer to beveled curve.
- */
 void BKE_nurb_minmax(const Nurb *nu, bool use_radius, float min[3], float max[3])
 {
   BezTriple *bezt;
@@ -916,7 +909,6 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
   return length;
 }
 
-/* be sure to call makeknots after this */
 void BKE_nurb_points_add(Nurb *nu, int number)
 {
   nu->bp = MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BPoint));
@@ -1376,9 +1368,6 @@ static void basisNurb(
   }
 }
 
-/**
- * \param coord_array: has to be (3 * 4 * resolu * resolv) in size, and zero-ed.
- */
 void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv)
 {
   BPoint *bp;
@@ -1571,11 +1560,6 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
   MEM_freeN(jend);
 }
 
-/**
- * \param coord_array: Has to be 3 * 4 * pntsu * resolu in size and zero-ed
- * \param tilt_array: set when non-NULL
- * \param radius_array: set when non-NULL
- */
 void BKE_nurb_makeCurve(const Nurb *nu,
                         float *coord_array,
                         float *tilt_array,
@@ -1712,9 +1696,6 @@ void BKE_nurb_makeCurve(const Nurb *nu,
   MEM_freeN(basisu);
 }
 
-/**
- * Calculate the length for arrays filled in by #BKE_curve_calc_coords_axis.
- */
 unsigned int BKE_curve_calc_coords_axis_len(const unsigned int bezt_array_len,
                                             const unsigned int resolu,
                                             const bool is_cyclic,
@@ -1726,12 +1707,6 @@ unsigned int BKE_curve_calc_coords_axis_len(const unsigned int bezt_array_len,
   return points_len;
 }
 
-/**
- * Calculate an array for the entire curve (cyclic or non-cyclic).
- * \note Call for each axis.
- *
- * \param use_cyclic_duplicate_endpoint: Duplicate values at the beginning & end of the array.
- */
 void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
                                 const unsigned int bezt_array_len,
                                 const unsigned int resolu,
@@ -1788,7 +1763,6 @@ void BKE_curve_calc_coords_axis(const BezTriple *bezt_array,
   UNUSED_VARS_NDEBUG(points_len);
 }
 
-/* forward differencing method for bezier curve */
 void BKE_curve_forward_diff_bezier(
     float q0, float q1, float q2, float q3, float *p, int it, int stride)
 {
@@ -1817,7 +1791,6 @@ void BKE_curve_forward_diff_bezier(
   }
 }
 
-/* forward differencing method for first derivative of cubic bezier curve */
 void BKE_curve_forward_diff_tangent_bezier(
     float q0, float q1, float q2, float q3, float *p, int it, int stride)
 {
@@ -4048,23 +4021,12 @@ void BKE_nurb_handle_smooth_fcurve(BezTriple *bezt, int total, bool cyclic)
   }
 }
 
-/**
- * Recalculate the handles of a nurb bezier-triple. Acts based on handle selection with `SELECT`
- * flag. To use a different flag, use #BKE_nurb_handle_calc_ex().
- */
 void BKE_nurb_handle_calc(
     BezTriple *bezt, BezTriple *prev, BezTriple *next, const bool is_fcurve, const char smoothing)
 {
   calchandleNurb_intern(bezt, prev, next, SELECT, is_fcurve, false, smoothing);
 }
 
-/**
- * Variant of #BKE_nurb_handle_calc() that allows calculating based on a different select flag.
- *
- * \param handle_sel_flag: The flag (bezt.f1/2/3) value to use to determine selection.
- * Usually #SELECT, but may want to use a different one at times
- * (if caller does not operate on selection).
- */
 void BKE_nurb_handle_calc_ex(BezTriple *bezt,
                              BezTriple *prev,
                              BezTriple *next,
@@ -4105,8 +4067,6 @@ static void nurb_handles_calc__align_selected(Nurb *nu)
   nurbList_handles_swap_select(nu);
 }
 
-/* similar to BKE_nurb_handle_calc but for curves and
- * figures out the previous and next for us */
 void BKE_nurb_handle_calc_simple(Nurb *nu, BezTriple *bezt)
 {
   if (nu->pntsu > 1) {
@@ -4131,19 +4091,6 @@ void BKE_nurb_handle_calc_simple_auto(Nurb *nu, BezTriple *bezt)
   }
 }
 
-/**
- * Update selected handle types to ensure valid state, e.g. deduce "Auto" types to concrete ones.
- * Thereby \a sel_flag defines what qualifies as selected.
- * Use when something has changed handle positions.
- *
- * The caller needs to recalculate handles.
- *
- * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
- *                  but may want to use a different one at times (if caller does not operate on
- *                  selection).
- * \param use_handle: Check selection state of individual handles, otherwise always update both
- *                    handles if the key is selected.
- */
 void BKE_nurb_bezt_handle_test(BezTriple *bezt,
                                const eBezTriple_Flag__Alias sel_flag,
                                const bool use_handle,
@@ -4307,15 +4254,6 @@ void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag)
   }
 }
 
-/**
- * \param code:
- * - 1 (#HD_AUTO): set auto-handle.
- * - 2 (#HD_VECT): set vector-handle.
- * - 3 (#HD_ALIGN) it toggle, vector-handles become #HD_FREE.
- *
- * - 5: Set align, like 3 but no toggle.
- * - 6: Clear align (setting #HD_FREE), like 3 but no toggle.
- */
 void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
 {
   BezTriple *bezt;
@@ -4493,9 +4431,6 @@ void BKE_nurbList_flag_set(ListBase *editnurb, uint8_t flag, bool set)
   }
 }
 
-/**
- * Set \a flag for every point that already has \a from_flag set.
- */
 bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, uint8_t from_flag, uint8_t flag)
 {
   bool changed = false;
@@ -4912,9 +4847,6 @@ bool BKE_nurb_order_clamp_v(struct Nurb *nu)
   return changed;
 }
 
-/**
- * \note caller must ensure active vertex remains valid.
- */
 bool BKE_nurb_type_convert(Nurb *nu,
                            const short type,
                            const bool use_handles,
@@ -5058,7 +4990,6 @@ bool BKE_nurb_type_convert(Nurb *nu,
   return true;
 }
 
-/* Get edit nurbs or normal nurbs list */
 ListBase *BKE_curve_nurbs_get(Curve *cu)
 {
   if (cu->editnurb) {
@@ -5095,7 +5026,6 @@ Nurb *BKE_curve_nurb_active_get(Curve *cu)
   return BLI_findlink(nurbs, cu->actnu);
 }
 
-/* Get active vert for curve */
 void *BKE_curve_vert_active_get(Curve *cu)
 {
   Nurb *nu = NULL;
@@ -5116,7 +5046,6 @@ int BKE_curve_nurb_vert_index_get(const Nurb *nu, const void *vert)
   return (BPoint *)vert - nu->bp;
 }
 
-/* Set active nurb and active vert for curve */
 void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
 {
   if (nu) {
@@ -5134,7 +5063,6 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
   }
 }
 
-/* Get points to the active nurb and active vert for curve. */
 bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
 {
   Nurb *nu = NULL;
@@ -5187,7 +5115,6 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
   }
 }
 
-/* basic vertex data functions */
 bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
@@ -5553,8 +5480,6 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu,
   r_rect->ymin = r_rect->ymax - tb->h;
 }
 
-/* This function is almost the same as BKE_fcurve_correct_bezpart(), but doesn't allow as large a
- * tangent. */
 void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2])
 {
   float h1[2], h2[2], len1, len2, len, fac;

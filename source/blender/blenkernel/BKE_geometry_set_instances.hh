@@ -20,6 +20,9 @@
 
 namespace blender::bke {
 
+/**
+ * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
+ */
 GeometrySet object_get_evaluated_geometry_set(const Object &object);
 
 /**
@@ -41,6 +44,16 @@ struct GeometryInstanceGroup {
   Vector<float4x4> transforms;
 };
 
+/**
+ * Return flattened vector of the geometry component's recursive instances. I.e. all collection
+ * instances and object instances will be expanded into the instances of their geometry components.
+ * Even the instances in those geometry components' will be included.
+ *
+ * \note For convenience (to avoid duplication in the caller), the returned vector also contains
+ * the argument geometry set.
+ *
+ * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
+ */
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups);
 

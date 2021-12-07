@@ -154,17 +154,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
   }
 }
 
-/**
- * Recreate #MFace Tessellation.
- *
- * \param do_face_nor_copy: Controls whether the normals from the poly
- * are copied to the tessellated faces.
- *
- * \return number of tessellation faces.
- *
- * \note This doesn't use multi-threading like #BKE_mesh_recalc_looptri since
- * it's not used in many places and #MFace should be phased out.
- */
 int BKE_mesh_tessface_calc_ex(CustomData *fdata,
                               CustomData *ldata,
                               CustomData *pdata,
@@ -712,9 +701,6 @@ static void mesh_recalc_looptri__multi_threaded(const MLoop *mloop,
                           &settings);
 }
 
-/**
- * Calculate tessellation into #MLoopTri which exist only for this purpose.
- */
 void BKE_mesh_recalc_looptri(const MLoop *mloop,
                              const MPoly *mpoly,
                              const MVert *mvert,
@@ -730,14 +716,6 @@ void BKE_mesh_recalc_looptri(const MLoop *mloop,
   }
 }
 
-/**
- * A version of #BKE_mesh_recalc_looptri which takes pre-calculated polygon normals
- * (used to avoid having to calculate the face normal for NGON tessellation).
- *
- * \note Only use this function if normals have already been calculated, there is no need
- * to calculate normals just to use this function as it will cause the normals for triangles
- * to be calculated which aren't needed for tessellation.
- */
 void BKE_mesh_recalc_looptri_with_normals(const MLoop *mloop,
                                           const MPoly *mpoly,
                                           const MVert *mvert,

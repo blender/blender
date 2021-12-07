@@ -100,13 +100,30 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL);
 
 CCGError ccgSubSurf_processSync(CCGSubSurf *ss);
 
+/**
+ * Copy face grid coordinates to other places.
+ */
 CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss,
                                     int lvl,
                                     CCGFace **effectedF,
                                     int numEffectedF);
+/**
+ * Copy other places to face grid coordinates.
+ */
 CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
+/**
+ * Update normals for specified faces.
+ */
 CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEffectedF);
+/**
+ * Compute subdivision levels from a given starting point, used by multi-res subdivide/propagate,
+ * by filling in coordinates at a certain level, and then subdividing that up to the highest level.
+ */
 CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
+/**
+ * Stitch together face grids, averaging coordinates at edges and vertices, for multi-res
+ * displacements.
+ */
 CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
 
 CCGError ccgSubSurf_setSubdivisionLevels(CCGSubSurf *ss, int subdivisionLevels);

@@ -717,7 +717,6 @@ static void minmax_v3_v3v3(const float vec[3], float min[3], float max[3])
   }
 }
 
-/* UNUSED, keep since this functionality may be useful in the future. */
 static void UNUSED_FUNCTION(ccgDM_getMinMax)(DerivedMesh *dm, float r_min[3], float r_max[3])
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
@@ -912,8 +911,6 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
   normal_short_to_float_v3(r_no, mvert.no);
 }
 
-/* Translate GridHidden into the ME_HIDE flag for MVerts. Assumes
- * vertices are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_hidden(DerivedMesh *dm,
                               const MPoly *mpoly,
                               MVert *mvert,
@@ -955,8 +952,6 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm,
   }
 }
 
-/* Translate GridPaintMask into vertex paint masks. Assumes vertices
- * are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_paint_mask(DerivedMesh *dm,
                                   const MPoly *mpoly,
                                   float *paint_mask,

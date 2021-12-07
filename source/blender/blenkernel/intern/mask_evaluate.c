@@ -720,10 +720,6 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
   return feather;
 }
 
-/**
- * values align with #BKE_mask_spline_differentiate_with_resolution
- * when \a resol arguments match.
- */
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(
     MaskSpline *spline,
     const unsigned int resol,
@@ -788,7 +784,6 @@ float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *r_tot_feather_po
   return feather;
 }
 
-/* *** mask point functions which involve evaluation *** */
 float *BKE_mask_point_segment_feather_diff(MaskSpline *spline,
                                            MaskSplinePoint *point,
                                            int width,

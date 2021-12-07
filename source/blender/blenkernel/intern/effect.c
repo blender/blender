@@ -221,9 +221,6 @@ static void add_effector_evaluation(ListBase **effectors,
   precalculate_effector(depsgraph, eff);
 }
 
-/* Create list of effector relations in the collection or entire scene.
- * This is used by the depsgraph to build relations, as well as faster
- * lookup of effectors during evaluation. */
 ListBase *BKE_effector_relations_create(Depsgraph *depsgraph,
                                         ViewLayer *view_layer,
                                         Collection *collection)
@@ -329,7 +326,6 @@ static bool is_effector_relevant(PartDeflect *pd, EffectorWeights *weights, bool
          is_effector_nonzero_strength(pd);
 }
 
-/* Create effective list of effectors from relations built beforehand. */
 ListBase *BKE_effectors_create(Depsgraph *depsgraph,
                                Object *ob_src,
                                ParticleSystem *psys_src,
@@ -1130,20 +1126,6 @@ static void do_physical_effector(EffectorCache *eff,
   }
 }
 
-/*  -------- BKE_effectors_apply() --------
- * generic force/speed system, now used for particles and softbodies
- * scene       = scene where it runs in, for time and stuff
- * lb           = listbase with objects that take part in effecting
- * opco     = global coord, as input
- * force        = accumulator for force
- * wind_force   = accumulator for force only acting perpendicular to a surface
- * speed        = actual current speed which can be altered
- * cur_time = "external" time in frames, is constant for static particles
- * loc_time = "local" time in frames, range <0-1> for the lifetime of particle
- * par_layer    = layer the caller is in
- * flags        = only used for softbody wind now
- * guide        = old speed of particle
- */
 void BKE_effectors_apply(ListBase *effectors,
                          ListBase *colliders,
                          EffectorWeights *weights,
@@ -1152,6 +1134,22 @@ void BKE_effectors_apply(ListBase *effectors,
                          float *wind_force,
                          float *impulse)
 {
+  /* WARNING(@campbellbarton): historic comment?
+   * Many of these parameters don't exist!
+   *
+   * scene        = scene where it runs in, for time and stuff.
+   * lb           = listbase with objects that take part in effecting.
+   * opco         = global coord, as input.
+   * force        = accumulator for force.
+   * wind_force   = accumulator for force only acting perpendicular to a surface.
+   * speed        = actual current speed which can be altered.
+   * cur_time     = "external" time in frames, is constant for static particles.
+   * loc_time     = "local" time in frames, range <0-1> for the lifetime of particle.
+   * par_layer    = layer the caller is in.
+   * flags        = only used for soft-body wind now.
+   * guide        = old speed of particle.
+   */
+
   /*
    * Modifies the force on a particle according to its
    * relation with the effector object

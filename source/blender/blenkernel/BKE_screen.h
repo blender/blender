@@ -396,7 +396,8 @@ typedef struct Menu {
   struct uiLayout *layout; /* runtime for drawing */
 } Menu;
 
-/* spacetypes */
+/* Space-types. */
+
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
 struct ARegionType *BKE_regiontype_from_id_or_first(const struct SpaceType *st, int regionid);
 struct ARegionType *BKE_regiontype_from_id(const struct SpaceType *st, int regionid);
@@ -405,11 +406,26 @@ void BKE_spacetype_register(struct SpaceType *st);
 bool BKE_spacetype_exists(int spaceid);
 void BKE_spacetypes_free(void); /* only for quitting blender */
 
-/* spacedata */
+/* Space-data. */
+
 void BKE_spacedata_freelist(ListBase *lb);
+/**
+ * \param lb1: should be empty.
+ */
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
+
+/**
+ * Facility to set locks for drawing to survive (render) threads accessing drawing data.
+ *
+ * \note Lock can become bit-flag too.
+ * \note Should be replaced in future by better local data handling for threads.
+ */
 void BKE_spacedata_draw_locks(bool set);
 
+/**
+ * Version of #BKE_area_find_region_type that also works if \a slink
+ * is not the active space of \a area.
+ */
 struct ARegion *BKE_spacedata_find_region_type(const struct SpaceLink *slink,
                                                const struct ScrArea *area,
                                                int region_type) ATTR_WARN_UNUSED_RESULT
@@ -417,21 +433,42 @@ struct ARegion *BKE_spacedata_find_region_type(const struct SpaceLink *slink,
 
 void BKE_spacedata_callback_id_remap_set(void (*func)(
     struct ScrArea *area, struct SpaceLink *sl, struct ID *old_id, struct ID *new_id));
+/**
+ * Currently unused!
+ */
 void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id);
 
-/* area/regions */
+/* Area/regions. */
+
 struct ARegion *BKE_area_region_copy(const struct SpaceType *st, const struct ARegion *region);
+/**
+ * Doesn't free the region itself.
+ */
 void BKE_area_region_free(struct SpaceType *st, struct ARegion *region);
 void BKE_area_region_panels_free(struct ListBase *panels);
+/**
+ * Doesn't free the area itself.
+ */
 void BKE_screen_area_free(struct ScrArea *area);
-/* Gizmo-maps of a region need to be freed with the region.
- * Uses callback to avoid low-level call. */
+/**
+ * Gizmo-maps of a region need to be freed with the region.
+ * Uses callback to avoid low-level call.
+ */
 void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 
+/**
+ * Find a region of type \a region_type in the currently active space of \a area.
+ *
+ * \note This does _not_ work if the region to look up is not in the active space.
+ * Use #BKE_spacedata_find_region_type if that may be the case.
+ */
 struct ARegion *BKE_area_find_region_type(const struct ScrArea *area, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *area);
 struct ARegion *BKE_area_find_region_xy(struct ScrArea *area, const int regiontype, int x, int y);
+/**
+ * \note This is only for screen level regions (typically menus/popups).
+ */
 struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
                                           const int regiontype,
                                           int x,
@@ -442,9 +479,17 @@ struct ARegion *BKE_screen_find_main_region_at_xy(struct bScreen *screen,
                                                   const int x,
                                                   const int y);
 
+/**
+ * \note Ideally we can get the area from the context,
+ * there are a few places however where this isn't practical.
+ */
 struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen,
                                                 struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
+/**
+ * \note Using this function is generally a last resort, you really want to be
+ * using the context when you can - campbell
+ */
 struct ScrArea *BKE_screen_find_big_area(struct bScreen *screen,
                                          const int spacetype,
                                          const short min);
@@ -462,15 +507,24 @@ bool BKE_screen_is_fullscreen_area(const struct bScreen *screen) ATTR_WARN_UNUSE
     ATTR_NONNULL();
 bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-/* zoom factor conversion */
+/* Zoom factor conversion. */
+
 float BKE_screen_view3d_zoom_to_fac(float camzoom);
 float BKE_screen_view3d_zoom_from_fac(float zoomfac);
 
 void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 
-/* screen */
+/* Screen. */
+
+/**
+ * Callback used by lib_query to walk over all ID usages
+ * (mimics `foreach_id` callback of #IDTypeInfo structure).
+ */
 void BKE_screen_foreach_id_screen_area(struct LibraryForeachIDData *data, struct ScrArea *area);
 
+/**
+ * Free (or release) any data used by this screen (does not free the screen itself).
+ */
 void BKE_screen_free_data(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 
@@ -486,18 +540,28 @@ void BKE_screen_remove_unused_scrverts(struct bScreen *screen);
 void BKE_screen_header_alignment_reset(struct bScreen *screen);
 
 /* .blend file I/O */
+
 void BKE_screen_view3d_shading_blend_write(struct BlendWriter *writer,
                                            struct View3DShading *shading);
 void BKE_screen_view3d_shading_blend_read_data(struct BlendDataReader *reader,
                                                struct View3DShading *shading);
 
 void BKE_screen_area_map_blend_write(struct BlendWriter *writer, struct ScrAreaMap *area_map);
+/**
+ * \return false on error.
+ */
 bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
                                          struct ScrAreaMap *area_map);
+/**
+ * And as patch for 2.48 and older.
+ */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
 void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,
                                     struct ID *parent_id,
                                     struct ScrArea *area);
+/**
+ * Cannot use #IDTypeInfo callback yet, because of the return value.
+ */
 bool BKE_screen_blend_read_data(struct BlendDataReader *reader, struct bScreen *screen);
 
 #ifdef __cplusplus

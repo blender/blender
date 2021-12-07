@@ -155,11 +155,6 @@ FCurve *BKE_fcurve_pathcache_find(struct FCurvePathCache *fcache,
   return NULL;
 }
 
-/**
- * Fill in an array of F-Curve, leave NULL when not found.
- *
- * \return The number of F-Curves found.
- */
 int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
                                     const char *rna_path,
                                     FCurve **fcurve_result,

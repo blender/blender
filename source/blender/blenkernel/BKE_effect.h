@@ -113,16 +113,27 @@ struct PartDeflect *BKE_partdeflect_new(int type);
 struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
 void BKE_partdeflect_free(struct PartDeflect *pd);
 
+/**
+ * Create list of effector relations in the collection or entire scene.
+ * This is used by the depsgraph to build relations, as well as faster
+ * lookup of effectors during evaluation.
+ */
 struct ListBase *BKE_effector_relations_create(struct Depsgraph *depsgraph,
                                                struct ViewLayer *view_layer,
                                                struct Collection *collection);
 void BKE_effector_relations_free(struct ListBase *lb);
 
+/**
+ * Create effective list of effectors from relations built beforehand.
+ */
 struct ListBase *BKE_effectors_create(struct Depsgraph *depsgraph,
                                       struct Object *ob_src,
                                       struct ParticleSystem *psys_src,
                                       struct EffectorWeights *weights,
                                       bool use_rotation);
+/**
+ * Generic force/speed system, now used for particles, soft-bodies & dynamic-paint.
+ */
 void BKE_effectors_apply(struct ListBase *effectors,
                          struct ListBase *colliders,
                          struct EffectorWeights *weights,

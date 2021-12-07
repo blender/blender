@@ -73,7 +73,6 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)NULL)->typemap) == CD_NUMTYPES, "siz
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
-/** Update mask_dst with layers defined in mask_src (equivalent to a bitwise OR). */
 void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst,
                                  const CustomData_MeshMasks *mask_src)
 {
@@ -84,7 +83,6 @@ void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst,
   mask_dst->lmask |= mask_src->lmask;
 }
 
-/** Return True if all layers set in \a mask_required are also set in \a mask_ref */
 bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref,
                                        const CustomData_MeshMasks *mask_required)
 {
@@ -2182,7 +2180,6 @@ bool CustomData_merge(const struct CustomData *source,
   return changed;
 }
 
-/* NOTE: Take care of referenced layers by yourself! */
 void CustomData_realloc(CustomData *data, int totelem)
 {
   for (int i = 0; i < data->totlayer; i++) {
@@ -2444,8 +2441,6 @@ void CustomData_set_layer_stencil(CustomData *data, int type, int n)
   }
 }
 
-/* For using with an index from CustomData_get_active_layer_index and
- * CustomData_get_render_layer_index. */
 void CustomData_set_layer_active_index(CustomData *data, int type, int n)
 {
   for (int i = 0; i < data->totlayer; i++) {
@@ -2648,7 +2643,6 @@ void *CustomData_add_layer(
   return NULL;
 }
 
-/* Same as above but accepts a name. */
 void *CustomData_add_layer_named(CustomData *data,
                                  int type,
                                  eCDAllocType alloctype,
@@ -3068,18 +3062,6 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 
 #define SOURCE_BUF_SIZE 100
 
-/**
- * Interpolate given custom data source items into a single destination one.
- *
- * \param src_indices: Indices of every source items to interpolate into the destination one.
- * \param weights: The weight to apply to each source value individually. If NULL, they will be
- * averaged.
- * \param sub_weights: The weights of sub-items, only used to affect each corners of a
- * tessellated face data (should always be and array of four values).
- * \param count: The number of source items to interpolate.
- * \param dest_index: Index of the destination item, in which to put the result of the
- * interpolation.
- */
 void CustomData_interp(const CustomData *source,
                        CustomData *dest,
                        const int *src_indices,
@@ -3162,13 +3144,6 @@ void CustomData_interp(const CustomData *source,
   }
 }
 
-/**
- * Swap data inside each item, for all layers.
- * This only applies to item types that may store several sub-item data
- * (e.g. corner data [UVs, VCol, ...] of tessellated faces).
- *
- * \param corner_indices: A mapping 'new_index -> old_index' of sub-item data.
- */
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices)
 {
   for (int i = 0; i < data->totlayer; i++) {
@@ -3182,9 +3157,6 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
   }
 }
 
-/**
- * Swap two items of given custom data, in all available layers.
- */
 void CustomData_swap(struct CustomData *data, const int index_a, const int index_b)
 {
   char buff_static[256];
@@ -3362,7 +3334,7 @@ void CustomData_set(const CustomData *data, int index, int type, const void *sou
 }
 
 /* BMesh functions */
-/* needed to convert to/from different face reps */
+
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *ldata, int totloop)
 {
   for (int i = 0; i < fdata->totlayer; i++) {
@@ -3418,12 +3390,6 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *ldata, int total)
 }
 
 #ifndef NDEBUG
-/**
- * Debug check, used to assert when we expect layers to be in/out of sync.
- *
- * \param fallback: Use when there are no layers to handle,
- * since callers may expect success or failure.
- */
 bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool fallback)
 {
   int a_num = 0, b_num = 0;
@@ -3491,11 +3457,6 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
   }
 }
 
-/* update active indices for active/render/clone/stencil custom data layers
- * based on indices from fdata layers
- * used by do_versions in readfile.c when creating pdata and ldata for pre-bmesh
- * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files
- */
 void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *ldata)
 {
   int act;
@@ -3677,9 +3638,6 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   *block = NULL;
 }
 
-/**
- * Same as #CustomData_bmesh_free_block but zero the memory rather than freeing.
- */
 void CustomData_bmesh_free_block_data(CustomData *data, void *block)
 {
   if (block == NULL) {
@@ -3713,9 +3671,6 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
   }
 }
 
-/**
- * A selective version of #CustomData_bmesh_free_block_data.
- */
 void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
                                                       void *block,
                                                       const CustomDataMask mask_exclude)
@@ -3832,9 +3787,6 @@ void CustomData_bmesh_copy_data(const CustomData *source,
   CustomData_bmesh_copy_data_exclude_by_type(source, dest, src_block, dest_block, 0);
 }
 
-/* BMesh Custom Data Functions.
- * Should replace edit-mesh ones with these as well, due to more efficient memory alloc.
- */
 void *CustomData_bmesh_get(const CustomData *data, void *block, int type)
 {
   /* get the layer index of the first layer of type */
@@ -3857,7 +3809,6 @@ void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int 
   return POINTER_OFFSET(block, data->layers[layer_index + n].offset);
 }
 
-/* Gets from the layer at physical index n, NOTE: doesn't check type. */
 void *CustomData_bmesh_get_layer_n(const CustomData *data, void *block, int n)
 {
   if (n < 0 || n >= data->totlayer) {
@@ -3902,7 +3853,6 @@ bool CustomData_has_math(const struct CustomData *data)
   return false;
 }
 
-/* a non bmesh version would have to check layer->data */
 bool CustomData_bmesh_has_free(const struct CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
@@ -3938,8 +3888,6 @@ bool CustomData_has_referenced(const struct CustomData *data)
   return false;
 }
 
-/* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
- * another, while not overwriting anything else (e.g. flags). */
 void CustomData_data_copy_value(int type, const void *source, void *dest)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -3956,8 +3904,6 @@ void CustomData_data_copy_value(int type, const void *source, void *dest)
   }
 }
 
-/* Mixes the "value" (e.g. mloopuv uv or mloopcol colors) from one block into
- * another, while not overwriting anything else (e.g. flags). */
 void CustomData_data_mix_value(
     int type, const void *source, void *dest, const int mixmode, const float mixfactor)
 {
@@ -4074,10 +4020,6 @@ void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, const vo
   }
 }
 
-/**
- * \note src_blocks_ofs & dst_block_ofs
- * must be pointers to the data, offset by layer->offset already.
- */
 void CustomData_bmesh_interp_n(CustomData *data,
                                const void **src_blocks_ofs,
                                const float *weights,
@@ -4146,11 +4088,6 @@ void CustomData_bmesh_interp(CustomData *data,
   }
 }
 
-/**
- * \param use_default_init: initializes data which can't be copied,
- * typically you'll want to use this if the BM_xxx create function
- * is called with BM_CREATE_SKIP_CD flag
- */
 void CustomData_to_bmesh_block(const CustomData *source,
                                CustomData *dest,
                                int src_index,
@@ -4265,25 +4202,6 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
   *r_struct_num = typeInfo->structnum;
 }
 
-/**
- * Prepare given custom data for file writing.
- *
- * \param data: the customdata to tweak for .blend file writing (modified in place).
- * \param r_write_layers: contains a reduced set of layers to be written to file,
- * use it with writestruct_at_address()
- * (caller must free it if != \a write_layers_buff).
- *
- * \param write_layers_buff: an optional buffer for r_write_layers (to avoid allocating it).
- * \param write_layers_size: the size of pre-allocated \a write_layer_buff.
- *
- * \warning After this func has ran, given custom data is no more valid from Blender PoV
- * (its totlayer is invalid). This func shall always be called with localized data
- * (as it is in write_meshes()).
- *
- * \note data->typemap is not updated here, since it is always rebuilt on file read anyway.
- * This means written typemap does not match written layers (as returned by \a r_write_layers).
- * Trivial to fix is ever needed.
- */
 void CustomData_blend_write_prepare(CustomData *data,
                                     CustomDataLayer **r_write_layers,
                                     CustomDataLayer *write_layers_buff,
@@ -4337,20 +4255,12 @@ const char *CustomData_layertype_name(int type)
   return layerType_getName(type);
 }
 
-/**
- * Can only ever be one of these.
- */
 bool CustomData_layertype_is_singleton(int type)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   return typeInfo->defaultname == NULL;
 }
 
-/**
- * Has dynamically allocated members.
- * This is useful to know if operations such as #memcmp are
- * valid when comparing data from two layers.
- */
 bool CustomData_layertype_is_dynamic(int type)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -4358,9 +4268,6 @@ bool CustomData_layertype_is_dynamic(int type)
   return (typeInfo->free != NULL);
 }
 
-/**
- * \return Maximum number of layers of given \a type, -1 means 'no limit'.
- */
 int CustomData_layertype_layers_max(const int type)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -4502,12 +4409,6 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
   return keeplayer;
 }
 
-/**
- * Validate and fix data of \a layer,
- * if possible (needs relevant callback in layer's type to be defined).
- *
- * \return True if some errors were found.
- */
 bool CustomData_layer_validate(CustomDataLayer *layer, const uint totitems, const bool do_fixes)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
@@ -4971,7 +4872,6 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
   MEM_freeN(tmp_dst);
 }
 
-/* Normals are special, we need to take care of source & destination spaces... */
 void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLayerMap *laymap,
                                                     void *data_dst,
                                                     const void **sources,
@@ -5118,9 +5018,6 @@ static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask 
   }
 }
 
-/**
- * \param layers: The layers argument assigned by #CustomData_blend_write_prepare.
- */
 void CustomData_blend_write(BlendWriter *writer,
                             CustomData *data,
                             CustomDataLayer *layers,

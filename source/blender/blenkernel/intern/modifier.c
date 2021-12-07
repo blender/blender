@@ -133,9 +133,6 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
   return NULL;
 }
 
-/**
- * Get the idname of the modifier type's panel, which was defined in the #panelRegister callback.
- */
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
@@ -213,9 +210,6 @@ void BKE_modifier_free(ModifierData *md)
   BKE_modifier_free_ex(md, 0);
 }
 
-/**
- * Use instead of `BLI_remlink` when the object's active modifier should change.
- */
 void BKE_modifier_remove_from_list(Object *ob, ModifierData *md)
 {
   BLI_assert(BLI_findindex(&ob->modifiers, md) != -1);
@@ -328,9 +322,6 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *userData
   }
 }
 
-/* callback's can use this
- * to avoid copying every member.
- */
 void BKE_modifier_copydata_generic(const ModifierData *md_src,
                                    ModifierData *md_dst,
                                    const int UNUSED(flag))
@@ -457,13 +448,6 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
   CLOG_ERROR(&LOG, "Object: \"%s\", Modifier: \"%s\", %s", ob->id.name + 2, md->name, md->error);
 }
 
-/* used for buttons, to find out if the 'draw deformed in editmode' option is
- * there
- *
- * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
- * then is NULL)
- * also used for some mesh tools to give warnings
- */
 int BKE_modifiers_get_cage_index(const Scene *scene,
                                  Object *ob,
                                  int *r_lastPossibleCageIndex,
@@ -547,12 +531,6 @@ bool BKE_modifiers_is_particle_enabled(Object *ob)
   return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-/**
- * Check whether is enabled.
- *
- * \param scene: Current scene, may be NULL,
- * in which case isDisabled callback of the modifier is never called.
- */
 bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int required_mode)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
@@ -575,12 +553,6 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
   return true;
 }
 
-/**
- * Check whether given modifier is not local (i.e. from linked data) when the object is a library
- * override.
- *
- * \param md: May be NULL, in which case we consider it as a non-local modifier case.
- */
 bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierData *md)
 {
   return (ID_IS_OVERRIDE_LIBRARY(ob) &&
@@ -674,8 +646,6 @@ ModifierData *BKE_modifier_get_last_preview(const struct Scene *scene,
   return tmp_md;
 }
 
-/* This is to include things that are not modifiers in the evaluation of the modifier stack, for
- * example parenting to an armature. */
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
                                                      VirtualModifierData *virtualModifierData)
 {
@@ -719,9 +689,6 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
   return md;
 }
 
-/* Takes an object and returns its first selected armature, else just its armature
- * This should work for multiple armatures per object
- */
 Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 {
   if (ob->type == OB_GPENCIL) {
@@ -790,9 +757,6 @@ Object *BKE_modifiers_is_deformed_by_meshdeform(Object *ob)
   return NULL;
 }
 
-/* Takes an object and returns its first selected lattice, else just its lattice
- * This should work for multiple lattices per object
- */
 Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
 {
   VirtualModifierData virtualModifierData;
@@ -816,9 +780,6 @@ Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
   return NULL;
 }
 
-/* Takes an object and returns its first selected curve, else just its curve
- * This should work for multiple curves per object
- */
 Object *BKE_modifiers_is_deformed_by_curve(Object *ob)
 {
   VirtualModifierData virtualModifierData;
@@ -946,7 +907,6 @@ void BKE_modifier_free_temporary_data(ModifierData *md)
   }
 }
 
-/* ensure modifier correctness when changing ob->data */
 void BKE_modifiers_test_object(Object *ob)
 {
   ModifierData *md;
@@ -1000,7 +960,6 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
   return BKE_tempdir_session();
 }
 
-/* initializes the path with either */
 void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
 {
   /* elubie: changed this to default to the same dir as the render output
@@ -1086,15 +1045,6 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 
 /* end modifier callback wrappers */
 
-/**
- * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,
- * e.g. second operand for boolean modifier.
- * Note that modifiers in stack always get fully evaluated COW ID pointers,
- * never original ones. Makes things simpler.
- *
- * \param get_cage_mesh: Return evaluated mesh with only deforming modifiers applied
- * (i.e. mesh topology remains the same as original one, a.k.a. 'cage' mesh).
- */
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval,
                                                             const bool get_cage_mesh)
 {

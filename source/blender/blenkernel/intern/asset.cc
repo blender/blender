@@ -78,9 +78,6 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
   return tag;
 }
 
-/**
- * Make sure there is a tag with name \a name, create one if needed.
- */
 struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
                                                           const char *name)
 {

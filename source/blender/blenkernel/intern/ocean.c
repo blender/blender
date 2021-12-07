@@ -270,7 +270,6 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float
   BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
-/* use catmullrom interpolation rather than linear */
 void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u, float v)
 {
   int i0, i1, i2, i3, j0, j1, j2, j3;
@@ -378,8 +377,6 @@ void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x
   BKE_ocean_eval_uv_catrom(oc, ocr, x / oc->_Lx, z / oc->_Lz);
 }
 
-/* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being
- * just a way to get the raw data out to save in some image format. */
 void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 {
   BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
@@ -650,9 +647,6 @@ static void ocean_compute_normal_z(TaskPool *__restrict pool, void *UNUSED(taskd
   fftw_execute(o->_N_z_plan);
 }
 
-/**
- * Return true if the ocean is valid and can be used.
- */
 bool BKE_ocean_is_valid(const struct Ocean *o)
 {
   return o->_k != NULL;
@@ -777,9 +771,6 @@ bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
   return true;
 }
 
-/**
- * Return true if the ocean data is valid and can be used.
- */
 bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
                                   const int resolution)
@@ -818,9 +809,6 @@ bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                         omd->seed);
 }
 
-/**
- * Return true if the ocean data is valid and can be used.
- */
 bool BKE_ocean_init(struct Ocean *o,
                     int M,
                     int N,

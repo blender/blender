@@ -147,9 +147,6 @@ static void bvhcache_insert(BVHCache *bvh_cache, BVHTree *tree, BVHCacheType typ
   item->is_filled = true;
 }
 
-/**
- * frees a bvhcache
- */
 void bvhcache_free(BVHCache *bvh_cache)
 {
   for (int index = 0; index < BVHTREE_MAX_ITEM; index++) {
@@ -669,9 +666,6 @@ static void bvhtree_from_mesh_verts_setup_data(BVHTreeFromMesh *data,
   data->vert_allocated = vert_allocated;
 }
 
-/**
- * Builds a BVH-tree where nodes are the vertices of the given `em`.
- */
 BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         BMEditMesh *em,
                                         const BLI_bitmap *verts_mask,
@@ -727,13 +721,6 @@ BVHTree *bvhtree_from_editmesh_verts(
       data, em, nullptr, -1, epsilon, tree_type, axis, BVHTREE_FROM_VERTS, nullptr, nullptr);
 }
 
-/**
- * Builds a BVH-tree where nodes are the given vertices (NOTE: does not copy given `vert`!).
- * \param vert_allocated: if true, vert freeing will be done when freeing data.
- * \param verts_mask: if not null, true elements give which vert to add to BVH-tree.
- * \param verts_num_active: if >= 0, number of active verts to add to BVH-tree
- * (else will be computed from mask).
- */
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
                                     const int verts_num,
@@ -884,9 +871,6 @@ static void bvhtree_from_mesh_edges_setup_data(BVHTreeFromMesh *data,
   data->edge_allocated = edge_allocated;
 }
 
-/**
- * Builds a BVH-tree where nodes are the edges of the given `em`.
- */
 BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         BMEditMesh *em,
                                         const BLI_bitmap *edges_mask,
@@ -941,14 +925,6 @@ BVHTree *bvhtree_from_editmesh_edges(
       data, em, nullptr, -1, epsilon, tree_type, axis, BVHTREE_FROM_VERTS, nullptr, nullptr);
 }
 
-/**
- * Builds a BVH-tree where nodes are the given edges.
- * \param vert, vert_allocated: if true, elem freeing will be done when freeing data.
- * \param edge, edge_allocated: if true, elem freeing will be done when freeing data.
- * \param edges_mask: if not null, true elements give which vert to add to BVH-tree.
- * \param edges_num_active: if >= 0, number of active edges to add to BVH-tree
- * (else will be computed from mask).
- */
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
                                     const bool vert_allocated,
@@ -1075,15 +1051,6 @@ static void bvhtree_from_mesh_faces_setup_data(BVHTreeFromMesh *data,
   data->face_allocated = face_allocated;
 }
 
-/**
- * Builds a BVH-tree where nodes are the given tessellated faces
- * (NOTE: does not copy given mfaces!).
- * \param vert_allocated: if true, vert freeing will be done when freeing data.
- * \param face_allocated: if true, face freeing will be done when freeing data.
- * \param faces_mask: if not null, true elements give which faces to add to BVH-tree.
- * \param faces_num_active: if >= 0, number of active faces to add to BVH-tree
- * (else will be computed from mask).
- */
 BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
                                     const bool vert_allocated,
@@ -1257,9 +1224,6 @@ static void bvhtree_from_mesh_looptri_setup_data(BVHTreeFromMesh *data,
   data->looptri_allocated = looptri_allocated;
 }
 
-/**
- * Builds a BVH-tree where nodes are the `looptri` faces of the given `bm`.
- */
 BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           BMEditMesh *em,
                                           const BLI_bitmap *looptri_mask,
@@ -1314,11 +1278,6 @@ BVHTree *bvhtree_from_editmesh_looptri(
       data, em, nullptr, -1, epsilon, tree_type, axis, BVHTREE_FROM_VERTS, nullptr, nullptr);
 }
 
-/**
- * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
- *
- * \note for edit-mesh this is currently a duplicate of #bvhtree_from_mesh_faces_ex
- */
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const struct MVert *vert,
                                       const bool vert_allocated,
@@ -1461,12 +1420,6 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
   return looptri_mask;
 }
 
-/**
- * Builds or queries a bvhcache for the cache bvhtree of the request type.
- *
- * \note This function only fills a cache, and therefore the mesh argument can
- * be considered logically const. Concurrent access is protected by a mutex.
- */
 BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    const struct Mesh *mesh,
                                    const BVHCacheType bvh_cache_type,
@@ -1650,9 +1603,6 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   return tree;
 }
 
-/**
- * Builds or queries a bvhcache for the cache bvhtree of the request type.
- */
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        struct BMEditMesh *em,
                                        const int tree_type,
@@ -1767,9 +1717,6 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 
 /** \} */
 
-/**
- * Frees data allocated by a call to `bvhtree_from_editmesh_*`.
- */
 void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
 {
   if (data->tree) {
@@ -1780,9 +1727,6 @@ void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
   }
 }
 
-/**
- * Frees data allocated by a call to `bvhtree_from_mesh_*`.
- */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
   if (data->tree && !data->cached) {

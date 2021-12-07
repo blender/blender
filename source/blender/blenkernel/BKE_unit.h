@@ -26,9 +26,11 @@ extern "C" {
 
 struct UnitSettings;
 
-/* in all cases the value is assumed to be scaled by the user preference */
+/* In all cases the value is assumed to be scaled by the user-preference. */
 
-/* humanly readable representation of a value in units (used for button drawing) */
+/**
+ * Humanly readable representation of a value in units (used for button drawing).
+ */
 size_t BKE_unit_value_as_string_adaptive(
     char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
 size_t BKE_unit_value_as_string(char *str,
@@ -39,29 +41,59 @@ size_t BKE_unit_value_as_string(char *str,
                                 const struct UnitSettings *settings,
                                 bool pad);
 
-/* replace units with values, used before python button evaluation */
+/**
+ * Replace units with values, used before python button evaluation.
+ *
+ * Make a copy of the string that replaces the units with numbers.
+ * This is only used when evaluating user input and can afford to be a bit slower
+ *
+ * This is to be used before python evaluation so:
+ * `10.1km -> 10.1*1000.0`
+ * ...will be resolved by Python.
+ *
+ * Values will be split by an add sign:
+ * `5'2" -> 5*0.3048 + 2*0.0254`
+ *
+ * \param str_prev: is optional, when valid it is used to get a base unit when none is set.
+ *
+ * \return True of a change was made.
+ */
 bool BKE_unit_replace_string(
     char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
-/* return true if the string contains any valid unit for the given type */
+/**
+ * \return true if the string contains any valid unit for the given type.
+ */
 bool BKE_unit_string_contains_unit(const char *str, int type);
 
-/* If user does not specify a unit, this converts it to the unit from the settings. */
+/**
+ * If user does not specify a unit, this converts it to the unit from the settings.
+ */
 double BKE_unit_apply_preferred_unit(const struct UnitSettings *settings, int type, double value);
 
-/* make string keyboard-friendly: 10µm --> 10um */
+/**
+ * Make string keyboard-friendly, e.g: `10µm -> 10um`.
+ */
 void BKE_unit_name_to_alt(char *str, int len_max, const char *orig_str, int system, int type);
 
-/* the size of the unit used for this value (used for calculating the ckickstep) */
+/**
+ * The size of the unit used for this value (used for calculating the click-step).
+ */
 double BKE_unit_closest_scalar(double value, int system, int type);
 
-/* base scale for these units */
+/**
+ * Base scale for these units.
+ */
 double BKE_unit_base_scalar(int system, int type);
 
-/* return true is the unit system exists */
+/**
+ * \return true is the unit system exists.
+ */
 bool BKE_unit_is_valid(int system, int type);
 
-/* loop over scales, could add names later */
+/**
+ * Loop over scales, could add names later.
+ */
 // double bUnit_Iter(void **unit, char **name, int system, int type);
 
 void BKE_unit_system_get(int system, int type, const void **r_usys_pt, int *r_len);
@@ -73,7 +105,7 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index);
 double BKE_unit_scalar_get(const void *usys_pt, int index);
 bool BKE_unit_is_suppressed(const void *usys_pt, int index);
 
-/* aligned with PropertyUnit */
+/** Aligned with #PropertyUnit. */
 enum {
   B_UNIT_NONE = 0,
   B_UNIT_LENGTH = 1,

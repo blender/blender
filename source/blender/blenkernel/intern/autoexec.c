@@ -36,10 +36,6 @@
 
 #include "BKE_autoexec.h" /* own include */
 
-/**
- * \param path: The path to check against.
- * \return Success
- */
 bool BKE_autoexec_match(const char *path)
 {
   bPathCompare *path_cmp;

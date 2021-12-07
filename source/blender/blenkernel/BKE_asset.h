@@ -57,6 +57,9 @@ struct AssetTagEnsureResult {
 };
 
 struct AssetTag *BKE_asset_metadata_tag_add(struct AssetMetaData *asset_data, const char *name);
+/**
+ * Make sure there is a tag with name \a name, create one if needed.
+ */
 struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(struct AssetMetaData *asset_data,
                                                           const char *name);
 void BKE_asset_metadata_tag_remove(struct AssetMetaData *asset_data, struct AssetTag *tag);

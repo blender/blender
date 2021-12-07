@@ -55,6 +55,9 @@ uint32_t BKE_cryptomatte_asset_hash(struct CryptomatteSession *session,
                                     const char *layer_name,
                                     const struct Object *object);
 float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
+/**
+ * Find an ID in the given main that matches the given encoded float.
+ */
 bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
                                const float encoded_hash,
                                char *r_name,

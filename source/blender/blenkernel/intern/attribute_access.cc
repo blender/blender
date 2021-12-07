@@ -183,10 +183,6 @@ static int attribute_domain_priority(const AttributeDomain domain)
   }
 }
 
-/**
- * Domains with a higher "information density" have a higher priority, in order
- * to choose a domain that will not lose data through domain conversion.
- */
 AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
 {
   int highest_priority = INT_MIN;
@@ -754,11 +750,6 @@ std::optional<GSpan> CustomDataAttributes::get_for_read(const AttributeIDRef &at
   return {};
 }
 
-/**
- * Return a virtual array for a stored attribute, or a single value virtual array with the default
- * value if the attribute doesn't exist. If no default value is provided, the default value for the
- * type will be used.
- */
 GVArray CustomDataAttributes::get_for_read(const AttributeIDRef &attribute_id,
                                            const CustomDataType data_type,
                                            const void *default_value) const
@@ -1057,10 +1048,6 @@ Set<AttributeIDRef> GeometryComponent::attribute_ids() const
   return attributes;
 }
 
-/**
- * \return False if the callback explicitly returned false at any point, otherwise true,
- * meaning the callback made it all the way through.
- */
 bool GeometryComponent::attribute_foreach(const AttributeForeachCallback callback) const
 {
   using namespace blender::bke;

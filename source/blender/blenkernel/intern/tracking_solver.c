@@ -325,7 +325,6 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking,
   return tot;
 }
 
-/* Perform early check on whether everything is fine to start reconstruction. */
 bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
                                        MovieTrackingObject *object,
                                        char *error_msg,
@@ -354,11 +353,6 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
   return true;
 }
 
-/* Create context for camera/object motion reconstruction.
- * Copies all data needed for reconstruction from movie
- * clip datablock, so editing this clip is safe during
- * reconstruction job is in progress.
- */
 MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip,
                                                                  MovieTrackingObject *object,
                                                                  int keyframe1,
@@ -446,7 +440,6 @@ const char *BKE_tracking_reconstruction_error_message_get(const MovieReconstruct
   return context->error_message;
 }
 
-/* Free memory used by a reconstruction process. */
 void BKE_tracking_reconstruction_context_free(MovieReconstructContext *context)
 {
   if (context->reconstruction) {
@@ -486,15 +479,6 @@ static void reconstructionOptionsFromContext(libmv_ReconstructionOptions *recons
   reconstruction_options->refine_intrinsics = context->refine_flags;
 }
 
-/* Solve camera/object motion and reconstruct 3D markers position
- * from a prepared reconstruction context.
- *
- * stop is not actually used at this moment, so reconstruction
- * job could not be stopped.
- *
- * do_update, progress and stat_message are set by reconstruction
- * callback in libmv side and passing to an interface.
- */
 void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
                                        short *stop,
                                        short *do_update,
@@ -542,9 +526,6 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context,
   context->reprojection_error = error;
 }
 
-/* Finish reconstruction process by copying reconstructed data
- * to an actual movie clip datablock.
- */
 bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieTracking *tracking)
 {
   MovieTrackingReconstruction *reconstruction;
@@ -608,9 +589,6 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
   }
 }
 
-/* Apply scale on all reconstructed cameras and bundles,
- * used by camera scale apply operator.
- */
 void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
 {
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {

@@ -84,6 +84,9 @@ bool BKE_vfont_to_curve_ex(struct Object *ob,
                            bool *r_text_free,
                            struct CharTrans **r_chartransdata);
 bool BKE_vfont_to_curve_nubase(struct Object *ob, int mode, struct ListBase *r_nubase);
+/**
+ * \warning Expects to have access to evaluated data (i.e. passed object should be evaluated one).
+ */
 bool BKE_vfont_to_curve(struct Object *ob, int mode);
 void BKE_vfont_build_char(struct Curve *cu,
                           struct ListBase *nubase,

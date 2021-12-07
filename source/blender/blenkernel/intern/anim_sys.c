@@ -84,8 +84,6 @@ static CLG_LogRef LOG = {"bke.anim_sys"};
 
 /* Finding Tools --------------------------- */
 
-/* Find the first path that matches the given criteria */
-/* TODO: do we want some method to perform partial matches too? */
 KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
                                  ID *id,
                                  const char group_name[],
@@ -138,8 +136,6 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
 
 /* Defining Tools --------------------------- */
 
-/* Used to create a new 'custom' KeyingSet for the user,
- * that will be automatically added to the stack */
 KeyingSet *BKE_keyingset_add(
     ListBase *list, const char idname[], const char name[], short flag, short keyingflag)
 {
@@ -174,9 +170,6 @@ KeyingSet *BKE_keyingset_add(
   return ks;
 }
 
-/* Add a path to a KeyingSet. Nothing is returned for now...
- * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
- */
 KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
                                 ID *id,
                                 const char group_name[],
@@ -240,7 +233,6 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
   return ksp;
 }
 
-/* Free the given Keying Set path */
 void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
 {
   /* sanity check */
@@ -257,7 +249,6 @@ void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
   BLI_freelinkN(&ks->paths, ksp);
 }
 
-/* Copy all KeyingSets in the given list */
 void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
 {
   KeyingSet *ksn;
@@ -276,7 +267,6 @@ void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
 
 /* Freeing Tools --------------------------- */
 
-/* Free data for KeyingSet but not set itself */
 void BKE_keyingset_free(KeyingSet *ks)
 {
   KS_Path *ksp, *kspn;
@@ -293,7 +283,6 @@ void BKE_keyingset_free(KeyingSet *ks)
   }
 }
 
-/* Free all the KeyingSets in the given list */
 void BKE_keyingsets_free(ListBase *list)
 {
   KeyingSet *ks, *ksn;
@@ -490,7 +479,6 @@ bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value)
   return true;
 }
 
-/* Write the given value to a setting using RNA, and return success */
 bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
 {
   PropertyRNA *prop = anim_rna->prop;
@@ -831,7 +819,6 @@ static void action_idcode_patch_check(ID *id, bAction *act)
 
 /* ----------------------------------------- */
 
-/* Evaluate Action Group */
 void animsys_evaluate_action_group(PointerRNA *ptr,
                                    bAction *act,
                                    bActionGroup *agrp,
@@ -864,7 +851,6 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
   }
 }
 
-/* Evaluate Action (F-Curve Bag) */
 void animsys_evaluate_action(PointerRNA *ptr,
                              bAction *act,
                              const AnimationEvalContext *anim_eval_context,
@@ -881,7 +867,6 @@ void animsys_evaluate_action(PointerRNA *ptr,
   animsys_evaluate_fcurves(ptr, &act->curves, anim_eval_context, flush_to_original);
 }
 
-/* Evaluate Action and blend it into the current values of the animated properties. */
 void animsys_blend_in_action(PointerRNA *ptr,
                              bAction *act,
                              const AnimationEvalContext *anim_eval_context,
@@ -960,7 +945,6 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
   }
 }
 
-/* gets the strip active at the current time for a list of strips for evaluation purposes */
 NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
                                         ListBase *strips,
                                         short index,
@@ -2402,7 +2386,6 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr,
   nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
 }
 
-/* evaluates the given evaluation strip */
 void nlastrip_evaluate(PointerRNA *ptr,
                        NlaEvalData *channels,
                        ListBase *modifiers,
@@ -2447,7 +2430,6 @@ void nlastrip_evaluate(PointerRNA *ptr,
   strip->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
 }
 
-/* write the accumulated settings to */
 void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,
                             NlaEvalSnapshot *snapshot,
@@ -2977,14 +2959,6 @@ void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapsh
   }
 }
 
-/**
- * Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
- * to the given \a upper_blendmode and \a upper_influence.
- *
- * For \a upper_snapshot, blending limited to values in the \a blend_domain.
- * For Replace blend-mode, this allows the upper snapshot to have a location XYZ channel
- * where only a subset of values are blended.
- */
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,
                        NlaEvalSnapshot *upper_snapshot,
@@ -3012,14 +2986,6 @@ void nlasnapshot_blend(NlaEvalData *eval_data,
   }
 }
 
-/**
- * Using \a blended_snapshot and \a lower_snapshot, we can solve for the \a r_upper_snapshot.
- *
- * Only channels that exist within \a blended_snapshot are inverted.
- *
- * For \a r_upper_snapshot, disables \a NlaEvalChannelSnapshot->remap_domain for failed inversions.
- * Only values within the \a remap_domain are processed.
- */
 void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
                                                    NlaEvalSnapshot *lower_snapshot,
                                                    NlaEvalSnapshot *blended_snapshot,
@@ -3050,15 +3016,6 @@ void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
 
 /* ---------------------- */
 
-/**
- * Prepare data necessary to compute correct keyframe values for NLA strips
- * with non-Replace mode or influence different from 1.
- *
- * \param cache: List used to cache contexts for reuse when keying
- * multiple channels in one operation.
- * \param ptr: RNA pointer to the Object with the animation.
- * \return Keyframing context, or NULL if not necessary.
- */
 NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
     struct ListBase *cache,
     struct PointerRNA *ptr,
@@ -3095,18 +3052,6 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
   return ctx;
 }
 
-/**
- * Apply correction from the NLA context to the values about to be keyframed.
- *
- * \param context: Context to use (may be NULL).
- * \param prop_ptr: Property about to be keyframed.
- * \param[in,out] values: Array of property values to adjust.
- * \param count: Number of values in the array.
- * \param index: Index of the element about to be updated, or -1.
- * \param[out] r_force_all: Set to true if all channels must be inserted. May be NULL.
- * \return False if correction fails due to a division by zero,
- * or null r_force_all when all channels are required.
- */
 bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
@@ -3202,9 +3147,6 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   return successful_remap;
 }
 
-/**
- * Free all cached contexts from the list.
- */
 void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
 {
   LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
@@ -3270,12 +3212,6 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
  *   However, the code for this is relatively harmless, so is left in the code for now.
  */
 
-/* Evaluation loop for evaluation animation data
- *
- * This assumes that the animation-data provided belongs to the ID block in question,
- * and that the flags for which parts of the anim-data settings need to be recalculated
- * have been set already by the depsgraph. Now, we use the recalc
- */
 void BKE_animsys_evaluate_animdata(ID *id,
                                    AnimData *adt,
                                    const AnimationEvalContext *anim_eval_context,
@@ -3329,13 +3265,6 @@ void BKE_animsys_evaluate_animdata(ID *id,
   animsys_evaluate_overrides(&id_ptr, adt);
 }
 
-/* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only
- *
- * This will evaluate only the animation info available in the animation data-blocks
- * encountered. In order to enforce the system by which some settings controlled by a
- * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
- * standard 'root') block are overridden by a larger 'user'
- */
 void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float ctime)
 {
   ID *id;

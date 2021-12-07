@@ -456,10 +456,6 @@ static void libblock_remap_data(
 #endif
 }
 
-/**
- * Replace all references in given Main to \a old_id by \a new_id
- * (if \a new_id is NULL, it unlinks \a old_id).
- */
 void BKE_libblock_remap_locked(Main *bmain, void *old_idv, void *new_idv, const short remap_flags)
 {
   IDRemap id_remap_data;
@@ -565,13 +561,6 @@ void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, const short r
   BKE_main_unlock(bmain);
 }
 
-/**
- * Unlink given \a id from given \a bmain
- * (does not touch to indirect, i.e. library, usages of the ID).
- *
- * \param do_flag_never_null: If true, all IDs using \a idv in a 'non-NULL' way are flagged by
- * #LIB_TAG_DOIT flag (quite obviously, 'non-NULL' usages can never be unlinked by this function).
- */
 void BKE_libblock_unlink(Main *bmain,
                          void *idv,
                          const bool do_flag_never_null,
@@ -587,16 +576,6 @@ void BKE_libblock_unlink(Main *bmain,
   BKE_main_unlock(bmain);
 }
 
-/**
- * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
- *
- * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
- * in which case all ID usages by given \a idv will be cleared.
- * \param us_min_never_null: If \a true and new_id is NULL,
- * 'NEVER_NULL' ID usages keep their old id, but this one still gets its user count decremented
- * (needed when given \a idv is going to be deleted right after being unlinked).
- */
-/* Should be able to replace all _relink() funcs (constraints, rigidbody, etc.) ? */
 /* XXX Arg! Naming... :(
  *     _relink? avoids confusion with _remap, but is confusing with _unlink
  *     _remap_used_ids?
@@ -604,9 +583,13 @@ void BKE_libblock_unlink(Main *bmain,
  *     BKE_id_remap maybe?
  *     ... sigh
  */
+
 void BKE_libblock_relink_ex(
     Main *bmain, void *idv, void *old_idv, void *new_idv, const short remap_flags)
 {
+
+  /* Should be able to replace all _relink() funcs (constraints, rigidbody, etc.) ? */
+
   ID *id = idv;
   ID *old_id = old_idv;
   ID *new_id = new_idv;
@@ -710,15 +693,6 @@ static void libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
       bmain, id, id_relink_to_newid_looper, POINTER_FROM_INT(remap_flag), 0);
 }
 
-/**
- * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
- * in the dependency tree of IDs for all data-blocks tagged with `LIB_TAG_NEW`.
- *
- * NOTE: `LIB_TAG_NEW` is cleared
- *
- * Very specific usage, not sure we'll keep it on the long run,
- * currently only used in Object/Collection duplication code...
- */
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
 {
   if (ID_IS_LINKED(id)) {

@@ -259,16 +259,6 @@ void ntreeCompositExecTree(Scene *scene,
 
 /* *********************************************** */
 
-/**
- * Update the outputs of the render layer nodes.
- * Since the outputs depend on the render engine, this part is a bit complex:
- * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
- * - Each render layer node calls the update function of the
- *   render engine that's used for its scene.
- * - The render engine calls RE_engine_register_pass for each pass.
- * - #RE_engine_register_pass calls #ntreeCompositRegisterPass,
- *   which calls #node_cmp_rlayers_register_pass for every render layer node.
- */
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {
   if (ntree == nullptr) {
@@ -299,8 +289,6 @@ void ntreeCompositRegisterPass(bNodeTree *ntree,
   }
 }
 
-/* called from render pipeline, to tag render input and output */
-/* need to do all scenes, to prevent errors when you re-render 1 scene */
 void ntreeCompositTagRender(Scene *scene)
 {
   /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,

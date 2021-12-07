@@ -39,7 +39,6 @@
 /* ******************************************************************** */
 /* Animation Visualization */
 
-/* Initialize the default settings for animation visualization */
 void animviz_settings_init(bAnimVizSettings *avs)
 {
   /* sanity check */
@@ -62,7 +61,6 @@ void animviz_settings_init(bAnimVizSettings *avs)
 
 /* ------------------- */
 
-/* Free the given motion path's cache */
 void animviz_free_motionpath_cache(bMotionPath *mpath)
 {
   /* sanity check */
@@ -84,9 +82,6 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
   mpath->length = 0;
 }
 
-/* Free the given motion path instance and its data
- * NOTE: this frees the motion path given!
- */
 void animviz_free_motionpath(bMotionPath *mpath)
 {
   /* sanity check */
@@ -103,7 +98,6 @@ void animviz_free_motionpath(bMotionPath *mpath)
 
 /* ------------------- */
 
-/* Make a copy of motionpath data, so that viewing with copy on write works */
 bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
 {
   bMotionPath *mpath_dst;
@@ -125,14 +119,6 @@ bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
 
 /* ------------------- */
 
-/**
- * Setup motion paths for the given data.
- * \note Only used when explicitly calculating paths on bones which may/may not be consider already
- *
- * \param scene: Current scene (for frame ranges, etc.)
- * \param ob: Object to add paths for (must be provided)
- * \param pchan: Posechannel to add paths for (optional; if not provided, object-paths are assumed)
- */
 bMotionPath *animviz_verify_motionpaths(ReportList *reports,
                                         Scene *scene,
                                         Object *ob,

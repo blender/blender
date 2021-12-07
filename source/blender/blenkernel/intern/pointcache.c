@@ -266,7 +266,8 @@ static void ptcache_softbody_error(const ID *UNUSED(owner_id),
   /* ignored for now */
 }
 
-/* Particle functions */
+/* Particle functions. */
+
 void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, float time)
 {
   PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, key->co);
@@ -873,6 +874,7 @@ static void ptcache_rigidbody_error(const struct ID *UNUSED(owner_id),
 }
 
 /* Creating ID's */
+
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
   memset(pid, 0, sizeof(PTCacheID));
@@ -1008,9 +1010,6 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-/* The fluid modifier does not actually use this anymore, but some parts of Blender expect that it
- * still has a point cache currently. For example, the fluid modifier uses
- * #DEG_add_collision_relations, which internally creates relations with the point cache. */
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct FluidModifierData *fmd)
 {
   FluidDomainSettings *fds = fmd->domain;
@@ -1104,10 +1103,6 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-/**
- * \param ob: Optional, may be NULL.
- * \param scene: Optional may be NULL.
- */
 PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 {
   PTCacheID result = {0};
@@ -1713,7 +1708,8 @@ static int ptcache_file_header_begin_write(PTCacheFile *pf)
   return 1;
 }
 
-/* Data pointer handling */
+/* Data pointer handling. */
+
 int BKE_ptcache_data_size(int data_type)
 {
   return ptcache_data_size[data_type];
@@ -1734,7 +1730,6 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
   pf->cur[BPHYS_DATA_BOIDS] = (data_types & (1 << BPHYS_DATA_BOIDS)) ? &pf->data.boids : NULL;
 }
 
-/* Check to see if point number "index" is in pm, uses binary search for index data. */
 int BKE_ptcache_mem_index_find(PTCacheMem *pm, unsigned int index)
 {
   if (pm->totpoint > 0 && pm->data[BPHYS_DATA_INDEX]) {
@@ -2288,7 +2283,6 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
   return 1;
 }
 /* reads cache from disk or memory */
-/* possible to get old or interpolated result */
 int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old)
 {
   int cfrai = (int)floor(cfra), cfra1 = 0, cfra2 = 0;
@@ -2549,7 +2543,6 @@ static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 
   return 0;
 }
-/* writes cache to disk or memory */
 int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
 {
   PointCache *cache = pid->cache;
@@ -2600,7 +2593,8 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
  * mode - PTCACHE_CLEAR_ALL,
  */
 
-/* Clears & resets */
+/* Clears & resets. */
+
 void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 {
   unsigned int len; /* store the length of the string */
@@ -3014,7 +3008,6 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
   return reset;
 }
 
-/* Use this when quitting blender, with unsaved files */
 void BKE_ptcache_remove(void)
 {
   char path[MAX_PTCACHE_PATH];
@@ -3150,7 +3143,6 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
   return ncache;
 }
 
-/* returns first point cache */
 PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new,
                                   const ListBase *ptcaches_old,
                                   const int flag)
@@ -3170,6 +3162,7 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new,
  * every user action changing stuff, and then it runs a complete bake??? (ton) */
 
 /* Baking */
+
 void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
   PTCacheBaker baker;
@@ -3202,7 +3195,6 @@ static void ptcache_dt_to_str(char *str, double dtime)
   }
 }
 
-/* if bake is not given run simulations to current frame */
 void BKE_ptcache_bake(PTCacheBaker *baker)
 {
   Scene *scene = baker->scene;
@@ -3439,7 +3431,9 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   /* TODO: call redraw all windows somehow */
 }
+
 /* Helpers */
+
 void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 {
   PointCache *cache = pid->cache;

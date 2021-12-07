@@ -59,7 +59,6 @@ bool VolumeComponent::has_volume() const
   return volume_ != nullptr;
 }
 
-/* Clear the component and replace it with the new volume. */
 void VolumeComponent::replace(Volume *volume, GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
@@ -68,8 +67,6 @@ void VolumeComponent::replace(Volume *volume, GeometryOwnershipType ownership)
   ownership_ = ownership;
 }
 
-/* Return the volume and clear the component. The caller takes over responsibility for freeing the
- * volume (if the component was responsible before). */
 Volume *VolumeComponent::release()
 {
   BLI_assert(this->is_mutable());
@@ -78,15 +75,11 @@ Volume *VolumeComponent::release()
   return volume;
 }
 
-/* Get the volume from this component. This method can be used by multiple threads at the same
- * time. Therefore, the returned volume should not be modified. No ownership is transferred. */
 const Volume *VolumeComponent::get_for_read() const
 {
   return volume_;
 }
 
-/* Get the volume from this component. This method can only be used when the component is mutable,
- * i.e. it is not shared. The returned volume can be modified. No ownership is transferred. */
 Volume *VolumeComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());

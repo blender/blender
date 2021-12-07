@@ -103,7 +103,6 @@ static void RB_constraint_delete(void *UNUSED(con))
 
 #endif
 
-/* Free rigidbody world */
 void BKE_rigidbody_free_world(Scene *scene)
 {
   bool is_orig = (scene->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
@@ -160,7 +159,6 @@ void BKE_rigidbody_free_world(Scene *scene)
   MEM_freeN(rbw);
 }
 
-/* Free RigidBody settings and sim instances */
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
 {
   bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
@@ -208,7 +206,6 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
   ob->rigidbody_object = NULL;
 }
 
-/* Free RigidBody constraint and sim instance */
 void BKE_rigidbody_free_constraint(Object *ob)
 {
   RigidBodyCon *rbc = (ob) ? ob->rigidbody_constraint : NULL;

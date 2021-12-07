@@ -143,15 +143,19 @@ typedef struct ReshapeConstGridElement {
  * Construct/destruct reshape context.
  */
 
-/* Create subdivision surface descriptor which is configured for surface evaluation at a given
- * multires modifier. */
+/**
+ * Create subdivision surface descriptor which is configured for surface evaluation at a given
+ * multi-res modifier.
+ */
 struct Subdiv *multires_reshape_create_subdiv(struct Depsgraph *depsgraph,
                                               struct Object *object,
                                               const struct MultiresModifierData *mmd);
 
-/* NOTE: Initialized base mesh to object's mesh, the Subdiv is created from the deformed
- * mesh prior to the multires modifier if depsgraph is not NULL. If the depsgraph is NULL
- * then Subdiv is created from base mesh (without any deformation applied). */
+/**
+ * \note Initialized base mesh to object's mesh, the Subdivision is created from the deformed
+ * mesh prior to the multi-res modifier if depsgraph is not NULL. If the depsgraph is NULL
+ * then Subdivision is created from base mesh (without any deformation applied).
+ */
 bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape_context,
                                                  struct Depsgraph *depsgraph,
                                                  struct Object *object,
@@ -185,29 +189,41 @@ void multires_reshape_context_free(MultiresReshapeContext *reshape_context);
  * Helper accessors.
  */
 
-/* For the given grid index get index of face it was created for. */
+/**
+ * For the given grid index get index of face it was created for.
+ */
 int multires_reshape_grid_to_face_index(const MultiresReshapeContext *reshape_context,
                                         int grid_index);
 
-/* For the given grid index get corner of a face it was created for. */
+/**
+ * For the given grid index get corner of a face it was created for.
+ */
 int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_context, int grid_index);
 
 bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context, int face_index);
 
-/* For the given grid index get index of corresponding ptex face. */
+/**
+ * For the given grid index get index of corresponding PTEX face.
+ */
 int multires_reshape_grid_to_ptex_index(const MultiresReshapeContext *reshape_context,
                                         int grid_index);
 
-/* Convert normalized coordinate within a grid to a normalized coordinate within a ptex face. */
+/**
+ * Convert normalized coordinate within a grid to a normalized coordinate within a PTEX face.
+ */
 PTexCoord multires_reshape_grid_coord_to_ptex(const MultiresReshapeContext *reshape_context,
                                               const GridCoord *grid_coord);
 
-/* Convert a normalized coordinate within a ptex face to a normalized coordinate within a grid. */
+/**
+ * Convert a normalized coordinate within a PTEX face to a normalized coordinate within a grid.
+ */
 GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *reshape_context,
                                               const PTexCoord *ptex_coord);
 
-/* Calculate tangent matrix which converts displacement to a object vector.
- * Is calculated for the given surface derivatives at a given base face corner. */
+/**
+ * Calculate tangent matrix which converts displacement to a object vector.
+ * Is calculated for the given surface derivatives at a given base face corner.
+ */
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
                                                 const int face_index,
                                                 const int corner,
@@ -215,14 +231,18 @@ void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *re
                                                 const float dPdv[3],
                                                 float r_tangent_matrix[3][3]);
 
-/* Get grid elements which are to be reshaped at a given or ptex coordinate.
- * The data is coming from final custom mdata layers. */
+/**
+ * Get grid elements which are to be reshaped at a given or PTEX coordinate.
+ * The data is coming from final custom mdata layers.
+ */
 ReshapeGridElement multires_reshape_grid_element_for_grid_coord(
     const MultiresReshapeContext *reshape_context, const GridCoord *grid_coord);
 ReshapeGridElement multires_reshape_grid_element_for_ptex_coord(
     const MultiresReshapeContext *reshape_context, const PTexCoord *ptex_coord);
 
-/* Get original grid element for the given coordinate. */
+/**
+ * Get original grid element for the given coordinate.
+ */
 ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
     const MultiresReshapeContext *reshape_context, const GridCoord *grid_coord);
 
@@ -230,8 +250,10 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
  * Sample limit surface of the base mesh.
  */
 
-/* Evaluate limit surface created from base mesh.
- * This is the limit surface which defines tangent space for MDisps. */
+/**
+ * Evaluate limit surface created from base mesh.
+ * This is the limit surface which defines tangent space for MDisps.
+ */
 void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *reshape_context,
                                              const GridCoord *grid_coord,
                                              float r_P[3],
@@ -241,17 +263,23 @@ void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *resha
  * Custom data preparation.
  */
 
-/* Make sure custom data is allocated for the given level. */
+/**
+ * Make sure custom data is allocated for the given level.
+ */
 void multires_reshape_ensure_grids(struct Mesh *mesh, const int level);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from a set of vertices in a object position.
  */
 
-/* Returns truth if all coordinates were assigned.
+/**
+ * Set displacement grids values at a reshape level to a object coordinates of the given source.
+ *
+ * \returns truth if all coordinates were assigned.
  *
  * False will be returned if the number of vertex coordinates did not match required number of
- * vertices at a reshape level. */
+ * vertices at a reshape level.
+ */
 bool multires_reshape_assign_final_coords_from_vertcos(
     const MultiresReshapeContext *reshape_context,
     const float (*vert_coords)[3],
@@ -261,13 +289,15 @@ bool multires_reshape_assign_final_coords_from_vertcos(
  * Functions specific to reshaping from CCG.
  */
 
-/* Store final object-space coordinates in the displacement grids.
+/**
+ * Store final object-space coordinates in the displacement grids.
  * The reason why displacement grids are used for storage is based on memory
  * footprint optimization.
  *
- * NOTE: Displacement grids to be at least at a reshape level.
+ * \note Displacement grids to be at least at a reshape level.
  *
- * Return truth if all coordinates have been updated. */
+ * \return truth if all coordinates have been updated.
+ */
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
                                                    struct SubdivCCG *subdiv_ccg);
 
@@ -275,11 +305,15 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
  * Functions specific to reshaping from MDISPS.
  */
 
-/* Reads and writes to the current mesh CD_MDISPS. */
+/**
+ * Reads and writes to the current mesh #CD_MDISPS.
+ */
 void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context);
 
-/* Reads from original CD_MIDTSPS, writes to the current mesh CD_MDISPS. */
+/**
+ * Reads from original #CD_MIDTSPS, writes to the current mesh #CD_MDISPS.
+ */
 void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context);
 
@@ -287,15 +321,18 @@ void multires_reshape_assign_final_elements_from_orig_mdisps(
  * Displacement smooth.
  */
 
-/* Operates on a displacement grids (CD_MDISPS) which contains object space coordinates stored for
+/**
+ * Operates on a displacement grids (CD_MDISPS) which contains object space coordinates stored for
  * the reshape level.
  *
  * The result is grids which are defining mesh with a smooth surface and details starting from
- * reshape level up to top level added back from original displacement grids. */
+ * reshape level up to top level added back from original displacement grids.
+ */
 void multires_reshape_smooth_object_grids_with_details(
     const MultiresReshapeContext *reshape_context);
 
-/* Operates on a displacement grids (CD_MDISPS) which contains object space-coordinates stored for
+/**
+ * Operates on a displacement grids (CD_MDISPS) which contains object space-coordinates stored for
  * the reshape level.
  *
  * Makes it so surface on top level looks smooth. Details are not preserved
@@ -307,8 +344,10 @@ void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_
  * Displacement, space conversion.
  */
 
-/* Store original grid data, so then it's possible to calculate delta from it and add
- * high-frequency content on top of reshaped grids. */
+/**
+ * Store original grid data, so then it's possible to calculate delta from it and add
+ * high-frequency content on top of reshaped grids.
+ */
 void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_context);
 
 void multires_reshape_object_grids_to_tangent_displacement(
@@ -318,21 +357,29 @@ void multires_reshape_object_grids_to_tangent_displacement(
  * Apply base.
  */
 
-/* Update mesh coordinates to the final positions of displacement in object space.
+/**
+ * Update mesh coordinates to the final positions of displacement in object space.
  * This is effectively desired position of base mesh vertices after canceling out displacement.
  *
- * NOTE: Expects that mesh's CD_MDISPS has been set to object space positions. */
+ * \note Expects that mesh's CD_MDISPS has been set to object space positions.
+ */
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context);
 
-/* Perform better fitting of the base mesh so its subdivided version brings vertices to their
- * desired locations. */
+/**
+ * Perform better fitting of the base mesh so its subdivided version brings vertices to their
+ * desired locations.
+ */
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context);
 
-/* Refine subdivision surface to the new positions of the base mesh. */
+/**
+ * Refine subdivision surface to the new positions of the base mesh.
+ */
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context);
 
-/* Refine subdivision surface to the new positions of the deformed mesh (base mesh with all
- * modifiers leading the multires applied).
+/**
+ * Refine subdivision surface to the new positions of the deformed mesh (base mesh with all
+ * modifiers leading the multi-res applied).
  *
- * NOTE: Will re-evaluate all leading modifiers, so it's not cheap. */
+ * \note Will re-evaluate all leading modifiers, so it's not cheap.
+ */
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context);

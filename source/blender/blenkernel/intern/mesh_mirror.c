@@ -130,10 +130,6 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   BM_mesh_free(bm);
 }
 
-/**
- * \warning This should _not_ be used to modify original meshes since
- * it doesn't handle shape-keys, use #BKE_mesh_mirror_apply_mirror_on_axis instead.
- */
 Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         Object *ob,
                                                         const Mesh *mesh,

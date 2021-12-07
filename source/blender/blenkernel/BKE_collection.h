@@ -54,20 +54,51 @@ typedef struct CollectionParent {
 
 /* Collections */
 
+/**
+ * Add a collection to a collection ListBase and synchronize all render layers
+ * The ListBase is NULL when the collection is to be added to the master collection
+ */
 struct Collection *BKE_collection_add(struct Main *bmain,
                                       struct Collection *parent,
                                       const char *name);
+/**
+ * Add \a collection_dst to all scene collections that reference object \a ob_src is in.
+ * Used to replace an instance object with a collection (library override operator).
+ *
+ * Logic is very similar to #BKE_collection_object_add_from().
+ */
 void BKE_collection_add_from_object(struct Main *bmain,
                                     struct Scene *scene,
                                     const struct Object *ob_src,
                                     struct Collection *collection_dst);
+/**
+ * Add \a collection_dst to all scene collections that reference collection \a collection_src is
+ * in.
+ *
+ * Logic is very similar to #BKE_collection_object_add_from().
+ */
 void BKE_collection_add_from_collection(struct Main *bmain,
                                         struct Scene *scene,
                                         struct Collection *collection_src,
                                         struct Collection *collection_dst);
+/**
+ * Free (or release) any data used by this collection (does not free the collection itself).
+ */
 void BKE_collection_free_data(struct Collection *collection);
+/**
+ * Remove a collection, optionally removing its child objects or moving
+ * them to parent collections.
+ */
 bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bool hierarchy);
 
+/**
+ * Make a deep copy (aka duplicate) of the given collection and all of its children, recursively.
+ *
+ * \warning This functions will clear all \a bmain #ID.idnew pointers, unless \a
+ * #LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on, in which case caller is
+ * responsible to reconstruct collection dependencies information's
+ * (i.e. call #BKE_main_collection_sync).
+ */
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,
                                             struct Collection *collection,
@@ -91,28 +122,60 @@ struct Collection *BKE_collection_object_find(struct Main *bmain,
                                               struct Object *ob);
 bool BKE_collection_is_empty(const struct Collection *collection);
 
+/**
+ * Add object to collection
+ */
 bool BKE_collection_object_add(struct Main *bmain,
                                struct Collection *collection,
                                struct Object *ob);
+/**
+ * Add \a ob_dst to all scene collections that reference object \a ob_src is in.
+ * Used for copying objects.
+ *
+ * Logic is very similar to #BKE_collection_add_from_object()
+ */
 void BKE_collection_object_add_from(struct Main *bmain,
                                     struct Scene *scene,
                                     struct Object *ob_src,
                                     struct Object *ob_dst);
+/**
+ * Remove object from collection.
+ */
 bool BKE_collection_object_remove(struct Main *bmain,
                                   struct Collection *collection,
                                   struct Object *object,
                                   const bool free_us);
+/**
+ * Move object from a collection into another
+ *
+ * If source collection is NULL move it from all the existing collections.
+ */
 void BKE_collection_object_move(struct Main *bmain,
                                 struct Scene *scene,
                                 struct Collection *collection_dst,
                                 struct Collection *collection_src,
                                 struct Object *ob);
 
+/**
+ * Remove object from all collections of scene
+ */
 bool BKE_scene_collections_object_remove(struct Main *bmain,
                                          struct Scene *scene,
                                          struct Object *object,
                                          const bool free_us);
 void BKE_collections_object_remove_nulls(struct Main *bmain);
+/**
+ * Remove all NULL children from parent collections of changed \a collection.
+ * This is used for library remapping, where these pointers have been set to NULL.
+ * Otherwise this should never happen.
+ *
+ * \note caller must ensure #BKE_main_collection_sync_remap() is called afterwards!
+ *
+ * \param parent_collection: The collection owning the pointers that were remapped. May be \a NULL,
+ * in which case whole \a bmain database of collections is checked.
+ * \param child_collection: The collection that was remapped to another pointer. May be \a NULL,
+ * in which case whole \a bmain database of collections is checked.
+ */
 void BKE_collections_child_remove_nulls(struct Main *bmain,
                                         struct Collection *parent_collection,
                                         struct Collection *child_collection);
@@ -136,9 +199,24 @@ struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer,
 
 /* Editing. */
 
+/**
+ * Return Scene Collection for a given index.
+ *
+ * The index is calculated from top to bottom counting the children before the siblings.
+ */
 struct Collection *BKE_collection_from_index(struct Scene *scene, const int index);
+/**
+ * The automatic/fallback name of a new collection.
+ */
 void BKE_collection_new_name_get(struct Collection *collection_parent, char *rname);
+/**
+ * The name to show in the interface.
+ */
 const char *BKE_collection_ui_name_get(struct Collection *collection);
+/**
+ * Select all the objects in this Collection (and its nested collections) for this ViewLayer.
+ * Return true if any object was selected.
+ */
 bool BKE_collection_objects_select(struct ViewLayer *view_layer,
                                    struct Collection *collection,
                                    bool deselect);
@@ -162,13 +240,36 @@ bool BKE_collection_move(struct Main *bmain,
                          bool relative_after,
                          struct Collection *collection);
 
+/**
+ * Find potential cycles in collections.
+ *
+ * \param new_ancestor: the potential new owner of given \a collection,
+ * or the collection to check if the later is NULL.
+ * \param collection: the collection we want to add to \a new_ancestor,
+ * may be NULL if we just want to ensure \a new_ancestor does not already have cycles.
+ * \return true if a cycle is found.
+ */
 bool BKE_collection_cycle_find(struct Collection *new_ancestor, struct Collection *collection);
+/**
+ * Find and fix potential cycles in collections.
+ *
+ * \param collection: The collection to check for existing cycles.
+ * \return true if cycles are found and fixed.
+ */
 bool BKE_collection_cycles_fix(struct Main *bmain, struct Collection *collection);
 
 bool BKE_collection_has_collection(const struct Collection *parent,
                                    const struct Collection *collection);
 
+/**
+ * Rebuild parent relationships from child ones, for all children of given \a collection.
+ *
+ * \note Given collection is assumed to already have valid parents.
+ */
 void BKE_collection_parent_relations_rebuild(struct Collection *collection);
+/**
+ * Rebuild parent relationships from child ones, for all collections in given \a bmain.
+ */
 void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 
 /* .blend file I/O */
@@ -224,6 +325,10 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 
 /* Iteration over collections in scene. */
 
+/**
+ * Only use this in non-performance critical situations
+ * (it iterates over all scene collections twice)
+ */
 void BKE_scene_collections_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter);
@@ -232,6 +337,13 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
+/**
+ * Generate a new #GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
+ * all collections of given `scene`.
+ *
+ * \note This will include objects without a base currently
+ * (because they would belong to excluded collections only e.g.).
+ */
 struct GSet *BKE_scene_objects_as_gset(struct Scene *scene, struct GSet *objects_gset);
 
 #define FOREACH_SCENE_COLLECTION_BEGIN(scene, _instance) \

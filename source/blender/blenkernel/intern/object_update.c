@@ -67,14 +67,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-/**
- * Restore the object->data to a non-modifier evaluated state.
- *
- * Some changes done directly in evaluated object require them to be reset
- * before being re-evaluated.
- * For example, we need to call this before #BKE_mesh_new_from_object(),
- * in case we removed/added modifiers in the evaluated object.
- */
 void BKE_object_eval_reset(Object *ob_eval)
 {
   BKE_object_free_derived_caches(ob_eval);
@@ -88,10 +80,10 @@ void BKE_object_eval_local_transform(Depsgraph *depsgraph, Object *ob)
   BKE_object_to_mat4(ob, ob->obmat);
 }
 
-/* Evaluate parent */
-/* NOTE: based on solve_parenting(), but with the cruft stripped out */
 void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
 {
+  /* NOTE: based on `solve_parenting()`, but with the cruft stripped out. */
+
   Object *par = ob->parent;
 
   float totmat[4][4];

@@ -29,6 +29,9 @@ extern "C" {
 
 struct UserDef;
 
+/**
+ * Only to be called on exit Blender.
+ */
 void BKE_blender_free(void);
 
 void BKE_blender_globals_init(void);
@@ -38,11 +41,19 @@ void BKE_blender_userdef_data_swap(struct UserDef *userdef_a, struct UserDef *us
 void BKE_blender_userdef_data_set(struct UserDef *userdef);
 void BKE_blender_userdef_data_set_and_free(struct UserDef *userdef);
 
+/**
+ * Write U from userdef.
+ * This function defines which settings a template will override for the user preferences.
+ */
 void BKE_blender_userdef_app_template_data_swap(struct UserDef *userdef_a,
                                                 struct UserDef *userdef_b);
 void BKE_blender_userdef_app_template_data_set(struct UserDef *userdef);
 void BKE_blender_userdef_app_template_data_set_and_free(struct UserDef *userdef);
 
+/**
+ * When loading a new userdef from file,
+ * or when exiting Blender.
+ */
 void BKE_blender_userdef_data_free(struct UserDef *userdef, bool clear_fonts);
 
 /* Blenders' own atexit (avoids leaking) */

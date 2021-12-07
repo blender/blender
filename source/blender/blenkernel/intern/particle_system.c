@@ -452,7 +452,6 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
   }
 }
 
-/* threaded child particle distribution and path caching */
 void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData *sim)
 {
   memset(ctx, 0, sizeof(ParticleThreadContext));
@@ -591,7 +590,6 @@ static void init_particle_texture(ParticleSimulationData *sim, ParticleData *pa,
   }
 }
 
-/* set particle parameters that don't change during particle's life */
 void init_particle(ParticleSimulationData *sim, ParticleData *pa)
 {
   ParticleSettings *part = sim->psys->part;
@@ -1066,7 +1064,6 @@ static void evaluate_emitter_anim(struct Depsgraph *depsgraph,
   BKE_object_where_is_calc_time(depsgraph, scene, ob, cfra);
 }
 
-/* sets particle to the emitter surface with initial velocity & rotation */
 void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, float cfra)
 {
   ParticleSystem *psys = sim->psys;
@@ -1157,9 +1154,11 @@ static void reset_all_particles(ParticleSimulationData *sim, float dtime, float 
     reset_particle(sim, pa, dtime, cfra);
   }
 }
+
 /************************************************/
 /*          Particle targets                    */
 /************************************************/
+
 ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
 {
   ParticleSystem *psys = NULL;
@@ -1180,10 +1179,11 @@ ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
 
   return psys;
 }
+
 /************************************************/
 /*          Keyed particles                     */
 /************************************************/
-/* Counts valid keyed targets */
+
 void psys_count_keyed_targets(ParticleSimulationData *sim)
 {
   ParticleSystem *psys = sim->psys, *kpsys;
@@ -1288,6 +1288,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 /************************************************/
 /*          Point Cache                         */
 /************************************************/
+
 void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 {
   PointCache *cache = psys->pointcache;
@@ -1325,6 +1326,7 @@ static void bvhtree_balance_isolated(void *userdata)
 /************************************************/
 /*          Effectors                           */
 /************************************************/
+
 static void psys_update_particle_bvhtree(ParticleSystem *psys, float cfra)
 {
   if (psys) {
@@ -2181,7 +2183,6 @@ void psys_sph_finalize(SPHData *sphdata)
   }
 }
 
-/* Sample the density field at a point in space. */
 void psys_sph_density(BVHTree *tree, SPHData *sphdata, float co[3], float vars[2])
 {
   ParticleSystem **psys = sphdata->psys;
@@ -2234,6 +2235,7 @@ static void sph_integrate(ParticleSimulationData *sim,
 /************************************************/
 /*          Basic physics                       */
 /************************************************/
+
 typedef struct EfData {
   ParticleTexture ptex;
   ParticleSimulationData *sim;
@@ -2787,7 +2789,6 @@ static int collision_sphere_to_verts(ParticleCollision *col,
 
   return hit != NULL;
 }
-/* Callback for BVHTree near test */
 void BKE_psys_collision_neartest_cb(void *userdata,
                                     int index,
                                     const BVHTreeRay *ray,
@@ -3179,10 +3180,14 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
     }
   }
 }
+
 /************************************************/
 /*          Hair                                */
 /************************************************/
-/* check if path cache or children need updating and do it if needed */
+
+/**
+ * Check if path cache or children need updating and do it if needed.
+ */
 static void psys_update_path_cache(ParticleSimulationData *sim,
                                    float cfra,
                                    const bool use_render_params)
@@ -4627,7 +4632,6 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
   }
 }
 
-/* system type has changed so set sensible defaults and clear non applicable flags */
 void psys_changed_type(Object *ob, ParticleSystem *psys)
 {
   ParticleSettings *part = psys->part;
@@ -4765,8 +4769,6 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
   MEM_freeN(particle_settings);
 }
 
-/* main particle update call, checks that things are ok on the large scale and
- * then advances in to actual particle calculations depending on particle type */
 void particle_system_update(struct Depsgraph *depsgraph,
                             Scene *scene,
                             Object *ob,

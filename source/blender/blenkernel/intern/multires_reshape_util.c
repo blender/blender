@@ -47,8 +47,6 @@
 /** \name Construct/destruct reshape context
  * \{ */
 
-/* Create subdivision surface descriptor which is configured for surface evaluation at a given
- * multires modifier. */
 Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
                                        /*const*/ Object *object,
                                        const MultiresModifierData *mmd)
@@ -332,7 +330,6 @@ void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
 /** \name Helper accessors
  * \{ */
 
-/* For the given grid index get index of face it was created for. */
 int multires_reshape_grid_to_face_index(const MultiresReshapeContext *reshape_context,
                                         int grid_index)
 {
@@ -345,7 +342,6 @@ int multires_reshape_grid_to_face_index(const MultiresReshapeContext *reshape_co
   return reshape_context->grid_to_face_index[grid_index];
 }
 
-/* For the given grid index get corner of a face it was created for. */
 int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_context, int grid_index)
 {
   BLI_assert(grid_index >= 0);
@@ -364,7 +360,6 @@ bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context
   return (base_poly->totloop == 4);
 }
 
-/* For the given grid index get index of corresponding ptex face. */
 int multires_reshape_grid_to_ptex_index(const MultiresReshapeContext *reshape_context,
                                         int grid_index)
 {
@@ -374,7 +369,6 @@ int multires_reshape_grid_to_ptex_index(const MultiresReshapeContext *reshape_co
   return reshape_context->face_ptex_offset[face_index] + (is_quad ? 0 : corner);
 }
 
-/* Convert normalized coordinate within a grid to a normalized coordinate within a ptex face. */
 PTexCoord multires_reshape_grid_coord_to_ptex(const MultiresReshapeContext *reshape_context,
                                               const GridCoord *grid_coord)
 {
@@ -402,7 +396,6 @@ PTexCoord multires_reshape_grid_coord_to_ptex(const MultiresReshapeContext *resh
   return ptex_coord;
 }
 
-/* Convert a normalized coordinate within a ptex face to a normalized coordinate within a grid. */
 GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *reshape_context,
                                               const PTexCoord *ptex_coord)
 {

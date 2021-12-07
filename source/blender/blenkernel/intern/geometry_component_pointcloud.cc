@@ -62,7 +62,6 @@ bool PointCloudComponent::has_pointcloud() const
   return pointcloud_ != nullptr;
 }
 
-/* Clear the component and replace it with the new point cloud. */
 void PointCloudComponent::replace(PointCloud *pointcloud, GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
@@ -71,8 +70,6 @@ void PointCloudComponent::replace(PointCloud *pointcloud, GeometryOwnershipType 
   ownership_ = ownership;
 }
 
-/* Return the point cloud and clear the component. The caller takes over responsibility for freeing
- * the point cloud (if the component was responsible before). */
 PointCloud *PointCloudComponent::release()
 {
   BLI_assert(this->is_mutable());
@@ -81,17 +78,11 @@ PointCloud *PointCloudComponent::release()
   return pointcloud;
 }
 
-/* Get the point cloud from this component. This method can be used by multiple threads at the same
- * time. Therefore, the returned point cloud should not be modified. No ownership is transferred.
- */
 const PointCloud *PointCloudComponent::get_for_read() const
 {
   return pointcloud_;
 }
 
-/* Get the point cloud from this component. This method can only be used when the component is
- * mutable, i.e. it is not shared. The returned point cloud can be modified. No ownership is
- * transferred. */
 PointCloud *PointCloudComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());

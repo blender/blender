@@ -315,7 +315,6 @@ static void context_free_avi(void *context_v)
 
 #endif /* WITH_AVI */
 
-/* similar to BKE_image_path_from_imformat() */
 void BKE_movie_filepath_get(char *string, const RenderData *rd, bool preview, const char *suffix)
 {
   bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);

@@ -36,12 +36,7 @@ namespace blender::bke {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
-/* For now this is the only version of the catalog definition files that is supported.
- * Later versioning code may be added to handle older files. */
 const int AssetCatalogDefinitionFile::SUPPORTED_VERSION = 1;
-/* String that's matched in the catalog definition file to know that the line is the version
- * declaration. It has to start with a space to ensure it won't match any hypothetical future field
- * that starts with "VERSION". */
 const std::string AssetCatalogDefinitionFile::VERSION_MARKER = "VERSION ";
 
 const std::string AssetCatalogDefinitionFile::HEADER =

@@ -97,10 +97,6 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
   }
 }
 
-/**
- * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure).
- */
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
@@ -258,7 +254,6 @@ static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
 }
 
-/* Cannot use IDTypeInfo callback yet, because of the return value. */
 bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
 {
   bool success = true;
@@ -516,7 +511,6 @@ static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
   }
 }
 
-/* lb1 should be empty */
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 {
   BLI_listbase_clear(lb1); /* to be sure */
@@ -534,9 +528,6 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
   }
 }
 
-/* facility to set locks for drawing to survive (render) threads accessing drawing data */
-/* lock can become bitflag too */
-/* should be replaced in future by better local data handling for threads */
 void BKE_spacedata_draw_locks(bool set)
 {
   LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
@@ -551,10 +542,6 @@ void BKE_spacedata_draw_locks(bool set)
   }
 }
 
-/**
- * Version of #BKE_area_find_region_type that also works if \a slink
- * is not the active space of \a area.
- */
 ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink,
                                         const ScrArea *area,
                                         int region_type)
@@ -588,7 +575,6 @@ void BKE_spacedata_callback_id_remap_set(void (*func)(ScrArea *area, SpaceLink *
   spacedata_id_remap_cb = func;
 }
 
-/* UNUSED!!! */
 void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id)
 {
   if (spacedata_id_remap_cb) {
@@ -652,7 +638,6 @@ void BKE_area_region_panels_free(ListBase *panels)
   BLI_listbase_clear(panels);
 }
 
-/* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *region)
 {
   if (st) {
@@ -692,7 +677,6 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
   BLI_freelistN(&region->panels_category_active);
 }
 
-/* not area itself */
 void BKE_screen_area_free(ScrArea *area)
 {
   SpaceType *st = BKE_spacetype_from_id(area->spacetype);
@@ -720,7 +704,6 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
   BLI_freelistN(&area_map->areabase);
 }
 
-/** Free (or release) any data used by this screen (does not free the screen itself). */
 void BKE_screen_free_data(bScreen *screen)
 {
   screen_free_data(&screen->id);
@@ -883,12 +866,6 @@ void BKE_screen_remove_unused_scrverts(bScreen *screen)
 
 /* ***************** Utilities ********************** */
 
-/**
- * Find a region of type \a region_type in the currently active space of \a area.
- *
- * \note This does _not_ work if the region to look up is not in the active
- *       space. Use #BKE_spacedata_find_region_type if that may be the case.
- */
 ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type)
 {
   if (area) {
@@ -933,9 +910,6 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, int x, int
   return NULL;
 }
 
-/**
- * \note This is only for screen level regions (typically menus/popups).
- */
 ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, int x, int y)
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
@@ -948,10 +922,6 @@ ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, int x,
   return NULL;
 }
 
-/**
- * \note Ideally we can get the area from the context,
- * there are a few places however where this isn't practical.
- */
 ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen, SpaceLink *sl)
 {
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -963,10 +933,6 @@ ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen, SpaceLink *sl)
   return NULL;
 }
 
-/**
- * \note Using this function is generally a last resort, you really want to be
- * using the context when you can - campbell
- */
 ScrArea *BKE_screen_find_big_area(bScreen *screen, const int spacetype, const short min)
 {
   ScrArea *big = NULL;
@@ -1056,14 +1022,11 @@ ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen,
   return BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, x, y);
 }
 
-/* magic zoom calculation, no idea what
- * it signifies, if you find out, tell me! -zr
- */
+/* Magic zoom calculation, no idea what it signifies, if you find out, tell me! -zr
+ *
+ * Simple, its magic dude! Well, to be honest,
+ * this gives a natural feeling zooming with multiple keypad presses (ton). */
 
-/* simple, its magic dude!
- * well, to be honest, this gives a natural feeling zooming
- * with multiple keypad presses (ton)
- */
 float BKE_screen_view3d_zoom_to_fac(float camzoom)
 {
   return powf(((float)M_SQRT2 + camzoom / 50.0f), 2.0f) / 4.0f;
@@ -1478,7 +1441,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
 }
 
 /* for the saved 2.50 files without regiondata */
-/* and as patch for 2.48 and older */
 void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
 {
   LISTBASE_FOREACH (ARegion *, region, regions) {
@@ -1785,9 +1747,6 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   BLO_read_data_address(reader, &area->v4);
 }
 
-/**
- * \return false on error.
- */
 bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *area_map)
 {
   BLO_read_list(reader, &area_map->vertbase);

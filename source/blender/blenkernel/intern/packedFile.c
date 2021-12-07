@@ -242,7 +242,6 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filename, const 
   return pf;
 }
 
-/* no libraries for now */
 void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
 {
   Image *ima;
@@ -373,14 +372,6 @@ int BKE_packedfile_write_to_file(ReportList *reports,
   return ret_value;
 }
 
-/**
- * This function compares a packed file to a 'real' file.
- * It returns an integer indicating if:
- *
- * - PF_EQUAL:     the packed file and original file are identical
- * - PF_DIFFERENT: the packed file and original file differ
- * - PF_NOFILE:    the original file doesn't exist
- */
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
                                                     const char *filename,
                                                     PackedFile *pf)
@@ -434,16 +425,6 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
   return ret_val;
 }
 
-/**
- * #BKE_packedfile_unpack_to_file() looks at the existing files (abs_name, local_name)
- * and a packed file.
- *
- * It returns a char *to the existing file name / new file name or NULL when
- * there was an error or when the user decides to cancel the operation.
- *
- * \warning 'abs_name' may be relative still! (use a "//" prefix)
- * be sure to run #BLI_path_abs on it first.
- */
 char *BKE_packedfile_unpack_to_file(ReportList *reports,
                                     const char *ref_file_name,
                                     const char *abs_name,
@@ -804,7 +785,6 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
   }
 }
 
-/* ID should be not NULL, return 1 if there's a packed file */
 bool BKE_packedfile_id_check(const ID *id)
 {
   switch (GS(id->name)) {
@@ -834,7 +814,6 @@ bool BKE_packedfile_id_check(const ID *id)
   return false;
 }
 
-/* ID should be not NULL */
 void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF_FileStatus how)
 {
   switch (GS(id->name)) {

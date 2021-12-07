@@ -65,6 +65,10 @@ enum {
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 struct CustomData_MeshMasks *r_data_masks);
+/**
+ * Check what can do each layer type
+ * (if it is actually handled by transfer-data, if it supports advanced mixing.
+ */
 bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
                                                    bool *r_advanced_mixing,
                                                    bool *r_threshold);
@@ -122,6 +126,12 @@ enum {
 #endif
 };
 
+/**
+ * Transfer data *layout* of selected types from source to destination object.
+ * By default, it only creates new data layers if needed on \a ob_dst.
+ * If \a use_delete is true, it will also delete data layers on \a ob_dst that do not match those
+ * from \a ob_src, to get (as much as possible) exact copy of source data layout.
+ */
 void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *ob_src,

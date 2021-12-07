@@ -547,12 +547,6 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
   BLI_addtail(lb, link);
 }
 
-/**
- * \param C: Context
- * \param use_store: Use 'C->wm.store'
- * \param use_rna: Use Include the properties from 'RNA_Context'
- * \param use_all: Don't skip values (currently only "scene")
- */
 ListBase CTX_data_dir_get_ex(const bContext *C,
                              const bool use_store,
                              const bool use_rna,
@@ -1127,13 +1121,6 @@ RenderEngineType *CTX_data_engine_type(const bContext *C)
   return RE_engines_find(scene->r.engine);
 }
 
-/**
- * This is tricky. Sometimes the user overrides the render_layer
- * but not the scene_collection. In this case what to do?
- *
- * If the scene_collection is linked to the ViewLayer we use it.
- * Otherwise we fallback to the active one of the ViewLayer.
- */
 LayerCollection *CTX_data_layer_collection(const bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);

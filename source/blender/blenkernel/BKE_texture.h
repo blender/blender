@@ -42,6 +42,9 @@ struct TexResult;
 /** #ColorBand.data length. */
 #define MAXCOLORBAND 32
 
+/**
+ * Utility for all IDs using those texture slots.
+ */
 void BKE_texture_mtex_foreach_id(struct LibraryForeachIDData *data, struct MTex *mtex);
 
 void BKE_texture_default(struct Tex *tex);
@@ -50,6 +53,9 @@ void BKE_texture_type_set(struct Tex *tex, int type);
 
 void BKE_texture_mtex_default(struct MTex *mtex);
 struct MTex *BKE_texture_mtex_add(void);
+/**
+ * Slot -1 for first free ID.
+ */
 struct MTex *BKE_texture_mtex_add_id(struct ID *id, int slot);
 /* UNUSED */
 // void autotexname(struct Tex *tex);
@@ -79,6 +85,9 @@ struct PointDensity *BKE_texture_pointdensity_add(void);
 struct PointDensity *BKE_texture_pointdensity_copy(const struct PointDensity *pd, const int flag);
 
 bool BKE_texture_dependsOnTime(const struct Tex *texture);
+/**
+ * \returns true if this texture can use its #Texture.ima (even if its NULL).
+ */
 bool BKE_texture_is_image_user(const struct Tex *tex);
 
 void BKE_texture_get_value_ex(const struct Scene *scene,
@@ -94,6 +103,9 @@ void BKE_texture_get_value(const struct Scene *scene,
                            struct TexResult *texres,
                            bool use_color_management);
 
+/**
+ * Make sure all images used by texture are loaded into pool.
+ */
 void BKE_texture_fetch_images_for_pool(struct Tex *texture, struct ImagePool *pool);
 
 #ifdef __cplusplus

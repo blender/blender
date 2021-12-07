@@ -33,6 +33,10 @@ struct Object;
 struct Scene;
 
 /* crazyspace.c */
+
+/**
+ * Disable subdivision-surface temporal, get mapped coordinates, and enable it.
+ */
 float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph,
                                             struct Object *obedit))[3];
 void BKE_crazyspace_set_quats_editmesh(struct BMEditMesh *em,
@@ -44,6 +48,10 @@ void BKE_crazyspace_set_quats_mesh(struct Mesh *me,
                                    float (*origcos)[3],
                                    float (*mappedcos)[3],
                                    float (*quats)[4]);
+/**
+ * Returns an array of deform matrices for crazy-space correction,
+ * and the number of modifiers left.
+ */
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgraph,
                                                        struct Scene *,
                                                        struct Object *,

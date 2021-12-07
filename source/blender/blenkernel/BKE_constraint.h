@@ -45,7 +45,7 @@ extern "C" {
 typedef struct bConstraintOb {
   /** to get evaluated armature. */
   struct Depsgraph *depsgraph;
-  /** for system time, part of deglobalization, code nicer later with local time (ton) */
+  /** for system time, part of de-globalization, code nicer later with local time (ton) */
   struct Scene *scene;
   /** if pchan, then armature that it comes from, otherwise constraint owner */
   struct Object *ob;
@@ -61,7 +61,7 @@ typedef struct bConstraintOb {
 
   /** type of owner. */
   short type;
-  /** rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_math.h) */
+  /** rotation order for constraint owner (as defined in #eEulerRotationOrders in BLI_math.h) */
   short rotOrder;
 } bConstraintOb;
 
@@ -76,7 +76,7 @@ typedef void (*ConstraintIDFunc)(struct bConstraint *con,
 /* ....... */
 
 /**
- * Constraint Type-Info (shorthand in code = cti):
+ * Constraint Type-Info (shorthand in code = `cti`):
  * This struct provides function pointers for runtime, so that functions can be
  * written more generally (with fewer/no special exceptions for various constraints).
  *
@@ -138,49 +138,107 @@ typedef struct bConstraintTypeInfo {
 } bConstraintTypeInfo;
 
 /* Function Prototypes for bConstraintTypeInfo's */
+
+/**
+ * This function should always be used to get the appropriate type-info, as it
+ * has checks which prevent segfaults in some weird cases.
+ */
 const bConstraintTypeInfo *BKE_constraint_typeinfo_get(struct bConstraint *con);
+/**
+ * This function should be used for getting the appropriate type-info when only
+ * a constraint type is known.
+ */
 const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type);
 
 /* ---------------------------------------------------------------------------- */
 
 /* Constraint function prototypes */
+
+/**
+ * Find the first available, non-duplicate name for a given constraint.
+ */
 void BKE_constraint_unique_name(struct bConstraint *con, struct ListBase *list);
 
+/**
+ * Allocate and duplicate a single constraint, outside of any object/pose context.
+ */
 struct bConstraint *BKE_constraint_duplicate_ex(struct bConstraint *src,
                                                 const int flag,
                                                 const bool do_extern);
 
+/**
+ * Add a copy of the given constraint for the given bone.
+ */
 struct bConstraint *BKE_constraint_copy_for_pose(struct Object *ob,
                                                  struct bPoseChannel *pchan,
                                                  struct bConstraint *src);
+/**
+ * Add a copy of the given constraint for the given object.
+ */
 struct bConstraint *BKE_constraint_copy_for_object(struct Object *ob, struct bConstraint *src);
 
 void BKE_constraints_free(struct ListBase *list);
+/**
+ * Free all constraints from a constraint-stack.
+ */
 void BKE_constraints_free_ex(struct ListBase *list, bool do_id_user);
 void BKE_constraints_copy(struct ListBase *dst, const struct ListBase *src, bool do_extern);
+/**
+ * Duplicate all of the constraints in a constraint stack.
+ */
 void BKE_constraints_copy_ex(struct ListBase *dst,
                              const struct ListBase *src,
                              const int flag,
                              bool do_extern);
+/**
+ * Run the given callback on all ID-blocks in list of constraints.
+ */
 void BKE_constraints_id_loop(struct ListBase *list, ConstraintIDFunc func, void *userdata);
 void BKE_constraint_free_data(struct bConstraint *con);
+/**
+ * Free data of a specific constraint if it has any info.
+ * Be sure to run #BIK_clear_data() when freeing an IK constraint,
+ * unless #DAG_relations_tag_update is called.
+ */
 void BKE_constraint_free_data_ex(struct bConstraint *con, bool do_id_user);
 
 bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *ct);
 
 /* Constraint API function prototypes */
+
+/**
+ * Finds the 'active' constraint in a constraint stack.
+ */
 struct bConstraint *BKE_constraints_active_get(struct ListBase *list);
+/**
+ * Set the given constraint as the active one (clearing all the others).
+ */
 void BKE_constraints_active_set(ListBase *list, struct bConstraint *con);
 struct bConstraint *BKE_constraints_find_name(struct ListBase *list, const char *name);
 
+/**
+ * Finds the constraint that owns the given target within the object.
+ */
 struct bConstraint *BKE_constraint_find_from_target(struct Object *ob,
                                                     struct bConstraintTarget *tgt,
                                                     struct bPoseChannel **r_pchan);
 
+/**
+ * Check whether given constraint is not local (i.e. from linked data) when the object is a library
+ * override.
+ *
+ * \param con: May be NULL, in which case we consider it as a non-local constraint case.
+ */
 bool BKE_constraint_is_nonlocal_in_liboverride(const struct Object *ob,
                                                const struct bConstraint *con);
 
+/**
+ * Add new constraint for the given object.
+ */
 struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
+/**
+ * Add new constraint for the given bone.
+ */
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob,
                                                 struct bPoseChannel *pchan,
                                                 const char *name,
@@ -190,8 +248,14 @@ bool BKE_constraint_remove_ex(ListBase *list,
                               struct Object *ob,
                               struct bConstraint *con,
                               bool clear_dep);
+/**
+ * Remove the specified constraint from the given constraint stack.
+ */
 bool BKE_constraint_remove(ListBase *list, struct bConstraint *con);
 
+/**
+ * Apply the specified constraint in the given constraint stack.
+ */
 bool BKE_constraint_apply_for_object(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *ob,
@@ -217,17 +281,38 @@ bool BKE_constraint_apply_and_remove_for_pose(struct Depsgraph *depsgraph,
 void BKE_constraint_panel_expand(struct bConstraint *con);
 
 /* Constraints + Proxies function prototypes */
+
+/**
+ * Rescue all constraints tagged as being #CONSTRAINT_PROXY_LOCAL
+ * (i.e. added to bone that's proxy-synced in this file).
+ */
 void BKE_constraints_proxylocal_extract(struct ListBase *dst, struct ListBase *src);
+/**
+ * Returns if the owner of the constraint is proxy-protected.
+ */
 bool BKE_constraints_proxylocked_owner(struct Object *ob, struct bPoseChannel *pchan);
 
 /* Constraint Evaluation function prototypes */
+
+/**
+ * This function MEM_calloc's a #bConstraintOb struct,
+ * that will need to be freed after evaluation.
+ */
 struct bConstraintOb *BKE_constraints_make_evalob(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
                                                   struct Object *ob,
                                                   void *subdata,
                                                   short datatype);
+/**
+ * Cleanup after constraint evaluation.
+ */
 void BKE_constraints_clear_evalob(struct bConstraintOb *cob);
 
+/**
+ * This function is responsible for the correct transformations/conversions
+ * of a matrix from one space to another for constraint evaluation.
+ * For now, this is only implemented for objects and pose-channels.
+ */
 void BKE_constraint_mat_convertspace(struct Object *ob,
                                      struct bPoseChannel *pchan,
                                      struct bConstraintOb *cob,
@@ -236,6 +321,14 @@ void BKE_constraint_mat_convertspace(struct Object *ob,
                                      short to,
                                      const bool keep_scale);
 
+/**
+ * This function is a relic from the prior implementations of the constraints system, when all
+ * constraints either had one or no targets. It used to be called during the main constraint
+ * solving loop, but is now only used for the remaining cases for a few constraints.
+ *
+ * None of the actual calculations of the matrices should be done here! Also, this function is
+ * not to be used by any new constraints, particularly any that have multiple targets.
+ */
 void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       struct bConstraint *con,
@@ -244,12 +337,22 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       void *ownerdata,
                                       float mat[4][4],
                                       float ctime);
+/**
+ * Get the list of targets required for solving a constraint.
+ */
 void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
                                             struct bConstraint *con,
                                             struct bConstraintOb *ob,
                                             struct ListBase *targets,
                                             float ctime);
 void BKE_constraint_custom_object_space_get(float r_mat[4][4], struct bConstraint *con);
+/**
+ * This function is called whenever constraints need to be evaluated. Currently, all
+ * constraints that can be evaluated are every time this gets run.
+ *
+ * #BKE_constraints_make_evalob and #BKE_constraints_clear_evalob should be called before and
+ * after running this function, to sort out cob.
+ */
 void BKE_constraints_solve(struct Depsgraph *depsgraph,
                            struct ListBase *conlist,
                            struct bConstraintOb *cob,

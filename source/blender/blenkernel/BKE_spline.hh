@@ -106,8 +106,17 @@ class Spline {
     copy_base_settings(other, *this);
   }
 
+  /**
+   * Return a new spline with the same data, settings, and attributes.
+   */
   SplinePtr copy() const;
+  /**
+   * Return a new spline with the same type and settings like "cyclic", but without any data.
+   */
   SplinePtr copy_only_settings() const;
+  /**
+   * The same as #copy, but skips copying dynamic attributes to the new spline.
+   */
   SplinePtr copy_without_attributes() const;
   static void copy_base_settings(const Spline &src, Spline &dst);
 
@@ -147,8 +156,22 @@ class Spline {
 
   virtual blender::Span<blender::float3> evaluated_positions() const = 0;
 
+  /**
+   * Return non-owning access to the cache of accumulated lengths along the spline. Each item is
+   * the length of the subsequent segment, i.e. the first value is the length of the first segment
+   * rather than 0. This calculation is rather trivial, and only depends on the evaluated
+   * positions. However, the results are used often, and it is necessarily single threaded, so it
+   * is cached.
+   */
   blender::Span<float> evaluated_lengths() const;
+  /**
+   * Return non-owning access to the direction of the curve at each evaluated point.
+   */
   blender::Span<blender::float3> evaluated_tangents() const;
+  /**
+   * Return non-owning access to the direction vectors perpendicular to the tangents at every
+   * evaluated point. The method used to generate the normal vectors depends on Spline.normal_mode.
+   */
   blender::Span<blender::float3> evaluated_normals() const;
 
   void bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
@@ -173,11 +196,24 @@ class Spline {
     float factor;
   };
   LookupResult lookup_evaluated_factor(const float factor) const;
+  /**
+   * \note This does not support extrapolation currently.
+   */
   LookupResult lookup_evaluated_length(const float length) const;
 
+  /**
+   * Return an array of evenly spaced samples along the length of the spline. The samples are
+   * indices and factors to the next index encoded in floats. The logic for converting from the
+   * float values to interpolation data is in #lookup_data_from_index_factor.
+   */
   blender::Array<float> sample_uniform_index_factors(const int samples_size) const;
   LookupResult lookup_data_from_index_factor(const float index_factor) const;
 
+  /**
+   * Sample any input data with a value for each evaluated point (already interpolated to evaluated
+   * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
+   * simple, but this handles the cyclic and end point special cases.
+   */
   void sample_with_index_factors(const blender::fn::GVArray &src,
                                  blender::Span<float> index_factors,
                                  blender::fn::GMutableSpan dst) const;
@@ -426,6 +462,12 @@ class BezierSpline final : public Spline {
                                            const float parameter);
 
  private:
+  /**
+   * If the spline is not cyclic, the direction for the first and last points is just the
+   * direction formed by the corresponding handles and control points. In the unlikely situation
+   * that the handles define a zero direction, fallback to using the direction defined by the
+   * first and last evaluated segments already calculated in #Spline::evaluated_tangents().
+   */
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
@@ -599,6 +641,12 @@ class PolySpline final : public Spline {
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
+  /**
+   * Poly spline interpolation from control points to evaluated points is a special case, since
+   * the result data is the same as the input data. This function returns a #GVArray that points to
+   * the original data. Therefore the lifetime of the returned virtual array must not be longer
+   * than the source data.
+   */
   blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
 
  protected:

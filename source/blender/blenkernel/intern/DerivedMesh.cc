@@ -295,10 +295,6 @@ static CustomData *dm_getPolyCData(DerivedMesh *dm)
   return &dm->polyData;
 }
 
-/**
- * Utility function to initialize a DerivedMesh's function pointers to
- * the default implementation (for those functions which have a default)
- */
 void DM_init_funcs(DerivedMesh *dm)
 {
   /* default function implementations */
@@ -335,11 +331,6 @@ void DM_init_funcs(DerivedMesh *dm)
   dm->getLoopDataArray = DM_get_loop_data_layer;
 }
 
-/**
- * Utility function to initialize a DerivedMesh for the desired number
- * of vertices, edges and faces (doesn't allocate memory for them, just
- * sets up the custom data layers)
- */
 void DM_init(DerivedMesh *dm,
              DerivedMeshType type,
              int numVerts,
@@ -368,10 +359,6 @@ void DM_init(DerivedMesh *dm,
   copy_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
 }
 
-/**
- * Utility function to initialize a DerivedMesh for the desired number
- * of vertices, edges and faces, with a layer setup copied from source
- */
 void DM_from_template_ex(DerivedMesh *dm,
                          DerivedMesh *source,
                          DerivedMeshType type,
@@ -485,12 +472,6 @@ void DM_ensure_normals(DerivedMesh *dm)
   BLI_assert((dm->dirty & DM_DIRTY_NORMALS) == 0);
 }
 
-/**
- * Ensure the array is large enough
- *
- * \note This function must always be thread-protected by caller.
- * It should only be used by internal code.
- */
 void DM_ensure_looptri_data(DerivedMesh *dm)
 {
   const unsigned int totpoly = dm->numPolyData;
@@ -519,11 +500,11 @@ void DM_ensure_looptri_data(DerivedMesh *dm)
   }
 }
 
-/** Utility function to convert an (evaluated) Mesh to a shape key block. */
-/* Just a shallow wrapper around BKE_keyblock_convert_from_mesh,
- * that ensures both evaluated mesh and original one has same number of vertices. */
 void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
 {
+  /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
+   * that ensures both evaluated mesh and original one has same number of vertices. */
+
   const int totvert = me_deformed->totvert;
 
   if (totvert == 0 || me->totvert == 0 || me->totvert != totvert) {
@@ -533,11 +514,6 @@ void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
   BKE_keyblock_convert_from_mesh(me_deformed, me->key, kb);
 }
 
-/**
- * set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
- * zero for the layer type, so only layer types specified by the mask
- * will be copied
- */
 void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask)
 {
   CustomData_set_only_copy(&dm->vertData, mask->vmask);
@@ -658,11 +634,6 @@ void DM_copy_vert_data(
   CustomData_copy_data(&source->vertData, &dest->vertData, source_index, dest_index, count);
 }
 
-/**
- * interpolates vertex data from the vertices indexed by src_indices in the
- * source mesh using the given weights and stores the result in the vertex
- * indexed by dest_index in the dest mesh
- */
 void DM_interp_vert_data(DerivedMesh *source,
                          DerivedMesh *dest,
                          int *src_indices,

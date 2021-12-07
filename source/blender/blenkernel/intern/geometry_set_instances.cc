@@ -53,9 +53,6 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
   }
 }
 
-/**
- * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
- */
 GeometrySet object_get_evaluated_geometry_set(const Object &object)
 {
   if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
@@ -169,16 +166,6 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
   }
 }
 
-/**
- * Return flattened vector of the geometry component's recursive instances. I.e. all collection
- * instances and object instances will be expanded into the instances of their geometry components.
- * Even the instances in those geometry components' will be included.
- *
- * \note For convenience (to avoid duplication in the caller), the returned vector also contains
- * the argument geometry set.
- *
- * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
- */
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups)
 {
@@ -624,11 +611,6 @@ void InstancesComponent::foreach_referenced_geometry(
   }
 }
 
-/**
- * If references have a collection or object type, convert them into geometry instances
- * recursively. After that, the geometry sets can be edited. There may still be instances of other
- * types of they can't be converted to geometry sets.
- */
 void InstancesComponent::ensure_geometry_instances()
 {
   using namespace blender;

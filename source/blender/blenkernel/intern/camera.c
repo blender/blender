@@ -218,7 +218,6 @@ void *BKE_camera_add(Main *bmain, const char *name)
   return cam;
 }
 
-/* get the camera's dof value, takes the dof object into account */
 float BKE_camera_object_dof_distance(Object *ob)
 {
   Camera *cam = (Camera *)ob->data;
@@ -427,7 +426,6 @@ void BKE_camera_params_compute_viewplane(
   params->viewplane = viewplane;
 }
 
-/* viewplane is assumed to be already computed */
 void BKE_camera_params_compute_matrix(CameraParams *params)
 {
   rctf viewplane = params->viewplane;
@@ -759,7 +757,6 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
 }
 
 /* don't move the camera, just yield the fit location */
-/* r_scale only valid/useful for ortho cameras */
 bool BKE_camera_view_frame_fit_to_scene(
     Depsgraph *depsgraph, const Scene *scene, Object *camera_ob, float r_co[3], float *r_scale)
 {
@@ -910,7 +907,6 @@ static void camera_stereo3d_model_matrix(const Object *camera,
   }
 }
 
-/* the view matrix is used by the viewport drawing, it is basically the inverted model matrix */
 void BKE_camera_multiview_view_matrix(const RenderData *rd,
                                       const Object *camera,
                                       const bool is_left,
@@ -1033,7 +1029,6 @@ static Object *camera_multiview_advanced(const Scene *scene, Object *camera, con
   return camera;
 }
 
-/* returns the camera to be used for render */
 Object *BKE_camera_multiview_render(const Scene *scene, Object *camera, const char *viewname)
 {
   const bool is_multiview = (camera != NULL) && (scene->r.scemode & R_MULTIVIEW) != 0;

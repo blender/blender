@@ -396,14 +396,6 @@ static bool check_freetypefont(PackedFile *pf)
   return success;
 }
 
-/**
- * Construct a new VFontData structure from
- * Freetype font data in a PackedFile.
- *
- * \param pf: The font data.
- * \retval A new VFontData structure, or NULL
- * if unable to load.
- */
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
   VFontData *vfd = NULL;

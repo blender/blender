@@ -52,23 +52,57 @@ typedef enum eViewLayerCopyMethod {
   VIEWLAYER_ADD_COPY = 2,
 } eViewLayerCopyMethod;
 
+/**
+ * Returns the default view layer to view in work-spaces if there is
+ * none linked to the workspace yet.
+ */
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
+/**
+ * Returns the default view layer to render if we need to render just one.
+ */
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
+/**
+ * Returns view layer with matching name, or NULL if not found.
+ */
 struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *layer_name);
+/**
+ * Add a new view layer by default, a view layer has the master collection.
+ */
 struct ViewLayer *BKE_view_layer_add(struct Scene *scene,
                                      const char *name,
                                      struct ViewLayer *view_layer_source,
                                      const int type);
 
 /* DEPRECATED */
+/**
+ * This is a placeholder to know which areas of the code need to be addressed
+ * for the Workspace changes. Never use this, you should typically get the
+ * active layer from the context or window.
+ */
 struct ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const struct Scene *scene);
 
 void BKE_view_layer_free(struct ViewLayer *view_layer);
+/**
+ * Free (or release) any data used by this #ViewLayer.
+ */
 void BKE_view_layer_free_ex(struct ViewLayer *view_layer, const bool do_id_user);
 
+/**
+ * Tag all the selected objects of a render-layer.
+ */
 void BKE_view_layer_selected_objects_tag(struct ViewLayer *view_layer, const int tag);
 
+/**
+ * Fallback for when a Scene has no camera to use.
+ *
+ * \param view_layer: in general you want to use the same #ViewLayer that is used for depsgraph.
+ * If rendering you pass the scene active layer, when viewing in the viewport
+ * you want to get #ViewLayer from context.
+ */
 struct Object *BKE_view_layer_camera_find(struct ViewLayer *view_layer);
+/**
+ * Find the #ViewLayer a #LayerCollection belongs to.
+ */
 struct ViewLayer *BKE_view_layer_find_from_collection(const struct Scene *scene,
                                                       struct LayerCollection *lc);
 struct Base *BKE_view_layer_base_find(struct ViewLayer *view_layer, struct Object *ob);
@@ -76,6 +110,11 @@ void BKE_view_layer_base_deselect_all(struct ViewLayer *view_layer);
 
 void BKE_view_layer_base_select_and_set_active(struct ViewLayer *view_layer, struct Base *selbase);
 
+/**
+ * Only copy internal data of #ViewLayer from source to already allocated/initialized destination.
+ *
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ */
 void BKE_view_layer_copy_data(struct Scene *scene_dst,
                               const struct Scene *scene_src,
                               struct ViewLayer *view_layer_dst,
@@ -87,15 +126,33 @@ void BKE_view_layer_rename(struct Main *bmain,
                            struct ViewLayer *view_layer,
                            const char *name);
 
+/**
+ * Get the active collection
+ */
 struct LayerCollection *BKE_layer_collection_get_active(struct ViewLayer *view_layer);
+/**
+ * Activate collection
+ */
 bool BKE_layer_collection_activate(struct ViewLayer *view_layer, struct LayerCollection *lc);
+/**
+ * Activate first parent collection.
+ */
 struct LayerCollection *BKE_layer_collection_activate_parent(struct ViewLayer *view_layer,
                                                              struct LayerCollection *lc);
 
+/**
+ * Get the total number of collections (including all the nested collections)
+ */
 int BKE_layer_collection_count(const struct ViewLayer *view_layer);
 
+/**
+ * Get the collection for a given index.
+ */
 struct LayerCollection *BKE_layer_collection_from_index(struct ViewLayer *view_layer,
                                                         const int index);
+/**
+ * \return -1 if not found.
+ */
 int BKE_layer_collection_findindex(struct ViewLayer *view_layer, const struct LayerCollection *lc);
 
 void BKE_layer_collection_resync_forbid(void);
@@ -103,20 +160,43 @@ void BKE_layer_collection_resync_allow(void);
 
 void BKE_main_collection_sync(const struct Main *bmain);
 void BKE_scene_collection_sync(const struct Scene *scene);
+/**
+ * Update view layer collection tree from collections used in the scene.
+ * This is used when collections are removed or added, both while editing
+ * and on file loaded in case linked data changed or went missing.
+ */
 void BKE_layer_collection_sync(const struct Scene *scene, struct ViewLayer *view_layer);
 void BKE_layer_collection_local_sync(struct ViewLayer *view_layer, const struct View3D *v3d);
+/**
+ * Sync the local collection for all the 3D Viewports.
+ */
 void BKE_layer_collection_local_sync_all(const struct Main *bmain);
 
 void BKE_main_collection_sync_remap(const struct Main *bmain);
 
+/**
+ * Return the first matching #LayerCollection in the #ViewLayer for the Collection.
+ */
 struct LayerCollection *BKE_layer_collection_first_from_scene_collection(
     const struct ViewLayer *view_layer, const struct Collection *collection);
+/**
+ * See if view layer has the scene collection linked directly, or indirectly (nested).
+ */
 bool BKE_view_layer_has_collection(const struct ViewLayer *view_layer,
                                    const struct Collection *collection);
+/**
+ * See if the object is in any of the scene layers of the scene.
+ */
 bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 
-/* selection and hiding */
+/* Selection and hiding. */
 
+/**
+ * Select all the objects of this layer collection
+ *
+ * It also select the objects that are in nested collections.
+ * \note Recursive.
+ */
 bool BKE_layer_collection_objects_select(struct ViewLayer *view_layer,
                                          struct LayerCollection *lc,
                                          bool deselect);
@@ -125,28 +205,54 @@ bool BKE_layer_collection_has_selected_objects(struct ViewLayer *view_layer,
 bool BKE_layer_collection_has_layer_collection(struct LayerCollection *lc_parent,
                                                struct LayerCollection *lc_child);
 
+/**
+ * Update after toggling visibility of an object base.
+ */
 void BKE_base_set_visible(struct Scene *scene,
                           struct ViewLayer *view_layer,
                           struct Base *base,
                           bool extend);
 bool BKE_base_is_visible(const struct View3D *v3d, const struct Base *base);
 bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Object *ob);
+/**
+ * Isolate the collection - hide all other collections but this one.
+ * Make sure to show all the direct parents and all children of the layer collection as well.
+ * When extending we simply show the collections and its direct family.
+ *
+ * If the collection or any of its parents is disabled, make it enabled.
+ * Don't change the children disable state though.
+ */
 void BKE_layer_collection_isolate_global(struct Scene *scene,
                                          struct ViewLayer *view_layer,
                                          struct LayerCollection *lc,
                                          bool extend);
+/**
+ * Isolate the collection locally
+ *
+ * Same as #BKE_layer_collection_isolate_local but for a viewport
+ */
 void BKE_layer_collection_isolate_local(struct ViewLayer *view_layer,
                                         const struct View3D *v3d,
                                         struct LayerCollection *lc,
                                         bool extend);
+/**
+ * Hide/show all the elements of a collection.
+ * Don't change the collection children enable/disable state,
+ * but it may change it for the collection itself.
+ */
 void BKE_layer_collection_set_visible(struct ViewLayer *view_layer,
                                       struct LayerCollection *lc,
                                       const bool visible,
                                       const bool hierarchy);
 void BKE_layer_collection_set_flag(struct LayerCollection *lc, const int flag, const bool value);
 
-/* evaluation */
+/* Evaluation. */
 
+/**
+ * Applies object's restrict flags on top of flags coming from the collection
+ * and stores those in `base->flag`. #BASE_VISIBLE_DEPSGRAPH ignores viewport flags visibility
+ * (i.e., restriction and local collection).
+ */
 void BKE_base_eval_flags(struct Base *base);
 
 void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
@@ -380,6 +486,13 @@ struct Object **BKE_view_layer_array_selected_objects_params(
     uint *r_len,
     const struct ObjectsInViewLayerParams *params);
 
+/**
+ * Use this in rare cases we need to detect a pair of objects (active, selected).
+ * This returns the other non-active selected object.
+ *
+ * Returns NULL with it finds multiple other selected objects
+ * as behavior in this case would be random from the user perspective.
+ */
 struct Object *BKE_view_layer_non_active_selected_object(struct ViewLayer *view_layer,
                                                          const struct View3D *v3d);
 
@@ -451,9 +564,20 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(const struct Object *ob, void *us
 struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer);
 void BKE_view_layer_remove_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);
 void BKE_view_layer_set_active_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);
+/**
+ * Update the naming and conflicts of the AOVs.
+ *
+ * Name must be unique between all AOVs.
+ * Conflicts with render passes will show a conflict icon. Reason is that switching a render
+ * engine or activating a render pass could lead to other conflicts that wouldn't be that clear
+ * for the user.
+ */
 void BKE_view_layer_verify_aov(struct RenderEngine *engine,
                                struct Scene *scene,
                                struct ViewLayer *view_layer);
+/**
+ * Check if the given view layer has at least one valid AOV.
+ */
 bool BKE_view_layer_has_valid_aov(struct ViewLayer *view_layer);
 struct ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene,
                                                struct ViewLayerAOV *view_layer_aov);

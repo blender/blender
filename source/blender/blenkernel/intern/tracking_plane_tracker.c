@@ -167,7 +167,6 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
   }
 }
 
-/* NOTE: frame number should be in clip space, not scene space */
 void BKE_tracking_track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_track,
                                                    int start_frame)
 {

@@ -121,7 +121,6 @@ static void b_bone_deform(const bPoseChannel *pchan,
       &quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat);
 }
 
-/* using vec with dist to bone b1 - b2 */
 float distfactor_to_bone(
     const float vec[3], const float b1[3], const float b2[3], float rad1, float rad2, float rdist)
 {

@@ -125,9 +125,6 @@ static void on_blendfile_load(struct Main * /*bMain*/,
   AssetLibraryService::destroy();
 }
 
-/**
- * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
- * This makes memory management simple, and ensures a fresh start for every blend file. */
 void AssetLibraryService::app_handler_register()
 {
   /* The callback system doesn't own `on_load_callback_store_`. */

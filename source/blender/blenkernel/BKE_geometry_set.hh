@@ -150,6 +150,10 @@ class GeometryComponent {
                                     const AttributeInit &initializer);
 
   blender::Set<blender::bke::AttributeIDRef> attribute_ids() const;
+  /**
+   * \return False if the callback explicitly returned false at any point, otherwise true,
+   * meaning the callback made it all the way through.
+   */
   bool attribute_foreach(const AttributeForeachCallback callback) const;
 
   virtual bool is_empty() const;
@@ -266,6 +270,9 @@ struct GeometrySet {
   std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
 
  public:
+  /**
+   * The methods are defaulted here so that they are not instantiated in every translation unit.
+   */
   GeometrySet();
   GeometrySet(const GeometrySet &other);
   GeometrySet(GeometrySet &&other);
@@ -273,6 +280,10 @@ struct GeometrySet {
   GeometrySet &operator=(const GeometrySet &other);
   GeometrySet &operator=(GeometrySet &&other);
 
+  /**
+   * This method can only be used when the geometry set is mutable. It returns a mutable geometry
+   * component of the given type.
+   */
   GeometryComponent &get_component_for_write(GeometryComponentType component_type);
   template<typename Component> Component &get_component_for_write()
   {
@@ -280,6 +291,9 @@ struct GeometrySet {
     return static_cast<Component &>(this->get_component_for_write(Component::static_type));
   }
 
+  /**
+   * Get the component of the given type. Might return null if the component does not exist yet.
+   */
   const GeometryComponent *get_component_for_read(GeometryComponentType component_type) const;
   template<typename Component> const Component *get_component_for_read() const
   {
@@ -301,19 +315,32 @@ struct GeometrySet {
     return this->remove(Component::static_type);
   }
 
+  /**
+   * Remove all geometry components with types that are not in the provided list.
+   */
   void keep_only(const blender::Span<GeometryComponentType> component_types);
 
   void add(const GeometryComponent &component);
 
+  /**
+   * Get all geometry components in this geometry set for read-only access.
+   */
   blender::Vector<const GeometryComponent *> get_components_for_read() const;
 
   void compute_boundbox_without_instances(blender::float3 *r_min, blender::float3 *r_max) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set);
 
+  /**
+   * Remove all geometry components from the geometry set.
+   */
   void clear();
 
   bool owns_direct_data() const;
+  /**
+   * Make sure that the geometry can be cached. This does not ensure ownership of object/collection
+   * instances.
+   */
   void ensure_owns_direct_data();
 
   using AttributeForeachCallback =
@@ -336,46 +363,120 @@ struct GeometrySet {
 
   using ForeachSubGeometryCallback = blender::FunctionRef<void(GeometrySet &geometry_set)>;
 
+  /**
+   * Modify every (recursive) instance separately. This is often more efficient than realizing all
+   * instances just to change the same thing on all of them.
+   */
   void modify_geometry_sets(ForeachSubGeometryCallback callback);
 
   /* Utility methods for creation. */
+  /**
+   * Create a new geometry set that only contains the given mesh.
+   */
   static GeometrySet create_with_mesh(
       Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Create a new geometry set that only contains the given point cloud.
+   */
   static GeometrySet create_with_pointcloud(
       PointCloud *pointcloud, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Create a new geometry set that only contains the given curve.
+   */
   static GeometrySet create_with_curve(
       CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   /* Utility methods for access. */
+  /**
+   * Returns true when the geometry set has a mesh component that has a mesh.
+   */
   bool has_mesh() const;
+  /**
+   * Returns true when the geometry set has a point cloud component that has a point cloud.
+   */
   bool has_pointcloud() const;
+  /**
+   * Returns true when the geometry set has an instances component that has at least one instance.
+   */
   bool has_instances() const;
+  /**
+   * Returns true when the geometry set has a volume component that has a volume.
+   */
   bool has_volume() const;
+  /**
+   * Returns true when the geometry set has a curve component that has a curve.
+   */
   bool has_curve() const;
+  /**
+   * Returns true when the geometry set has any data that is not an instance.
+   */
   bool has_realized_data() const;
+  /**
+   * Return true if the geometry set has any component that isn't empty.
+   */
   bool is_empty() const;
 
+  /**
+   * Returns a read-only mesh or null.
+   */
   const Mesh *get_mesh_for_read() const;
+  /**
+   * Returns a read-only point cloud of null.
+   */
   const PointCloud *get_pointcloud_for_read() const;
+  /**
+   * Returns a read-only volume or null.
+   */
   const Volume *get_volume_for_read() const;
+  /**
+   * Returns a read-only curve or null.
+   */
   const CurveEval *get_curve_for_read() const;
 
+  /**
+   * Returns a mutable mesh or null. No ownership is transferred.
+   */
   Mesh *get_mesh_for_write();
+  /**
+   * Returns a mutable point cloud or null. No ownership is transferred.
+   */
   PointCloud *get_pointcloud_for_write();
+  /**
+   * Returns a mutable volume or null. No ownership is transferred.
+   */
   Volume *get_volume_for_write();
+  /**
+   * Returns a mutable curve or null. No ownership is transferred.
+   */
   CurveEval *get_curve_for_write();
 
   /* Utility methods for replacement. */
+  /**
+   * Clear the existing mesh and replace it with the given one.
+   */
   void replace_mesh(Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Clear the existing point cloud and replace with the given one.
+   */
   void replace_pointcloud(PointCloud *pointcloud,
                           GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Clear the existing volume and replace with the given one.
+   */
   void replace_volume(Volume *volume,
                       GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Clear the existing curve and replace it with the given one.
+   */
   void replace_curve(CurveEval *curve,
                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
   /* Utility to retrieve a mutable component without creating it. */
+  /**
+   * Retrieve the pointer to a component without creating it if it does not exist,
+   * unlike #get_component_for_write.
+   */
   GeometryComponent *get_component_ptr(GeometryComponentType type);
   template<typename Component> Component *get_component_ptr()
   {
@@ -397,10 +498,25 @@ class MeshComponent : public GeometryComponent {
 
   void clear();
   bool has_mesh() const;
+  /**
+   * Clear the component and replace it with the new mesh.
+   */
   void replace(Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Return the mesh and clear the component. The caller takes over responsibility for freeing the
+   * mesh (if the component was responsible before).
+   */
   Mesh *release();
 
+  /**
+   * Get the mesh from this component. This method can be used by multiple threads at the same
+   * time. Therefore, the returned mesh should not be modified. No ownership is transferred.
+   */
   const Mesh *get_for_read() const;
+  /**
+   * Get the mesh from this component. This method can only be used when the component is mutable,
+   * i.e. it is not shared. The returned mesh can be modified. No ownership is transferred.
+   */
   Mesh *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
@@ -434,11 +550,28 @@ class PointCloudComponent : public GeometryComponent {
 
   void clear();
   bool has_pointcloud() const;
+  /**
+   * Clear the component and replace it with the new point cloud.
+   */
   void replace(PointCloud *pointcloud,
                GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Return the point cloud and clear the component. The caller takes over responsibility for
+   * freeing the point cloud (if the component was responsible before).
+   */
   PointCloud *release();
 
+  /**
+   * Get the point cloud from this component. This method can be used by multiple threads at the
+   * same time. Therefore, the returned point cloud should not be modified. No ownership is
+   * transferred.
+   */
   const PointCloud *get_for_read() const;
+  /**
+   * Get the point cloud from this component. This method can only be used when the component is
+   * mutable, i.e. it is not shared. The returned point cloud can be modified. No ownership is
+   * transferred.
+   */
   PointCloud *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
@@ -476,6 +609,9 @@ class CurveComponent : public GeometryComponent {
 
   void clear();
   bool has_curve() const;
+  /**
+   * Clear the component and replace it with the new curve.
+   */
   void replace(CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   CurveEval *release();
 
@@ -489,6 +625,10 @@ class CurveComponent : public GeometryComponent {
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
 
+  /**
+   * Create empty curve data used for rendering the spline's wire edges.
+   * \note See comment on #curve_for_render_ for further explanation.
+   */
   const Curve *get_curve_for_render() const;
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
@@ -655,15 +795,36 @@ class InstancesComponent : public GeometryComponent {
   void clear();
 
   void reserve(int min_capacity);
+  /**
+   * Resize the transform, handles, and ID vectors to the specified capacity.
+   *
+   * \note This function should be used carefully, only when it's guaranteed
+   * that the data will be filled.
+   */
   void resize(int capacity);
 
+  /**
+   * Returns a handle for the given reference.
+   * If the reference exists already, the handle of the existing reference is returned.
+   * Otherwise a new handle is added.
+   */
   int add_reference(const InstanceReference &reference);
   void add_instance(int instance_handle, const blender::float4x4 &transform);
 
   blender::Span<InstanceReference> references() const;
   void remove_unused_references();
 
+  /**
+   * If references have a collection or object type, convert them into geometry instances
+   * recursively. After that, the geometry sets can be edited. There may still be instances of
+   * other types of they can't be converted to geometry sets.
+   */
   void ensure_geometry_instances();
+  /**
+   * With write access to the instances component, the data in the instanced geometry sets can be
+   * changed. This is a function on the component rather than each reference to ensure `const`
+   * correctness for that reason.
+   */
   GeometrySet &geometry_set_from_reference(const int reference_index);
 
   blender::Span<int> instance_reference_handles() const;
@@ -708,10 +869,26 @@ class VolumeComponent : public GeometryComponent {
 
   void clear();
   bool has_volume() const;
+  /**
+   * Clear the component and replace it with the new volume.
+   */
   void replace(Volume *volume, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Return the volume and clear the component. The caller takes over responsibility for freeing
+   * the volume (if the component was responsible before).
+   */
   Volume *release();
 
+  /**
+   * Get the volume from this component. This method can be used by multiple threads at the same
+   * time. Therefore, the returned volume should not be modified. No ownership is transferred.
+   */
   const Volume *get_for_read() const;
+  /**
+   * Get the volume from this component. This method can only be used when the component is
+   * mutable, i.e. it is not shared. The returned volume can be modified. No ownership is
+   * transferred.
+   */
   Volume *get_for_write();
 
   bool owns_direct_data() const override;

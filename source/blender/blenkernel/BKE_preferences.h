@@ -35,6 +35,10 @@ struct bUserAssetLibrary;
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *path) ATTR_NONNULL(1);
+/**
+ * Unlink and free a library preference member.
+ * \note Free's \a library itself.
+ */
 void BKE_preferences_asset_library_remove(struct UserDef *userdef,
                                           struct bUserAssetLibrary *library) ATTR_NONNULL();
 
@@ -42,6 +46,12 @@ void BKE_preferences_asset_library_name_set(struct UserDef *userdef,
                                             struct bUserAssetLibrary *library,
                                             const char *name) ATTR_NONNULL();
 
+/**
+ * Set the library path, ensuring it is pointing to a directory.
+ * Single blend files can only act as "Current File" library; libraries on disk
+ * should always be directories. If the path does not exist, that's fine; it can
+ * created as directory if necessary later.
+ */
 void BKE_preferences_asset_library_path_set(struct bUserAssetLibrary *library, const char *path)
     ATTR_NONNULL();
 

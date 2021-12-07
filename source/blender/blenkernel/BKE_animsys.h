@@ -69,12 +69,17 @@ AnimationEvalContext BKE_animsys_eval_context_construct_at(
 /* ************************************* */
 /* KeyingSets API */
 
-/* Used to create a new 'custom' KeyingSet for the user,
- * that will be automatically added to the stack */
+/**
+ * Used to create a new 'custom' KeyingSet for the user,
+ * that will be automatically added to the stack.
+ */
 struct KeyingSet *BKE_keyingset_add(
     struct ListBase *list, const char idname[], const char name[], short flag, short keyingflag);
 
-/* Add a path to a KeyingSet */
+/**
+ * Add a path to a KeyingSet. Nothing is returned for now.
+ * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
+ */
 struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks,
                                        struct ID *id,
                                        const char group_name[],
@@ -83,7 +88,10 @@ struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks,
                                        short flag,
                                        short groupmode);
 
-/* Find the destination matching the criteria given */
+/**
+ * Find the destination matching the criteria given.
+ * TODO: do we want some method to perform partial matches too?
+ */
 struct KS_Path *BKE_keyingset_find_path(struct KeyingSet *ks,
                                         struct ID *id,
                                         const char group_name[],
@@ -208,11 +216,32 @@ void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_d
 
 typedef struct NlaKeyframingContext NlaKeyframingContext;
 
+/**
+ * Prepare data necessary to compute correct keyframe values for NLA strips
+ * with non-Replace mode or influence different from 1.
+ *
+ * \param cache: List used to cache contexts for reuse when keying
+ * multiple channels in one operation.
+ * \param ptr: RNA pointer to the Object with the animation.
+ * \return Keyframing context, or NULL if not necessary.
+ */
 struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
     struct ListBase *cache,
     struct PointerRNA *ptr,
     struct AnimData *adt,
     const struct AnimationEvalContext *anim_eval_context);
+/**
+ * Apply correction from the NLA context to the values about to be keyframed.
+ *
+ * \param context: Context to use (may be NULL).
+ * \param prop_ptr: Property about to be keyframed.
+ * \param[in,out] values: Array of property values to adjust.
+ * \param count: Number of values in the array.
+ * \param index: Index of the element about to be updated, or -1.
+ * \param[out] r_force_all: Set to true if all channels must be inserted. May be NULL.
+ * \return False if correction fails due to a division by zero,
+ * or null r_force_all when all channels are required.
+ */
 bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
@@ -220,6 +249,9 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            int count,
                                            int index,
                                            bool *r_force_all);
+/**
+ * Free all cached contexts from the list.
+ */
 void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache);
 
 /* ************************************* */
@@ -240,16 +272,32 @@ bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
                                   const int array_index,
                                   struct PathResolvedRNA *r_result);
 bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
+/**
+ * Write the given value to a setting using RNA, and return success.
+ */
 bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, const float value);
 
-/* Evaluation loop for evaluating animation data. */
+/**
+ * Evaluation loop for evaluation animation data
+ *
+ * This assumes that the animation-data provided belongs to the ID block in question,
+ * and that the flags for which parts of the animation-data settings need to be recalculated
+ * have been set already by the depsgraph. Now, we use the recalculate.
+ */
 void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
                                    const struct AnimationEvalContext *anim_eval_context,
                                    eAnimData_Recalc recalc,
                                    const bool flush_to_original);
 
-/* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
+/**
+ * Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only
+ *
+ * This will evaluate only the animation info available in the animation data-blocks
+ * encountered. In order to enforce the system by which some settings controlled by a
+ * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
+ * standard 'root') block are overridden by a larger 'user'
+ */
 void BKE_animsys_evaluate_all_animation(struct Main *main,
                                         struct Depsgraph *depsgraph,
                                         float ctime);

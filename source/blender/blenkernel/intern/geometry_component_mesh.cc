@@ -29,7 +29,6 @@
 
 #include "attribute_access_intern.hh"
 
-/* Can't include BKE_object_deform.h right now, due to an enum forward declaration. */
 extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
 
 /* -------------------------------------------------------------------- */
@@ -71,7 +70,6 @@ bool MeshComponent::has_mesh() const
   return mesh_ != nullptr;
 }
 
-/* Clear the component and replace it with the new mesh. */
 void MeshComponent::replace(Mesh *mesh, GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
@@ -80,8 +78,6 @@ void MeshComponent::replace(Mesh *mesh, GeometryOwnershipType ownership)
   ownership_ = ownership;
 }
 
-/* Return the mesh and clear the component. The caller takes over responsibility for freeing the
- * mesh (if the component was responsible before). */
 Mesh *MeshComponent::release()
 {
   BLI_assert(this->is_mutable());
@@ -90,15 +86,11 @@ Mesh *MeshComponent::release()
   return mesh;
 }
 
-/* Get the mesh from this component. This method can be used by multiple threads at the same
- * time. Therefore, the returned mesh should not be modified. No ownership is transferred. */
 const Mesh *MeshComponent::get_for_read() const
 {
   return mesh_;
 }
 
-/* Get the mesh from this component. This method can only be used when the component is mutable,
- * i.e. it is not shared. The returned mesh can be modified. No ownership is transferred. */
 Mesh *MeshComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());

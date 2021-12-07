@@ -183,7 +183,6 @@ void BKE_curvemapping_set_black_white(CurveMapping *cumap,
 /* ***************** operations on single curve ************* */
 /* ********** NOTE: requires BKE_curvemapping_changed() call after ******** */
 
-/* remove specified point */
 bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 {
   CurveMapPoint *cmp;
@@ -213,7 +212,6 @@ bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
   return (removed != 0);
 }
 
-/* removes with flag set */
 void BKE_curvemap_remove(CurveMap *cuma, const short flag)
 {
   CurveMapPoint *cmp = MEM_mallocN((cuma->totpoint) * sizeof(CurveMapPoint), "curve points");
@@ -439,9 +437,6 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
   }
 }
 
-/**
- * \param type: eBezTriple_Handle
- */
 void BKE_curvemap_handle_set(CurveMap *cuma, int type)
 {
   int a;
@@ -800,10 +795,10 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->table = cmp;
 }
 
-/* call when you do images etc, needs restore too. also verifies tables */
-/* it uses a flag to prevent premul or free to happen twice */
 void BKE_curvemapping_premultiply(CurveMapping *cumap, int restore)
 {
+  /* It uses a flag to prevent pre-multiply or free to happen twice. */
+
   int a;
 
   if (restore) {
@@ -873,7 +868,6 @@ static int sort_curvepoints(const void *a1, const void *a2)
 
 /* ************************ more CurveMapping calls *************** */
 
-/* NOTE: only does current curvemap! */
 void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 {
   CurveMap *cuma = cumap->cm + cumap->cur;
@@ -965,13 +959,11 @@ void BKE_curvemapping_changed_all(CurveMapping *cumap)
   cumap->cur = cur;
 }
 
-/* Reset the view for current curve. */
 void BKE_curvemapping_reset_view(CurveMapping *cumap)
 {
   cumap->curr = cumap->clipr;
 }
 
-/* table should be verified */
 float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, float value)
 {
   /* index in table */
@@ -994,7 +986,6 @@ float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, fl
   return (1.0f - fi) * cuma->table[i].y + (fi)*cuma->table[i + 1].y;
 }
 
-/* works with curve 'cur' */
 float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
 {
   const CurveMap *cuma = cumap->cm + cur;
@@ -1013,7 +1004,6 @@ float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value
   return val;
 }
 
-/* vector case */
 void BKE_curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
   vecout[0] = BKE_curvemap_evaluateF(cumap, &cumap->cm[0], vecin[0]);
@@ -1021,7 +1011,6 @@ void BKE_curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], con
   vecout[2] = BKE_curvemap_evaluateF(cumap, &cumap->cm[2], vecin[2]);
 }
 
-/* RGB case, no black/white points, no premult */
 void BKE_curvemapping_evaluateRGBF(const CurveMapping *cumap,
                                    float vecout[3],
                                    const float vecin[3])
@@ -1052,16 +1041,6 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
   vecout[channel_offset[2]] = v2;
 }
 
-/**
- * Same as #BKE_curvemapping_evaluate_premulRGBF
- * but black/bwmul are passed as args for the compositor
- * where they can change per pixel.
- *
- * Use in conjunction with #BKE_curvemapping_set_black_white_ex
- *
- * \param black: Use instead of cumap->black
- * \param bwmul: Use instead of cumap->bwmul
- */
 void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
                                              float vecout[3],
                                              const float vecin[3],
@@ -1127,7 +1106,6 @@ void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
   }
 }
 
-/* RGB with black/white points and premult. tables are checked */
 void BKE_curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
                                           float vecout[3],
                                           const float vecin[3])
@@ -1135,7 +1113,6 @@ void BKE_curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
   BKE_curvemapping_evaluate_premulRGBF_ex(cumap, vecout, vecin, cumap->black, cumap->bwmul);
 }
 
-/* same as above, byte version */
 void BKE_curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
                                          unsigned char vecout_byte[3],
                                          const unsigned char vecin_byte[3])
@@ -1262,7 +1239,6 @@ void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping
   }
 }
 
-/* cumap itself has been read already. */
 void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
 {
   /* flag seems to be able to hang? Maybe old files... not bad to clear anyway */

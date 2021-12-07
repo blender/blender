@@ -336,10 +336,6 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
   return prv_img;
 }
 
-/**
- * Duplicate preview image from \a id and clear icon_id,
- * to be used by datablock copy functions.
- */
 void BKE_previewimg_id_copy(ID *new_id, const ID *old_id)
 {
   PreviewImage **old_prv_p = BKE_previewimg_id_get_p(old_id);
@@ -460,9 +456,6 @@ PreviewImage *BKE_previewimg_cached_get(const char *name)
   return (PreviewImage *)BLI_ghash_lookup(gCachedPreviews, name);
 }
 
-/**
- * Generate an empty PreviewImage, if not yet existing.
- */
 PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
@@ -480,10 +473,6 @@ PreviewImage *BKE_previewimg_cached_ensure(const char *name)
   return prv;
 }
 
-/**
- * Generate a PreviewImage from given file path, using thumbnails management, if not yet existing.
- * Does not actually generate the preview, #BKE_previewimg_ensure() must be called for that.
- */
 PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *path,
                                                    const int source,
@@ -538,10 +527,6 @@ void BKE_previewimg_cached_release(const char *name)
   BKE_previewimg_deferred_release(prv);
 }
 
-/**
- * Handle deferred (lazy) loading/generation of preview image, if needed.
- * For now, only used with file thumbnails.
- */
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 {
   if ((prv->tag & PRV_TAG_DEFFERED) != 0) {
@@ -592,10 +577,6 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   }
 }
 
-/**
- * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
- * \note The returned image buffer has to be free'd (#IMB_freeImBuf()).
- */
 ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
 {
   const unsigned int w = prv->w[size];
@@ -796,9 +777,6 @@ int BKE_icon_gplayer_color_ensure(bGPDlayer *gpl)
   return icon_gplayer_color_ensure_create_icon(gpl);
 }
 
-/**
- * Return icon id of given preview, or create new icon if not found.
- */
 int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 {
   if (!preview || G.background) {
@@ -839,11 +817,6 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
   return preview->icon_id;
 }
 
-/**
- * Create an icon as owner or \a ibuf. The icon-ID is not stored in \a ibuf, it needs to be stored
- * separately.
- * \note Transforms ownership of \a ibuf to the newly created icon.
- */
 int BKE_icon_imbuf_create(ImBuf *ibuf)
 {
   int icon_id = get_next_free_id();
@@ -925,9 +898,6 @@ void BKE_icon_id_delete(struct ID *id)
   BLI_ghash_remove(gIcons, POINTER_FROM_INT(icon_id), nullptr, icon_free);
 }
 
-/**
- * Remove icon and free data.
- */
 bool BKE_icon_delete(const int icon_id)
 {
   if (icon_id == 0) {

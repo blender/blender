@@ -939,7 +939,6 @@ void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
   *numEdges = numE;
 }
 
-/* copy face grid coordinates to other places */
 CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
   int i, S, x, gridSize, cornerIdx, subdivLevels;
@@ -986,7 +985,6 @@ CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF
   return eCCGError_None;
 }
 
-/* copy other places to face grid coordinates */
 CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
   int i, S, x, gridSize, cornerIdx, subdivLevels;
@@ -1035,8 +1033,6 @@ CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, 
   return eCCGError_None;
 }
 
-/* stitch together face grids, averaging coordinates at edges
- * and vertices, for multires displacements */
 CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF)
 {
   CCGVert **effectedV;

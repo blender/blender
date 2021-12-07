@@ -64,6 +64,10 @@ void BKE_fluid_cache_free_all(struct FluidDomainSettings *fds, struct Object *ob
 void BKE_fluid_cache_free(struct FluidDomainSettings *fds, struct Object *ob, int cache_map);
 void BKE_fluid_cache_new_name_for_current_session(int maxlen, char *r_name);
 
+/**
+ * Get fluid velocity and density at given coordinates.
+ * \returns fluid density or -1.0f if outside domain.
+ */
 float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velocity[3]);
 int BKE_fluid_get_data_flags(struct FluidDomainSettings *fds);
 

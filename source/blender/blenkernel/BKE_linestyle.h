@@ -80,6 +80,10 @@ int BKE_linestyle_thickness_modifier_remove(FreestyleLineStyle *linestyle,
 int BKE_linestyle_geometry_modifier_remove(FreestyleLineStyle *linestyle,
                                            LineStyleModifier *modifier);
 
+/**
+ * Reinsert \a modifier in modifier list with an offset of \a direction.
+ * \return if position of \a modifier has changed.
+ */
 bool BKE_linestyle_color_modifier_move(FreestyleLineStyle *linestyle,
                                        LineStyleModifier *modifier,
                                        int direction);

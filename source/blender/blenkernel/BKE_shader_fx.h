@@ -149,17 +149,34 @@ typedef struct ShaderFxTypeInfo {
 
 #define SHADERFX_TYPE_PANEL_PREFIX "FX_PT_"
 
-/* Initialize  global data (type info and some common global storage). */
+/**
+ * Initialize  global data (type info and some common global storage).
+ */
 void BKE_shaderfx_init(void);
 
+/**
+ * Get an effect's panel type, which was defined in the #panelRegister callback.
+ *
+ * \note ShaderFx panel types are assumed to be named with the struct name field concatenated to
+ * the defined prefix.
+ */
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
 void BKE_shaderfx_panel_expand(struct ShaderFxData *fx);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
 void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);
 void BKE_shaderfx_free(struct ShaderFxData *fx);
+/**
+ * Check unique name.
+ */
 bool BKE_shaderfx_unique_name(struct ListBase *shaderfx, struct ShaderFxData *fx);
 bool BKE_shaderfx_depends_ontime(struct ShaderFxData *fx);
+/**
+ * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library
+ * override.
+ *
+ * \param shaderfx: May be NULL, in which case we consider it as a non-local shaderfx case.
+ */
 bool BKE_shaderfx_is_nonlocal_in_liboverride(const struct Object *ob,
                                              const struct ShaderFxData *shaderfx);
 struct ShaderFxData *BKE_shaderfx_findby_type(struct Object *ob, ShaderFxType type);
@@ -172,6 +189,9 @@ void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx,
 void BKE_shaderfx_copy(struct ListBase *dst, const struct ListBase *src);
 void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
 
+/**
+ * Check if exist grease pencil effects.
+ */
 bool BKE_shaderfx_has_gpencil(const struct Object *ob);
 
 void BKE_shaderfx_blend_write(struct BlendWriter *writer, struct ListBase *fxbase);

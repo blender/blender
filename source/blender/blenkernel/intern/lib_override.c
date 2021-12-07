@@ -99,7 +99,6 @@ BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id)
   return id->override_library;
 }
 
-/** Initialize empty overriding of \a reference_id by \a local_id. */
 IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 {
   /* If reference_id is NULL, we are creating an override template for purely local data.
@@ -134,7 +133,6 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   return local_id->override_library;
 }
 
-/** Shalow or deep copy of a whole override from \a src_id to \a dst_id. */
 void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_full_copy)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY(src_id) || ID_IS_OVERRIDE_LIBRARY_TEMPLATE(src_id));
@@ -176,7 +174,6 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
   dst_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 }
 
-/** Clear any overriding data from given \a override. */
 void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_id_user)
 {
   BLI_assert(override != NULL);
@@ -196,7 +193,6 @@ void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_i
   }
 }
 
-/** Free given \a override. */
 void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user)
 {
   BLI_assert(*override != NULL);
@@ -245,14 +241,11 @@ static ID *lib_override_library_create_from(Main *bmain,
   return local_id;
 }
 
-/**
- * Check if given ID has some override rules that actually indicate the user edited it.
- *
- * TODO: This could be simplified by storing a flag in #IDOverrideLibrary during the diffing
- * process?
- */
+/* TODO: This could be simplified by storing a flag in #IDOverrideLibrary
+ * during the diffing process? */
 bool BKE_lib_override_library_is_user_edited(struct ID *id)
 {
+
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return false;
   }
@@ -280,7 +273,6 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id)
   return false;
 }
 
-/** Create an overridden local copy of linked reference. */
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
                                             const bool do_tagged_remap)
@@ -322,25 +314,6 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   return local_id;
 }
 
-/**
- * Create overridden local copies of all tagged data-blocks in given Main.
- *
- * \note Set `id->newid` of overridden libs with newly created overrides,
- * caller is responsible to clean those pointers before/after usage as needed.
- *
- * \note By default, it will only remap newly created local overriding data-blocks between
- * themselves, to avoid 'enforcing' those overrides into all other usages of the linked data in
- * main. You can add more local IDs to be remapped to use new overriding ones by setting their
- * LIB_TAG_DOIT tag.
- *
- * \param reference_library: the library from which the linked data being overridden come from
- * (i.e. the library of the linked reference ID).
- *
- * \param do_no_main: Create the new override data outside of Main database.
- * Used for resyncing of linked overrides.
- *
- * \return \a true on success, \a false otherwise.
- */
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               const Library *reference_library,
                                               const bool do_no_main)
@@ -890,24 +863,6 @@ static void lib_override_library_create_post_process(Main *bmain,
   BLI_gset_free(all_objects_in_scene, NULL);
 }
 
-/**
- * Advanced 'smart' function to create fully functional overrides.
- *
- * \note Currently it only does special things if given \a id_root is an object or collection, more
- * specific behaviors may be added in the future for other ID types.
- *
- * \note It will override all IDs tagged with \a LIB_TAG_DOIT, and it does not clear that tag at
- * its beginning, so caller code can add extra data-blocks to be overridden as well.
- *
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
- * \param id_root: The root ID to create an override from.
- * \param id_reference: Some reference ID used to do some post-processing after overrides have been
- * created, may be NULL. Typically, the Empty object instantiating the linked collection we
- * override, currently.
- * \param r_id_root_override: if not NULL, the override generated for the given \a id_root.
- * \return true if override was successfully created.
- */
 bool BKE_lib_override_library_create(Main *bmain,
                                      Scene *scene,
                                      ViewLayer *view_layer,
@@ -942,9 +897,6 @@ bool BKE_lib_override_library_create(Main *bmain,
   return success;
 }
 
-/**
- * Create a library override template.
- */
 bool BKE_lib_override_library_template_create(struct ID *id)
 {
   if (ID_IS_LINKED(id)) {
@@ -958,16 +910,6 @@ bool BKE_lib_override_library_template_create(struct ID *id)
   return true;
 }
 
-/**
- * Convert a given proxy object into a library override.
- *
- * \note This is a thin wrapper around \a BKE_lib_override_library_create, only extra work is to
- * actually convert the proxy itself into an override first.
- *
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
- * \return true if override was successfully created.
- */
 bool BKE_lib_override_library_proxy_convert(Main *bmain,
                                             Scene *scene,
                                             ViewLayer *view_layer,
@@ -1039,14 +981,6 @@ static void lib_override_library_proxy_convert_do(Main *bmain,
   }
 }
 
-/**
- * Convert all proxy objects into library overrides.
- *
- * \note Only affects local proxies, linked ones are not affected.
- *
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
- */
 void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -1086,15 +1020,6 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
   }
 }
 
-/**
- * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
- * data, from an existing override hierarchy.
- *
- * \param id_root: The root liboverride ID to resync from.
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
- * \return true if override was successfully resynced.
- */
 bool BKE_lib_override_library_resync(Main *bmain,
                                      Scene *scene,
                                      ViewLayer *view_layer,
@@ -1801,23 +1726,6 @@ static int lib_override_libraries_index_define(Main *bmain)
   return library_indirect_level_max;
 }
 
-/**
- * Detect and handle required resync of overrides data, when relations between reference linked IDs
- * have changed.
- *
- * This is a fairly complex and costly operation, typically it should be called after
- * #BKE_lib_override_library_main_update, which would already detect and tag a lot of cases.
- *
- * This function will first detect the remaining cases requiring a resync (namely, either when an
- * existing linked ID that did not require to be overridden before now would be, or when new IDs
- * are added to the hierarchy).
- *
- * Then it will handle the resync of necessary IDs (through calls to
- * #BKE_lib_override_library_resync).
- *
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
- */
 void BKE_lib_override_library_main_resync(Main *bmain,
                                           Scene *scene,
                                           ViewLayer *view_layer,
@@ -1866,14 +1774,6 @@ void BKE_lib_override_library_main_resync(Main *bmain,
   }
 }
 
-/**
- * Advanced 'smart' function to delete library overrides (including their existing override
- * hierarchy) and remap their usages to their linked reference IDs.
- *
- * \note All IDs tagged with `LIB_TAG_DOIT` will be deleted.
- *
- * \param id_root: The root liboverride ID to delete.
- */
 void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
@@ -1911,11 +1811,6 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 }
 
-/** Make given ID fully local.
- *
- *  \note Only differs from lower-level `BKE_lib_override_library_free in infamous embedded ID
- *        cases.
- */
 void BKE_lib_override_library_make_local(ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
@@ -1972,9 +1867,6 @@ BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *ov
   return override_runtime->rna_path_to_override_properties;
 }
 
-/**
- * Find override property from given RNA path, if it exists.
- */
 IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *override,
                                                                   const char *rna_path)
 {
@@ -1982,9 +1874,6 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibr
   return BLI_ghash_lookup(override_runtime, rna_path);
 }
 
-/**
- * Find override property from given RNA path, or create it if it does not exist.
- */
 IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *override,
                                                                  const char *rna_path,
                                                                  bool *r_created)
@@ -2010,13 +1899,6 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
   return op;
 }
 
-/**
- * Get the RNA-property matching the \a library_prop override property. Used for UI to query
- * additional data about the overridden property (e.g. UI name).
- *
- * \param idpoin: Pointer to the override ID.
- * \param library_prop: The library override property to find the matching RNA property for.
- */
 bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
                                         const IDOverrideLibraryProperty *library_prop,
                                         PointerRNA *r_override_poin,
@@ -2053,9 +1935,6 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
   BLI_freelistN(&op->operations);
 }
 
-/**
- * Remove and free given \a override_property from given ID \a override.
- */
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
                                               IDOverrideLibraryProperty *override_property)
 {
@@ -2069,9 +1948,6 @@ void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
   BLI_freelinkN(&override->properties, override_property);
 }
 
-/**
- * Find override property operation from given sub-item(s), if it exists.
- */
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     IDOverrideLibraryProperty *override_property,
     const char *subitem_refname,
@@ -2158,9 +2034,6 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
   return NULL;
 }
 
-/**
- * Find override property operation from given sub-item(s), or create it if it does not exist.
- */
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     IDOverrideLibraryProperty *override_property,
     const short operation,
@@ -2227,9 +2100,6 @@ void lib_override_library_property_operation_clear(IDOverrideLibraryPropertyOper
   }
 }
 
-/**
- * Remove and free given \a override_property_operation from given ID \a override_property.
- */
 void BKE_lib_override_library_property_operation_delete(
     IDOverrideLibraryProperty *override_property,
     IDOverrideLibraryPropertyOperation *override_property_operation)
@@ -2238,9 +2108,6 @@ void BKE_lib_override_library_property_operation_delete(
   BLI_freelinkN(&override_property->operations, override_property_operation);
 }
 
-/**
- * Validate that required data for a given operation are available.
- */
 bool BKE_lib_override_library_property_operation_operands_validate(
     struct IDOverrideLibraryPropertyOperation *override_property_operation,
     struct PointerRNA *ptr_dst,
@@ -2278,7 +2145,6 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
-/** Check against potential \a bmain. */
 void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
 {
   if (id->override_library == NULL) {
@@ -2312,7 +2178,6 @@ void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *
   }
 }
 
-/** Check against potential \a bmain. */
 void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)
 {
   ID *id;
@@ -2325,16 +2190,6 @@ void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)
   FOREACH_MAIN_ID_END;
 }
 
-/**
- * Check that status of local data-block is still valid against current reference one.
- *
- * It means that all overridable, but not overridden, properties' local values must be equal to
- * reference ones. Clears #LIB_TAG_OVERRIDE_OK if they do not.
- *
- * This is typically used to detect whether some property has been changed in local and a new
- * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
- *
- * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
@@ -2384,16 +2239,6 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
   return true;
 }
 
-/**
- * Check that status of reference data-block is still valid against current local one.
- *
- * It means that all non-overridden properties' local values must be equal to reference ones.
- * Clears LIB_TAG_OVERRIDE_OK if they do not.
- *
- * This is typically used to detect whether some reference has changed and local
- * needs to be updated against it.
- *
- * \return true if status is OK, false otherwise. */
 bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
@@ -2450,20 +2295,6 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
   return true;
 }
 
-/**
- * Compare local and reference data-blocks and create new override operations as needed,
- * or reset to reference values if overriding is not allowed.
- *
- * \note Defining override operations is only mandatory before saving a `.blend` file on disk
- * (not for undo!).
- * Knowing that info at runtime is only useful for UI/UX feedback.
- *
- * \note This is by far the biggest operation (the more time-consuming) of the three so far,
- * since it has to go over all properties in depth (all overridable ones at least).
- * Generating differential values and applying overrides are much cheaper.
- *
- * \return true if any library operation was created.
- */
 bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
 {
   BLI_assert(local->override_library != NULL);
@@ -2540,7 +2371,6 @@ static void lib_override_library_operations_create_cb(TaskPool *__restrict pool,
   }
 }
 
-/** Check all overrides from given \a bmain and create/update overriding operations as needed. */
 bool BKE_lib_override_library_main_operations_create(Main *bmain, const bool force_auto)
 {
   ID *id;
@@ -2669,7 +2499,6 @@ static bool lib_override_library_id_reset_do(Main *bmain, ID *id_root)
   return was_op_deleted;
 }
 
-/** Reset all overrides in given \a id_root, while preserving ID relations. */
 void BKE_lib_override_library_id_reset(Main *bmain, ID *id_root)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
@@ -2728,7 +2557,6 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *i
   }
 }
 
-/** Reset all overrides in given \a id_root and its dependencies, while preserving ID relations. */
 void BKE_lib_override_library_id_hierarchy_reset(Main *bmain, ID *id_root)
 {
   BKE_main_relations_create(bmain, 0);
@@ -2749,7 +2577,6 @@ void BKE_lib_override_library_id_hierarchy_reset(Main *bmain, ID *id_root)
   FOREACH_MAIN_ID_END;
 }
 
-/** Set or clear given tag in all operations in that override property data. */
 void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,
                                              const short tag,
                                              const bool do_set)
@@ -2773,7 +2600,6 @@ void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *o
   }
 }
 
-/** Set or clear given tag in all properties and operations in that override data. */
 void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
                                              const short tag,
                                              const bool do_set)
@@ -2785,7 +2611,6 @@ void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
   }
 }
 
-/** Set or clear given tag in all properties and operations in that Main's ID override data. */
 void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, const bool do_set)
 {
   ID *id;
@@ -2798,7 +2623,6 @@ void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, cons
   FOREACH_MAIN_ID_END;
 }
 
-/** Remove all tagged-as-unused properties and operations from that ID override data. */
 void BKE_lib_override_library_id_unused_cleanup(struct ID *local)
 {
   if (ID_IS_OVERRIDE_LIBRARY_REAL(local)) {
@@ -2818,7 +2642,6 @@ void BKE_lib_override_library_id_unused_cleanup(struct ID *local)
   }
 }
 
-/** Remove all tagged-as-unused properties and operations from that Main's ID override data. */
 void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
 {
   ID *id;
@@ -2839,7 +2662,6 @@ static void lib_override_id_swap(Main *bmain, ID *id_local, ID *id_temp)
   id_local->tag |= (id_temp->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC);
 }
 
-/** Update given override from its reference (re-applying overridden properties). */
 void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(local)) {
@@ -2964,7 +2786,6 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   DEG_relations_tag_update(bmain);
 }
 
-/** Update all overrides from given \a bmain. */
 void BKE_lib_override_library_main_update(Main *bmain)
 {
   ID *id;
@@ -2985,7 +2806,6 @@ void BKE_lib_override_library_main_update(Main *bmain)
   G_MAIN = orig_gmain;
 }
 
-/** In case an ID is used by another liboverride ID, user may not be allowed to delete it. */
 bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID *id)
 {
   if (!(ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
@@ -3026,17 +2846,11 @@ bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID
  * exact same data as "desired" ones (kind of "baked" data-blocks).
  */
 
-/** Initialize an override storage. */
 OverrideLibraryStorage *BKE_lib_override_library_operations_store_init(void)
 {
   return BKE_main_new();
 }
 
-/**
- * Generate suitable 'write' data (this only affects differential override operations).
- *
- * Note that \a local ID is no more modified by this call,
- * all extra data are stored in its temp \a storage_id copy. */
 ID *BKE_lib_override_library_operations_store_start(Main *bmain,
                                                     OverrideLibraryStorage *override_storage,
                                                     ID *local)
@@ -3101,10 +2915,6 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-/**
- * Restore given ID modified by #BKE_lib_override_library_operations_store_start, to its
- * original state.
- */
 void BKE_lib_override_library_operations_store_end(
     OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {

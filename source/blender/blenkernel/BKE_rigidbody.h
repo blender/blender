@@ -41,8 +41,17 @@ struct Scene;
 /* -------------- */
 /* Memory Management */
 
+/**
+ * Free rigid-body world.
+ */
 void BKE_rigidbody_free_world(struct Scene *scene);
+/**
+ * Free rigid-body settings and simulation instances.
+ */
 void BKE_rigidbody_free_object(struct Object *ob, struct RigidBodyWorld *rbw);
+/**
+ * Free rigid-body constraint and simulation instance.
+ */
 void BKE_rigidbody_free_constraint(struct Object *ob);
 
 /* ...... */
@@ -52,7 +61,9 @@ void BKE_rigidbody_object_copy(struct Main *bmain,
                                const struct Object *ob_src,
                                const int flag);
 
-/* Callback format for performing operations on ID-pointers for rigidbody world. */
+/**
+ * Callback format for performing operations on ID-pointers for rigid-body world.
+ */
 typedef void (*RigidbodyWorldIDFunc)(struct RigidBodyWorld *rbw,
                                      struct ID **idpoin,
                                      void *userdata,
@@ -65,7 +76,9 @@ void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
 /* -------------- */
 /* Setup */
 
-/* create Blender-side settings data - physics objects not initialized yet */
+/**
+ * Create Blender-side settings data - physics objects not initialized yet.
+ */
 struct RigidBodyWorld *BKE_rigidbody_create_world(struct Scene *scene);
 struct RigidBodyOb *BKE_rigidbody_create_object(struct Scene *scene,
                                                 struct Object *ob,
@@ -74,21 +87,29 @@ struct RigidBodyCon *BKE_rigidbody_create_constraint(struct Scene *scene,
                                                      struct Object *ob,
                                                      short type);
 
-/* Ensure newly set collections' objects all have required data. */
+/**
+ * Ensure newly set collections' objects all have required data.
+ */
 void BKE_rigidbody_objects_collection_validate(struct Scene *scene, struct RigidBodyWorld *rbw);
 void BKE_rigidbody_constraints_collection_validate(struct Scene *scene,
                                                    struct RigidBodyWorld *rbw);
 
-/* Ensure object added to collection gets RB data if that collection is a RB one. */
+/**
+ * Ensure object added to collection gets RB data if that collection is a RB one.
+ */
 void BKE_rigidbody_main_collection_object_add(struct Main *bmain,
                                               struct Collection *collection,
                                               struct Object *object);
 
-/* copy */
+/**
+ * Copy.
+ */
 struct RigidBodyWorld *BKE_rigidbody_world_copy(struct RigidBodyWorld *rbw, const int flag);
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);
 
-/* 'validate' (i.e. make new or replace old) Physics-Engine objects */
+/**
+ * 'validate' (i.e. make new or replace old) Physics-Engine objects.
+ */
 void BKE_rigidbody_validate_sim_world(struct Scene *scene,
                                       struct RigidBodyWorld *rbw,
                                       bool rebuild);
@@ -118,14 +139,18 @@ void BKE_rigidbody_remove_constraint(struct Main *bmain,
 /* -------------- */
 /* Utility Macros */
 
-/* get mass of Rigid Body Object to supply to RigidBody simulators */
+/**
+ * Get mass of Rigid Body Object to supply to RigidBody simulators.
+ */
 #define RBO_GET_MASS(rbo) \
   (((rbo) && (((rbo)->type == RBO_TYPE_PASSIVE) || ((rbo)->flag & RBO_FLAG_KINEMATIC) || \
               ((rbo)->flag & RBO_FLAG_DISABLED))) ? \
        (0.0f) : \
        ((rbo)->mass))
-/* Get collision margin for Rigid Body Object, triangle mesh and cone shapes cannot embed margin,
- * convex hull always uses custom margin. */
+/**
+ * Get collision margin for Rigid Body Object, triangle mesh and cone shapes cannot embed margin,
+ * convex hull always uses custom margin.
+ */
 #define RBO_GET_MARGIN(rbo) \
   (((rbo)->flag & RBO_FLAG_USE_MARGIN || (rbo)->shape == RB_SHAPE_CONVEXH || \
     (rbo)->shape == RB_SHAPE_TRIMESH || (rbo)->shape == RB_SHAPE_CONE) ? \

@@ -90,7 +90,9 @@ void BKE_pbvh_get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
 
 /* Callbacks */
 
-/* returns 1 if the search should continue from this node, 0 otherwise */
+/**
+ * Returns true if the search should continue from this node, false otherwise.
+ */
 typedef bool (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BKE_pbvh_HitCallback)(PBVHNode *node, void *data);
@@ -101,6 +103,12 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 /* Building */
 
 PBVH *BKE_pbvh_new(void);
+/**
+ * Do a full rebuild with on Mesh data structure.
+ *
+ * \note Unlike mpoly/mloop/verts, looptri is *totally owned* by PBVH
+ * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
+ */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const struct Mesh *mesh,
                          const struct MPoly *mpoly,
@@ -112,6 +120,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
                          int looptri_num);
+/**
+ * Do a full rebuild with on Grids data structure.
+ */
 void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGElem **grids,
                           int totgrid,
@@ -119,6 +130,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden);
+/**
+ * Build a PBVH from a BMesh.
+ */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMesh *bm,
                           bool smooth_shading,
@@ -170,8 +184,10 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
                                         float *depth,
                                         float *r_edge_length);
 
-/* for orthographic cameras, project the far away ray segment points to the root node so
- * we can have better precision. */
+/**
+ * For orthographic cameras, project the far away ray segment points to the root node so
+ * we can have better precision.
+ */
 void BKE_pbvh_raycast_project_ray_root(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3]);
 
@@ -215,12 +231,19 @@ typedef enum {
 PBVHType BKE_pbvh_type(const PBVH *pbvh);
 bool BKE_pbvh_has_faces(const PBVH *pbvh);
 
-/* Get the PBVH root's bounding box */
+/**
+ * Get the PBVH root's bounding box.
+ */
 void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3]);
 
-/* multires hidden data, only valid for type == PBVH_GRIDS */
+/**
+ * Multi-res hidden data, only valid for type == PBVH_GRIDS.
+ */
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *pbvh);
 
+/**
+ * Returns the number of visible quads in the nodes' grids.
+ */
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
@@ -228,7 +251,9 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 
 void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh);
 
-/* multires level, only valid for type == PBVH_GRIDS */
+/**
+ * Multi-res level, only valid for type == #PBVH_GRIDS.
+ */
 const struct CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
 struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh);
@@ -236,7 +261,9 @@ BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
-/* Only valid for type == PBVH_BMESH */
+/**
+ * Only valid for type == #PBVH_BMESH.
+ */
 struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
 
@@ -244,6 +271,9 @@ typedef enum {
   PBVH_Subdivide = 1,
   PBVH_Collapse = 2,
 } PBVHTopologyUpdateMode;
+/**
+ * Collapse short edges, subdivide long edges.
+ */
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,
                                     const float center[3],
@@ -287,18 +317,28 @@ void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 
 float BKE_pbvh_node_get_tmin(PBVHNode *node);
 
-/* test if AABB is at least partially inside the PBVHFrustumPlanes volume */
+/**
+ * Test if AABB is at least partially inside the #PBVHFrustumPlanes volume.
+ */
 bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
-/* test if AABB is at least partially outside the PBVHFrustumPlanes volume */
+/**
+ * Test if AABB is at least partially outside the #PBVHFrustumPlanes volume.
+ */
 bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 
 struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
 struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+/**
+ * In order to perform operations on the original node coordinates
+ * (currently just ray-cast), store the node's triangles and vertices.
+ *
+ * Skips triangles that are hidden.
+ */
 void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm, PBVHNode *node);
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
-/* Update Bounding Box/Redraw and clear flags */
+/* Update Bounding Box/Redraw and clear flags. */
 
 void BKE_pbvh_update_bounds(PBVH *pbvh, int flags);
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
@@ -318,14 +358,15 @@ void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
 
 void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
 
-/* vertex deformer */
+/* Vertex Deformer. */
+
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
 void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], const int totvert);
 bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
 
-/* Vertex Iterator */
+/* Vertex Iterator. */
 
-/* this iterator has quite a lot of code, but it's designed to:
+/* This iterator has quite a lot of code, but it's designed to:
  * - allow the compiler to eliminate dead code and variables
  * - spend most of the time in the relatively simple inner loop */
 
@@ -469,6 +510,11 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int *r_orco_tris_num,
                                     float (**r_orco_coords)[3]);
 
+/**
+ * \note doing a full search on all vertices here seems expensive,
+ * however this is important to avoid having to recalculate bound-box & sync the buffers to the
+ * GPU (which is far more expensive!) See: T47232.
+ */
 bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
@@ -480,7 +526,8 @@ void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 bool pbvh_has_face_sets(PBVH *pbvh);
 void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
-/* Parallelization */
+/* Parallelization. */
+
 void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);

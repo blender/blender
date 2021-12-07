@@ -123,16 +123,6 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
  * Find transform of a mesh to get best match with another.
  * \{ */
 
-/**
- * Compute a value of the difference between both given meshes.
- * The smaller the result, the better the match.
- *
- * We return the inverse of the average of the inversed
- * shortest distance from each dst vertex to src ones.
- * In other words, beyond a certain (relatively small) distance, all differences have more or less
- * the same weight in final result, which allows to reduce influence of a few high differences,
- * in favor of a global good matching.
- */
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
                                                const MVert *verts_dst,
                                                const int numverts_dst,
@@ -268,9 +258,6 @@ static void mesh_calc_eigen_matrix(const MVert *verts,
   copy_v3_v3(r_mat[3], center);
 }
 
-/**
- * Set r_space_transform so that best bbox of dst matches best bbox of src.
- */
 void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
                                               const int numverts_dst,
                                               Mesh *me_src,

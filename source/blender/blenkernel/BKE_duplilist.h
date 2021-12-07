@@ -36,6 +36,9 @@ struct ID;
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
+/**
+ * \return a #ListBase of #DupliObject.
+ */
 struct ListBase *object_duplilist(struct Depsgraph *depsgraph,
                                   struct Scene *sce,
                                   struct Object *ob);

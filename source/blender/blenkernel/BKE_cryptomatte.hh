@@ -37,7 +37,8 @@ struct ID;
 
 namespace blender::bke::cryptomatte {
 
-/* Format to a cryptomatte meta data key.
+/**
+ * Format to a cryptomatte meta data key.
  *
  * Cryptomatte stores meta data. The keys are formatted containing a hash that
  * is generated from its layer name.
@@ -48,7 +49,8 @@ namespace blender::bke::cryptomatte {
 std::string BKE_cryptomatte_meta_data_key(const StringRef layer_name,
                                           const StringRefNull key_name);
 
-/* Extract the cryptomatte layer name from the given `render_pass_name`.
+/**
+ * Extract the cryptomatte layer name from the given `render_pass_name`.
  *
  * Cryptomatte passes are formatted with a trailing number for storing multiple samples that belong
  * to the same cryptomatte layer. This function would remove the trailing numbers to determine the
@@ -59,7 +61,7 @@ std::string BKE_cryptomatte_meta_data_key(const StringRef layer_name,
  * A render_pass_name could be 'View Layer.CryptoMaterial02'. The cryptomatte layer would be 'View
  * Layer.CryptoMaterial'.
  *
- * NOTE: The return type is a sub-string of `render_pass_name` and therefore cannot outlive the
+ * \note The return type is a sub-string of `render_pass_name` and therefore cannot outlive the
  * `render_pass_name` internal data.
  */
 StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name);
@@ -72,6 +74,18 @@ struct CryptomatteHash {
   static CryptomatteHash from_hex_encoded(blender::StringRef hex_encoded);
 
   std::string hex_encoded() const;
+  /**
+     Convert a cryptomatte hash to a float.
+   *
+   * Cryptomatte hashes are stored in float textures and images. The conversion is taken from the
+   * cryptomatte specification. See Floating point conversion section in
+   * https://github.com/Psyop/Cryptomatte/blob/master/specification/cryptomatte_specification.pdf.
+   *
+   * The conversion uses as many 32 bit floating point values as possible to minimize hash
+   * collisions. Unfortunately not all 32 bits can be used as NaN and Inf can be problematic.
+   *
+   * Note that this conversion assumes to be running on a L-endian system.
+   */
   float float_encoded() const;
 };
 

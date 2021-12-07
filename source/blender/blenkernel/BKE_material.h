@@ -34,12 +34,18 @@ struct Object;
 struct Scene;
 struct bNode;
 
-/* Module */
+/* -------------------------------------------------------------------- */
+/** \name Module
+ * \{ */
 
 void BKE_materials_init(void);
 void BKE_materials_exit(void);
 
-/* Materials */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Materials
+ * \{ */
 
 void BKE_object_materials_test(struct Main *bmain, struct Object *ob, struct ID *id);
 void BKE_objects_materials_test_all(struct Main *bmain, struct ID *id);
@@ -48,9 +54,18 @@ void BKE_object_material_resize(struct Main *bmain,
                                 const short totcol,
                                 bool do_id_user);
 void BKE_object_material_remap(struct Object *ob, const unsigned int *remap);
+/**
+ * Calculate a material remapping from \a ob_src to \a ob_dst.
+ *
+ * \param remap_src_to_dst: An array the size of `ob_src->totcol`
+ * where index values are filled in which map to \a ob_dst materials.
+ */
 void BKE_object_material_remap_calc(struct Object *ob_dst,
                                     struct Object *ob_src,
                                     short *remap_src_to_dst);
+/**
+ * Copy materials from evaluated geometry to the original geometry of an object.
+ */
 void BKE_object_material_from_eval_data(struct Main *bmain,
                                         struct Object *ob_orig,
                                         struct ID *data_eval);
@@ -61,10 +76,17 @@ void BKE_gpencil_material_attr_init(struct Material *ma);
 /* UNUSED */
 // void automatname(struct Material *);
 
-/* material slots */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slots
+ * \{ */
 
 struct Material ***BKE_object_material_array_p(struct Object *ob);
 short *BKE_object_material_len_p(struct Object *ob);
+/**
+ * \note Same as #BKE_object_material_len_p but for ID's.
+ */
 struct Material ***BKE_id_material_array_p(struct ID *id); /* same but for ID's */
 short *BKE_id_material_len_p(struct ID *id);
 
@@ -81,6 +103,9 @@ struct Material *BKE_object_material_get(struct Object *ob, short act);
 void BKE_id_material_assign(struct Main *bmain, struct ID *id, struct Material *ma, short act);
 void BKE_object_material_assign(
     struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
+/**
+ * \warning this calls many more update calls per object then are needed, could be optimized.
+ */
 void BKE_object_material_array_assign(struct Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
@@ -99,7 +124,12 @@ void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
 struct bNode *BKE_texpaint_slot_material_find_node(struct Material *ma, short texpaint_slot);
 
-/* rna api */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA API
+ * \{ */
+
 void BKE_id_materials_copy(struct Main *bmain, struct ID *id_src, struct ID *id_dst);
 void BKE_id_material_resize(struct Main *bmain, struct ID *id, short totcol, bool do_id_user);
 void BKE_id_material_append(struct Main *bmain, struct ID *id, struct Material *ma);
@@ -109,23 +139,57 @@ struct Material *BKE_id_material_pop(struct Main *bmain,
                                      int index);
 void BKE_id_material_clear(struct Main *bmain, struct ID *id);
 
-/* eval api */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation API
+ * \{ */
+
+/**
+ * On evaluated objects the number of materials on an object and its data might go out of sync.
+ * This is because during evaluation materials can be added/removed on the object data.
+ *
+ * For rendering or exporting we generally use the materials on the object data. However, some
+ * material indices might be overwritten by the object.
+ */
 struct Material *BKE_object_material_get_eval(struct Object *ob, short act);
 int BKE_object_material_count_eval(struct Object *ob);
 void BKE_id_material_eval_assign(struct ID *id, int slot, struct Material *material);
+/**
+ * Add an empty material slot if the id has no material slots. This material slot allows the
+ * material to be overwritten by object-linked materials.
+ */
 void BKE_id_material_eval_ensure_default_slot(struct ID *id);
 
-/* rendering */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Rendering
+ * \{ */
+
+/**
+ * \param r_col: current value.
+ * \param col: new value.
+ * \param fac: Zero for is no change.
+ */
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
 
-/* copy/paste */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy/Paste
+ * \{ */
+
 void BKE_material_copybuf_clear(void);
 void BKE_material_copybuf_free(void);
 void BKE_material_copybuf_copy(struct Main *bmain, struct Material *ma);
 void BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 
-/* Default Materials */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default Materials
+ * \{ */
 
 struct Material *BKE_material_default_empty(void);
 struct Material *BKE_material_default_holdout(void);
@@ -135,11 +199,17 @@ struct Material *BKE_material_default_gpencil(void);
 
 void BKE_material_defaults_free_gpu(void);
 
-/* Dependency graph evaluation. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dependency graph evaluation
+ * \{ */
 
 struct Depsgraph;
 
 void BKE_material_eval(struct Depsgraph *depsgraph, struct Material *material);
+
+/** \} */
 
 #ifdef __cplusplus
 }

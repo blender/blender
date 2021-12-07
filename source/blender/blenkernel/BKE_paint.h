@@ -111,10 +111,11 @@ typedef enum ePaintOverlayControlFlags {
   (PAINT_OVERLAY_OVERRIDE_SECONDARY | PAINT_OVERLAY_OVERRIDE_PRIMARY | \
    PAINT_OVERLAY_OVERRIDE_CURSOR)
 
-/* Defines 8 areas resulting of splitting the object space by the XYZ axis planes. This is used to
+/**
+ * Defines 8 areas resulting of splitting the object space by the XYZ axis planes. This is used to
  * flip or mirror transform values depending on where the vertex is and where the transform
- * operation started to support XYZ symmetry on those operations in a predictable way. */
-
+ * operation started to support XYZ symmetry on those operations in a predictable way.
+ */
 #define PAINT_SYMM_AREA_DEFAULT 0
 
 typedef enum ePaintSymmetryAreas {
@@ -136,10 +137,14 @@ ePaintOverlayControlFlags BKE_paint_get_overlay_flags(void);
 void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
 void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
-/* palettes */
+/* Palettes. */
+
 struct Palette *BKE_palette_add(struct Main *bmain, const char *name);
 struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
 bool BKE_palette_is_empty(const struct Palette *palette);
+/**
+ * Remove color from palette. Must be certain color is inside the palette!
+ */
 void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
 void BKE_palette_clear(struct Palette *palette);
 
@@ -152,12 +157,21 @@ bool BKE_palette_from_hash(struct Main *bmain,
                            const char *name,
                            const bool linear);
 
-/* paint curves */
+/* Paint curves. */
+
 struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
 
+/**
+ * Call when entering each respective paint mode.
+ */
 bool BKE_paint_ensure(struct ToolSettings *ts, struct Paint **r_paint);
 void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const char col[3]);
 void BKE_paint_free(struct Paint *p);
+/**
+ * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
+ * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
+ * value should decrease the existing user count as with #paint_brush_set()
+ */
 void BKE_paint_copy(struct Paint *src, struct Paint *tar, const int flag);
 
 void BKE_paint_runtime_init(const struct ToolSettings *ts, struct Paint *paint);
@@ -181,26 +195,46 @@ void BKE_paint_palette_set(struct Paint *p, struct Palette *palette);
 void BKE_paint_curve_set(struct Brush *br, struct PaintCurve *pc);
 void BKE_paint_curve_clamp_endpoint_add_index(struct PaintCurve *pc, const int add_index);
 
-/* testing face select mode
- * Texture paint could be removed since selected faces are not used
- * however hiding faces is useful */
+/**
+ * Return true when in vertex/weight/texture paint + face-select mode?
+ */
 bool BKE_paint_select_face_test(struct Object *ob);
+/**
+ * Return true when in vertex/weight paint + vertex-select mode?
+ */
 bool BKE_paint_select_vert_test(struct Object *ob);
+/**
+ * used to check if selection is possible
+ * (when we don't care if its face or vert)
+ */
 bool BKE_paint_select_elem_test(struct Object *ob);
 
-/* partial visibility */
+/* Partial visibility. */
+
+/**
+ * Returns non-zero if any of the face's vertices are hidden, zero otherwise.
+ */
 bool paint_is_face_hidden(const struct MLoopTri *lt,
                           const struct MVert *mvert,
                           const struct MLoop *mloop);
+/**
+ * Returns non-zero if any of the corners of the grid
+ * face whose inner corner is at (x, y) are hidden, zero otherwise.
+ */
 bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, int x, int y);
+/**
+ * Return true if all vertices in the face are visible, false otherwise.
+ */
 bool paint_is_bmesh_face_hidden(struct BMFace *f);
 
-/* paint masks */
+/* Paint masks. */
+
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, uint level, uint x, uint y);
 
 void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4]);
 
-/* stroke related */
+/* Stroke related. */
+
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
                                    const float mouse_pos[2]);
@@ -211,14 +245,20 @@ void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
 void BKE_paint_stroke_get_average(struct Scene *scene, struct Object *ob, float stroke[3]);
 
 /* Tool slot API. */
+
 void BKE_paint_toolslots_init_from_main(struct Main *bmain);
 void BKE_paint_toolslots_len_ensure(struct Paint *paint, int len);
 void BKE_paint_toolslots_brush_update_ex(struct Paint *paint, struct Brush *brush);
 void BKE_paint_toolslots_brush_update(struct Paint *paint);
+/**
+ * Run this to ensure brush types are set for each slot on entering modes
+ * (for new scenes for example).
+ */
 void BKE_paint_toolslots_brush_validate(struct Main *bmain, struct Paint *paint);
 struct Brush *BKE_paint_toolslots_brush_get(struct Paint *paint, int slot_index);
 
 /* .blend I/O */
+
 void BKE_paint_blend_write(struct BlendWriter *writer, struct Paint *paint);
 void BKE_paint_blend_read_data(struct BlendDataReader *reader,
                                const struct Scene *scene,
@@ -229,7 +269,7 @@ void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
 
 #define SCULPT_FACE_SET_NONE 0
 
-/* Used for both vertex color and weight paint */
+/** Used for both vertex color and weight paint. */
 struct SculptVertexPaintGeomMap {
   int *vert_map_mem;
   struct MeshElemMap *vert_to_loop;
@@ -237,7 +277,7 @@ struct SculptVertexPaintGeomMap {
   struct MeshElemMap *vert_to_poly;
 };
 
-/* Pose Brush IK Chain */
+/** Pose Brush IK Chain. */
 typedef struct SculptPoseIKChainSegment {
   float orig[3];
   float head[3];
@@ -620,10 +660,15 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 
-/* Create new color layer on object if it doesn't have one and if experimental feature set has
- * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise. */
+/**
+ * Create new color layer on object if it doesn't have one and if experimental feature set has
+ * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
+ */
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object);
 
+/**
+ * \warning Expects a fully evaluated depsgraph.
+ */
 void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
                                        struct Object *ob_orig,
                                        bool need_pmap,
@@ -632,6 +677,10 @@ void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
 void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
 
+/**
+ * Sculpt mode handles multi-res differently from regular meshes, but only if
+ * it's the last modifier on the stack and it is not on the first level.
+ */
 struct MultiresModifierData *BKE_sculpt_multires_active(struct Scene *scene, struct Object *ob);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
@@ -640,19 +689,37 @@ struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct O
 
 void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 
-/* This ensure that all elements in the mesh (both vertices and grids) have their visibility
- * updated according to the face sets. */
+/**
+ * This ensure that all elements in the mesh (both vertices and grids) have their visibility
+ * updated according to the face sets.
+ */
 void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
 
-/* Individual function to sync the Face Set visibility to mesh and grids. */
+/**
+ * Individual function to sync the Face Set visibility to mesh and grids.
+ */
 void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(struct Mesh *mesh);
 void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
                                                    struct SubdivCCG *subdiv_ccg);
 
+/**
+ * Ensures that a Face Set data-layers exists. If it does not, it creates one respecting the
+ * visibility stored in the vertices of the mesh. If it does, it copies the visibility from the
+ * mesh to the Face Sets. */
 void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(struct Mesh *mesh);
 
+/**
+ * Ensures we do have expected mesh data in original mesh for the sculpt mode.
+ *
+ * \note IDs are expected to be original ones here, and calling code should ensure it updates its
+ * depsgraph properly after calling this function if it needs up-to-date evaluated data.
+ */
 void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
 
+/**
+ * Test if PBVH can be used directly for drawing, which is faster than
+ * drawing the mesh and all updates that come with it.
+ */
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
 
 enum {

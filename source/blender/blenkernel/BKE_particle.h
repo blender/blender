@@ -286,6 +286,9 @@ BLI_INLINE void psys_frand_vec(ParticleSystem *psys, unsigned int seed, float ve
 
 /* ----------- functions needed outside particlesystem ---------------- */
 /* particle.c */
+
+/* Few helpers for count-all etc. */
+
 int count_particles(struct ParticleSystem *psys);
 int count_particles_mod(struct ParticleSystem *psys, int totgr, int cur);
 
@@ -296,8 +299,13 @@ int psys_get_tot_child(struct Scene *scene,
                        struct ParticleSystem *psys,
                        const bool use_render_params);
 
+/**
+ * Get object's active particle system safely.
+ */
 struct ParticleSystem *psys_get_current(struct Object *ob);
-/* for rna */
+
+/* For RNA API. */
+
 short psys_get_current_num(struct Object *ob);
 void psys_set_current_num(struct Object *ob, int index);
 /* UNUSED */
@@ -305,14 +313,17 @@ void psys_set_current_num(struct Object *ob, int index);
 
 struct LatticeDeformData *psys_create_lattice_deform_data(struct ParticleSimulationData *sim);
 
-/* For a given evaluated particle system get its original.
+/**
+ * For a given evaluated particle system get its original.
  *
- * If this input is an original particle system already, the return value is the
- * same as the input. */
+ * If this input is an original particle system already, the return value is the same as the input.
+ */
 struct ParticleSystem *psys_orig_get(struct ParticleSystem *psys);
 
-/* For a given original object and its particle system, get evaluated particle
- * system within a given dependency graph. */
+/**
+ * For a given original object and its particle system,
+ * get evaluated particle system within a given dependency graph.
+ */
 struct ParticleSystem *psys_eval_get(struct Depsgraph *depsgraph,
                                      struct Object *object,
                                      struct ParticleSystem *psys);
@@ -328,11 +339,17 @@ void psys_check_group_weights(struct ParticleSettings *part);
 int psys_uses_gravity(struct ParticleSimulationData *sim);
 void BKE_particlesettings_fluid_default_settings(struct ParticleSettings *part);
 
-/* free */
+/**
+ * Free cache path.
+ */
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
+/**
+ * Free everything.
+ */
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
-
-/* Copy. */
+/**
+ * Copy.
+ */
 void psys_copy_particles(struct ParticleSystem *psys_dst, struct ParticleSystem *psys_src);
 
 bool psys_render_simplify_params(struct ParticleSystem *psys,
@@ -379,6 +396,12 @@ void psys_find_parents(struct ParticleSimulationData *sim, const bool use_render
 
 void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname);
 
+/**
+ * Calculates paths ready for drawing/rendering
+ * - Useful for making use of opengl vertex arrays for super fast strand drawing.
+ * - Makes child strands possible and creates them too into the cache.
+ * - Cached path data is also used to determine cut position for the edit-mode tool.
+ */
 void psys_cache_paths(struct ParticleSimulationData *sim,
                       float cfra,
                       const bool use_render_params);
@@ -409,16 +432,24 @@ float psys_get_child_size(struct ParticleSystem *psys,
                           struct ChildParticle *cpa,
                           float cfra,
                           float *pa_time);
+/**
+ * Gets hair (or keyed) particles state at the "path time" specified in `state->time`.
+ */
 void psys_get_particle_on_path(struct ParticleSimulationData *sim,
                                int pa_num,
                                struct ParticleKey *state,
                                const bool vel);
+/**
+ * Gets particle's state at a time.
+ * \return 1 if particle exists and can be seen and 0 if not.
+ */
 int psys_get_particle_state(struct ParticleSimulationData *sim,
                             int p,
                             struct ParticleKey *state,
                             int always);
 
-/* child paths */
+/* Child paths. */
+
 void BKE_particlesettings_clump_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_rough_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_twist_curve_init(struct ParticleSettings *part);
@@ -434,9 +465,13 @@ void psys_apply_child_modifiers(struct ParticleThreadContext *ctx,
 
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
 void psys_sph_finalize(struct SPHData *sphdata);
+/**
+ * Sample the density field at a point in space.
+ */
 void psys_sph_density(struct BVHTree *tree, struct SPHData *data, float co[3], float vars[2]);
 
-/* for anim.c */
+/* For anim.c */
+
 void psys_get_dupli_texture(struct ParticleSystem *psys,
                             struct ParticleSettings *part,
                             struct ParticleSystemModifierData *psmd,
@@ -451,6 +486,9 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim,
                                    float mat[4][4],
                                    float *scale);
 
+/**
+ * Threaded child particle distribution and path caching.
+ */
 void psys_thread_context_init(struct ParticleThreadContext *ctx,
                               struct ParticleSimulationData *sim);
 void psys_thread_context_free(struct ParticleThreadContext *ctx);
@@ -467,9 +505,16 @@ void psys_apply_hair_lattice(struct Depsgraph *depsgraph,
                              struct ParticleSystem *psys);
 
 /* particle_system.c */
+
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
+/**
+ * Counts valid keyed targets.
+ */
 void psys_count_keyed_targets(struct ParticleSimulationData *sim);
 void psys_update_particle_tree(struct ParticleSystem *psys, float cfra);
+/**
+ * System type has changed so set sensible defaults and clear non applicable flags.
+ */
 void psys_changed_type(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
@@ -486,13 +531,19 @@ void psys_get_birth_coords(struct ParticleSimulationData *sim,
                            float dtime,
                            float cfra);
 
+/**
+ * Main particle update call, checks that things are ok on the large scale and
+ * then advances in to actual particle calculations depending on particle type.
+ */
 void particle_system_update(struct Depsgraph *depsgraph,
                             struct Scene *scene,
                             struct Object *ob,
                             struct ParticleSystem *psys,
                             const bool use_render_params);
 
-/* Callback format for performing operations on ID-pointers for particle systems */
+/**
+ * Callback format for performing operations on ID-pointers for particle systems.
+ */
 typedef void (*ParticleSystemIDFunc)(struct ParticleSystem *psys,
                                      struct ID **idpoin,
                                      void *userdata,
@@ -502,11 +553,15 @@ void BKE_particlesystem_id_loop(struct ParticleSystem *psys,
                                 ParticleSystemIDFunc func,
                                 void *userdata);
 
-/* Reset all particle systems in the given object. */
+/**
+ * Reset all particle systems in the given object.
+ */
 void BKE_particlesystem_reset_all(struct Object *object);
 
 /* ----------- functions needed only inside particlesystem ------------ */
+
 /* particle.c */
+
 void psys_disable_all(struct Object *ob);
 void psys_enable_all(struct Object *ob);
 
@@ -544,6 +599,9 @@ void psys_get_texture(struct ParticleSimulationData *sim,
                       struct ParticleTexture *ptex,
                       int event,
                       float cfra);
+/**
+ * Interpolate a location on a face based on face coordinates.
+ */
 void psys_interpolate_face(struct MVert *mvert,
                            struct MFace *mface,
                            struct MTFace *tface,
@@ -561,11 +619,16 @@ float psys_particle_value_from_verts(struct Mesh *mesh,
 void psys_get_from_key(
     struct ParticleKey *key, float loc[3], float vel[3], float rot[4], float *time);
 
-/* BLI_bvhtree_ray_cast callback */
+/**
+ * Callback for #BVHTree near test.
+ */
 void BKE_psys_collision_neartest_cb(void *userdata,
                                     int index,
                                     const struct BVHTreeRay *ray,
                                     struct BVHTreeRayHit *hit);
+/**
+ * Interprets particle data to get a point on a mesh in object space.
+ */
 void psys_particle_on_dm(struct Mesh *mesh_final,
                          int from,
                          int index,
@@ -579,18 +642,37 @@ void psys_particle_on_dm(struct Mesh *mesh_final,
                          float orco[3]);
 
 /* particle_system.c */
+
 void distribute_particles(struct ParticleSimulationData *sim, int from);
+/**
+ * Set particle parameters that don't change during particle's life.
+ */
 void init_particle(struct ParticleSimulationData *sim, struct ParticleData *pa);
 void psys_calc_dmcache(struct Object *ob,
                        struct Mesh *mesh_final,
                        struct Mesh *mesh_original,
                        struct ParticleSystem *psys);
+/**
+ * Find the final derived mesh tessface for a particle, from its original tessface index.
+ * This is slow and can be optimized but only for many lookups.
+ *
+ * \param mesh_final: Final mesh, it may not have the same topology as original mesh.
+ * \param mesh_original: Original mesh, use for accessing #MPoly to #MFace mapping.
+ * \param findex_orig: The input tessface index.
+ * \param fw: Face weights (position of the particle inside the \a findex_orig tessface).
+ * \param poly_nodes: May be NULL, otherwise an array of linked list,
+ * one for each final \a mesh_final polygon, containing all its tessfaces indices.
+ * \return The \a mesh_final tessface index.
+ */
 int psys_particle_dm_face_lookup(struct Mesh *mesh_final,
                                  struct Mesh *mesh_original,
                                  int findex,
                                  const float fw[4],
                                  struct LinkNode **poly_nodes);
 
+/**
+ * Sets particle to the emitter surface with initial velocity & rotation.
+ */
 void reset_particle(struct ParticleSimulationData *sim,
                     struct ParticleData *pa,
                     float dtime,
@@ -629,6 +711,7 @@ extern void (*BKE_particle_batch_cache_dirty_tag_cb)(struct ParticleSystem *psys
 extern void (*BKE_particle_batch_cache_free_cb)(struct ParticleSystem *psys);
 
 /* .blend file I/O */
+
 void BKE_particle_partdeflect_blend_read_data(struct BlendDataReader *reader,
                                               struct PartDeflect *pd);
 void BKE_particle_partdeflect_blend_read_lib(struct BlendLibReader *reader,

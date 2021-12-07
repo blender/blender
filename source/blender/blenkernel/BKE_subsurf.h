@@ -66,18 +66,30 @@ struct DerivedMesh *subsurf_make_derived_from_derived(struct DerivedMesh *dm,
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*r_positions)[3]);
 
-/* get gridsize from 'level', level must be greater than zero */
+/**
+ * Get grid-size from 'level', level must be greater than zero.
+ */
 int BKE_ccg_gridsize(int level);
 
-/* x/y grid coordinates at 'low_level' can be multiplied by the result
- * of this function to convert to grid coordinates at 'high_level' */
+/**
+ * X/Y grid coordinates at 'low_level' can be multiplied by the result
+ * of this function to convert to grid coordinates at 'high_level'.
+ */
 int BKE_ccg_factor(int low_level, int high_level);
 
+/**
+ * Translate #GridHidden into the #ME_HIDE flag for MVerts. Assumes
+ * vertices are in the order output by #ccgDM_copyFinalVertArray.
+ */
 void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
                               const struct MPoly *mpoly,
                               struct MVert *mvert,
                               const struct MDisps *mdisps);
 
+/**
+ * Translate #GridPaintMask into vertex paint masks. Assumes vertices
+ * are in the order output by #ccgDM_copyFinalVertArray.
+ */
 void subsurf_copy_grid_paint_mask(struct DerivedMesh *dm,
                                   const struct MPoly *mpoly,
                                   float *paint_mask,

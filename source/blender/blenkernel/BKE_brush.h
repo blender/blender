@@ -39,49 +39,93 @@ struct UnifiedPaintSettings;
 
 // enum eCurveMappingPreset;
 
-/* globals for brush execution */
+/* Globals for brush execution. */
+
 void BKE_brush_system_init(void);
 void BKE_brush_system_exit(void);
 
-/* datablock functions */
+/* Data-block functions. */
+
+/**
+ * \note Resulting brush will have two users: one as a fake user,
+ * another is assumed to be used by the caller.
+ */
 struct Brush *BKE_brush_add(struct Main *bmain, const char *name, const eObjectMode ob_mode);
+/**
+ * Add a new gp-brush.
+ */
 struct Brush *BKE_brush_add_gpencil(struct Main *bmain,
                                     struct ToolSettings *ts,
                                     const char *name,
                                     eObjectMode mode);
+/**
+ * Delete a Brush.
+ */
 bool BKE_brush_delete(struct Main *bmain, struct Brush *brush);
+/**
+ * Add grease pencil settings.
+ */
 void BKE_brush_init_gpencil_settings(struct Brush *brush);
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 
+/**
+ * Create a set of grease pencil Drawing presets.
+ */
 void BKE_brush_gpencil_paint_presets(struct Main *bmain,
                                      struct ToolSettings *ts,
                                      const bool reset);
+/**
+ * Create a set of grease pencil Vertex Paint presets.
+ */
 void BKE_brush_gpencil_vertex_presets(struct Main *bmain,
                                       struct ToolSettings *ts,
                                       const bool reset);
+/**
+ * Create a set of grease pencil Sculpt Paint presets.
+ */
 void BKE_brush_gpencil_sculpt_presets(struct Main *bmain,
                                       struct ToolSettings *ts,
                                       const bool reset);
+/**
+ * Create a set of grease pencil Weight Paint presets.
+ */
 void BKE_brush_gpencil_weight_presets(struct Main *bmain,
                                       struct ToolSettings *ts,
                                       const bool reset);
 void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, const short type);
 
-/* jitter */
 void BKE_brush_jitter_pos(const struct Scene *scene,
                           struct Brush *brush,
                           const float pos[2],
                           float jitterpos[2]);
 void BKE_brush_randomize_texture_coords(struct UnifiedPaintSettings *ups, bool mask);
 
-/* brush curve */
+/* Brush curve. */
+
+/**
+ * Library Operations
+ */
 void BKE_brush_curve_preset(struct Brush *b, enum eCurveMappingPreset preset);
+/**
+ * Uses the brush curve control to find a strength value between 0 and 1.
+ */
 float BKE_brush_curve_strength_clamped(const struct Brush *br, float p, const float len);
+/**
+ * Uses the brush curve control to find a strength value.
+ */
 float BKE_brush_curve_strength(const struct Brush *br, float p, const float len);
 
-/* sampling */
+/* Sampling. */
+
+/**
+ * Generic texture sampler for 3D painting systems.
+ * point has to be either in region space mouse coordinates,
+ * or 3d world coordinates for 3D mapping.
+ *
+ * RGBA outputs straight alpha.
+ */
 float BKE_brush_sample_tex_3d(const struct Scene *scene,
                               const struct Brush *br,
                               const float point[3],
@@ -94,15 +138,18 @@ float BKE_brush_sample_masktex(const struct Scene *scene,
                                const int thread,
                                struct ImagePool *pool);
 
-/* texture */
+/* Texture. */
+
 unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side, bool use_secondary);
 
-/* radial control */
+/**
+ * Radial control.
+ */
 struct ImBuf *BKE_brush_gen_radial_control_imbuf(struct Brush *br,
                                                  bool secondary,
                                                  bool display_gradient);
 
-/* unified strength size and color */
+/* Unified strength size and color. */
 
 const float *BKE_brush_color_get(const struct Scene *scene, const struct Brush *brush);
 const float *BKE_brush_secondary_color_get(const struct Scene *scene, const struct Brush *brush);
@@ -127,12 +174,16 @@ bool BKE_brush_use_size_pressure(const struct Brush *brush);
 
 bool BKE_brush_sculpt_has_secondary_color(const struct Brush *brush);
 
-/* scale unprojected radius to reflect a change in the brush's 2D size */
+/**
+ * Scale unprojected radius to reflect a change in the brush's 2D size.
+ */
 void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
                                         int new_brush_size,
                                         int old_brush_size);
 
-/* scale brush size to reflect a change in the brush's unprojected radius */
+/**
+ * Scale brush size to reflect a change in the brush's unprojected radius.
+ */
 void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius);

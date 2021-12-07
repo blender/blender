@@ -316,9 +316,6 @@ void BKE_mesh_ensure_normals(Mesh *mesh)
   BLI_assert((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) == 0);
 }
 
-/**
- * Called after calculating all modifiers.
- */
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
 {
   switch ((eMeshWrapperType)mesh->runtime.wrapper_type) {
@@ -378,10 +375,6 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
   }
 }
 
-/**
- * NOTE: this does not update the #CD_NORMAL layer,
- * but does update the normals in the #CD_MVERT layer.
- */
 void BKE_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef DEBUG_TIME
@@ -479,13 +472,6 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
   lnors_spacearr->data_type = data_type;
 }
 
-/**
- * Utility for multi-threaded calculation that ensures
- * `lnors_spacearr_tls` doesn't share memory with `lnors_spacearr`
- * that would cause it not to be thread safe.
- *
- * \note This works as long as threads never operate on the same loops at once.
- */
 void BKE_lnor_spacearr_tls_init(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls)
 {
@@ -493,10 +479,6 @@ void BKE_lnor_spacearr_tls_init(MLoopNorSpaceArray *lnors_spacearr,
   lnors_spacearr_tls->mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 }
 
-/**
- * Utility for multi-threaded calculation
- * that merges `lnors_spacearr_tls` into `lnors_spacearr`.
- */
 void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls)
 {
@@ -537,11 +519,6 @@ MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 /* This threshold is a bit touchy (usual float precision issue), this value seems OK. */
 #define LNOR_SPACE_TRIGO_THRESHOLD (1.0f - 1e-4f)
 
-/* Should only be called once.
- * Beware, this modifies ref_vec and other_vec in place!
- * In case no valid space can be generated, ref_alpha and ref_beta are set to zero
- * (which means 'use auto lnors').
- */
 void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            float vec_ref[3],
@@ -614,14 +591,6 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
   }
 }
 
-/**
- * Add a new given loop to given lnor_space.
- * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct
- * (in case of BMLOOP_PTR), or nullptr (in case of LOOP_INDEX), loop index is then stored in
- * pointer. If \a is_single is set, the BMLoop or loop index is directly stored in \a
- * lnor_space->loops pointer (since there is only one loop in this fan), else it is added to the
- * linked list of loops in the fan.
- */
 void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              MLoopNorSpace *lnor_space,
                              const int ml_index,
@@ -901,12 +870,6 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   }
 }
 
-/**
- * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
- *
- * Used when defining an empty custom loop normals data layer,
- * to keep same shading as with auto-smooth!
- */
 void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
                                     const int UNUSED(numVerts),
                                     struct MEdge *medges,
@@ -1568,11 +1531,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 #endif
 }
 
-/**
- * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
- * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
- * (splitting edges).
- */
 void BKE_mesh_normals_loop_split(const MVert *mverts,
                                  const int UNUSED(numVerts),
                                  MEdge *medges,
@@ -2057,36 +2015,16 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   }
 }
 
-/**
- * Higher level functions hiding most of the code needed around call to
- * #BKE_mesh_normals_loop_custom_set().
- *
- * \param r_custom_loopnors: is not const, since code will replace zero_v3 normals there
- * with automatically computed vectors.
- */
 void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loopnors)[3])
 {
   mesh_set_custom_normals(mesh, r_custom_loopnors, false);
 }
 
-/**
- * Higher level functions hiding most of the code needed around call to
- * #BKE_mesh_normals_loop_custom_from_vertices_set().
- *
- * \param r_custom_vertnors: is not const, since code will replace zero_v3 normals there
- * with automatically computed vectors.
- */
 void BKE_mesh_set_custom_normals_from_vertices(Mesh *mesh, float (*r_custom_vertnors)[3])
 {
   mesh_set_custom_normals(mesh, r_custom_vertnors, true);
 }
 
-/**
- * Computes average per-vertex normals from given custom loop normals.
- *
- * \param clnors: The computed custom loop normals.
- * \param r_vert_clnors: The (already allocated) array where to store averaged per-vertex normals.
- */
 void BKE_mesh_normals_loop_to_vertex(const int numVerts,
                                      const MLoop *mloops,
                                      const int numLoops,

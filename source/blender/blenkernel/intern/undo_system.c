@@ -93,10 +93,6 @@ static bool g_undo_callback_running = false;
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Public Undo Types
- *
- * Unfortunately we need this for a handful of places.
- * \{ */
 const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
@@ -358,7 +354,6 @@ void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
   undosys_stack_push_main(ustack, IFACE_("Original"), bmain);
 }
 
-/* called after 'BKE_undosys_stack_init_from_main' */
 void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C)
 {
   const UndoType *ut = BKE_undosys_type_from_context(C);
@@ -367,7 +362,6 @@ void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C)
   }
 }
 
-/* name optional */
 bool BKE_undosys_stack_has_undo(const UndoStack *ustack, const char *name)
 {
   if (name) {
@@ -397,10 +391,6 @@ UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const Un
   return BKE_undosys_stack_active_with_type(ustack, ut);
 }
 
-/**
- * \param steps: Limit the number of undo steps.
- * \param memory_limit: Limit the amount of memory used by the undo stack.
- */
 void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit)
 {
   UNDO_NESTED_ASSERT(false);
@@ -497,9 +487,6 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
   return BKE_undosys_step_push_init_with_type(ustack, C, name, ut);
 }
 
-/**
- * \param C: Can be NULL from some callers if their encoding function doesn't need it
- */
 eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
                                                 bContext *C,
                                                 const char *name,
@@ -613,9 +600,6 @@ eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char
   return BKE_undosys_step_push_with_type(ustack, C, name, ut);
 }
 
-/**
- * Useful when we want to diff against previous undo data but can't be sure the types match.
- */
 UndoStep *BKE_undosys_step_same_type_next(UndoStep *us)
 {
   if (us) {
@@ -629,9 +613,6 @@ UndoStep *BKE_undosys_step_same_type_next(UndoStep *us)
   return us;
 }
 
-/**
- * Useful when we want to diff against previous undo data but can't be sure the types match.
- */
 UndoStep *BKE_undosys_step_same_type_prev(UndoStep *us)
 {
   if (us) {
@@ -674,14 +655,6 @@ UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
   return NULL;
 }
 
-/**
- * Return direction of the undo/redo from `us_reference` (or `ustack->step_active` if NULL), and
- * `us_target`.
- *
- * \note If `us_reference` and `us_target` are the same, we consider this is an undo.
- *
- * \return -1 for undo, 1 for redo, 0 in case of error.
- */
 eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
                                              const UndoStep *us_target,
                                              const UndoStep *us_reference)
@@ -741,19 +714,6 @@ static UndoStep *undosys_step_iter_first(UndoStep *us_reference, const eUndoStep
   return (undo_dir == -1) ? us_reference->prev : us_reference->next;
 }
 
-/**
- * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
- *
- * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target`
- * will become the active step.
- *
- * \note In case `use_skip` is true, the final target will always be **beyond** the given one
- * (if the given one has to be skipped).
- *
- * \param us_reference: If NULL, will be set to current active step in the undo stack. Otherwise,
- * it is assumed to match the current state, and will be used as basis for the undo/redo process
- * (i.e. all steps in-between `us_reference` and `us_target` will be processed).
- */
 bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
                                    bContext *C,
                                    UndoStep *us_target,
@@ -842,19 +802,12 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
   return false;
 }
 
-/**
- * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
- */
 bool BKE_undosys_step_load_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
 {
   /* Note that here we do not skip 'skipped' steps by default. */
   return BKE_undosys_step_load_data_ex(ustack, C, us_target, NULL, false);
 }
 
-/**
- * Undo/Redo until the step matching given `index` in the undo stack becomes the active (currently
- * loaded) one.
- */
 void BKE_undosys_step_load_from_index(UndoStack *ustack, bContext *C, const int index)
 {
   UndoStep *us_target = BLI_findlink(&ustack->steps, index);
@@ -862,17 +815,6 @@ void BKE_undosys_step_load_from_index(UndoStack *ustack, bContext *C, const int 
   BKE_undosys_step_load_data(ustack, C, us_target);
 }
 
-/**
- * Undo until `us_target` step becomes the active (currently loaded) one.
- *
- * \warning This function assumes that the given target step is _before_ current active one.
- *
- * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
- *       active step.
- *
- * \note In case `use_skip` is true, the final target will always be **before** the given one (if
- *       the given one has to be skipped).
- */
 bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
                                         bContext *C,
                                         UndoStep *us_target,
@@ -888,19 +830,11 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
   return BKE_undosys_step_load_data_ex(ustack, C, us_target, us_reference, use_skip);
 }
 
-/**
- * Undo until `us_target` step becomes the active (currently loaded) one.
- *
- * \note See #BKE_undosys_step_undo_with_data_ex for details.
- */
 bool BKE_undosys_step_undo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
 {
   return BKE_undosys_step_undo_with_data_ex(ustack, C, us_target, true);
 }
 
-/**
- * Undo one step from current active (currently loaded) one.
- */
 bool BKE_undosys_step_undo(UndoStack *ustack, bContext *C)
 {
   if (ustack->step_active != NULL) {
@@ -909,17 +843,6 @@ bool BKE_undosys_step_undo(UndoStack *ustack, bContext *C)
   return false;
 }
 
-/**
- * Redo until `us_target` step becomes the active (currently loaded) one.
- *
- * \warning This function assumes that the given target step is _after_ current active one.
- *
- * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
- *       active step.
- *
- * \note In case `use_skip` is true, the final target will always be **after** the given one (if
- *       the given one has to be skipped).
- */
 bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
                                         bContext *C,
                                         UndoStep *us_target,
@@ -934,19 +857,11 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
   return BKE_undosys_step_load_data_ex(ustack, C, us_target, us_reference, use_skip);
 }
 
-/**
- * Redo until `us_target` step becomes the active (currently loaded) one.
- *
- * \note See #BKE_undosys_step_redo_with_data_ex for details.
- */
 bool BKE_undosys_step_redo_with_data(UndoStack *ustack, bContext *C, UndoStep *us_target)
 {
   return BKE_undosys_step_redo_with_data_ex(ustack, C, us_target, true);
 }
 
-/**
- * Redo one step from current active one.
- */
 bool BKE_undosys_step_redo(UndoStack *ustack, bContext *C)
 {
   if (ustack->step_active != NULL) {
@@ -955,9 +870,6 @@ bool BKE_undosys_step_redo(UndoStack *ustack, bContext *C)
   return false;
 }
 
-/**
- * Similar to #WM_operatortype_append
- */
 UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *))
 {
   UndoType *ut;

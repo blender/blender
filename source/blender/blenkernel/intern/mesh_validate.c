@@ -213,21 +213,6 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
     } \
   } while (0)
 
-/**
- * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
- *
- * \return false if no changes needed to be made.
- *
- * Vertex Normals
- * ==============
- *
- * While zeroed normals are checked, these checks aren't comprehensive.
- * Technically, to detect errors here a normal recalculation and comparison is necessary.
- * However this function is mainly to prevent severe errors in geometry
- * (invalid data that will crash Blender, or cause some features to behave incorrectly),
- * not to detect subtle differences in the resulting normals which could be caused
- * by importers that load normals (for example).
- */
 /* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               MVert *mverts,
@@ -997,9 +982,6 @@ static bool mesh_validate_customdata(CustomData *data,
   return is_valid;
 }
 
-/**
- * \returns is_valid.
- */
 bool BKE_mesh_validate_all_customdata(CustomData *vdata,
                                       const uint totvert,
                                       CustomData *edata,
@@ -1061,11 +1043,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   return is_valid;
 }
 
-/**
- * Validates and corrects a Mesh.
- *
- * \returns true if a change is made.
- */
 bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_mask)
 {
   bool is_valid = true;
@@ -1112,13 +1089,6 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
   return false;
 }
 
-/**
- * Checks if a Mesh is valid without any modification. This is always verbose.
- *
- * \see  #DM_is_valid to call on derived meshes
- *
- * \returns is_valid.
- */
 bool BKE_mesh_is_valid(Mesh *me)
 {
   const bool do_verbose = true;
@@ -1162,10 +1132,6 @@ bool BKE_mesh_is_valid(Mesh *me)
   return is_valid;
 }
 
-/**
- * Check all material indices of polygons are valid, invalid ones are set to 0.
- * \returns is_valid.
- */
 bool BKE_mesh_validate_material_indices(Mesh *me)
 {
   /* Cast to unsigned to catch negative indices too. */
@@ -1196,9 +1162,9 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
 /** \name Mesh Stripping (removing invalid data)
  * \{ */
 
-/* We need to keep this for edge creation (for now?), and some old readfile code... */
 void BKE_mesh_strip_loose_faces(Mesh *me)
 {
+  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
   MFace *f;
   int a, b;
 
@@ -1217,13 +1183,6 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   }
 }
 
-/**
- * Works on both loops and polys!
- *
- * \note It won't try to guess which loops of an invalid poly to remove!
- * this is the work of the caller, to mark those loops...
- * See e.g. #BKE_mesh_validate_arrays().
- */
 void BKE_mesh_strip_loose_polysloops(Mesh *me)
 {
   MPoly *p;
@@ -1512,10 +1471,6 @@ static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
   *r_totedge = totedge_final;
 }
 
-/**
- * If the mesh is from a very old blender version,
- * convert mface->edcode to edge drawflags
- */
 void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
 {
   MEdge *medge;
@@ -1564,12 +1519,6 @@ void BKE_mesh_calc_edges_loose(Mesh *mesh)
     }
   }
 }
-
-/**
- * Calculate/create edges from tessface data
- *
- * \param mesh: The mesh to add edges into
- */
 
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {

@@ -273,19 +273,28 @@ typedef struct PTCacheEdit {
   int totpoint, totframes, totcached, edited;
 } PTCacheEdit;
 
-/* Particle functions */
 void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 
 /**************** Creating ID's ****************************/
+
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
+/**
+ * The fluid modifier does not actually use this anymore, but some parts of Blender expect that it
+ * still has a point cache currently. For example, the fluid modifier uses
+ * #DEG_add_collision_relations, which internally creates relations with the point cache.
+ */
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct FluidModifierData *fmd);
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid,
                                       struct Object *ob,
                                       struct DynamicPaintSurface *surface);
 void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct RigidBodyWorld *rbw);
 
+/**
+ * \param ob: Optional, may be NULL.
+ * \param scene: Optional may be NULL.
+ */
 PTCacheID BKE_ptcache_id_find(struct Object *ob, struct Scene *scene, struct PointCache *cache);
 void BKE_ptcache_ids_from_object(struct ListBase *lb,
                                  struct Object *ob,
@@ -294,10 +303,15 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb,
 
 /****************** Query funcs ****************************/
 
-/* Check whether object has a point cache. */
+/**
+ * Check whether object has a point cache.
+ */
 bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis);
 
 /***************** Global funcs ****************************/
+/**
+ * Use this when quitting Blender, with unsaved files.
+ */
 void BKE_ptcache_remove(void);
 
 /************ ID specific functions ************************/
@@ -316,23 +330,35 @@ void BKE_ptcache_update_info(PTCacheID *pid);
 
 /*********** General cache reading/writing ******************/
 
-/* Size of cache data type. */
+/**
+ * Size of cache data type.
+ */
 int BKE_ptcache_data_size(int data_type);
 
-/* Is point with index in memory cache */
+/**
+ * Is point with index in memory cache?
+ * Check to see if point number "index" is in `pm` (uses binary search for index data).
+ */
 int BKE_ptcache_mem_index_find(struct PTCacheMem *pm, unsigned int index);
 
 /* Memory cache read/write helpers. */
+
 void BKE_ptcache_mem_pointers_init(struct PTCacheMem *pm, void *cur[BPHYS_TOT_DATA]);
 void BKE_ptcache_mem_pointers_incr(void *cur[BPHYS_TOT_DATA]);
 int BKE_ptcache_mem_pointers_seek(int point_index,
                                   struct PTCacheMem *pm,
                                   void *cur[BPHYS_TOT_DATA]);
 
-/* Main cache reading call. */
+/**
+ * Main cache reading call.
+ * Possible to get old or interpolated result.
+ */
 int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
 
-/* Main cache writing call. */
+/**
+ * Main cache writing call.
+ * Writes cache to disk or memory.
+ */
 int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /******************* Allocate & free ***************/
@@ -340,41 +366,56 @@ struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptcache_free_mem(struct ListBase *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
+/* returns first point cache */
 struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
                                          const struct ListBase *ptcaches_old,
                                          const int flag);
 
 /********************** Baking *********************/
 
-/* Bakes cache with cache_step sized jumps in time, not accurate but very fast. */
+/**
+ * Bakes cache with cache_step sized jumps in time, not accurate but very fast.
+ */
 void BKE_ptcache_quick_cache_all(struct Main *bmain,
                                  struct Scene *scene,
                                  struct ViewLayer *view_layer);
 
-/* Bake cache or simulate to current frame with settings defined in the baker. */
+/**
+ * Bake cache or simulate to current frame with settings defined in the baker.
+ * if bake is not given run simulations to current frame.
+ */
 void BKE_ptcache_bake(struct PTCacheBaker *baker);
 
-/* Convert disk cache to memory cache. */
+/**
+ * Convert disk cache to memory cache.
+ */
 void BKE_ptcache_disk_to_mem(struct PTCacheID *pid);
-
-/* Convert memory cache to disk cache. */
+/**
+ * Convert memory cache to disk cache.
+ */
 void BKE_ptcache_mem_to_disk(struct PTCacheID *pid);
-
-/* Convert disk cache to memory cache and vice versa. Clears the cache that was converted. */
+/**
+ * Convert disk cache to memory cache and vice versa. Clears the cache that was converted.
+ */
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
-
-/* Rename all disk cache files with a new name. Doesn't touch the actual content of the files. */
+/**
+ * Rename all disk cache files with a new name. Doesn't touch the actual content of the files.
+ */
 void BKE_ptcache_disk_cache_rename(struct PTCacheID *pid,
                                    const char *name_src,
                                    const char *name_dst);
 
-/* Loads simulation from external (disk) cache files. */
+/**
+ * Loads simulation from external (disk) cache files.
+ */
 void BKE_ptcache_load_external(struct PTCacheID *pid);
-
-/* Set correct flags after successful simulation step */
+/**
+ * Set correct flags after successful simulation step.
+ */
 void BKE_ptcache_validate(struct PointCache *cache, int framenr);
-
-/* Set correct flags after unsuccessful simulation step */
+/**
+ * Set correct flags after unsuccessful simulation step.
+ */
 void BKE_ptcache_invalidate(struct PointCache *cache);
 
 /********************** .blend File I/O *********************/

@@ -69,10 +69,6 @@ bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
   return true;
 }
 
-/* Returns truth on success, false otherwise.
- *
- * This function might fail in cases like source and destination not having
- * matched amount of vertices. */
 bool multiresModifier_reshapeFromObject(struct Depsgraph *depsgraph,
                                         struct MultiresModifierData *mmd,
                                         struct Object *dst,
