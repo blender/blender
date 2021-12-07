@@ -149,7 +149,7 @@ void BKE_curvemapping_table_RGBA(const struct CurveMapping *cumap, float **array
  * Call when you do images etc, needs restore too. also verifies tables.
  * non-const (these modify the curve).
  */
-void BKE_curvemapping_premultiply(struct CurveMapping *cumap, int restore);
+void BKE_curvemapping_premultiply(struct CurveMapping *cumap, bool restore);
 
 void BKE_curvemapping_blend_write(struct BlendWriter *writer, const struct CurveMapping *cumap);
 void BKE_curvemapping_curves_blend_write(struct BlendWriter *writer,

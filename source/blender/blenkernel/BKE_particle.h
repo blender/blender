@@ -441,12 +441,12 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim,
                                const bool vel);
 /**
  * Gets particle's state at a time.
- * \return 1 if particle exists and can be seen and 0 if not.
+ * \return true if particle exists and can be seen and false if not.
  */
-int psys_get_particle_state(struct ParticleSimulationData *sim,
-                            int p,
-                            struct ParticleKey *state,
-                            int always);
+bool psys_get_particle_state(struct ParticleSimulationData *sim,
+                             int p,
+                             struct ParticleKey *state,
+                             const bool always);
 
 /* Child paths. */
 

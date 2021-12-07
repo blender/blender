@@ -4848,7 +4848,10 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
     }
   }
 }
-int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *state, int always)
+bool psys_get_particle_state(ParticleSimulationData *sim,
+                             int p,
+                             ParticleKey *state,
+                             const bool always)
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
@@ -4863,12 +4866,12 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 
   if (p >= totpart) {
     if (!psys->totchild) {
-      return 0;
+      return false;
     }
 
     if (part->childtype == PART_CHILD_FACES) {
       if (!(psys->flag & PSYS_KEYED)) {
-        return 0;
+        return false;
       }
 
       cpa = psys->child + p - totpart;
@@ -4878,7 +4881,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
       if (!always) {
         if ((state->time < 0.0f && !(part->flag & PART_UNBORN)) ||
             (state->time > 1.0f && !(part->flag & PART_DIED))) {
-          return 0;
+          return false;
         }
       }
 
@@ -4886,7 +4889,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
                     (part->lifetime * psys_frand(psys, p + 24));
 
       psys_get_particle_on_path(sim, p, state, 1);
-      return 1;
+      return true;
     }
 
     cpa = sim->psys->child + p - totpart;
@@ -4900,7 +4903,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
     if (!always) {
       if ((cfra < pa->time && (part->flag & PART_UNBORN) == 0) ||
           (cfra >= pa->dietime && (part->flag & PART_DIED) == 0)) {
-        return 0;
+        return false;
       }
     }
 
@@ -4910,7 +4913,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
   if (sim->psys->flag & PSYS_KEYED) {
     state->time = -cfra;
     psys_get_particle_on_path(sim, p, state, 1);
-    return 1;
+    return true;
   }
 
   if (cpa) {
@@ -5010,7 +5013,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
     }
   }
 
-  return 1;
+  return true;
 }
 
 void psys_get_dupli_texture(ParticleSystem *psys,

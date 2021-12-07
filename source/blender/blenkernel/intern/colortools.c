@@ -795,7 +795,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->table = cmp;
 }
 
-void BKE_curvemapping_premultiply(CurveMapping *cumap, int restore)
+void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore)
 {
   /* It uses a flag to prevent pre-multiply or free to happen twice. */
 

@@ -652,11 +652,11 @@ float effector_falloff(EffectorCache *eff,
   return falloff;
 }
 
-int closest_point_on_surface(SurfaceModifierData *surmd,
-                             const float co[3],
-                             float surface_co[3],
-                             float surface_nor[3],
-                             float surface_vel[3])
+bool closest_point_on_surface(SurfaceModifierData *surmd,
+                              const float co[3],
+                              float surface_co[3],
+                              float surface_nor[3],
+                              float surface_vel[3])
 {
   BVHTreeNearest nearest;
 
@@ -683,18 +683,18 @@ int closest_point_on_surface(SurfaceModifierData *surmd,
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
-int get_effector_data(EffectorCache *eff,
-                      EffectorData *efd,
-                      EffectedPoint *point,
-                      int real_velocity)
+bool get_effector_data(EffectorCache *eff,
+                       EffectorData *efd,
+                       EffectedPoint *point,
+                       int real_velocity)
 {
   float cfra = DEG_get_ctime(eff->depsgraph);
-  int ret = 0;
+  bool ret = false;
 
   /* In case surface object is in Edit mode when loading the .blend,
    * surface modifier is never executed and bvhtree never built, see T48415. */
@@ -726,7 +726,7 @@ int get_effector_data(EffectorCache *eff,
 
       efd->size = 0.0f;
 
-      ret = 1;
+      ret = true;
     }
   }
   else if (eff->psys) {
@@ -794,7 +794,7 @@ int get_effector_data(EffectorCache *eff,
     zero_v3(efd->vel);
     efd->size = 0.0f;
 
-    ret = 1;
+    ret = true;
   }
 
   if (ret) {
