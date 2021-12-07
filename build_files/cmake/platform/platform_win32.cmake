@@ -477,7 +477,7 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_BOOST)
-  if(WITH_CYCLES_OSL)
+  if(WITH_CYCLES AND WITH_CYCLES_OSL)
     set(boost_extra_libs wave)
   endif()
   if(WITH_INTERNATIONAL)
@@ -520,7 +520,7 @@ if(WITH_BOOST)
       debug ${BOOST_LIBPATH}/libboost_thread-${BOOST_DEBUG_POSTFIX}
       debug ${BOOST_LIBPATH}/libboost_chrono-${BOOST_DEBUG_POSTFIX}
     )
-    if(WITH_CYCLES_OSL)
+    if(WITH_CYCLES AND WITH_CYCLES_OSL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
         optimized ${BOOST_LIBPATH}/libboost_wave-${BOOST_POSTFIX}
         debug ${BOOST_LIBPATH}/libboost_wave-${BOOST_DEBUG_POSTFIX})
@@ -708,7 +708,7 @@ if(WITH_CODEC_SNDFILE)
   set(LIBSNDFILE_LIBRARIES ${LIBSNDFILE_LIBPATH}/libsndfile-1.lib)
 endif()
 
-if(WITH_CYCLES_OSL)
+if(WITH_CYCLES AND WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
   set(OSL_SHADER_DIR ${CYCLES_OSL}/shaders)
   # Shaders have moved around a bit between OSL versions, check multiple locations
@@ -741,7 +741,7 @@ if(WITH_CYCLES_OSL)
   endif()
 endif()
 
-if(WITH_CYCLES_EMBREE)
+if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   windows_find_package(Embree)
   if(NOT EMBREE_FOUND)
     set(EMBREE_INCLUDE_DIRS ${LIBDIR}/embree/include)
