@@ -614,7 +614,7 @@ static bool rna_property_override_operation_apply(Main *bmain,
   }
 
   /* get and set the default values as appropriate for the various types */
-  const bool sucess = override_apply(bmain,
+  const bool success = override_apply(bmain,
                                      ptr_dst,
                                      ptr_src,
                                      ptr_storage,
@@ -628,11 +628,11 @@ static bool rna_property_override_operation_apply(Main *bmain,
                                      ptr_item_src,
                                      ptr_item_storage,
                                      opop);
-  if (sucess) {
+  if (success) {
     RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   }
 
-  return sucess;
+  return success;
 }
 
 /**

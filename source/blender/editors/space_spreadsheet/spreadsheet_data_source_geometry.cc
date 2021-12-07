@@ -515,7 +515,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
             r_cell_value.value_string = IFACE_("Level Set");
           }
           else {
-            r_cell_value.value_string = IFACE_("Unkown");
+            r_cell_value.value_string = IFACE_("Unknown");
           }
         },
         5.0f);
