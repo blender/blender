@@ -174,6 +174,7 @@ def geometry_node_items(context):
     yield NodeItem("GeometryNodeBoundBox")
     yield NodeItem("GeometryNodeConvexHull")
     yield NodeItem("GeometryNodeDeleteGeometry")
+    yield NodeItem("GeometryNodeGeometryToInstance")
     yield NodeItem("GeometryNodeProximity")
     yield NodeItem("GeometryNodeJoinGeometry")
     yield NodeItem("GeometryNodeRaycast")
