@@ -87,6 +87,7 @@ endif()
 
 set(ADDON_FILES
   addon/__init__.py
+  addon/camera.py
   addon/engine.py
   addon/operators.py
   addon/osl.py

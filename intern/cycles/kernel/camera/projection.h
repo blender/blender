@@ -146,6 +146,51 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
 }
 
+ccl_device_inline float3
+fisheye_lens_polynomial_to_direction(float u, float v, float coeff0, float4 coeffs,
+                                     float fov, float width, float height)
+{
+  u = (u - 0.5f) * width;
+  v = (v - 0.5f) * height;
+
+  float r = sqrtf(u * u + v * v);
+  float r2 = r*r;
+  float4 rr = make_float4(r, r2, r2*r, r2*r2);
+  float theta = -(coeff0 + dot(coeffs, rr));
+
+  if (fabsf(theta) > 0.5f * fov)
+    return zero_float3();
+
+  float phi = safe_acosf((r != 0.0f) ? u / r : 0.0f);
+
+  if (v < 0.0f)
+    phi = -phi;
+
+  return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
+}
+
+ccl_device float2 direction_to_fisheye_lens_polynomial(float3 dir, float coeff0, float4 coeffs,
+                                                       float width, float height)
+{
+  float theta = -safe_acosf(dir.x);
+
+  float r = (theta - coeff0) / coeffs.x;
+
+  for (int i=0; i<20; i++) {
+    float r2 = r*r;
+    float4 rr = make_float4(r, r2, r2*r, r2*r2);
+    r = (theta - (coeff0 + dot(coeffs, rr))) / coeffs.x;
+  }
+
+  float phi = atan2f(dir.z, dir.y);
+
+  float u = r * cosf(phi) / width + 0.5f;
+  float v = r * sinf(phi) / height + 0.5f;
+
+  return make_float2(u, v);
+}
+
+
 /* Mirror Ball <-> Cartesion direction */
 
 ccl_device float3 mirrorball_to_direction(float u, float v)
@@ -191,6 +236,10 @@ ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, f
       return mirrorball_to_direction(u, v);
     case PANORAMA_FISHEYE_EQUIDISTANT:
       return fisheye_to_direction(u, v, cam->fisheye_fov);
+    case PANORAMA_FISHEYE_LENS_POLYNOMIAL:
+      return fisheye_lens_polynomial_to_direction(
+        u, v, cam->fisheye_lens_polynomial_bias, cam->fisheye_lens_polynomial_coefficients, cam->fisheye_fov,
+        cam->sensorwidth, cam->sensorheight);
     case PANORAMA_FISHEYE_EQUISOLID:
     default:
       return fisheye_equisolid_to_direction(
@@ -207,6 +256,10 @@ ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, f
       return direction_to_mirrorball(dir);
     case PANORAMA_FISHEYE_EQUIDISTANT:
       return direction_to_fisheye(dir, cam->fisheye_fov);
+    case PANORAMA_FISHEYE_LENS_POLYNOMIAL:
+      return direction_to_fisheye_lens_polynomial(
+          dir, cam->fisheye_lens_polynomial_bias, cam->fisheye_lens_polynomial_coefficients,
+          cam->sensorwidth, cam->sensorheight);
     case PANORAMA_FISHEYE_EQUISOLID:
     default:
       return direction_to_fisheye_equisolid(

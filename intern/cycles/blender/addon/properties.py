@@ -33,6 +33,7 @@ from math import pi
 # enums
 
 from . import engine
+from . import camera
 
 enum_devices = (
     ('CPU', "CPU", "Use CPU for rendering"),
@@ -72,6 +73,8 @@ enum_panorama_types = (
     ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
                           "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
     ('MIRRORBALL', "Mirror Ball", "Uses the mirror ball mapping"),
+    ('FISHEYE_LENS_POLYNOMIAL', "Fisheye Lens Polynomial",
+     "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked."),
 )
 
 enum_curve_shape = (
@@ -889,6 +892,32 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         min=-pi, max=pi,
         subtype='ANGLE',
         default=pi,
+    )
+
+    fisheye_polynomial_k0: FloatProperty(
+        name="Fisheye Polynomial K0",
+        description="Coefficient K0 of the lens polinomial",
+        default=camera.default_fisheye_polynomial[0], precision=6, step=0.1, subtype='ANGLE',
+    )
+    fisheye_polynomial_k1: FloatProperty(
+        name="Fisheye Polynomial K1",
+        description="Coefficient K1 of the lens polinomial",
+        default=camera.default_fisheye_polynomial[1], precision=6, step=0.1, subtype='ANGLE',
+    )
+    fisheye_polynomial_k2: FloatProperty(
+        name="Fisheye Polynomial K2",
+        description="Coefficient K2 of the lens polinomial",
+        default=camera.default_fisheye_polynomial[2], precision=6, step=0.1, subtype='ANGLE',
+    )
+    fisheye_polynomial_k3: FloatProperty(
+        name="Fisheye Polynomial K3",
+        description="Coefficient K3 of the lens polinomial",
+        default=camera.default_fisheye_polynomial[3], precision=6, step=0.1, subtype='ANGLE',
+    )
+    fisheye_polynomial_k4: FloatProperty(
+        name="Fisheye Polynomial K4",
+        description="Coefficient K4 of the lens polinomial",
+        default=camera.default_fisheye_polynomial[4], precision=6, step=0.1, subtype='ANGLE',
     )
 
     @classmethod
