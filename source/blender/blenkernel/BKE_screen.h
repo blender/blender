@@ -410,9 +410,9 @@ void BKE_spacetypes_free(void); /* only for quitting blender */
 
 void BKE_spacedata_freelist(ListBase *lb);
 /**
- * \param lb1: should be empty.
+ * \param lb_dst: should be empty (will be cleared).
  */
-void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
+void BKE_spacedata_copylist(ListBase *lb_dst, ListBase *lb_src);
 
 /**
  * Facility to set locks for drawing to survive (render) threads accessing drawing data.

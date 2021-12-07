@@ -499,29 +499,29 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   return newar;
 }
 
-/* from lb2 to lb1, lb1 is supposed to be freed */
-static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
+/* from lb_src to lb_dst, lb_dst is supposed to be freed */
+static void region_copylist(SpaceType *st, ListBase *lb_dst, ListBase *lb_src)
 {
   /* to be sure */
-  BLI_listbase_clear(lb1);
+  BLI_listbase_clear(lb_dst);
 
-  LISTBASE_FOREACH (ARegion *, region, lb2) {
+  LISTBASE_FOREACH (ARegion *, region, lb_src) {
     ARegion *region_new = BKE_area_region_copy(st, region);
-    BLI_addtail(lb1, region_new);
+    BLI_addtail(lb_dst, region_new);
   }
 }
 
-void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
+void BKE_spacedata_copylist(ListBase *lb_dst, ListBase *lb_src)
 {
-  BLI_listbase_clear(lb1); /* to be sure */
+  BLI_listbase_clear(lb_dst); /* to be sure */
 
-  LISTBASE_FOREACH (SpaceLink *, sl, lb2) {
+  LISTBASE_FOREACH (SpaceLink *, sl, lb_src) {
     SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
     if (st && st->duplicate) {
       SpaceLink *slnew = st->duplicate(sl);
 
-      BLI_addtail(lb1, slnew);
+      BLI_addtail(lb_dst, slnew);
 
       region_copylist(st, &slnew->regionbase, &sl->regionbase);
     }
