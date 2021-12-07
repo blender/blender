@@ -996,7 +996,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       preview_sized->sizey,
                                                       IB_rect,
                                                       V3D_OFSDRAW_NONE,
-                                                      R_ALPHAPREMUL,
+                                                      R_ADDSKY,
                                                       NULL,
                                                       NULL,
                                                       err_out);
