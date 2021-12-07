@@ -140,7 +140,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 {
   /* replace muted nodes and reroute nodes by internal links */
-  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &localtree->nodes) {
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
       nodeInternalRelink(localtree, node);
       ntreeFreeLocalNode(localtree, node);
