@@ -766,7 +766,6 @@ static string path_source_replace_includes_recursive(const string &source,
 
 static string path_source_handle_preprocessor(const string &preprocessor_line,
                                               const string &source_filepath,
-                                              const size_t line_number,
                                               SourceReplaceState *state)
 {
   string result = preprocessor_line;
@@ -857,8 +856,7 @@ static string path_source_replace_includes_recursive(const string &_source,
 
     if (ch == '\n') {
       if (inside_preprocessor) {
-        string block = path_source_handle_preprocessor(
-            preprocessor_line, source_filepath, line_number, state);
+        string block = path_source_handle_preprocessor(preprocessor_line, source_filepath, state);
 
         if (!block.empty()) {
           result += block;
@@ -899,8 +897,7 @@ static string path_source_replace_includes_recursive(const string &_source,
     result.append(source, token_start, token_length);
   }
   if (inside_preprocessor) {
-    result += path_source_handle_preprocessor(
-        preprocessor_line, source_filepath, line_number, state);
+    result += path_source_handle_preprocessor(preprocessor_line, source_filepath, state);
   }
   /* Store result for further reuse. */
   state->processed_files[source_filepath] = result;
