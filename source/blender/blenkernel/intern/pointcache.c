@@ -3008,49 +3008,6 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
   return reset;
 }
 
-void BKE_ptcache_remove(void)
-{
-  char path[MAX_PTCACHE_PATH];
-  char path_full[MAX_PTCACHE_PATH];
-  int rmdir = 1;
-
-  ptcache_path(NULL, path);
-
-  if (BLI_exists(path)) {
-    /* The pointcache dir exists? - remove all pointcache */
-
-    DIR *dir;
-    struct dirent *de;
-
-    dir = opendir(path);
-    if (dir == NULL) {
-      return;
-    }
-
-    while ((de = readdir(dir)) != NULL) {
-      if (FILENAME_IS_CURRPAR(de->d_name)) {
-        /* do nothing */
-      }
-      else if (strstr(de->d_name, PTCACHE_EXT)) { /* Do we have the right extension? */
-        BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-        BLI_delete(path_full, false, false);
-      }
-      else {
-        rmdir = 0; /* unknown file, don't remove the dir */
-      }
-    }
-
-    closedir(dir);
-  }
-  else {
-    rmdir = 0; /* Path doesn't exist. */
-  }
-
-  if (rmdir) {
-    BLI_delete(path, true, false);
-  }
-}
-
 /* Point Cache handling */
 
 PointCache *BKE_ptcache_add(ListBase *ptcaches)

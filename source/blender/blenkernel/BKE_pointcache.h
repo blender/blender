@@ -308,12 +308,6 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb,
  */
 bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis);
 
-/***************** Global funcs ****************************/
-/**
- * Use this when quitting Blender, with unsaved files.
- */
-void BKE_ptcache_remove(void);
-
 /************ ID specific functions ************************/
 void BKE_ptcache_id_clear(PTCacheID *id, int mode, unsigned int cfra);
 bool BKE_ptcache_id_exist(PTCacheID *id, int cfra);
