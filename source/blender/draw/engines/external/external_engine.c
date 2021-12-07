@@ -88,6 +88,8 @@ typedef struct EXTERNAL_Data {
   EXTERNAL_TextureList *txl;
   EXTERNAL_PassList *psl;
   EXTERNAL_StorageList *stl;
+  void *instance_data;
+
   char info[GPU_INFO_SIZE];
 } EXTERNAL_Data;
 
