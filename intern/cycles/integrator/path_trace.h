@@ -72,7 +72,9 @@ class PathTrace {
    * render result. */
   bool ready_to_reset();
 
-  void reset(const BufferParams &full_params, const BufferParams &big_tile_params);
+  void reset(const BufferParams &full_params,
+             const BufferParams &big_tile_params,
+             bool reset_rendering);
 
   void device_free();
 

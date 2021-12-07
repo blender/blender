@@ -54,6 +54,8 @@ class DisplayDriver {
     }
   };
 
+  virtual void next_tile_begin() = 0;
+
   /* Update the render from the rendering thread.
    *
    * Cycles periodically updates the render to be displayed. For multithreaded updates with
@@ -97,6 +99,17 @@ class DisplayDriver {
 
     /* Clear the entire buffer before doing partial write to it. */
     bool need_clear = false;
+
+    /* Enforce re-creation of the graphics interop object.
+     *
+     * When this field is true then the graphics interop will be re-created no matter what the
+     * rest of the configuration is.
+     * When this field is false the graphics interop will be re-created if the PBO or buffer size
+     * did change.
+     *
+     * This allows to ensure graphics interop is re-created when there is a possibility that an
+     * underlying PBO was re-allocated but did not change its ID. */
+    bool need_recreate = false;
   };
 
   virtual GraphicsInterop graphics_interop_get()

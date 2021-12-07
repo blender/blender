@@ -341,8 +341,10 @@ int TileManager::compute_render_tile_size(const int suggested_tile_size) const
   /* Must be a multiple of IMAGE_TILE_SIZE so that we can write render tiles into the image file
    * aligned on image tile boundaries. We can't set IMAGE_TILE_SIZE equal to the render tile size
    * because too big tile size leads to integer overflow inside OpenEXR. */
-  return (suggested_tile_size <= IMAGE_TILE_SIZE) ? suggested_tile_size :
-                                                    align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  const int computed_tile_size = (suggested_tile_size <= IMAGE_TILE_SIZE) ?
+                                     suggested_tile_size :
+                                     align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  return min(computed_tile_size, MAX_TILE_SIZE);
 }
 
 void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
