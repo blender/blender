@@ -23,6 +23,7 @@
 #include "usd_light_convert.h"
 #include "usd_umm.h"
 #include "usd_writer_material.h"
+#include "usd_writer_skel_root.h"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
@@ -335,6 +336,10 @@ static void export_startjob(void *customdata,
   }
 
   iter.release_writers();
+
+  if (data->params.export_armatures) {
+    validate_skel_roots(usd_stage, data->params);
+  }
 
   // Set Stage Default Prim Path
   if (strlen(data->params.default_prim_path) > 0) {

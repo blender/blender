@@ -24,6 +24,8 @@
 
 namespace blender::io::usd {
 
+void validate_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params);
+
 class USDSkelRootWriter : public USDTransformWriter {
 
  public:

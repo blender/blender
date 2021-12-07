@@ -132,6 +132,7 @@ struct USDExportParams {
   bool generate_cycles_shaders;
   bool export_armatures;
   eUSDXformOpMode xform_op_mode;
+  bool fix_skel_root;
 };
 
 struct USDImportParams {

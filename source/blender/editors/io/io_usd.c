@@ -313,6 +313,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const eUSDXformOpMode xform_op_mode = RNA_enum_get(op->ptr, "xform_op_mode");
 
+  const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");;
+
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
                                    export_animation,
@@ -366,7 +368,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    convert_world_material,
                                    generate_cycles_shaders,
                                    export_armatures,
-                                   xform_op_mode};
+                                   xform_op_mode,
+                                   fix_skel_root};
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -513,6 +516,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
 }
 
 void WM_OT_usd_export(struct wmOperatorType *ot)
@@ -647,6 +651,13 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Instancing",
                   "When checked, instanced objects are exported as references in USD. "
                   "When unchecked, instanced objects are exported as real objects");
+
+  RNA_def_boolean(ot->srna,
+    "fix_skel_root",
+    false,
+    "Fix Skel Root",
+    "If exporting armatures, attempt to automatically "
+    "correct invalid USD Skel Root hierarchies");
 
   RNA_def_enum(ot->srna,
                "evaluation_mode",
