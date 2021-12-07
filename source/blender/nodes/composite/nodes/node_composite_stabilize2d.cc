@@ -50,7 +50,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   node->custom1 = 1;
 }
 
-void register_node_type_cmp_stabilize2d()
+void register_node_type_cmp_stabilize2d(void)
 {
   static bNodeType ntype;
 

@@ -42,7 +42,7 @@ static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = nld;
 }
 
-void register_node_type_cmp_lensdist()
+void register_node_type_cmp_lensdist(void)
 {
   static bNodeType ntype;
 

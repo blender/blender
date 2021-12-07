@@ -39,7 +39,7 @@ static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_zcombine()
+void register_node_type_cmp_zcombine(void)
 {
   static bNodeType ntype;
 

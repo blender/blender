@@ -43,7 +43,7 @@ static void node_composit_init_setalpha(bNodeTree *UNUSED(ntree), bNode *node)
   settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
 }
 
-void register_node_type_cmp_setalpha()
+void register_node_type_cmp_setalpha(void)
 {
   static bNodeType ntype;
 

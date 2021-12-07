@@ -17,11 +17,11 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.hh"
+#include "../node_shader_util.h"
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes::node_shader_tex_noise_cc {
+namespace blender::nodes {
 
 static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 {
@@ -39,6 +39,8 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
 };
+
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -83,6 +85,8 @@ static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockVector, tex->dimensions != 1);
   nodeSetSocketAvailability(ntree, sockW, tex->dimensions == 1 || tex->dimensions == 4);
 }
+
+namespace blender::nodes {
 
 class NoiseFunction : public fn::MultiFunction {
  private:
@@ -242,23 +246,21 @@ static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunction
   builder.construct_and_set_matching_fn<NoiseFunction>(tex->dimensions);
 }
 
-}  // namespace blender::nodes::node_shader_tex_noise_cc
+}  // namespace blender::nodes
 
 /* node type definition */
-void register_node_type_sh_tex_noise()
+void register_node_type_sh_tex_noise(void)
 {
-  namespace file_ns = blender::nodes::node_shader_tex_noise_cc;
-
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = file_ns::sh_node_tex_noise_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_noise);
+  ntype.declare = blender::nodes::sh_node_tex_noise_declare;
+  node_type_init(&ntype, node_shader_init_tex_noise);
   node_type_storage(
       &ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_noise);
-  node_type_update(&ntype, file_ns::node_shader_update_tex_noise);
-  ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
+  node_type_gpu(&ntype, node_shader_gpu_tex_noise);
+  node_type_update(&ntype, node_shader_update_tex_noise);
+  ntype.build_multi_function = blender::nodes::sh_node_noise_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

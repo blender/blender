@@ -48,7 +48,7 @@ static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
-void register_node_type_cmp_ellipsemask()
+void register_node_type_cmp_ellipsemask(void)
 {
   static bNodeType ntype;
 

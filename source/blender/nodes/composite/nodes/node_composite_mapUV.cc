@@ -36,7 +36,7 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_mapuv()
+void register_node_type_cmp_mapuv(void)
 {
   static bNodeType ntype;
 

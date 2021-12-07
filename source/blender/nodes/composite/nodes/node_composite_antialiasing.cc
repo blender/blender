@@ -49,7 +49,7 @@ static void node_composit_init_antialiasing(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = data;
 }
 
-void register_node_type_cmp_antialiasing()
+void register_node_type_cmp_antialiasing(void)
 {
   static bNodeType ntype;
 

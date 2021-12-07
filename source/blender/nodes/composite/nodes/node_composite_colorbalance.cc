@@ -80,7 +80,7 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = n;
 }
 
-void register_node_type_cmp_colorbalance()
+void register_node_type_cmp_colorbalance(void)
 {
   static bNodeType ntype;
 

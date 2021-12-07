@@ -42,7 +42,7 @@ static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_cmp_curve_time()
+void register_node_type_cmp_curve_time(void)
 {
   static bNodeType ntype;
 
@@ -72,7 +72,7 @@ static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_cmp_curve_vec()
+void register_node_type_cmp_curve_vec(void)
 {
   static bNodeType ntype;
 
@@ -106,7 +106,7 @@ static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_cmp_curve_rgb()
+void register_node_type_cmp_curve_rgb(void)
 {
   static bNodeType ntype;
 

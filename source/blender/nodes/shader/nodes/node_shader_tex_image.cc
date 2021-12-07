@@ -17,9 +17,9 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.hh"
+#include "../node_shader_util.h"
 
-namespace blender::nodes::node_shader_tex_image_cc {
+namespace blender::nodes {
 
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 {
@@ -28,6 +28,8 @@ static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
 };
+
+};  // namespace blender::nodes
 
 static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -171,21 +173,17 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   return true;
 }
 
-}  // namespace blender::nodes::node_shader_tex_image_cc
-
 /* node type definition */
-void register_node_type_sh_tex_image()
+void register_node_type_sh_tex_image(void)
 {
-  namespace file_ns = blender::nodes::node_shader_tex_image_cc;
-
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = file_ns::sh_node_tex_image_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_image);
+  ntype.declare = blender::nodes::sh_node_tex_image_declare;
+  node_type_init(&ntype, node_shader_init_tex_image);
   node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_image);
+  node_type_gpu(&ntype, node_shader_gpu_tex_image);
   node_type_label(&ntype, node_image_label);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

@@ -35,7 +35,7 @@ static void cmp_node_flip_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_flip()
+void register_node_type_cmp_flip(void)
 {
   static bNodeType ntype;
 

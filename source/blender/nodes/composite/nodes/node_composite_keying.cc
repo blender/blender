@@ -60,7 +60,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-void register_node_type_cmp_keying()
+void register_node_type_cmp_keying(void)
 {
   static bNodeType ntype;
 

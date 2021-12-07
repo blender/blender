@@ -66,7 +66,7 @@ static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *
   node->storage = n;
 }
 
-void register_node_type_cmp_colorcorrection()
+void register_node_type_cmp_colorcorrection(void)
 {
   static bNodeType ntype;
 

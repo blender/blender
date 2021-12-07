@@ -73,7 +73,7 @@ static void storage_copy(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const 
   }
 }
 
-void register_node_type_cmp_moviedistortion()
+void register_node_type_cmp_moviedistortion(void)
 {
   static bNodeType ntype;
 

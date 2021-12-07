@@ -45,7 +45,7 @@ static void node_composit_init_bokehblur(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom4 = 16.0f;
 }
 
-void register_node_type_cmp_bokehblur()
+void register_node_type_cmp_bokehblur(void)
 {
   static bNodeType ntype;
 

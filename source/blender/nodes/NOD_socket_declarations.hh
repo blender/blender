@@ -213,22 +213,6 @@ class Image : public IDSocketDeclaration {
   Image();
 };
 
-class ShaderBuilder;
-
-class Shader : public SocketDeclaration {
- private:
-  friend ShaderBuilder;
-
- public:
-  using Builder = ShaderBuilder;
-
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
-  bool matches(const bNodeSocket &socket) const override;
-};
-
-class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
-};
-
 /* -------------------------------------------------------------------- */
 /** \name #FloatBuilder Inline Methods
  * \{ */

@@ -23,7 +23,7 @@
 
 #include "DNA_node_types.h"
 
-#include "node_shader_util.hh"
+#include "node_shader_util.h"
 
 #include "node_exec.h"
 

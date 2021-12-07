@@ -50,7 +50,7 @@ static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
   }
 }
 
-void register_node_type_cmp_scale()
+void register_node_type_cmp_scale(void)
 {
   static bNodeType ntype;
 

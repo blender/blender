@@ -212,7 +212,7 @@ static bool composite_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetyp
 
 bNodeTreeType *ntreeType_Composite;
 
-void register_node_tree_type_cmp()
+void register_node_tree_type_cmp(void)
 {
   bNodeTreeType *tt = ntreeType_Composite = (bNodeTreeType *)MEM_callocN(
       sizeof(bNodeTreeType), "compositor node tree type");

@@ -43,7 +43,7 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_transform()
+void register_node_type_cmp_transform(void)
 {
   static bNodeType ntype;
 

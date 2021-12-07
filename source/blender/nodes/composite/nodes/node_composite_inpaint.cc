@@ -35,7 +35,7 @@ static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_inpaint()
+void register_node_type_cmp_inpaint(void)
 {
   static bNodeType ntype;
 

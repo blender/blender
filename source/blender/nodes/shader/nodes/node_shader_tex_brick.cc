@@ -17,12 +17,12 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.hh"
+#include "../node_shader_util.h"
 
 #include "BLI_float2.hh"
 #include "BLI_float4.hh"
 
-namespace blender::nodes::node_shader_tex_brick_cc {
+namespace blender::nodes {
 
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
@@ -56,6 +56,8 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Fac"));
 };
+
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -98,6 +100,8 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                         GPU_uniform(&tex->squash),
                         GPU_constant(&squash_freq));
 }
+
+namespace blender::nodes {
 
 class BrickFunction : public fn::MultiFunction {
  private:
@@ -262,22 +266,20 @@ static void sh_node_brick_build_multi_function(blender::nodes::NodeMultiFunction
       tex->offset, tex->offset_freq, tex->squash, tex->squash_freq);
 }
 
-}  // namespace blender::nodes::node_shader_tex_brick_cc
+}  // namespace blender::nodes
 
-void register_node_type_sh_tex_brick()
+void register_node_type_sh_tex_brick(void)
 {
-  namespace file_ns = blender::nodes::node_shader_tex_brick_cc;
-
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = file_ns::sh_node_tex_brick_declare;
+  ntype.declare = blender::nodes::sh_node_tex_brick_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_tex_brick);
+  node_type_init(&ntype, node_shader_init_tex_brick);
   node_type_storage(
       &ntype, "NodeTexBrick", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_brick);
-  ntype.build_multi_function = file_ns::sh_node_brick_build_multi_function;
+  node_type_gpu(&ntype, node_shader_gpu_tex_brick);
+  ntype.build_multi_function = blender::nodes::sh_node_brick_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

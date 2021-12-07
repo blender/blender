@@ -49,7 +49,7 @@ static void node_composit_init_denonise(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
-void register_node_type_cmp_denoise()
+void register_node_type_cmp_denoise(void)
 {
   static bNodeType ntype;
 

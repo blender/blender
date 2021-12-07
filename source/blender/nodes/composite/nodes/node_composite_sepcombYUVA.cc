@@ -38,7 +38,7 @@ static void cmp_node_sepyuva_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_sepyuva()
+void register_node_type_cmp_sepyuva(void)
 {
   static bNodeType ntype;
 
@@ -63,7 +63,7 @@ static void cmp_node_combyuva_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_combyuva()
+void register_node_type_cmp_combyuva(void)
 {
   static bNodeType ntype;
 

@@ -36,7 +36,7 @@ static void cmp_node_posterize_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_posterize()
+void register_node_type_cmp_posterize(void)
 {
   static bNodeType ntype;
 
