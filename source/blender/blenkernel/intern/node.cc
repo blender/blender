@@ -5807,6 +5807,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_index();
   register_node_type_geo_input_material_index();
   register_node_type_geo_input_material();
+  register_node_type_geo_input_mesh_edge_neighbors();
   register_node_type_geo_input_mesh_edge_vertices();
   register_node_type_geo_input_mesh_face_area();
   register_node_type_geo_input_mesh_face_neighbors();
