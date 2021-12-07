@@ -615,19 +615,19 @@ static bool rna_property_override_operation_apply(Main *bmain,
 
   /* get and set the default values as appropriate for the various types */
   const bool success = override_apply(bmain,
-                                     ptr_dst,
-                                     ptr_src,
-                                     ptr_storage,
-                                     prop_dst,
-                                     prop_src,
-                                     prop_storage,
-                                     len_dst,
-                                     len_src,
-                                     len_storage,
-                                     ptr_item_dst,
-                                     ptr_item_src,
-                                     ptr_item_storage,
-                                     opop);
+                                      ptr_dst,
+                                      ptr_src,
+                                      ptr_storage,
+                                      prop_dst,
+                                      prop_src,
+                                      prop_storage,
+                                      len_dst,
+                                      len_src,
+                                      len_storage,
+                                      ptr_item_dst,
+                                      ptr_item_src,
+                                      ptr_item_storage,
+                                      opop);
   if (success) {
     RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   }
