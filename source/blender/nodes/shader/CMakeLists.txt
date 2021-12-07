@@ -80,7 +80,7 @@ set(SRC
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.c
   nodes/node_shader_math.cc
-  nodes/node_shader_mixRgb.cc
+  nodes/node_shader_mix_rgb.cc
   nodes/node_shader_mix_shader.c
   nodes/node_shader_normal.c
   nodes/node_shader_normal_map.c
@@ -91,12 +91,13 @@ set(SRC
   nodes/node_shader_output_material.c
   nodes/node_shader_output_world.c
   nodes/node_shader_particle_info.c
+  nodes/node_shader_rgb_to_bw.cc
   nodes/node_shader_rgb.c
   nodes/node_shader_script.c
-  nodes/node_shader_sepcombHSV.c
-  nodes/node_shader_sepcombRGB.cc
-  nodes/node_shader_sepcombXYZ.cc
-  nodes/node_shader_shaderToRgb.c
+  nodes/node_shader_sepcomb_hsv.c
+  nodes/node_shader_sepcomb_rgb.cc
+  nodes/node_shader_sepcomb_xyz.cc
+  nodes/node_shader_shader_to_rgb.c
   nodes/node_shader_squeeze.c
   nodes/node_shader_subsurface_scattering.c
   nodes/node_shader_tangent.c
@@ -114,14 +115,13 @@ set(SRC
   nodes/node_shader_tex_voronoi.cc
   nodes/node_shader_tex_wave.cc
   nodes/node_shader_tex_white_noise.cc
-  nodes/node_shader_uvAlongStroke.c
+  nodes/node_shader_uv_along_stroke.c
   nodes/node_shader_uvmap.c
-  nodes/node_shader_valToRgb.cc
   nodes/node_shader_value.cc
-  nodes/node_shader_vectTransform.c
   nodes/node_shader_vector_displacement.c
   nodes/node_shader_vector_math.cc
   nodes/node_shader_vector_rotate.cc
+  nodes/node_shader_vector_transform.c
   nodes/node_shader_vertex_color.c
   nodes/node_shader_volume_absorption.c
   nodes/node_shader_volume_info.c
