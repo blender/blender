@@ -703,6 +703,7 @@ DrawEngineType draw_engine_overlay_type = {
     &overlay_data_size,
     &OVERLAY_engine_init,
     &OVERLAY_engine_free,
+    NULL, /* instance_free */
     &OVERLAY_cache_init,
     &OVERLAY_cache_populate,
     &OVERLAY_cache_finish,

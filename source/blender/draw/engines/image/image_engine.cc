@@ -191,6 +191,7 @@ DrawEngineType draw_engine_image_type = {
     &IMAGE_data_size,      /* vedata_size */
     &IMAGE_engine_init,    /* engine_init */
     &IMAGE_engine_free,    /* engine_free */
+    nullptr,               /* instance_free */
     &IMAGE_cache_init,     /* cache_init */
     &IMAGE_cache_populate, /* cache_populate */
     nullptr,               /* cache_finish */

@@ -120,6 +120,12 @@ static void draw_viewport_engines_data_clear(ViewportEngineData *data)
     MEM_SAFE_FREE(data->stl->storage[i]);
   }
 
+  if (data->instance_data) {
+    BLI_assert(engine_type->instance_free != nullptr);
+    engine_type->instance_free(data->instance_data);
+    data->instance_data = nullptr;
+  }
+
   MEM_SAFE_FREE(data->fbl);
   MEM_SAFE_FREE(data->txl);
   MEM_SAFE_FREE(data->psl);

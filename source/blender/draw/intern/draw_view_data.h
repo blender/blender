@@ -63,6 +63,12 @@ typedef struct ViewportEngineData {
   TextureList *txl;
   PassList *psl;
   StorageList *stl;
+  /**
+   * \brief Memory block that can be freely used by the draw engine.
+   * When used the draw engine must implement #DrawEngineType.instance_free callback.
+   */
+  void *instance_data;
+
   char info[GPU_INFO_SIZE];
 
   /* we may want to put this elsewhere */

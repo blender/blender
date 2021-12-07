@@ -121,6 +121,8 @@ typedef struct DrawEngineType {
   void (*engine_init)(void *vedata);
   void (*engine_free)(void);
 
+  void (*instance_free)(void *instance_data);
+
   void (*cache_init)(void *vedata);
   void (*cache_populate)(void *vedata, struct Object *ob);
   void (*cache_finish)(void *vedata);

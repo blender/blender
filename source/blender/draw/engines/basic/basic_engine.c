@@ -265,6 +265,7 @@ DrawEngineType draw_engine_basic_type = {
     &basic_data_size,
     NULL,
     &basic_engine_free,
+    NULL, /* instance_free */
     &basic_cache_init,
     &basic_cache_populate,
     &basic_cache_finish,
