@@ -23,6 +23,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
+#include "BKE_type_conversions.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -35,8 +36,6 @@
 #include "BLT_translation.h"
 
 #include "CLG_log.h"
-
-#include "NOD_type_conversions.hh"
 
 #include "attribute_access_intern.hh"
 
@@ -766,8 +765,8 @@ GVArray CustomDataAttributes::get_for_read(const AttributeIDRef &attribute_id,
   if (attribute->type() == *type) {
     return GVArray::ForSpan(*attribute);
   }
-  const blender::nodes::DataTypeConversions &conversions =
-      blender::nodes::get_implicit_type_conversions();
+  const blender::bke::DataTypeConversions &conversions =
+      blender::bke::get_implicit_type_conversions();
   return conversions.try_convert(GVArray::ForSpan(*attribute), *type);
 }
 
@@ -1112,8 +1111,8 @@ std::optional<AttributeMetaData> GeometryComponent::attribute_get_meta_data(
 static blender::fn::GVArray try_adapt_data_type(blender::fn::GVArray varray,
                                                 const blender::fn::CPPType &to_type)
 {
-  const blender::nodes::DataTypeConversions &conversions =
-      blender::nodes::get_implicit_type_conversions();
+  const blender::bke::DataTypeConversions &conversions =
+      blender::bke::get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
 }
 
@@ -1178,8 +1177,8 @@ blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
   if (attribute.varray.type() == *type) {
     return attribute;
   }
-  const blender::nodes::DataTypeConversions &conversions =
-      blender::nodes::get_implicit_type_conversions();
+  const blender::bke::DataTypeConversions &conversions =
+      blender::bke::get_implicit_type_conversions();
   return {conversions.try_convert(std::move(attribute.varray), *type), attribute.domain};
 }
 
@@ -1299,7 +1298,7 @@ static OutputAttribute create_output_attribute(GeometryComponent &component,
 
   const CPPType *cpp_type = custom_data_type_to_cpp_type(data_type);
   BLI_assert(cpp_type != nullptr);
-  const nodes::DataTypeConversions &conversions = nodes::get_implicit_type_conversions();
+  const DataTypeConversions &conversions = get_implicit_type_conversions();
 
   if (component.attribute_is_builtin(attribute_id)) {
     const StringRef attribute_name = attribute_id.name();

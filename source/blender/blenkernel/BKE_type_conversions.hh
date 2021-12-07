@@ -18,7 +18,7 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender::nodes {
+namespace blender::bke {
 
 using fn::CPPType;
 
@@ -79,4 +79,4 @@ class DataTypeConversions {
 
 const DataTypeConversions &get_implicit_type_conversions();
 
-}  // namespace blender::nodes
+}  // namespace blender::bke

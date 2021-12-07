@@ -288,7 +288,6 @@ set(SRC
   intern/node_socket_declarations.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-  intern/type_conversions.cc
 
   composite/node_composite_util.hh
   function/node_function_util.hh
@@ -312,7 +311,6 @@ set(SRC
   NOD_socket_declarations_geometry.hh
   NOD_static_types.h
   NOD_texture.h
-  NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h
   intern/node_util.h
