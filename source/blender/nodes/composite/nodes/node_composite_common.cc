@@ -32,7 +32,7 @@
 
 #include "RNA_access.h"
 
-void register_node_type_cmp_group(void)
+void register_node_type_cmp_group()
 {
   static bNodeType ntype;
 

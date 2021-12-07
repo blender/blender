@@ -137,7 +137,7 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   cmp_node_switch_view_sanitycheck(ntree, node);
 }
 
-void register_node_type_cmp_switch_view(void)
+void register_node_type_cmp_switch_view()
 {
   static bNodeType ntype;
 

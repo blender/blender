@@ -277,7 +277,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   }
 }
 
-void register_node_type_cmp_output_file(void)
+void register_node_type_cmp_output_file()
 {
   static bNodeType ntype;
 

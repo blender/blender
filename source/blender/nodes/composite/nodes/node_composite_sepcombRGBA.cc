@@ -37,7 +37,7 @@ static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_seprgba(void)
+void register_node_type_cmp_seprgba()
 {
   static bNodeType ntype;
 
@@ -62,7 +62,7 @@ static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_combrgba(void)
+void register_node_type_cmp_combrgba()
 {
   static bNodeType ntype;
 

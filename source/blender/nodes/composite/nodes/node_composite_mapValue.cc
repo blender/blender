@@ -40,7 +40,7 @@ static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = BKE_texture_mapping_add(TEXMAP_TYPE_POINT);
 }
 
-void register_node_type_cmp_map_value(void)
+void register_node_type_cmp_map_value()
 {
   static bNodeType ntype;
 

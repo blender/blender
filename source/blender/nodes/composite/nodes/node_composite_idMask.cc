@@ -35,7 +35,7 @@ static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_idmask(void)
+void register_node_type_cmp_idmask()
 {
   static bNodeType ntype;
 

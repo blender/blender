@@ -42,7 +42,7 @@ static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
 }
 
 /* custom1 = mix type */
-void register_node_type_cmp_invert(void)
+void register_node_type_cmp_invert()
 {
   static bNodeType ntype;
 

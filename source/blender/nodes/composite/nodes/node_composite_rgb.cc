@@ -34,7 +34,7 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_rgb(void)
+void register_node_type_cmp_rgb()
 {
   static bNodeType ntype;
 

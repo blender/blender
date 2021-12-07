@@ -46,7 +46,7 @@ static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = data;
 }
 
-void register_node_type_cmp_keyingscreen(void)
+void register_node_type_cmp_keyingscreen()
 {
   static bNodeType ntype;
 

@@ -43,7 +43,7 @@ static void node_composit_init_mode_sepycca(bNodeTree *UNUSED(ntree), bNode *nod
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-void register_node_type_cmp_sepycca(void)
+void register_node_type_cmp_sepycca()
 {
   static bNodeType ntype;
 
@@ -74,7 +74,7 @@ static void node_composit_init_mode_combycca(bNodeTree *UNUSED(ntree), bNode *no
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-void register_node_type_cmp_combycca(void)
+void register_node_type_cmp_combycca()
 {
   static bNodeType ntype;
 

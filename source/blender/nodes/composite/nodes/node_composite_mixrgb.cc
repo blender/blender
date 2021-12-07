@@ -38,7 +38,7 @@ static void cmp_node_mixrgb_declare(NodeDeclarationBuilder &b)
 }  // namespace blender::nodes
 
 /* custom1 = mix type */
-void register_node_type_cmp_mix_rgb(void)
+void register_node_type_cmp_mix_rgb()
 {
   static bNodeType ntype;
 

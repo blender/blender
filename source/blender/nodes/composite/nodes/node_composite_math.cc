@@ -43,7 +43,7 @@ static void cmp_node_math_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_math(void)
+void register_node_type_cmp_math()
 {
   static bNodeType ntype;
 
