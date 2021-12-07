@@ -107,6 +107,58 @@ static bool validate_params(const USDExportParams &params)
   return valid;
 }
 
+/* If a root prim path is set in the params, check if a
+ * root object matching the root path name already exists.
+ * If it does, clear the root prim path in the params.
+ * This is to avoid prepending the root prim path
+ * redundantly.
+ * TODO(makowalski): ideally, this functionality belongs
+ * in the USD hierarchy iterator, so that we don't iterate
+ * over the scene graph separately here. */
+static void validate_unique_root_prim_path(USDExportParams &params, Depsgraph *depsgraph)
+{
+  if (!depsgraph || strlen(params.root_prim_path) == 0) {
+    return;
+  }
+
+  pxr::SdfPath path(params.root_prim_path);
+
+  if (path.IsEmpty()) {
+    return;
+  }
+
+  pxr::SdfPath parent = path.GetParentPath();
+
+  while (!parent.IsEmpty() && !parent.IsAbsoluteRootPath()) {
+    path = parent;
+    parent = path.GetParentPath();
+  }
+
+  Object *match = nullptr;
+  std::string root_name = path.GetName();
+
+  DEG_OBJECT_ITER_BEGIN(depsgraph,
+    object,
+    DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+    DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET) {
+
+    if (!match && !object->parent) {
+      /* We only care about root objects. */
+
+      if (pxr::TfMakeValidIdentifier(object->id.name + 2) == root_name) {
+        match = object;
+      }
+    }
+  }
+  DEG_OBJECT_ITER_END;
+
+  if (match) {
+    WM_reportf(
+      RPT_WARNING, "USD Export: the root prim will not be added because a root object named '%s' already exists", root_name.c_str());
+    params.root_prim_path[0] = '\0';
+  }
+}
+
 /* Create root prim if defined. */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
@@ -183,6 +235,8 @@ static void export_startjob(void *customdata,
     DEG_graph_build_for_all_objects(data->depsgraph);
   }
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
+  validate_unique_root_prim_path(data->params, data->depsgraph);
 
   *progress = 0.0f;
   *do_update = true;
