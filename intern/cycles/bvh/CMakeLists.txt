@@ -31,8 +31,17 @@ set(SRC
   sort.cpp
   split.cpp
   unaligned.cpp
+)
+
+set(SRC_METAL
   metal.mm
 )
+
+if(WITH_CYCLES_DEVICE_METAL)
+  list(APPEND SRC
+    ${SRC_METAL}
+  )
+endif()
 
 set(SRC_HEADERS
   bvh.h
