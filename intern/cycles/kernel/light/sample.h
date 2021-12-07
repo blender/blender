@@ -200,6 +200,9 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
     if (offset_cutoff > 0.0f) {
       float NgL = dot(Ng, L);
       float offset_amount = 0.0f;
+      if (NL < 0) {
+        NL = -NL;
+      }
       if (NL < offset_cutoff) {
         offset_amount = clamp(2.0f - (NgL + NL) / offset_cutoff, 0.0f, 1.0f);
       }
