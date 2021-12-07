@@ -40,7 +40,8 @@ using SplinePtr = std::unique_ptr<Spline>;
 /**
  * A spline is an abstraction of a single branch-less curve section, its evaluation methods,
  * and data. The spline data itself is just control points and a set of attributes by the set
- * of "evaluated" data is often used instead.
+ * of "evaluated" data is often used instead. Conceptually, the derived vs. original data is
+ * an essential distinction. Derived data is usually calculated lazily and cached on the spline.
  *
  * Any derived class of Spline has to manage two things:
  *  1. Interpolating arbitrary attribute data from the control points to evaluated points.
@@ -600,9 +601,12 @@ class NURBSpline final : public Spline {
 };
 
 /**
- * A Poly spline is like a bezier spline with a resolution of one. The main reason to distinguish
+ * A Poly spline is like a Bézier spline with a resolution of one. The main reason to distinguish
  * the two is for reduced complexity and increased performance, since interpolating data to control
  * points does not change it.
+ *
+ * Poly spline code is very simple, since it doesn't do anything that the base #Spline doesn't
+ * handle. Mostly it just worries about storing the data used by the base class.
  */
 class PolySpline final : public Spline {
   blender::Vector<blender::float3> positions_;
