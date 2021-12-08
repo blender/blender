@@ -362,6 +362,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS, 0, "MESH_EDGE_NEIGHBOR
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_VERTICES, 0, "MESH_EDGE_VERTICES", InputMeshEdgeVertices, "Edge Vertices", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_AREA, 0, "MESH_FACE_AREA", InputMeshFaceArea, "Face Area", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_FACE_NEIGHBORS, 0, "MESH_FACE_NEIGHBORS", InputMeshFaceNeighbors, "Face Neighbors", "")
+DefNode(GeometryNode, GEO_NODE_INPUT_MESH_ISLAND, 0, "MESH_ISLAND", InputMeshIsland, "Mesh Island", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS, 0, "MESH_VERTEX_NEIGHBORS", InputMeshVertexNeighbors, "Vertex Neighbors", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_NORMAL, 0, "INPUT_NORMAL", InputNormal, "Normal", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_POSITION, 0, "POSITION", InputPosition, "Position", "")

@@ -1717,6 +1717,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS 1141
 #define GEO_NODE_GEOMETRY_TO_INSTANCE 1142
 #define GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS 1143
+#define GEO_NODE_INPUT_MESH_ISLAND 1144
 /** \} */
 
 /* -------------------------------------------------------------------- */

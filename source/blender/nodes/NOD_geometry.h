@@ -109,6 +109,7 @@ void register_node_type_geo_input_mesh_edge_neighbors(void);
 void register_node_type_geo_input_mesh_edge_vertices(void);
 void register_node_type_geo_input_mesh_face_area(void);
 void register_node_type_geo_input_mesh_face_neighbors(void);
+void register_node_type_geo_input_mesh_island(void);
 void register_node_type_geo_input_mesh_vertex_neighbors(void);
 void register_node_type_geo_input_normal(void);
 void register_node_type_geo_input_position(void);
