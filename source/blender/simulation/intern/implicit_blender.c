@@ -1475,11 +1475,12 @@ static float calc_nor_area_tri(float nor[3],
   return normalize_v3(nor) / 2.0f;
 }
 
-/* XXX does not support force jacobians yet, since the effector system does not provide them either
- */
 void SIM_mass_spring_force_face_wind(
     Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
+  /* XXX does not support force jacobians yet,
+   * since the effector system does not provide them either. */
+
   const float effector_scale = 0.02f;
   const int vs[3] = {v1, v2, v3};
   float win[3], nor[3], area;
@@ -1854,10 +1855,11 @@ bool SIM_mass_spring_force_spring_linear(Implicit_Data *data,
   return true;
 }
 
-/* See "Stable but Responsive Cloth" (Choi, Ko 2005) */
 bool SIM_mass_spring_force_spring_bending(
     Implicit_Data *data, int i, int j, float restlen, float kb, float cb)
 {
+  /* See "Stable but Responsive Cloth" (Choi, Ko 2005). */
+
   float extent[3], length, dir[3], vel[3];
 
   /* calculate elongation */
@@ -1959,8 +1961,6 @@ BLI_INLINE void spring_angle(Implicit_Data *data,
   sub_v3_v3(r_vel_b, vel_e);
 }
 
-/* Angular springs roughly based on the bending model proposed by Baraff and Witkin in "Large Steps
- * in Cloth Simulation". */
 bool SIM_mass_spring_force_spring_angular(Implicit_Data *data,
                                           int i,
                                           int j,
@@ -2179,9 +2179,6 @@ BLI_INLINE void spring_hairbend_estimate_dfdv(Implicit_Data *data,
   }
 }
 
-/* Angular spring that pulls the vertex toward the local target
- * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
- */
 bool SIM_mass_spring_force_spring_bending_hair(Implicit_Data *data,
                                                int i,
                                                int j,
@@ -2190,6 +2187,9 @@ bool SIM_mass_spring_force_spring_bending_hair(Implicit_Data *data,
                                                float stiffness,
                                                float damping)
 {
+  /* Angular springs roughly based on the bending model proposed by Baraff and Witkin in
+   * "Large Steps in Cloth Simulation". */
+
   float goal[3];
   float fj[3], fk[3];
   float dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
