@@ -399,7 +399,6 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
   return false;
 }
 
-/* patching UserDef struct and Themes */
 void blo_do_versions_userdef(UserDef *userdef)
 {
   /* #UserDef & #Main happen to have the same struct member. */

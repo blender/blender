@@ -55,7 +55,6 @@
 
 /* **************** support for memory-write, for undo buffers *************** */
 
-/* not memfile itself */
 void BLO_memfile_free(MemFile *memfile)
 {
   MemFileChunk *chunk;
@@ -69,8 +68,6 @@ void BLO_memfile_free(MemFile *memfile)
   memfile->size = 0;
 }
 
-/* to keep list of memfiles consistent, 'first' is always first in list */
-/* result is that 'first' is being freed */
 void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
   /* We use this mapping to store the memory buffers from second memfile chunks which are not owned
@@ -106,7 +103,6 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
   BLO_memfile_free(first);
 }
 
-/* Clear is_identical_future before adding next memfile. */
 void BLO_memfile_clear_future(MemFile *memfile)
 {
   LISTBASE_FOREACH (MemFileChunk *, chunk, &memfile->chunks) {
@@ -216,11 +212,6 @@ struct Main *BLO_memfile_main_get(struct MemFile *memfile,
   return bmain_undo;
 }
 
-/**
- * Saves .blend using undo buffer.
- *
- * \return success.
- */
 bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
 {
   MemFileChunk *chunk;

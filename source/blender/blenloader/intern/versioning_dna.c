@@ -29,16 +29,6 @@
 #include "BLO_readfile.h"
 #include "readfile.h"
 
-/**
- * Manipulates SDNA before calling #DNA_struct_get_compareflags,
- * allowing us to rename structs and struct members.
- *
- * - This means older versions of Blender won't have access to this data **USE WITH CARE**.
- *
- * - These changes are applied on file load (run-time), similar to versioning for compatibility.
- *
- * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
- */
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
 {
 #define DNA_VERSION_ATLEAST(ver, subver) \

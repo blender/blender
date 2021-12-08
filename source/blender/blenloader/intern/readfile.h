@@ -131,6 +131,11 @@ void blo_split_main(ListBase *mainlist, struct Main *main);
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
+/**
+ * On each new library added, it now checks for the current #FileData and expands relativeness
+ *
+ * cannot be called with relative paths anymore!
+ */
 FileData *blo_filedata_from_file(const char *filepath, struct BlendFileReadReport *reports);
 FileData *blo_filedata_from_memory(const void *mem,
                                    int memsize,
@@ -139,10 +144,28 @@ FileData *blo_filedata_from_memfile(struct MemFile *memfile,
                                     const struct BlendFileReadParams *params,
                                     struct BlendFileReadReport *reports);
 
+/**
+ * Lib linked proxy objects point to our local data, we need
+ * to clear that pointer before reading the undo memfile since
+ * the object might be removed, it is set again in reading
+ * if the local object still exists.
+ * This is only valid for local proxy objects though, linked ones should not be affected here.
+ */
 void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
 void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
+/**
+ * Set old main packed data to zero if it has been restored
+ * this works because freeing old main only happens after this call.
+ */
 void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
+/**
+ * Undo file support: add all library pointers in lookup.
+ */
 void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
+/**
+ * Build a #GSet of old main (we only care about local data here,
+ * so we can do that after #blo_split_main() call.
+ */
 void blo_make_old_idmap_from_main(FileData *fd, struct Main *bmain);
 
 BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, struct AssetMetaData **r_asset_data);
@@ -157,23 +180,48 @@ BHead *blo_bhead_first(FileData *fd);
 BHead *blo_bhead_next(FileData *fd, BHead *thisblock);
 BHead *blo_bhead_prev(FileData *fd, BHead *thisblock);
 
+/**
+ * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
+ */
 const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
+/**
+ * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
+ */
 struct AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead);
 
 /* do versions stuff */
 
+/**
+ * Manipulates SDNA before calling #DNA_struct_get_compareflags,
+ * allowing us to rename structs and struct members.
+ *
+ * - This means older versions of Blender won't have access to this data **USE WITH CARE**.
+ * - These changes are applied on file load (run-time), similar to versioning for compatibility.
+ *
+ * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
+ */
 void blo_do_versions_dna(struct SDNA *sdna, const int versionfile, const int subversionfile);
 
 void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
                                       const void *oldaddr,
                                       void *newaddr,
                                       int nr);
+/**
+ * Only library data.
+ */
 void *blo_do_versions_newlibadr(struct FileData *fd, const void *lib, const void *adr);
 void *blo_do_versions_newlibadr_us(struct FileData *fd, const void *lib, const void *adr);
 
+/**
+ * \note this version patch is intended for versions < 2.52.2,
+ * but was initially introduced in 2.27 already.
+ */
 void blo_do_version_old_trackto_to_constraints(struct Object *ob);
 void blo_do_versions_key_uidgen(struct Key *key);
 
+/**
+ * Patching #UserDef struct and Themes.
+ */
 void blo_do_versions_userdef(struct UserDef *userdef);
 
 void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *bmain);
@@ -193,6 +241,10 @@ void do_versions_after_linking_290(struct Main *bmain, struct ReportList *report
 void do_versions_after_linking_300(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
-/* This is rather unfortunate to have to expose this here, but better use that nasty hack in
- * do_version than readfile itself. */
+/**
+ * Direct data-blocks with global linking.
+ *
+ * \note This is rather unfortunate to have to expose this here,
+ * but better use that nasty hack in do_version than readfile itself.
+ */
 void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);
