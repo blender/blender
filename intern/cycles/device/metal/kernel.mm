@@ -118,7 +118,9 @@ bool MetalDeviceKernel::load(MetalDevice *device,
   computePipelineStateDescriptor.buffers[1].mutability = MTLMutabilityImmutable;
   computePipelineStateDescriptor.buffers[2].mutability = MTLMutabilityImmutable;
 
-  computePipelineStateDescriptor.maxTotalThreadsPerThreadgroup = desc.threads_per_threadgroup;
+  if (@available(macos 10.14, *)) {
+    computePipelineStateDescriptor.maxTotalThreadsPerThreadgroup = desc.threads_per_threadgroup;
+  }
   computePipelineStateDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = true;
 
   computePipelineStateDescriptor.computeFunction = pso[desc.pso_index].function;

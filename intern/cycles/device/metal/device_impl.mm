@@ -308,13 +308,11 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
   options.fastMathEnabled = YES;
-  options.languageVersion = MTLLanguageVersion2_1;
-
-  if (@available(macOS 11.0, *)) {
-    options.languageVersion = MTLLanguageVersion2_3;
-  }
   if (@available(macOS 12.0, *)) {
     options.languageVersion = MTLLanguageVersion2_4;
+  }
+  else {
+    return false;
   }
 
   string metalsrc;
@@ -925,12 +923,14 @@ void MetalDevice::tex_alloc(device_texture &mem)
     }
   }
 
-  /* Optimize the texture for GPU access. */
-  id<MTLCommandBuffer> commandBuffer = [mtlGeneralCommandQueue commandBuffer];
-  id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
-  [blitCommandEncoder optimizeContentsForGPUAccess:mtlTexture];
-  [blitCommandEncoder endEncoding];
-  [commandBuffer commit];
+  if (@available(macos 10.14, *)) {
+    /* Optimize the texture for GPU access. */
+    id<MTLCommandBuffer> commandBuffer = [mtlGeneralCommandQueue commandBuffer];
+    id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+    [blitCommandEncoder optimizeContentsForGPUAccess:mtlTexture];
+    [blitCommandEncoder endEncoding];
+    [commandBuffer commit];
+  }
 
   /* Set Mapping and tag that we need to (re-)upload to device */
   texture_slot_map[slot] = mtlTexture;

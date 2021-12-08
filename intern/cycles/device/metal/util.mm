@@ -45,35 +45,12 @@ MetalGPUVendor MetalInfo::get_vendor_from_device_name(string const &device_name)
 
 bool MetalInfo::device_version_check(id<MTLDevice> device)
 {
+  /* Metal Cycles doesn't work correctly on macOS versions older than 12.0 */
   if (@available(macos 12.0, *)) {
     MetalGPUVendor vendor = get_vendor_from_device_name([[device name] UTF8String]);
-
-    static const char *forceIntelStr = getenv("CYCLES_METAL_FORCE_INTEL");
-    bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
-
-    if (forceIntel) {
-      /* return false for non-Intel GPUs to force selection of Intel */
-      if (vendor == METAL_GPU_INTEL) {
-        return true;
-      }
-    }
-    else {
-      switch (vendor) {
-        case METAL_GPU_INTEL:
-          /* isLowPower only returns true on machines that have an AMD GPU also
-           * For Intel only machines - isLowPower will return false
-           */
-          if (getenv("CYCLES_METAL_ALLOW_LOW_POWER_GPUS") || !device.isLowPower) {
-            return true;
-          }
-          return false;
-        case METAL_GPU_APPLE:
-        case METAL_GPU_AMD:
-          return true;
-        default:
-          return false;
-      }
-    }
+    
+    /* Metal Cycles works on Apple Silicon GPUs at present */
+    return (vendor == METAL_GPU_APPLE);
   }
 
   return false;

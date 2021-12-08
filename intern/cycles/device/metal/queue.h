@@ -70,7 +70,9 @@ class MetalDeviceQueue : public DeviceQueue {
   id<MTLCommandBuffer> mtlCommandBuffer = nil;
   id<MTLComputeCommandEncoder> mtlComputeEncoder = nil;
   id<MTLBlitCommandEncoder> mtlBlitEncoder = nil;
+  API_AVAILABLE(macos(10.14), ios(14.0))
   id<MTLSharedEvent> shared_event = nil;
+  API_AVAILABLE(macos(10.14), ios(14.0))
   MTLSharedEventListener *shared_event_listener = nil;
 
   dispatch_queue_t event_queue;

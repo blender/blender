@@ -40,12 +40,14 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
   mtlDevice = device->mtlDevice;
   mtlCommandQueue = [mtlDevice newCommandQueue];
 
-  shared_event = [mtlDevice newSharedEvent];
-  shared_event_id = 1;
+  if (@available(macos 10.14, *)) {
+    shared_event = [mtlDevice newSharedEvent];
+    shared_event_id = 1;
 
-  /* Shareable event listener */
-  event_queue = dispatch_queue_create("com.cycles.metal.event_queue", NULL);
-  shared_event_listener = [[MTLSharedEventListener alloc] initWithDispatchQueue:event_queue];
+    /* Shareable event listener */
+    event_queue = dispatch_queue_create("com.cycles.metal.event_queue", NULL);
+    shared_event_listener = [[MTLSharedEventListener alloc] initWithDispatchQueue:event_queue];
+  }
 
   wait_semaphore = dispatch_semaphore_create(0);
 }
@@ -57,8 +59,10 @@ MetalDeviceQueue::~MetalDeviceQueue()
   assert(mtlCommandBuffer == nil);
   assert(command_buffers_submitted == command_buffers_completed);
 
-  [shared_event_listener release];
-  [shared_event release];
+  if (@available(macos 10.14, *)) {
+    [shared_event_listener release];
+    [shared_event release];
+  }
 
   if (@available(macos 11.0, *)) {
     [command_buffer_desc release];
@@ -364,16 +368,18 @@ bool MetalDeviceQueue::synchronize()
   if (mtlCommandBuffer) {
     uint64_t shared_event_id = this->shared_event_id++;
 
-    __block dispatch_semaphore_t block_sema = wait_semaphore;
-    [shared_event notifyListener:shared_event_listener
-                         atValue:shared_event_id
-                           block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
-                             dispatch_semaphore_signal(block_sema);
-                           }];
+    if (@available(macos 10.14, *)) {
+      __block dispatch_semaphore_t block_sema = wait_semaphore;
+      [shared_event notifyListener:shared_event_listener
+                           atValue:shared_event_id
+                             block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
+                               dispatch_semaphore_signal(block_sema);
+                             }];
 
-    [mtlCommandBuffer encodeSignalEvent:shared_event value:shared_event_id];
-    [mtlCommandBuffer commit];
-    dispatch_semaphore_wait(wait_semaphore, DISPATCH_TIME_FOREVER);
+      [mtlCommandBuffer encodeSignalEvent:shared_event value:shared_event_id];
+      [mtlCommandBuffer commit];
+      dispatch_semaphore_wait(wait_semaphore, DISPATCH_TIME_FOREVER);
+    }
 
     [mtlCommandBuffer release];
 
@@ -536,30 +542,32 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
 {
   bool concurrent = (kernel < DEVICE_KERNEL_INTEGRATOR_NUM);
 
-  if (mtlComputeEncoder) {
-    if (mtlComputeEncoder.dispatchType == concurrent ? MTLDispatchTypeConcurrent :
-                                                       MTLDispatchTypeSerial) {
-      /* declare usage of MTLBuffers etc */
-      prepare_resources(kernel);
+  if (@available(macos 10.14, *)) {
+    if (mtlComputeEncoder) {
+      if (mtlComputeEncoder.dispatchType == concurrent ? MTLDispatchTypeConcurrent :
+                                                         MTLDispatchTypeSerial) {
+        /* declare usage of MTLBuffers etc */
+        prepare_resources(kernel);
 
-      return mtlComputeEncoder;
+        return mtlComputeEncoder;
+      }
+      close_compute_encoder();
     }
-    close_compute_encoder();
+
+    close_blit_encoder();
+
+    if (!mtlCommandBuffer) {
+      mtlCommandBuffer = [mtlCommandQueue commandBuffer];
+      [mtlCommandBuffer retain];
+    }
+
+    mtlComputeEncoder = [mtlCommandBuffer
+        computeCommandEncoderWithDispatchType:concurrent ? MTLDispatchTypeConcurrent :
+                                                           MTLDispatchTypeSerial];
+
+    /* declare usage of MTLBuffers etc */
+    prepare_resources(kernel);
   }
-
-  close_blit_encoder();
-
-  if (!mtlCommandBuffer) {
-    mtlCommandBuffer = [mtlCommandQueue commandBuffer];
-    [mtlCommandBuffer retain];
-  }
-
-  mtlComputeEncoder = [mtlCommandBuffer
-      computeCommandEncoderWithDispatchType:concurrent ? MTLDispatchTypeConcurrent :
-                                                         MTLDispatchTypeSerial];
-
-  /* declare usage of MTLBuffers etc */
-  prepare_resources(kernel);
 
   return mtlComputeEncoder;
 }
