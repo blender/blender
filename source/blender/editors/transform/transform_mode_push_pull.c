@@ -124,7 +124,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  distance = t->values[0];
+  distance = t->values[0] + t->values_modal_offset[0];
 
   transform_snap_increment(t, &distance);
 

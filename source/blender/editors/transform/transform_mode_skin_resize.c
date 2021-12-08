@@ -107,6 +107,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
   }
   else {
     copy_v3_fl(t->values_final, t->values[0]);
+    add_v3_v3(t->values_final, t->values_modal_offset);
 
     transform_snap_increment(t, t->values_final);
 

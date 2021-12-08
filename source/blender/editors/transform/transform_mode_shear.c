@@ -199,7 +199,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
   char str[UI_MAX_DRAW_STR];
   const bool is_local_center = transdata_check_local_center(t, t->around);
 
-  value = t->values[0];
+  value = t->values[0] + t->values_modal_offset[0];
 
   transform_snap_increment(t, &value);
 
