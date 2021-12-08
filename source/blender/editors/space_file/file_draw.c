@@ -1132,10 +1132,6 @@ static void file_draw_invalid_library_hint(const bContext *C,
   }
 }
 
-/**
- * Draw a string hint if the file list is invalid.
- * \return true if the list is invalid and a hint was drawn.
- */
 bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
   FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);

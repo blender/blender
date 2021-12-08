@@ -2809,7 +2809,6 @@ static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
   }
 }
 
-/* join objects called from OBJECT_OT_join */
 int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -3697,7 +3696,6 @@ void GPENCIL_OT_materials_copy_to_object(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-/* Parent GPencil object to Lattice */
 bool ED_gpencil_add_lattice_modifier(const bContext *C,
                                      ReportList *reports,
                                      Object *ob,

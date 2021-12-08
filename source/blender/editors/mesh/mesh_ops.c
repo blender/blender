@@ -372,7 +372,6 @@ void ED_operatormacros_mesh(void)
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
-/* note mesh keymap also for other space? */
 void ED_keymap_mesh(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mesh", 0, 0);

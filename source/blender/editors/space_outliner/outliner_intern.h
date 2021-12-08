@@ -250,8 +250,17 @@ typedef enum TreeItemSelectAction {
 
 void outliner_free_tree(ListBase *tree);
 void outliner_cleanup_tree(struct SpaceOutliner *space_outliner);
+/**
+ * Free \a element and its sub-tree and remove its link in \a parent_subtree.
+ *
+ * \note Does not remove the #TreeStoreElem of \a element!
+ * \param parent_subtree: Sub-tree of the parent element, so the list containing \a element.
+ */
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
 
+/**
+ * Main entry point for building the tree data-structure that the outliner represents.
+ */
 void outliner_build_tree(struct Main *mainvar,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,
@@ -260,6 +269,10 @@ void outliner_build_tree(struct Main *mainvar,
 
 bool outliner_requires_rebuild_on_select_or_active_change(
     const struct SpaceOutliner *space_outliner);
+/**
+ * Check if a display mode needs a full rebuild if the open/collapsed state changes.
+ * Element types in these modes don't actually add children if collapsed, so the rebuild is needed.
+ */
 bool outliner_requires_rebuild_on_open_change(const struct SpaceOutliner *space_outliner);
 
 typedef struct IDsSelectedData {
@@ -285,19 +298,34 @@ void outliner_collection_isolate_flag(struct Scene *scene,
                                       const char *propname,
                                       const bool value);
 
+/**
+ * Return the index to use based on the TreeElement ID and object type
+ *
+ * We use a continuum of indices until we get to the object data-blocks
+ * and we then make room for the object types.
+ */
 int tree_element_id_type_to_index(TreeElement *te);
 
 /* outliner_select.c -------------------------------------------- */
+/**
+ * Generic call for non-id data to make active in UI
+ */
 void tree_element_type_active_set(struct bContext *C,
                                   const TreeViewContext *tvc,
                                   TreeElement *te,
                                   TreeStoreElem *tselem,
                                   const eOLSetState set,
                                   bool recursive);
+/**
+ * Generic call for non-id data to check the active state in UI.
+ */
 eOLDrawState tree_element_type_active_state_get(const struct bContext *C,
                                                 const struct TreeViewContext *tvc,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem);
+/**
+ * Generic call for ID data check or make/check active in UI.
+ */
 void tree_element_activate(struct bContext *C,
                            const TreeViewContext *tvc,
                            TreeElement *te,
@@ -309,17 +337,32 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
 
 struct bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te);
 
+/**
+ * Select the item using the set flags.
+ */
 void outliner_item_select(struct bContext *C,
                           struct SpaceOutliner *space_outliner,
                           struct TreeElement *te,
                           const short select_flag);
 
+/**
+ * Find if x coordinate is over an icon or name.
+ */
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x);
 bool outliner_item_is_co_over_icon(const TreeElement *te, float view_co_x);
+/**
+ * Find if x coordinate is over element name.
+ */
 bool outliner_item_is_co_over_name(const TreeElement *te, float view_co_x);
+/**
+ * Find if x coordinate is over element disclosure toggle.
+ */
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x);
 bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const float view_mval[2]);
 
+/**
+ * Toggle the item's interaction mode if supported.
+ */
 void outliner_item_mode_toggle(struct bContext *C,
                                TreeViewContext *tvc,
                                TreeElement *te,
@@ -334,6 +377,10 @@ typedef void (*outliner_operation_fn)(struct bContext *C,
                                       TreeStoreElem *,
                                       void *);
 
+/**
+ * \param recurse_selected: Set to false for operations which are already
+ * recursively operating on their children.
+ */
 void outliner_do_object_operation_ex(struct bContext *C,
                                      struct ReportList *reports,
                                      struct Scene *scene,
@@ -350,6 +397,10 @@ void outliner_do_object_operation(struct bContext *C,
                                   outliner_operation_fn operation_fn);
 
 int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
+/**
+ * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
+ * \return if any flag was modified.
+ */
 bool outliner_flag_set(ListBase *lb, short flag, short set);
 bool outliner_flag_flip(ListBase *lb, short flag);
 
@@ -390,14 +441,24 @@ void id_remap_fn(struct bContext *C,
                  struct TreeStoreElem *tselem,
                  void *user_data);
 
+/**
+ * To retrieve coordinates with redrawing the entire tree.
+ */
 void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
 
+/**
+ * Open or close a tree element, optionally toggling all children recursively.
+ */
 void outliner_item_openclose(struct SpaceOutliner *space_outliner,
                              TreeElement *te,
                              bool open,
                              bool toggle_all);
 
 /* outliner_dragdrop.c */
+
+/**
+ * Region dropbox definition.
+ */
 void outliner_dropboxes(void);
 
 void OUTLINER_OT_item_drag_drop(struct wmOperatorType *ot);
@@ -445,6 +506,8 @@ void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
 void merged_element_search_menu_invoke(struct bContext *C,
                                        TreeElement *parent_te,
                                        TreeElement *activate_te);
+
+/* Menu only! Calls other operators */
 
 void OUTLINER_OT_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_scene_operation(struct wmOperatorType *ot);
@@ -510,19 +573,41 @@ void OUTLINER_OT_collection_color_tag_set(struct wmOperatorType *ot);
 
 void outliner_viewcontext_init(const struct bContext *C, TreeViewContext *tvc);
 
+/**
+ * Try to find an item under y-coordinate \a view_co_y (view-space).
+ * \note Recursive
+ */
 TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
                                      const ListBase *tree,
                                      float view_co_y);
+/**
+ * Collapsed items can show their children as click-able icons. This function tries to find
+ * such an icon that represents the child item at x-coordinate \a view_co_x (view-space).
+ *
+ * \return a hovered child item or \a parent_te (if no hovered child found).
+ */
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             TreeElement *parent_te,
                                             float view_co_x,
                                             bool *r_is_merged_icon,
                                             bool *r_is_over_icon);
+/**
+ * Tse is not in the treestore, we use its contents to find a match.
+ */
 TreeElement *outliner_find_tse(struct SpaceOutliner *space_outliner, const TreeStoreElem *tse);
+/**
+ * Find specific item from the trees-tore.
+ */
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
+/**
+ * Find parent element of te.
+ */
 TreeElement *outliner_find_parent_element(ListBase *lb,
                                           TreeElement *parent_te,
                                           const TreeElement *child_te);
+/**
+ * Find treestore that refers to given ID.
+ */
 TreeElement *outliner_find_id(struct SpaceOutliner *space_outliner,
                               ListBase *lb,
                               const struct ID *id);
@@ -530,6 +615,14 @@ TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *
 TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
 TreeElement *outliner_search_back_te(TreeElement *te, short idcode);
 struct ID *outliner_search_back(TreeElement *te, short idcode);
+/**
+ * Iterate over all tree elements (pre-order traversal), executing \a func callback for
+ * each tree element matching the optional filters.
+ *
+ * \param filter_te_flag: If not 0, only TreeElements with this flag will be visited.
+ * \param filter_tselem_flag: Same as \a filter_te_flag, but for the TreeStoreElem.
+ * \param func: Custom callback to execute for each visited item.
+ */
 bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             ListBase *tree,
                             int filter_te_flag,
@@ -537,16 +630,33 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             TreeTraversalFunc func,
                             void *customdata);
 float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
+/**
+ * Find first tree element in tree with matching treestore flag.
+ */
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
+/**
+ * Find if element is visible in the outliner tree.
+ */
 bool outliner_is_element_visible(const TreeElement *te);
+/**
+ * Scroll view vertically while keeping within total bounds.
+ */
 void outliner_scroll_view(struct SpaceOutliner *space_outliner,
                           struct ARegion *region,
                           int delta_y);
+/**
+ * The outliner should generally use #ED_region_tag_redraw_no_rebuild() to avoid unnecessary tree
+ * rebuilds. If elements are open or closed, we may still have to rebuild.
+ * Upon changing the open/closed state, call this to avoid rebuilds if possible.
+ */
 void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner *space_outliner,
                                                       struct ARegion *region);
 
 /* outliner_sync.c ---------------------------------------------- */
 
+/**
+ * If outliner is dirty sync selection from view layer and sequencer.
+ */
 void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *space_outliner);
 
 /* outliner_context.c ------------------------------------------- */

@@ -1499,7 +1499,6 @@ static void image_open_draw(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-/* called by other space types too */
 void IMAGE_OT_open(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1574,7 +1573,6 @@ static int image_match_len_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-/* called by other space types too */
 void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3190,7 +3188,6 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-/* Returns mouse position in image space. */
 bool ED_space_image_get_position(SpaceImage *sima,
                                  struct ARegion *region,
                                  int mval[2],
@@ -3210,7 +3207,6 @@ bool ED_space_image_get_position(SpaceImage *sima,
   return true;
 }
 
-/* Returns color in linear space, matching ED_space_node_color_sample(). */
 bool ED_space_image_color_sample(
     SpaceImage *sima, ARegion *region, int mval[2], float r_col[3], bool *r_is_data)
 {

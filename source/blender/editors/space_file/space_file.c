@@ -1003,7 +1003,6 @@ static void file_id_remap(ScrArea *area, SpaceLink *sl, ID *UNUSED(old_id), ID *
   file_reset_filelist_showing_main_data(area, sfile);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype file");

@@ -580,7 +580,6 @@ static void flushTransIntFrameActionData(TransInfo *t)
   }
 }
 
-/* helper for recalcData() - for Action Editor transforms */
 void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;

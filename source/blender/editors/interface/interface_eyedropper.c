@@ -141,15 +141,6 @@ void eyedropper_draw_cursor_text_region(const int x, const int y, const char *na
   eyedropper_draw_cursor_text_ex(x, y, name);
 }
 
-/**
- * Utility to retrieve a button representing a RNA property that is currently under the cursor.
- *
- * This is to be used by any eyedroppers which fetch properties (e.g. UI_OT_eyedropper_driver).
- * Especially during modal operations (e.g. as with the eyedroppers), context cannot be relied
- * upon to provide this information, as it is not updated until the operator finishes.
- *
- * \return A button under the mouse which relates to some RNA Property, or NULL
- */
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);

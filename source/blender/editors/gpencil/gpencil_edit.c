@@ -1381,11 +1381,6 @@ void GPENCIL_OT_extrude(wmOperatorType *ot)
  *   from several different layers into a single layer.
  * \{ */
 
-/**
- * list of #bGPDstroke instances
- *
- * \note is exposed within the editors/gpencil module so that other tools can use it too.
- */
 ListBase gpencil_strokes_copypastebuf = {NULL, NULL};
 
 /* Hash for hanging on to all the colors used by strokes in the buffer
@@ -1429,7 +1424,6 @@ static void gpencil_strokes_copypastebuf_colors_name_to_material_free(GHash *nam
   BLI_ghash_free(name_to_ma, MEM_freeN, NULL);
 }
 
-/* Free copy/paste buffer data */
 void ED_gpencil_strokes_copybuf_free(void)
 {
   bGPDstroke *gps, *gpsn;
@@ -1462,10 +1456,6 @@ void ED_gpencil_strokes_copybuf_free(void)
   gpencil_strokes_copypastebuf.first = gpencil_strokes_copypastebuf.last = NULL;
 }
 
-/**
- * Ensure that destination datablock has all the colors the pasted strokes need.
- * Helper function for copy-pasting strokes
- */
 GHash *gpencil_copybuf_validate_colormap(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -2654,7 +2644,6 @@ static int gpencil_delete_selected_points(bContext *C)
   return OPERATOR_CANCELLED;
 }
 
-/* simple wrapper to external call */
 int gpencil_delete_selected_point_wrap(bContext *C)
 {
   return gpencil_delete_selected_points(C);
@@ -3319,10 +3308,6 @@ static bool gpencil_cyclical_set_curve_edit_poll_property(const bContext *C,
   return true;
 }
 
-/**
- * Similar to #CURVE_OT_cyclic_toggle or #MASK_OT_cyclic_toggle, but with
- * option to force opened/closed strokes instead of just toggle behavior.
- */
 void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -3434,9 +3419,6 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/**
- * Change Stroke caps mode Rounded or Flat
- */
 void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot)
 {
   static const EnumPropertyItem toggle_type[] = {

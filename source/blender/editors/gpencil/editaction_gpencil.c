@@ -55,7 +55,6 @@
 /* ***************************************** */
 /* Generics - Loopers */
 
-/* Loops over the gp-frames for a gp-layer, and applies the given callback */
 bool ED_gpencil_layer_frames_looper(bGPDlayer *gpl,
                                     Scene *scene,
                                     bool (*gpf_cb)(bGPDframe *, Scene *))
@@ -80,7 +79,6 @@ bool ED_gpencil_layer_frames_looper(bGPDlayer *gpl,
 /* ****************************************** */
 /* Data Conversion Tools */
 
-/* make a listing all the gp-frames in a layer as cfraelems */
 void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
 {
   CfraElem *ce;
@@ -106,7 +104,6 @@ void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlys
 /* ***************************************** */
 /* Selection Tools */
 
-/* check if one of the frames in this layer is selected */
 bool ED_gpencil_layer_frame_select_check(const bGPDlayer *gpl)
 {
   /* error checking */
@@ -145,7 +142,6 @@ static void gpencil_frame_select(bGPDframe *gpf, short select_mode)
   }
 }
 
-/* set all/none/invert select (like above, but with SELECT_* modes) */
 void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 {
   /* error checking */
@@ -159,7 +155,6 @@ void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
   }
 }
 
-/* set all/none/invert select */
 void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, short mode)
 {
   /* error checking */
@@ -171,7 +166,6 @@ void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, short mode)
   ED_gpencil_select_frames(gpl, mode);
 }
 
-/* select the frame in this layer that occurs on this frame (there should only be one at most) */
 void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 {
   bGPDframe *gpf;
@@ -187,7 +181,6 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
   }
 }
 
-/* select the frames in this layer that occur within the bounds specified */
 void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl, float min, float max, short select_mode)
 {
   if (gpl == NULL) {
@@ -202,7 +195,6 @@ void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl, float min, float max, sh
   }
 }
 
-/* select the frames in this layer that occur within the lasso/circle region specified */
 void ED_gpencil_layer_frames_select_region(KeyframeEditData *ked,
                                            bGPDlayer *gpl,
                                            short tool,
@@ -239,7 +231,6 @@ void ED_gpencil_layer_frames_select_region(KeyframeEditData *ked,
 /* ***************************************** */
 /* Frame Editing Tools */
 
-/* Delete selected frames */
 bool ED_gpencil_layer_frames_delete(bGPDlayer *gpl)
 {
   bool changed = false;
@@ -260,7 +251,6 @@ bool ED_gpencil_layer_frames_delete(bGPDlayer *gpl)
   return changed;
 }
 
-/* Duplicate selected frames from given gp-layer */
 void ED_gpencil_layer_frames_duplicate(bGPDlayer *gpl)
 {
   /* error checking */
@@ -284,11 +274,6 @@ void ED_gpencil_layer_frames_duplicate(bGPDlayer *gpl)
   }
 }
 
-/**
- * Set keyframe type for selected frames from given gp-layer
- *
- * \param type: The type of keyframe (#eBezTriple_KeyframeType) to set selected frames to.
- */
 void ED_gpencil_layer_frames_keytype_set(bGPDlayer *gpl, short type)
 {
   if (gpl == NULL) {
@@ -320,7 +305,6 @@ static int gpencil_anim_copy_firstframe = 999999999;
 static int gpencil_anim_copy_lastframe = -999999999;
 static int gpencil_anim_copy_cfra = 0;
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ED_gpencil_anim_copybuf_free(void)
 {
   BKE_gpencil_free_layers(&gpencil_anim_copybuf);
@@ -331,11 +315,6 @@ void ED_gpencil_anim_copybuf_free(void)
   gpencil_anim_copy_cfra = 0;
 }
 
-/* This function adds data to the copy/paste buffer, freeing existing data first
- * Only the selected GP-layers get their selected keyframes copied.
- *
- * Returns whether the copy operation was successful or not
- */
 bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -404,7 +383,6 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   return true;
 }
 
-/* Pastes keyframes from buffer, and reports success */
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 {
   ListBase anim_data = {NULL, NULL};
@@ -547,7 +525,6 @@ static bool gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
   return false;
 }
 
-/* snap selected frames to ... */
 void ED_gpencil_layer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
   switch (mode) {
@@ -648,8 +625,6 @@ static bool gpencil_frame_mirror_marker(bGPDframe *gpf, Scene *scene)
   return false;
 }
 
-/* mirror selected gp-frames on... */
-/* TODO: mirror over a specific time */
 void ED_gpencil_layer_mirror_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
   switch (mode) {

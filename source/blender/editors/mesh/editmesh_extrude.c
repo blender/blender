@@ -144,7 +144,6 @@ static bool edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const ch
   return true;
 }
 
-/* extrudes individual edges */
 bool edbm_extrude_edges_indiv(BMEditMesh *em,
                               wmOperator *op,
                               const char hflag,

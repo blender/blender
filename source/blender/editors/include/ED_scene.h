@@ -32,7 +32,14 @@ struct Scene *ED_scene_add(struct Main *bmain,
                            struct bContext *C,
                            struct wmWindow *win,
                            enum eSceneCopyMethod method) ATTR_NONNULL();
+/**
+ * \note Only call outside of area/region loops.
+ * \return true if successful.
+ */
 bool ED_scene_delete(struct bContext *C, struct Main *bmain, struct Scene *scene) ATTR_NONNULL();
+/**
+ * Depsgraph updates after scene becomes active in a window.
+ */
 void ED_scene_change_update(struct Main *bmain, struct Scene *scene, struct ViewLayer *layer)
     ATTR_NONNULL();
 bool ED_scene_view_layer_delete(struct Main *bmain,

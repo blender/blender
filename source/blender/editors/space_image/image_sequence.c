@@ -217,7 +217,6 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
   }
 }
 
-/* Used for both images and volume file loading. */
 ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bool detect_udim)
 {
   ListBase ranges;

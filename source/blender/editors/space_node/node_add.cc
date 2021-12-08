@@ -61,11 +61,6 @@
 /** \name Utilities
  * \{ */
 
-/**
- * XXX Does some additional initialization on top of #nodeAddNode
- * Can be used with both custom and static nodes,
- * if `idname == nullptr` the static int type will be used instead.
- */
 bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);

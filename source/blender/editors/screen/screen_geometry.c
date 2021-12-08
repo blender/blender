@@ -83,10 +83,6 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se)
   return (se->v1->vec.y == se->v2->vec.y);
 }
 
-/**
- * \param bounds_rect: Either window or screen bounds.
- * Used to exclude edges along window/screen edges.
- */
 ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
                                                   const rcti *bounds_rect,
                                                   const int mx,
@@ -124,7 +120,6 @@ ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
   return NULL;
 }
 
-/* need win size to make sure not to include edges along screen edge */
 ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
                                          const bScreen *screen,
                                          const int mx,
@@ -249,13 +244,6 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
   return needs_another_pass;
 }
 
-/**
- * \brief Main screen-layout calculation function.
- *
- * * Scale areas nicely on window size and DPI changes.
- * * Ensure areas have a minimum height.
- * * Correctly set global areas to their fixed height.
- */
 void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 {
   rcti window_rect, screen_rect;
@@ -303,9 +291,6 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
   }
 }
 
-/**
- * \return 0 if no split is possible, otherwise the screen-coordinate at which to split.
- */
 short screen_geom_find_area_split_point(const ScrArea *area,
                                         const rcti *window_rect,
                                         const eScreenAxis dir_axis,
@@ -374,9 +359,6 @@ short screen_geom_find_area_split_point(const ScrArea *area,
   return x;
 }
 
-/**
- * Select all edges that are directly or indirectly connected to \a edge.
- */
 void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
 {
   bScreen *screen = WM_window_get_active_screen(win);

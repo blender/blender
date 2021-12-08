@@ -123,7 +123,6 @@ static void view3d_smooth_view_state_restore(const struct SmoothView3DState *sms
 }
 
 /* will start timer if appropriate */
-/* the arguments are the desired situation */
 void ED_view3d_smooth_view_ex(
     /* avoid passing in the context */
     const Depsgraph *depsgraph,
@@ -407,10 +406,6 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
   return OPERATOR_FINISHED;
 }
 
-/**
- * Apply the smooth-view immediately, use when we need to start a new view operation.
- * (so we don't end up half-applying a view operation when pressing keys quickly).
- */
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region)
 {
   RegionView3D *rv3d = region->regiondata;
@@ -696,9 +691,6 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 /** \name Window and View Matrix Calculation
  * \{ */
 
-/**
- * \param rect: optional for picking (can be NULL).
- */
 void view3d_winmatrix_set(Depsgraph *depsgraph,
                           ARegion *region,
                           const View3D *v3d,
@@ -761,18 +753,6 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
   mat4_normalized_to_quat(rv3d->viewquat, rv3d->viewmat);
 }
 
-/**
- * Sets #RegionView3D.viewmat
- *
- * \param depsgraph: Depsgraph.
- * \param scene: Scene for camera and cursor location.
- * \param v3d: View 3D space data.
- * \param rv3d: 3D region which stores the final matrices.
- * \param rect_scale: Optional 2D scale argument,
- * Use when displaying a sub-region, eg: when #view3d_winmatrix_set takes a 'rect' argument.
- *
- * \note don't set windows active in here, is used by renderwin too.
- */
 void view3d_viewmatrix_set(Depsgraph *depsgraph,
                            const Scene *scene,
                            const View3D *v3d,
@@ -862,11 +842,6 @@ void view3d_viewmatrix_set(Depsgraph *depsgraph,
 /** \name OpenGL Select Utilities
  * \{ */
 
-/**
- * Optionally cache data for multiple calls to #view3d_opengl_select
- *
- * just avoid GPU_select headers outside this file
- */
 void view3d_opengl_select_cache_begin(void)
 {
   GPU_select_cache_begin();
@@ -943,13 +918,6 @@ static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void
   return ob_pose_list && (BLI_linklist_index(ob_pose_list, DEG_get_original_object(ob)) != -1);
 }
 
-/**
- * \warning be sure to account for a negative return value
- * This is an error, "Too many objects in select buffer"
- * and no action should be taken (can crash blender) if this happens
- *
- * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
- */
 int view3d_opengl_select_ex(ViewContext *vc,
                             uint *buffer,
                             uint bufsize,
@@ -1621,11 +1589,6 @@ static void view3d_local_collections_reset(Main *bmain, const uint local_view_bi
   }
 }
 
-/**
- * See if current uuid is valid, otherwise set a valid uuid to v3d,
- * Try to keep the same uuid previously used to allow users to
- * quickly toggle back and forth.
- */
 bool ED_view3d_local_collections_set(Main *bmain, struct View3D *v3d)
 {
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {

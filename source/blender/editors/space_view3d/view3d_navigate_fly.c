@@ -101,7 +101,6 @@ typedef enum eFlyPanState {
   FLY_AXISLOCK_STATE_ACTIVE = 2,
 } eFlyPanState;
 
-/* Called in transform_ops.c, on each regeneration of key-maps. */
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

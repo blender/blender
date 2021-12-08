@@ -92,7 +92,17 @@ enum {
   ED_GIZMO_ARROW_DRAW_FLAG_STEM = (1 << 0),
 };
 
+/**
+ * Define a custom property UI range.
+ *
+ * \note Needs to be called before #WM_gizmo_target_property_def_rna!
+ */
 void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *gz, const float min, const float max);
+/**
+ * Define a custom factor for arrow min/max distance.
+ *
+ * \note Needs to be called before #WM_gizmo_target_property_def_rna!
+ */
 void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *gz, const float range_fac);
 
 /* -------------------------------------------------------------------- */

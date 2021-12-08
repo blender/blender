@@ -273,10 +273,6 @@ static Panel *panel_add_instanced(ARegion *region,
   return panel;
 }
 
-/**
- * Called in situations where panels need to be added dynamically rather than
- * having only one panel corresponding to each #PanelType.
- */
 Panel *UI_panel_add_instanced(const bContext *C,
                               ARegion *region,
                               ListBase *panels,
@@ -301,10 +297,6 @@ Panel *UI_panel_add_instanced(const bContext *C,
   return new_panel;
 }
 
-/**
- * Find a unique key to append to the #PanelType.idname for the lookup to the panel's #uiBlock.
- * Needed for instanced panels, where there can be multiple with the same type and identifier.
- */
 void UI_list_panel_unique_str(Panel *panel, char *r_name)
 {
   /* The panel sort-order will be unique for a specific panel type because the instanced
@@ -334,12 +326,6 @@ static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, P
   MEM_freeN(panel);
 }
 
-/**
- * Remove instanced panels from the region's panel list.
- *
- * \note Can be called with NULL \a C, but it should be avoided because
- * handlers might not be removed.
- */
 void UI_panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
@@ -361,15 +347,6 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
   }
 }
 
-/**
- * Check if the instanced panels in the region's panels correspond to the list of data the panels
- * represent. Returns false if the panels have been reordered or if the types from the list data
- * don't match in any way.
- *
- * \param data: The list of data to check against the instanced panels.
- * \param panel_idname_func: Function to find the #PanelType.idname for each item in the data list.
- * For a readability and generality, this lookup happens separately for each type of panel list.
- */
 bool UI_panel_list_matches_data(ARegion *region,
                                 ListBase *data,
                                 uiListPanelIDFromDataFunc panel_idname_func)
@@ -701,9 +678,6 @@ Panel *UI_panel_find_by_type(ListBase *lb, const PanelType *pt)
   return NULL;
 }
 
-/**
- * \note \a panel should be return value from #UI_panel_find_by_type and can be NULL.
- */
 Panel *UI_panel_begin(
     ARegion *region, ListBase *lb, uiBlock *block, PanelType *pt, Panel *panel, bool *r_open)
 {
@@ -783,11 +757,6 @@ Panel *UI_panel_begin(
   return panel;
 }
 
-/**
- * Create the panel header button group, used to mark which buttons are part of
- * panel headers for the panel search process that happens later. This Should be
- * called before adding buttons for the panel's header layout.
- */
 void UI_panel_header_buttons_begin(Panel *panel)
 {
   uiBlock *block = panel->runtime.block;
@@ -795,9 +764,6 @@ void UI_panel_header_buttons_begin(Panel *panel)
   ui_block_new_button_group(block, UI_BUTTON_GROUP_LOCK | UI_BUTTON_GROUP_PANEL_HEADER);
 }
 
-/**
- * Finish the button group for the panel header to avoid putting panel body buttons in it.
- */
 void UI_panel_header_buttons_end(Panel *panel)
 {
   uiBlock *block = panel->runtime.block;
@@ -927,10 +893,6 @@ static void panel_matches_search_filter_recursive(const Panel *panel, bool *filt
   }
 }
 
-/**
- * Find whether a panel or any of its sub-panels contain a property that matches the search filter,
- * depending on the search process running in #UI_block_apply_search_filter earlier.
- */
 bool UI_panel_matches_search_filter(const Panel *panel)
 {
   bool search_filter_matches = false;
@@ -1022,10 +984,6 @@ static void region_panels_remove_invisible_layouts(ARegion *region)
   }
 }
 
-/**
- * Get the panel's expansion state, taking into account
- * expansion set from property search if it applies.
- */
 bool UI_panel_is_closed(const Panel *panel)
 {
   /* Header-less panels can never be closed, otherwise they could disappear. */
@@ -1051,9 +1009,6 @@ bool UI_panel_is_active(const Panel *panel)
 /** \name Drawing
  * \{ */
 
-/**
- * Draw panels, selected (panels currently being dragged) on top.
- */
 void UI_panels_draw(const bContext *C, ARegion *region)
 {
   /* Draw in reverse order, because #uiBlocks are added in reverse order
@@ -1075,7 +1030,6 @@ void UI_panels_draw(const bContext *C, ARegion *region)
 
 #define PNL_ICON UI_UNIT_X /* Could be UI_UNIT_Y too. */
 
-/* For button layout next to label. */
 void UI_panel_label_offset(const uiBlock *block, int *r_x, int *r_y)
 {
   Panel *panel = block->panel;
@@ -1294,9 +1248,6 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
   immUnbindProgram();
 }
 
-/**
- * Draw a panel integrated in buttons-window, tool/property lists etc.
- */
 void ui_draw_aligned_panel(const uiStyle *style,
                            const uiBlock *block,
                            const rcti *rect,
@@ -1361,9 +1312,6 @@ bool UI_panel_should_show_background(const ARegion *region, const PanelType *pan
 #define TABS_PADDING_BETWEEN_FACTOR 4.0f
 #define TABS_PADDING_TEXT_FACTOR 6.0f
 
-/**
- * Draw vertical tabs on the left side of the region, one tab per category.
- */
 void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 {
   // #define USE_FLAT_INACTIVE
@@ -2380,11 +2328,6 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
-/**
- * Handle region panel events like opening and closing panels, changing categories, etc.
- *
- * \note Could become a modal key-map.
- */
 int ui_handler_panel_region(bContext *C,
                             const wmEvent *event,
                             ARegion *region,
@@ -2496,11 +2439,6 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
   }
 }
 
-/**
- * Set a context for this entire panel and its current layout. This should be used whenever panel
- * callbacks that are called outside of regular drawing might require context. Currently it affects
- * the #PanelType.reorder callback only.
- */
 void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
 {
   uiLayoutSetContextPointer(panel->layout, name, ptr);

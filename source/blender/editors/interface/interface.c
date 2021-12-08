@@ -202,7 +202,6 @@ float ui_block_to_window_scale(const ARegion *region, uiBlock *block)
   return max_y - min_y;
 }
 
-/* for mouse cursor */
 void ui_window_to_block_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
@@ -356,10 +355,6 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
   }
 }
 
-/**
- * Popups will add a margin to #ARegion.winrct for shadow,
- * for interactivity (point-inside tests for eg), we want the winrct without the margin added.
- */
 void ui_region_winrct_get_no_margin(const struct ARegion *region, struct rcti *r_rect)
 {
   uiBlock *block = region->uiblocks.first;
@@ -600,7 +595,6 @@ static void ui_block_bounds_calc_popup(
   }
 }
 
-/* used for various cases */
 void UI_block_bounds_set_normal(uiBlock *block, int addval)
 {
   if (block == NULL) {
@@ -611,14 +605,12 @@ void UI_block_bounds_set_normal(uiBlock *block, int addval)
   block->bounds_type = UI_BLOCK_BOUNDS;
 }
 
-/* Used for pull-downs. */
 void UI_block_bounds_set_text(uiBlock *block, int addval)
 {
   block->bounds = addval;
   block->bounds_type = UI_BLOCK_BOUNDS_TEXT;
 }
 
-/* used for block popups */
 void UI_block_bounds_set_popup(uiBlock *block, int addval, const int bounds_offset[2])
 {
   block->bounds = addval;
@@ -633,7 +625,6 @@ void UI_block_bounds_set_popup(uiBlock *block, int addval, const int bounds_offs
   }
 }
 
-/* used for menu popups */
 void UI_block_bounds_set_menu(uiBlock *block, int addval, const int bounds_offset[2])
 {
   block->bounds = addval;
@@ -646,7 +637,6 @@ void UI_block_bounds_set_menu(uiBlock *block, int addval, const int bounds_offse
   }
 }
 
-/* used for centered popups, i.e. splash */
 void UI_block_bounds_set_centered(uiBlock *block, int addval)
 {
   block->bounds = addval;
@@ -988,11 +978,6 @@ static bool ui_but_update_from_old_block(const bContext *C,
   return found_active;
 }
 
-/**
- * Needed for temporarily rename buttons, such as in outliner or file-select,
- * they should keep calling #uiDefBut to keep them alive.
- * \return false when button removed.
- */
 bool UI_but_active_only_ex(
     const bContext *C, ARegion *region, uiBlock *block, uiBut *but, const bool remove_on_failure)
 {
@@ -1040,10 +1025,6 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
   return UI_but_active_only_ex(C, region, block, but, true);
 }
 
-/**
- * \warning This must run after other handlers have been added,
- * otherwise the handler won't be removed, see: T71112.
- */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
   /* Running this command before end-block has run, means buttons that open menus
@@ -1074,7 +1055,6 @@ bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, ui
   return done;
 }
 
-/* simulate button click */
 void UI_but_execute(const bContext *C, ARegion *region, uiBut *but)
 {
   void *active_back;
@@ -1187,9 +1167,6 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
   }
 }
 
-/* XXX, this code will shorten any allocated string to 'UI_MAX_NAME_STR'
- * since this is really long its unlikely to be an issue,
- * but this could be supported */
 void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip)
 {
   if (do_strip && (but->flag & UI_BUT_HAS_SEP_CHAR)) {
@@ -1856,11 +1833,6 @@ static void ui_but_validate(const uiBut *but)
 }
 #endif
 
-/**
- * Check if the operator \a ot poll is successful with the context given by \a but (optionally).
- * \param but: The button that might store context. Can be NULL for convenience (e.g. if there is
- *             no button to take context from, but we still want to poll the operator).
- */
 bool ui_but_context_poll_operator_ex(bContext *C,
                                      const uiBut *but,
                                      const wmOperatorCallParams *optype_params)
@@ -2016,7 +1988,6 @@ static bool ui_but_pixelrect_in_view(const ARegion *region, const rcti *rect)
   return BLI_rcti_isect(&region->winrct, &rect_winspace, NULL);
 }
 
-/* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void UI_block_draw(const bContext *C, uiBlock *block)
 {
   uiStyle style = *UI_style_get_dpi(); /* XXX pass on as arg */
@@ -2138,11 +2109,6 @@ void UI_region_message_subscribe(ARegion *region, struct wmMsgBus *mbus)
 
 /* ************* EVENTS ************* */
 
-/**
- * Check if the button is pushed, this is only meaningful for some button types.
- *
- * \return (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOTHING)
- */
 int ui_but_is_pushed_ex(uiBut *but, double *value)
 {
   int is_push = 0;
@@ -2278,7 +2244,6 @@ void UI_block_lock_clear(uiBlock *block)
  * this either works with the pointed to data, or can work with
  * an edit override pointer while dragging for example */
 
-/* for buttons pointing to color for example */
 void ui_but_v3_get(uiBut *but, float vec[3])
 {
   if (but->editvec) {
@@ -2326,7 +2291,6 @@ void ui_but_v3_get(uiBut *but, float vec[3])
   }
 }
 
-/* for buttons pointing to color for example */
 void ui_but_v3_set(uiBut *but, const float vec[3])
 {
   if (but->editvec) {
@@ -2438,9 +2402,6 @@ bool ui_but_is_unit(const uiBut *but)
   return true;
 }
 
-/**
- * Check if this button is similar enough to be grouped with another.
- */
 bool ui_but_is_compatible(const uiBut *but_a, const uiBut *but_b)
 {
   if (but_a->type != but_b->type) {
@@ -2476,9 +2437,6 @@ bool ui_but_is_rna_valid(uiBut *but)
   return false;
 }
 
-/**
- * Checks if the button supports cycling next/previous menu items (ctrl+mouse-wheel).
- */
 bool ui_but_supports_cycling(const uiBut *but)
 {
   return (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX) ||
@@ -2685,7 +2643,6 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 }
 
-/* str will be overwritten */
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 {
   if (!ui_but_is_unit(but)) {
@@ -2777,12 +2734,6 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
   return (float)step_final;
 }
 
-/**
- * \param float_precision: For number buttons the precision
- * to use or -1 to fallback to the button default.
- * \param use_exp_float: Use exponent representation of floats
- * when out of reasonable range (outside of 1e3/1e-3).
- */
 void ui_but_string_get_ex(uiBut *but,
                           char *str,
                           const size_t maxlen,
@@ -2908,12 +2859,6 @@ void ui_but_string_get(uiBut *but, char *str, const size_t maxlen)
   ui_but_string_get_ex(but, str, maxlen, -1, false, NULL);
 }
 
-/**
- * A version of #ui_but_string_get_ex for dynamic buffer sizes
- * (where #ui_but_string_get_max_length returns 0).
- *
- * \param r_str_size: size of the returned string (including terminator).
- */
 char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
 {
   char *str = NULL;
@@ -3272,9 +3217,10 @@ void ui_but_range_set_hard(uiBut *but)
   }
 }
 
-/* NOTE: this could be split up into functions which handle arrays and not. */
 void ui_but_range_set_soft(uiBut *but)
 {
+  /* This could be split up into functions which handle arrays and not. */
+
   /* Ideally we would not limit this, but practically it's more than
    * enough. Worst case is very long vectors won't use a smart soft-range,
    * which isn't so bad. */
@@ -3449,7 +3395,6 @@ static void ui_but_free(const bContext *C, uiBut *but)
   MEM_freeN(but);
 }
 
-/* can be called with C==NULL */
 void UI_block_free(const bContext *C, uiBlock *block)
 {
   UI_butstore_clear(block);
@@ -3508,7 +3453,6 @@ void UI_blocklist_draw(const bContext *C, const ListBase *lb)
   }
 }
 
-/* can be called with C==NULL */
 void UI_blocklist_free(const bContext *C, ARegion *region)
 {
   ListBase *lb = &region->uiblocks;
@@ -3638,10 +3582,6 @@ bool UI_block_is_search_only(const uiBlock *block)
   return block->flag & UI_BLOCK_SEARCH_ONLY;
 }
 
-/**
- * Use when a block must be searched to give accurate results
- * for the whole region but shouldn't be displayed.
- */
 void UI_block_set_search_only(uiBlock *block, bool search_only)
 {
   SET_FLAG_FROM_TEST(block->flag, search_only, UI_BLOCK_SEARCH_ONLY);
@@ -4013,13 +3953,6 @@ static uiBut *ui_but_alloc(const eButType type)
   return MEM_callocN(alloc_size, alloc_str);
 }
 
-/**
- * Reallocate the button (new address is returned) for a new button type.
- * This should generally be avoided and instead the correct type be created right away.
- *
- * \note Only the #uiBut data can be kept. If the old button used a derived type (e.g. #uiButTab),
- *       the data that is not inside #uiBut will be lost.
- */
 uiBut *ui_but_change_type(uiBut *but, eButType new_type)
 {
   if (but->type == new_type) {
@@ -4253,9 +4186,6 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
   }
 }
 
-/**
- * Avoid using this where possible since it's better not to ask for an icon in the first place.
- */
 void ui_def_but_icon_clear(uiBut *but)
 {
   but->icon = ICON_NONE;
@@ -5309,7 +5239,6 @@ uiBut *uiDefButO(uiBlock *block,
   return uiDefButO_ptr(block, type, ot, opcontext, str, x, y, width, height, tip);
 }
 
-/* if a1==1.0 then a2 is an extra icon blending factor (alpha 0.0 - 1.0) */
 uiBut *uiDefIconBut(uiBlock *block,
                     int type,
                     int retval,
@@ -5689,7 +5618,6 @@ uiBut *uiDefIconButO(uiBlock *block,
   return uiDefIconButO_ptr(block, type, ot, opcontext, icon, x, y, width, height, tip);
 }
 
-/* Button containing both string label and icon */
 uiBut *uiDefIconTextBut(uiBlock *block,
                         int type,
                         int retval,
@@ -6120,7 +6048,6 @@ void UI_block_direction_set(uiBlock *block, char direction)
   block->direction = direction;
 }
 
-/* this call escapes if there's alignment flags */
 void UI_block_order_flip(uiBlock *block)
 {
   float centy, miny = 10000, maxy = -10000;
@@ -6224,19 +6151,12 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
   but->dragpoin = (void *)id;
 }
 
-/**
- * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
- * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
- */
 void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
 {
   but->imb = imb;
   but->imb_scale = scale;
 }
 
-/**
- * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
- */
 void UI_but_drag_set_asset(uiBut *but,
                            const AssetHandle *asset,
                            const char *path,
@@ -6298,7 +6218,6 @@ void UI_but_drag_set_name(uiBut *but, const char *name)
   but->dragpoin = (void *)name;
 }
 
-/* value from button itself */
 void UI_but_drag_set_value(uiBut *but)
 {
   but->dragtype = WM_DRAG_VALUE;
@@ -6561,7 +6480,6 @@ uiBut *uiDefIconMenuBut(uiBlock *block,
   return but;
 }
 
-/* Block button containing both string label and icon */
 uiBut *uiDefIconTextBlockBut(uiBlock *block,
                              uiBlockCreateFunc func,
                              void *arg,
@@ -6590,7 +6508,6 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block,
   return but;
 }
 
-/* Block button containing icon */
 uiBut *uiDefIconBlockBut(uiBlock *block,
                          uiBlockCreateFunc func,
                          void *arg,
@@ -6643,8 +6560,6 @@ uiBut *uiDefKeyevtButS(uiBlock *block,
   return but;
 }
 
-/* short pointers hardcoded */
-/* modkeypoin will be set to KM_SHIFT, KM_ALT, KM_CTRL, KM_OSKEY bits */
 uiBut *uiDefHotKeyevtButS(uiBlock *block,
                           int retval,
                           const char *str,
@@ -6675,8 +6590,6 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block,
   return but;
 }
 
-/* arg is pointer to string/name, use UI_but_func_search_set() below to make this work */
-/* here a1 and a2, if set, control thumbnail preview rows/cols */
 uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,
                       int retval,
@@ -6702,21 +6615,6 @@ uiBut *uiDefSearchBut(uiBlock *block,
   return but;
 }
 
-/**
- * \note The item-pointer (referred to below) is a per search item user pointer
- * passed to #UI_search_item_add (stored in  #uiSearchItems.pointers).
- *
- * \param search_create_fn: Function to create the menu.
- * \param search_update_fn: Function to refresh search content after the search text has changed.
- * \param arg: user value.
- * \param free_arg: Set to true if the argument is newly allocated memory for every redraw and
- * should be freed when the button is destroyed.
- * \param search_arg_free_fn: When non-null, use this function to free \a arg.
- * \param search_exec_fn: Function that executes the action, gets \a arg as the first argument.
- * The second argument as the active item-pointer
- * \param active: When non-null, this item-pointer item will be visible and selected,
- * otherwise the first item will be selected.
- */
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
                             uiButSearchUpdateFn search_update_fn,
@@ -6783,10 +6681,6 @@ void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn co
   but_search->item_context_menu_fn = context_menu_fn;
 }
 
-/**
- * \param search_sep_string: when not NULL, this string is used as a separator,
- * showing the icon and highlighted text after the last instance of this string.
- */
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string)
 {
   uiButSearch *but_search = (uiButSearch *)but;
@@ -6883,10 +6777,6 @@ static void operator_enum_search_exec_fn(struct bContext *UNUSED(C), void *but, 
   }
 }
 
-/**
- * Same parameters as for uiDefSearchBut, with additional operator type and properties,
- * used by callback to call again the right op with the right options (properties values).
- */
 uiBut *uiDefSearchButO_ptr(uiBlock *block,
                            wmOperatorType *ot,
                            IDProperty *properties,
@@ -6933,9 +6823,6 @@ void UI_but_treerow_indentation_set(uiBut *but, int indentation)
   BLI_assert(indentation >= 0);
 }
 
-/**
- * Adds a hint to the button which draws right aligned, grayed out and never clipped.
- */
 void UI_but_hint_drawstr_set(uiBut *but, const char *string)
 {
   ui_but_add_shortcut(but, string, false);
@@ -6967,10 +6854,6 @@ void UI_but_number_precision_set(uiBut *but, float precision)
   BLI_assert(precision > -2);
 }
 
-/**
- * push a new event onto event queue to activate the given button
- * (usually a text-field) upon entering a popup
- */
 void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
 {
   wmEvent event;
@@ -7273,7 +7156,6 @@ void UI_init(void)
   ui_resources_init();
 }
 
-/* after reading userdef file */
 void UI_init_userdef(void)
 {
   /* Initialize UI variables from values set in the preferences. */

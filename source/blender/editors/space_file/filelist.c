@@ -179,7 +179,6 @@ int folderlist_clear_next(struct SpaceFile *sfile)
   return 1;
 }
 
-/* not listbase itself */
 void folderlist_free(ListBase *folderlist)
 {
   if (folderlist) {
@@ -1131,11 +1130,6 @@ void filelist_setfilter_options(FileList *filelist,
   }
 }
 
-/**
- * Set the indexer to be used by the filelist.
- *
- * The given indexer allocation should be handled by the caller or defined statically.
- */
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
 {
   BLI_assert(filelist);
@@ -1144,10 +1138,6 @@ void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
   filelist->indexer = indexer;
 }
 
-/**
- * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
- *                    #FILE_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
- */
 void filelist_set_asset_catalog_filter_options(
     FileList *filelist,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
@@ -1187,9 +1177,6 @@ static bool filelist_compare_asset_libraries(const AssetLibraryReference *librar
   return true;
 }
 
-/**
- * \param asset_library_ref: May be NULL to unset the library.
- */
 void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library_ref)
 {
   /* Unset if needed. */
@@ -1979,10 +1966,6 @@ void filelist_clear(FileList *filelist)
   filelist_clear_ex(filelist, true, true, true);
 }
 
-/**
- * A "smarter" version of #filelist_clear() that calls partial clearing based on the filelist
- * force-reset flags.
- */
 void filelist_clear_from_reset_tag(FileList *filelist)
 {
   /* Do a full clear if needed. */
@@ -2089,9 +2072,6 @@ bool filelist_is_dir(struct FileList *filelist, const char *path)
   return filelist->check_dir_fn(filelist, (char *)path, false);
 }
 
-/**
- * May modify in place given r_dir, which is expected to be FILE_MAX_LIBEXTRA length.
- */
 void filelist_setdir(struct FileList *filelist, char *r_dir)
 {
   const bool allow_invalid = filelist->asset_library_ref != NULL;
@@ -2149,12 +2129,6 @@ bool filelist_needs_reset_on_main_changes(const FileList *filelist)
   return (filelist->tags & FILELIST_TAGS_USES_MAIN_DATA) != 0;
 }
 
-/**
- * Limited version of full update done by space_file's file_refresh(),
- * to be used by operators and such.
- * Ensures given filelist is ready to be used (i.e. it is filtered and sorted),
- * unless it is tagged for a full refresh.
- */
 int filelist_files_ensure(FileList *filelist)
 {
   if (!filelist_needs_force_reset(filelist) || !filelist_needs_reading(filelist)) {
@@ -2267,10 +2241,6 @@ FileDirEntry *filelist_file(struct FileList *filelist, int index)
   return filelist_file_ex(filelist, index, true);
 }
 
-/**
- * Find a file from a file name, or more precisely, its file-list relative path, inside the
- * filtered items. \return The index of the found file or -1.
- */
 int filelist_file_find_path(struct FileList *filelist, const char *filename)
 {
   if (filelist->filelist.nbr_entries_filtered == FILEDIR_NBR_ENTRIES_UNSET) {
@@ -2291,10 +2261,6 @@ int filelist_file_find_path(struct FileList *filelist, const char *filename)
   return -1;
 }
 
-/**
- * Find a file representing \a id.
- * \return The index of the found file or -1.
- */
 int filelist_file_find_id(const FileList *filelist, const ID *id)
 {
   if (filelist->filelist.nbr_entries_filtered == FILEDIR_NBR_ENTRIES_UNSET) {
@@ -2311,9 +2277,6 @@ int filelist_file_find_id(const FileList *filelist, const ID *id)
   return -1;
 }
 
-/**
- * Get the ID a file represents (if any). For #FILE_MAIN, #FILE_MAIN_ASSET.
- */
 ID *filelist_file_get_id(const FileDirEntry *file)
 {
   return file->id;
@@ -2409,7 +2372,6 @@ static void filelist_file_cache_block_release(struct FileList *filelist,
   }
 }
 
-/* Load in cache all entries "around" given index (as much as block cache may hold). */
 bool filelist_file_cache_block(struct FileList *filelist, const int index)
 {
   FileListEntryCache *cache = &filelist->filelist_cache;
@@ -2752,8 +2714,6 @@ static bool file_is_blend_backup(const char *str)
   return retval;
 }
 
-/* TODO: Maybe we should move this to BLI?
- * On the other hand, it's using defines from space-file area, so not sure... */
 int ED_path_extension_type(const char *path)
 {
   if (BLO_has_bfile_extension(path)) {
@@ -2981,9 +2941,6 @@ bool filelist_entry_is_selected(FileList *filelist, const int index)
   return selection_state != 0;
 }
 
-/**
- * Set selection of the '..' parent entry, but only if it's actually visible.
- */
 void filelist_entry_parent_select_set(FileList *filelist,
                                       FileSelType select,
                                       uint flag,
@@ -2994,7 +2951,6 @@ void filelist_entry_parent_select_set(FileList *filelist,
   }
 }
 
-/* WARNING! dir must be FILE_MAX_LIBEXTRA long! */
 bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group)
 {
   return BLO_library_path_explode(filelist->filelist.root, dir, r_group, NULL);

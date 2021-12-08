@@ -295,10 +295,6 @@ static void constraint_snap_plane_to_edge(const TransInfo *t, const float plane[
   }
 }
 
-/**
- * Snap to the nearest point between the snap point and the line that
- * intersects the face plane with the constraint plane.
- */
 static void UNUSED_FUNCTION(constraint_snap_plane_to_face(const TransInfo *t,
                                                           const float plane[4],
                                                           float r_out[3]))
@@ -314,9 +310,6 @@ static void UNUSED_FUNCTION(constraint_snap_plane_to_face(const TransInfo *t,
   }
 }
 
-/**
- * Snap to the nearest point on the axis to the edge/line element.
- */
 void transform_constraint_snap_axis_to_edge(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3])
@@ -331,9 +324,6 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
   }
 }
 
-/**
- * Snap to the intersection of the axis and the plane defined by the face.
- */
 void transform_constraint_snap_axis_to_face(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3])
@@ -700,7 +690,6 @@ void setConstraint(TransInfo *t, int mode, const char text[])
   t->redraw = TREDRAW_HARD;
 }
 
-/* applies individual td->axismtx constraints */
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
   BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
@@ -728,12 +717,6 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
   }
 }
 
-/**
- * Set the constraint according to the user defined orientation
- *
- * `ftext` is a format string passed to #BLI_snprintf. It will add the name of
- * the orientation where %s is (logically).
- */
 void setUserConstraint(TransInfo *t, int mode, const char ftext[])
 {
   char text[256];
@@ -842,7 +825,6 @@ void drawConstraint(TransInfo *t)
   }
 }
 
-/* called from drawview.c, as an extra per-window draw option */
 void drawPropCircle(const struct bContext *C, TransInfo *t)
 {
   if (t->flag & T_PROP_EDIT) {
@@ -1200,13 +1182,6 @@ bool isLockConstraint(const TransInfo *t)
   return false;
 }
 
-/**
- * Returns the dimension of the constraint space.
- *
- * For that reason, the flags always needs to be set to properly evaluate here,
- * even if they aren't actually used in the callback function.
- * (Which could happen for weird constraints not yet designed. Along a path for example.)
- */
 int getConstraintSpaceDimension(const TransInfo *t)
 {
   int n = 0;

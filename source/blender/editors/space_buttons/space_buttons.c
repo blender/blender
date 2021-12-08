@@ -166,11 +166,6 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 /** \name Property Editor Layout
  * \{ */
 
-/**
- * Fills an array with the tab context values for the properties editor. -1 signals a separator.
- *
- * \return The total number of items in the array returned.
- */
 int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
 {
   int length = 0;
@@ -924,7 +919,6 @@ static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id
 /** \name Space Type Initialization
  * \{ */
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_buttons(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype buttons");

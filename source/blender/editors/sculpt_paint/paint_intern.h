@@ -59,6 +59,7 @@ typedef struct CoNo {
 } CoNo;
 
 /* paint_stroke.c */
+
 typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
 typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C,
@@ -77,13 +78,25 @@ struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      int event_type);
 void paint_stroke_free(struct bContext *C, struct wmOperator *op);
 
+/**
+ * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
+ */
 bool paint_space_stroke_enabled(struct Brush *br, enum ePaintMode mode);
+/**
+ * Return true if the brush size can change during paint (normally used for pressure).
+ */
 bool paint_supports_dynamic_size(struct Brush *br, enum ePaintMode mode);
+/**
+ * Return true if the brush size can change during paint (normally used for pressure).
+ */
 bool paint_supports_dynamic_tex_coords(struct Brush *br, enum ePaintMode mode);
 bool paint_supports_smooth_stroke(struct Brush *br, enum ePaintMode mode);
 bool paint_supports_texture(enum ePaintMode mode);
 bool paint_supports_jitter(enum ePaintMode mode);
 
+/**
+ * Called in paint_ops.c, on each regeneration of key-maps.
+ */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
@@ -96,14 +109,21 @@ float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
 bool PAINT_brush_tool_poll(struct bContext *C);
 void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
+/**
+ * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
+ */
 void paint_cursor_delete_textures(void);
 
 /* paint_vertex.c */
+
 bool weight_paint_poll(struct bContext *C);
 bool weight_paint_poll_ignore_tool(bContext *C);
 bool weight_paint_mode_poll(struct bContext *C);
 bool vertex_paint_poll(struct bContext *C);
 bool vertex_paint_poll_ignore_tool(struct bContext *C);
+/**
+ * Returns true if vertex paint mode is active.
+ */
 bool vertex_paint_mode_poll(struct bContext *C);
 
 typedef void (*VPaintTransform_Callback)(const float col[3],
@@ -126,15 +146,31 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 unsigned int vpaint_get_current_col(struct Scene *scene, struct VPaint *vp, bool secondary);
 
 /* paint_vertex_color_utils.c */
+
+/**
+ * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
+ */
 unsigned int ED_vpaint_blend_tool(const int tool,
                                   const uint col,
                                   const uint paintcol,
                                   const int alpha_i);
+/**
+ * Apply callback to each vertex of the active vertex color layer.
+ */
 bool ED_vpaint_color_transform(struct Object *ob,
                                VPaintTransform_Callback vpaint_tx_fn,
                                const void *user_data);
 
 /* paint_vertex_weight_utils.c */
+
+/**
+ * \param weight: Typically the current weight: #MDeformWeight.weight
+ *
+ * \return The final weight, note that this is _not_ clamped from [0-1].
+ * Clamping must be done on the final #MDeformWeight.weight
+ *
+ * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
+ */
 float ED_wpaint_blend_tool(const int tool,
                            const float weight,
                            const float paintval,
@@ -147,13 +183,18 @@ struct WPaintVGroupIndex {
   int active;
   int mirror;
 };
+/**
+ * Ensure we have data on wpaint start, add if needed.
+ */
 bool ED_wpaint_ensure_data(struct bContext *C,
                            struct ReportList *reports,
                            enum eWPaintFlag flag,
                            struct WPaintVGroupIndex *vgroup_index);
+/** Return -1 when invalid. */
 int ED_wpaint_mirror_vgroup_ensure(struct Object *ob, const int vgroup_active);
 
 /* paint_vertex_color_ops.c */
+
 void PAINT_OT_vertex_color_set(struct wmOperatorType *ot);
 void PAINT_OT_vertex_color_from_weight(struct wmOperatorType *ot);
 void PAINT_OT_vertex_color_smooth(struct wmOperatorType *ot);
@@ -163,6 +204,7 @@ void PAINT_OT_vertex_color_invert(struct wmOperatorType *ot);
 void PAINT_OT_vertex_color_levels(struct wmOperatorType *ot);
 
 /* paint_vertex_weight_ops.c */
+
 void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
 void PAINT_OT_weight_sample(struct wmOperatorType *ot);
 void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
@@ -206,6 +248,9 @@ void paint_2d_stroke(void *ps,
                      float pressure,
                      float distance,
                      float size);
+/**
+ * This function expects linear space color values.
+ */
 void paint_2d_bucket_fill(const struct bContext *C,
                           const float color[3],
                           struct Brush *br,
@@ -291,13 +336,16 @@ void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
                                    const float cursor_position[2]);
 
 /* sculpt_uv.c */
+
 void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 
 /* paint_utils.c */
 
-/* Convert the object-space axis-aligned bounding box (expressed as
+/**
+ * Convert the object-space axis-aligned bounding box (expressed as
  * its minimum and maximum corners) into a screen-space rectangle,
- * returns zero if the result is empty */
+ * returns zero if the result is empty.
+ */
 bool paint_convert_bb_to_rect(struct rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
@@ -305,9 +353,11 @@ bool paint_convert_bb_to_rect(struct rcti *rect,
                               struct RegionView3D *rv3d,
                               struct Object *ob);
 
-/* Get four planes in object-space that describe the projection of
+/**
+ * Get four planes in object-space that describe the projection of
  * screen_rect from screen into object-space (essentially converting a
- * 2D screens-space bounding box into four 3D planes) */
+ * 2D screens-space bounding box into four 3D planes).
+ */
 void paint_calc_redraw_planes(float planes[4][4],
                               const struct ARegion *region,
                               struct Object *ob,
@@ -327,6 +377,9 @@ void paint_get_tex_pixel_col(const struct MTex *mtex,
                              bool convert,
                              struct ColorSpace *colorspace);
 
+/**
+ * Used for both 3D view and image window.
+ */
 void paint_sample_color(
     struct bContext *C, struct ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
@@ -348,6 +401,9 @@ bool mask_paint_poll(struct bContext *C);
 bool paint_curve_poll(struct bContext *C);
 
 bool facemask_paint_poll(struct bContext *C);
+/**
+ * Uses symm to selectively flip any axis of a coordinate.
+ */
 void flip_v3_v3(float out[3], const float in[3], const enum ePaintSymmetryFlags symm);
 void flip_qt_qt(float out[4], const float in[4], const enum ePaintSymmetryFlags symm);
 
@@ -405,7 +461,10 @@ typedef struct {
 } BlurKernel;
 
 enum eBlurKernelType;
-/* can be extended to other blur kernels later */
+/**
+ * Paint blur kernels. Projective painting enforces use of a 2x2 kernel due to lagging.
+ * Can be extended to other blur kernels later,
+ */
 BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
 

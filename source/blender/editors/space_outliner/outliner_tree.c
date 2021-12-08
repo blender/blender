@@ -203,12 +203,6 @@ void outliner_cleanup_tree(SpaceOutliner *space_outliner)
   outliner_storage_cleanup(space_outliner);
 }
 
-/**
- * Free \a element and its sub-tree and remove its link in \a parent_subtree.
- *
- * \note Does not remove the #TreeStoreElem of \a element!
- * \param parent_subtree: Sub-tree of the parent element, so the list containing \a element.
- */
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
 {
   BLI_assert(BLI_findindex(parent_subtree, element) > -1);
@@ -235,10 +229,6 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
   return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
 }
 
-/**
- * Check if a display mode needs a full rebuild if the open/collapsed state changes.
- * Element types in these modes don't actually add children if collapsed, so the rebuild is needed.
- */
 bool outliner_requires_rebuild_on_open_change(const SpaceOutliner *space_outliner)
 {
   return ELEM(space_outliner->outlinevis, SO_DATA_API);
@@ -822,13 +812,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   }
 }
 
-/**
- * TODO: this function needs to be split up! It's getting a bit too large...
- *
- * \note "ID" is not always a real ID.
- * \note If child items are only added to the tree if the item is open,
- * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
- */
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,
                                   void *idv,
@@ -1176,7 +1159,6 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
 
 /* Hierarchy --------------------------------------------- */
 
-/* make sure elements are correctly nested */
 void outliner_make_object_parent_hierarchy(ListBase *lb)
 {
   /* build hierarchy */
@@ -1876,7 +1858,6 @@ static void outliner_clear_newid_from_main(Main *bmain)
 /* ======================================================= */
 /* Main Tree Building API */
 
-/* Main entry point for building the tree data-structure that the outliner represents. */
 void outliner_build_tree(Main *mainvar,
                          Scene *scene,
                          ViewLayer *view_layer,

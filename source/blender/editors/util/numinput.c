@@ -98,7 +98,6 @@ void initNumInput(NumInput *n)
   n->str_cur = 0;
 }
 
-/* str must be NUM_STR_REP_LEN * (idx_max + 1) length. */
 void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 {
   short j;
@@ -201,9 +200,6 @@ bool hasNumInput(const NumInput *n)
   return false;
 }
 
-/**
- * \warning \a vec must be set beforehand otherwise we risk uninitialized vars.
- */
 bool applyNumInput(NumInput *n, float *vec)
 {
   short i, j;

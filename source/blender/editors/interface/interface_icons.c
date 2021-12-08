@@ -830,8 +830,6 @@ static void free_icons_textures(void)
   }
 }
 
-/* Reload the textures for internal icons.
- * This function will release the previous textures. */
 void UI_icons_reload_internal_textures(void)
 {
   bTheme *btheme = UI_GetTheme();
@@ -1182,7 +1180,6 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-/* NOTE:, returns unscaled by DPI. */
 int UI_icon_get_width(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
@@ -1242,8 +1239,6 @@ void UI_icons_init()
 #endif
 }
 
-/* Render size for preview images and icons
- */
 int UI_icon_preview_to_render_size(enum eIconSizes size)
 {
   switch (size) {
@@ -2031,9 +2026,6 @@ static void ui_id_preview_image_render_size(
   }
 }
 
-/**
- * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
- */
 void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
@@ -2473,7 +2465,6 @@ int UI_icon_color_from_collection(const Collection *collection)
   return icon;
 }
 
-/* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
   UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, NULL, false);

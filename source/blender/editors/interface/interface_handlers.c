@@ -555,7 +555,6 @@ bool ui_but_is_editing(const uiBut *but)
   return (data && ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING));
 }
 
-/* assumes event type is MOUSEPAN */
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
   static int lastdy = 0;
@@ -594,11 +593,6 @@ static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but
           (but_a->rnaprop == but_b->rnaprop));
 }
 
-/**
- * Finds the pressed button in an aligned row (typically an expanded enum).
- *
- * \param direction: Use when there may be multiple buttons pressed.
- */
 uiBut *ui_but_find_select_in_enum(uiBut *but, int direction)
 {
   uiBut *but_iter = but;
@@ -2992,11 +2986,6 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
 /** \name Button Text Selection/Editing
  * \{ */
 
-/**
- * Use handling code to set a string for the button. Handles the case where the string is set for a
- * search button while the search menu is open, so the results are updated accordingly.
- * This is basically the same as pasting the string into the button.
- */
 void ui_but_set_string_interactive(bContext *C, uiBut *but, const char *value)
 {
   button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
@@ -8191,9 +8180,6 @@ static void ui_blocks_set_tooltips(ARegion *region, const bool enable)
   }
 }
 
-/**
- * Recreate tool-tip (use to update dynamic tips)
- */
 void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 {
   uiHandleButtonData *data = but->active;
@@ -8205,10 +8191,6 @@ void UI_but_tooltip_refresh(bContext *C, uiBut *but)
   }
 }
 
-/**
- * Removes tool-tip timer from active but
- * (meaning tool-tip is disabled until it's re-enabled again).
- */
 void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 {
   uiHandleButtonData *data = but->active;
@@ -8776,11 +8758,6 @@ uiBut *UI_context_active_but_get(const bContext *C)
   return ui_context_button_active(CTX_wm_region(C), NULL);
 }
 
-/*
- * Version of #UI_context_active_get() that uses the result of #CTX_wm_menu()
- * if set. Does not traverse into parent menus, which may be wanted in some
- * cases.
- */
 uiBut *UI_context_active_but_get_respect_menu(const bContext *C)
 {
   ARegion *region_menu = CTX_wm_menu(C);
@@ -8804,12 +8781,6 @@ uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
   return ui_block_find_mouse_over_ex(region, xy, only_clip);
 }
 
-/**
- * Version of #UI_context_active_but_get that also returns RNA property info.
- * Helper function for insert keyframe, reset to default, etc operators.
- *
- * \return active button, NULL if none found or if it doesn't contain valid RNA data.
- */
 uiBut *UI_context_active_but_prop_get(const bContext *C,
                                       struct PointerRNA *r_ptr,
                                       struct PropertyRNA **r_prop,
@@ -8885,16 +8856,12 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   return NULL;
 }
 
-/**
- * Try to find a search-box region opened from a button in \a button_region.
- */
 ARegion *UI_region_searchbox_region_get(const ARegion *button_region)
 {
   uiBut *but = UI_region_active_but_get(button_region);
   return (but != NULL) ? but->active->searchbox : NULL;
 }
 
-/* helper function for insert keyframe, reset to default, etc operators */
 void UI_context_update_anim_flag(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -8943,10 +8910,6 @@ void UI_context_update_anim_flag(const bContext *C)
   }
 }
 
-/**
- * In some cases we may want to update the view (#View2D) in-between layout definition and drawing.
- * E.g. to make sure a button is visible while editing.
- */
 void ui_but_update_view_for_active(const bContext *C, const uiBlock *block)
 {
   uiBut *active_but = ui_block_active_but_get(block);
@@ -9006,11 +8969,6 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *reg
   return WM_UI_HANDLER_CONTINUE;
 }
 
-/**
- * Exported to interface.c: #UI_but_active_only()
- * \note The region is only for the button.
- * The context needs to be set by the caller.
- */
 void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -9028,12 +8986,6 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   ui_do_button(C, but->block, but, &event);
 }
 
-/**
- * Simulate moving the mouse over a button (or navigating to it with arrow keys).
- *
- * exported so menus can start with a highlighted button,
- * even if the mouse isn't over it
- */
 void ui_but_activate_over(bContext *C, ARegion *region, uiBut *but)
 {
   button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
@@ -11273,10 +11225,6 @@ static int ui_handle_menus_recursive(bContext *C,
   return retval;
 }
 
-/**
- * Allow setting menu return value from externals.
- * E.g. WM might need to do this for exiting files correctly.
- */
 void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable)
 {
   uiPopupBlockHandle *menu = block->handle;
@@ -11686,7 +11634,6 @@ void UI_region_free_active_but_all(bContext *C, ARegion *region)
   }
 }
 
-/* is called by notifier */
 void UI_screen_free_active_but_highlight(const bContext *C, bScreen *screen)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -11721,8 +11668,6 @@ uiBut *UI_but_active_drop_name_button(const bContext *C)
   return NULL;
 }
 
-/* returns true if highlighted button allows drop of names */
-/* called in region context */
 bool UI_but_active_drop_name(const bContext *C)
 {
   return UI_but_active_drop_name_button(C) != NULL;

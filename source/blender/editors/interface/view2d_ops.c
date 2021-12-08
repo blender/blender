@@ -1570,8 +1570,6 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
   return min_ff(fac_max, 1.0f);
 }
 
-/* will start timer if appropriate */
-/* the arguments are the desired situation */
 void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const int smooth_viewtx)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1761,7 +1759,6 @@ typedef struct v2dScrollerMove {
  * For now, we don't need to have a separate (internal) header for structs like this...
  */
 struct View2DScrollers {
-  /* focus bubbles */
   int vert_min, vert_max; /* vertical scrollbar */
   int hor_min, hor_max;   /* horizontal scrollbar */
 

@@ -298,7 +298,6 @@ static void particle_undosys_foreach_ID_ref(UndoStep *us_p,
   foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->object_ref));
 }
 
-/* Export for ED_undo_sys. */
 void ED_particle_undosys_type(UndoType *ut)
 {
   ut->name = "Edit Particle";

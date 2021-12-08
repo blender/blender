@@ -201,7 +201,6 @@ static void paint_last_stroke_update(Scene *scene, const float location[3])
 
 /* polling - retrieve whether cursor should be set or operator should be done */
 
-/* Returns true if vertex paint mode is active */
 bool vertex_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);

@@ -39,13 +39,6 @@
 
 #include "ED_gpencil.h"
 
-/**
- * Populate stroke with point data from data buffers.
- * \param gps: Grease pencil stroke
- * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
- * \param totpoints: Total of points
- * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
- */
 void ED_gpencil_stroke_init_data(bGPDstroke *gps,
                                  const float *array,
                                  const int totpoints,
@@ -842,7 +835,6 @@ static const ColorTemplate gp_monkey_pct_pupils = {
 /* ***************************************************************** */
 /* Monkey API */
 
-/* add a 2D Suzanne (original model created by Matias Mendiola) */
 void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 {
   Main *bmain = CTX_data_main(C);

@@ -1076,7 +1076,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* contextual render, using current scene, view3d? */
 void RENDER_OT_render(wmOperatorType *ot)
 {
   PropertyRNA *prop;

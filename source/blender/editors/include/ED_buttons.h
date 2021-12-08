@@ -30,6 +30,11 @@ struct ScrArea;
 struct SpaceProperties;
 struct bContext;
 
+/**
+ * Fills an array with the tab context values for the properties editor. -1 signals a separator.
+ *
+ * \return The total number of items in the array returned.
+ */
 int ED_buttons_tabs_list(struct SpaceProperties *sbuts, short *context_tabs_array);
 bool ED_buttons_tab_has_search_result(struct SpaceProperties *sbuts, const int index);
 

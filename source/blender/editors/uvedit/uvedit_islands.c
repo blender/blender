@@ -237,9 +237,6 @@ static void bm_face_array_uv_scale_y(BMFace **faces,
 /** \name UDIM packing helper functions
  * \{ */
 
-/**
- *  Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
- */
 bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], const float coords[2])
 {
   const float coords_floor[2] = {floorf(coords[0]), floorf(coords[1])};

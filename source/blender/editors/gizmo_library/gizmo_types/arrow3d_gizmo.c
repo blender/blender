@@ -448,11 +448,6 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 /** \name Arrow Gizmo API
  * \{ */
 
-/**
- * Define a custom property UI range
- *
- * \note Needs to be called before WM_gizmo_target_property_def_rna!
- */
 void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
@@ -467,11 +462,6 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
   arrow->data.is_custom_range_set = true;
 }
 
-/**
- * Define a custom factor for arrow min/max distance
- *
- * \note Needs to be called before WM_gizmo_target_property_def_rna!
- */
 void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, const float range_fac)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;

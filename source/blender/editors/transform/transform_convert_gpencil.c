@@ -748,7 +748,6 @@ void createTransGPencil(bContext *C, TransInfo *t)
   }
 }
 
-/* force recalculation of triangles during transformation */
 void recalcData_gpencil_strokes(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);

@@ -623,8 +623,6 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
   return 1;
 }
 
-/* centroid, boundbox, of selection */
-/* returns total items selected */
 int ED_transform_calc_gizmo_stats(const bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds)
@@ -2005,7 +2003,6 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
                "");
 }
 
-/** Only poll, flag & gzmap_params differ. */
 void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "3D View: Transform Gizmo Context";

@@ -1466,10 +1466,6 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   return region;
 }
 
-/**
- * \param is_label: When true, show a small tip that only shows the name, otherwise show the full
- *                  tooltip.
- */
 ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label)
 {
   return UI_tooltip_create_from_button_or_extra_icon(C, butregion, but, NULL, is_label);
@@ -1542,13 +1538,6 @@ static uiTooltipData *ui_tooltip_data_from_search_item_tooltip_data(
   return data;
 }
 
-/**
- * Create a tooltip from search-item tooltip data \a item_tooltip data.
- * To be called from a callback set with #UI_but_func_search_set_tooltip().
- *
- * \param item_rect: Rectangle of the search item in search region space (#ui_searchbox_butrect())
- *                   which is passed to the tooltip callback.
- */
 ARegion *UI_tooltip_create_from_search_item_generic(
     bContext *C,
     const ARegion *searchbox_region,

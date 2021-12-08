@@ -175,10 +175,6 @@ void gizmo_color_get(const wmGizmo *gz, const bool highlight, float r_col[4])
 
 /* -------------------------------------------------------------------- */
 
-/**
- * Takes mouse coordinates and returns them in relation to the gizmo.
- * Both 2D & 3D supported, use so we can use 2D gizmos in the 3D view.
- */
 bool gizmo_window_project_2d(bContext *C,
                              const struct wmGizmo *gz,
                              const float mval[2],

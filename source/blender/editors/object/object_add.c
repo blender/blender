@@ -130,7 +130,7 @@
 /** \name Local Enum Declarations
  * \{ */
 
-/* this is an exact copy of the define in rna_light.c
+/* This is an exact copy of the define in `rna_light.c`
  * kept here because of linking order.
  * Icons are only defined here */
 const EnumPropertyItem rna_enum_light_type_items[] = {
@@ -331,8 +331,6 @@ void ED_object_base_init_transform_on_add(Object *object, const float loc[3], co
   BKE_object_to_mat4(object, object->obmat);
 }
 
-/* Uses context to figure out transform for primitive.
- * Returns standard diameter. */
 float ED_object_new_primitive_matrix(bContext *C,
                                      Object *obedit,
                                      const float loc[3],
@@ -603,12 +601,6 @@ bool ED_object_add_generic_get_opts(bContext *C,
   return true;
 }
 
-/**
- * For object add primitive operators, or for object creation when `obdata != NULL`.
- * \param obdata: Assigned to #Object.data, with increased user count.
- *
- * \note Do not call undo push in this function (users of this function have to).
- */
 Object *ED_object_add_type_with_obdata(bContext *C,
                                        const int type,
                                        const char *name,
@@ -1724,7 +1716,6 @@ static int object_instance_add_invoke(bContext *C, wmOperator *op, const wmEvent
   return op->type->exec(C, op);
 }
 
-/* only used as menu */
 void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1994,8 +1985,7 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Delete Object Operator
  * \{ */
-/* remove base from a specific scene */
-/* NOTE: now unlinks constraints as well. */
+
 void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 {
   if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
@@ -2013,10 +2003,6 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
   BKE_scene_collections_object_remove(bmain, scene, ob, true);
 }
 
-/**
- * Remove base from a specific scene.
- * `ob` must not be indirectly used.
- */
 void ED_object_base_free_and_unlink_no_indirect_check(Main *bmain, Scene *scene, Object *ob)
 {
   BLI_assert(!BKE_library_ID_is_indirectly_used(bmain, ob));
@@ -3372,10 +3358,6 @@ static Base *object_add_duplicate_internal(Main *bmain,
 }
 
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
-/* leaves selection of base/object unaltered.
- * NOTE: don't call this within a loop since clear_* funcs loop over the entire database.
- * NOTE: caller must do DAG_relations_tag_update(bmain);
- *       this is not done automatic since we may duplicate many objects in a batch */
 Base *ED_object_add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, const eDupli_ID_Flags dupflag)
 {

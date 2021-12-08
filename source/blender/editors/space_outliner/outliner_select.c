@@ -184,7 +184,6 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
   ED_undo_group_end(C);
 }
 
-/* Toggle the item's interaction mode if supported */
 void outliner_item_mode_toggle(bContext *C,
                                TreeViewContext *tvc,
                                TreeElement *te,
@@ -747,7 +746,6 @@ static void tree_element_text_activate(bContext *C, TreeElement *te)
 
 /* ---------------------------------------------- */
 
-/* generic call for ID data check or make/check active in UI */
 void tree_element_activate(bContext *C,
                            const TreeViewContext *tvc,
                            TreeElement *te,
@@ -778,9 +776,6 @@ void tree_element_activate(bContext *C,
   }
 }
 
-/**
- * Generic call for non-id data to make active in UI
- */
 void tree_element_type_active_set(bContext *C,
                                   const TreeViewContext *tvc,
                                   TreeElement *te,
@@ -1086,9 +1081,6 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
   return OL_DRAWSEL_NONE;
 }
 
-/**
- * Generic call for non-id data to check the active state in UI.
- */
 eOLDrawState tree_element_type_active_state_get(const bContext *C,
                                                 const TreeViewContext *tvc,
                                                 const TreeElement *te,
@@ -1446,7 +1438,6 @@ static void do_outliner_item_activate_tree_element(bContext *C,
   }
 }
 
-/* Select the item using the set flags */
 void outliner_item_select(bContext *C,
                           SpaceOutliner *space_outliner,
                           TreeElement *te,

@@ -1242,9 +1242,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 /** \name Panel Context Menu
  * \{ */
 
-/**
- * menu to show when right clicking on the panel header
- */
 void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);

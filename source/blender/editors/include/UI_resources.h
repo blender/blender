@@ -351,7 +351,7 @@ typedef enum ThemeColorID {
   TH_VERTEX_BEVEL,
 } ThemeColorID;
 
-/* specific defines per space should have higher define values */
+/* Specific defines per space should have higher define values. */
 
 struct bTheme;
 
@@ -362,93 +362,144 @@ struct bThemeState {
 
 /* THE CODERS API FOR THEMES: */
 
-/* returns one value, not scaled */
+/**
+ * Get individual values, not scaled.
+ */
 float UI_GetThemeValuef(int colorid);
+/**
+ * Get individual values, not scaled.
+ */
 int UI_GetThemeValue(int colorid);
+
+/* Versions of #UI_GetThemeValue & #UI_GetThemeValuef, which take a space-type */
 
 float UI_GetThemeValueTypef(int colorid, int spacetype);
 int UI_GetThemeValueType(int colorid, int spacetype);
 
-/* get three color values, scaled to 0.0-1.0 range */
+/**
+ * Get three color values, scaled to 0.0-1.0 range.
+ */
 void UI_GetThemeColor3fv(int colorid, float col[3]);
 void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
 void UI_GetThemeColorBlend3f(int colorid1, int colorid2, float fac, float r_col[3]);
 void UI_GetThemeColorBlend4f(int colorid1, int colorid2, float fac, float r_col[4]);
-/* get the color, range 0.0-1.0, complete with shading offset */
+/**
+ * Get the color, range 0.0-1.0, complete with shading offset.
+ */
 void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3]);
 void UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3]);
 void UI_GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4]);
 
-/* get three color values, range 0-255,
- * complete with shading offset for the RGB components and blending. */
+/**
+ * Get three color values, range 0-255,
+ * complete with shading offset for the RGB components and blending.
+ */
 void UI_GetThemeColorBlendShade3ubv(
     int colorid1, int colorid2, float fac, int offset, unsigned char col[3]);
 
-/* get four color values, scaled to 0.0-1.0 range */
+/**
+ * Get four color values, scaled to 0.0-1.0 range.
+ */
 void UI_GetThemeColor4fv(int colorid, float col[4]);
 
-/* get four color values from specified space type, scaled to 0.0-1.0 range */
+/**
+ * Get four color values from specified space type, scaled to 0.0-1.0 range.
+ */
 void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4]);
 
-/* get four color values, range 0.0-1.0, complete with shading offset for the RGB components */
+/**
+ * Get four color values, range 0.0-1.0, complete with shading offset for the RGB components.
+ */
 void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]);
 void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
 
-/* get four color values ranged between 0 and 255; includes the alpha channel */
+/**
+ * Get four color values ranged between 0 and 255; includes the alpha channel.
+ */
 void UI_GetThemeColorShadeAlpha4ubv(int colorid,
                                     int coloffset,
                                     int alphaoffset,
                                     unsigned char col[4]);
 
-/* get four color values, range 0.0-1.0,
- * complete with shading offset for the RGB components and blending. */
+/**
+ * Get four color values, range 0.0-1.0,
+ * complete with shading offset for the RGB components and blending.
+ */
 void UI_GetThemeColorBlendShade3fv(
     int colorid1, int colorid2, float fac, int offset, float col[3]);
 void UI_GetThemeColorBlendShade4fv(
     int colorid1, int colorid2, float fac, int offset, float col[4]);
 
-/* get the 3 or 4 byte values */
+/**
+ * Get the 3 or 4 byte values.
+ */
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);
+/**
+ * Get the color, in char pointer.
+ */
 void UI_GetThemeColor4ubv(int colorid, unsigned char col[4]);
 
-/* get a theme color from specified space type */
+/**
+ * Get a theme color from specified space type.
+ */
 void UI_GetThemeColorType3fv(int colorid, int spacetype, float col[3]);
 void UI_GetThemeColorType3ubv(int colorid, int spacetype, unsigned char col[3]);
 void UI_GetThemeColorType4ubv(int colorid, int spacetype, unsigned char col[4]);
 
-/* get theme color for coloring monochrome icons */
+/**
+ * Get theme color for coloring monochrome icons.
+ */
 bool UI_GetIconThemeColor4ubv(int colorid, unsigned char col[4]);
 
-/* shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor) */
+/**
+ * Shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor).
+ */
 void UI_GetColorPtrShade3ubv(const unsigned char cp1[3], unsigned char col[3], int offset);
 
-/* get a 3 byte color, blended and shaded between two other char color pointers */
+/**
+ * Get a 3 byte color, blended and shaded between two other char color pointers.
+ */
 void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3],
                                   const unsigned char cp2[3],
                                   unsigned char col[3],
                                   float fac,
                                   int offset);
 
-/* sets the font color
- * (for anything fancy use UI_GetThemeColor[Fancy] then BLF_color) */
+/**
+ * Sets the font color
+ * (for anything fancy use UI_GetThemeColor[Fancy] then BLF_color).
+ */
 void UI_FontThemeColor(int fontid, int colorid);
 
-/* Clear the frame-buffer using the input colorid. */
+/**
+ * Clear the frame-buffer using the input colorid.
+ */
 void UI_ThemeClearColor(int colorid);
 
-/* internal (blender) usage only, for init and set active */
+/**
+ * Internal (blender) usage only, for init and set active.
+ */
 void UI_SetTheme(int spacetype, int regionid);
 
-/* get current theme */
+/**
+ * Get current theme.
+ */
 struct bTheme *UI_GetTheme(void);
 
+/**
+ * For the rare case we need to temp swap in a different theme (off-screen render).
+ */
 void UI_Theme_Store(struct bThemeState *theme_state);
 void UI_Theme_Restore(struct bThemeState *theme_state);
 
-/* return shadow width outside menus and popups */
+/**
+ * Return shadow width outside menus and popups.
+ */
 int UI_ThemeMenuShadowWidth(void);
 
-/* only for buttons in theme editor! */
+/**
+ * Only for buttons in theme editor!
+ */
 const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 
 void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis);

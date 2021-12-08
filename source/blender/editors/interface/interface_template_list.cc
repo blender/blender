@@ -1276,9 +1276,6 @@ void uiTemplateList(uiLayout *layout,
                     nullptr);
 }
 
-/**
- * \return: A RNA pointer for the operator properties.
- */
 PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
                                                  const char *opname,
                                                  bool create_properties)
@@ -1298,9 +1295,6 @@ PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
   return dyn_data->custom_activate_opptr;
 }
 
-/**
- * \return: A RNA pointer for the operator properties.
- */
 PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
                                              const char *opname,
                                              bool create_properties)

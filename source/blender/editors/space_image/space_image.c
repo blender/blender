@@ -1042,7 +1042,6 @@ static void image_space_subtype_item_extend(bContext *UNUSED(C),
 
 /**************************** spacetype *****************************/
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_image(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype image");

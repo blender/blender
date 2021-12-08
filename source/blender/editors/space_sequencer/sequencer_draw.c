@@ -668,7 +668,6 @@ static void drawmeta_contents(Scene *scene,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Get handle width in 2d-View space. */
 float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
@@ -1517,13 +1516,6 @@ void ED_sequencer_special_preview_clear(void)
   sequencer_special_update_set(NULL);
 }
 
-/**
- * Rendering using opengl will change the current viewport/context.
- * This is why we need the \a region, to set back the render area.
- *
- * TODO: do not rely on such hack and just update the \a ibuf outside of
- * the UI drawing code.
- */
 ImBuf *sequencer_ibuf_get(struct Main *bmain,
                           ARegion *region,
                           struct Depsgraph *depsgraph,

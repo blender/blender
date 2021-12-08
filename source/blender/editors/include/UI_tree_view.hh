@@ -141,6 +141,12 @@ class TreeViewLayoutBuilder {
   /* Created through #TreeViewBuilder. */
   TreeViewLayoutBuilder(uiBlock &block);
 
+  /**
+   * Moves the button following the last added chevron closer to the list item.
+   *
+   * Iterates backwards over buttons until finding the tree-row button, which is assumed to be the
+   * first button added for the row, and can act as a delimiter that way.
+   */
   static void polish_layout(const uiBlock &block);
 };
 

@@ -181,7 +181,6 @@ void imapaint_image_update(
   }
 }
 
-/* paint blur kernels. Projective painting enforces use of a 2x2 kernel due to lagging */
 BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 {
   int i, j;
@@ -793,11 +792,6 @@ static void toggle_paint_cursor(Scene *scene, bool enable)
   }
 }
 
-/* enable the paint cursor if it isn't already.
- *
- * purpose is to make sure the paint cursor is shown if paint
- * mode is enabled in the image editor. the paint poll will
- * ensure that the cursor is hidden when not in paint mode */
 void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
 {
   ToolSettings *settings = scene->toolsettings;

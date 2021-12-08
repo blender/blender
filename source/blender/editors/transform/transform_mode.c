@@ -78,7 +78,6 @@ bool transdata_check_local_center(const TransInfo *t, short around)
            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
 
-/* Informs if the mode can be switched during modal. */
 bool transform_mode_is_changeable(const int mode)
 {
   return ELEM(mode,
@@ -523,7 +522,6 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
 /* -------------------------------------------------------------------- */
 /** \name Transform (Rotation Utils)
  * \{ */
-/* Used by Transform Rotation and Transform Normal Rotation */
 void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 {
   size_t ofs = 0;
@@ -551,12 +549,6 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
   }
 }
 
-/**
- * Applies values of rotation to `td->loc` and `td->ext->quat`
- * based on a rotation matrix (mat) and a pivot (center).
- *
- * Protected axis and other transform settings are taken into account.
- */
 void ElementRotation_ex(const TransInfo *t,
                         const TransDataContainer *tc,
                         TransData *td,
@@ -833,6 +825,7 @@ void ElementRotation(const TransInfo *t,
 /* -------------------------------------------------------------------- */
 /** \name Transform (Resize Utils)
  * \{ */
+
 void headerResize(TransInfo *t, const float vec[3], char *str, const int str_size)
 {
   char tvec[NUM_STR_REP_LEN * 3];
@@ -1232,9 +1225,6 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
    * BLI_assert(t->mode == mode); */
 }
 
-/**
- * When in modal and not set, initializes a default orientation for the mode.
- */
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
 {
   /* Currently only these types are supported. */

@@ -158,7 +158,6 @@ static int volume_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* called by other space types too */
 void OBJECT_OT_volume_import(wmOperatorType *ot)
 {
   /* identifiers */

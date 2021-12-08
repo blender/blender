@@ -691,10 +691,6 @@ void file_delete_asset_catalog_filter_settings(
   OBJECT_GUARDED_SAFE_DELETE(*filter_settings, AssetCatalogFilterSettings);
 }
 
-/**
- * \return True if the file list should update its filtered results (e.g. because filtering
- *         parameters changed).
- */
 bool file_set_asset_catalog_filter_settings(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,

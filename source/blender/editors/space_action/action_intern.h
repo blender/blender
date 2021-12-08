@@ -41,7 +41,14 @@ void action_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */
 /* action_draw.c */
+
+/**
+ * Left hand part.
+ */
 void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
+/**
+ * Draw keyframes in each channel.
+ */
 void draw_channel_strips(struct bAnimContext *ac,
                          struct SpaceAction *saction,
                          struct ARegion *region);

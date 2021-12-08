@@ -369,10 +369,6 @@ void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container
   }
 }
 
-/**
- * This may be called multiple times with the same data.
- * Each time, the original transformations are re-applied, instead of accumulating the changes.
- */
 void ED_object_data_xform_container_update_all(struct XFormObjectData_Container *xds,
                                                struct Main *bmain,
                                                Depsgraph *depsgraph)

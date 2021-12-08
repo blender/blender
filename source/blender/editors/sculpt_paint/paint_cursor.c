@@ -98,7 +98,6 @@ static TexSnapshot primary_snap = {0};
 static TexSnapshot secondary_snap = {0};
 static CursorSnapshot cursor_snap = {0};
 
-/* Delete overlay cursor textures to preserve memory and invalidate all overlay flags. */
 void paint_cursor_delete_textures(void)
 {
   if (primary_snap.overlay_texture) {

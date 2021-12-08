@@ -34,6 +34,11 @@
 namespace blender::ed::outliner {
 
 /* Convenience/readability. */
+/* Convenience/readability. */
+/* Convenience/readability. */
+/* Convenience/readability. */
+/* Convenience/readability. */
+/* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
 TreeDisplayOverrideLibrary::TreeDisplayOverrideLibrary(SpaceOutliner &space_outliner)

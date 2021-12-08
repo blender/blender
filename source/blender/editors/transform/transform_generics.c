@@ -125,9 +125,6 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
   GPU_matrix_pop();
 }
 
-/**
- * Free data before switching to another mode.
- */
 void resetTransModal(TransInfo *t)
 {
   freeTransCustomDataForMode(t);
@@ -191,13 +188,6 @@ static int t_around_get(TransInfo *t)
   return V3D_AROUND_CENTER_BOUNDS;
 }
 
-/**
- * Setup internal data, mouse, vectors
- *
- * \note \a op and \a event can be NULL
- *
- * \see #saveTransform does the reverse.
- */
 void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
   Scene *sce = CTX_data_scene(C);
@@ -719,9 +709,6 @@ static void freeTransCustomDataContainer(TransInfo *t,
   }
 }
 
-/**
- * Needed for mode switching.
- */
 void freeTransCustomDataForMode(TransInfo *t)
 {
   freeTransCustomData(t, NULL, &t->custom.mode);
@@ -730,7 +717,6 @@ void freeTransCustomDataForMode(TransInfo *t)
   }
 }
 
-/* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans(bContext *C, TransInfo *t)
 {
   if (t->draw_handle_view) {
@@ -1068,9 +1054,6 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
   }
 }
 
-/**
- * \param select_only: only get active center from data being transformed.
- */
 bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
@@ -1324,11 +1307,6 @@ void calculatePropRatio(TransInfo *t)
   }
 }
 
-/**
- * Rotate an element, low level code, ignore protected channels.
- * (use for objects or pose-bones)
- * Similar to #ElementRotation.
- */
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
 {
   float totmat[3][3];

@@ -1343,10 +1343,6 @@ void UI_editsource_active_but_test(uiBut *but)
   BLI_ghash_insert(ui_editsource_info->hash, but, but_store);
 }
 
-/**
- * Remove the editsource data for \a old_but and reinsert it for \a new_but. Use when the button
- * was reallocated, e.g. to have a new type (#ui_but_change_type()).
- */
 void UI_editsource_but_replace(const uiBut *old_but, uiBut *new_but)
 {
   uiEditSourceButStore *but_store = BLI_ghash_lookup(ui_editsource_info->hash, old_but);
@@ -2085,9 +2081,6 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_eyedropper_gpencil_color);
 }
 
-/**
- * \brief User Interface Keymap
- */
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "User Interface", 0, 0);

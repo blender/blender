@@ -325,7 +325,6 @@ static void memfile_undosys_step_free(UndoStep *us_p)
   BKE_memfile_undo_free(us->data);
 }
 
-/* Export for ED_undo_sys. */
 void ED_memfile_undosys_type(UndoType *ut)
 {
   ut->name = "Global Undo";
@@ -364,21 +363,6 @@ struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
   return NULL;
 }
 
-/**
- * If the last undo step is a memfile one, find the first #MemFileChunk matching given ID
- * (using its session UUID), and tag it as "changed in the future".
- *
- * Since non-memfile undo-steps cannot automatically set this flag in the previous step as done
- * with memfile ones, this has to be called manually by relevant undo code.
- *
- * \note Only current known case for this is undoing a switch from Object to Sculpt mode (see
- * T82388).
- *
- * \note Calling this ID by ID is not optimal, as it will loop over all #MemFile.chunks until it
- * finds the expected one. If this becomes an issue we'll have to add a mapping from session UUID
- * to first #MemFileChunk in #MemFile itself
- * (currently we only do that in #MemFileWriteData when writing a new step).
- */
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
 {
   UndoStep *us = ustack->step_active;

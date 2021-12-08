@@ -102,8 +102,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3],
   mul_v3_v3fl(result, avg, 1.0f / total);
 }
 
-/* For bmesh: Average surrounding verts based on an orthogonality measure.
- * Naturally converges to a quad-like structure. */
 void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
 {
 

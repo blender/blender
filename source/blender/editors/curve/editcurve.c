@@ -1074,7 +1074,6 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
   }
 }
 
-/* return 0 if animation data wasn't changed, 1 otherwise */
 int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
 {
   AnimData *adt = BKE_animdata_from_id(&cu->id);
@@ -1247,7 +1246,6 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
   }
 }
 
-/* load editNurb in object */
 void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
@@ -1285,7 +1283,6 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
   }
 }
 
-/* make copy in cu->editnurb */
 void ED_curve_editnurb_make(Object *obedit)
 {
   Curve *cu = (Curve *)obedit->data;
@@ -1991,7 +1988,6 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
   }
 }
 
-/* only for OB_SURF */
 bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
 {
   BPoint *bp, *bpn, *newbp;
@@ -4909,10 +4905,6 @@ bool ED_curve_editnurb_select_pick(
 /** \name Spin Operator
  * \{ */
 
-/**
- * \param axis: is in world-space.
- * \param cent: is in object-space.
- */
 bool ed_editnurb_spin(
     float viewmat[4][4], View3D *v3d, Object *obedit, const float axis[3], const float cent[3])
 {
@@ -6804,10 +6796,6 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 /** \name Join Operator
  * \{ */
 
-/**
- * This is used externally, by #OBJECT_OT_join.
- * TODO: shape keys - as with meshes.
- */
 int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);

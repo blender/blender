@@ -111,7 +111,6 @@ void flatten_string_free(FlattenString *fs)
   }
 }
 
-/* takes a string within fs->buf and returns its length */
 int flatten_string_strlen(FlattenString *fs, const char *str)
 {
   const int len = (fs->pos - (int)(str - fs->buf)) - 1;
@@ -119,8 +118,6 @@ int flatten_string_strlen(FlattenString *fs, const char *str)
   return len;
 }
 
-/* Ensures the format string for the given line is long enough, reallocating
- * as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, uint len)
 {
   if (line->format) {
@@ -142,12 +139,6 @@ int text_check_format_len(TextLine *line, uint len)
   return 1;
 }
 
-/**
- * Fill the string with formatting constant,
- * advancing \a str_p and \a fmt_p
- *
- * \param len: length in bytes of \a fmt_p to fill.
- */
 void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len)
 {
   const char *str = *str_p;
@@ -170,10 +161,6 @@ void text_format_fill(const char **str_p, char **fmt_p, const char type, const i
   *str_p = str;
   *fmt_p = fmt;
 }
-/**
- * ascii version of #text_format_fill,
- * use when we no the text being stepped over is ascii (as is the case for most keywords)
- */
 void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len)
 {
   const char *str = *str_p;

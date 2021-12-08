@@ -99,12 +99,10 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   return depsgraph;
 }
 
-/* get list of motion paths to be baked for the given object
- * - assumes the given list is ready to be used
- */
-/* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
+  /* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
+
   MPathTarget *mpt;
 
   /* object itself first */
@@ -356,12 +354,6 @@ static void motionpath_free_free_tree_data(ListBase *targets)
   }
 }
 
-/* Perform baking of the given object's and/or its bones' transforms to motion paths
- * - scene: current scene
- * - ob: object whose flagged motion-paths should get calculated
- * - recalc: whether we need to
- */
-/* TODO: include reports pointer? */
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
@@ -369,6 +361,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               eAnimvizCalcRange range,
                               bool restore)
 {
+  /* TODO: include reports pointer? */
+
   /* Sanity check. */
   if (ELEM(NULL, targets, targets->first)) {
     return;

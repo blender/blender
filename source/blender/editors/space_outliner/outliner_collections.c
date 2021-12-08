@@ -134,11 +134,6 @@ TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *custom
   return TRAVERSE_CONTINUE;
 }
 
-/**
- * Populates the \param objects: ListBase with all the outliner selected objects
- * We store it as (Object *)LinkData->data
- * \param objects: expected to be empty
- */
 void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);

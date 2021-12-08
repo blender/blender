@@ -44,9 +44,6 @@
 /* own includes */
 #include "gizmo_library_intern.h"
 
-/**
- * Main draw call for GizmoGeomInfo data
- */
 void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
                                 const bool UNUSED(select),
                                 const float color[4])

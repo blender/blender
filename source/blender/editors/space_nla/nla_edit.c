@@ -71,7 +71,6 @@
 /** \name Public Utilities
  * \{ */
 
-/* Perform validation for blending/extend settings */
 void ED_nla_postop_refresh(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -205,7 +204,6 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 /** \name Disable Tweak-Mode Operator
  * \{ */
 
-/* NLA Editor internal API function for exiting tweak-mode. */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
 {
   ListBase anim_data = {NULL, NULL};

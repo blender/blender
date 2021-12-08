@@ -106,6 +106,10 @@ typedef struct tGPDdraw {
 } tGPDdraw;
 
 /* Modal Operator Drawing Callbacks ------------------------ */
+
+/**
+ * Wrapper to draw strokes for filling operator.
+ */
 void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
 
 /* ***************************************************** */
@@ -231,27 +235,73 @@ typedef struct tGPDprimitive {
 
 } tGPDprimitive;
 
+/**
+ * Check whether a given stroke segment is inside a circular brush
+ *
+ * \param mval: The current screen-space coordinates (midpoint) of the brush
+ * \param rad: The radius of the brush
+ *
+ * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment
+ * \param x1, y1: The screen-space x and y coordinates of the end of the stroke segment
+ */
 bool gpencil_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1);
 
+/**
+ * Init settings for stroke point space conversions
+ *
+ * \param r_gsc: [out] The space conversion settings struct, populated with necessary params
+ */
 void gpencil_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 
+/**
+ * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screen-space (2D)
+ *
+ * \param[out] r_x: The screen-space x-coordinate of the point
+ * \param[out] r_y: The screen-space y-coordinate of the point
+ *
+ * \warning This assumes that the caller has already checked
+ * whether the stroke in question can be drawn.
+ */
 void gpencil_point_to_xy(const GP_SpaceConversion *gsc,
                          const struct bGPDstroke *gps,
                          const struct bGPDspoint *pt,
                          int *r_x,
                          int *r_y);
 
+/**
+ * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screen-space (2D).
+ *
+ * Just like #gpencil_point_to_xy(), except the resulting coordinates are floats not ints.
+ * Use this version to solve "stair-step" artifacts which may arise when
+ * round-tripping the calculations.
+ *
+ * \param r_x: The screen-space x-coordinate of the point.
+ * \param r_y: The screen-space y-coordinate of the point.
+ *
+ * \warning This assumes that the caller has already checked
+ * whether the stroke in question can be drawn.
+ */
 void gpencil_point_to_xy_fl(const GP_SpaceConversion *gsc,
                             const bGPDstroke *gps,
                             const bGPDspoint *pt,
                             float *r_x,
                             float *r_y);
 
+/**
+ * Convert point to parent space
+ *
+ * \param pt: Original point
+ * \param diff_mat: Matrix with the difference between original parent matrix
+ * \param[out] r_pt: Pointer to new point after apply matrix
+ */
 void gpencil_point_to_parent_space(const bGPDspoint *pt,
                                    const float diff_mat[4][4],
                                    bGPDspoint *r_pt);
 /**
  * Change points position relative to parent object
+ */
+/**
+ * Change position relative to parent object
  */
 void gpencil_apply_parent(struct Depsgraph *depsgraph,
                           struct Object *obact,
@@ -260,22 +310,52 @@ void gpencil_apply_parent(struct Depsgraph *depsgraph,
 /**
  * Change point position relative to parent object
  */
+/**
+ * Change point position relative to parent object
+ */
 void gpencil_apply_parent_point(struct Depsgraph *depsgraph,
                                 struct Object *obact,
                                 bGPDlayer *gpl,
                                 bGPDspoint *pt);
 
+/**
+ * generic based on gpencil_point_to_xy_fl
+ */
 void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
                             const short flag,
                             const float pt[3],
                             float xy[2]);
 
+/**
+ * Project screen-space coordinates to 3D-space
+ *
+ * For use with editing tools where it is easier to perform the operations in 2D,
+ * and then later convert the transformed points back to 3D.
+ *
+ * \param screen_co: The screen-space 2D coordinates to convert to
+ * \param r_out: The resulting 3D coordinates of the input point
+ *
+ * \note We include this as a utility function, since the standard method
+ * involves quite a few steps, which are invariably always the same
+ * for all GPencil operations. So, it's nicer to just centralize these.
+ *
+ * \warning Assumes that it is getting called in a 3D view only.
+ */
 bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
                             struct Scene *scene,
                             const float screen_co[2],
                             float r_out[3]);
 
 /* helper to convert 2d to 3d */
+
+/**
+ * Convert #tGPspoint (temporary 2D/screen-space point data used by GP modal operators)
+ * to 3D coordinates.
+ *
+ * \param point2D: The screen-space 2D point data to convert.
+ * \param depth: Depth array (via #ED_view3d_depth_read_cached()).
+ * \param r_out: The resulting 2D point data.
+ */
 void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
                                          struct ARegion *region,
                                          struct Object *ob,
@@ -286,35 +366,71 @@ void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */
 
+/**
+ * Poll callback for adding data/layers - special.
+ */
 bool gpencil_add_poll(struct bContext *C);
+/**
+ * Poll callback for checking if there is an active layer.
+ */
 bool gpencil_active_layer_poll(struct bContext *C);
+/**
+ * Poll callback for checking if there is an active brush.
+ */
 bool gpencil_active_brush_poll(struct bContext *C);
 bool gpencil_brush_create_presets_poll(bContext *C);
 
 /* Copy/Paste Buffer --------------------------------- */
 /* gpencil_edit.c */
 
+/**
+ * list of #bGPDstroke instances
+ *
+ * \note is exposed within the editors/gpencil module so that other tools can use it too.
+ */
 extern ListBase gpencil_strokes_copypastebuf;
 
 /* Build a map for converting between old color-names and destination-color-refs. */
+/**
+ * Ensure that destination datablock has all the colors the pasted strokes need.
+ * Helper function for copy-pasting strokes
+ */
 struct GHash *gpencil_copybuf_validate_colormap(struct bContext *C);
 
 /* Stroke Editing ------------------------------------ */
 
+/**
+ * Simple wrapper to external call.
+ */
 int gpencil_delete_selected_point_wrap(bContext *C);
 
+/**
+ * Subdivide a stroke once, by adding a point half way between each pair of existing points
+ * \param gpd: Datablock
+ * \param gps: Stroke data
+ * \param subdivide: Number of times to subdivide
+ */
 void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, const int subdivide);
 
 /* Layers Enums -------------------------------------- */
 
+/**
+ * Just existing layers.
+ */
 const struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C,
                                                             struct PointerRNA *ptr,
                                                             struct PropertyRNA *prop,
                                                             bool *r_free);
+/**
+ * Existing + Option to add/use new layer.
+ */
 const struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(struct bContext *C,
                                                                      struct PointerRNA *ptr,
                                                                      struct PropertyRNA *prop,
                                                                      bool *r_free);
+/**
+ * Just existing Materials.
+ */
 const struct EnumPropertyItem *ED_gpencil_material_enum_itemf(struct bContext *C,
                                                               struct PointerRNA *ptr,
                                                               struct PropertyRNA *prop,
@@ -407,6 +523,9 @@ void GPENCIL_OT_stroke_editcurve_set_handle_type(struct wmOperatorType *ot);
 
 /* stroke sculpting -- */
 
+/**
+ * Also used for weight paint.
+ */
 void GPENCIL_OT_sculpt_paint(struct wmOperatorType *ot);
 void GPENCIL_OT_weight_paint(struct wmOperatorType *ot);
 
@@ -476,7 +595,14 @@ enum {
 void GPENCIL_OT_stroke_arrange(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_change_color(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_apply_thickness(struct wmOperatorType *ot);
+/**
+ * Similar to #CURVE_OT_cyclic_toggle or #MASK_OT_cyclic_toggle, but with
+ * option to force opened/closed strokes instead of just toggle behavior.
+ */
 void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
+/**
+ * Change Stroke caps mode Rounded or Flat
+ */
 void GPENCIL_OT_stroke_caps_set(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);

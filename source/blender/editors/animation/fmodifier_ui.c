@@ -891,9 +891,6 @@ static void panel_register_stepped(ARegionType *region_type,
 /** \name Panel Creation
  * \{ */
 
-/**
- * Checks if the panels match the active strip / curve, rebuilds them if they don't.
- */
 void ANIM_fmodifier_panels(const bContext *C,
                            ID *owner_id,
                            ListBase *fmodifiers,
@@ -969,17 +966,12 @@ static ListBase fmodifier_copypaste_buf = {NULL, NULL};
 
 /* ---------- */
 
-/* free the copy/paste buffer */
 void ANIM_fmodifiers_copybuf_free(void)
 {
   /* just free the whole buffer */
   free_fmodifiers(&fmodifier_copypaste_buf);
 }
 
-/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
- * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
- * - active: only copy the active modifier
- */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 {
   bool ok = true;
@@ -1009,9 +1001,6 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
   return ok;
 }
 
-/* 'Paste' the F-Modifier(s) from the buffer to the specified list
- * - replace: free all the existing modifiers to leave only the pasted ones
- */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve)
 {
   FModifier *fcm;

@@ -6324,8 +6324,6 @@ void ED_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool 
               !stencil ? " Stencil," : "");
 }
 
-/* Make sure that active object has a material,
- * and assign UVs and image layers if they do not exist */
 bool ED_paint_proj_mesh_data_check(
     Scene *scene, Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil)
 {

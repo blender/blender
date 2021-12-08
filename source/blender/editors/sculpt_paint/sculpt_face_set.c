@@ -73,6 +73,7 @@
 #include <stdlib.h>
 
 /* Utils. */
+
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);

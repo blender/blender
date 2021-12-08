@@ -65,9 +65,6 @@
 
 /* Action-Line ---------------------- */
 
-/* get colors for drawing Action-Line
- * NOTE: color returned includes fine-tuned alpha!
- */
 void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 {
   if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {

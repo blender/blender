@@ -259,10 +259,6 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   return false;
 }
 
-/**
- * Sort nodes by selection: unselected nodes first, then selected,
- * then the active node at the very end. Relative order is kept intact.
- */
 void ED_node_sort(bNodeTree *ntree)
 {
   /* Merge sort is the algorithm of choice here. */
@@ -799,8 +795,6 @@ static void node_socket_outline_color_get(const bool selected,
   }
 }
 
-/* Usual convention here would be node_socket_get_color(), but that's already used (for setting a
- * color property socket). */
 void node_socket_color_get(const bContext &C,
                            const bNodeTree &ntree,
                            PointerRNA &node_ptr,
@@ -1106,11 +1100,6 @@ static void node_socket_draw_nested(const bContext &C,
   UI_block_emboss_set(block, old_emboss);
 }
 
-/**
- * Draw a single node socket at default size.
- * \note this is only called from external code, internally #node_socket_draw_nested() is used for
- *       optimized drawing of multiple/all sockets of a node.
- */
 void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale)
 {
   const float size = 2.25f * NODE_SOCKSIZE * scale;

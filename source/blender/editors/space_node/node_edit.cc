@@ -318,13 +318,6 @@ static void compo_startjob(void *cjv,
   ntree->progress = nullptr;
 }
 
-/**
- * \param scene_owner: is the owner of the job,
- * we don't use it for anything else currently so could also be a void pointer,
- * but for now keep it an 'Scene' for consistency.
- *
- * \note only call from spaces `refresh` callbacks, not direct! - use with care.
- */
 void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
   Main *bmain = CTX_data_main(C);
@@ -368,7 +361,6 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 
 /* ***************************************** */
 
-/* operator poll callback */
 bool composite_node_active(bContext *C)
 {
   if (ED_operator_node_active(C)) {
@@ -380,7 +372,6 @@ bool composite_node_active(bContext *C)
   return false;
 }
 
-/* operator poll callback */
 bool composite_node_editable(bContext *C)
 {
   if (ED_operator_node_editable(C)) {
@@ -468,8 +459,6 @@ bool ED_node_is_geometry(struct SpaceNode *snode)
   return STREQ(snode->tree_idname, ntreeType_Geometry->idname);
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_shader_default(const bContext *C, ID *id)
 {
   Main *bmain = CTX_data_main(C);
@@ -536,8 +525,6 @@ void ED_node_shader_default(const bContext *C, ID *id)
   }
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_composit_default(const bContext *C, struct Scene *sce)
 {
   /* but lets check it anyway */
@@ -571,8 +558,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
   ntreeUpdateTree(CTX_data_main(C), sce->nodetree);
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_texture_default(const bContext *C, Tex *tex)
 {
   /* but lets check it anyway */
@@ -601,7 +586,9 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
   ntreeUpdateTree(CTX_data_main(C), tex->nodetree);
 }
 
-/* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
+/**
+ * Here we set the active tree(s), even called for each redraw now, so keep it fast :)
+ */
 void snode_set_context(const bContext &C)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
@@ -1192,7 +1179,6 @@ static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSo
   return false;
 }
 
-/* type is SOCK_IN and/or SOCK_OUT */
 bool node_find_indicated_socket(SpaceNode &snode,
                                 bNode **nodep,
                                 bNodeSocket **sockp,

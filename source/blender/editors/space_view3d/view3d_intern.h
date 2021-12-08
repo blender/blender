@@ -91,7 +91,13 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 
+/**
+ * For home, center etc.
+ */
 void view3d_boxview_copy(struct ScrArea *area, struct ARegion *region);
+/**
+ * Sync center/zoom view of region to others, for view transforms.
+ */
 void view3d_boxview_sync(struct ScrArea *area, struct ARegion *region);
 
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
@@ -103,6 +109,9 @@ void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
 
+/**
+ * Called from both fly mode and walk mode,
+ */
 void view3d_ndof_fly(const struct wmNDOFMotionData *ndof,
                      struct View3D *v3d,
                      struct RegionView3D *rv3d,
@@ -113,17 +122,24 @@ void view3d_ndof_fly(const struct wmNDOFMotionData *ndof,
 #endif /* WITH_INPUT_NDOF */
 
 /* view3d_navigate_fly.c */
+
 void view3d_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 /* view3d_navigate_walk.c */
+
 void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
 /* view3d_draw.c */
+
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
+/**
+ * Information drawn on top of the solid plates and composed data.
+ */
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *region);
 
 /* view3d_draw_legacy.c */
+
 void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
                                 ViewContext *vc,
                                 Scene *scene,
@@ -139,6 +155,9 @@ void ED_view3d_draw_depth_loop(struct Depsgraph *depsgraph,
                                View3D *v3d);
 
 void view3d_depths_rect_create(struct ARegion *region, struct rcti *rect, struct ViewDepths *r_d);
+/**
+ * Utility function to find the closest Z value, use for auto-depth.
+ */
 float view3d_depth_near(struct ViewDepths *d);
 
 /* view3d_select.c */
@@ -175,6 +194,9 @@ typedef struct V3D_SmoothParams {
   const float *dyn_ofs;
 } V3D_SmoothParams;
 
+/**
+ * The arguments are the desired situation.
+ */
 void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
                               struct wmWindowManager *wm,
                               struct wmWindow *win,
@@ -190,19 +212,40 @@ void ED_view3d_smooth_view(struct bContext *C,
                            const int smooth_viewtx,
                            const V3D_SmoothParams *sview);
 
+/**
+ * Apply the smooth-view immediately, use when we need to start a new view operation.
+ * (so we don't end up half-applying a view operation when pressing keys quickly).
+ */
 void ED_view3d_smooth_view_force_finish(struct bContext *C,
                                         struct View3D *v3d,
                                         struct ARegion *region);
 
+/**
+ * \param rect: optional for picking (can be NULL).
+ */
 void view3d_winmatrix_set(struct Depsgraph *depsgraph,
                           struct ARegion *region,
                           const View3D *v3d,
                           const rcti *rect);
+/**
+ * Sets #RegionView3D.viewmat
+ *
+ * \param depsgraph: Depsgraph.
+ * \param scene: Scene for camera and cursor location.
+ * \param v3d: View 3D space data.
+ * \param rv3d: 3D region which stores the final matrices.
+ * \param rect_scale: Optional 2D scale argument,
+ * Use when displaying a sub-region, eg: when #view3d_winmatrix_set takes a 'rect' argument.
+ *
+ * \note don't set windows active in here, is used by renderwin too.
+ */
 void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
                            const struct Scene *scene,
                            const View3D *v3d,
                            RegionView3D *rv3d,
                            const float rect_scale[2]);
+
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 
 void fly_modal_keymap(struct wmKeyConfig *keyconf);
 void walk_modal_keymap(struct wmKeyConfig *keyconf);
@@ -213,23 +256,46 @@ void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
 void viewplace_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
+
 void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_camera_control.c */
+
+/**
+ * Creates a #View3DCameraControl handle and sets up
+ * the view for first-person style navigation.
+ */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(struct Depsgraph *depsgraph,
                                                             Scene *scene,
                                                             View3D *v3d,
                                                             RegionView3D *rv3d);
+/**
+ * Updates cameras from the `rv3d` values, optionally auto-keyframing.
+ */
 void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
                                     const bool use_autokey,
                                     struct bContext *C,
                                     const bool do_rotate,
                                     const bool do_translate);
+/**
+ * Release view control.
+ *
+ * \param restore: Sets the view state to the values that were set
+ *                 before #ED_view3d_control_acquire was called.
+ */
 void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, const bool restore);
+/**
+ * Returns the object which is being manipulated or NULL.
+ */
 struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vctrl);
 
 /* view3d_snap.c */
+
+/**
+ * Calculates the bounding box corners (min and max) for \a obedit.
+ * The returned values are in global space.
+ */
 bool ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);

@@ -1419,7 +1419,6 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, iterate_lengths_iter, &settings);
 }
 
-/* set current distances to be kept between neighboring keys */
 void recalc_lengths(PTCacheEdit *edit)
 {
   POINT_P;
@@ -1437,7 +1436,6 @@ void recalc_lengths(PTCacheEdit *edit)
   }
 }
 
-/* calculate a tree for finding nearest emitter's vertice */
 void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), ParticleSystem *psys)
 {
   PTCacheEdit *edit = psys->edit;
@@ -5261,7 +5259,6 @@ void PARTICLE_OT_shape_cut(wmOperatorType *ot)
 /** \name Particle Edit Toggle Operator
  * \{ */
 
-/* initialize needed data for bake edit */
 void PE_create_particle_edit(
     Depsgraph *depsgraph, Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {

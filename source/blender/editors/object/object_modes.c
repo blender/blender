@@ -111,10 +111,6 @@ static const char *object_mode_op_string(eObjectMode mode)
   return NULL;
 }
 
-/**
- * Checks the mode to be set is compatible with the object
- * should be made into a generic function
- */
 bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 {
   if (mode == OB_MODE_OBJECT) {
@@ -162,11 +158,6 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
   return false;
 }
 
-/**
- * Sets the mode to a compatible state (use before entering the mode).
- *
- * This is so each mode's exec function can call
- */
 bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports)
 {
   bool ok;

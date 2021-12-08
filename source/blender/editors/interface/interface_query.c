@@ -72,11 +72,6 @@ bool ui_but_is_toggle(const uiBut *but)
               UI_BTYPE_TREEROW);
 }
 
-/**
- * Can we mouse over the button or is it hidden/disabled/layout.
- * \note ctrl is kind of a hack currently,
- * so that non-embossed UI_BTYPE_TEXT button behaves as a label when ctrl is not pressed.
- */
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 {
   /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
@@ -103,7 +98,6 @@ bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
   return true;
 }
 
-/* file selectors are exempt from utf-8 checks */
 bool UI_but_is_utf8(const uiBut *but)
 {
   if (but->rnaprop) {
@@ -283,7 +277,6 @@ static uiBut *ui_but_find(const ARegion *region,
   return NULL;
 }
 
-/* x and y are only used in case event is NULL... */
 uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
                                  const int xy[2],
                                  const bool labeledit,
@@ -797,7 +790,6 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
 /** \name Screen (#bScreen) Spatial
  * \{ */
 
-/** Check if the cursor is over any popups. */
 ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {

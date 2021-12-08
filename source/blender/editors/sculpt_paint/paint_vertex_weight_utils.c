@@ -51,7 +51,6 @@
 /** \name Weight Paint Sanity Checks
  * \{ */
 
-/* ensure we have data on wpaint start, add if needed */
 bool ED_wpaint_ensure_data(bContext *C,
                            struct ReportList *reports,
                            enum eWPaintFlag flag,
@@ -133,7 +132,6 @@ bool ED_wpaint_ensure_data(bContext *C,
 }
 /** \} */
 
-/* mirror_vgroup is set to -1 when invalid */
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
@@ -277,14 +275,6 @@ BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
   return temp * fac + weight * mfac;
 }
 
-/**
- * \param weight: Typically the current weight: #MDeformWeight.weight
- *
- * \return The final weight, note that this is _not_ clamped from [0-1].
- * Clamping must be done on the final #MDeformWeight.weight
- *
- * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
- */
 float ED_wpaint_blend_tool(const int tool,
                            const float weight,
                            const float paintval,

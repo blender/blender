@@ -2015,7 +2015,6 @@ static bool ed_node_link_conditions(ScrArea *area,
   return true;
 }
 
-/* test == 0, clear all intersect flags */
 void ED_node_link_intersect_test(ScrArea *area, int test)
 {
   bNode *select;
@@ -2497,7 +2496,6 @@ void NODE_OT_insert_offset(wmOperatorType *ot)
 /** \name Note Link Insert
  * \{ */
 
-/* assumes link with NODE_LINKFLAG_HILITE set */
 void ED_node_link_insert(Main *bmain, ScrArea *area)
 {
   bNode *select;

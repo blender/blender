@@ -1759,9 +1759,6 @@ static void icon_preview_free(void *customdata)
   MEM_freeN(ip);
 }
 
-/**
- * Check if \a id is supported by the automatic preview render.
- */
 bool ED_preview_id_is_supported(const ID *id)
 {
   if (id == NULL) {

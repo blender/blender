@@ -236,7 +236,6 @@ static void recent_files_menu_register(void)
   WM_menutype_add(mt);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_topbar(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype topbar");

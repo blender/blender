@@ -64,23 +64,39 @@ typedef enum eAlertIcon {
 
 struct ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon);
 
-/*
+/**
  * Resizable Icons for Blender
  */
 void UI_icons_init(void);
+/**
+ * Reload the textures for internal icons.
+ * This function will release the previous textures.
+ */
 void UI_icons_reload_internal_textures(void);
 
+/**
+ * NOTE: returns unscaled by DPI.
+ */
 int UI_icon_get_width(int icon_id);
 int UI_icon_get_height(int icon_id);
 bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
 
+/**
+ * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
+ */
 void UI_icon_render_id(const struct bContext *C,
                        struct Scene *scene,
                        struct ID *id,
                        const enum eIconSizes size,
                        const bool use_job);
+/**
+ * Render size for preview images and icons
+ */
 int UI_icon_preview_to_render_size(enum eIconSizes size);
 
+/**
+ * Draws icon with dpi scale factor.
+ */
 void UI_icon_draw(float x, float y, int icon_id);
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha);
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size);

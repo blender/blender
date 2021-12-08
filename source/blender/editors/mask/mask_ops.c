@@ -83,9 +83,6 @@ Mask *ED_mask_new(bContext *C, const char *name)
   return mask;
 }
 
-/**
- * Get active layer. Will create mask/layer to be sure there's an active layer.
- */
 MaskLayer *ED_mask_layer_ensure(bContext *C, bool *r_added_mask)
 {
   Mask *mask = CTX_data_edit_mask(C);
@@ -1616,7 +1613,6 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
   return OPERATOR_CANCELLED;
 }
 
-/* Named to match mesh recalculate normals. */
 void MASK_OT_normals_make_consistent(wmOperatorType *ot)
 {
   /* identifiers */

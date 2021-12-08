@@ -93,6 +93,15 @@ bool uv_find_nearest_edge_multi(struct Scene *scene,
                                 const float co[2],
                                 struct UvNearestHit *hit);
 
+/**
+ * \param only_in_face: when true, only hit faces which `co` is inside.
+ * This gives users a result they might expect, especially when zoomed in.
+ *
+ * \note Concave faces can cause odd behavior, although in practice this isn't often an issue.
+ * The center can be outside the face, in this case the distance to the center
+ * could cause the face to be considered too far away.
+ * If this becomes an issue we could track the distance to the faces closest edge.
+ */
 bool uv_find_nearest_face_ex(struct Scene *scene,
                              struct Object *obedit,
                              const float co[2],
@@ -154,6 +163,10 @@ bool uvedit_select_is_any_selected(struct Scene *scene, struct Object *obedit);
 bool uvedit_select_is_any_selected_multi(struct Scene *scene,
                                          struct Object **objects,
                                          const uint objects_len);
+/**
+ * \warning This returns first selected UV,
+ * not ideal in many cases since there could be multiple.
+ */
 const float *uvedit_first_selected_uv_from_vertex(struct Scene *scene,
                                                   struct BMVert *eve,
                                                   const int cd_loop_uv_offset);

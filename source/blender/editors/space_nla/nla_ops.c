@@ -39,7 +39,6 @@
 
 /* ************************** poll callbacks for operators **********************************/
 
-/* Tweak-mode is NOT enabled. */
 bool nlaop_poll_tweakmode_off(bContext *C)
 {
   Scene *scene;
@@ -62,7 +61,6 @@ bool nlaop_poll_tweakmode_off(bContext *C)
   return 1;
 }
 
-/* Tweak-mode IS enabled. */
 bool nlaop_poll_tweakmode_on(bContext *C)
 {
   Scene *scene;
@@ -85,7 +83,6 @@ bool nlaop_poll_tweakmode_on(bContext *C)
   return 1;
 }
 
-/* is tweak-mode enabled - for use in NLA operator code */
 bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 {
   if (ac && ac->scene) {

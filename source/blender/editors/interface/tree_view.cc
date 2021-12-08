@@ -39,8 +39,8 @@ namespace blender::ui {
 /* ---------------------------------------------------------------------- */
 
 /**
- * Add a tree-item to the container. This is the only place where items should be added, it handles
- * important invariants!
+ * Add a tree-item to the container. This is the only place where items should be added, it
+ * handles important invariants!
  */
 AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
     std::unique_ptr<AbstractTreeViewItem> item)
@@ -605,12 +605,6 @@ TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiBlock &block) : block_(block)
 {
 }
 
-/**
- * Moves the button following the last added chevron closer to the list item.
- *
- * Iterates backwards over buttons until finding the tree-row button, which is assumed to be the
- * first button added for the row, and can act as a delimiter that way.
- */
 void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
 {
   LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
@@ -735,11 +729,6 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
   return a.matches_including_parents(b);
 }
 
-/**
- * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
- * support dragging, i.e. it won't create a drag-controller upon request.
- * \return True if dragging started successfully, otherwise false.
- */
 bool UI_tree_view_item_drag_start(bContext *C, uiTreeViewItemHandle *item_)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
@@ -786,10 +775,6 @@ char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_, const wm
   return BLI_strdup(drop_controller->drop_tooltip(*drag).c_str());
 }
 
-/**
- * Let a tree-view item handle a drop event.
- * \return True if the drop was handled by the tree-view item.
- */
 bool UI_tree_view_item_drop_handle(struct bContext *C,
                                    uiTreeViewItemHandle *item_,
                                    const ListBase *drags)
@@ -808,11 +793,6 @@ bool UI_tree_view_item_drop_handle(struct bContext *C,
   return false;
 }
 
-/**
- * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
- * #AbstractTreeViewItem::can_rename(). This also checks if there is another item being renamed,
- * and returns false if so.
- */
 bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_handle);

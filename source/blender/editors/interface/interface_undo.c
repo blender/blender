@@ -91,11 +91,6 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
   return ui_textedit_redo_impl(stack, r_cursor_index);
 }
 
-/**
- * Push the information in the arguments to a new state in the undo stack.
- *
- * \note Currently the total length of the undo stack is not limited.
- */
 void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index)
 {
   /* Clear all redo actions from the current state. */
@@ -114,11 +109,7 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
   memcpy(stack->current->text, text, text_size);
   BLI_addtail(&stack->states, stack->current);
 }
-/**
- * Start the undo stack.
- *
- * \note The current state should be pushed immediately after calling this.
- */
+
 uiUndoStack_Text *ui_textedit_undo_stack_create(void)
 {
   uiUndoStack_Text *stack = MEM_mallocN(sizeof(uiUndoStack_Text), __func__);

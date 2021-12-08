@@ -91,7 +91,6 @@
 
 /* ******************** manage regions ********************* */
 
-/* function to always find a regionview3d context inside 3D window */
 RegionView3D *ED_view3d_context_rv3d(bContext *C)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -108,8 +107,6 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
   return rv3d;
 }
 
-/* ideally would return an rv3d but in some cases the region is needed too
- * so return that, the caller can then access the region->regiondata */
 bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_region)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -140,10 +137,6 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
   return false;
 }
 
-/**
- * Similar to #ED_view3d_context_user_region() but does not use context. Always performs a lookup.
- * Also works if \a v3d is not the active space.
- */
 bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion **r_region)
 {
   RegionView3D *rv3d = NULL;
@@ -182,17 +175,6 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
   return false;
 }
 
-/* Most of the time this isn't needed since you could assume the view matrix was
- * set while drawing, however when functions like mesh_foreachScreenVert are
- * called by selection tools, we can't be sure this object was the last.
- *
- * for example, transparent objects are drawn after editmode and will cause
- * the rv3d mat's to change and break selection.
- *
- * 'ED_view3d_init_mats_rv3d' should be called before
- * view3d_project_short_clip and view3d_project_short_noclip in cases where
- * these functions are not used during draw_object
- */
 void ED_view3d_init_mats_rv3d(const struct Object *ob, struct RegionView3D *rv3d)
 {
   /* local viewmat and persmat, to calculate projections */
@@ -214,7 +196,6 @@ void ED_view3d_init_mats_rv3d_gl(const struct Object *ob, struct RegionView3D *r
 }
 
 #ifdef DEBUG
-/* ensure we correctly initialize */
 void ED_view3d_clear_mats_rv3d(struct RegionView3D *rv3d)
 {
   zero_m4(rv3d->viewmatob);
@@ -1878,7 +1859,6 @@ static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new
   }
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype view3d");

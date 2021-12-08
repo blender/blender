@@ -80,9 +80,6 @@
 
 #include "paint_intern.h"
 
-/* Convert the object-space axis-aligned bounding box (expressed as
- * its minimum and maximum corners) into a screen-space rectangle,
- * returns zero if the result is empty */
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
@@ -127,9 +124,6 @@ bool paint_convert_bb_to_rect(rcti *rect,
   return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
 }
 
-/* Get four planes in object-space that describe the projection of
- * screen_rect from screen into object-space (essentially converting a
- * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
                               const ARegion *region,
                               Object *ob,
@@ -403,7 +397,6 @@ static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
   return ima;
 }
 
-/* Uses symm to selectively flip any axis of a coordinate. */
 void flip_v3_v3(float out[3], const float in[3], const ePaintSymmetryFlags symm)
 {
   if (symm & PAINT_SYMM_X) {
@@ -449,7 +442,6 @@ void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
   axis_angle_normalized_to_quat(out, axis, angle);
 }
 
-/* used for both 3d view and image window */
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {

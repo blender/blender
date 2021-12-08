@@ -229,7 +229,6 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
 
 /* Public functions. */
 
-/* Main Brush Function. */
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;

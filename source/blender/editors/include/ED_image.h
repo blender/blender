@@ -48,11 +48,17 @@ float ED_space_image_zoom_level(const struct View2D *v2d, const int grid_dimensi
 void ED_space_image_grid_steps(struct SpaceImage *sima,
                                float grid_steps[SI_GRID_STEPS_LEN],
                                const int grid_dimension);
+/**
+ * Calculate the increment snapping value for UV/image editor based on the zoom factor
+ * The code in here (except the offset part) is used in `grid_frag.glsl` (see `grid_res`) for
+ * drawing the grid overlay for the UV/Image editor.
+ */
 float ED_space_image_increment_snap_value(const int grid_dimesnions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           const float zoom_factor);
 
-/* image_edit.c, exported for transform */
+/* image_edit.c, exported for transform. */
+
 struct Image *ED_space_image(const struct SpaceImage *sima);
 void ED_space_image_set(struct Main *bmain,
                         struct SpaceImage *sima,
@@ -62,13 +68,22 @@ void ED_space_image_auto_set(const struct bContext *C, struct SpaceImage *sima);
 struct Mask *ED_space_image_get_mask(const struct SpaceImage *sima);
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
+/**
+ * Returns mouse position in image space.
+ */
 bool ED_space_image_get_position(struct SpaceImage *sima,
                                  struct ARegion *region,
                                  int mval[2],
                                  float fpos[2]);
+/**
+ * Returns color in linear space, matching #ED_space_node_color_sample().
+ */
 bool ED_space_image_color_sample(
     struct SpaceImage *sima, struct ARegion *region, int mval[2], float r_col[3], bool *r_is_data);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
+/**
+ * Get the #SpaceImage flag that is valid for the given ibuf.
+ */
 int ED_space_image_get_display_channel_mask(struct ImBuf *ibuf);
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
 bool ED_space_image_has_buffer(struct SpaceImage *sima);
@@ -87,6 +102,12 @@ void ED_space_image_scopes_update(const struct bContext *C,
                                   struct ImBuf *ibuf,
                                   bool use_view_settings);
 
+/**
+ * Enable the paint cursor if it isn't already.
+ *
+ * purpose is to make sure the paint cursor is shown if paint mode is enabled in the image editor.
+ * The paint poll will ensure that the cursor is hidden when not in paint mode.
+ */
 void ED_space_image_paint_update(struct Main *bmain,
                                  struct wmWindowManager *wm,
                                  struct Scene *scene);
@@ -95,6 +116,7 @@ void ED_image_get_uv_aspect(struct Image *ima,
                             struct ImageUser *iuser,
                             float *r_aspx,
                             float *r_aspy);
+/** Takes `event->mval`. */
 void ED_image_mouse_pos(struct SpaceImage *sima,
                         const struct ARegion *region,
                         const int mval[2],
@@ -110,6 +132,10 @@ void ED_image_point_pos__reverse(struct SpaceImage *sima,
                                  const struct ARegion *region,
                                  const float co[2],
                                  float r_co[2]);
+/**
+ * This is more a user-level functionality, for going to `next/prev` used slot,
+ * Stepping onto the last unused slot too.
+ */
 bool ED_image_slot_cycle(struct Image *image, int direction);
 
 bool ED_space_image_show_render(const struct SpaceImage *sima);
@@ -118,11 +144,17 @@ bool ED_space_image_show_uvedit(const struct SpaceImage *sima, struct Object *ob
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 
+/**
+ * Matches clip function.
+ */
 bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct Object *obedit);
 bool ED_space_image_maskedit_poll(struct bContext *C);
 bool ED_space_image_maskedit_mask_poll(struct bContext *C);
 bool ED_space_image_cursor_poll(struct bContext *C);
 
+/**
+ * Used by node view too.
+ */
 void ED_image_draw_info(struct Scene *scene,
                         struct ARegion *region,
                         bool color_manage,
@@ -161,6 +193,9 @@ typedef struct ImageFrameRange {
   ListBase frames;
 } ImageFrameRange;
 
+/**
+ * Used for both images and volume file loading.
+ */
 ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
                                            struct wmOperator *op,
                                            const bool detect_udim);

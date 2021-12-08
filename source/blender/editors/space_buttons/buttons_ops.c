@@ -383,7 +383,6 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 }
 
-/* Second operator, only difference from BUTTONS_OT_file_browse is WM_FILESEL_DIRECTORY. */
 void BUTTONS_OT_directory_browse(wmOperatorType *ot)
 {
   /* identifiers */

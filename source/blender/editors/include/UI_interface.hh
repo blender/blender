@@ -66,6 +66,9 @@ void attribute_search_add_items(
 
 }  // namespace blender::ui
 
+/**
+ * Override this for all available tree types.
+ */
 blender::ui::AbstractTreeView *UI_block_add_view(
     uiBlock &block,
     blender::StringRef idname,

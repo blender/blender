@@ -132,7 +132,6 @@ static ScrArea *find_area_image_empty(bContext *C)
 
 /********************** open image editor for render *************************/
 
-/* new window uses x,y to set position */
 ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);

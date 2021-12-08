@@ -721,11 +721,6 @@ static void stats_row(int col1,
   BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
 }
 
-/**
- * \param v3d_local: Pass this argument to calculate view-port local statistics.
- * Note that this must only be used for local-view, otherwise report specific statistics
- * will be written into the global scene statistics giving incorrect results.
- */
 void ED_info_draw_stats(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d_local, int x, int *y, int height)
 {

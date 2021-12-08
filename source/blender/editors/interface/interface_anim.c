@@ -180,10 +180,6 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-/**
- * \a str can be NULL to only perform check if \a but has an expression at all.
- * \return if button has an expression.
- */
 bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
   FCurve *fcu;
@@ -241,7 +237,6 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
   return false;
 }
 
-/* create new expression for button (i.e. a "scripted driver"), if it can be created... */
 bool ui_but_anim_expression_create(uiBut *but, const char *str)
 {
   bContext *C = but->block->evil_C;

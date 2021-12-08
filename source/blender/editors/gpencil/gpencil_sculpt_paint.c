@@ -2134,7 +2134,6 @@ static int gpencil_sculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* Also used for weight paint. */
 void GPENCIL_OT_sculpt_paint(wmOperatorType *ot)
 {
   /* identifiers */

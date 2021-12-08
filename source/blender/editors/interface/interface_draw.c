@@ -194,8 +194,6 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
-/* based on UI_draw_roundbox_gl_mode,
- * check on making a version which allows us to skip some sides */
 void ui_draw_but_TAB_outline(const rcti *rect,
                              float rad,
                              uchar highlight[3],
@@ -348,14 +346,6 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
 #endif
 }
 
-/**
- * Draw title and text safe areas.
- *
- * \note This function is to be used with the 2D dashed shader enabled.
- *
- * \param pos: is a #PRIM_FLOAT, 2, #GPU_FETCH_FLOAT vertex attribute.
- * \param x1, x2, y1, y2: The offsets for the view, not the zones.
- */
 void UI_draw_safe_areas(uint pos,
                         const rctf *rect,
                         const float title_aspect[2],
@@ -1753,9 +1743,6 @@ static bool point_draw_handles(CurveProfilePoint *point)
          ELEM(point->flag, PROF_H1_SELECT, PROF_H2_SELECT);
 }
 
-/**
- *  Draws the curve profile widget. Somewhat similar to ui_draw_but_CURVE.
- */
 void ui_draw_but_CURVEPROFILE(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors *wcol,

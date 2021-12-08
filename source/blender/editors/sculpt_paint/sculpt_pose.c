@@ -540,13 +540,6 @@ static bool pose_face_sets_floodfill_cb(
 
 /* Public functions. */
 
-/**
- * Calculate the pose origin and (Optionally the pose factor)
- * that is used when using the pose brush.
- *
- * \param r_pose_origin: Must be a valid pointer.
- * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
- */
 void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 Object *ob,
                                 SculptSession *ss,
@@ -1132,7 +1125,6 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
   ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
 }
 
-/* Main Brush Function. */
 void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;

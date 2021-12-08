@@ -50,9 +50,6 @@
 /** \name Set Up Drivers Editor
  * \{ */
 
-/* Set up UI configuration for Drivers Editor */
-/* NOTE: Currently called from window-manager
- * (new drivers editor window) and RNA (mode switching) */
 void ED_drivers_editor_init(bContext *C, ScrArea *area)
 {
   SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
@@ -96,15 +93,6 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
 /** \name Active F-Curve
  * \{ */
 
-/**
- * Find 'active' F-Curve.
- * It must be editable, since that's the purpose of these buttons (subject to change).
- * We return the 'wrapper' since it contains valuable context info (about hierarchy),
- * which will need to be freed when the caller is done with it.
- *
- * \note curve-visible flag isn't included,
- * otherwise selecting a curve via list to edit is too cumbersome.
- */
 bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -134,7 +122,6 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 /** \name Operator Polling Callbacks
  * \{ */
 
-/* Check if there are any visible keyframes (for selection tools) */
 bool graphop_visible_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
@@ -187,7 +174,6 @@ bool graphop_visible_keyframes_poll(bContext *C)
   return found;
 }
 
-/* Check if there are any visible + editable keyframes (for editing tools) */
 bool graphop_editable_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
@@ -242,7 +228,6 @@ bool graphop_editable_keyframes_poll(bContext *C)
   return found;
 }
 
-/* has active F-Curve that's editable */
 bool graphop_active_fcurve_poll(bContext *C)
 {
   bAnimContext ac;
@@ -286,7 +271,6 @@ bool graphop_active_fcurve_poll(bContext *C)
   return has_fcurve;
 }
 
-/* has active F-Curve in the context that's editable */
 bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
@@ -294,7 +278,6 @@ bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
   return ptr.data != NULL;
 }
 
-/* has selected F-Curve that's editable */
 bool graphop_selected_fcurve_poll(bContext *C)
 {
   bAnimContext ac;

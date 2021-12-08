@@ -417,7 +417,6 @@ static void text_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, I
 
 /********************* registration ********************/
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_text(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype text");

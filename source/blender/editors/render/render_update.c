@@ -68,7 +68,6 @@
 /** \name Render Engines
  * \{ */
 
-/* Update 3D viewport render or draw engine on changes to the scene or view settings. */
 void ED_render_view3d_update(Depsgraph *depsgraph,
                              wmWindow *window,
                              ScrArea *area,
@@ -126,8 +125,6 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
   }
 }
 
-/* Update all 3D viewport render and draw engines on changes to the scene.
- * This is called by the dependency graph when it detects changes. */
 void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool updated)
 {
   Main *bmain = update_ctx->bmain;

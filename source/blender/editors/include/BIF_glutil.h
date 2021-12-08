@@ -46,6 +46,12 @@ typedef struct IMMDrawPixelsTexState {
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * Returns a shader to be able to set uniforms */
+/**
+ * To be used before calling #immDrawPixelsTex
+ * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
+ * You can still set uniforms with:
+ * `GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);`
+ */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 
 /**
@@ -101,6 +107,20 @@ void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
                             float xzoom,
                             float yzoom,
                             const float color[4]);
+/**
+ * Use the currently bound shader.
+ *
+ * Use #immDrawPixelsTexSetup to bind the shader you
+ * want before calling #immDrawPixelsTex.
+ *
+ * If using a special shader double check it uses the same
+ * attributes "pos" "texCoord" and uniform "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Be also aware that this function unbinds the shader when
+ * it's finished.
+ */
 void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float x,
                                      float y,
@@ -135,6 +155,9 @@ void ED_draw_imbuf(struct ImBuf *ibuf,
                    struct ColorManagedDisplaySettings *display_settings,
                    float zoom_x,
                    float zoom_y);
+/**
+ * Draw given image buffer on a screen using GLSL for display transform.
+ */
 void ED_draw_imbuf_clipping(struct ImBuf *ibuf,
                             float x,
                             float y,
@@ -169,6 +192,9 @@ void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
 
 int ED_draw_imbuf_method(struct ImBuf *ibuf);
 
+/**
+ * Don't move to `GPU_immediate_util.h` because this uses user-prefs and isn't very low level.
+ */
 void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
 
 #ifdef __cplusplus

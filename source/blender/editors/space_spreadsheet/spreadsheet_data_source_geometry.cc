@@ -393,9 +393,6 @@ static void get_selected_indices_on_domain(const Mesh &mesh,
   }
 }
 
-/**
- * Only data sets corresponding to mesh objects in edit mode currently support selection filtering.
- */
 bool GeometryDataSource::has_selection_filter() const
 {
   Object *object_orig = DEG_get_original_object(object_eval_);

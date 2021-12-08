@@ -464,7 +464,6 @@ static void flushTransUVs(TransInfo *t)
   }
 }
 
-/* helper for recalcData() - for Image Editor transforms */
 void recalcData_uv(TransInfo *t)
 {
   SpaceImage *sima = t->area->spacedata.first;

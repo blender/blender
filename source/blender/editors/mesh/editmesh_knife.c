@@ -4866,9 +4866,6 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   return false;
 }
 
-/**
- * \param use_tag: When set, tag all faces inside the polylines.
- */
 void EDBM_mesh_knife(bContext *C, ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
 {
   KnifeTool_OpData *kcd;

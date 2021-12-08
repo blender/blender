@@ -57,6 +57,10 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               const bool restore_rv3d_mats,
                               struct GPUOffScreen *ofs,
                               struct GPUViewport *viewport);
+/**
+ * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
+ * #ED_view_draw_offscreen_imbuf_simple, but takes view/projection matrices as arguments.
+ */
 void ED_view3d_draw_offscreen_simple(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct View3DShading *shading_override,
@@ -76,6 +80,12 @@ void ED_view3d_draw_offscreen_simple(struct Depsgraph *depsgraph,
                                      struct GPUOffScreen *ofs,
                                      struct GPUViewport *viewport);
 
+/**
+ * Utility func for ED_view3d_draw_offscreen
+ *
+ * \param ofs: Optional off-screen buffer, can be NULL.
+ * (avoids re-creating when doing multiple GL renders).
+ */
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Depsgraph *depsgraph,
                                              struct Scene *scene,
                                              eDrawType drawtype,
@@ -89,6 +99,14 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Depsgraph *depsgraph,
                                              const bool restore_rv3d_mats,
                                              struct GPUOffScreen *ofs,
                                              char err_out[256]);
+/**
+ * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
+ *
+ * \param ofs: Optional off-screen buffer can be NULL.
+ * (avoids re-creating when doing multiple GL renders).
+ *
+ * \note used by the sequencer
+ */
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Depsgraph *depsgraph,
                                                     struct Scene *scene,
                                                     struct View3DShading *shading_override,

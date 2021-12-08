@@ -707,7 +707,6 @@ static void flushTransTracking(TransInfo *t)
   }
 }
 
-/* helper for recalcData() - for Movie Clip transforms */
 void recalcData_tracking(TransInfo *t)
 {
   SpaceClip *sc = t->area->spacedata.first;

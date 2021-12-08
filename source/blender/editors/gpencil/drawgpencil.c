@@ -412,7 +412,6 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
 
 /* ----- General Drawing ------ */
 
-/* wrapper to draw strokes for filling operator */
 void ED_gpencil_draw_fill(tGPDdraw *tgpw)
 {
   gpencil_draw_strokes(tgpw);
