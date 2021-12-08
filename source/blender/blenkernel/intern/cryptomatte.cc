@@ -139,7 +139,7 @@ std::optional<std::string> CryptomatteSession::operator[](float encoded_hash) co
   return std::nullopt;
 }
 
-CryptomatteSession *BKE_cryptomatte_init(void)
+CryptomatteSession *BKE_cryptomatte_init()
 {
   CryptomatteSession *session = new CryptomatteSession();
   return session;

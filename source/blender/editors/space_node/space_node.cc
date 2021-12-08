@@ -996,7 +996,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
 }
 
 /* only called once, from space/spacetypes.c */
-void ED_spacetype_node(void)
+void ED_spacetype_node()
 {
   SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype node");
   ARegionType *art;

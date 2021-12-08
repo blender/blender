@@ -151,7 +151,7 @@ bool gpu_select_query_load_id(uint id)
   return true;
 }
 
-uint gpu_select_query_end(void)
+uint gpu_select_query_end()
 {
   uint hits = 0;
   const uint maxhits = g_query_state.bufsize;

@@ -186,12 +186,12 @@ bool UI_search_item_add(uiSearchItems *items,
   return true;
 }
 
-int UI_searchbox_size_y(void)
+int UI_searchbox_size_y()
 {
   return SEARCH_ITEMS * UI_UNIT_Y + 2 * UI_POPUP_MENU_TOP;
 }
 
-int UI_searchbox_size_x(void)
+int UI_searchbox_size_x()
 {
   return 12 * UI_UNIT_X;
 }

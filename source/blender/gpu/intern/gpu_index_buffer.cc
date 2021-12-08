@@ -349,7 +349,7 @@ uint32_t *IndexBuf::unmap(const uint32_t *mapped_memory) const
 /** \name C-API
  * \{ */
 
-GPUIndexBuf *GPU_indexbuf_calloc(void)
+GPUIndexBuf *GPU_indexbuf_calloc()
 {
   return wrap(GPUBackend::get()->indexbuf_alloc());
 }

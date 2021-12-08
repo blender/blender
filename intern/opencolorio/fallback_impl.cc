@@ -123,7 +123,7 @@ struct FallbackProcessor {
   MEM_CXX_CLASS_ALLOC_FUNCS("FallbackProcessor");
 };
 
-OCIO_ConstConfigRcPtr *FallbackImpl::getCurrentConfig(void)
+OCIO_ConstConfigRcPtr *FallbackImpl::getCurrentConfig()
 {
   return CONFIG_DEFAULT;
 }
@@ -132,7 +132,7 @@ void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/)
 {
 }
 
-OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv(void)
+OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv()
 {
   return NULL;
 }
@@ -502,12 +502,12 @@ void FallbackImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
   MEM_freeN(id);
 }
 
-const char *FallbackImpl::getVersionString(void)
+const char *FallbackImpl::getVersionString()
 {
   return "fallback";
 }
 
-int FallbackImpl::getVersionHex(void)
+int FallbackImpl::getVersionHex()
 {
   return 0;
 }

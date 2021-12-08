@@ -40,7 +40,7 @@ struct DRWTexturePool {
   int last_user_id = -1;
 };
 
-DRWTexturePool *DRW_texture_pool_create(void)
+DRWTexturePool *DRW_texture_pool_create()
 {
   return new DRWTexturePool();
 }

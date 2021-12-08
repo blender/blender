@@ -127,7 +127,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
 }
 
-void ED_operatormacros_node(void)
+void ED_operatormacros_node()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *mot;

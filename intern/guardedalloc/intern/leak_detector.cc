@@ -65,7 +65,7 @@ class MemLeakPrinter {
 };
 }  // namespace
 
-void MEM_init_memleak_detection(void)
+void MEM_init_memleak_detection()
 {
   /**
    * This variable is constructed when this function is first called. This should happen as soon as
@@ -84,7 +84,7 @@ void MEM_use_memleak_detection(bool enabled)
   ignore_memleak = !enabled;
 }
 
-void MEM_enable_fail_on_memleak(void)
+void MEM_enable_fail_on_memleak()
 {
   fail_on_memleak = true;
 }

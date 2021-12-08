@@ -133,7 +133,7 @@ void GPU_context_active_set(GPUContext *ctx_)
   }
 }
 
-GPUContext *GPU_context_active_get(void)
+GPUContext *GPU_context_active_get()
 {
   return wrap(Context::get());
 }
@@ -146,12 +146,12 @@ GPUContext *GPU_context_active_get(void)
 
 static std::mutex main_context_mutex;
 
-void GPU_context_main_lock(void)
+void GPU_context_main_lock()
 {
   main_context_mutex.lock();
 }
 
-void GPU_context_main_unlock(void)
+void GPU_context_main_unlock()
 {
   main_context_mutex.unlock();
 }
@@ -180,7 +180,7 @@ void GPU_backend_init(eGPUBackendType backend_type)
   }
 }
 
-void GPU_backend_exit(void)
+void GPU_backend_exit()
 {
   /* TODO: assert no resource left. Currently UI textures are still not freed in their context
    * correctly. */

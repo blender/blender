@@ -20,20 +20,20 @@
 
 #include <cstddef>
 
-void openSubdiv_init(void)
+void openSubdiv_init()
 {
 }
 
-void openSubdiv_cleanup(void)
+void openSubdiv_cleanup()
 {
 }
 
-int openSubdiv_getAvailableEvaluators(void)
+int openSubdiv_getAvailableEvaluators()
 {
   return 0;
 }
 
-int openSubdiv_getVersionHex(void)
+int openSubdiv_getVersionHex()
 {
   return 0;
 }

@@ -45,7 +45,7 @@ void GPU_debug_group_begin(const char *name)
   ctx->debug_group_begin(name, stack.size());
 }
 
-void GPU_debug_group_end(void)
+void GPU_debug_group_end()
 {
   if (!(G.debug & G_DEBUG_GPU)) {
     return;

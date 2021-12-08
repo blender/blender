@@ -50,7 +50,7 @@ using namespace blender::gpu;
 /** \name Creation & Deletion
  * \{ */
 
-GPUBatch *GPU_batch_calloc(void)
+GPUBatch *GPU_batch_calloc()
 {
   GPUBatch *batch = GPUBackend::get()->batch_alloc();
   memset(batch, 0, sizeof(*batch));
@@ -315,12 +315,12 @@ void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 /** \name Init/Exit
  * \{ */
 
-void gpu_batch_init(void)
+void gpu_batch_init()
 {
   gpu_batch_presets_init();
 }
 
-void gpu_batch_exit(void)
+void gpu_batch_exit()
 {
   gpu_batch_presets_exit();
 }

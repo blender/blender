@@ -240,19 +240,19 @@ void GPU_backbuffer_bind(eGPUBackBuffer buffer)
   }
 }
 
-void GPU_framebuffer_restore(void)
+void GPU_framebuffer_restore()
 {
   Context::get()->back_left->bind(false);
 }
 
-GPUFrameBuffer *GPU_framebuffer_active_get(void)
+GPUFrameBuffer *GPU_framebuffer_active_get()
 {
   Context *ctx = Context::get();
   return wrap(ctx ? ctx->active_fb : nullptr);
 }
 
 /* Returns the default frame-buffer. Will always exists even if it's just a dummy. */
-GPUFrameBuffer *GPU_framebuffer_back_get(void)
+GPUFrameBuffer *GPU_framebuffer_back_get()
 {
   Context *ctx = Context::get();
   return wrap(ctx ? ctx->back_left : nullptr);
@@ -514,14 +514,14 @@ void GPU_framebuffer_push(GPUFrameBuffer *fb)
   FrameBufferStack.top++;
 }
 
-GPUFrameBuffer *GPU_framebuffer_pop(void)
+GPUFrameBuffer *GPU_framebuffer_pop()
 {
   BLI_assert(FrameBufferStack.top > 0);
   FrameBufferStack.top--;
   return FrameBufferStack.framebuffers[FrameBufferStack.top];
 }
 
-uint GPU_framebuffer_stack_level_get(void)
+uint GPU_framebuffer_stack_level_get()
 {
   return FrameBufferStack.top;
 }

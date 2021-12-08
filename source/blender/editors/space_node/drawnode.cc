@@ -3073,7 +3073,7 @@ static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C),
 
 /** \} */
 
-void ED_node_init_butfuncs(void)
+void ED_node_init_butfuncs()
 {
   /* Fallback types for undefined tree, nodes, sockets
    * Defined in blenkernel, but not registered in type hashes.

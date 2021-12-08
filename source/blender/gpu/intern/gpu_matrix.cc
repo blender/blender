@@ -67,7 +67,7 @@ struct GPUMatrixState {
 #define ProjectionStack Context::get()->matrix_state->projection_stack
 #define Projection ProjectionStack.stack[ProjectionStack.top]
 
-GPUMatrixState *GPU_matrix_state_create(void)
+GPUMatrixState *GPU_matrix_state_create()
 {
 #define MATRIX_4X4_IDENTITY \
   { \
@@ -99,7 +99,7 @@ static void gpu_matrix_state_active_set_dirty(bool value)
   state->dirty = value;
 }
 
-void GPU_matrix_reset(void)
+void GPU_matrix_reset()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
   state->model_view_stack.top = 0;
@@ -132,28 +132,28 @@ static void checkmat(cosnt float *m)
 
 #endif
 
-void GPU_matrix_push(void)
+void GPU_matrix_push()
 {
   BLI_assert(ModelViewStack.top + 1 < MATRIX_STACK_DEPTH);
   ModelViewStack.top++;
   copy_m4_m4(ModelView, ModelViewStack.stack[ModelViewStack.top - 1]);
 }
 
-void GPU_matrix_pop(void)
+void GPU_matrix_pop()
 {
   BLI_assert(ModelViewStack.top > 0);
   ModelViewStack.top--;
   gpu_matrix_state_active_set_dirty(true);
 }
 
-void GPU_matrix_push_projection(void)
+void GPU_matrix_push_projection()
 {
   BLI_assert(ProjectionStack.top + 1 < MATRIX_STACK_DEPTH);
   ProjectionStack.top++;
   copy_m4_m4(Projection, ProjectionStack.stack[ProjectionStack.top - 1]);
 }
 
-void GPU_matrix_pop_projection(void)
+void GPU_matrix_pop_projection()
 {
   BLI_assert(ProjectionStack.top > 0);
   ProjectionStack.top--;
@@ -167,7 +167,7 @@ void GPU_matrix_set(const float m[4][4])
   gpu_matrix_state_active_set_dirty(true);
 }
 
-void GPU_matrix_identity_projection_set(void)
+void GPU_matrix_identity_projection_set()
 {
   unit_m4(Projection);
   CHECKMAT(Projection3D);
@@ -181,7 +181,7 @@ void GPU_matrix_projection_set(const float m[4][4])
   gpu_matrix_state_active_set_dirty(true);
 }
 
-void GPU_matrix_identity_set(void)
+void GPU_matrix_identity_set()
 {
   unit_m4(ModelView);
   gpu_matrix_state_active_set_dirty(true);
@@ -668,7 +668,7 @@ void GPU_matrix_bind(GPUShader *shader)
   gpu_matrix_state_active_set_dirty(false);
 }
 
-bool GPU_matrix_dirty_get(void)
+bool GPU_matrix_dirty_get()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
   return state->dirty;
@@ -681,13 +681,13 @@ BLI_STATIC_ASSERT(GPU_PY_MATRIX_STACK_LEN + 1 == MATRIX_STACK_DEPTH, "define mis
 
 /* Return int since caller is may subtract. */
 
-int GPU_matrix_stack_level_get_model_view(void)
+int GPU_matrix_stack_level_get_model_view()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
   return (int)state->model_view_stack.top;
 }
 
-int GPU_matrix_stack_level_get_projection(void)
+int GPU_matrix_stack_level_get_projection()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
   return (int)state->projection_stack.top;

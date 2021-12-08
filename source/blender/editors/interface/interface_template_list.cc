@@ -1325,7 +1325,7 @@ PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
 /** \name List-types Registration
  * \{ */
 
-void ED_uilisttypes_ui(void)
+void ED_uilisttypes_ui()
 {
   WM_uilisttype_add(UI_UL_asset_view());
 }

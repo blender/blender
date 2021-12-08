@@ -39,7 +39,7 @@
 
 using namespace blender;
 
-AssetMetaData *BKE_asset_metadata_create(void)
+AssetMetaData *BKE_asset_metadata_create()
 {
   AssetMetaData *asset_data = (AssetMetaData *)MEM_callocN(sizeof(*asset_data), __func__);
   memcpy(asset_data, DNA_struct_default_get(AssetMetaData), sizeof(*asset_data));

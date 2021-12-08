@@ -3195,7 +3195,7 @@ struct PerfCounts {
 
 static PerfCounts *perfdata = nullptr;
 
-static void perfdata_init(void)
+static void perfdata_init()
 {
   perfdata = new PerfCounts;
 
@@ -3247,7 +3247,7 @@ static void doperfmax(int maxnum, int val)
   perfdata->max[maxnum] = max_ii(perfdata->max[maxnum], val);
 }
 
-static void dump_perfdata(void)
+static void dump_perfdata()
 {
   std::cout << "\nPERFDATA\n";
   for (int i : perfdata->count.index_range()) {

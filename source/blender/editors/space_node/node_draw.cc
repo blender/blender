@@ -106,7 +106,7 @@ extern void ui_draw_dropshadow(
     const rctf *rct, float radius, float aspect, float alpha, int select);
 }
 
-float ED_node_grid_size(void)
+float ED_node_grid_size()
 {
   return U.widget_unit;
 }

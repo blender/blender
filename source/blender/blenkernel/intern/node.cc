@@ -1365,7 +1365,7 @@ bool ntreeIsRegistered(bNodeTree *ntree)
   return (ntree->typeinfo != &NodeTreeTypeUndefined);
 }
 
-GHashIterator *ntreeTypeGetIterator(void)
+GHashIterator *ntreeTypeGetIterator()
 {
   return BLI_ghashIterator_new(nodetreetypes_hash);
 }
@@ -1450,7 +1450,7 @@ bool nodeTypeUndefined(const bNode *node)
           ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING));
 }
 
-GHashIterator *nodeTypeGetIterator(void)
+GHashIterator *nodeTypeGetIterator()
 {
   return BLI_ghashIterator_new(nodetypes_hash);
 }
@@ -1498,7 +1498,7 @@ bool nodeSocketIsRegistered(bNodeSocket *sock)
   return (sock->typeinfo != &NodeSocketTypeUndefined);
 }
 
-GHashIterator *nodeSocketTypeGetIterator(void)
+GHashIterator *nodeSocketTypeGetIterator()
 {
   return BLI_ghashIterator_new(nodesockettypes_hash);
 }
@@ -4057,7 +4057,7 @@ void BKE_node_clipboard_init(const struct bNodeTree *ntree)
   node_clipboard.type = ntree->type;
 }
 
-void BKE_node_clipboard_clear(void)
+void BKE_node_clipboard_clear()
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node_clipboard.links) {
     nodeRemLink(nullptr, link);
@@ -4074,7 +4074,7 @@ void BKE_node_clipboard_clear(void)
 #endif
 }
 
-bool BKE_node_clipboard_validate(void)
+bool BKE_node_clipboard_validate()
 {
   bool ok = true;
 
@@ -4152,22 +4152,22 @@ void BKE_node_clipboard_add_link(bNodeLink *link)
   BLI_addtail(&node_clipboard.links, link);
 }
 
-const ListBase *BKE_node_clipboard_get_nodes(void)
+const ListBase *BKE_node_clipboard_get_nodes()
 {
   return &node_clipboard.nodes;
 }
 
-const ListBase *BKE_node_clipboard_get_links(void)
+const ListBase *BKE_node_clipboard_get_links()
 {
   return &node_clipboard.links;
 }
 
-int BKE_node_clipboard_get_type(void)
+int BKE_node_clipboard_get_type()
 {
   return node_clipboard.type;
 }
 
-void BKE_node_clipboard_free(void)
+void BKE_node_clipboard_free()
 {
   BKE_node_clipboard_validate();
   BKE_node_clipboard_clear();
@@ -5899,7 +5899,7 @@ static void registerFunctionNodes()
   register_node_type_fn_value_to_string();
 }
 
-void BKE_node_system_init(void)
+void BKE_node_system_init()
 {
   nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
   nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
@@ -5926,7 +5926,7 @@ void BKE_node_system_init(void)
   registerFunctionNodes();
 }
 
-void BKE_node_system_exit(void)
+void BKE_node_system_exit()
 {
   if (nodetypes_hash) {
     NODE_TYPES_BEGIN (nt) {

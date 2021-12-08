@@ -3792,7 +3792,7 @@ void BKE_object_apply_mat4(Object *ob,
 /** \name Object Bounding Box API
  * \{ */
 
-BoundBox *BKE_boundbox_alloc_unit(void)
+BoundBox *BKE_boundbox_alloc_unit()
 {
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 

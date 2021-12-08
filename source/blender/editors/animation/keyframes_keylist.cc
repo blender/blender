@@ -109,7 +109,7 @@ struct AnimKeylist {
 #endif
 };
 
-AnimKeylist *ED_keylist_create(void)
+AnimKeylist *ED_keylist_create()
 {
   AnimKeylist *keylist = new AnimKeylist();
   return keylist;

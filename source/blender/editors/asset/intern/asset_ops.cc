@@ -946,7 +946,7 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
 
 /* -------------------------------------------------------------------- */
 
-void ED_operatortypes_asset(void)
+void ED_operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
   WM_operatortype_append(ASSET_OT_clear);

@@ -127,31 +127,31 @@ eGPUSupportLevel GPU_platform_support_level()
   return GPG.support_level;
 }
 
-const char *GPU_platform_vendor(void)
+const char *GPU_platform_vendor()
 {
   BLI_assert(GPG.initialized);
   return GPG.vendor;
 }
 
-const char *GPU_platform_renderer(void)
+const char *GPU_platform_renderer()
 {
   BLI_assert(GPG.initialized);
   return GPG.renderer;
 }
 
-const char *GPU_platform_version(void)
+const char *GPU_platform_version()
 {
   BLI_assert(GPG.initialized);
   return GPG.version;
 }
 
-const char *GPU_platform_support_level_key(void)
+const char *GPU_platform_support_level_key()
 {
   BLI_assert(GPG.initialized);
   return GPG.support_key;
 }
 
-const char *GPU_platform_gpu_name(void)
+const char *GPU_platform_gpu_name()
 {
   BLI_assert(GPG.initialized);
   return GPG.gpu_name;
