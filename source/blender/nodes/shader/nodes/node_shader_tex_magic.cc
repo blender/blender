@@ -181,8 +181,7 @@ static void sh_node_magic_tex_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_magic(void)
-{
+void register_node_type_sh_tex_magic(){
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_MAGIC, "Magic Texture", NODE_CLASS_TEXTURE, 0);

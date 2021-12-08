@@ -410,8 +410,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes::node_geo_image_texture_cc
 
-void register_node_type_geo_image_texture(void)
-{
+void register_node_type_geo_image_texture(){
   namespace file_ns = blender::nodes::node_geo_image_texture_cc;
 
   static bNodeType ntype;

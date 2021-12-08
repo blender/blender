@@ -22,8 +22,7 @@
 #include "node_common.h"
 #include "node_geometry_util.hh"
 
-void register_node_type_geo_group(void)
-{
+void register_node_type_geo_group(){
   static bNodeType ntype;
 
   node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", NODE_CLASS_GROUP, 0);

@@ -113,8 +113,7 @@ static bool geometry_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype
                                                      SOCK_MATERIAL);
 }
 
-void register_node_tree_type_geo(void)
-{
+void register_node_tree_type_geo(){
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
       MEM_callocN(sizeof(bNodeTreeType), "geometry node tree type"));
   tt->type = NTREE_GEOMETRY;

@@ -88,8 +88,7 @@ static void sh_node_sepxyz_build_multi_function(blender::nodes::NodeMultiFunctio
   builder.set_matching_fn(separate_fn);
 }
 
-void register_node_type_sh_sepxyz(void)
-{
+void register_node_type_sh_sepxyz(){
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER, 0);
@@ -129,8 +128,7 @@ static void sh_node_combxyz_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_combxyz(void)
-{
+void register_node_type_sh_combxyz(){
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER, 0);
