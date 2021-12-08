@@ -264,7 +264,7 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
  * individual components might be shared between multiple geometries and other code. Shared
  * components are copied automatically when write access is requested.
  *
- * The components usually do not store data by themself, but keep a reference to a data structure
+ * The components usually do not store data by them self, but keep a reference to a data structure
  * defined elsewhere in Blender. There is at most one component of each type:
  *  - #MeshComponent
  *  - #CurveComponent
@@ -559,7 +559,7 @@ class MeshComponent : public GeometryComponent {
  * A geometry component that stores a point cloud, corresponding to the #PointCloud data structure.
  * While a point cloud is technically a subset of a mesh in some respects, it is useful because of
  * its simplicity, partly on a conceptual level for the user, but also in the code, though partly
- * for historical reasons. Pointclouds can also be rendered in special ways, based on the built-in
+ * for historical reasons. Point-clouds can also be rendered in special ways, based on the built-in
  * `radius` attribute.
  *
  * Attributes on point clouds are all stored in contiguous arrays in its #CustomData,

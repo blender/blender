@@ -455,7 +455,7 @@ bool MetalDeviceKernels::load(MetalDevice *device, int kernel_type)
           return;
         }
 
-        /* Only specialise kernels where it can make an impact */
+        /* Only specialize kernels where it can make an impact. */
         if (kernel_type == PSO_SPECIALISED) {
           if (i < DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
               i > DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {

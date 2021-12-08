@@ -136,7 +136,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   arg_buffer_length += sizeof(KernelParamsMetal);
   arg_buffer_length = round_up(arg_buffer_length, 256);
 
-  /* Metal ancilliary bindless pointers */
+  /* Metal ancillary bindless pointers. */
   size_t metal_offsets = arg_buffer_length;
   arg_buffer_length += metal_device->mtlAncillaryArgEncoder.encodedLength;
   arg_buffer_length = round_up(arg_buffer_length, metal_device->mtlAncillaryArgEncoder.alignment);

@@ -50,7 +50,7 @@ enum {
    */
   PSO_GENERIC,
 
-  /* A kernel that is relatively quick to compile, but is specialised for the
+  /* A kernel that is relatively quick to compile, but is specialized for the
    * scene being rendered. It only contains the functionality and even baked in
    * constants for values that means it needs to be recompiled whenever a
    * dependent setting is changed. The render performance of this kernel is

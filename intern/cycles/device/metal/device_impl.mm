@@ -333,7 +333,7 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
   /* local helper: fetch the kernel source code, adjust it for specific PSO_.. kernel_type flavor,
    * then compile it into a MTLLibrary */
   auto fetch_and_compile_source = [&](int kernel_type) {
-    /* record the source uesd to compile this library, for hash building later */
+    /* Record the source used to compile this library, for hash building later. */
     string &source = source_used_for_compile[kernel_type];
 
     switch (kernel_type) {
@@ -925,7 +925,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
     }
   }
 
-  /* optimise the texture for GPU access */
+  /* Optimize the texture for GPU access. */
   id<MTLCommandBuffer> commandBuffer = [mtlGeneralCommandQueue commandBuffer];
   id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
   [blitCommandEncoder optimizeContentsForGPUAccess:mtlTexture];

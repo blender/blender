@@ -401,8 +401,8 @@ void BKE_bone_parent_transform_apply(const struct BoneParentTransform *bpt,
  *
  * Construct the matrices (rot/scale and loc)
  * to apply the PoseChannels into the armature (object) space.
- * I.e. (roughly) the "pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b)" in the
- *     pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b)
+ * I.e. (roughly) the `pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b)` in the
+ *     `pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b)`
  * ...function.
  *
  * This allows to get the transformations of a bone in its object space,

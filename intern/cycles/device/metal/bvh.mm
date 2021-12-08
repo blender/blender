@@ -160,7 +160,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
     }
 
     /* Force a single any-hit call, so shadow record-all behavior works correctly */
-    /* (Match optix behaviour: unsigned int build_flags =
+    /* (Match optix behavior: unsigned int build_flags =
      * OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;) */
     geomDesc.allowDuplicateIntersectionFunctionInvocation = false;
 
@@ -359,7 +359,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       geomDescMotion.intersectionFunctionTableOffset = 1;
 
       /* Force a single any-hit call, so shadow record-all behavior works correctly */
-      /* (Match optix behaviour: unsigned int build_flags =
+      /* (Match optix behavior: unsigned int build_flags =
        * OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;) */
       geomDescMotion.allowDuplicateIntersectionFunctionInvocation = false;
       geomDescMotion.opaque = true;
@@ -375,7 +375,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       geomDescNoMotion.intersectionFunctionTableOffset = 1;
 
       /* Force a single any-hit call, so shadow record-all behavior works correctly */
-      /* (Match optix behaviour: unsigned int build_flags =
+      /* (Match optix behavior: unsigned int build_flags =
        * OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;) */
       geomDescNoMotion.allowDuplicateIntersectionFunctionInvocation = false;
       geomDescNoMotion.opaque = true;
