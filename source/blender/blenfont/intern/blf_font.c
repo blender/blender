@@ -63,6 +63,7 @@
 #endif
 
 /* Batching buffer for drawing. */
+
 BatchBLF g_batch;
 
 /* freetype2 handle ONLY for this file! */
@@ -394,7 +395,6 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, struct 
   blf_glyph_cache_release(font);
 }
 
-/* use fixed column width, but an utf8 character may occupy multiple columns */
 int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int cwidth)
 {
   GlyphBLF *g;
@@ -1168,9 +1168,6 @@ void blf_font_exit(void)
   blf_batch_draw_exit();
 }
 
-/**
- * Optional cache flushing function, called before #blf_batch_draw.
- */
 void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void))
 {
   blf_draw_cache_flush = cache_flush_fn;

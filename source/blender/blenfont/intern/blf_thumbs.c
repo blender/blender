@@ -43,11 +43,6 @@
 
 #include "BLI_strict_flags.h"
 
-/**
- * This function is used for generating thumbnail previews.
- *
- * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
- */
 void BLF_thumb_preview(const char *filename,
                        const char **draw_str,
                        const char **i18n_draw_str,
