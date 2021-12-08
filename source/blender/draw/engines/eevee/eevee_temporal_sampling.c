@@ -196,8 +196,6 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const dou
   DRW_view_update_sub(effects->taa_view, viewmat, winmat);
 }
 
-/* Update the matrices based on the current sample.
- * NOTE: `DRW_MAT_PERS` and `DRW_MAT_VIEW` needs to read the original matrices. */
 void EEVEE_temporal_sampling_update_matrices(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;

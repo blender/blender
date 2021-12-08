@@ -435,9 +435,6 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
 /** \name Update Render Passes
  * \{ */
 
-/* Register the render passes needed for cryptomatte
- * normally this is done in `EEVEE_render_update_passes`, but it has been placed here to keep
- * related code side-by-side for clarity. */
 void EEVEE_cryptomatte_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   char cryptomatte_pass_name[MAX_NAME];

@@ -392,6 +392,11 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                         GPENCIL_tObject *tgp_ob);
 GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number);
 
+/**
+ * Creates a linked list of material pool containing all materials assigned for a given object.
+ * We merge the material pools together if object does not contain a huge amount of materials.
+ * Also return an offset to the first material of the object in the UBO.
+ */
 GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Object *ob, int *ofs);
 void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     int mat_id,
@@ -402,6 +407,9 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
 void gpencil_light_ambient_add(GPENCIL_LightPool *lightpool, const float color[3]);
 void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob);
 GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd);
+/**
+ * Creates a single pool containing all lights assigned (light linked) for a given object.
+ */
 GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *ob);
 
 /* effects */
@@ -436,6 +444,10 @@ void GPENCIL_cache_finish(void *vedata);
 void GPENCIL_draw_scene(void *vedata);
 
 /* render */
+
+/**
+ * Initialize render data.
+ */
 void GPENCIL_render_init(struct GPENCIL_Data *ved,
                          struct RenderEngine *engine,
                          struct RenderLayer *render_layer,

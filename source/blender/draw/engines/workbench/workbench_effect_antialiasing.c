@@ -371,7 +371,6 @@ void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata)
   }
 }
 
-/* Return true if render is not cached. */
 bool workbench_antialiasing_setup(WORKBENCH_Data *vedata)
 {
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;

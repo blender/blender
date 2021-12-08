@@ -75,9 +75,21 @@ typedef enum eDRWSelectStage {
 typedef bool (*DRW_SelectPassFn)(eDRWSelectStage stage, void *user_data);
 typedef bool (*DRW_ObjectFilterFn)(struct Object *ob, void *user_data);
 
+/**
+ * Everything starts here.
+ * This function takes care of calling all cache and rendering functions
+ * for each relevant engine / mode engine.
+ */
 void DRW_draw_view(const struct bContext *C);
+/**
+ * Draw render engine info.
+ */
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height);
 
+/**
+ * Used for both regular and off-screen drawing.
+ * Need to reset DST before calling this function
+ */
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              struct RenderEngineType *engine_type,
                              struct ARegion *region,
@@ -88,6 +100,9 @@ void DRW_draw_render_loop(struct Depsgraph *depsgraph,
                           struct ARegion *region,
                           struct View3D *v3d,
                           struct GPUViewport *viewport);
+/**
+ * \param viewport: can be NULL, in this case we create one.
+ */
 void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     struct RenderEngineType *engine_type,
                                     struct ARegion *region,
@@ -101,6 +116,9 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
                                 struct ARegion *region,
                                 struct GPUViewport *viewport,
                                 const struct bContext *evil_C);
+/**
+ * object mode select-loop, see: #ED_view3d_draw_select_loop (legacy drawing).
+ */
 void DRW_draw_select_loop(struct Depsgraph *depsgraph,
                           struct ARegion *region,
                           struct View3D *v3d,
@@ -113,14 +131,23 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
                           void *select_pass_user_data,
                           DRW_ObjectFilterFn object_filter_fn,
                           void *object_filter_user_data);
+/**
+ * object mode select-loop, see: #ED_view3d_draw_depth_loop (legacy drawing).
+ */
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
                          struct ARegion *region,
                          struct View3D *v3d,
                          struct GPUViewport *viewport);
+/**
+ * Converted from #ED_view3d_draw_depth_gpencil (legacy drawing).
+ */
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
                                  struct ARegion *region,
                                  struct View3D *v3d,
                                  struct GPUViewport *viewport);
+/**
+ * Clears the Depth Buffer and draws only the specified object.
+ */
 void DRW_draw_depth_object(struct Scene *scene,
                            struct ARegion *region,
                            struct View3D *v3d,
@@ -131,11 +158,17 @@ void DRW_draw_select_id(struct Depsgraph *depsgraph,
                         struct View3D *v3d,
                         const struct rcti *rect);
 
-/* grease pencil render */
+/* Grease pencil render. */
+
+/**
+ * Helper to check if exit object type to render.
+ */
 bool DRW_render_check_grease_pencil(struct Depsgraph *depsgraph);
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph);
 
-/* This is here because GPUViewport needs it */
+/**
+ * This is here because #GPUViewport needs it.
+ */
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);
 void DRW_instance_data_list_free(struct DRWInstanceDataList *idatalist);
 void DRW_uniform_attrs_pool_free(struct GHash *table);
@@ -165,11 +198,21 @@ void DRW_opengl_context_disable_ex(bool restore);
 
 void DRW_opengl_render_context_enable(void *re_gl_context);
 void DRW_opengl_render_context_disable(void *re_gl_context);
+/**
+ * Needs to be called AFTER #DRW_opengl_render_context_enable().
+ */
 void DRW_gpu_render_context_enable(void *re_gpu_context);
+/**
+ * Needs to be called BEFORE #DRW_opengl_render_context_disable().
+ */
 void DRW_gpu_render_context_disable(void *re_gpu_context);
 
 void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 
+/**
+ * Get DrawData from the given ID-block. In order for this to work, we assume that
+ * the DrawData pointer is stored in the struct in the same fashion as in #IdDdtTemplate.
+ */
 struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
 
@@ -179,7 +222,10 @@ void DRW_viewport_data_free(struct DRWData *drw_data);
 bool DRW_opengl_context_release(void);
 void DRW_opengl_context_activate(bool drw_state);
 
-/* We may want to move this into a more general location. */
+/**
+ * We may want to move this into a more general location.
+ * \note This doesn't require the draw context to be in use.
+ */
 void DRW_draw_cursor_2d_ex(const struct ARegion *region, const float cursor[2]);
 
 #ifdef __cplusplus

@@ -33,7 +33,6 @@
 
 #include "gpencil_engine.h"
 
-/* init render data */
 void GPENCIL_render_init(GPENCIL_Data *vedata,
                          RenderEngine *engine,
                          struct RenderLayer *render_layer,

@@ -244,7 +244,6 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
   }
 }
 
-/* If ima is null, search appropriate image node but will fallback to purple texture otherwise. */
 DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           Object *ob,
                                           int mat_nr,

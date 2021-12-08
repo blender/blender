@@ -223,7 +223,6 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
   }
 }
 
-/* Copied from drawobject.c */
 void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                       View3D *v3d,
                                       Object *ob,

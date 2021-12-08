@@ -333,7 +333,6 @@ static void hair_batch_cache_ensure_procedural_indices(Hair *hair,
       prim_type, vbo, GPU_indexbuf_build(&elb), GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
 }
 
-/* Ensure all textures and buffers needed for GPU accelerated drawing. */
 bool hair_ensure_procedural_data(Object *object,
                                  ParticleHairCache **r_hair_cache,
                                  GPUMaterial *gpu_material,

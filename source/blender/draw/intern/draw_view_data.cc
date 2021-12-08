@@ -50,11 +50,6 @@ struct DRWViewData {
   Vector<ViewportEngineData *> enabled_engines;
 };
 
-/**
- * Creates a view data with all possible engines type for this view.
- *
- * `engine_types` contains `DRWRegisteredDrawEngine`.
- * */
 DRWViewData *DRW_view_data_create(ListBase *engine_types)
 {
   DRWViewData *view_data = new DRWViewData();

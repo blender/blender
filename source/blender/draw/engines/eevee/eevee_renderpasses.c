@@ -75,8 +75,6 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
   return (g_data->render_passes & ~EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) == 0;
 }
 
-/* Calculate the hash for an AOV. The least significant bit is used to store the AOV
- * type the rest of the bits are used for the name hash. */
 int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
 {
   int hash = BLI_hash_string(aov->name) << 1;
@@ -257,15 +255,6 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
   }
 }
 
-/* Post-process data to construct a specific render-pass
- *
- * This method will create a shading group to perform the post-processing for the given
- * `renderpass_type`. The post-processing will be done and the result will be stored in the
- * `vedata->txl->renderpass` texture.
- *
- * Only invoke this function for passes that need post-processing.
- *
- * After invoking this function the active frame-buffer is set to `vedata->fbl->renderpass_fb`. */
 void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
                                     EEVEE_Data *vedata,
                                     eViewLayerEEVEEPassType renderpass_type,

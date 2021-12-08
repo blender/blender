@@ -68,7 +68,6 @@ void DRW_debug_polygon_v3(const float (*v)[3], const int vert_len, const float c
   }
 }
 
-/* NOTE: g_modelmat is still applied on top. */
 void DRW_debug_m4(const float m[4][4])
 {
   float v0[3] = {0.0f, 0.0f, 0.0f};

@@ -95,7 +95,6 @@ start:
   add_v3_v3(ws_sample_pos, jitter);
 }
 
-/* Return true if sample has changed and light needs to be updated. */
 bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, int sample_ofs)
 {
   EEVEE_Shadow *shdw_data = linfo->shadow_data + (int)evli->shadow_id;

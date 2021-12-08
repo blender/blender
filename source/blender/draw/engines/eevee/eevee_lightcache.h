@@ -33,7 +33,9 @@ struct Scene;
 struct SceneEEVEE;
 struct ViewLayer;
 
-/* Light Bake */
+/**
+ * Light Bake.
+ */
 struct wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
                                          struct wmWindow *win,
                                          struct Main *bmain,
@@ -41,6 +43,9 @@ struct wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
                                          struct Scene *scene,
                                          int delay,
                                          int frame);
+/**
+ * MUST run on the main thread.
+ */
 void *EEVEE_lightbake_job_data_alloc(struct Main *bmain,
                                      struct ViewLayer *view_layer,
                                      struct Scene *scene,
@@ -50,11 +55,17 @@ void EEVEE_lightbake_job_data_free(void *custom_data);
 void EEVEE_lightbake_update(void *custom_data);
 void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float *progress);
 
+/**
+ * This is to update the world irradiance and reflection contribution from
+ * within the viewport drawing (does not have the overhead of a full light cache rebuild.)
+ */
 void EEVEE_lightbake_update_world_quick(struct EEVEE_ViewLayerData *sldata,
                                         struct EEVEE_Data *vedata,
                                         const Scene *scene);
 
-/* Light Cache */
+/**
+ * Light Cache.
+ */
 struct LightCache *EEVEE_lightcache_create(const int grid_len,
                                            const int cube_len,
                                            const int cube_size,

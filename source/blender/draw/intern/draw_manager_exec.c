@@ -273,7 +273,6 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
   GPU_stencil_compare_mask_set(compare_mask);
 }
 
-/* Reset state to not interfere with other UI draw-call. */
 void DRW_state_reset_ex(DRWState state)
 {
   DST.state = ~state;
@@ -292,12 +291,6 @@ static void drw_state_validate(void)
   }
 }
 
-/**
- * Use with care, intended so selection code can override passes depth settings,
- * which is important for selection to work properly.
- *
- * Should be set in main draw loop, cleared afterwards
- */
 void DRW_state_lock(DRWState state)
 {
   DST.state_lock = state;
@@ -361,7 +354,6 @@ static bool draw_call_is_culled(const DRWResourceHandle *handle, DRWView *view)
   return (culling->mask & view->culling_mask) != 0;
 }
 
-/* Set active view for rendering. */
 void DRW_view_set_active(DRWView *view)
 {
   DST.view_active = (view) ? view : DST.view_default;
@@ -435,32 +427,24 @@ static bool draw_culling_plane_test(const BoundBox *corners, const float plane[4
   return false;
 }
 
-/* Return True if the given BoundSphere intersect the current view frustum.
- * bsphere must be in world space. */
 bool DRW_culling_sphere_test(const DRWView *view, const BoundSphere *bsphere)
 {
   view = view ? view : DST.view_default;
   return draw_culling_sphere_test(&view->frustum_bsphere, view->frustum_planes, bsphere);
 }
 
-/* Return True if the given BoundBox intersect the current view frustum.
- * bbox must be in world space. */
 bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox)
 {
   view = view ? view : DST.view_default;
   return draw_culling_box_test(view->frustum_planes, bbox);
 }
 
-/* Return True if the view frustum is inside or intersect the given plane.
- * plane must be in world space. */
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4])
 {
   view = view ? view : DST.view_default;
   return draw_culling_plane_test(&view->frustum_corners, plane);
 }
 
-/* Return True if the given box intersect the current view frustum.
- * This function will have to be replaced when world space bb per objects is implemented. */
 bool DRW_culling_min_max_test(const DRWView *view, float obmat[4][4], float min[3], float max[3])
 {
   view = view ? view : DST.view_default;
@@ -1169,7 +1153,6 @@ void DRW_draw_pass(DRWPass *pass)
   }
 }
 
-/* Draw only a subset of shgroups. Used in special situations as grease pencil strokes */
 void DRW_draw_pass_subset(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
 {
   drw_draw_pass_ex(pass, start_group, end_group);

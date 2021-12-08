@@ -304,6 +304,7 @@ void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup,
                               const int *value,
                               int arraysize)
 {
+  /* Boolean are expected to be 4bytes longs for OpenGL! */
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize);
 }
 
@@ -381,7 +382,6 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, (float *)value, 16, 1);
 }
 
-/* Stores the int instead of a pointer. */
 void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value)
 {
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT_COPY, &value, 1, 1);
@@ -833,7 +833,6 @@ void DRW_shgroup_call_range(
   drw_command_draw_range(shgroup, geom, handle, v_sta, v_ct);
 }
 
-/* A count of 0 instance will use the default number of instance in the batch. */
 void DRW_shgroup_call_instance_range(
     DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct)
 {
@@ -888,7 +887,6 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob,
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
-/* Should be removed */
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
                                 Object *ob,
                                 struct GPUBatch *geom,
@@ -1441,10 +1439,6 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
   return shgroup;
 }
 
-/**
- * State is added to #Pass.state while drawing.
- * Use to temporarily enable draw options.
- */
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 {
   drw_command_set_mutable_state(shgroup, state, 0x0);
@@ -1463,7 +1457,6 @@ void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
   drw_command_set_stencil_mask(shgroup, write_mask, reference, compare_mask);
 }
 
-/* TODO: remove this function. */
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask)
 {
   drw_command_set_stencil_mask(shgroup, 0xFF, mask, 0xFF);
@@ -1758,7 +1751,6 @@ static void draw_view_matrix_state_update(DRWViewUboStorage *storage,
   storage->viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
 }
 
-/* Create a view with culling. */
 DRWView *DRW_view_create(const float viewmat[4][4],
                          const float winmat[4][4],
                          const float (*culling_viewmat)[4],
@@ -1785,7 +1777,6 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   return view;
 }
 
-/* Create a view with culling done by another view. */
 DRWView *DRW_view_create_sub(const DRWView *parent_view,
                              const float viewmat[4][4],
                              const float winmat[4][4])
@@ -1807,13 +1798,10 @@ DRWView *DRW_view_create_sub(const DRWView *parent_view,
   return view;
 }
 
-/**
- * DRWView Update:
+/* DRWView Update:
  * This is meant to be done on existing views when rendering in a loop and there is no
- * need to allocate more DRWViews.
- */
+ * need to allocate more DRWViews. */
 
-/* Update matrices of a view created with DRW_view_create_sub. */
 void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4])
 {
   BLI_assert(view->parent != NULL);
@@ -1824,7 +1812,6 @@ void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float w
   draw_view_matrix_state_update(&view->storage, viewmat, winmat);
 }
 
-/* Update matrices of a view created with DRW_view_create. */
 void DRW_view_update(DRWView *view,
                      const float viewmat[4][4],
                      const float winmat[4][4],
@@ -1893,13 +1880,11 @@ void DRW_view_update(DRWView *view,
 #endif
 }
 
-/* Return default view if it is a viewport render. */
 const DRWView *DRW_view_default_get(void)
 {
   return DST.view_default;
 }
 
-/* WARNING: Only use in render AND only if you are going to set view_default again. */
 void DRW_view_reset(void)
 {
   DST.view_default = NULL;
@@ -1907,18 +1892,12 @@ void DRW_view_reset(void)
   DST.view_previous = NULL;
 }
 
-/* MUST only be called once per render and only in render mode. Sets default view. */
 void DRW_view_default_set(DRWView *view)
 {
   BLI_assert(DST.view_default == NULL);
   DST.view_default = view;
 }
 
-/**
- * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
- * and if the shaders have support for it (see usage of gl_ClipDistance).
- * NOTE: planes must be in world space.
- */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
 {
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
@@ -1933,14 +1912,11 @@ void DRW_view_camtexco_set(DRWView *view, float texco[4])
   copy_v4_v4(view->storage.viewcamtexcofac, texco);
 }
 
-/* Return world space frustum corners. */
 void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)
 {
   memcpy(corners, &view->frustum_corners, sizeof(view->frustum_corners));
 }
 
-/* Return world space frustum sides as planes.
- * See draw_frustum_culling_planes_calc() for the plane order. */
 void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4])
 {
   memcpy(planes, &view->frustum_planes, sizeof(view->frustum_planes));
@@ -2022,8 +1998,6 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
   return pass;
 }
 
-/* Create an instance of the original pass that will execute the same drawcalls but with its own
- * DRWState. */
 DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState state)
 {
   DRWPass *pass = DRW_pass_create(name, state);
@@ -2032,7 +2006,6 @@ DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState 
   return pass;
 }
 
-/* Link two passes so that they are both rendered if the first one is being drawn. */
 void DRW_pass_link(DRWPass *first, DRWPass *second)
 {
   BLI_assert(first != second);
@@ -2093,10 +2066,6 @@ static int pass_shgroup_dist_sort(const void *a, const void *b)
 
 #undef SORT_IMPL_LINKTYPE
 
-/**
- * Sort Shading groups by decreasing Z of their first draw call.
- * This is useful for order dependent effect such as alpha-blending.
- */
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {
   const float(*viewinv)[4] = DST.view_active->storage.viewinv;
@@ -2147,9 +2116,6 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass)
   pass->shgroups.last = last;
 }
 
-/**
- * Reverse Shading group submission order.
- */
 void DRW_pass_sort_shgroup_reverse(DRWPass *pass)
 {
   pass->shgroups.last = pass->shgroups.first;

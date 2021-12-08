@@ -241,6 +241,11 @@ typedef struct MeshExtract {
 /** \} */
 
 /* draw_cache_extract_mesh_render_data.c */
+
+/**
+ * \param is_mode_active: When true, use the modifiers from the edit-data,
+ * otherwise don't use modifiers as they are not from this object.
+ */
 MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
@@ -258,6 +263,9 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
 void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
                                           MeshBufferCache *cache,
                                           const eMRDataType data_flag);
+/**
+ * Part of the creation of the #MeshRenderData that happens in a thread.
+ */
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag);

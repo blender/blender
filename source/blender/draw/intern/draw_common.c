@@ -41,7 +41,9 @@
 #define UI_COLOR_RGBA_FROM_U8(r, g, b, a, v4) \
   ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f)
 
-/* Colors & Constant */
+/**
+ * Colors & Constant.
+ */
 struct DRW_Global G_draw = {{{0}}};
 
 static bool weight_ramp_custom = false;
@@ -287,10 +289,6 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 /* ******************************************** COLOR UTILS ************************************ */
 
 /* TODO: FINISH. */
-/**
- * Get the wire color theme_id of an object based on its state
- * \a r_color is a way to get a pointer to the static color var associated
- */
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();

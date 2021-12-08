@@ -106,6 +106,11 @@ typedef struct DefaultTextureList {
 
 typedef struct DRWViewData DRWViewData;
 
+/**
+ * Creates a view data with all possible engines type for this view.
+ *
+ * `engine_types` contains #DRWRegisteredDrawEngine.
+ */
 DRWViewData *DRW_view_data_create(ListBase *engine_types);
 void DRW_view_data_free(DRWViewData *view_data);
 

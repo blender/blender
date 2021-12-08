@@ -1372,11 +1372,6 @@ static void edituv_request_active_uv(MeshBatchCache *cache, Mesh *me)
   mesh_cd_layers_type_merge(&cache->cd_needed, cd_needed);
 }
 
-/* Creates the GPUBatch for drawing the UV Stretching Area Overlay.
- * Optional retrieves the total area or total uv area of the mesh.
- *
- * The `cache->tot_area` and cache->tot_uv_area` update are calculation are
- * only valid after calling `DRW_mesh_batch_cache_create_requested`. */
 GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Mesh *me,
                                                              float **tot_area,
                                                              float **tot_uv_area)
@@ -1456,9 +1451,6 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
 /** \name Grouped batch generation
  * \{ */
 
-/* Thread safety need to be assured by caller. Don't call this during drawing.
- * NOTE: For now this only free the shading batches / vbo if any cd layers is
- * not needed anymore. */
 void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
@@ -1526,7 +1518,6 @@ static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, M
 }
 #endif
 
-/* Can be called for any surface type. Mesh *me is the final mesh. */
 void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                            Object *ob,
                                            Mesh *me,

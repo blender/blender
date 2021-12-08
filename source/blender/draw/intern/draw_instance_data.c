@@ -112,14 +112,6 @@ static void instancing_batch_references_remove(GPUBatch *batch)
 /** \name Instance Buffer Management
  * \{ */
 
-/**
- * This manager allows to distribute existing batches for instancing
- * attributes. This reduce the number of batches creation.
- * Querying a batch is done with a vertex format. This format should
- * be static so that its pointer never changes (because we are using
- * this pointer as identifier [we don't want to check the full format
- * that would be too slow]).
- */
 GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
                                     GPUVertFormat *format,
                                     int *vert_len)
@@ -143,8 +135,6 @@ GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
   return handle->buf;
 }
 
-/* NOTE: Does not return a valid drawable batch until DRW_instance_buffer_finish has run.
- * Initialization is delayed because instancer or geom could still not be initialized. */
 GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
                                           GPUVertBuf *buf,
                                           GPUBatch *instancer,
@@ -185,7 +175,6 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
   return batch;
 }
 
-/* NOTE: Use only with buf allocated via DRW_temp_buffer_request. */
 GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
                                  GPUVertBuf *buf,
                                  GPUPrimType prim_type)
@@ -301,9 +290,6 @@ static void DRW_instance_data_free(DRWInstanceData *idata)
   BLI_mempool_destroy(idata->mempool);
 }
 
-/**
- * Return a pointer to the next instance data space.
- */
 void *DRW_instance_data_next(DRWInstanceData *idata)
 {
   return BLI_mempool_alloc(idata->mempool);
@@ -453,7 +439,6 @@ static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
   buffer->chunk_bytes = item_size * chunk_size;
 }
 
-/** Allocate a chunked UBO with the specified item and chunk size. */
 DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsigned int chunk_size)
 {
   DRWSparseUniformBuf *buf = MEM_mallocN(sizeof(DRWSparseUniformBuf), __func__);
@@ -461,7 +446,6 @@ DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsig
   return buf;
 }
 
-/** Flush data from ordinary memory to UBOs. */
 void DRW_sparse_uniform_buffer_flush(DRWSparseUniformBuf *buffer)
 {
   for (int i = 0; i < buffer->num_chunks; i++) {
@@ -474,7 +458,6 @@ void DRW_sparse_uniform_buffer_flush(DRWSparseUniformBuf *buffer)
   }
 }
 
-/** Clean all buffers and free unused ones. */
 void DRW_sparse_uniform_buffer_clear(DRWSparseUniformBuf *buffer, bool free_all)
 {
   int max_used_chunk = 0;
@@ -517,14 +500,12 @@ void DRW_sparse_uniform_buffer_clear(DRWSparseUniformBuf *buffer, bool free_all)
   BLI_bitmap_set_all(buffer->chunk_used, false, buffer->num_chunks);
 }
 
-/** Frees the buffer. */
 void DRW_sparse_uniform_buffer_free(DRWSparseUniformBuf *buffer)
 {
   DRW_sparse_uniform_buffer_clear(buffer, true);
   MEM_freeN(buffer);
 }
 
-/** Checks if the buffer contains any allocated chunks. */
 bool DRW_sparse_uniform_buffer_is_empty(DRWSparseUniformBuf *buffer)
 {
   return buffer->num_chunks == 0;
@@ -538,7 +519,6 @@ static GPUUniformBuf *drw_sparse_uniform_buffer_get_ubo(DRWSparseUniformBuf *buf
   return NULL;
 }
 
-/** Bind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty. */
 void DRW_sparse_uniform_buffer_bind(DRWSparseUniformBuf *buffer, int chunk, int location)
 {
   GPUUniformBuf *ubo = drw_sparse_uniform_buffer_get_ubo(buffer, chunk);
@@ -547,7 +527,6 @@ void DRW_sparse_uniform_buffer_bind(DRWSparseUniformBuf *buffer, int chunk, int 
   }
 }
 
-/** Unbind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty. */
 void DRW_sparse_uniform_buffer_unbind(DRWSparseUniformBuf *buffer, int chunk)
 {
   GPUUniformBuf *ubo = drw_sparse_uniform_buffer_get_ubo(buffer, chunk);
@@ -556,7 +535,6 @@ void DRW_sparse_uniform_buffer_unbind(DRWSparseUniformBuf *buffer, int chunk)
   }
 }
 
-/** Returns a pointer to the given item of the given chunk, allocating memory if necessary. */
 void *DRW_sparse_uniform_buffer_ensure_item(DRWSparseUniformBuf *buffer, int chunk, int item)
 {
   if (chunk >= buffer->num_chunks) {

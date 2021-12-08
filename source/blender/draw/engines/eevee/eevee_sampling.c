@@ -24,12 +24,6 @@
 
 #include "BLI_rand.h"
 
-/**
- * Special ball distribution:
- * Point are distributed in a way that when they are orthogonally
- * projected into any plane, the resulting distribution is (close to)
- * a uniform disc distribution.
- */
 void EEVEE_sample_ball(int sample_ofs, float radius, float rsample[3])
 {
   double ht_point[3];

@@ -462,8 +462,6 @@ void OVERLAY_image_cache_finish(OVERLAY_Data *vedata)
   DRW_pass_sort_shgroup_z(psl->image_empties_back_ps);
 }
 
-/* This function draws images that needs the view transform applied.
- * It draws these images directly into the scene color buffer. */
 void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;

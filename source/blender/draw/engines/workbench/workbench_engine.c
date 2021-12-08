@@ -473,8 +473,6 @@ void workbench_cache_finish(void *ved)
   }
 }
 
-/* Used by viewport rendering & final rendering.
- * Do one render loop iteration (i.e: One TAA sample). */
 void workbench_draw_sample(void *ved)
 {
   WORKBENCH_Data *vedata = ved;
