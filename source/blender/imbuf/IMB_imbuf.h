@@ -612,6 +612,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
  *
  * \attention defined in imageprocess.c
  */
+
 void bicubic_interpolation(
     const struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 void nearest_interpolation(
@@ -619,13 +620,23 @@ void nearest_interpolation(
 void bilinear_interpolation(
     const struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 
+typedef void (*InterpolationColorFunction)(
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bicubic_interpolation_color(
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void nearest_interpolation_color_char(
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void nearest_interpolation_color_fl(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color_wrap(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color(
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void bilinear_interpolation_color_char(
+    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+void bilinear_interpolation_color_fl(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color_wrap(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
