@@ -126,8 +126,6 @@ int RNA_property_override_flag(PropertyRNA *prop)
   return rna_ensure_property(prop)->flag_override;
 }
 
-/** \note Does not take into account editable status, this has to be checked separately
- * (using #RNA_property_editable_flag() usually). */
 bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
@@ -170,7 +168,6 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
   return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
 }
 
-/* Should only be used for custom properties */
 bool RNA_property_overridable_library_set(PointerRNA *UNUSED(ptr),
                                           PropertyRNA *prop,
                                           const bool is_overridable)
@@ -635,16 +632,6 @@ static bool rna_property_override_operation_apply(Main *bmain,
   return success;
 }
 
-/**
- * Check whether reference and local overridden data match (are the same),
- * with respect to given restrictive sets of properties.
- * If requested, will generate needed new property overrides, and/or restore values from reference.
- *
- * \param r_report_flags: If given,
- * will be set with flags matching actions taken by the function on \a ptr_local.
- *
- * \return True if _resulting_ \a ptr_local does match \a ptr_reference.
- */
 bool RNA_struct_override_matches(Main *bmain,
                                  PointerRNA *ptr_local,
                                  PointerRNA *ptr_reference,
@@ -928,10 +915,6 @@ bool RNA_struct_override_matches(Main *bmain,
   return matching;
 }
 
-/**
- * Store needed second operands into \a storage data-block
- * for differential override operations.
- */
 bool RNA_struct_override_store(Main *bmain,
                                PointerRNA *ptr_local,
                                PointerRNA *ptr_reference,
@@ -1195,10 +1178,6 @@ static void rna_property_override_apply_ex(Main *bmain,
   }
 }
 
-/**
- * Apply given \a override operations on \a ptr_dst, using \a ptr_src
- * (and \a ptr_storage for differential ops) as source.
- */
 void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *ptr_dst,
                                PointerRNA *ptr_src,

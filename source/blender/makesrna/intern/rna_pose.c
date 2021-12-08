@@ -869,7 +869,6 @@ static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
 
 #else
 
-/* common properties for Action/Bone Groups - related to color */
 void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const char *update_cb)
 {
   PropertyRNA *prop;

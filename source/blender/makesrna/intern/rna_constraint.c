@@ -3446,7 +3446,8 @@ static void rna_def_constraint_transform_cache(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
-/* base struct for constraints */
+/* Define the base struct for constraints. */
+
 void RNA_def_constraint(BlenderRNA *brna)
 {
   StructRNA *srna;
