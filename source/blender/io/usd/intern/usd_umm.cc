@@ -384,7 +384,7 @@ static void test_python()
 
 static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
 {
-  if (!(usd_shader)) {
+  if (!usd_shader) {
     return nullptr;
   }
 
@@ -394,6 +394,10 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
 
   for (auto input : inputs) {
 
+    if (!input) {
+      continue;
+    }
+
     PyObject *tup = nullptr;
 
     std::string name = input.GetBaseName().GetString();
@@ -402,7 +406,7 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
       continue;
     }
 
-    pxr::UsdAttribute usd_attr = input.GetAttr();
+    pxr::UsdAttribute usd_attr;
 
     bool have_connected_source = false;
 
@@ -417,8 +421,17 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
       }
       else {
         std::cerr << "ERROR: couldn't get connected source for usd shader input "
-                  << input.GetPrim().GetPath() << " " << input.GetFullName() << std::endl;
+          << input.GetPrim().GetPath() << " " << input.GetFullName() << std::endl;
       }
+    }
+    else {
+      usd_attr = input.GetAttr();
+    }
+
+    if (!usd_attr) {
+      std::cerr << "ERROR: couldn't get attribute for usd shader input " << input.GetPrim().GetPath()
+                << " " << input.GetFullName() << std::endl;
+      continue;
     }
 
     pxr::VtValue val;
@@ -457,7 +470,9 @@ static PyObject *get_shader_source_data(const pxr::UsdShadeShader &usd_shader)
       if (color_space_tok.IsEmpty() && have_connected_source) {
         /* The connected asset input has no color space specified,
          * so we also check the shader's asset input for this data. */
-        color_space_tok = input.GetAttr().GetColorSpace();
+        if (pxr::UsdAttribute input_attr = input.GetAttr()) {
+          color_space_tok = input_attr.GetColorSpace();
+        }
       }
 
       std::string color_space_str = !color_space_tok.IsEmpty() ? color_space_tok.GetString() :
