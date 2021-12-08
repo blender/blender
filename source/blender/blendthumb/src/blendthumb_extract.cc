@@ -179,10 +179,6 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
   return BT_INVALID_THUMB;
 }
 
-/**
- * This function extracts the thumbnail from the .blend file into thumb.
- * Returns #BT_OK for success and the relevant error code otherwise.
- */
 eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *thumb)
 {
   /* Read header in order to identify file type. */

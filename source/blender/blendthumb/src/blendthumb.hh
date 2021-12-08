@@ -53,6 +53,10 @@ enum eThumbStatus {
 
 std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
     const Thumbnail *thumb);
+/**
+ * This function extracts the thumbnail from the .blend file into thumb.
+ * Returns #BT_OK for success and the relevant error code otherwise.
+ */
 eThumbStatus blendthumb_create_thumb_from_file(struct FileReader *rawfile, Thumbnail *thumb);
 
 /* INTEGER CODES */
