@@ -91,6 +91,10 @@ extern ModifierTypeInfo modifierType_VolumeDisplace;
 extern ModifierTypeInfo modifierType_VolumeToMesh;
 
 /* MOD_util.c */
+
+/**
+ * Only called by `BKE_modifier.h/modifier.c`
+ */
 void modifier_type_init(ModifierTypeInfo *types[]);
 
 #ifdef __cplusplus

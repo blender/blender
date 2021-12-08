@@ -32,6 +32,9 @@ struct ModifierEvalContext;
 struct Object;
 
 void MOD_init_texture(struct MappingInfoModifierData *dmd, const struct ModifierEvalContext *ctx);
+/**
+ * \param cos: may be NULL, in which case we use directly mesh vertices' coordinates.
+ */
 void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,
                             const struct ModifierEvalContext *ctx,
                             struct Object *ob,
@@ -41,6 +44,9 @@ void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,
 
 void MOD_previous_vcos_store(struct ModifierData *md, const float (*vert_coords)[3]);
 
+/**
+ * \returns a mesh if mesh == NULL, for deforming modifiers that need it.
+ */
 struct Mesh *MOD_deform_mesh_eval_get(struct Object *ob,
                                       struct BMEditMesh *em,
                                       struct Mesh *mesh,
