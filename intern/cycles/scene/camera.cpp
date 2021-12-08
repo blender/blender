@@ -426,8 +426,8 @@ void Camera::update(Scene *scene)
                                             latitude_min - latitude_max,
                                             -latitude_min + M_PI_2_F);
   kcam->fisheye_lens_polynomial_bias = fisheye_polynomial_k0;
-  kcam->fisheye_lens_polynomial_coefficients = make_float4(fisheye_polynomial_k1, fisheye_polynomial_k2,
-                                                           fisheye_polynomial_k3, fisheye_polynomial_k4);
+  kcam->fisheye_lens_polynomial_coefficients = make_float4(
+      fisheye_polynomial_k1, fisheye_polynomial_k2, fisheye_polynomial_k3, fisheye_polynomial_k4);
 
   switch (stereo_eye) {
     case STEREO_LEFT:

@@ -1329,7 +1329,8 @@ static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFuncti
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_voronoi(){
+void register_node_type_sh_tex_voronoi()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE, 0);

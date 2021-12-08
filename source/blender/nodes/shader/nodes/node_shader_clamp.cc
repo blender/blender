@@ -75,7 +75,8 @@ static void sh_node_clamp_build_multi_function(blender::nodes::NodeMultiFunction
   }
 }
 
-void register_node_type_sh_clamp(){
+void register_node_type_sh_clamp()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, "Clamp", NODE_CLASS_CONVERTER, 0);

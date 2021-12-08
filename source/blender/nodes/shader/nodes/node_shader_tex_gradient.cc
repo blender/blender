@@ -160,7 +160,8 @@ static void sh_node_gradient_tex_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_gradient(){
+void register_node_type_sh_tex_gradient()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE, 0);

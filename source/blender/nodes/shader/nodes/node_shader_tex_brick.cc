@@ -268,7 +268,8 @@ static void sh_node_brick_build_multi_function(blender::nodes::NodeMultiFunction
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_brick(){
+void register_node_type_sh_tex_brick()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE, 0);

@@ -183,7 +183,8 @@ static void sh_node_mix_rgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
 }
 
-void register_node_type_sh_mix_rgb(){
+void register_node_type_sh_mix_rgb()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, 0);

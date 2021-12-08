@@ -103,7 +103,8 @@ static void sh_node_seprgb_build_multi_function(blender::nodes::NodeMultiFunctio
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_seprgb(){
+void register_node_type_sh_seprgb()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTER, 0);
@@ -162,7 +163,8 @@ static void sh_node_combrgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_sh_combrgb(){
+void register_node_type_sh_combrgb()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTER, 0);

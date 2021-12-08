@@ -205,7 +205,8 @@ static void node_shader_update_vector_rotate(bNodeTree *ntree, bNode *node)
       ntree, sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
 }
 
-void register_node_type_sh_vector_rotate(){
+void register_node_type_sh_vector_rotate()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);

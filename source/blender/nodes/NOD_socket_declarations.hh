@@ -226,7 +226,8 @@ class Shader : public SocketDeclaration {
   bool matches(const bNodeSocket &socket) const override;
 };
 
-class ShaderBuilder : public SocketDeclarationBuilder<Shader> {};
+class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
+};
 
 /* -------------------------------------------------------------------- */
 /** \name #FloatBuilder Inline Methods

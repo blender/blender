@@ -307,7 +307,8 @@ static void sh_node_map_range_build_multi_function(
   }
 }
 
-void register_node_type_sh_map_range(){
+void register_node_type_sh_map_range()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);

@@ -49,7 +49,8 @@ static void sh_node_value_build_multi_function(blender::nodes::NodeMultiFunction
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<float>>(value->value);
 }
 
-void register_node_type_sh_value(){
+void register_node_type_sh_value()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);

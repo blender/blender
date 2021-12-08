@@ -152,7 +152,8 @@ static void sh_node_curve_vec_build_multi_function(
   builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap);
 }
 
-void register_node_type_sh_curve_vec(){
+void register_node_type_sh_curve_vec()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
@@ -328,7 +329,8 @@ static void sh_node_curve_rgb_build_multi_function(
   builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap);
 }
 
-void register_node_type_sh_curve_rgb(){
+void register_node_type_sh_curve_rgb()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
@@ -471,7 +473,8 @@ static void sh_node_curve_float_build_multi_function(
   builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap);
 }
 
-void register_node_type_sh_curve_float(){
+void register_node_type_sh_curve_float()
+{
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER, 0);
