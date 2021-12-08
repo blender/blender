@@ -45,7 +45,7 @@ void ColorCurveOperation::init_execution()
   input_black_program_ = this->get_input_socket_reader(2);
   input_white_program_ = this->get_input_socket_reader(3);
 
-  BKE_curvemapping_premultiply(curve_mapping_, 0);
+  BKE_curvemapping_premultiply(curve_mapping_, false);
 }
 
 void ColorCurveOperation::execute_pixel_sampled(float output[4],
@@ -145,7 +145,7 @@ void ConstantLevelColorCurveOperation::init_execution()
   input_fac_program_ = this->get_input_socket_reader(0);
   input_image_program_ = this->get_input_socket_reader(1);
 
-  BKE_curvemapping_premultiply(curve_mapping_, 0);
+  BKE_curvemapping_premultiply(curve_mapping_, false);
 
   BKE_curvemapping_set_black_white(curve_mapping_, black_, white_);
 }

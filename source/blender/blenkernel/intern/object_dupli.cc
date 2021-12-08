@@ -1499,7 +1499,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       else {
         /* First key. */
         state.time = ctime;
-        if (psys_get_particle_state(&sim, a, &state, 0) == 0) {
+        if (psys_get_particle_state(&sim, a, &state, false) == 0) {
           continue;
         }
 
