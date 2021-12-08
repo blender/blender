@@ -393,11 +393,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       RNA_property_is_set(op->ptr, prop)) {
     float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory. */
     if (RNA_property_array_check(prop)) {
-      RNA_float_get_array(op->ptr, "value", values);
+      RNA_property_float_get_array(op->ptr, prop, values);
       t_values_set_is_array = true;
     }
     else {
-      values[0] = RNA_float_get(op->ptr, "value");
+      values[0] = RNA_property_float_get(op->ptr, prop);
     }
 
     if (t->flag & T_MODAL) {

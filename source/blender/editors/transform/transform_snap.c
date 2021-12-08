@@ -708,33 +708,39 @@ void initSnapping(TransInfo *t, wmOperator *op)
   resetSnapping(t);
 
   /* if snap property exists */
-  if (op && RNA_struct_find_property(op->ptr, "snap") &&
-      RNA_struct_property_is_set(op->ptr, "snap")) {
-    if (RNA_boolean_get(op->ptr, "snap")) {
+  PropertyRNA *prop;
+  if (op && (prop = RNA_struct_find_property(op->ptr, "snap")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    if (RNA_property_boolean_get(op->ptr, prop)) {
       t->modifiers |= MOD_SNAP;
 
-      if (RNA_struct_property_is_set(op->ptr, "snap_target")) {
-        snap_target = RNA_enum_get(op->ptr, "snap_target");
+      if ((prop = RNA_struct_find_property(op->ptr, "snap_target")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        snap_target = RNA_property_enum_get(op->ptr, prop);
       }
 
-      if (RNA_struct_property_is_set(op->ptr, "snap_point")) {
-        RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
+      if ((prop = RNA_struct_find_property(op->ptr, "snap_point")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        RNA_property_float_get_array(op->ptr, prop, t->tsnap.snapPoint);
         t->tsnap.status |= SNAP_FORCED | POINT_INIT;
       }
 
       /* snap align only defined in specific cases */
-      if (RNA_struct_find_property(op->ptr, "snap_align")) {
-        t->tsnap.align = RNA_boolean_get(op->ptr, "snap_align");
+      if ((prop = RNA_struct_find_property(op->ptr, "snap_align")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        t->tsnap.align = RNA_property_boolean_get(op->ptr, prop);
         RNA_float_get_array(op->ptr, "snap_normal", t->tsnap.snapNormal);
         normalize_v3(t->tsnap.snapNormal);
       }
 
-      if (RNA_struct_find_property(op->ptr, "use_snap_project")) {
-        t->tsnap.project = RNA_boolean_get(op->ptr, "use_snap_project");
+      if ((prop = RNA_struct_find_property(op->ptr, "use_snap_project")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        t->tsnap.project = RNA_property_boolean_get(op->ptr, prop);
       }
 
-      if (RNA_struct_find_property(op->ptr, "use_snap_self")) {
-        t->tsnap.snap_self = RNA_boolean_get(op->ptr, "use_snap_self");
+      if ((prop = RNA_struct_find_property(op->ptr, "use_snap_self")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        t->tsnap.snap_self = RNA_property_boolean_get(op->ptr, prop);
       }
     }
   }
