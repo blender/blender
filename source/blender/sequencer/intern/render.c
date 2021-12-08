@@ -97,6 +97,7 @@ SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 /* -------------------------------------------------------------------- */
 /** \name Color-space utility functions
  * \{ */
+
 void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
 #if 0
@@ -1914,11 +1915,6 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   return out;
 }
 
-/**
- * \return The image buffer or NULL.
- *
- * \note The returned #ImBuf has its reference increased, free after usage!
- */
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;
@@ -2029,7 +2025,6 @@ static ImBuf *seq_get_uncached_thumbnail(const SeqRenderData *context,
   return scaled_ibuf;
 }
 
-/* Get cached thumbnails. */
 ImBuf *SEQ_get_thumbnail(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, rcti *crop, bool clipped)
 {
@@ -2054,7 +2049,6 @@ ImBuf *SEQ_get_thumbnail(
   return ibuf_cropped;
 }
 
-/* Render the series of thumbnails and store in cache. */
 void SEQ_render_thumbnails(const SeqRenderData *context,
                            Sequence *seq,
                            Sequence *seq_orig,
@@ -2099,8 +2093,6 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
   }
 }
 
-/* Get frame step for equally spaced thumbnails. These thumbnails should always be present in
- * memory, so they can be used when zooming.*/
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
 {
   const int content_len = (seq->enddisp - seq->startdisp - seq->startstill - seq->endstill);
@@ -2113,7 +2105,6 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
   return content_len / thumbnails_base_set_count;
 }
 
-/* Render set of evenly spaced thumbnails that are drawn when zooming. */
 void SEQ_render_thumbnails_base_set(const SeqRenderData *context,
                                     Sequence *seq,
                                     Sequence *seq_orig,

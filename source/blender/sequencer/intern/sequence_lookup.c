@@ -105,11 +105,6 @@ static void seq_sequence_lookup_update_if_needed(const struct Scene *scene,
   seq_sequence_lookup_rebuild(scene, lookup);
 }
 
-/**
- * Free lookup hash data.
- *
- * \param scene: scene that owns lookup hash
- */
 void SEQ_sequence_lookup_free(const Scene *scene)
 {
   BLI_assert(scene->ed);
@@ -119,16 +114,6 @@ void SEQ_sequence_lookup_free(const Scene *scene)
   BLI_mutex_unlock(&lookup_lock);
 }
 
-/**
- * Find a sequence with a given name.
- * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
- * rebuilt.
- *
- * \param scene: scene that owns lookup hash
- * \param key: Sequence name without SQ prefix (seq->name + 2)
- *
- * \return pointer to Sequence
- */
 Sequence *SEQ_sequence_lookup_by_name(const Scene *scene, const char *key)
 {
   BLI_assert(scene->ed);
@@ -140,12 +125,6 @@ Sequence *SEQ_sequence_lookup_by_name(const Scene *scene, const char *key)
   return seq;
 }
 
-/**
- * Find a sequence with a given name.
- *
- * \param scene: scene that owns lookup hash
- * \param tag: tag to set
- */
 void SEQ_sequence_lookup_tag(const Scene *scene, eSequenceLookupTag tag)
 {
   if (!scene->ed) {

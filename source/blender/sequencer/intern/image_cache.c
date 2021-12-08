@@ -453,9 +453,6 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
   return finalkey;
 }
 
-/* Find only "base" keys.
- * Sources(other types) for a frame must be freed all at once.
- */
 bool seq_cache_recycle_item(Scene *scene)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);

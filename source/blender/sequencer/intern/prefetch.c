@@ -162,14 +162,12 @@ static Sequence *sequencer_prefetch_get_original_sequence(Sequence *seq, ListBas
   return NULL;
 }
 
-/* for cache context swapping */
 Sequence *seq_prefetch_get_original_sequence(Sequence *seq, Scene *scene)
 {
   Editing *ed = scene->ed;
   return sequencer_prefetch_get_original_sequence(seq, &ed->seqbase);
 }
 
-/* for cache context swapping */
 SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
@@ -268,9 +266,6 @@ void SEQ_prefetch_stop_all(void)
   }
 }
 
-/* Use also to update scene and context changes
- * This function should almost always be called by cache invalidation, not directly.
- */
 void SEQ_prefetch_stop(Scene *scene)
 {
   PrefetchJob *pfjob;
@@ -561,7 +556,6 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
   return pfjob;
 }
 
-/* Start or resume prefetching. */
 void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;

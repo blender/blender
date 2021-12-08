@@ -70,6 +70,10 @@ bool seq_cache_put_if_possible(const struct SeqRenderData *context,
                                float timeline_frame,
                                int type,
                                struct ImBuf *nval);
+/**
+ * Find only "base" keys.
+ * Sources(other types) for a frame must be freed all at once.
+ */
 bool seq_cache_recycle_item(struct Scene *scene);
 void seq_cache_free_temp_cache(struct Scene *scene, short id, int timeline_frame);
 void seq_cache_destruct(struct Scene *scene);

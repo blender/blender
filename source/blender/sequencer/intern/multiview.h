@@ -43,6 +43,9 @@ void seq_multiview_name(struct Scene *scene,
                         const char *ext,
                         char *r_path,
                         size_t r_size);
+/**
+ * The number of files will vary according to the stereo format.
+ */
 int seq_num_files(struct Scene *scene, char views_format, const bool is_multiview);
 
 #ifdef __cplusplus

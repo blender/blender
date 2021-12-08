@@ -352,7 +352,6 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
   return false;
 }
 
-/* Check if "seq_main" (indirectly) uses strip "seq". */
 bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
 {
   if (seq_main == NULL || seq == NULL) {
@@ -379,7 +378,6 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
   return false;
 }
 
-/* Function to free imbuf and anim data on changes */
 void SEQ_relations_sequence_free_anim(Sequence *seq)
 {
   while (seq->anims.last) {
@@ -432,7 +430,6 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
   BLI_gset_free(used_uuids, NULL);
 }
 
-/* Return immediate parent meta of sequence */
 struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
 {
   Sequence *iseq;
