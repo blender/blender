@@ -697,12 +697,12 @@ void view3d_winmatrix_set(Depsgraph *depsgraph,
                           const rcti *rect)
 {
   RegionView3D *rv3d = region->regiondata;
-  rctf viewplane;
+  rctf full_viewplane;
   float clipsta, clipend;
   bool is_ortho;
 
   is_ortho = ED_view3d_viewplane_get(
-      depsgraph, v3d, rv3d, region->winx, region->winy, &viewplane, &clipsta, &clipend, NULL);
+      depsgraph, v3d, rv3d, region->winx, region->winy, &full_viewplane, &clipsta, &clipend, NULL);
   rv3d->is_persp = !is_ortho;
 
 #if 0
@@ -710,21 +710,29 @@ void view3d_winmatrix_set(Depsgraph *depsgraph,
          __func__,
          winx,
          winy,
-         viewplane.xmin,
-         viewplane.ymin,
-         viewplane.xmax,
-         viewplane.ymax,
+         full_viewplane.xmin,
+         full_viewplane.ymin,
+         full_viewplane.xmax,
+         full_viewplane.ymax,
          clipsta,
          clipend);
 #endif
 
-  if (rect) { /* picking */
-    rctf r;
-    r.xmin = viewplane.xmin + (BLI_rctf_size_x(&viewplane) * (rect->xmin / (float)region->winx));
-    r.ymin = viewplane.ymin + (BLI_rctf_size_y(&viewplane) * (rect->ymin / (float)region->winy));
-    r.xmax = viewplane.xmin + (BLI_rctf_size_x(&viewplane) * (rect->xmax / (float)region->winx));
-    r.ymax = viewplane.ymin + (BLI_rctf_size_y(&viewplane) * (rect->ymax / (float)region->winy));
-    viewplane = r;
+  /* Note the code here was tweaked to avoid an apparent compiler bug in clang 13 (see T91680). */
+  rctf viewplane;
+  if (rect) {
+    /* Smaller viewplane subset for selection picking. */
+    viewplane.xmin = full_viewplane.xmin +
+                     (BLI_rctf_size_x(&full_viewplane) * (rect->xmin / (float)region->winx));
+    viewplane.ymin = full_viewplane.ymin +
+                     (BLI_rctf_size_y(&full_viewplane) * (rect->ymin / (float)region->winy));
+    viewplane.xmax = full_viewplane.xmin +
+                     (BLI_rctf_size_x(&full_viewplane) * (rect->xmax / (float)region->winx));
+    viewplane.ymax = full_viewplane.ymin +
+                     (BLI_rctf_size_y(&full_viewplane) * (rect->ymax / (float)region->winy));
+  }
+  else {
+    viewplane = full_viewplane;
   }
 
   if (is_ortho) {
