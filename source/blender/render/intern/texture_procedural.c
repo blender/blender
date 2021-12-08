@@ -1399,9 +1399,6 @@ static int multitex_nodes_intern(Tex *tex,
                   use_nodes);
 }
 
-/* this is called from the shader and texture nodes
- * Use it from render pipeline only!
- */
 int multitex_nodes(Tex *tex,
                    const float texvec[3],
                    float dxt[3],
@@ -1429,13 +1426,6 @@ int multitex_nodes(Tex *tex,
                                true);
 }
 
-/**
- * \warning if the texres's values are not declared zero,
- * check the return value to be sure the color values are set before using the r/g/b values,
- * otherwise you may use uninitialized values - Campbell
- *
- * Use it for stuff which is out of render pipeline.
- */
 int multitex_ext(Tex *tex,
                  float texvec[3],
                  float dxt[3],
@@ -1463,10 +1453,6 @@ int multitex_ext(Tex *tex,
                                true);
 }
 
-/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on)\
- *
- * Use it for stuff which is out of render pipeline.
- */
 int multitex_ext_safe(Tex *tex,
                       const float texvec[3],
                       TexResult *texres,
@@ -1492,8 +1478,6 @@ int multitex_ext_safe(Tex *tex,
 
 /* ------------------------------------------------------------------------- */
 
-/* in = destination, tex = texture, out = previous color */
-/* fact = texture strength, facg = button strength value */
 void texture_rgb_blend(
     float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype)
 {
@@ -1722,11 +1706,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
 /* ------------------------------------------------------------------------- */
 
-/**
- * \param pool: Thread pool, may be NULL.
- *
- * \return True if the texture has color, otherwise false.
- */
 bool RE_texture_evaluate(const MTex *mtex,
                          const float vec[3],
                          const int thread,

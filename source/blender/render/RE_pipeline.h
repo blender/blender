@@ -167,8 +167,10 @@ typedef struct RenderStats {
 
 /* *********************** API ******************** */
 
-/* the name is used as identifier, so elsewhere in blender the result can retrieved */
-/* calling a new render with same name, frees automatic existing render */
+/**
+ * The name is used as identifier, so elsewhere in blender the result can retrieved.
+ * Calling a new render with same name, frees automatic existing render.
+ */
 struct Render *RE_NewRender(const char *name);
 struct Render *RE_GetRender(const char *name);
 
@@ -176,36 +178,80 @@ struct Scene;
 struct Render *RE_NewSceneRender(const struct Scene *scene);
 struct Render *RE_GetSceneRender(const struct Scene *scene);
 
-/* assign default dummy callbacks */
+/* Assign default dummy callbacks. */
+
+/**
+ * Called for new renders and when finishing rendering
+ * so we always have valid callbacks on a render.
+ */
 void RE_InitRenderCB(struct Render *re);
 
-/* use free render as signal to do everything over (previews) */
+/**
+ * Use free render as signal to do everything over (previews).
+ *
+ * Only call this while you know it will remove the link too.
+ */
 void RE_FreeRender(struct Render *re);
-/* only called on exit */
+/**
+ * Only called on exit.
+ */
 void RE_FreeAllRender(void);
 
-/* On file load, free render results. */
+/**
+ * On file load, free render results.
+ */
 void RE_FreeAllRenderResults(void);
-/* On file load or changes engines, free persistent render data.
- * Assumes no engines are currently rendering. */
+/**
+ * On file load or changes engines, free persistent render data.
+ * Assumes no engines are currently rendering.
+ */
 void RE_FreeAllPersistentData(void);
-/* Free persistent render data, optionally only for the given scene. */
+/**
+ * Free persistent render data, optionally only for the given scene.
+ */
 void RE_FreePersistentData(const Scene *scene);
 
-/* get results and statistics */
+/**
+ * Get results and statistics.
+ */
 void RE_FreeRenderResult(struct RenderResult *rr);
+/**
+ * If you want to know exactly what has been done.
+ */
 struct RenderResult *RE_AcquireResultRead(struct Render *re);
 struct RenderResult *RE_AcquireResultWrite(struct Render *re);
 void RE_ReleaseResult(struct Render *re);
+/**
+ * Same as #RE_AcquireResultImage but creating the necessary views to store the result
+ * fill provided result struct with a copy of thew views of what is done so far the
+ * #RenderResult.views #ListBase needs to be freed after with #RE_ReleaseResultImageViews
+ */
 void RE_AcquireResultImageViews(struct Render *re, struct RenderResult *rr);
+/**
+ * Clear temporary #RenderResult struct.
+ */
 void RE_ReleaseResultImageViews(struct Render *re, struct RenderResult *rr);
+
+/**
+ * Fill provided result struct with what's currently active or done.
+ * This #RenderResult struct is the only exception to the rule of a #RenderResult
+ * always having at least one #RenderView.
+ */
 void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr, const int view_id);
 void RE_ReleaseResultImage(struct Render *re);
 void RE_SwapResult(struct Render *re, struct RenderResult **rr);
 void RE_ClearResult(struct Render *re);
 struct RenderStats *RE_GetStats(struct Render *re);
 
+/**
+ * Caller is responsible for allocating `rect` in correct size!
+ */
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
+/**
+ * Only for acquired results, for lock.
+ *
+ * \note The caller is responsible for allocating `rect` in correct size!
+ */
 void RE_AcquiredResultGet32(struct Render *re,
                             struct RenderResult *result,
                             unsigned int *rect,
@@ -223,7 +269,10 @@ float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl,
 
 bool RE_HasSingleLayer(struct Render *re);
 
-/* add passes for grease pencil */
+/**
+ * Add passes for grease pencil.
+ * Create a render-layer and render-pass for grease-pencil layer.
+ */
 struct RenderPass *RE_create_gp_pass(struct RenderResult *rr,
                                      const char *layername,
                                      const char *viewname);
@@ -236,7 +285,10 @@ void RE_create_render_pass(struct RenderResult *rr,
                            const char *viewname,
                            const bool allocate);
 
-/* obligatory initialize call, disprect is optional */
+/**
+ * Obligatory initialize call, doesn't change during entire render sequence.
+ * \param disprect: is optional. if NULL it assumes full window render.
+ */
 void RE_InitState(struct Render *re,
                   struct Render *source,
                   struct RenderData *rd,
@@ -246,15 +298,28 @@ void RE_InitState(struct Render *re,
                   int winy,
                   rcti *disprect);
 
-/* set up the viewplane/perspective matrix, three choices */
-struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
+/**
+ * Set up the view-plane/perspective matrix, three choices.
+ *
+ * \return camera override if set.
+ */
+struct Object *RE_GetCamera(struct Render *re);
 void RE_SetOverrideCamera(struct Render *re, struct Object *cam_ob);
+/**
+ * Per render, there's one persistent view-plane. Parts will set their own view-planes.
+ *
+ * \note call this after #RE_InitState().
+ */
 void RE_SetCamera(struct Render *re, struct Object *cam_ob);
 
-/* get current view and window transform */
+/**
+ * Get current view and window transform.
+ */
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
-/* Set the render threads based on the command-line and auto-threads setting. */
+/**
+ * Set the render threads based on the command-line and auto-threads setting.
+ */
 void RE_init_threadcount(Render *re);
 
 bool RE_WriteRenderViewsImage(struct ReportList *reports,
@@ -271,7 +336,11 @@ bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               const int totvideos,
                               bool preview);
 
-/* only RE_NewRender() needed, main Blender render calls */
+/**
+ * Only #RE_NewRender() needed, main Blender render calls.
+ *
+ * General Blender frame render call.
+ */
 void RE_RenderFrame(struct Render *re,
                     struct Main *bmain,
                     struct Scene *scene,
@@ -279,6 +348,9 @@ void RE_RenderFrame(struct Render *re,
                     struct Object *camera_override,
                     int frame,
                     const bool write_still);
+/**
+ * Saves images to disk.
+ */
 void RE_RenderAnim(struct Render *re,
                    struct Main *bmain,
                    struct Scene *scene,
@@ -298,13 +370,24 @@ void RE_RenderFreestyleExternal(struct Render *re);
 void RE_SetActiveRenderView(struct Render *re, const char *viewname);
 const char *RE_GetActiveRenderView(struct Render *re);
 
-/* error reporting */
+/**
+ * Error reporting.
+ */
 void RE_SetReports(struct Render *re, struct ReportList *reports);
 
-/* main preview render call */
+/**
+ * Main preview render call.
+ */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
+/**
+ * Only the temp file!
+ */
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
+/**
+ * Called from the UI and render pipeline, to save multi-layer and multi-view
+ * images, optionally isolating a specific, view, layer or RGBA/Z pass.
+ */
 bool RE_WriteRenderResult(struct ReportList *reports,
                           RenderResult *rr,
                           const char *filename,
@@ -314,7 +397,11 @@ bool RE_WriteRenderResult(struct ReportList *reports,
 struct RenderResult *RE_MultilayerConvert(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
-/* display and event callbacks */
+/* Display and event callbacks. */
+
+/**
+ * Image and movie output has to move to either imbuf or kernel.
+ */
 void RE_display_init_cb(struct Render *re,
                         void *handle,
                         void (*f)(void *handle, RenderResult *rr));
@@ -337,17 +424,27 @@ void RE_gl_context_destroy(Render *re);
 void *RE_gl_context_get(Render *re);
 void *RE_gpu_context_get(Render *re);
 
-/* should move to kernel once... still unsure on how/where */
+/**
+ * \param x: ranges from -1 to 1.
+ *
+ * TODO: Should move to kernel once... still unsure on how/where.
+ */
 float RE_filter_value(int type, float x);
 
 int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
+/**
+ * Used in the interface to decide whether to show layers or passes.
+ */
 bool RE_layers_have_name(struct RenderResult *result);
 bool RE_passes_have_name(struct RenderLayer *rl);
 
 struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl,
                                         const char *name,
                                         const char *viewname);
+/**
+ * Only provided for API compatibility, don't use this in new code!
+ */
 struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl,
                                         int passtype,
                                         const char *viewname);
@@ -358,8 +455,14 @@ struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl,
 #define RE_BAKE_AO 2
 
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, float mat[4][4]);
+/**
+ * Must be called after #RE_GetCameraWindow(), does not change `re->winmat`.
+ */
 void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_winmat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_modelmat[4][4]);
+
+/* displist.c utility. */
+
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
 

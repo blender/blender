@@ -120,6 +120,10 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
                                     float result[],
                                     struct Object *ob,
                                     const eBakeNormalSwizzle normal_swizzle[3]);
+/**
+ * This function converts an object space normal map
+ * to a tangent space normal map for a given low poly mesh.
+ */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      const size_t num_pixels,
                                      const int depth,

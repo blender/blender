@@ -18,15 +18,13 @@
  */
 /** \file
  * \ingroup render
+ *
+ * This include is for non-render pipeline exports (still old cruft here).
  */
 
 #pragma once
 
 #include "BLI_compiler_attrs.h"
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* this include is for non-render pipeline exports (still old cruft here) */
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* called by meshtools */
 struct Depsgraph;
@@ -39,6 +37,12 @@ extern "C" {
 #endif
 
 /* texture_procedural.c */
+
+/**
+ * \param pool: Thread pool, may be NULL.
+ *
+ * \return True if the texture has color, otherwise false.
+ */
 bool RE_texture_evaluate(const struct MTex *mtex,
                          const float vec[3],
                          const int thread,
@@ -49,6 +53,13 @@ bool RE_texture_evaluate(const struct MTex *mtex,
                          float *r_intensity,
                          float r_rgba[4]) ATTR_NONNULL(1, 2, 7, 8);
 
+/**
+ * \param in: Destination
+ * \param tex: Texture.
+ * \param out: Previous color.
+ * \param fact Texture strength.
+ * \param facg: Button strength value.
+ */
 void texture_rgb_blend(
     float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype);
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype);
@@ -57,9 +68,11 @@ void RE_texture_rng_init(void);
 void RE_texture_rng_exit(void);
 
 /* texture_image.c */
+
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 
 /* texture_pointdensity.c */
+
 struct PointDensity;
 
 void RE_point_density_cache(struct Depsgraph *depsgraph, struct PointDensity *pd);
@@ -69,6 +82,10 @@ void RE_point_density_minmax(struct Depsgraph *depsgraph,
                              float r_min[3],
                              float r_max[3]);
 
+/**
+ * \note Requires #RE_point_density_cache() to be called first.
+ * \note Frees point density structure after sampling.
+ */
 void RE_point_density_sample(struct Depsgraph *depsgraph,
                              struct PointDensity *pd,
                              const int resolution,
@@ -80,8 +97,10 @@ void RE_point_density_fix_linking(void);
 
 /* texture_procedural.c */
 
-/* Texture evaluation result.
- * NOTE: tr tg tb ta has to remain in this order for array access. */
+/**
+ * Texture evaluation result.
+ * \note `tr tg tb ta` have to remain in this order for array access.
+ */
 typedef struct TexResult {
   float tin, tr, tg, tb, ta;
   int talpha;
@@ -89,6 +108,14 @@ typedef struct TexResult {
 } TexResult;
 
 /* This one uses nodes. */
+
+/**
+ * \warning if the texres's values are not declared zero,
+ * check the return value to be sure the color values are set before using the r/g/b values,
+ * otherwise you may use uninitialized values - Campbell
+ *
+ * Use it for stuff which is out of render pipeline.
+ */
 int multitex_ext(struct Tex *tex,
                  float texvec[3],
                  float dxt[3],
@@ -99,14 +126,26 @@ int multitex_ext(struct Tex *tex,
                  struct ImagePool *pool,
                  bool scene_color_manage,
                  const bool skip_load_image);
-/* Nodes disabled. */
+
+/**
+ * Nodes disabled.
+ * extern-tex doesn't support nodes (#ntreeBeginExec() can't be called when rendering is going on).
+ *
+ * Use it for stuff which is out of render pipeline.
+ */
 int multitex_ext_safe(struct Tex *tex,
                       const float texvec[3],
                       struct TexResult *texres,
                       struct ImagePool *pool,
                       bool scene_color_manage,
                       const bool skip_load_image);
-/* Only for internal node usage. */
+
+/**
+ * Only for internal node usage.
+ *
+ * this is called from the shader and texture nodes
+ * Use it from render pipeline only!
+ */
 int multitex_nodes(struct Tex *tex,
                    const float texvec[3],
                    float dxt[3],
