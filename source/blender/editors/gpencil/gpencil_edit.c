@@ -51,6 +51,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
@@ -4568,6 +4569,9 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
   gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
   id_us_min(ob_dst->data);
   ob_dst->data = (bGPdata *)gpd_dst;
+
+  BKE_defgroup_copy_list(&gpd_dst->vertex_group_names, &gpd_src->vertex_group_names);
+  gpd_dst->vertex_group_active_index = gpd_src->vertex_group_active_index;
 
   /* Loop old data-block and separate parts. */
   if (ELEM(mode, GP_SEPARATE_POINT, GP_SEPARATE_STROKE)) {
