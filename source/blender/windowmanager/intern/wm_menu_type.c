@@ -77,7 +77,6 @@ void WM_menutype_freelink(MenuType *mt)
   UNUSED_VARS_NDEBUG(ok);
 }
 
-/* called on initialize WM_init() */
 void WM_menutype_init(void)
 {
   /* reserve size is set based on blender default setup */

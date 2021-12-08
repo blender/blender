@@ -139,12 +139,6 @@ static void wm_xr_draw_viewport_buffers_to_active_framebuffer(
   GPU_viewport_draw_to_screen_ex(vp->viewport, 0, &rect, draw_view->expects_srgb_buffer, true);
 }
 
-/**
- * \brief Draw a viewport for a single eye.
- *
- * This is the main viewport drawing function for VR sessions. It's assigned to Ghost-XR as a
- * callback (see GHOST_XrDrawViewFunc()) and executed for each view (read: eye).
- */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
 {
   wmXrDrawData *draw_data = customdata;

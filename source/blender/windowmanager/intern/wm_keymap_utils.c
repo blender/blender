@@ -43,7 +43,6 @@
 /** \name Wrappers for #WM_keymap_add_item
  * \{ */
 
-/* menu wrapper for WM_keymap_add_item */
 wmKeyMapItem *WM_keymap_add_menu(
     wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
@@ -73,7 +72,6 @@ wmKeyMapItem *WM_keymap_add_panel(
   return kmi;
 }
 
-/* tool wrapper for WM_keymap_add_item */
 wmKeyMapItem *WM_keymap_add_tool(
     wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
 {
@@ -83,7 +81,6 @@ wmKeyMapItem *WM_keymap_add_tool(
   return kmi;
 }
 
-/** Useful for mapping numbers to an enum. */
 void WM_keymap_add_context_enum_set_items(wmKeyMap *keymap,
                                           const EnumPropertyItem *items,
                                           const char *data_path,
@@ -203,8 +200,6 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
   return km;
 }
 
-/* Guess an appropriate keymap from the operator name */
-/* Needs to be kept up to date with Keymap and Operator naming */
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 {
   /* Op types purposely skipped for now:

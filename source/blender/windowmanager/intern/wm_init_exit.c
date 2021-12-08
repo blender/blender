@@ -223,10 +223,6 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
   }
 }
 
-/**
- * Initialize Blender and load the startup file & preferences
- * (only called once).
- */
 void WM_init(bContext *C, int argc, const char **argv)
 {
 
@@ -432,10 +428,6 @@ static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
   return WM_UI_HANDLER_BREAK;
 }
 
-/**
- * Cause a delayed #WM_exit()
- * call to avoid leaking memory when trying to exit from within operators.
- */
 void wm_exit_schedule_delayed(const bContext *C)
 {
   /* What we do here is a little bit hacky, but quite simple and doesn't require bigger
@@ -449,9 +441,6 @@ void wm_exit_schedule_delayed(const bContext *C)
   WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
-/**
- * \note doesn't run exit() call #WM_exit() for that.
- */
 void WM_exit_ex(bContext *C, const bool do_python)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
@@ -656,11 +645,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_tempdir_session_purge();
 }
 
-/**
- * \brief Main exit function to close Blender ordinarily.
- * \note Use #wm_exit_schedule_delayed() to close Blender from an operator.
- * Might leak memory otherwise.
- */
 void WM_exit(bContext *C)
 {
   WM_exit_ex(C, true);
@@ -678,10 +662,6 @@ void WM_exit(bContext *C)
   exit(G.is_break == true);
 }
 
-/**
- * Needed for cases when operators are re-registered
- * (when operator type pointers are stored).
- */
 void WM_script_tag_reload(void)
 {
   UI_interface_tag_script_reload();

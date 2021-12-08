@@ -44,9 +44,6 @@
 /** \name Generic Utilities
  * \{ */
 
-/**
- * Only finish + pass through for press events (allowing press-tweak).
- */
 int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event)
 {
   if ((event->val != KM_PRESS) &&
@@ -337,10 +334,6 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-/**
- * Allow an operator with only and execute function to run modally,
- * re-doing the action, using vertex coordinate store/restore instead of operator undo.
- */
 void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
 {
   PropertyRNA *prop;

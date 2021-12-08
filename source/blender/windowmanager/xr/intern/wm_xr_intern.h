@@ -213,6 +213,11 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
                                     const XrSessionSettings *settings,
                                     const GHOST_XrDrawViewInfo *draw_view,
                                     wmXrDrawData *draw_data);
+/**
+ * Update information that is only stored for external state queries. E.g. for Python API to
+ * request the current (as in, last known) viewer pose.
+ * Controller data and action sets will be updated separately via wm_xr_session_actions_update().
+ */
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,
@@ -230,9 +235,16 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
 void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 
 /* wm_xr_draw.c */
+
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
 void wm_xr_pose_scale_to_mat(const GHOST_XrPose *pose, float scale, float r_mat[4][4]);
 void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4]);
 void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_imat[4][4]);
+/**
+ * \brief Draw a viewport for a single eye.
+ *
+ * This is the main viewport drawing function for VR sessions. It's assigned to Ghost-XR as a
+ * callback (see GHOST_XrDrawViewFunc()) and executed for each view (read: eye).
+ */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);

@@ -85,9 +85,6 @@ static XrActionMapBinding *wm_xr_actionmap_binding_find_except(XrActionMapItem *
   return NULL;
 }
 
-/**
- * Ensure unique name among all action map bindings.
- */
 void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBinding *amb)
 {
   char name[MAX_NAME];
@@ -198,10 +195,6 @@ static void wm_xr_actionmap_item_properties_free(XrActionMapItem *ami)
   }
 }
 
-/**
- * Similar to #wm_xr_actionmap_item_properties_set()
- * but checks for the #eXrActionType and #wmOperatorType having changed.
- */
 void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami)
 {
   switch (ami->type) {
@@ -278,9 +271,6 @@ static XrActionMapItem *wm_xr_actionmap_item_find_except(XrActionMap *actionmap,
   return NULL;
 }
 
-/**
- * Ensure unique name among all action map items.
- */
 void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem *ami)
 {
   char name[MAX_NAME];
@@ -411,9 +401,6 @@ static XrActionMap *wm_xr_actionmap_find_except(wmXrRuntimeData *runtime,
   return NULL;
 }
 
-/**
- * Ensure unique name among all action maps.
- */
 void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *actionmap)
 {
   char name[MAX_NAME];

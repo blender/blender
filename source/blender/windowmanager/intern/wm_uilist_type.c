@@ -131,7 +131,6 @@ void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult)
   UNUSED_VARS_NDEBUG(ok);
 }
 
-/* called on initialize WM_init() */
 void WM_uilisttype_init(void)
 {
   uilisttypes_hash = BLI_ghash_str_new_ex("uilisttypes_hash gh", 16);
@@ -151,16 +150,6 @@ void WM_uilisttype_free(void)
   uilisttypes_hash = NULL;
 }
 
-/**
- * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
- * this:
- * "{uiListType.idname}_{list_id}", whereby "list_id" is an optional parameter passed to
- * `UILayout.template_list()`. If it is not set, the full list-ID is just "{uiListType.idname}_".
- *
- * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
- * passed to `UILayout.template_list()`. C code can query that through
- * #WM_uilisttype_list_id_get().
- */
 void WM_uilisttype_to_full_list_id(const uiListType *ult,
                                    const char *list_id,
                                    char r_full_list_id[/*UI_MAX_NAME_STR*/])
@@ -169,11 +158,6 @@ void WM_uilisttype_to_full_list_id(const uiListType *ult,
   BLI_snprintf(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
 }
 
-/**
- * Get the "non-full" list-ID, see #WM_uilisttype_to_full_list_id() for details.
- *
- * \note Assumes `uiList.list_id` was set using #WM_uilisttype_to_full_list_id()!
- */
 const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list)
 {
   /* Some sanity check for the assumed behavior of #WM_uilisttype_to_full_list_id(). */

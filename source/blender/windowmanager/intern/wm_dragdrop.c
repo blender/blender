@@ -89,7 +89,6 @@ typedef struct wmDropBoxMap {
 
 } wmDropBoxMap;
 
-/* spaceid/regionid is zero for window drop maps */
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
   LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
@@ -153,7 +152,6 @@ void wm_dropbox_free(void)
 
 /* *********************************** */
 
-/* note that the pointer should be valid allocated and not on stack */
 wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
 {
@@ -208,11 +206,6 @@ wmDrag *WM_event_start_drag(
   return drag;
 }
 
-/**
- * Additional work to cleanly end dragging. Additional because this doesn't actually remove the
- * drag items. Should be called whenever dragging is stopped (successful or not, also when
- * canceled).
- */
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 {
   bool any_active = false;
@@ -403,7 +396,6 @@ void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
   wm_drags_exit(CTX_wm_manager(C), CTX_wm_window(C));
 }
 
-/* called in inner handler loop, region context */
 void wm_drags_check_ops(bContext *C, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -424,11 +416,6 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   }
 }
 
-/**
- * The operator of a dropbox should always be executed in the context determined by the mouse
- * coordinates. The dropbox poll should check the context area and region as needed.
- * So this always returns #WM_OP_INVOKE_DEFAULT.
- */
 wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox *UNUSED(drop))
 {
   return WM_OP_INVOKE_DEFAULT;
@@ -484,17 +471,11 @@ ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
   return WM_drag_get_local_ID(lb->first, idcode);
 }
 
-/**
- * Check if the drag data is either a local ID or an external ID asset of type \a idcode.
- */
 bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
 {
   return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
-/**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
- */
 wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
                                        AssetMetaData *metadata,
                                        const char *path,
@@ -542,9 +523,6 @@ struct AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode
   return NULL;
 }
 
-/**
- * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
- */
 ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
 {
   /* Only support passing in limited flags. */
@@ -603,15 +581,6 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   return asset_drag->import_type == FILE_ASSET_IMPORT_LINK;
 }
 
-/**
- * When dragging a local ID, return that. Otherwise, if dragging an asset-handle, link or append
- * that depending on what was chosen by the drag-box (currently append only in fact).
- *
- * Use #WM_drag_free_imported_drag_ID() as cancel callback of the drop-box, so that the asset
- * import is rolled back if the drop operator fails.
- *
- * \param flag: #eFileSel_Params_Flag passed to linking code.
- */
 ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 {
   if (!ELEM(drag->type, WM_DRAG_ASSET, WM_DRAG_ID)) {
@@ -631,14 +600,6 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
   return WM_drag_asset_id_import(asset_drag, 0);
 }
 
-/**
- * \brief Free asset ID imported for canceled drop.
- *
- * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset()`
- * (typically via a #wmDropBox.copy() callback), we want the ID to be removed again if the drop
- * operator cancels.
- * This is for use as #wmDropBox.cancel() callback.
- */
 void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *drop)
 {
   if (drag->type != WM_DRAG_ASSET) {
@@ -673,9 +634,6 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
   return drag->poin;
 }
 
-/**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
- */
 void WM_drag_add_asset_list_item(
     wmDrag *drag,
     /* Context only needed for the hack in #ED_asset_handle_get_full_library_path(). */
@@ -912,7 +870,6 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
   wm_drag_draw_default(C, win, drag, xy);
 }
 
-/* Called in #wm_draw_window_onscreen. */
 void wm_drags_draw(bContext *C, wmWindow *win)
 {
   int xy[2];

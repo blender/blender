@@ -122,7 +122,6 @@
 /** \name Operator API
  * \{ */
 
-/* SOME_OT_op -> some.op */
 void WM_operator_py_idname(char *to, const char *from)
 {
   const char *sep = strstr(from, "_OT_");
@@ -143,7 +142,6 @@ void WM_operator_py_idname(char *to, const char *from)
   }
 }
 
-/* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
   if (from) {
@@ -167,10 +165,6 @@ void WM_operator_bl_idname(char *to, const char *from)
   }
 }
 
-/**
- * Sanity check to ensure #WM_operator_bl_idname won't fail.
- * \returns true when there are no problems with \a idname, otherwise report an error.
- */
 bool WM_operator_py_idname_ok_or_report(ReportList *reports,
                                         const char *classname,
                                         const char *idname)
@@ -219,15 +213,6 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
   return true;
 }
 
-/**
- * Print a string representation of the operator,
- * with the args that it runs so python can run it again.
- *
- * When calling from an existing wmOperator, better to use simple version:
- * `WM_operator_pystring(C, op);`
- *
- * \note Both \a op and \a opptr may be `NULL` (\a op is only used for macro operators).
- */
 char *WM_operator_pystring_ex(bContext *C,
                               wmOperator *op,
                               const bool all_args,
@@ -308,9 +293,6 @@ char *WM_operator_pystring(bContext *C, wmOperator *op, const bool all_args, con
   return WM_operator_pystring_ex(C, op, all_args, macro_args, op->type, op->ptr);
 }
 
-/**
- * \return true if the string was shortened
- */
 bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
 {
   const int str_len = strlen(str);
@@ -608,9 +590,6 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 }
 #endif
 
-/**
- * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
- */
 char *WM_context_path_resolve_property_full(const bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
@@ -711,8 +690,6 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
   }
 }
 
-/* similar to the function above except its uses ID properties
- * used for keymaps and macros */
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
 {
   IDProperty *tmp_properties = NULL;
@@ -763,14 +740,6 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
   RNA_STRUCT_END;
 }
 
-/**
- * Set all props to their default.
- *
- * \param do_update: Only update un-initialized props.
- *
- * \note There's nothing specific to operators here.
- * This could be made a general function.
- */
 bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 {
   bool changed = false;
@@ -798,7 +767,6 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
   return changed;
 }
 
-/* remove all props without PROP_SKIP_SAVE */
 void WM_operator_properties_reset(wmOperator *op)
 {
   if (op->ptr->data) {
@@ -945,13 +913,6 @@ bool WM_operator_last_properties_store(wmOperator *UNUSED(op))
 /** \name Default Operator Callbacks
  * \{ */
 
-/**
- * Helper to get select and tweak-transform to work conflict free and as desired. See
- * #WM_operator_properties_generic_select() for details.
- *
- * To be used together with #WM_generic_select_invoke() and
- * #WM_operator_properties_generic_select().
- */
 int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PropertyRNA *wait_to_deselect_prop = RNA_struct_find_property(op->ptr,
@@ -1012,13 +973,6 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
 }
 
-/**
- * Helper to get select and tweak-transform to work conflict free and as desired. See
- * #WM_operator_properties_generic_select() for details.
- *
- * To be used together with #WM_generic_select_modal() and
- * #WM_operator_properties_generic_select().
- */
 int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
@@ -1063,7 +1017,6 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op)
   return (op->flag & OP_IS_INVOKE) ? U.smooth_viewtx : 0;
 }
 
-/* invoke callback, uses enum property named "type" */
 int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opcontext)
 {
   PropertyRNA *prop = op->type->prop;
@@ -1184,10 +1137,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   return block;
 }
 
-/**
- * Similar to #WM_enum_search_invoke, but draws previews. Also, this can't
- * be used as invoke callback directly since it needs additional info.
- */
 int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, short prv_rows)
 {
   static struct EnumSearchMenu search_menu;
@@ -1210,7 +1159,6 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(eve
   return OPERATOR_INTERFACE;
 }
 
-/* Can't be used as an invoke directly, needs message arg (can be NULL) */
 int WM_operator_confirm_message_ex(bContext *C,
                                    wmOperator *op,
                                    const char *title,
@@ -1255,7 +1203,6 @@ int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *UNUS
   return op->type->exec(C, op);
 }
 
-/* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -1280,7 +1227,6 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
   return false;
 }
 
-/* op->poll */
 bool WM_operator_winactive(bContext *C)
 {
   if (CTX_wm_window(C) == NULL) {
@@ -1289,7 +1235,6 @@ bool WM_operator_winactive(bContext *C)
   return 1;
 }
 
-/* return false, if the UI should be disabled */
 bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1327,9 +1272,6 @@ void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
   RNA_pointer_create(G_MAIN->wm.first, ot->srna, props, ptr);
 }
 
-/**
- * Use for drag & drop a path or name with operators invoke() function.
- */
 ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short idcode)
 {
   Main *bmain = CTX_data_main(C);
@@ -1633,20 +1575,11 @@ static int wm_operator_props_popup_ex(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-/**
- * Same as #WM_operator_props_popup but don't use operator redo.
- * just wraps #WM_operator_props_dialog_popup.
- */
 int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   return wm_operator_props_popup_ex(C, op, false, false);
 }
 
-/**
- * Same as #WM_operator_props_popup but call the operator first,
- * This way - the button values correspond to the result of the operator.
- * Without this, first access to a button will make the result jump, see T32452.
- */
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   return wm_operator_props_popup_ex(C, op, true, true);
@@ -3999,7 +3932,6 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
 }
 
-/* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Window", 0, 0);
@@ -4067,7 +3999,8 @@ static const EnumPropertyItem *rna_id_itemf(bool *r_free,
   return item;
 }
 
-/* can add more as needed */
+/* Can add more ID types as needed. */
+
 const EnumPropertyItem *RNA_action_itemf(bContext *C,
                                          PointerRNA *UNUSED(ptr),
                                          PropertyRNA *UNUSED(prop),

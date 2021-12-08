@@ -341,13 +341,6 @@ void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
   }
 }
 
-/**
- * Use with extreme care!,
- * properties, custom-data etc - must be compatible.
- *
- * \param op: Operator to assign the type to.
- * \param ot: Operator type to assign.
- */
 void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 {
   /* Not supported for Python. */
@@ -377,8 +370,6 @@ static void wm_reports_free(wmWindowManager *wm)
   WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
 }
 
-/* All operations get registered in the windowmanager here. */
-/* Called on event handling by event_system.c. */
 void wm_operator_register(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -415,10 +406,6 @@ void WM_operator_stack_clear(wmWindowManager *wm)
   WM_main_add_notifier(NC_WM | ND_HISTORY, NULL);
 }
 
-/**
- * This function is needed in the case when an addon id disabled
- * while a modal operator it defined is running.
- */
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -551,7 +538,6 @@ void wm_clear_default_size(bContext *C)
   }
 }
 
-/* On startup, it adds all data, for matching. */
 void wm_add_default(Main *bmain, bContext *C)
 {
   wmWindowManager *wm = BKE_libblock_alloc(bmain, ID_WM, "WinMan", 0);
@@ -573,7 +559,6 @@ void wm_add_default(Main *bmain, bContext *C)
   wm_window_make_drawable(wm, win);
 }
 
-/* Context is allowed to be NULL, do not free wm itself (lib_id.c). */
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
   if (wm->autosavetimer) {

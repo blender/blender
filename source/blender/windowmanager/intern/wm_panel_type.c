@@ -69,7 +69,6 @@ void WM_paneltype_remove(PanelType *pt)
   UNUSED_VARS_NDEBUG(ok);
 }
 
-/* called on initialize WM_init() */
 void WM_paneltype_init(void)
 {
   /* reserve size is set based on blender default setup */

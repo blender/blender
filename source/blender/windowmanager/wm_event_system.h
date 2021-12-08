@@ -144,20 +144,36 @@ typedef struct wmEventHandler_Dropbox {
 } wmEventHandler_Dropbox;
 
 /* wm_event_system.c */
+
 void wm_event_free_all(wmWindow *win);
 void wm_event_free(wmEvent *event);
 void wm_event_free_handler(wmEventHandler *handler);
 
-/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
+/**
+ * Goes over entire hierarchy: events -> window -> screen -> area -> region.
+ *
+ * \note Called in main loop.
+ */
 void wm_event_do_handlers(bContext *C);
 
+/**
+ * Windows store own event queues #wmWindow.event_queue (no #bContext here).
+ */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata);
 #ifdef WITH_XR_OPENXR
 void wm_event_add_xrevent(wmWindow *win, struct wmXrActionData *actiondata, short val);
 #endif
 
 void wm_event_do_depsgraph(bContext *C, bool is_after_open_file);
+/**
+ * Was part of #wm_event_do_notifiers,
+ * split out so it can be called once before entering the #WM_main loop.
+ * This ensures operators don't run before the UI and depsgraph are initialized.
+ */
 void wm_event_do_refresh_wm_and_depsgraph(bContext *C);
+/**
+ * Called in main-loop.
+ */
 void wm_event_do_notifiers(bContext *C);
 
 void wm_event_handler_ui_cancel_ex(bContext *C,
@@ -166,17 +182,36 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
                                    bool reactivate_button);
 
 /* wm_event_query.c */
+
+/**
+ * Applies the global tablet pressure correction curve.
+ */
 float wm_pressure_curve(float raw_pressure);
 void wm_tablet_data_from_ghost(const struct GHOST_TabletData *tablet_data, wmTabletData *wmtab);
 
-/* wm_keymap.c */
-
 /* wm_dropbox.c */
+
 void wm_dropbox_free(void);
+/**
+ * Additional work to cleanly end dragging. Additional because this doesn't actually remove the
+ * drag items. Should be called whenever dragging is stopped
+ * (successful or not, also when canceled).
+ */
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win);
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop);
+/**
+ * Called in inner handler loop, region context.
+ */
 void wm_drags_check_ops(bContext *C, const wmEvent *event);
+/**
+ * The operator of a dropbox should always be executed in the context determined by the mouse
+ * coordinates. The dropbox poll should check the context area and region as needed.
+ * So this always returns #WM_OP_INVOKE_DEFAULT.
+ */
 wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox *drop);
+/**
+ * Called in #wm_draw_window_onscreen.
+ */
 void wm_drags_draw(bContext *C, wmWindow *win);
 
 #ifdef __cplusplus

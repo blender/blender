@@ -29,6 +29,12 @@ struct wmKeyConfig;
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
 
+/**
+ * Add/Remove \a gizmo to selection.
+ * Reallocates memory for selected gizmos so better not call for selecting multiple ones.
+ *
+ * \return if the selection has changed.
+ */
 bool wm_gizmo_select_set_ex(
     struct wmGizmoMap *gzmap, struct wmGizmo *gz, bool select, bool use_array, bool use_callback);
 bool wm_gizmo_select_and_highlight(bContext *C, struct wmGizmoMap *gzmap, struct wmGizmo *gz);
@@ -54,9 +60,15 @@ enum {
   TWEAK_MODAL_SNAP_OFF,
 };
 
+/**
+ * Create a new gizmo-group from \a gzgt.
+ */
 struct wmGizmoGroup *wm_gizmogroup_new_from_type(struct wmGizmoMap *gzmap,
                                                  struct wmGizmoGroupType *gzgt);
 void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *gzgroup);
+/**
+ * Add \a gizmo to \a gzgroup and make sure its name is unique within the group.
+ */
 void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz);
 struct wmGizmoGroup *wm_gizmogroup_find_by_type(const struct wmGizmoMap *gzmap,
                                                 const struct wmGizmoGroupType *gzgt);
@@ -66,6 +78,10 @@ struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
                                                      const int event_modifier,
                                                      const int mval[2],
                                                      int *r_part);
+/**
+ * Adds all gizmos of \a gzgroup that can be selected to the head of \a listbase.
+ * Added items need freeing!
+ */
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 const struct wmGizmoGroup *gzgroup,
                                                 const int event_modifier,
@@ -137,6 +153,10 @@ struct wmGizmoMapType {
 };
 
 void wm_gizmomap_select_array_clear(struct wmGizmoMap *gzmap);
+/**
+ * Deselect all selected gizmos in \a gzmap.
+ * \return if selection has changed.
+ */
 bool wm_gizmomap_deselect_all(struct wmGizmoMap *gzmap);
 void wm_gizmomap_select_array_shrink(struct wmGizmoMap *gzmap, int len_subtract);
 void wm_gizmomap_select_array_push_back(struct wmGizmoMap *gzmap, wmGizmo *gz);

@@ -71,7 +71,6 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet)
   return NULL;
 }
 
-/* caller must free */
 void WM_gizmogrouptype_iter(GHashIterator *ghi)
 {
   BLI_ghashIterator_init(ghi, global_gizmogrouptype_hash);
@@ -127,10 +126,6 @@ wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGizmoGrou
   return gzgt;
 }
 
-/**
- * Append and insert into a gizmo typemap.
- * This is most common for C gizmos which are enabled by default.
- */
 wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_type,
                                                        void (*wtfunc)(struct wmGizmoGroupType *))
 {
@@ -190,7 +185,6 @@ void wm_gizmogrouptype_free(void)
   global_gizmogrouptype_hash = NULL;
 }
 
-/* called on initialize WM_init() */
 void wm_gizmogrouptype_init(void)
 {
   /* reserve size is set based on blender default setup */

@@ -319,10 +319,6 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
   WM_gizmomap_tag_refresh(gzmap);
 }
 
-/**
- * Runs on the "prepare draw" pass,
- * drawing the region clears.
- */
 void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, ARegion *region)
 {
   if (gz->type->target_property_defs_len) {
@@ -355,9 +351,6 @@ void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, 
   }
 }
 
-/**
- * Auto-key function if auto-key is enabled.
- */
 void WM_gizmo_target_property_anim_autokey(bContext *C,
                                            const wmGizmo *UNUSED(gz),
                                            wmGizmoProperty *gz_prop)

@@ -63,9 +63,6 @@
 /** \name wmGizmoGroup
  * \{ */
 
-/**
- * Create a new gizmo-group from \a gzgt.
- */
 wmGizmoGroup *wm_gizmogroup_new_from_type(wmGizmoMap *gzmap, wmGizmoGroupType *gzgt)
 {
   wmGizmoGroup *gzgroup = MEM_callocN(sizeof(*gzgroup), "gizmo-group");
@@ -148,9 +145,6 @@ void WM_gizmo_group_tag_remove(wmGizmoGroup *gzgroup)
   }
 }
 
-/**
- * Add \a gizmo to \a gzgroup and make sure its name is unique within the group.
- */
 void wm_gizmogroup_gizmo_register(wmGizmoGroup *gzgroup, wmGizmo *gz)
 {
   BLI_assert(BLI_findindex(&gzgroup->gizmos, gz) == -1);
@@ -234,10 +228,6 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
   return NULL;
 }
 
-/**
- * Adds all gizmos of \a gzgroup that can be selected to the head of \a listbase.
- * Added items need freeing!
- */
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 const wmGizmoGroup *gzgroup,
                                                 const int event_modifier,
@@ -821,7 +811,6 @@ struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
   return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
 }
 
-/** Drag or press depending on preference. */
 struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Maybe Drag";
@@ -862,10 +851,6 @@ struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(struct wmGizmoMapType *gz
   return NULL;
 }
 
-/**
- * Use this for registering gizmos on startup.
- * For runtime, use #WM_gizmomaptype_group_link_runtime.
- */
 wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
@@ -939,9 +924,6 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
   return gzgroup;
 }
 
-/**
- * Unlike #WM_gizmomaptype_group_unlink this doesn't maintain correct state, simply free.
- */
 void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt_ref)
 {
   MEM_freeN(gzgt_ref);
@@ -1059,9 +1041,6 @@ bool WM_gizmo_group_type_ensure(const char *idname)
   return WM_gizmo_group_type_ensure_ptr(gzgt);
 }
 
-/**
- * Call #WM_gizmo_group_type_free_ptr after to remove & free.
- */
 void WM_gizmo_group_type_remove_ptr_ex(struct Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)

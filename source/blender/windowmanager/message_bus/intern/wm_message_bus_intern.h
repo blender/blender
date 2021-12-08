@@ -30,6 +30,9 @@ struct wmMsgBus {
   uint messages_tag_count;
 };
 
+/**
+ * \note #wmMsgBus.messages_tag_count isn't updated, caller must handle.
+ */
 void wm_msg_subscribe_value_free(struct wmMsgSubscribeKey *msg_key,
                                  struct wmMsgSubscribeValueLink *msg_lnk);
 

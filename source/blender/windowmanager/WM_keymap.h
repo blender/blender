@@ -55,6 +55,9 @@ void WM_keyconfig_update_operatortype(void);
 
 void WM_keymap_clear(struct wmKeyMap *keymap);
 
+/**
+ * Always add item.
+ */
 wmKeyMapItem *WM_keymap_add_item(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_item_copy(struct wmKeyMap *keymap, wmKeyMapItem *kmi_src);
@@ -91,16 +94,30 @@ bool WM_keymap_item_compare(const struct wmKeyMapItem *k1, const struct wmKeyMap
 
 /* keymap_utils.c */
 
-/** Wrappers for #WM_keymap_add_item */
+/* Wrappers for #WM_keymap_add_item */
+
+/**
+ * Menu wrapper for #WM_keymap_add_item.
+ */
 wmKeyMapItem *WM_keymap_add_menu(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+/**
+ * Pie-menu wrapper for #WM_keymap_add_item.
+ */
 wmKeyMapItem *WM_keymap_add_menu_pie(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+/**
+ * Panel (popover) wrapper for #WM_keymap_add_item.
+ */
 wmKeyMapItem *WM_keymap_add_panel(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+/**
+ * Tool wrapper for #WM_keymap_add_item.
+ */
 wmKeyMapItem *WM_keymap_add_tool(
     struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
 
+/** Useful for mapping numbers to an enum. */
 void WM_keymap_add_context_enum_set_items(wmKeyMap *keymap,
                                           const struct EnumPropertyItem *items,
                                           const char *data_path,
@@ -110,6 +127,12 @@ void WM_keymap_add_context_enum_set_items(wmKeyMap *keymap,
                                           int keymodifier);
 
 wmKeyMap *WM_keymap_guess_from_context(const struct bContext *C);
+
+/**
+ * Guess an appropriate key-map from the operator name.
+ *
+ * \note Needs to be kept up to date with Key-map and Operator naming.
+ */
 wmKeyMap *WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 
 bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, const int event_modifier);
@@ -149,6 +172,9 @@ void WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 /* Keymap Editor */
 
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap, struct wmWindowManager *wm);
+/**
+ * Properties can be NULL, otherwise the arg passed is used and ownership is given to the `kmi`.
+ */
 void WM_keymap_item_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
 void WM_keymap_item_restore_to_default(wmWindowManager *wm,
                                        struct wmKeyMap *keymap,
@@ -168,6 +194,10 @@ int WM_keymap_item_raw_to_string(const short shift,
                                  const bool compact,
                                  char *result,
                                  const int result_len);
+/**
+ * \param include_mask, exclude_mask:
+ * Event types to include/exclude when looking up keys (#eEventType_Mask).
+ */
 wmKeyMapItem *WM_key_event_operator(const struct bContext *C,
                                     const char *opname,
                                     wmOperatorCallContext opcontext,

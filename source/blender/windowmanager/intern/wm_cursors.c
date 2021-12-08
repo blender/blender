@@ -222,7 +222,6 @@ void WM_cursor_modal_restore(wmWindow *win)
   win->lastcursor = 0;
 }
 
-/* to allow usage all over, we do entire WM */
 void WM_cursor_wait(bool val)
 {
   if (!G.background) {
@@ -240,9 +239,6 @@ void WM_cursor_wait(bool val)
   }
 }
 
-/**
- * \param bounds: can be NULL
- */
 void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
 {
   /* Only grab cursor when not running debug.
@@ -307,9 +303,10 @@ static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
   WM_cursor_warp(win, cx + x, cy + y);
 }
 
-/* give it a modal keymap one day? */
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 {
+  /* TODO: give it a modal keymap? Hard coded for now */
+
   if (win && event->val == KM_PRESS) {
     /* Must move at least this much to avoid rounding in WM_cursor_warp. */
     float fac = GHOST_GetNativePixelSize(win->ghostwin);
@@ -334,7 +331,6 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
   return 0;
 }
 
-/* after this you can call restore too */
 void WM_cursor_time(wmWindow *win, int nr)
 {
   /* 10 8x8 digits */
