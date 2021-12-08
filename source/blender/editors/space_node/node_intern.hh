@@ -116,9 +116,9 @@ void node_draw_space(const bContext &C, ARegion &region);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
 /* DPI scaled coords */
-void node_to_view(const bNode &node, float x, float y, float *rx, float *ry);
+blender::float2 node_to_view(const bNode &node, const blender::float2 &co);
 void node_to_updated_rect(const bNode &node, rctf &r_rect);
-void node_from_view(const bNode &node, float x, float y, float *rx, float *ry);
+blender::float2 node_from_view(const bNode &node, const blender::float2 &co);
 
 void node_toolbar_register(ARegionType *art);
 

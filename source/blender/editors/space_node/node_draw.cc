@@ -329,25 +329,31 @@ static void node_uiblocks_init(const bContext &C, bNodeTree &ntree)
   }
 }
 
-void node_to_view(const bNode &node, float x, float y, float *rx, float *ry)
+float2 node_to_view(const bNode &node, const float2 &co)
 {
-  nodeToView(&node, x, y, rx, ry);
-  *rx *= UI_DPI_FAC;
-  *ry *= UI_DPI_FAC;
+  float2 result;
+  nodeToView(&node, co.x, co.y, &result.x, &result.y);
+  return result * UI_DPI_FAC;
 }
 
 void node_to_updated_rect(const bNode &node, rctf &r_rect)
 {
-  node_to_view(node, node.offsetx, node.offsety, &r_rect.xmin, &r_rect.ymax);
-  node_to_view(
-      node, node.offsetx + node.width, node.offsety - node.height, &r_rect.xmax, &r_rect.ymin);
+  const float2 xmin_ymax = node_to_view(node, {node.offsetx, node.offsety});
+  r_rect.xmin = xmin_ymax.x;
+  r_rect.ymax = xmin_ymax.y;
+  const float2 xmax_ymin = node_to_view(node,
+                                        {node.offsetx + node.width, node.offsety - node.height});
+  r_rect.xmax = xmax_ymin.x;
+  r_rect.ymin = xmax_ymin.y;
 }
 
-void node_from_view(const bNode &node, float x, float y, float *rx, float *ry)
+float2 node_from_view(const bNode &node, const float2 &co)
 {
-  x /= UI_DPI_FAC;
-  y /= UI_DPI_FAC;
-  nodeFromView(&node, x, y, rx, ry);
+  const float x = co.x / UI_DPI_FAC;
+  const float y = co.y / UI_DPI_FAC;
+  float2 result;
+  nodeFromView(&node, x, y, &result.x, &result.y);
+  return result;
 }
 
 /**
@@ -359,13 +365,12 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
   RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
 
   /* Get "global" coordinates. */
-  float locx, locy;
-  node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+  float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
-  locx = round(locx);
-  locy = round(locy);
+  loc.x = round(loc.x);
+  loc.y = round(loc.y);
 
-  int dy = locy;
+  int dy = loc.y;
 
   /* Header. */
   dy -= NODE_DY;
@@ -390,7 +395,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     uiLayout *layout = UI_block_layout(node.block,
                                        UI_LAYOUT_VERTICAL,
                                        UI_LAYOUT_PANEL,
-                                       locx + NODE_DYS,
+                                       loc.x + NODE_DYS,
                                        dy,
                                        NODE_WIDTH(node) - NODE_DY,
                                        NODE_DY,
@@ -418,7 +423,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     buty = min_ii(buty, dy - NODE_DY);
 
     /* Round the socket location to stop it from jiggling. */
-    nsock->locx = round(locx + NODE_WIDTH(node));
+    nsock->locx = round(loc.x + NODE_WIDTH(node));
     nsock->locy = round(0.5f * (dy + buty));
 
     dy = buty;
@@ -433,8 +438,8 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     dy -= NODE_DY / 4;
   }
 
-  node.prvr.xmin = locx + NODE_DYS;
-  node.prvr.xmax = locx + NODE_WIDTH(node) - NODE_DYS;
+  node.prvr.xmin = loc.x + NODE_DYS;
+  node.prvr.xmax = loc.x + NODE_WIDTH(node) - NODE_DYS;
 
   /* preview rect? */
   if (node.flag & NODE_PREVIEW) {
@@ -484,7 +489,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     uiLayout *layout = UI_block_layout(node.block,
                                        UI_LAYOUT_VERTICAL,
                                        UI_LAYOUT_PANEL,
-                                       locx + NODE_DYS,
+                                       loc.x + NODE_DYS,
                                        dy,
                                        node.butr.xmax,
                                        0,
@@ -527,7 +532,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     uiLayout *layout = UI_block_layout(node.block,
                                        UI_LAYOUT_VERTICAL,
                                        UI_LAYOUT_PANEL,
-                                       locx + NODE_DYS,
+                                       loc.x + NODE_DYS,
                                        dy,
                                        NODE_WIDTH(node) - NODE_DY,
                                        NODE_DY,
@@ -553,7 +558,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     /* Ensure minimum socket height in case layout is empty. */
     buty = min_ii(buty, dy - NODE_DY);
 
-    nsock->locx = locx;
+    nsock->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
     nsock->locy = round(0.5f * (dy + buty));
 
@@ -568,10 +573,10 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
     dy -= NODE_DYS / 2;
   }
 
-  node.totr.xmin = locx;
-  node.totr.xmax = locx + NODE_WIDTH(node);
-  node.totr.ymax = locy;
-  node.totr.ymin = min_ff(dy, locy - 2 * NODE_DY);
+  node.totr.xmin = loc.x;
+  node.totr.xmax = loc.x + NODE_WIDTH(node);
+  node.totr.ymax = loc.y;
+  node.totr.ymin = min_ff(dy, loc.y - 2 * NODE_DY);
 
   /* Set the block bounds to clip mouse events from underlying nodes.
    * Add a margin for sockets on each side. */
@@ -589,12 +594,11 @@ static void node_update_hidden(bNode &node)
 {
   int totin = 0, totout = 0;
 
-  /* Get "global" coords. */
-  float locx, locy;
-  node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+  /* Get "global" coordinates. */
+  float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
-  locx = round(locx);
-  locy = round(locy);
+  loc.x = round(loc.x);
+  loc.y = round(loc.y);
 
   /* Calculate minimal radius. */
   LISTBASE_FOREACH (bNodeSocket *, nsock, &node.inputs) {
@@ -614,9 +618,9 @@ static void node_update_hidden(bNode &node)
     hiddenrad += 5.0f * (float)(tot - 4);
   }
 
-  node.totr.xmin = locx;
-  node.totr.xmax = locx + max_ff(NODE_WIDTH(node), 2 * hiddenrad);
-  node.totr.ymax = locy + (hiddenrad - 0.5f * NODE_DY);
+  node.totr.xmin = loc.x;
+  node.totr.xmax = loc.x + max_ff(NODE_WIDTH(node), 2 * hiddenrad);
+  node.totr.ymax = loc.y + (hiddenrad - 0.5f * NODE_DY);
   node.totr.ymin = node.totr.ymax - 2 * hiddenrad;
 
   /* Output sockets. */
@@ -2332,9 +2336,7 @@ static void frame_node_prepare_for_draw(bNodeTree &ntree, bNode &node)
 
   /* init rect from current frame size */
   rctf rect;
-  node_to_view(node, node.offsetx, node.offsety, &rect.xmin, &rect.ymax);
-  node_to_view(
-      node, node.offsetx + node.width, node.offsety - node.height, &rect.xmax, &rect.ymin);
+  node_to_updated_rect(node, rect);
 
   /* frame can be resized manually only if shrinking is disabled or no children are attached */
   data->flag |= NODE_FRAME_RESIZEABLE;
@@ -2365,11 +2367,12 @@ static void frame_node_prepare_for_draw(bNodeTree &ntree, bNode &node)
   }
 
   /* now adjust the frame size from view-space bounding box */
-  node_from_view(node, rect.xmin, rect.ymax, &node.offsetx, &node.offsety);
-  float xmax, ymax;
-  node_from_view(node, rect.xmax, rect.ymin, &xmax, &ymax);
-  node.width = xmax - node.offsetx;
-  node.height = -ymax + node.offsety;
+  const float2 offset = node_from_view(node, {rect.xmin, rect.ymax});
+  node.offsetx = offset.x;
+  node.offsety = offset.y;
+  const float2 max = node_from_view(node, {rect.xmax, rect.ymin});
+  node.width = max.x - node.offsetx;
+  node.height = -max.y + node.offsety;
 
   node.totr = rect;
 }
@@ -2377,24 +2380,23 @@ static void frame_node_prepare_for_draw(bNodeTree &ntree, bNode &node)
 static void reroute_node_prepare_for_draw(bNode &node)
 {
   /* get "global" coords */
-  float locx, locy;
-  node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+  const float2 loc = node_to_view(node, float2(0));
 
   /* reroute node has exactly one input and one output, both in the same place */
   bNodeSocket *nsock = (bNodeSocket *)node.outputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
+  nsock->locx = loc.x;
+  nsock->locy = loc.y;
 
   nsock = (bNodeSocket *)node.inputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
+  nsock->locx = loc.x;
+  nsock->locy = loc.y;
 
   const float size = 8.0f;
   node.width = size * 2;
-  node.totr.xmin = locx - size;
-  node.totr.xmax = locx + size;
-  node.totr.ymax = locy + size;
-  node.totr.ymin = locy - size;
+  node.totr.xmin = loc.x - size;
+  node.totr.xmax = loc.x + size;
+  node.totr.ymax = loc.y + size;
+  node.totr.ymin = loc.y - size;
 }
 
 void node_update_nodetree(const bContext &C, bNodeTree &ntree)
