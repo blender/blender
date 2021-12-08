@@ -29,25 +29,6 @@
 
 namespace blender::imbuf::transform {
 
-/* -------------------------------------------------------------------- */
-/** \name Image transform
- * \{ */
-
-static void pixel_from_buffer(
-    const struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
-
-{
-  size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
-
-  if (ibuf->rect) {
-    *outI = (unsigned char *)ibuf->rect + offset;
-  }
-
-  if (ibuf->rect_float) {
-    *outF = ibuf->rect_float + offset;
-  }
-}
-
 struct TransformUserData {
   const ImBuf *src;
   ImBuf *dst;
@@ -56,6 +37,14 @@ struct TransformUserData {
   float add_y[2];
   rctf src_crop;
 
+  void init(const float transform_matrix[4][4])
+  {
+    init_start_uv(transform_matrix);
+    init_add_x(transform_matrix);
+    init_add_y(transform_matrix);
+  }
+
+ private:
   void init_start_uv(const float transform_matrix[4][4])
   {
     float start_uv_v3[3];
@@ -65,8 +54,9 @@ struct TransformUserData {
     copy_v2_v2(start_uv, start_uv_v3);
   }
 
-  void init_add_x(const float transform_matrix[4][4], const int width)
+  void init_add_x(const float transform_matrix[4][4])
   {
+    const int width = src->x;
     float add_x_v3[3];
     float uv_max_x[3];
     zero_v3(uv_max_x);
@@ -78,8 +68,9 @@ struct TransformUserData {
     copy_v2_v2(add_x, add_x_v3);
   }
 
-  void init_add_y(const float transform_matrix[4][4], const int height)
+  void init_add_y(const float transform_matrix[4][4])
   {
+    const int height = src->y;
     float add_y_v3[3];
     float uv_max_y[3];
     zero_v3(uv_max_y);
@@ -92,152 +83,106 @@ struct TransformUserData {
   }
 };
 
-BLI_INLINE void imb_transform_scanlines(const TransformUserData *user_data,
-                                        int scanline,
-                                        InterpolationColorFunction interpolation)
-{
-  const int width = user_data->dst->x;
+template<eIMBTransformMode Mode, InterpolationColorFunction ColorInterpolation, int ChannelLen = 4>
+class ScanlineProcessor {
+ private:
+  void pixel_from_buffer(const struct ImBuf *ibuf, unsigned char **outI, float **outF, int y) const
 
-  float uv[2];
-  madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
+  {
+    const size_t offset = ((size_t)ibuf->x) * y * ChannelLen;
 
-  unsigned char *outI = nullptr;
-  float *outF = nullptr;
-  pixel_from_buffer(user_data->dst, &outI, &outF, 0, scanline);
-
-  for (int xi = 0; xi < width; xi++) {
-    interpolation(user_data->src, outI, outF, uv[0], uv[1]);
-    add_v2_v2(uv, user_data->add_x);
-    if (outI) {
-      outI += 4;
+    if (ibuf->rect) {
+      *outI = (unsigned char *)ibuf->rect + offset;
     }
-    if (outF) {
-      outF += 4;
+
+    if (ibuf->rect_float) {
+      *outF = ibuf->rect_float + offset;
     }
   }
-}
 
-static void imb_transform_nearest_scanlines(void *custom_data, int scanline)
-{
-  const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  InterpolationColorFunction interpolation = nullptr;
-  if (user_data->dst->rect_float) {
-    interpolation = nearest_interpolation_color_fl;
-  }
-  else {
-    interpolation = nearest_interpolation_color_char;
-  }
-  imb_transform_scanlines(user_data, scanline, interpolation);
-}
+ public:
+  void process(const TransformUserData *user_data, int scanline)
+  {
+    const int width = user_data->dst->x;
 
-static void imb_transform_bilinear_scanlines(void *custom_data, int scanline)
-{
-  const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  InterpolationColorFunction interpolation = nullptr;
-  if (user_data->dst->rect_float) {
-    interpolation = bilinear_interpolation_color_fl;
-  }
-  else if (user_data->dst->rect) {
-    interpolation = bilinear_interpolation_color_char;
-  }
-  imb_transform_scanlines(user_data, scanline, interpolation);
-}
+    float uv[2];
+    madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
 
-BLI_INLINE void imb_transform_scanlines_with_crop(const TransformUserData *user_data,
-                                                  int scanline,
-                                                  InterpolationColorFunction interpolation)
-{
-  const int width = user_data->dst->x;
+    unsigned char *outI = nullptr;
+    float *outF = nullptr;
+    pixel_from_buffer(user_data->dst, &outI, &outF, scanline);
 
-  float uv[2];
-  madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
-
-  unsigned char *outI = nullptr;
-  float *outF = nullptr;
-  pixel_from_buffer(user_data->dst, &outI, &outF, 0, scanline);
-
-  for (int xi = 0; xi < width; xi++) {
-    if (uv[0] >= user_data->src_crop.xmin && uv[0] < user_data->src_crop.xmax &&
-        uv[1] >= user_data->src_crop.ymin && uv[1] < user_data->src_crop.ymax) {
-      interpolation(user_data->src, outI, outF, uv[0], uv[1]);
-    }
-    add_v2_v2(uv, user_data->add_x);
-    if (outI) {
-      outI += 4;
-    }
-    if (outF) {
-      outF += 4;
+    for (int xi = 0; xi < width; xi++) {
+      if constexpr (Mode == IMB_TRANSFORM_MODE_CROP_SRC) {
+        if (uv[0] >= user_data->src_crop.xmin && uv[0] < user_data->src_crop.xmax &&
+            uv[1] >= user_data->src_crop.ymin && uv[1] < user_data->src_crop.ymax) {
+          ColorInterpolation(user_data->src, outI, outF, uv[0], uv[1]);
+        }
+      }
+      else {
+        ColorInterpolation(user_data->src, outI, outF, uv[0], uv[1]);
+      }
+      add_v2_v2(uv, user_data->add_x);
+      if (outI) {
+        outI += ChannelLen;
+      }
+      if (outF) {
+        outF += ChannelLen;
+      }
     }
   }
-}
+};
 
-static void imb_transform_nearest_scanlines_with_crop(void *custom_data, int scanline)
+template<typename Processor> void transform_scanline_function(void *custom_data, int scanline)
 {
   const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  InterpolationColorFunction interpolation = nullptr;
-  if (user_data->dst->rect_float) {
-    interpolation = nearest_interpolation_color_fl;
-  }
-  else {
-    interpolation = nearest_interpolation_color_char;
-  }
-  imb_transform_scanlines_with_crop(user_data, scanline, interpolation);
+  Processor processor;
+  processor.process(user_data, scanline);
 }
 
-static void imb_transform_bilinear_scanlines_with_crop(void *custom_data, int scanline)
-{
-  const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  InterpolationColorFunction interpolation = nullptr;
-  if (user_data->dst->rect_float) {
-    interpolation = bilinear_interpolation_color_fl;
-  }
-  else if (user_data->dst->rect) {
-    interpolation = bilinear_interpolation_color_char;
-  }
-  imb_transform_scanlines_with_crop(user_data, scanline, interpolation);
-}
+template<InterpolationColorFunction DefaultFunction, InterpolationColorFunction WrapRepeatFunction>
+ScanlineThreadFunc get_scanline_function(const eIMBTransformMode mode)
 
-static void imb_transform_nearest_scanlines_with_repeat(void *custom_data, int scanline)
 {
-  const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  InterpolationColorFunction interpolation = nearest_interpolation_color_wrap;
-  imb_transform_scanlines(user_data, scanline, interpolation);
-}
-
-static ScanlineThreadFunc imb_transform_scanline_func(const eIMBInterpolationFilterMode filter,
-                                                      const eIMBTransformMode mode)
-{
-  ScanlineThreadFunc scanline_func = nullptr;
   switch (mode) {
     case IMB_TRANSFORM_MODE_REGULAR:
-      switch (filter) {
-        case IMB_FILTER_NEAREST:
-          scanline_func = imb_transform_nearest_scanlines;
-          break;
-        case IMB_FILTER_BILINEAR:
-          scanline_func = imb_transform_bilinear_scanlines;
-          break;
-      }
-      break;
-
+      return transform_scanline_function<
+          ScanlineProcessor<IMB_TRANSFORM_MODE_REGULAR, DefaultFunction>>;
     case IMB_TRANSFORM_MODE_CROP_SRC:
-      switch (filter) {
-        case IMB_FILTER_NEAREST:
-          scanline_func = imb_transform_nearest_scanlines_with_crop;
-          break;
-        case IMB_FILTER_BILINEAR:
-          scanline_func = imb_transform_bilinear_scanlines_with_crop;
-          break;
-      }
-      break;
-
+      return transform_scanline_function<
+          ScanlineProcessor<IMB_TRANSFORM_MODE_CROP_SRC, DefaultFunction>>;
     case IMB_TRANSFORM_MODE_WRAP_REPEAT:
-      BLI_assert_msg(filter == IMB_FILTER_NEAREST,
-                     "Repeat mode is only supported with nearest interpolation.");
-      scanline_func = imb_transform_nearest_scanlines_with_repeat;
-      break;
+      return transform_scanline_function<
+          ScanlineProcessor<IMB_TRANSFORM_MODE_WRAP_REPEAT, WrapRepeatFunction>>;
   }
-  return scanline_func;
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+template<eIMBInterpolationFilterMode Filter>
+static void transform(TransformUserData *user_data, const eIMBTransformMode mode)
+{
+  ScanlineThreadFunc scanline_func = nullptr;
+
+  if (user_data->dst->rect_float) {
+    constexpr InterpolationColorFunction interpolation_function =
+        Filter == IMB_FILTER_NEAREST ? nearest_interpolation_color_fl :
+                                       bilinear_interpolation_color_fl;
+    scanline_func =
+        get_scanline_function<interpolation_function, nearest_interpolation_color_wrap>(mode);
+  }
+  else if (user_data->dst->rect) {
+    constexpr InterpolationColorFunction interpolation_function =
+        Filter == IMB_FILTER_NEAREST ? nearest_interpolation_color_char :
+                                       bilinear_interpolation_color_char;
+    scanline_func =
+        get_scanline_function<interpolation_function, nearest_interpolation_color_wrap>(mode);
+  }
+
+  if (scanline_func != nullptr) {
+    IMB_processor_apply_threaded_scanlines(user_data->dst->y, scanline_func, user_data);
+  }
 }
 
 }  // namespace blender::imbuf::transform
@@ -256,18 +201,20 @@ void IMB_transform(const struct ImBuf *src,
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
                  "No source crop rect given, but crop source is requested. Or source crop rect "
                  "was given, but crop source was not requested.");
+
   TransformUserData user_data;
   user_data.src = src;
   user_data.dst = dst;
   if (mode == IMB_TRANSFORM_MODE_CROP_SRC) {
     user_data.src_crop = *src_crop;
   }
-  user_data.init_start_uv(transform_matrix);
-  user_data.init_add_x(transform_matrix, src->x);
-  user_data.init_add_y(transform_matrix, src->y);
-  ScanlineThreadFunc scanline_func = imb_transform_scanline_func(filter, mode);
-  IMB_processor_apply_threaded_scanlines(dst->y, scanline_func, &user_data);
-}
-}
+  user_data.init(transform_matrix);
 
-/** \} */
+  if (filter == IMB_FILTER_NEAREST) {
+    transform<IMB_FILTER_NEAREST>(&user_data, mode);
+  }
+  else {
+    transform<IMB_FILTER_BILINEAR>(&user_data, mode);
+  }
+}
+}
