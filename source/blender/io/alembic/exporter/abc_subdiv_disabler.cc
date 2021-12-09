@@ -72,8 +72,6 @@ void SubdivModifierDisabler::disable_modifiers()
   }
 }
 
-/* Check if the mesh is a subsurf, ignoring disabled modifiers and
- * displace if it's after subsurf. */
 ModifierData *SubdivModifierDisabler::get_subdiv_modifier(Scene *scene, Object *ob)
 {
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);

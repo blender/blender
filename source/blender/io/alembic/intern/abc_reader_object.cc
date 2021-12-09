@@ -67,7 +67,6 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
   determine_inherits_xform();
 }
 
-/* Determine whether we can inherit our parent's XForm */
 void AbcObjectReader::determine_inherits_xform()
 {
   m_inherits_xform = false;

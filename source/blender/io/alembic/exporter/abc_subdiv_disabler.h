@@ -45,6 +45,10 @@ class SubdivModifierDisabler final {
 
   void disable_modifiers();
 
+  /**
+   * Check if the mesh is a subsurf, ignoring disabled modifiers and
+   * displace if it's after subsurf.
+   */
   static ModifierData *get_subdiv_modifier(Scene *scene, Object *ob);
 };
 

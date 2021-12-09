@@ -75,8 +75,6 @@ void create_swapped_rotation_matrix(float rot_x_mat[3][3],
 }  // namespace
    // alembicvoidcreate_swapped_rotation_matrix(floatrot_x_mat[3][3],floatrot_y_mat[3][3],floatrot_z_mat[3][3],constfloateuler[3],AbcAxisSwapModemode)
 
-/* Convert matrix from Z=up to Y=up or vice versa.
- * Use yup_mat = zup_mat for in-place conversion. */
 void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode)
 {
   float dst_rot[3][3], src_rot[3][3], dst_scale_mat[4][4];
@@ -139,8 +137,6 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
   mul_m4_m4m4(dst_mat, dst_mat, dst_scale_mat);
 }
 
-/* Recompute transform matrix of object in new coordinate system
- * (from Z-Up to Y-Up). */
 void create_transform_matrix(Object *obj,
                              float r_yup_mat[4][4],
                              AbcMatrixMode mode,
