@@ -538,9 +538,9 @@ class OptiXDevice::DenoiseContext {
       }
     }
 
-    const int num_guiding_passes = num_input_passes - 1;
+    use_guiding_passes = (num_input_passes - 1) > 0;
 
-    if (num_guiding_passes) {
+    if (use_guiding_passes) {
       if (task.allow_inplace_modification) {
         guiding_params.device_pointer = render_buffers->buffer.device_pointer;
 
@@ -593,6 +593,7 @@ class OptiXDevice::DenoiseContext {
 
   /* Number of input passes. Including the color and extra auxiliary passes. */
   int num_input_passes = 0;
+  bool use_guiding_passes = false;
   bool use_pass_albedo = false;
   bool use_pass_normal = false;
 
@@ -724,7 +725,7 @@ void OptiXDevice::denoise_pass(DenoiseContext &context, PassType pass_type)
       return;
     }
   }
-  else if (!context.albedo_replaced_with_fake) {
+  else if (context.use_guiding_passes && !context.albedo_replaced_with_fake) {
     context.albedo_replaced_with_fake = true;
     if (!denoise_filter_guiding_set_fake_albedo(context)) {
       LOG(ERROR) << "Error replacing real albedo with the fake one.";
