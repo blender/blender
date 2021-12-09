@@ -180,7 +180,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
   kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 
-  kintegrator->ao_bounces = ao_bounces;
+  kintegrator->ao_bounces = (ao_factor != 0.0f) ? ao_bounces : 0;
   kintegrator->ao_bounces_distance = ao_distance;
   kintegrator->ao_bounces_factor = ao_factor;
   kintegrator->ao_additive_factor = ao_additive_factor;
