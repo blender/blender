@@ -3759,9 +3759,6 @@ static bool lineart_get_edge_bounding_areas(LineartRenderBuffer *rb,
   return true;
 }
 
-/**
- * This only gets initial "biggest" tile.
- */
 LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *rb,
                                                           double x,
                                                           double y)
@@ -3833,9 +3830,6 @@ static LineartBoundingArea *lineart_get_bounding_area(LineartRenderBuffer *rb, d
   return iba;
 }
 
-/**
- * Wrapper for more convenience.
- */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y)
 {
   LineartBoundingArea *ba;
@@ -4141,11 +4135,6 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
   return 0;
 }
 
-/**
- * This is the entry point of all line art calculations.
- *
- * \return True when a change is made.
- */
 bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
                                        LineartGpencilModifierData *lmd,
                                        LineartCache **cached_result,
@@ -4473,9 +4462,6 @@ static void lineart_gpencil_generate(LineartCache *cache,
   }
 }
 
-/**
- * Wrapper for external calls.
- */
 void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   Depsgraph *depsgraph,
                                   Object *ob,
