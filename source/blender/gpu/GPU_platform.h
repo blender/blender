@@ -66,7 +66,10 @@ typedef enum eGPUSupportLevel {
 extern "C" {
 #endif
 
+/* GPU Types */
+
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver);
+
 eGPUSupportLevel GPU_platform_support_level(void);
 const char *GPU_platform_vendor(void);
 const char *GPU_platform_renderer(void);

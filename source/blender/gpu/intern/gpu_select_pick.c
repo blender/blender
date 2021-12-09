@@ -730,7 +730,6 @@ void gpu_select_pick_cache_end(void)
   BLI_freelistN(&g_pick_state.cache.bufs);
 }
 
-/* is drawing needed? */
 bool gpu_select_pick_is_cached(void)
 {
   return g_pick_state.is_cached;

@@ -142,7 +142,6 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 
 #undef APIENTRY
 
-/* This function needs to be called once per context. */
 void init_gl_callbacks()
 {
   CLOG_ENSURE(&LOG);

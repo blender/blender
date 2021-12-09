@@ -216,18 +216,12 @@ void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)
   unwrap(gpu_fb)->bind(enable_srgb);
 }
 
-/**
- * Workaround for binding a SRGB frame-buffer without doing the SRGB transform.
- */
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *gpu_fb)
 {
   const bool enable_srgb = false;
   unwrap(gpu_fb)->bind(enable_srgb);
 }
 
-/**
- * For stereo rendering.
- */
 void GPU_backbuffer_bind(eGPUBackBuffer buffer)
 {
   Context *ctx = Context::get();
@@ -251,7 +245,6 @@ GPUFrameBuffer *GPU_framebuffer_active_get()
   return wrap(ctx ? ctx->active_fb : nullptr);
 }
 
-/* Returns the default frame-buffer. Will always exists even if it's just a dummy. */
 GPUFrameBuffer *GPU_framebuffer_back_get()
 {
   Context *ctx = Context::get();
@@ -302,12 +295,6 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
   unwrap(tex)->detach_from(unwrap(fb));
 }
 
-/**
- * First GPUAttachment in *config is always the depth/depth_stencil buffer.
- * Following GPUAttachments are color buffers.
- * Setting GPUAttachment.mip to -1 will leave the texture in this slot.
- * Setting GPUAttachment.tex to NULL will detach the texture in this slot.
- */
 void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
                                   const GPUAttachment *config,
                                   int config_len)
@@ -341,11 +328,6 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
 
 /* ---------- Viewport & Scissor Region ----------- */
 
-/**
- * Viewport and scissor size is stored per frame-buffer.
- * It is only reset to its original dimensions explicitly OR when binding the frame-buffer after
- * modifying its attachments.
- */
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)
 {
   int viewport_rect[4] = {x, y, width, height};
@@ -357,9 +339,6 @@ void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
   unwrap(gpu_fb)->viewport_get(r_viewport);
 }
 
-/**
- * Reset to its attachment(s) size.
- */
 void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
 {
   unwrap(gpu_fb)->viewport_reset();
@@ -376,9 +355,6 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
   unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
 }
 
-/**
- * Clear all textures attached to this frame-buffer with a different color.
- */
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])
 {
   unwrap(gpu_fb)->clear_multi(clear_cols);
@@ -425,7 +401,6 @@ void GPU_frontbuffer_read_pixels(
   Context::get()->front_left->read(GPU_COLOR_BIT, format, rect, channels, 0, data);
 }
 
-/* read_slot and write_slot are only used for color buffers. */
 /* TODO(fclem): port as texture operation. */
 void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
                           int read_slot,
@@ -466,11 +441,6 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
   prev_fb->bind(true);
 }
 
-/**
- * Use this if you need to custom down-sample your texture and use the previous mip-level as
- * input. This function only takes care of the correct texture handling. It execute the callback
- * for each texture level.
- */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
                                           int max_lvl,
                                           void (*callback)(void *userData, int level),
@@ -704,9 +674,6 @@ GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *ofs)
   return ofs->color;
 }
 
-/**
- * \note only to be used by viewport code!
- */
 void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
                                      GPUFrameBuffer **r_fb,
                                      GPUTexture **r_color,

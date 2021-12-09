@@ -110,7 +110,6 @@ void GLFrameBuffer::init()
 /** \name Config
  * \{ */
 
-/* This is a rather slow operation. Don't check in normal cases. */
 bool GLFrameBuffer::check(char err_out[256])
 {
   this->bind(true);
@@ -451,9 +450,6 @@ void GLFrameBuffer::read(eGPUFrameBufferBits plane,
   glReadPixels(UNPACK4(area), format, type, r_data);
 }
 
-/**
- * Copy \a src at the give offset inside \a dst.
- */
 void GLFrameBuffer::blit_to(
     eGPUFrameBufferBits planes, int src_slot, FrameBuffer *dst_, int dst_slot, int x, int y)
 {

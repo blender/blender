@@ -421,11 +421,14 @@ static void detect_workarounds()
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
+
 GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
+
 /** Extensions. */
+
 bool GLContext::base_instance_support = false;
 bool GLContext::clear_texture_support = false;
 bool GLContext::copy_image_support = false;
@@ -439,7 +442,9 @@ bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
 bool GLContext::vertex_attrib_binding_support = false;
+
 /** Workarounds. */
+
 bool GLContext::debug_layer_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 bool GLContext::generate_mipmap_workaround = false;

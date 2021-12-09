@@ -56,11 +56,14 @@ class GLSharedOrphanLists {
 class GLContext : public Context {
  public:
   /** Capabilities. */
+
   static GLint max_cubemap_size;
   static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
+
   /** Extensions. */
+
   static bool base_instance_support;
   static bool clear_texture_support;
   static bool copy_image_support;
@@ -74,7 +77,9 @@ class GLContext : public Context {
   static bool texture_filter_anisotropic_support;
   static bool texture_gather_support;
   static bool vertex_attrib_binding_support;
+
   /** Workarounds. */
+
   static bool debug_layer_workaround;
   static bool unused_fb_slot_workaround;
   static bool generate_mipmap_workaround;

@@ -733,9 +733,6 @@ float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float di
   return winmat[3][2] * -0.0025f * dist;
 }
 
-/**
- * \note \a viewdist is only for ortho at the moment.
- */
 void GPU_polygon_offset(float viewdist, float dist)
 {
   static float winmat[4][4], offset = 0.0f;

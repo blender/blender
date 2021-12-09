@@ -108,7 +108,6 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
   return enabled_attrib;
 }
 
-/* Update the Attribute Binding of the currently bound VAO. */
 void GLVertArray::update_bindings(const GLuint vao,
                                   const GPUBatch *batch_, /* Should be GLBatch. */
                                   const ShaderInterface *interface,
@@ -156,7 +155,6 @@ void GLVertArray::update_bindings(const GLuint vao,
   }
 }
 
-/* Another version of update_bindings for Immediate mode. */
 void GLVertArray::update_bindings(const GLuint vao,
                                   const uint v_first,
                                   const GPUVertFormat *format,

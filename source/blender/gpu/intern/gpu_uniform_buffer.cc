@@ -201,12 +201,6 @@ GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const cha
   return wrap(ubo);
 }
 
-/**
- * Create UBO from inputs list.
- * Return NULL if failed to create or if \param inputs: is empty.
- *
- * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
- */
 GPUUniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */

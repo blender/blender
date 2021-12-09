@@ -90,7 +90,6 @@ void GPU_batch_init_ex(GPUBatch *batch,
   batch->shader = nullptr;
 }
 
-/* This will share the VBOs with the new batch. */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 {
   GPU_batch_init_ex(
@@ -137,7 +136,6 @@ void GPU_batch_discard(GPUBatch *batch)
 /** \name Buffers Management
  * \{ */
 
-/* NOTE: Override ONLY the first instance vbo (and free them if owned). */
 void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
 {
   BLI_assert(inst);
@@ -151,7 +149,6 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
   SET_FLAG_FROM_TEST(batch->flag, own_vbo, GPU_BATCH_OWNS_INST_VBO);
 }
 
-/* NOTE: Override any previously assigned elem (and free it if owned). */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
 {
   BLI_assert(elem);
@@ -188,7 +185,6 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
   return -1;
 }
 
-/* Returns the index of verts in the batch. */
 int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 {
   BLI_assert(verts);
@@ -243,7 +239,6 @@ void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count)
   GPU_batch_draw_advanced(batch, v_first, v_count, 0, 0);
 }
 
-/* Draw multiple instance of a batch without having any instance attributes. */
 void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 {
   BLI_assert(batch->inst[0] == nullptr);
@@ -301,9 +296,6 @@ void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id)
   GPU_batch_program_set_builtin_with_config(batch, shader_id, GPU_SHADER_CFG_DEFAULT);
 }
 
-/* Bind program bound to IMM to the batch.
- * XXX Use this with much care. Drawing with the GPUBatch API is not compatible with IMM.
- * DO NOT DRAW WITH THE BATCH BEFORE CALLING immUnbindProgram. */
 void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 {
   GPU_batch_set_shader(batch, immGetShader());

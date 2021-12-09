@@ -298,7 +298,6 @@ GPUTexture *GPU_texture_create_cube_array(
       name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
-/* DDS texture loading. Return NULL if support is not available. */
 GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat tex_format, const void *data)
 {
@@ -337,7 +336,6 @@ GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vert)
   return reinterpret_cast<GPUTexture *>(tex);
 }
 
-/* Create an error texture that will bind an invalid texture (pink) at draw time. */
 GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 {
   float pixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
@@ -386,27 +384,17 @@ void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)
   return tex->read(miplvl, data_format);
 }
 
-/**
- * Fills the whole texture with the same data for all pixels.
- * \warning Only work for 2D texture for now.
- * \warning Only clears the mip 0 of the texture.
- * \param data_format: data format of the pixel data.
- * \param data: 1 pixel worth of data to fill the texture with.
- */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
   BLI_assert(data != nullptr); /* Do not accept NULL as parameter. */
   reinterpret_cast<Texture *>(tex)->clear(data_format, data);
 }
 
-/* NOTE: Updates only mip 0. */
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
   reinterpret_cast<Texture *>(tex)->update(data_format, data);
 }
 
-/* Makes data interpretation aware of the source layout.
- * Skipping pixels correctly when changing rows when doing partial update. */
 void GPU_unpack_row_length_set(uint len)
 {
   Context::get()->state_manager->texture_unpack_row_length_set(len);
@@ -461,7 +449,6 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
   reinterpret_cast<Texture *>(tex)->generate_mipmap();
 }
 
-/* Copy a texture content to a similar texture. Only MIP 0 is copied. */
 void GPU_texture_copy(GPUTexture *dst_, GPUTexture *src_)
 {
   Texture *src = reinterpret_cast<Texture *>(src_);
@@ -626,7 +613,6 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
  * Override texture sampler state for one sampler unit only.
  * \{ */
 
-/* Update user defined sampler states. */
 void GPU_samplers_update(void)
 {
   GPUBackend::get()->samplers_update();

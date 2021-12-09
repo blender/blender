@@ -40,6 +40,12 @@ struct ListBase;
 typedef struct GPUUniformBuf GPUUniformBuf;
 
 GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name);
+/**
+ * Create UBO from inputs list.
+ * Return NULL if failed to create or if \param inputs: is empty.
+ *
+ * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
+ */
 GPUUniformBuf *GPU_uniformbuf_create_from_list(struct ListBase *inputs, const char *name);
 
 #define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, NULL, __func__);

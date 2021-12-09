@@ -109,7 +109,6 @@ GPUContext *GPU_context_create(void *ghost_window)
   return wrap(ctx);
 }
 
-/* to be called after GPU_context_active_set(ctx_to_destroy) */
 void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
@@ -117,7 +116,6 @@ void GPU_context_discard(GPUContext *ctx_)
   active_ctx = nullptr;
 }
 
-/* ctx can be NULL */
 void GPU_context_active_set(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);

@@ -137,7 +137,6 @@ char *GLShader::glsl_patch_get(GLenum gl_stage)
   return glsl_patch_default_get();
 }
 
-/* Create, compile and attach the shader stage to the shader program. */
 GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> sources)
 {
   GLuint shader = glCreateShader(gl_stage);
@@ -258,7 +257,6 @@ void GLShader::unbind()
  * TODO(fclem): Should be replaced by compute shaders.
  * \{ */
 
-/* Should be called before linking. */
 void GLShader::transform_feedback_names_set(Span<const char *> name_list,
                                             const eGPUShaderTFBType geom_type)
 {

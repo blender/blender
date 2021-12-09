@@ -74,7 +74,6 @@ void GLVaoCache::init()
   vao_id_ = 0;
 }
 
-/* Create a new VAO object and store it in the cache. */
 void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
 {
   /* Now insert the cache. */
@@ -191,7 +190,6 @@ void GLVaoCache::clear()
   this->init();
 }
 
-/* Return 0 on cache miss (invalid VAO) */
 GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
 {
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
@@ -205,8 +203,6 @@ GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
   return 0;
 }
 
-/* The GLVaoCache object is only valid for one GLContext.
- * Reset the cache if trying to draw in another context; */
 void GLVaoCache::context_check()
 {
   GLContext *ctx = GLContext::get();

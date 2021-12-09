@@ -154,7 +154,6 @@ GPUBatch *GPU_batch_preset_sphere_wire(int lod)
 /** \name Create Sphere (3D)
  * \{ */
 
-/* Replacement for gluSphere */
 GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
 {
   const float lon_inc = 2 * M_PI / lon_res;
@@ -331,7 +330,6 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
   return g_presets_2d.batch.panel_drag_widget;
 }
 
-/* To be used with procedural placement inside shader. */
 GPUBatch *GPU_batch_preset_quad(void)
 {
   if (!g_presets_2d.batch.quad) {

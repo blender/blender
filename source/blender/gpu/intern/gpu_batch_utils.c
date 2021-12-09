@@ -33,15 +33,6 @@
 /** \name Polygon Creation (2D)
  * \{ */
 
-/**
- * Creates triangles from a byte-array of polygons.
- *
- * See 'make_shape_2d_from_blend.py' utility to create data to pass to this function.
- *
- * \param polys_flat: Pairs of X, Y coordinates (repeating to signify closing the polygon).
- * \param polys_flat_len: Length of the array (must be an even number).
- * \param rect: Optional region to map the byte 0..255 coords to. When not set use -1..1.
- */
 GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
                                               uint polys_flat_len,
                                               const rctf *rect)

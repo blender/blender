@@ -70,6 +70,26 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
 struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;
 };
+/**
+ * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
+ *
+ * Similar to #DRW_shader_create_with_lib with the ability to include libs for each type of shader.
+ *
+ * It has the advantage that each item can be conditionally included
+ * without having to build the string inline, then free it.
+ *
+ * \param params: NULL terminated arrays of strings.
+ *
+ * Example:
+ * \code{.c}
+ * sh = GPU_shader_create_from_arrays({
+ *     .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
+ *     .geom = (const char *[]){shader_geom_glsl, NULL},
+ *     .frag = (const char *[]){shader_frag_glsl, NULL},
+ *     .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
+ * });
+ * \endcode
+ */
 struct GPUShader *GPU_shader_create_from_arrays_impl(
     const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line);
 
@@ -88,10 +108,13 @@ void GPU_shader_unbind(void);
 
 const char *GPU_shader_get_name(GPUShader *shader);
 
-/* Returns true if transform feedback was successfully enabled. */
+/**
+ * Returns true if transform feedback was successfully enabled.
+ */
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
+/** DEPRECATED: Kept only because of BGL API. */
 int GPU_shader_get_program(GPUShader *shader);
 
 typedef enum {
@@ -134,6 +157,7 @@ void GPU_shader_set_srgb_uniform(GPUShader *shader);
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
+/** DEPRECATED: Kept only because of Python GPU API. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
 int GPU_shader_get_ssbo(GPUShader *shader, const char *name);
 

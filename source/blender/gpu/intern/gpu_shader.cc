@@ -284,26 +284,6 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
   return str_arr[0];
 }
 
-/**
- * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
- *
- * Similar to #DRW_shader_create_with_lib with the ability to include libs for each type of shader.
- *
- * It has the advantage that each item can be conditionally included
- * without having to build the string inline, then free it.
- *
- * \param params: NULL terminated arrays of strings.
- *
- * Example:
- * \code{.c}
- * sh = GPU_shader_create_from_arrays({
- *     .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
- *     .geom = (const char *[]){shader_geom_glsl, NULL},
- *     .frag = (const char *[]){shader_frag_glsl, NULL},
- *     .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
- * });
- * \endcode
- */
 struct GPUShader *GPU_shader_create_from_arrays_impl(
     const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line)
 {
@@ -431,7 +411,6 @@ int GPU_shader_get_ssbo(GPUShader *shader, const char *name)
   return ssbo ? ssbo->location : -1;
 }
 
-/* DEPRECATED. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
 {
   ShaderInterface *interface = unwrap(shader)->interface;
@@ -466,7 +445,6 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 /** \name Getters
  * \{ */
 
-/* DEPRECATED: Kept only because of BGL API */
 int GPU_shader_get_program(GPUShader *shader)
 {
   return unwrap(shader)->program_handle_get();

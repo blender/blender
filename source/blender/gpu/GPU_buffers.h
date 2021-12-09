@@ -44,11 +44,17 @@ struct Mesh;
 struct PBVH;
 struct SubdivCCG;
 
-/* Buffers for drawing from PBVH grids. */
+/**
+ * Buffers for drawing from PBVH grids.
+ */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
-/* Build must be called once before using the other functions, used every time
- * mesh topology changes. Threaded. */
+/**
+ * Build must be called once before using the other functions,
+ * used every time mesh topology changes.
+ *
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
                                               const struct MLoop *mloop,
                                               const struct MLoopTri *looptri,
@@ -58,23 +64,36 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
                                               const int face_indices_len,
                                               const struct Mesh *mesh);
 
+/**
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, unsigned int **grid_hidden);
 
+/**
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 
-/* Free part of data for update. Not thread safe, must run in OpenGL main thread. */
+/**
+ * Free part of data for update. Not thread safe, must run in OpenGL main thread.
+ */
 void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers);
 void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
                                        const struct DMFlagMat *grid_flag_mats,
                                        const int *grid_indices);
 
-/* Update mesh buffers without topology changes. Threaded. */
+/**
+ * Update mesh buffers without topology changes. Threaded.
+ */
 enum {
   GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
   GPU_PBVH_BUFFERS_SHOW_VCOL = (1 << 2),
   GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS = (1 << 3),
 };
 
+/**
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MVert *mvert,
                                   const float *vmask,
@@ -85,6 +104,11 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
+/**
+ * Creates a vertex buffer (coordinate, normal, color) and,
+ * if smooth shading, an element index buffer.
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
                                    struct GSet *bm_faces,
@@ -92,6 +116,9 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct GSet *bm_other_verts,
                                    const int update_flags);
 
+/**
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,
                                   struct CCGElem **grids,
@@ -104,13 +131,17 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct CCGKey *key,
                                   const int update_flags);
 
-/* Finish update. Not thread safe, must run in OpenGL main thread. */
+/**
+ * Finish update. Not thread safe, must run in OpenGL main thread.
+ */
 void GPU_pbvh_buffers_update_flush(GPU_PBVH_Buffers *buffers);
 
-/* Free buffers.  Not thread safe, must run in OpenGL main thread. */
+/**
+ * Free buffers. Not thread safe, must run in OpenGL main thread.
+ */
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers);
 
-/* draw */
+/** Draw. */
 struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast, bool wires);
 
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);

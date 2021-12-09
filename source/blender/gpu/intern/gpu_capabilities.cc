@@ -189,7 +189,6 @@ void GPU_mem_stats_get(int *totalmem, int *freemem)
   Context::get()->memory_statistics_get(totalmem, freemem);
 }
 
-/* Return support for the active context + window. */
 bool GPU_stereo_quadbuffer_support()
 {
   return Context::get()->front_right != nullptr;

@@ -157,7 +157,6 @@ const char *GPU_platform_gpu_name()
   return GPG.gpu_name;
 }
 
-/* GPU Types */
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)
 {
   BLI_assert(GPG.initialized);

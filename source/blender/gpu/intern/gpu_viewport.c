@@ -194,7 +194,6 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   viewport->active_view = view;
 }
 
-/* Should be called from DRW after DRW_opengl_context_enable. */
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs)
 {
   GPUTexture *color, *depth;
@@ -258,7 +257,6 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   viewport->do_color_management = true;
 }
 
-/* Merge the stereo textures. `color` and `overlay` texture will be modified. */
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
 {
   if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
@@ -452,10 +450,6 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   }
 }
 
-/**
- * Version of #GPU_viewport_draw_to_screen() that lets caller decide if display colorspace
- * transform should be performed.
- */
 void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
                                     int view,
                                     const rcti *rect,
@@ -508,21 +502,11 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
       viewport, view, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
 }
 
-/**
- * Merge and draw the buffers of \a viewport into the currently active framebuffer, performing
- * color transform to display space.
- *
- * \param rect: Coordinates to draw into. By swapping min and max values, drawing can be done
- * with inversed axis coordinates (upside down or sideways).
- */
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
   GPU_viewport_draw_to_screen_ex(viewport, view, rect, true, true);
 }
 
-/**
- * Clear vars assigned from offscreen, so we don't free data owned by `GPUOffScreen`.
- */
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         struct GPUOffScreen *ofs,
                                         bool display_colorspace,
@@ -587,7 +571,6 @@ GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
   return viewport->depth_tx;
 }
 
-/* Overlay framebuffer for drawing outside of DRW module. */
 GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
 {
   GPU_framebuffer_ensure_config(
@@ -599,7 +582,6 @@ GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
   return viewport->overlay_fb;
 }
 
-/* Must be executed inside Draw-manager OpenGL Context. */
 void GPU_viewport_free(GPUViewport *viewport)
 {
   if (viewport->draw_data) {

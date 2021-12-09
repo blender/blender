@@ -113,8 +113,33 @@ uint GPU_vertformat_attr_add(
     GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
 
+/**
+ * Makes vertex attribute from the next vertices to be accessible in the vertex shader.
+ * For an attribute named "attr" you can access the next nth vertex using "attr{number}".
+ * Use this function after specifying all the attributes in the format.
+ *
+ * NOTE: This does NOT work when using indexed rendering.
+ * NOTE: Only works for first attribute name. (this limitation can be changed if needed)
+ *
+ * WARNING: this function creates a lot of aliases/attributes, make sure to keep the attribute
+ * name short to avoid overflowing the name-buffer.
+ */
 void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count);
 
+/**
+ * Make attribute layout non-interleaved.
+ * Warning! This does not change data layout!
+ * Use direct buffer access to fill the data.
+ * This is for advanced usage.
+ *
+ * De-interleaved data means all attribute data for each attribute
+ * is stored continuously like this:
+ * 000011112222
+ * instead of:
+ * 012012012012
+ *
+ * \note This is per attribute de-interleaving, NOT per component.
+ */
 void GPU_vertformat_deinterleave(GPUVertFormat *format);
 
 int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
@@ -126,10 +151,16 @@ BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
   return format->names + attr->names[n_idx];
 }
 
-/* WARNING: Can only rename using a string with same character count.
- * WARNING: This removes all other aliases of this attribute. */
+/**
+ * \warning Can only rename using a string with same character count.
+ * \warning This removes all other aliases of this attribute.
+ */
 void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new_name);
 
+/**
+ * \warning Always add a prefix to the result of this function as
+ * the generated string can start with a number and not be a valid attribute name.
+ */
 void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uint max_len);
 
 /* format conversion */
