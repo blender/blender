@@ -91,8 +91,7 @@ class ControllerExporter : public COLLADASW::LibraryControllers,
 
   std::string get_controller_id(Key *key, Object *ob);
 
-  /* ob should be of type OB_MESH
-   * both args are required */
+  /** `ob` should be of type OB_MESH, both arguments are required. */
   void export_skin_controller(Object *ob, Object *ob_arm);
 
   void export_morph_controller(Object *ob, Key *key);
@@ -107,6 +106,9 @@ class ControllerExporter : public COLLADASW::LibraryControllers,
 
   std::string add_morph_weights(Key *key, Object *ob);
 
+  /**
+   * Added to implement support for animations.
+   */
   void add_weight_extras(Key *key);
 
   std::string add_joints_source(Object *ob_arm,

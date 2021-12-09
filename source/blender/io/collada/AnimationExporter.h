@@ -100,7 +100,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
 
   bool exportAnimations();
 
-  /* called for each exported object */
+  /** Called for each exported object. */
   void operator()(Object *ob);
 
  protected:
@@ -148,25 +148,34 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
 
   std::vector<std::vector<std::string>> anim_meta;
 
-  /* Main entry point into Animation export (called for each exported object) */
+  /** Main entry point into Animation export (called for each exported object). */
   void exportAnimation(Object *ob, BCAnimationSampler &sampler);
 
-  /* export animation as separate trans/rot/scale curves */
+  /**
+   * Export all animation FCurves of an Object.
+   *
+   * \note This uses the keyframes as sample points,
+   * and exports "baked keyframes" while keeping the tangent information
+   * of the FCurves intact. This works for simple cases, but breaks
+   * especially when negative scales are involved in the animation.
+   * And when parent inverse matrices are involved (when exporting
+   * object hierarchies)
+   */
   void export_curve_animation_set(Object *ob, BCAnimationSampler &sampler, bool export_as_matrix);
 
-  /* export one single curve */
+  /** Export one single curve. */
   void export_curve_animation(Object *ob, BCAnimationCurve &curve);
 
-  /* export animation as matrix data */
+  /** Export animation as matrix data. */
   void export_matrix_animation(Object *ob, BCAnimationSampler &sampler);
 
-  /* step through the bone hierarchy */
+  /** Write bone animations in transform matrix sources (step through the bone hierarchy). */
   void export_bone_animations_recursive(Object *ob_arm, Bone *bone, BCAnimationSampler &sampler);
 
-  /* Export for one bone */
+  /** Export for one bone. */
   void export_bone_animation(Object *ob, Bone *bone, BCFrames &frames, BCMatrixSampleMap &samples);
 
-  /* call to the low level collada exporter */
+  /** Call to the low level collada exporter. */
   void export_collada_curve_animation(std::string id,
                                       std::string name,
                                       std::string target,
@@ -174,7 +183,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                                       BCAnimationCurve &curve,
                                       BC_global_rotation_type global_rotation_type);
 
-  /* call to the low level collada exporter */
+  /** Call to the low level collada exporter. */
   void export_collada_matrix_animation(std::string id,
                                        std::string name,
                                        std::string target,
@@ -183,29 +192,38 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                                        BC_global_rotation_type global_rotation_type,
                                        Matrix &parentinv);
 
+  /**
+   * In some special cases the exported Curve needs to be replaced
+   * by a modified curve (for collada purposes)
+   * This method checks if a conversion is necessary and if applicable
+   * returns a pointer to the modified BCAnimationCurve.
+   * IMPORTANT: the modified curve must be deleted by the caller when no longer needed
+   * if no conversion is needed this method returns a NULL;
+   */
   BCAnimationCurve *get_modified_export_curve(Object *ob,
                                               BCAnimationCurve &curve,
                                               BCAnimationCurveMap &curves);
 
-  /* Helper functions */
+  /* Helper functions. */
+
   void openAnimationWithClip(std::string id, std::string name);
   bool open_animation_container(bool has_container, Object *ob);
   void close_animation_container(bool has_container);
 
-  /* Input and Output sources (single valued) */
+  /** Input and Output sources (single valued). */
   std::string collada_source_from_values(BC_animation_source_type source_type,
                                          COLLADASW::InputSemantic::Semantics semantic,
                                          std::vector<float> &values,
                                          const std::string &anim_id,
                                          const std::string axis_name);
 
-  /* Output sources (matrix data) */
+  /** Output sources (matrix data). * Create a collada matrix source for a set of samples. */
   std::string collada_source_from_values(BCMatrixSampleMap &samples,
                                          const std::string &anim_id,
                                          BC_global_rotation_type global_rotation_type,
                                          Matrix &parentinv);
 
-  /* Interpolation sources */
+  /** Interpolation sources. */
   std::string collada_linear_interpolation_source(int tot, const std::string &anim_id);
 
   /* source ID = animation_name + semantic_suffix */
@@ -240,6 +258,10 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
 
   std::string get_axis_name(std::string channel, int id);
   std::string get_collada_name(std::string channel_type) const;
+  /**
+   * Assign sid of the animated parameter or transform for rotation,
+   * axis name is always appended and the value of append_axis is ignored.
+   */
   std::string get_collada_sid(const BCAnimationCurve &curve, const std::string axis_name);
 
   /* ===================================== */

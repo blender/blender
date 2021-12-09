@@ -76,6 +76,7 @@ class UnitConverter {
 extern void clear_global_id_map();
 /** Look at documentation of translate_map */
 extern std::string translate_id(const std::string &id);
+/** Look at documentation of translate_map */
 extern std::string translate_id(const char *idString);
 
 extern std::string id_name(void *id);

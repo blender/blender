@@ -111,6 +111,12 @@ class ArmatureImporter : private TransformReader {
                                   std::vector<std::string> &layer_labels,
                                   BoneExtensionMap &extended_bones);
 
+  /**
+   * Collada only knows Joints, hence bones at the end of a bone chain
+   * don't have a defined length. This function guesses reasonable
+   * tail locations for the affected bones (nodes which don't have any connected child)
+   * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
+   */
   void fix_leaf_bone_hierarchy(bArmature *armature, Bone *bone, bool fix_orientation);
   void fix_leaf_bone(bArmature *armature, EditBone *ebone, BoneExtended *be, bool fix_orientation);
   void fix_parent_connect(bArmature *armature, Bone *bone);
@@ -152,15 +158,20 @@ class ArmatureImporter : private TransformReader {
                    const ImportSettings *import_settings);
   ~ArmatureImporter();
 
+  /**
+   * root - if this joint is the top joint in hierarchy, if a joint
+   * is a child of a node (not joint), root should be true since
+   * this is where we build armature bones from
+   */
   void add_root_joint(COLLADAFW::Node *node, Object *parent);
 
-  /* here we add bones to armatures, having armatures previously created in write_controller */
+  /** Here we add bones to armatures, having armatures previously created in write_controller. */
   void make_armatures(bContext *C, std::vector<Object *> &objects_to_scale);
 
   void make_shape_keys(bContext *C);
 
 #if 0
-  /* link with meshes, create vertex groups, assign weights */
+  /** Link with meshes, create vertex groups, assign weights. */
   void link_armature(Object *ob_arm,
                      const COLLADAFW::UniqueId &geom_id,
                      const COLLADAFW::UniqueId &controller_data_id);
@@ -176,7 +187,7 @@ class ArmatureImporter : private TransformReader {
 
   void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
 
-  /* gives a world-space mat */
+  /** Gives a world-space mat. */
   bool get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint);
 
   void set_tags_map(TagsMap &tags_map);

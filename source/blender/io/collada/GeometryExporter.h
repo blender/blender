@@ -72,7 +72,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
 
   void createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id);
 
-  /* powerful because it handles both cases when there is material and when there's not */
+  /** Powerful because it handles both cases when there is material and when there's not. */
   void create_mesh_primitive_list(short material_index,
                                   bool has_uvs,
                                   bool has_color,
@@ -81,17 +81,17 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
                                   std::string &geom_id,
                                   std::vector<BCPolygonNormalsIndices> &norind);
 
-  /* creates <source> for positions */
+  /** Creates <source> for positions. */
   void createVertsSource(std::string geom_id, Mesh *me);
 
   void createVertexColorSource(std::string geom_id, Mesh *me);
 
   std::string makeTexcoordSourceId(std::string &geom_id, int layer_index, bool is_single_layer);
 
-  /* creates <source> for texcoords */
+  /** Creates <source> for texcoords. */
   void createTexcoordsSource(std::string geom_id, Mesh *me);
 
-  /* creates <source> for normals */
+  /** Creates <source> for normals. */
   void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor);
 
   void create_normals(std::vector<Normal> &nor,

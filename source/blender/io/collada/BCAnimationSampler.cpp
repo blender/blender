@@ -418,11 +418,6 @@ void BCAnimationSampler::generate_transforms(Object *ob, Bone *bone, BCAnimation
   }
 }
 
-/**
- * Collect all keyframes from all animation curves related to the object.
- * The bc_get... functions check for NULL and correct object type.
- * The #add_keyframes_from() function checks for NULL.
- */
 void BCAnimationSampler::initialize_keyframes(BCFrameSet &frameset, Object *ob)
 {
   frameset.clear();
@@ -517,7 +512,6 @@ BCSample &BCSampleFrame::add(Object *ob)
   return *sample;
 }
 
-/* Get the matrix for the given key, returns Unity when the key does not exist */
 const BCSample *BCSampleFrame::get_sample(Object *ob) const
 {
   BCSampleMap::const_iterator it = sampleMap.find(ob);
@@ -537,7 +531,6 @@ const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob) const
   return &sample->get_matrix();
 }
 
-/* Get the matrix for the given Bone, returns Unity when the Object is not sampled. */
 const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob, Bone *bone) const
 {
   BCSampleMap::const_iterator it = sampleMap.find(ob);
@@ -550,13 +543,11 @@ const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob, Bone *bone) const
   return bc_bone;
 }
 
-/* Check if the key is in this BCSampleFrame */
 bool BCSampleFrame::has_sample_for(Object *ob) const
 {
   return sampleMap.find(ob) != sampleMap.end();
 }
 
-/* Check if the Bone is in this BCSampleFrame */
 bool BCSampleFrame::has_sample_for(Object *ob, Bone *bone) const
 {
   const BCMatrix *bc_bone = get_sample_matrix(ob, bone);
@@ -575,7 +566,6 @@ BCSample &BCSampleFrameContainer::add(Object *ob, int frame_index)
 /* Below are the getters which we need to export the data */
 /* ====================================================== */
 
-/* Return either the BCSampleFrame or NULL if frame does not exist. */
 BCSampleFrame *BCSampleFrameContainer::get_frame(int frame_index)
 {
   BCSampleFrameMap::iterator it = sample_frames.find(frame_index);
@@ -583,7 +573,6 @@ BCSampleFrame *BCSampleFrameContainer::get_frame(int frame_index)
   return frame;
 }
 
-/* Return a list of all frames that need to be sampled */
 int BCSampleFrameContainer::get_frames(std::vector<int> &frames) const
 {
   frames.clear(); /* safety; */

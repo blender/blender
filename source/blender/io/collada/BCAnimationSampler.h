@@ -89,11 +89,16 @@ class BCSampleFrame {
   BCSample &add(Object *ob);
 
   /* Following methods return NULL if object is not in the sampleMap. */
+
+  /** Get the matrix for the given key, returns Unity when the key does not exist. */
   const BCSample *get_sample(Object *ob) const;
   const BCMatrix *get_sample_matrix(Object *ob) const;
+  /** Get the matrix for the given Bone, returns Unity when the Object is not sampled. */
   const BCMatrix *get_sample_matrix(Object *ob, Bone *bone) const;
 
+  /** Check if the key is in this BCSampleFrame. */
   bool has_sample_for(Object *ob) const;
+  /** Check if the Bone is in this BCSampleFrame. */
   bool has_sample_for(Object *ob, Bone *bone) const;
 };
 
@@ -134,8 +139,10 @@ class BCSampleFrameContainer {
   }
 
   BCSample &add(Object *ob, int frame_index);
-  BCSampleFrame *get_frame(int frame_index); /* returns NULL if frame does not exist */
+  /** Return either the #BCSampleFrame or NULL if frame does not exist. */
+  BCSampleFrame *get_frame(int frame_index);
 
+  /** Return a list of all frames that need to be sampled. */
   int get_frames(std::vector<int> &frames) const;
   int get_frames(Object *ob, BCFrames &frames) const;
   int get_frames(Object *ob, Bone *bone, BCFrames &frames) const;
@@ -159,6 +166,11 @@ class BCAnimationSampler {
   void generate_transforms(Object *ob, Bone *bone, BCAnimationCurveMap &curves);
 
   void initialize_curves(BCAnimationCurveMap &curves, Object *ob);
+  /**
+   * Collect all keyframes from all animation curves related to the object.
+   * The bc_get... functions check for NULL and correct object type.
+   * The #add_keyframes_from() function checks for NULL.
+   */
   void initialize_keyframes(BCFrameSet &frameset, Object *ob);
   BCSample &sample_object(Object *ob, int frame_index, bool for_opensim);
   void update_animation_curves(BCAnimation &animation,

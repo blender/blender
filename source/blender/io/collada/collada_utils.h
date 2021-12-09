@@ -143,6 +143,12 @@ extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int 
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
 
 extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
+/**
+ * Check if a bone is the top most exportable bone in the bone hierarchy.
+ * When deform_bones_only == false, then only bones with NO parent
+ * can be root bones. Otherwise the top most deform bones in the hierarchy
+ * are root bones.
+ */
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
 extern int bc_get_active_UVLayer(Object *ob);
 
@@ -200,12 +206,29 @@ extern void bc_match_scale(std::vector<Object *> *objects_done,
                            UnitConverter &bc_unit,
                            bool scale_to_scene);
 
+/**
+ * Convenience function to get only the needed components of a matrix.
+ */
 extern void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size);
+/**
+ * Create rotation_quaternion from a delta rotation and a reference quat
+ *
+ * Input:
+ * mat_from: The rotation matrix before rotation
+ * mat_to  : The rotation matrix after rotation
+ * qref    : the quat corresponding to mat_from
+ *
+ * Output:
+ * rot     : the calculated result (quaternion).
+ */
 extern void bc_rotate_from_reference_quat(float quat_to[4],
                                           float quat_from[4],
                                           float mat_to[4][4]);
 
 extern void bc_triangulate_mesh(Mesh *me);
+/**
+ * A bone is a leaf when it has no children or all children are not connected.
+ */
 extern bool bc_is_leaf_bone(Bone *bone);
 extern EditBone *bc_get_edit_bone(bArmature *armature, char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
@@ -224,12 +247,34 @@ void bc_copy_v44_m4d(std::vector<std::vector<double>> &r, double (&a)[4][4]);
 void bc_sanitize_v3(double v[3], int precision);
 void bc_sanitize_v3(float v[3], int precision);
 
+/**
+ * Get a custom property when it exists.
+ * This function is also used to check if a property exists.
+ */
 extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
 extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);
+/**
+ * Stores a 4*4 matrix as a custom bone property array of size 16.
+ */
 extern void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4]);
 
+/**
+ * Read a custom bone property and convert to float
+ * Return def if the property does not exist.
+ */
 extern float bc_get_property(Bone *bone, std::string key, float def);
+/**
+ * Get a vector that is stored in 3 custom properties (used in Blender <= 2.78).
+ */
 extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3]);
+/**
+ * Read a custom bone property and convert to matrix
+ * Return true if conversion was successful
+ *
+ * Return false if:
+ * - the property does not exist
+ * - is not an array of size 16
+ */
 extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4]);
 
 extern void bc_enable_fcurves(bAction *act, char *bone_name);
@@ -258,6 +303,12 @@ extern void bc_apply_global_transform(Matrix &to_mat,
 extern void bc_apply_global_transform(Vector &to_vec,
                                       const BCMatrix &global_transform,
                                       const bool invert = false);
+/**
+ * Check if custom information about bind matrix exists and modify the from_mat
+ * accordingly.
+ *
+ * \note This is old style for Blender <= 2.78 only kept for compatibility.
+ */
 extern void bc_create_restpose_mat(BCExportSettings &export_settings,
                                    Bone *bone,
                                    float to_mat[4][4],
@@ -364,6 +415,11 @@ class BoneExtensionManager {
   std::map<std::string, BoneExtensionMap *> extended_bone_maps;
 
  public:
+  /**
+   * This method creates a new extension map when needed.
+   * \note The ~BoneExtensionManager destructor takes care
+   * to delete the created maps when the manager is removed.
+   */
   BoneExtensionMap &getExtensionMap(bArmature *armature);
   ~BoneExtensionManager();
 };

@@ -220,12 +220,6 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
   return chain_length + 1;
 }
 
-/**
- * Collada only knows Joints, hence bones at the end of a bone chain
- * don't have a defined length. This function guesses reasonable
- * tail locations for the affected bones (nodes which don't have any connected child)
- * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
- */
 void ArmatureImporter::fix_leaf_bone_hierarchy(bArmature *armature,
                                                Bone *bone,
                                                bool fix_orientation)
@@ -757,11 +751,6 @@ bool ArmatureImporter::node_is_decomposed(const COLLADAFW::Node *node)
   return true;
 }
 
-/**
- * root - if this joint is the top joint in hierarchy, if a joint
- * is a child of a node (not joint), root should be true since
- * this is where we build armature bones from
- */
 void ArmatureImporter::add_root_joint(COLLADAFW::Node *node, Object *parent)
 {
   root_joints.push_back(node);
@@ -786,7 +775,6 @@ void ArmatureImporter::add_root_joint(COLLADAFW::Node *node)
 }
 #endif
 
-/* here we add bones to armatures, having armatures previously created in write_controller */
 void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &objects_to_scale)
 {
   Main *bmain = CTX_data_main(C);
@@ -1042,7 +1030,6 @@ void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,
   BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bone_name_esc);
 }
 
-/* gives a world-space mat */
 bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 {
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;

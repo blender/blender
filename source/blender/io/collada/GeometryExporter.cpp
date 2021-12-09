@@ -324,7 +324,6 @@ std::string GeometryExporter::makeVertexColorSourceId(std::string &geom_id, char
   return result;
 }
 
-/* powerful because it handles both cases when there is material and when there's not */
 void GeometryExporter::create_mesh_primitive_list(short material_index,
                                                   bool has_uvs,
                                                   bool has_color,
@@ -441,7 +440,6 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   finish_and_delete_primitive_List(is_triangulated, primitive_list);
 }
 
-/* creates <source> for positions */
 void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 {
 #if 0
@@ -542,7 +540,6 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
   return getIdBySemantics(geom_id, COLLADASW::InputSemantic::TEXCOORD) + suffix;
 }
 
-/* creates <source> for texcoords */
 void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 {
 
@@ -593,7 +590,6 @@ bool operator<(const Normal &a, const Normal &b)
   return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z < b.z)));
 }
 
-/* creates <source> for normals */
 void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor)
 {
 #if 0
