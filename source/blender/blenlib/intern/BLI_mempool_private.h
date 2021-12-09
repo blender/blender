@@ -48,7 +48,7 @@ typedef struct ParallelMempoolTaskData {
  * (each task should have its own),
  * such that each iterator goes over its own single chunk,
  * and only getting the next chunk to iterate over has to be
- * protected against concurrency (which can be done in a lockless way).
+ * protected against concurrency (which can be done in a lock-less way).
  *
  * To be used when creating a task for each single item in the pool is totally overkill.
  *

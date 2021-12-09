@@ -689,7 +689,7 @@ typedef void (*InterpolationColorFunction)(
 void bicubic_interpolation_color(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 
-/* Functions assumes out to be zero'ed, only does RGBA. */
+/* Functions assumes out to be zeroed, only does RGBA. */
 
 void nearest_interpolation_color_char(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);

@@ -457,7 +457,7 @@ void outliner_item_openclose(struct SpaceOutliner *space_outliner,
 /* outliner_dragdrop.c */
 
 /**
- * Region dropbox definition.
+ * Region drop-box definition.
  */
 void outliner_dropboxes(void);
 
@@ -592,7 +592,7 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             bool *r_is_merged_icon,
                                             bool *r_is_over_icon);
 /**
- * Tse is not in the treestore, we use its contents to find a match.
+ * `tse` is not in the treestore, we use its contents to find a match.
  */
 TreeElement *outliner_find_tse(struct SpaceOutliner *space_outliner, const TreeStoreElem *tse);
 /**

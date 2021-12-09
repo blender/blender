@@ -129,41 +129,41 @@ struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D
 
 /**
  * Calculate the view transformation matrix from RegionView3D input.
- * The resulting matrix is equivalent to RegionView3D.viewinv
+ * The resulting matrix is equivalent to #RegionView3D.viewinv
  * \param mat: The view 4x4 transformation matrix to calculate.
- * \param ofs: The view offset, normally from RegionView3D.ofs.
- * \param quat: The view rotation, quaternion normally from RegionView3D.viewquat.
- * \param dist: The view distance from ofs, normally from RegionView3D.dist.
+ * \param ofs: The view offset, normally from #RegionView3D.ofs.
+ * \param quat: The view rotation, quaternion normally from #RegionView3D.viewquat.
+ * \param dist: The view distance from ofs, normally from #RegionView3D.dist.
  */
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist);
 /**
  * Set the view transformation from a 4x4 matrix.
  *
  * \param mat: The view 4x4 transformation matrix to assign.
- * \param ofs: The view offset, normally from RegionView3D.ofs.
- * \param quat: The view rotation, quaternion normally from RegionView3D.viewquat.
- * \param dist: The view distance from ofs, normally from RegionView3D.dist.
+ * \param ofs: The view offset, normally from #RegionView3D.ofs.
+ * \param quat: The view rotation, quaternion normally from #RegionView3D.viewquat.
+ * \param dist: The view distance from `ofs`, normally from #RegionView3D.dist.
  */
 void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const float *dist);
 
 /**
- * Set the RegionView3D members from an objects transformation and optionally lens.
+ * Set the #RegionView3D members from an objects transformation and optionally lens.
  * \param ob: The object to set the view to.
- * \param ofs: The view offset to be set, normally from RegionView3D.ofs.
- * \param quat: The view rotation to be set, quaternion normally from RegionView3D.viewquat.
- * \param dist: The view distance from ofs to be set, normally from RegionView3D.dist.
+ * \param ofs: The view offset to be set, normally from #RegionView3D.ofs.
+ * \param quat: The view rotation to be set, quaternion normally from #RegionView3D.viewquat.
+ * \param dist: The view distance from `ofs `to be set, normally from #RegionView3D.dist.
  * \param lens: The view lens angle set for cameras and lights, normally from View3D.lens.
  */
 void ED_view3d_from_object(
     const struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 /**
- * Set the object transformation from RegionView3D members.
+ * Set the object transformation from #RegionView3D members.
  * \param depsgraph: The depsgraph to get the evaluated object parent
  * for the transformation calculation.
  * \param ob: The object which has the transformation assigned.
- * \param ofs: The view offset, normally from RegionView3D.ofs.
- * \param quat: The view rotation, quaternion normally from RegionView3D.viewquat.
- * \param dist: The view distance from ofs, normally from RegionView3D.dist.
+ * \param ofs: The view offset, normally from #RegionView3D.ofs.
+ * \param quat: The view rotation, quaternion normally from #RegionView3D.viewquat.
+ * \param dist: The view distance from `ofs`, normally from #RegionView3D.dist.
  */
 void ED_view3d_to_object(const struct Depsgraph *depsgraph,
                          struct Object *ob,
@@ -802,7 +802,7 @@ bool ED_view3d_clipping_test(const struct RegionView3D *rv3d,
 float ED_view3d_radius_to_dist_persp(const float angle, const float radius);
 float ED_view3d_radius_to_dist_ortho(const float lens, const float radius);
 /**
- * Return a new RegionView3D.dist value to fit the \a radius.
+ * Return a new #RegionView3D.dist value to fit the \a radius.
  *
  * \note Depth isn't taken into account, this will fit a flat plane exactly,
  * but points towards the view (with a perspective projection),
@@ -977,7 +977,7 @@ bool ED_operator_rv3d_user_region_poll(struct bContext *C);
  * set while drawing, however when functions like mesh_foreachScreenVert are
  * called by selection tools, we can't be sure this object was the last.
  *
- * for example, transparent objects are drawn after editmode and will cause
+ * for example, transparent objects are drawn after edit-mode and will cause
  * the rv3d mat's to change and break selection.
  *
  * 'ED_view3d_init_mats_rv3d' should be called before
@@ -1127,7 +1127,7 @@ bool ED_view3d_camera_autokey(const struct Scene *scene,
 /**
  * Call after modifying a locked view.
  *
- * \note Not every view edit currently auto-keys (num-pad for eg),
+ * \note Not every view edit currently auto-keys (numeric-pad for eg),
  * this is complicated because of smooth-view.
  */
 bool ED_view3d_camera_lock_autokey(struct View3D *v3d,

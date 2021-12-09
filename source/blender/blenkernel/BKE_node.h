@@ -1256,7 +1256,7 @@ struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
  * This one needs to work on a local tree.
  *
  * TODO: This is *not* part of `blenkernel`, it's defined under "source/blender/nodes/".
- * This declaration should be be moved out of BKE.
+ * This declaration should be moved out of BKE.
  */
 void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
                            struct GPUMaterial *mat,
@@ -1466,7 +1466,7 @@ void ntreeCompositTagRender(struct Scene *scene);
  *   which calls #node_cmp_rlayers_register_pass for every render layer node.
  *
  * TODO: This is *not* part of `blenkernel`, it's defined under "source/blender/nodes/".
- * This declaration should be be moved out of BKE.
+ * This declaration should be moved out of BKE.
  */
 void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
 void ntreeCompositRegisterPass(struct bNodeTree *ntree,
