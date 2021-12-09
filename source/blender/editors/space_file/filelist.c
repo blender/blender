@@ -511,6 +511,53 @@ static int compare_apply_inverted(int val, const struct FileSortData *sort_data)
 }
 
 /**
+ * If all relevant characteristics match (e.g. the file type when sorting by file types), this
+ * should be used as tiebreaker. It makes sure there's a well defined sorting even in such cases.
+ *
+ * Multiple files with the same name can appear with recursive file loading and/or when displaying
+ * IDs of different types, so these cases need to be handled.
+ *
+ * 1) Sort files by name using natural sorting.
+ * 2) If not possible (file names match) and both represent local IDs, sort by ID-type.
+ * 3) If not possible and only one is a local ID, place files representing local IDs first.
+ *
+ * TODO (not actually implemented, but should be):
+ * 4) If no file represents a local ID, sort by file path, so that files higher up the file system
+ *    hierarchy are placed first.
+ */
+static int compare_tiebreaker(const FileListInternEntry *entry1, const FileListInternEntry *entry2)
+{
+  /* Case 1. */
+  {
+    const int order = BLI_strcasecmp_natural(entry1->name, entry2->name);
+    if (order) {
+      return order;
+    }
+  }
+
+  /* Case 2. */
+  if (entry1->local_data.id && entry2->local_data.id) {
+    if (entry1->blentype < entry2->blentype) {
+      return -1;
+    }
+    if (entry1->blentype > entry2->blentype) {
+      return 1;
+    }
+  }
+  /* Case 3. */
+  {
+    if (entry1->local_data.id && !entry2->local_data.id) {
+      return -1;
+    }
+    if (!entry1->local_data.id && entry2->local_data.id) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
  * Handles inverted sorting itself (currently there's nothing to invert), so if this returns non-0,
  * it should be used as-is and not inverted.
  */
@@ -570,17 +617,13 @@ static int compare_name(void *user_data, const void *a1, const void *a2)
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
   const struct FileSortData *sort_data = user_data;
-  char *name1, *name2;
-  int ret;
 
+  int ret;
   if ((ret = compare_direntry_generic(entry1, entry2))) {
     return ret;
   }
 
-  name1 = entry1->name;
-  name2 = entry2->name;
-
-  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
+  return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
 }
 
 static int compare_date(void *user_data, const void *a1, const void *a2)
@@ -588,10 +631,9 @@ static int compare_date(void *user_data, const void *a1, const void *a2)
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
   const struct FileSortData *sort_data = user_data;
-  char *name1, *name2;
   int64_t time1, time2;
-  int ret;
 
+  int ret;
   if ((ret = compare_direntry_generic(entry1, entry2))) {
     return ret;
   }
@@ -605,10 +647,7 @@ static int compare_date(void *user_data, const void *a1, const void *a2)
     return compare_apply_inverted(-1, sort_data);
   }
 
-  name1 = entry1->name;
-  name2 = entry2->name;
-
-  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
+  return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
 }
 
 static int compare_size(void *user_data, const void *a1, const void *a2)
@@ -616,7 +655,6 @@ static int compare_size(void *user_data, const void *a1, const void *a2)
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
   const struct FileSortData *sort_data = user_data;
-  char *name1, *name2;
   uint64_t size1, size2;
   int ret;
 
@@ -633,10 +671,7 @@ static int compare_size(void *user_data, const void *a1, const void *a2)
     return compare_apply_inverted(-1, sort_data);
   }
 
-  name1 = entry1->name;
-  name2 = entry2->name;
-
-  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
+  return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
 }
 
 static int compare_extension(void *user_data, const void *a1, const void *a2)
@@ -644,7 +679,6 @@ static int compare_extension(void *user_data, const void *a1, const void *a2)
   const FileListInternEntry *entry1 = a1;
   const FileListInternEntry *entry2 = a2;
   const struct FileSortData *sort_data = user_data;
-  char *name1, *name2;
   int ret;
 
   if ((ret = compare_direntry_generic(entry1, entry2))) {
@@ -692,10 +726,7 @@ static int compare_extension(void *user_data, const void *a1, const void *a2)
     }
   }
 
-  name1 = entry1->name;
-  name2 = entry2->name;
-
-  return compare_apply_inverted(BLI_strcasecmp_natural(name1, name2), sort_data);
+  return compare_apply_inverted(compare_tiebreaker(entry1, entry2), sort_data);
 }
 
 void filelist_sort(struct FileList *filelist)
@@ -4036,7 +4067,13 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   /* Init even for single threaded execution. Called functions use it. */
   BLI_mutex_init(&flrj->lock);
 
-  if (filelist->tags & FILELIST_TAGS_NO_THREADS) {
+  /* The file list type may not support threading so execute immediately. Same when only rereading
+   * #Main data (which we do quite often on changes to #Main, since it's the easiest and safest way
+   * to ensure the displayed data is up to date), because some operations executing right after
+   * main data changed may need access to the ID files (see T93691). */
+  const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
+
+  if (no_threads) {
     short dummy_stop = false;
     short dummy_do_update = false;
     float dummy_progress = 0.0f;
