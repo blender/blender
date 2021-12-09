@@ -66,12 +66,6 @@ static int64_t compute_grain_size(const ExecutionHints &hints, const IndexMask m
   return grain_size;
 }
 
-/**
- * The result is the same as using #call directly but this method has some additional features.
- * - Automatic multi-threading when possible and appropriate.
- * - Automatic index mask offsetting to avoid large temporary intermediate arrays that are mostly
- *   unused.
- */
 void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context) const
 {
   if (mask.is_empty()) {

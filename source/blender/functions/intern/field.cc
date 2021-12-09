@@ -257,24 +257,6 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
   BLI_assert(procedure.validate());
 }
 
-/**
- * Evaluate fields in the given context. If possible, multiple fields should be evaluated together,
- * because that can be more efficient when they share common sub-fields.
- *
- * \param scope: The resource scope that owns data that makes up the output virtual arrays. Make
- *   sure the scope is not destructed when the output virtual arrays are still used.
- * \param fields_to_evaluate: The fields that should be evaluated together.
- * \param mask: Determines which indices are computed. The mask may be referenced by the returned
- *   virtual arrays. So the underlying indices (if applicable) should live longer then #scope.
- * \param context: The context that the field is evaluated in. Used to retrieve data from each
- *   #FieldInput in the field network.
- * \param dst_varrays: If provided, the computed data will be written into those virtual arrays
- *   instead of into newly created ones. That allows making the computed data live longer than
- *   #scope and is more efficient when the data will be written into those virtual arrays
- *   later anyway.
- * \return The computed virtual arrays for each provided field. If #dst_varrays is passed, the
- *   provided virtual arrays are returned.
- */
 Vector<GVArray> evaluate_fields(ResourceScope &scope,
                                 Span<GFieldRef> fields_to_evaluate,
                                 IndexMask mask,
@@ -488,15 +470,6 @@ void evaluate_constant_field(const GField &field, void *r_value)
   varrays[0].get_to_uninitialized(0, r_value);
 }
 
-/**
- * If the field depends on some input, the same field is returned.
- * Otherwise the field is evaluated and a new field is created that just computes this constant.
- *
- * Making the field constant has two benefits:
- * - The field-tree becomes a single node, which is more efficient when the field is evaluated many
- *   times.
- * - Memory of the input fields may be freed.
- */
 GField make_field_constant_if_possible(GField field)
 {
   if (field.node().depends_on_input()) {
