@@ -351,44 +351,44 @@ void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   if (mesh == nullptr) {
     this->remove<MeshComponent>();
+    return;
   }
-  else {
-    MeshComponent &component = this->get_component_for_write<MeshComponent>();
-    component.replace(mesh, ownership);
-  }
+
+  MeshComponent &component = this->get_component_for_write<MeshComponent>();
+  component.replace(mesh, ownership);
 }
 
 void GeometrySet::replace_curve(CurveEval *curve, GeometryOwnershipType ownership)
 {
   if (curve == nullptr) {
     this->remove<CurveComponent>();
+    return;
   }
-  else {
-    CurveComponent &component = this->get_component_for_write<CurveComponent>();
-    component.replace(curve, ownership);
-  }
+
+  CurveComponent &component = this->get_component_for_write<CurveComponent>();
+  component.replace(curve, ownership);
 }
 
 void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipType ownership)
 {
   if (pointcloud == nullptr) {
     this->remove<PointCloudComponent>();
+    return;
   }
-  else {
-    PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
-    component.replace(pointcloud, ownership);
-  }
+
+  PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
+  component.replace(pointcloud, ownership);
 }
 
 void GeometrySet::replace_volume(Volume *volume, GeometryOwnershipType ownership)
 {
   if (volume == nullptr) {
     this->remove<VolumeComponent>();
+    return;
   }
-  else {
-    VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
-    component.replace(volume, ownership);
-  }
+
+  VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
+  component.replace(volume, ownership);
 }
 
 Mesh *GeometrySet::get_mesh_for_write()
