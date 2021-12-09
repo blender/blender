@@ -5816,6 +5816,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
   register_node_type_geo_input_radius();
+  register_node_type_geo_input_scene_time();
   register_node_type_geo_input_shade_smooth();
   register_node_type_geo_input_spline_cyclic();
   register_node_type_geo_input_spline_length();

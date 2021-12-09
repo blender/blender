@@ -215,6 +215,7 @@ def geometry_input_node_items(context):
     yield NodeItem("GeometryNodeInputNormal")
     yield NodeItem("GeometryNodeInputPosition")
     yield NodeItem("GeometryNodeInputRadius")
+    yield NodeItem("GeometryNodeInputSceneTime")
 
 # Custom Menu for Material Nodes
 def geometry_material_node_items(context):

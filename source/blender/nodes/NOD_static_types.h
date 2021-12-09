@@ -367,6 +367,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS, 0, "MESH_VERTEX_NEIG
 DefNode(GeometryNode, GEO_NODE_INPUT_NORMAL, 0, "INPUT_NORMAL", InputNormal, "Normal", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_POSITION, 0, "POSITION", InputPosition, "Position", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_RADIUS, 0, "INPUT_RADIUS", InputRadius, "Radius", "")
+DefNode(GeometryNode, GEO_NODE_INPUT_SCENE_TIME, 0, "INPUT_SCENE_TIME", InputSceneTime, "Scene Time", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_SHADE_SMOOTH, 0, "INPUT_SHADE_SMOOTH", InputShadeSmooth, "Is Shade Smooth", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_CYCLIC, 0, "INPUT_SPLINE_CYCLIC", InputSplineCyclic, "Is Spline Cyclic", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_LENGTH, 0, "SPLINE_LENGTH", SplineLength, "Spline Length", "")

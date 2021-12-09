@@ -1268,9 +1268,14 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     ntreeTexCheckCyclics(ntree);
   }
 
-  ntreeUpdateTree(CTX_data_main(C), ntree);
+  Main *bmain = CTX_data_main(C);
+  ntreeUpdateTree(bmain, ntree);
   nodeUpdate(ntree, node);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+
+  if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
+    DEG_relations_tag_update(bmain);
+  }
 
   return node;
 }

@@ -114,6 +114,7 @@ void register_node_type_geo_input_mesh_vertex_neighbors(void);
 void register_node_type_geo_input_normal(void);
 void register_node_type_geo_input_position(void);
 void register_node_type_geo_input_radius(void);
+void register_node_type_geo_input_scene_time(void);
 void register_node_type_geo_input_shade_smooth(void);
 void register_node_type_geo_input_spline_cyclic(void);
 void register_node_type_geo_input_spline_length(void);
