@@ -3551,6 +3551,12 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
         if ((ui_searchbox_apply(but, data->searchbox) == false) &&
             (ui_searchbox_find_index(data->searchbox, but->editstr) == -1) &&
             !but_search->results_are_suggestions) {
+
+          if (but->flag & UI_BUT_VALUE_CLEAR) {
+            /* It is valid for _VALUE_CLEAR flavor to have no active element
+             * (it's a valid way to unlink). */
+            but->editstr[0] = '\0';
+          }
           data->cancel = true;
 
           /* ensure menu (popup) too is closed! */

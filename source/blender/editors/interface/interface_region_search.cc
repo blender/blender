@@ -115,7 +115,7 @@ bool UI_search_item_add(uiSearchItems *items,
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
-    UI_autocomplete_update_name(items->autocpl, name);
+    UI_autocomplete_update_name(items->autocpl, name + name_prefix_offset);
     return true;
   }
 
@@ -310,13 +310,6 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
     }
 
     search_but->item_active = data->items.pointers[data->active];
-
-    return true;
-  }
-  if (but->flag & UI_BUT_VALUE_CLEAR) {
-    /* It is valid for _VALUE_CLEAR flavor to have no active element
-     * (it's a valid way to unlink). */
-    but->editstr[0] = '\0';
 
     return true;
   }
