@@ -5770,8 +5770,12 @@ bool BKE_image_has_loaded_ibuf(Image *image)
     struct MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
-      has_loaded_ibuf = true;
-      break;
+      ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
+      if (ibuf != NULL) {
+        has_loaded_ibuf = true;
+        break;
+      }
+      IMB_moviecacheIter_step(iter);
     }
     IMB_moviecacheIter_free(iter);
   }
