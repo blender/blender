@@ -104,6 +104,12 @@ static SnapCursorDataIntern g_data_intern = {
                       .draw_point = true}};
 
 /**
+ * Dot products below this will be considered view aligned.
+ * In this case we can't usefully project the mouse cursor onto the plane.
+ */
+static const float eps_view_align = 1e-2f;
+
+/**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
  */
 static void v3d_cursor_poject_surface_normal(const float normal[3],
@@ -715,14 +721,18 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   snap_elem &= ~data_intern->snap_elem_hidden;
   if (snap_elem == 0) {
     RegionView3D *rv3d = region->regiondata;
-    float plane[4];
-    if (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) {
-      const float *plane_normal = omat[state->plane_axis];
+    const float *plane_normal = omat[state->plane_axis];
+    bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
+                          (rv3d->is_persp ||
+                           (fabsf(dot_v3v3(plane_normal, rv3d->viewinv[2])) > eps_view_align));
+
+    if (do_plane_isect) {
+      float plane[4];
       plane_from_point_normal_v3(plane, co_depth, plane_normal);
+      do_plane_isect = ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, rv3d->is_persp, co);
     }
 
-    if ((state->plane_depth == V3D_PLACE_DEPTH_CURSOR_VIEW) ||
-        !ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, rv3d->is_persp, co)) {
+    if (!do_plane_isect) {
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
     }
 
