@@ -76,7 +76,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   void activate_catalog_by_id(CatalogID catalog_id);
 
  private:
-  ui::BasicTreeViewItem &build_catalog_items_recursive(ui::TreeViewItemContainer &view_parent_item,
+  ui::BasicTreeViewItem &build_catalog_items_recursive(ui::TreeViewOrItem &view_parent_item,
                                                        AssetCatalogTreeItem &catalog);
 
   AssetCatalogTreeViewAllItem &add_all_item();
@@ -98,7 +98,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
   void build_row(uiLayout &row) override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
 
-  bool can_rename() const override;
+  bool supports_renaming() const override;
   bool rename(StringRefNull new_name) override;
 
   /** Add drag support for catalog items. */
@@ -211,7 +211,7 @@ void AssetCatalogTreeView::build_tree()
 }
 
 ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
-    ui::TreeViewItemContainer &view_parent_item, AssetCatalogTreeItem &catalog)
+    ui::TreeViewOrItem &view_parent_item, AssetCatalogTreeItem &catalog)
 {
   ui::BasicTreeViewItem &view_item = view_parent_item.add_tree_item<AssetCatalogTreeViewItem>(
       &catalog);
@@ -333,7 +333,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
   UI_menutype_draw(&C, mt, &column);
 }
 
-bool AssetCatalogTreeViewItem::can_rename() const
+bool AssetCatalogTreeViewItem::supports_renaming() const
 {
   return true;
 }

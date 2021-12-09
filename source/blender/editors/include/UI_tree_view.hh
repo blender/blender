@@ -17,8 +17,8 @@
 /** \file
  * \ingroup editorui
  *
- * API for simple creation of tree UIs supporting advanced features.
- * https://wiki.blender.org/wiki/Source/Interface/Views
+ * API for simple creation of tree UIs supporting typically needed features.
+ * https://wiki.blender.org/wiki/Source/Interface/Views/Tree_Views
  */
 
 #pragma once
@@ -36,7 +36,6 @@
 #include "UI_resources.h"
 
 struct bContext;
-struct PointerRNA;
 struct uiBlock;
 struct uiBut;
 struct uiButTreeRow;
@@ -53,14 +52,17 @@ class AbstractTreeViewItemDragController;
 
 /* ---------------------------------------------------------------------- */
 /** \name Tree-View Item Container
+ *
+ *  Base class for tree-view and tree-view items, so both can contain children.
  * \{ */
 
 /**
- * Helper base class to expose common child-item data and functionality to both #AbstractTreeView
- * and #AbstractTreeViewItem.
+ * Both the tree-view (as the root of the tree) and the items can have children. This is the base
+ * class for both, to store and manage child items. Children are owned by their parent container
+ * (tree-view or item).
  *
- * That means this type can be used whenever either a #AbstractTreeView or a
- * #AbstractTreeViewItem is needed.
+ * That means this type can be used whenever either an #AbstractTreeView or an
+ * #AbstractTreeViewItem is needed, but the #TreeViewOrItem alias is a better name to use then.
  */
 class TreeViewItemContainer {
   friend class AbstractTreeView;
@@ -112,43 +114,10 @@ class TreeViewItemContainer {
 ENUM_OPERATORS(TreeViewItemContainer::IterOptions,
                TreeViewItemContainer::IterOptions::SkipCollapsed);
 
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Tree-View Builders
- * \{ */
-
-class TreeViewBuilder {
-  uiBlock &block_;
-
- public:
-  TreeViewBuilder(uiBlock &block);
-
-  void build_tree_view(AbstractTreeView &tree_view);
-};
-
-class TreeViewLayoutBuilder {
-  uiBlock &block_;
-
-  friend TreeViewBuilder;
-
- public:
-  void build_row(AbstractTreeViewItem &item) const;
-  uiBlock &block() const;
-  uiLayout *current_layout() const;
-
- private:
-  /* Created through #TreeViewBuilder. */
-  TreeViewLayoutBuilder(uiBlock &block);
-
-  /**
-   * Moves the button following the last added chevron closer to the list item.
-   *
-   * Iterates backwards over buttons until finding the tree-row button, which is assumed to be the
-   * first button added for the row, and can act as a delimiter that way.
-   */
-  static void polish_layout(const uiBlock &block);
-};
+/** The container class is the base for both the tree-view and the items. This alias gives it a
+ * clearer name for handles that accept both. Use whenever something wants to act on child-items,
+ * irrespective of if they are stored at root level or as children of some other item. */
+using TreeViewOrItem = TreeViewItemContainer;
 
 /** \} */
 
@@ -157,8 +126,8 @@ class TreeViewLayoutBuilder {
  * \{ */
 
 class AbstractTreeView : public TreeViewItemContainer {
-  friend AbstractTreeViewItem;
-  friend TreeViewBuilder;
+  friend class AbstractTreeViewItem;
+  friend class TreeViewBuilder;
 
   /**
    * Only one item can be renamed at a time. So the tree is informed about the renaming state to
@@ -175,14 +144,15 @@ class AbstractTreeView : public TreeViewItemContainer {
 
   /** Only one item can be renamed at a time. */
   bool is_renaming() const;
+
+ protected:
+  virtual void build_tree() = 0;
+
   /**
    * Check if the tree is fully (re-)constructed. That means, both #build_tree() and
    * #update_from_old() have finished.
    */
   bool is_reconstructed() const;
-
- protected:
-  virtual void build_tree() = 0;
 
  private:
   /**
@@ -191,10 +161,10 @@ class AbstractTreeView : public TreeViewItemContainer {
    * #AbstractTreeViewItem.update_from_old().
    */
   void update_from_old(uiBlock &new_block);
-  static void update_children_from_old_recursive(const TreeViewItemContainer &new_items,
-                                                 const TreeViewItemContainer &old_items);
+  static void update_children_from_old_recursive(const TreeViewOrItem &new_items,
+                                                 const TreeViewOrItem &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
-                                                   const TreeViewItemContainer &items);
+                                                   const TreeViewOrItem &items);
 
   /**
    * Items may want to do additional work when state changes. But these state changes can only be
@@ -202,7 +172,6 @@ class AbstractTreeView : public TreeViewItemContainer {
    * the actual state changes are done in a delayed manner through this function.
    */
   void change_state_delayed();
-  void build_layout_from_tree(const TreeViewLayoutBuilder &builder);
 };
 
 /** \} */
@@ -221,17 +190,18 @@ class AbstractTreeView : public TreeViewItemContainer {
 class AbstractTreeViewItem : public TreeViewItemContainer {
   friend class AbstractTreeView;
   friend class TreeViewLayoutBuilder;
+  /* Higher-level API. */
+  friend class TreeViewItemAPIWrapper;
 
- public:
  private:
   bool is_open_ = false;
   bool is_active_ = false;
   bool is_renaming_ = false;
 
  protected:
-  /** This label is used for identifying an item (together with its parent's labels). */
+  /** This label is used for identifying an item within its parent. */
   std::string label_{};
-  /** Every item gets a button of type during the layout building #UI_BTYPE_TREEROW. */
+  /** Every visible item gets a button of type #UI_BTYPE_TREEROW during the layout building. */
   uiButTreeRow *tree_row_but_ = nullptr;
 
  public:
@@ -240,21 +210,51 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_row(uiLayout &row) = 0;
   virtual void build_context_menu(bContext &C, uiLayout &column) const;
 
+  AbstractTreeView &get_tree_view() const;
+
+  void begin_renaming();
+  void toggle_collapsed();
+  void set_collapsed(bool collapsed);
+  /**
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
+  bool is_collapsed() const;
+  /**
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
+  bool is_active() const;
+
+ protected:
+  /**
+   * Called when the items state changes from inactive to active.
+   */
   virtual void on_activate();
+  /**
+   * If the result is not empty, it controls whether the item should be active or not,
+   * usually depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_active() const;
 
   /**
    * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
    * another item is already being renamed.
    */
-  virtual bool can_rename() const;
+  virtual bool supports_renaming() const;
   /**
    * Try renaming the item, or the data it represents. Can assume
-   * #AbstractTreeViewItem::can_rename() returned true. Sub-classes that override this should
-   * usually call this, unless they have a custom #AbstractTreeViewItem.matches().
+   * #AbstractTreeViewItem::supports_renaming() returned true. Sub-classes that override this
+   * should usually call this, unless they have a custom #AbstractTreeViewItem.matches().
    *
    * \return True if the renaming was successful.
    */
   virtual bool rename(StringRefNull new_name);
+
+  /**
+   * Return whether the item can be collapsed. Used to disable collapsing for items with children.
+   */
+  virtual bool supports_collapsing() const;
 
   /**
    * Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
@@ -262,6 +262,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * override this and make it update their state accordingly.
    */
   virtual void update_from_old(const AbstractTreeViewItem &old);
+
   /**
    * Compare this item to \a other to check if they represent the same data.
    * Used to recognize an item from a previous redraw, to be able to keep its state (e.g.
@@ -285,39 +286,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   virtual std::unique_ptr<AbstractTreeViewItemDropController> create_drop_controller() const;
 
-  void begin_renaming();
-  void end_renaming();
-
-  AbstractTreeView &get_tree_view() const;
-  int count_parents() const;
-  void deactivate();
-  /**
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
-   * can't be sure about the item state.
-   */
-  bool is_active() const;
-  /**
-   * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The
-   * hovered state can't be queried reliably otherwise.
-   * Note that this does a linear lookup in the old block, so isn't too great performance-wise.
-   */
-  bool is_hovered() const;
-  void toggle_collapsed();
-  /**
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
-   * can't be sure about the item state.
-   */
-  bool is_collapsed() const;
-  void set_collapsed(bool collapsed);
-  bool is_collapsible() const;
-  bool is_renaming() const;
-
-  void ensure_parents_uncollapsed();
-  bool matches_including_parents(const AbstractTreeViewItem &other) const;
-
-  uiButTreeRow *tree_row_button();
-
- protected:
   /**
    * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
    * function and ensures this item's parents are not collapsed (so the item is visible).
@@ -325,17 +293,20 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
    */
   void activate();
+  void deactivate();
 
   /**
-   * If the result is not empty, it controls whether the item should be active or not,
-   * usually depending on the data that the view represents.
+   * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The
+   * hovered state can't be queried reliably otherwise.
+   * Note that this does a linear lookup in the old block, so isn't too great performance-wise.
    */
-  virtual std::optional<bool> should_be_active() const;
+  bool is_hovered() const;
+  bool is_collapsible() const;
+  bool is_renaming() const;
 
-  /**
-   * Return whether the item can be collapsed. Used to disable collapsing for items with children.
-   */
-  virtual bool supports_collapsing() const;
+  void ensure_parents_uncollapsed();
+
+  uiButTreeRow *tree_row_button();
 
  private:
   static void rename_button_fn(bContext *, void *, char *);
@@ -346,13 +317,16 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 
   /** See #AbstractTreeView::change_state_delayed() */
   void change_state_delayed();
+  void end_renaming();
 
   void add_treerow_button(uiBlock &block);
   void add_indent(uiLayout &row) const;
   void add_collapse_chevron(uiBlock &block) const;
   void add_rename_button(uiLayout &row);
 
+  bool matches_including_parents(const AbstractTreeViewItem &other) const;
   bool has_active_child() const;
+  int count_parents() const;
 };
 
 /** \} */
@@ -460,6 +434,21 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
   std::optional<bool> should_be_active() const override;
   void on_activate() override;
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Tree-View Builder
+ * \{ */
+
+class TreeViewBuilder {
+  uiBlock &block_;
+
+ public:
+  TreeViewBuilder(uiBlock &block);
+
+  void build_tree_view(AbstractTreeView &tree_view);
 };
 
 /** \} */

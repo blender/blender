@@ -3286,7 +3286,7 @@ char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item, const str
  * \return True if the drop was handled by the tree-view item.
  */
 bool UI_tree_view_item_drop_handle(struct bContext *C,
-                                   uiTreeViewItemHandle *item_,
+                                   const uiTreeViewItemHandle *item_,
                                    const struct ListBase *drags);
 /**
  * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
