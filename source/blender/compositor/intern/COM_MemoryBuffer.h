@@ -132,9 +132,17 @@ class MemoryBuffer {
    */
   MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_single_elem = false);
 
+  /**
+   * Construct MemoryBuffer from a float buffer. MemoryBuffer is not responsible for
+   * freeing it.
+   */
   MemoryBuffer(
       float *buffer, int num_channels, int width, int height, bool is_a_single_elem = false);
 
+  /**
+   * Construct MemoryBuffer from a float buffer area. MemoryBuffer is not responsible for
+   * freeing given buffer.
+   */
   MemoryBuffer(float *buffer, int num_channels, const rcti &rect, bool is_a_single_elem = false);
 
   /**
@@ -377,6 +385,10 @@ class MemoryBuffer {
     return buffer_;
   }
 
+  /**
+   * Converts a single elem buffer to a full size buffer (allocates memory for all
+   * elements in resolution).
+   */
   MemoryBuffer *inflate() const;
 
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)

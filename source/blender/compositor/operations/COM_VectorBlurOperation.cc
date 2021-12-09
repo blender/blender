@@ -40,6 +40,7 @@ void zbuf_free_span(ZSpan *zspan);
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* VectorBlurOperation */
+
 VectorBlurOperation::VectorBlurOperation()
 {
   this->add_input_socket(DataType::Color);

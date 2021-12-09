@@ -50,6 +50,12 @@ class MetaData {
 
  public:
   void add(const blender::StringRef key, const blender::StringRef value);
+  /**
+   * Replace the hash neutral cryptomatte keys with hashed versions.
+   *
+   * When a conversion happens it will also add the cryptomatte name key with the given
+   * `layer_name`.
+   */
   void replace_hash_neutral_cryptomatte_keys(const blender::StringRef layer_name);
   void add_to_render_result(RenderResult *render_result) const;
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -365,6 +365,10 @@ class ExecutionGroup {
    * \see ViewerOperation
    * \param graph:
    */
+  /**
+   * This method is called for the top execution groups. containing the compositor node or the
+   * preview node or the viewer node).
+   */
   void execute(ExecutionSystem *graph);
 
   /**

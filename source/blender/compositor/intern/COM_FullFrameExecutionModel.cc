@@ -73,10 +73,6 @@ void FullFrameExecutionModel::determine_areas_to_render_and_reads()
   }
 }
 
-/**
- * Returns input buffers with an offset relative to given output coordinates. Returned memory
- * buffers must be deleted.
- */
 Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation *op,
                                                                   const int output_x,
                                                                   const int output_y)
@@ -137,9 +133,6 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   operation_finished(op);
 }
 
-/**
- * Render output operations in order of priority.
- */
 void FullFrameExecutionModel::render_operations()
 {
   const bool is_rendering = context_.is_rendering();
@@ -200,9 +193,6 @@ void FullFrameExecutionModel::render_output_dependencies(NodeOperation *output_o
   }
 }
 
-/**
- * Determines all operations areas needed to render given output area.
- */
 void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op,
                                                         const rcti &output_area)
 {
@@ -235,10 +225,6 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
   }
 }
 
-/**
- * Determines reads to receive by operations in output operation tree (i.e: Number of dependent
- * operations each operation has).
- */
 void FullFrameExecutionModel::determine_reads(NodeOperation *output_op)
 {
   BLI_assert(output_op->is_output_operation(context_.is_rendering()));
@@ -258,10 +244,6 @@ void FullFrameExecutionModel::determine_reads(NodeOperation *output_op)
   }
 }
 
-/**
- * Calculates given output operation area to be rendered taking into account viewer and render
- * borders.
- */
 void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, rcti &r_area)
 {
   BLI_assert(output_op->is_output_operation(context_.is_rendering()));

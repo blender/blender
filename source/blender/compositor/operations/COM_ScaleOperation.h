@@ -173,6 +173,7 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   bool is_offset_;
 
  public:
+  /** Absolute fixed size. */
   ScaleFixedSizeOperation();
   bool determine_depending_area_of_interest(rcti *input,
                                             ReadBufferOperation *read_operation,

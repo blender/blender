@@ -42,8 +42,8 @@ class SharedOperationBuffers;
 class FullFrameExecutionModel : public ExecutionModel {
  private:
   /**
-   * Contains operations active buffers data. Buffers will be disposed once reader operations are
-   * finished.
+   * Contains operations active buffers data.
+   * Buffers will be disposed once reader operations are finished.
    */
   SharedOperationBuffers &active_buffers_;
 
@@ -66,8 +66,15 @@ class FullFrameExecutionModel : public ExecutionModel {
 
  private:
   void determine_areas_to_render_and_reads();
+  /**
+   * Render output operations in order of priority.
+   */
   void render_operations();
   void render_output_dependencies(NodeOperation *output_op);
+  /**
+   * Returns input buffers with an offset relative to given output coordinates.
+   * Returned memory buffers must be deleted.
+   */
   Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op,
                                            const int output_x,
                                            const int output_y);
@@ -76,8 +83,19 @@ class FullFrameExecutionModel : public ExecutionModel {
 
   void operation_finished(NodeOperation *operation);
 
+  /**
+   * Calculates given output operation area to be rendered taking into account viewer and render
+   * borders.
+   */
   void get_output_render_area(NodeOperation *output_op, rcti &r_area);
+  /**
+   * Determines all operations areas needed to render given output area.
+   */
   void determine_areas_to_render(NodeOperation *output_op, const rcti &output_area);
+  /**
+   * Determines reads to receive by operations in output operation tree (i.e: Number of dependent
+   * operations each operation has).
+   */
   void determine_reads(NodeOperation *output_op);
 
   void update_progress_bar();

@@ -41,6 +41,10 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 #ifdef BLI_HAVE_SSE2
   __m128 *convert_gausstab_sse(const float *gausstab, int size);
 #endif
+  /**
+   * Normalized distance from the current (inverted so 1.0 is close and 0.0 is far)
+   * 'ease' is applied after, looks nicer.
+   */
   float *make_dist_fac_inverse(float rad, int size, int falloff);
 
   void update_size();

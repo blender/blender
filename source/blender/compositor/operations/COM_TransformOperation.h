@@ -82,7 +82,9 @@ class TransformOperation : public MultiThreadedOperation {
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
  private:
+  /** Translate -> Rotate -> Scale. */
   void transform(BuffersIterator<float> &it, const MemoryBuffer *input_img);
+  /** Scale -> Rotate -> Translate. */
   void transform_inverted(BuffersIterator<float> &it, const MemoryBuffer *input_img);
 };
 

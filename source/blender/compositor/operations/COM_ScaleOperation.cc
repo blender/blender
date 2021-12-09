@@ -374,7 +374,6 @@ bool ScaleAbsoluteOperation::determine_depending_area_of_interest(
   return ScaleOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-/* Absolute fixed size. */
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->add_input_socket(DataType::Color, ResizeMode::None);

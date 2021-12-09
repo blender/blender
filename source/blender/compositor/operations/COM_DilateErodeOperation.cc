@@ -21,7 +21,6 @@
 
 namespace blender::compositor {
 
-/* DilateErode Distance Threshold */
 DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -268,7 +267,6 @@ void DilateErodeThresholdOperation::update_memory_buffer_partial(MemoryBuffer *o
   }
 }
 
-/* Dilate Distance. */
 DilateDistanceOperation::DilateDistanceOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -458,7 +456,6 @@ void DilateDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-/* Erode Distance */
 ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 {
   /* pass */
@@ -531,7 +528,6 @@ void ErodeDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-/* Dilate step */
 DilateStepOperation::DilateStepOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -809,7 +805,6 @@ void DilateStepOperation::update_memory_buffer_partial(MemoryBuffer *output,
   step_update_memory_buffer<Max2Selector>(output, inputs[0], area, iterations_, -FLT_MAX);
 }
 
-/* Erode step */
 ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 {
   /* pass */

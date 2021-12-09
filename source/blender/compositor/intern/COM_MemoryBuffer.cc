@@ -74,20 +74,12 @@ MemoryBuffer::MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_singl
   set_strides();
 }
 
-/**
- * Construct MemoryBuffer from a float buffer. MemoryBuffer is not responsible for
- * freeing it.
- */
 MemoryBuffer::MemoryBuffer(
     float *buffer, int num_channels, int width, int height, bool is_a_single_elem)
     : MemoryBuffer(buffer, num_channels, create_rect(width, height), is_a_single_elem)
 {
 }
 
-/**
- * Construct MemoryBuffer from a float buffer area. MemoryBuffer is not responsible for
- * freeing given buffer.
- */
 MemoryBuffer::MemoryBuffer(float *buffer,
                            const int num_channels,
                            const rcti &rect,
@@ -145,10 +137,6 @@ BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, c
   return builder.build();
 }
 
-/**
- * Converts a single elem buffer to a full size buffer (allocates memory for all
- * elements in resolution).
- */
 MemoryBuffer *MemoryBuffer::inflate() const
 {
   BLI_assert(is_a_single_elem());

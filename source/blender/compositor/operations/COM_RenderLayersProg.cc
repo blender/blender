@@ -263,6 +263,7 @@ void RenderLayersProg::update_memory_buffer_partial(MemoryBuffer *output,
 }
 
 /* ******** Render Layers AO Operation ******** */
+
 void RenderLayersAOOperation::execute_pixel_sampled(float output[4],
                                                     float x,
                                                     float y,
@@ -294,6 +295,7 @@ void RenderLayersAOOperation::update_memory_buffer_partial(MemoryBuffer *output,
 }
 
 /* ******** Render Layers Alpha Operation ******** */
+
 void RenderLayersAlphaProg::execute_pixel_sampled(float output[4],
                                                   float x,
                                                   float y,
@@ -326,6 +328,7 @@ void RenderLayersAlphaProg::update_memory_buffer_partial(MemoryBuffer *output,
 }
 
 /* ******** Render Layers Depth Operation ******** */
+
 void RenderLayersDepthProg::execute_pixel_sampled(float output[4],
                                                   float x,
                                                   float y,

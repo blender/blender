@@ -171,7 +171,6 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
   }
 }
 
-/** Translate -> Rotate -> Scale. */
 void TransformOperation::transform(BuffersIterator<float> &it, const MemoryBuffer *input_img)
 {
   float rotate_center_x, rotate_center_y;
@@ -198,7 +197,6 @@ void TransformOperation::transform(BuffersIterator<float> &it, const MemoryBuffe
   }
 }
 
-/** Scale -> Rotate -> Translate. */
 void TransformOperation::transform_inverted(BuffersIterator<float> &it,
                                             const MemoryBuffer *input_img)
 {

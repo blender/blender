@@ -134,6 +134,9 @@ class NodeOperationInput {
 
   SocketReader *get_reader();
 
+  /**
+   * \return Whether canvas area could be determined.
+   */
   bool determine_canvas(const rcti &preferred_area, rcti &r_area);
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -385,7 +388,9 @@ class NodeOperation {
     return id_;
   }
 
+  /** Get constant value when operation is constant, otherwise return default_value. */
   float get_constant_value_default(float default_value);
+  /** Get constant elem when operation is constant, otherwise return default_elem. */
   const float *get_constant_elem_default(const float *default_elem);
 
   const NodeOperationFlags get_flags() const
@@ -393,6 +398,11 @@ class NodeOperation {
     return flags_;
   }
 
+  /**
+   * Generate a hash that identifies the operation result in the current execution.
+   * Requires `hash_output_params` to be implemented, otherwise `std::nullopt` is returned.
+   * If the operation parameters or its linked inputs change, the hash must be re-generated.
+   */
   std::optional<NodeOperationHash> generate_hash();
 
   unsigned int get_number_of_input_sockets() const
@@ -511,6 +521,10 @@ class NodeOperation {
 
   void set_canvas(const rcti &canvas_area);
   const rcti &get_canvas() const;
+  /**
+   * Mainly used for re-determining canvas of constant operations in cases where preferred canvas
+   * depends on the constant element.
+   */
   void unset_canvas();
 
   /**
@@ -618,6 +632,12 @@ class NodeOperation {
   /** \name Full Frame Methods
    * \{ */
 
+  /**
+   * Executes operation image manipulation algorithm rendering given areas.
+   * \param output_buf: Buffer to write result to.
+   * \param areas: Areas within this operation bounds to render.
+   * \param inputs_bufs: Inputs operations buffers.
+   */
   void render(MemoryBuffer *output_buf, Span<rcti> areas, Span<MemoryBuffer *> inputs_bufs);
 
   /**
@@ -630,7 +650,16 @@ class NodeOperation {
   }
 
   /**
-   * Get input operation area being read by this operation on rendering given output area.
+   * \brief Get input operation area being read by this operation on rendering given output area.
+   *
+   * Implementation don't need to ensure r_input_area is within input operation bounds.
+   * The caller must clamp it.
+   * TODO: See if it's possible to use parameter overloading (input_id for example).
+   *
+   * \param input_idx: Input operation index for which we want to calculate the area being read.
+   * \param output_area: Area being rendered by this operation.
+   * \param r_input_area: Returned input operation area that needs to be read in order to render
+   * given output area.
    */
   virtual void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area);
   void get_area_of_interest(NodeOperation *input_op, const rcti &output_area, rcti &r_input_area);
@@ -749,14 +778,23 @@ class NodeOperation {
   /** \name Full Frame Methods
    * \{ */
 
+  /**
+   * Renders given areas using operations full frame implementation.
+   */
   void render_full_frame(MemoryBuffer *output_buf,
                          Span<rcti> areas,
                          Span<MemoryBuffer *> inputs_bufs);
 
+  /**
+   * Renders given areas using operations tiled implementation.
+   */
   void render_full_frame_fallback(MemoryBuffer *output_buf,
                                   Span<rcti> areas,
                                   Span<MemoryBuffer *> inputs);
   void render_tile(MemoryBuffer *output_buf, rcti *tile_rect);
+  /**
+   * \return Replaced inputs links.
+   */
   Vector<NodeOperationOutput *> replace_inputs_with_buffers(Span<MemoryBuffer *> inputs_bufs);
   void remove_buffers_and_restore_original_inputs(
       Span<NodeOperationOutput *> original_inputs_links);

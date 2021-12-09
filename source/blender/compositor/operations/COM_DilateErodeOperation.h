@@ -43,6 +43,7 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
   int scope_;
 
  public:
+  /* DilateErode Distance Threshold */
   DilateErodeThresholdOperation();
 
   /**
@@ -98,6 +99,7 @@ class DilateDistanceOperation : public MultiThreadedOperation {
   int scope_;
 
  public:
+  /* Dilate Distance. */
   DilateDistanceOperation();
 
   /**
@@ -140,6 +142,7 @@ class DilateDistanceOperation : public MultiThreadedOperation {
 
 class ErodeDistanceOperation : public DilateDistanceOperation {
  public:
+  /* Erode Distance */
   ErodeDistanceOperation();
 
   /**
@@ -169,6 +172,7 @@ class DilateStepOperation : public MultiThreadedOperation {
   int iterations_;
 
  public:
+  /* Dilate step */
   DilateStepOperation();
 
   /**
@@ -205,6 +209,7 @@ class DilateStepOperation : public MultiThreadedOperation {
 
 class ErodeStepOperation : public DilateStepOperation {
  public:
+  /** Erode step. */
   ErodeStepOperation();
 
   void *initialize_tile_data(rcti *rect) override;

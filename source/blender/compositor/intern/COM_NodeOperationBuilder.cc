@@ -481,7 +481,6 @@ static Vector<NodeOperationHash> generate_hashes(Span<NodeOperation *> operation
   return hashes;
 }
 
-/** Merge operations with same type, inputs and parameters that produce the same result. */
 void NodeOperationBuilder::merge_equal_operations()
 {
   bool check_for_next_merge = true;
@@ -793,7 +792,6 @@ void NodeOperationBuilder::save_graphviz(StringRefNull name)
   }
 }
 
-/** Create a graphviz representation of the NodeOperationBuilder. */
 std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder)
 {
   os << "# Builder start\n";

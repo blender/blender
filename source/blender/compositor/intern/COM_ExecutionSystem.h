@@ -208,6 +208,9 @@ class ExecutionSystem {
     return active_buffers_;
   }
 
+  /**
+   * Multi-threadedly execute given work function passing work_rect splits as argument.
+   */
   void execute_work(const rcti &work_rect, std::function<void(const rcti &split_rect)> work_func);
 
   /**
