@@ -183,10 +183,7 @@ static bool parse_channels(const ImageSpec &in_spec,
 
   /* Loop over all detected render-layers, check whether they contain a full set of input
    * channels. Any channels that won't be processed internally are also passed through. */
-  for (auto &i : file_layers) {
-    const string &name = i.first;
-    MergeImageLayer &layer = i.second;
-
+  for (auto &[name, layer] : file_layers) {
     layer.name = name;
     layer.samples = 0;
 
@@ -317,22 +314,22 @@ static void merge_channels_metadata(vector<MergeImage> &images,
     for (MergeImageLayer &layer : image.layers) {
       for (MergeImagePass &pass : layer.passes) {
         /* Test if matching channel already exists in merged image. */
-        bool found = false;
+        auto channel = find_if(
+            out_spec.channelnames.begin(),
+            out_spec.channelnames.end(),
+            [&pass](const auto &channel_name) { return pass.channel_name == channel_name; });
 
-        for (size_t i = 0; i < out_spec.nchannels; i++) {
-          if (pass.channel_name == out_spec.channelnames[i]) {
-            pass.merge_offset = i;
-            channel_total_samples[i] += layer.samples;
-            /* First image wins for channels that can't be averaged or summed. */
-            if (pass.op == MERGE_CHANNEL_COPY) {
-              pass.op = MERGE_CHANNEL_NOP;
-            }
-            found = true;
-            break;
+        if (channel != out_spec.channelnames.end()) {
+          int index = distance(out_spec.channelnames.begin(), channel);
+          pass.merge_offset = index;
+
+          channel_total_samples[index] += layer.samples;
+          /* First image wins for channels that can't be averaged or summed. */
+          if (pass.op == MERGE_CHANNEL_COPY) {
+            pass.op = MERGE_CHANNEL_NOP;
           }
         }
-
-        if (!found) {
+        else {
           /* Add new channel. */
           pass.merge_offset = out_spec.nchannels;
           channel_total_samples.push_back(layer.samples);
@@ -357,13 +354,13 @@ static void merge_channels_metadata(vector<MergeImage> &images,
     }
   }
 
-  for (const auto &i : layer_num_samples) {
-    string name = "cycles." + i.first + ".samples";
-    out_spec.attribute(name, TypeDesc::STRING, string_printf("%d", i.second));
+  for (const auto &[layer_name, layer_samples] : layer_num_samples) {
+    string name = "cycles." + layer_name + ".samples";
+    out_spec.attribute(name, TypeDesc::STRING, to_string(layer_samples));
 
-    merge_layer_render_time(out_spec, images, i.first, "total_time", false);
-    merge_layer_render_time(out_spec, images, i.first, "render_time", false);
-    merge_layer_render_time(out_spec, images, i.first, "synchronization_time", true);
+    merge_layer_render_time(out_spec, images, layer_name, "total_time", false);
+    merge_layer_render_time(out_spec, images, layer_name, "render_time", false);
+    merge_layer_render_time(out_spec, images, layer_name, "synchronization_time", true);
   }
 }
 
@@ -373,7 +370,7 @@ static void alloc_pixels(const ImageSpec &spec, array<float> &pixels)
   const size_t height = spec.height;
   const size_t num_channels = spec.nchannels;
 
-  const size_t num_pixels = (size_t)width * (size_t)height;
+  const size_t num_pixels = width * height;
   pixels.resize(num_pixels * num_channels);
 }
 
@@ -397,9 +394,7 @@ static bool merge_pixels(const vector<MergeImage> &images,
       return false;
     }
 
-    for (size_t li = 0; li < image.layers.size(); li++) {
-      const MergeImageLayer &layer = image.layers[li];
-
+    for (const MergeImageLayer &layer : image.layers) {
       const size_t stride = image.in->spec().nchannels;
       const size_t out_stride = out_spec.nchannels;
       const size_t num_pixels = pixels.size();
