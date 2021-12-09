@@ -16,6 +16,8 @@
 
 /** \file
  * \ingroup edasset
+ *
+ * Functions for filtering assets.
  */
 
 #pragma once

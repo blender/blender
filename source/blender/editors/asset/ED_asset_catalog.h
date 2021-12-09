@@ -16,6 +16,8 @@
 
 /** \file
  * \ingroup edasset
+ *
+ * Supplement for `ED_asset_catalog.hh`. Part of the same API but usable in C.
  */
 
 #pragma once
