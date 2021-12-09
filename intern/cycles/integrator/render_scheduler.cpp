@@ -112,7 +112,7 @@ int RenderScheduler::get_rendered_sample() const
 {
   DCHECK_GT(get_num_rendered_samples(), 0);
 
-  return start_sample_ + get_num_rendered_samples() - 1;
+  return start_sample_ + get_num_rendered_samples() - 1 - sample_offset_;
 }
 
 int RenderScheduler::get_num_rendered_samples() const
@@ -877,7 +877,8 @@ int RenderScheduler::get_num_samples_to_path_trace() const
    * is to ensure that the final render is pixel-matched regardless of how many samples per second
    * compute device can do. */
 
-  return adaptive_sampling_.align_samples(path_trace_start_sample, num_samples_to_render);
+  return adaptive_sampling_.align_samples(path_trace_start_sample - sample_offset_,
+                                          num_samples_to_render);
 }
 
 int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) const
