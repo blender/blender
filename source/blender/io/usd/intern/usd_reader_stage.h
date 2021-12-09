@@ -82,8 +82,22 @@ class USDStageReader {
  private:
   USDPrimReader *collect_readers(Main *bmain, const pxr::UsdPrim &prim);
 
+  /**
+   * Returns true if the given prim should be included in the
+   * traversal based on the import options and the prim's visibility
+   * attribute.  Note that the prim will be trivially included
+   * if it has no visibility attribute or if the visibility
+   * is inherited.
+   */
   bool include_by_visibility(const pxr::UsdGeomImageable &imageable) const;
 
+  /**
+   * Returns true if the given prim should be included in the
+   * traversal based on the import options and the prim's purpose
+   * attribute. E.g., return false (to exclude the prim) if the prim
+   * represents guide geometry and the 'Import Guide' option is
+   * toggled off.
+   */
   bool include_by_purpose(const pxr::UsdGeomImageable &imageable) const;
 };
 

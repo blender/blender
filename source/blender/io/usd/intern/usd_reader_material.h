@@ -90,12 +90,14 @@ class USDMaterialReader {
   Material *add_material(const pxr::UsdShadeMaterial &usd_material) const;
 
  protected:
+  /** Create the Principled BSDF shader node network. */
   void import_usd_preview(Material *mtl, const pxr::UsdShadeShader &usd_shader) const;
 
   void set_principled_node_inputs(bNode *principled_node,
                                   bNodeTree *ntree,
                                   const pxr::UsdShadeShader &usd_shader) const;
 
+  /** Convert the given USD shader input to an input on the given Blender node. */
   void set_node_input(const pxr::UsdShadeInput &usd_input,
                       bNode *dest_node,
                       const char *dest_socket_name,
@@ -103,6 +105,10 @@ class USDMaterialReader {
                       int column,
                       NodePlacementContext *r_ctx) const;
 
+  /**
+   * Follow the connected source of the USD input to create corresponding inputs
+   * for the given Blender node.
+   */
   void follow_connection(const pxr::UsdShadeInput &usd_input,
                          bNode *dest_node,
                          const char *dest_socket_name,
@@ -118,8 +124,18 @@ class USDMaterialReader {
                               int column,
                               NodePlacementContext *r_ctx) const;
 
+  /**
+   * Load the texture image node's texture from the path given by the USD shader's
+   * file input value.
+   */
   void load_tex_image(const pxr::UsdShadeShader &usd_shader, bNode *tex_image) const;
 
+  /**
+   * This function creates a Blender UV Map node, under the simplifying assumption that
+   * UsdPrimvarReader_float2 shaders output UV coordinates.
+   * TODO(makowalski): investigate supporting conversion to other Blender node types
+   * (e.g., Attribute Nodes) if needed.
+   */
   void convert_usd_primvar_reader_float2(const pxr::UsdShadeShader &usd_shader,
                                          const pxr::TfToken &usd_source_name,
                                          bNode *dest_node,
