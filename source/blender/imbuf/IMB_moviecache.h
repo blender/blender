@@ -70,6 +70,9 @@ void IMB_moviecache_cleanup(struct MovieCache *cache,
                                                    void *userdata),
                             void *userdata);
 
+/**
+ * Get segments of cached frames. Useful for debugging cache policies.
+ */
 void IMB_moviecache_get_cache_segments(
     struct MovieCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points);
 

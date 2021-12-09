@@ -48,47 +48,66 @@ typedef enum ThumbSource {
   THB_SOURCE_FONT,
 } ThumbSource;
 
-/* don't generate thumbs for images bigger than this (100mb) */
+/**
+ * Don't generate thumbs for images bigger than this (100mb).
+ */
 #define THUMB_SIZE_MAX (100 * 1024 * 1024)
 
 #define PREVIEW_RENDER_DEFAULT_HEIGHT 128
 #define PREVIEW_RENDER_LARGE_HEIGHT 256
 
-/* Note this can also be used as versioning system,
+/**
+ * Note this can also be used as versioning system,
  * to force refreshing all thumbnails if e.g. we change some thumb generating code or so.
- * Only used by fonts so far. */
+ * Only used by fonts so far.
+ */
 #define THUMB_DEFAULT_HASH "00000000000000000000000000000000"
 
-/* create thumbnail for file and returns new imbuf for thumbnail */
+/**
+ * Create thumbnail for file and returns new imbuf for thumbnail.
+ */
 struct ImBuf *IMB_thumb_create(const char *path,
                                ThumbSize size,
                                ThumbSource source,
                                struct ImBuf *img);
 
-/* read thumbnail for file and returns new imbuf for thumbnail */
+/**
+ * Read thumbnail for file and returns new imbuf for thumbnail.
+ */
 struct ImBuf *IMB_thumb_read(const char *path, ThumbSize size);
 
-/* delete all thumbs for the file */
+/**
+ * Delete all thumbs for the file.
+ */
 void IMB_thumb_delete(const char *path, ThumbSize size);
 
-/* return the state of the thumb, needed to determine how to manage the thumb */
+/**
+ * Create the thumb if necessary and manage failed and old thumbs.
+ */
 struct ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
 
-/* create the necessary dirs to store the thumbnails */
+/**
+ * Create the necessary dirs to store the thumbnails.
+ */
 void IMB_thumb_makedirs(void);
 
-/* special function for loading a thumbnail embedded into a blend file */
+/**
+ * Special function for loading a thumbnail embedded into a blend file.
+ */
 struct ImBuf *IMB_thumb_load_blend(const char *blen_path,
                                    const char *blen_group,
                                    const char *blen_id);
 
-/* special function for previewing fonts */
+/**
+ * Special function for previewing fonts.
+ */
 struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
 void IMB_thumb_clear_translations(void);
 void IMB_thumb_ensure_translations(void);
 
 /* Threading */
+
 void IMB_thumb_locks_acquire(void);
 void IMB_thumb_locks_release(void);
 void IMB_thumb_path_lock(const char *path);

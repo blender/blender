@@ -322,7 +322,7 @@ enum {
 #  endif /* DDS_MAKEFOURCC */
 
 /*
- * FOURCC codes for DX compressed-texture pixel formats
+ * FOURCC codes for DX compressed-texture pixel formats.
  */
 
 #  define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
@@ -337,7 +337,7 @@ extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
 
-/* image formats that can only be loaded via filepath */
+/** Image formats that can only be loaded via filepath. */
 extern const char *imb_ext_image_filepath_only[];
 
 /**

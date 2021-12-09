@@ -372,7 +372,6 @@ MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsign
   }
 }
 
-/* result in ibuf2, scaling should be done correctly */
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
   int x, y;
@@ -1661,9 +1660,6 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
   }
 }
 
-/**
- * Return true if \a ibuf is modified.
- */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
@@ -1709,9 +1705,6 @@ struct imbufRGBA {
   float r, g, b, a;
 };
 
-/**
- * Return true if \a ibuf is modified.
- */
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");

@@ -93,7 +93,6 @@ void imb_freemipmapImBuf(ImBuf *ibuf)
   ibuf->miptot = 0;
 }
 
-/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectfloatImBuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
@@ -111,7 +110,6 @@ void imb_freerectfloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_rectfloat;
 }
 
-/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectImBuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
@@ -197,7 +195,6 @@ void IMB_freezbuffloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_zbuffloat;
 }
 
-/** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);
@@ -403,9 +400,10 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf)
   return false;
 }
 
-/* question; why also add zbuf? */
 bool imb_addrectImBuf(ImBuf *ibuf)
 {
+  /* Question; why also add ZBUF (when `planes > 32`)? */
+
   if (ibuf == NULL) {
     return false;
   }
@@ -430,9 +428,6 @@ bool imb_addrectImBuf(ImBuf *ibuf)
   return false;
 }
 
-/**
- * \param take_ownership: When true, the buffers become owned by the resulting image.
- */
 struct ImBuf *IMB_allocFromBufferOwn(
     unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels)
 {
@@ -580,7 +575,6 @@ bool IMB_initImBuf(
   return true;
 }
 
-/* does no zbuffers? */
 ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 {
   ImBuf *ibuf2, tbuf;

@@ -102,13 +102,11 @@ MINLINE void float_to_byte_dither_v4(
   b[3] = unit_float_to_uchar_clamp(f[3]);
 }
 
-/* Test if colorspace conversions of pixels in buffer need to take into account alpha. */
 bool IMB_alpha_affects_rgb(const ImBuf *ibuf)
 {
   return (ibuf->flags & IB_alphamode_channel_packed) == 0;
 }
 
-/* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to,
                                 const float *rect_from,
                                 int channels_from,
@@ -275,7 +273,6 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
   }
 }
 
-/* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float_mask(uchar *rect_to,
                                      const float *rect_from,
                                      int channels_from,
@@ -366,7 +363,6 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
   }
 }
 
-/* Byte to float pixels, input and output 4-channel RGBA. */
 void IMB_buffer_float_from_byte(float *rect_to,
                                 const uchar *rect_from,
                                 int profile_to,
@@ -426,7 +422,6 @@ void IMB_buffer_float_from_byte(float *rect_to,
   }
 }
 
-/* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float(float *rect_to,
                                  const float *rect_from,
                                  int channels_from,
@@ -592,7 +587,6 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
   }
 }
 
-/* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float_mask(float *rect_to,
                                       const float *rect_from,
                                       int channels_from,
@@ -646,7 +640,6 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
   }
 }
 
-/* byte to byte pixels, input and output 4-channel RGBA */
 void IMB_buffer_byte_from_byte(uchar *rect_to,
                                const uchar *rect_from,
                                int profile_to,
@@ -837,7 +830,6 @@ void IMB_float_from_rect(ImBuf *ibuf)
 /** \name Color to Grayscale
  * \{ */
 
-/* no profile conversion */
 void IMB_color_to_bw(ImBuf *ibuf)
 {
   float *rct_fl = ibuf->rect_float;

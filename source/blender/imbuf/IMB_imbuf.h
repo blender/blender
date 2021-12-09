@@ -152,6 +152,8 @@ bool IMB_initImBuf(
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * (transferring ownership to the in imbuf).
  * \attention Defined in allocimbuf.c
+ *
+ * \param take_ownership: When true, the buffers become owned by the resulting image.
  */
 struct ImBuf *IMB_allocFromBufferOwn(
     unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels);
@@ -244,8 +246,14 @@ void IMB_blend_color_float(float dst[4],
                            const float src2[4],
                            IMB_BlendMode mode);
 
+/**
+ * In-place image crop.
+ */
 void IMB_rect_crop(struct ImBuf *ibuf, const struct rcti *crop);
 
+/**
+ * In-place size setting (caller must fill in buffer contents).
+ */
 void IMB_rect_size_set(struct ImBuf *ibuf, const uint size[2]);
 
 void IMB_rectclip(struct ImBuf *dbuf,
@@ -342,7 +350,9 @@ typedef enum eIMBInterpolationFilterMode {
   IMB_FILTER_BILINEAR,
 } eIMBInterpolationFilterMode;
 
-/* Defaults to BL_proxy within the directory of the animation. */
+/**
+ * Defaults to BL_proxy within the directory of the animation.
+ */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
 void IMB_anim_get_fname(struct anim *anim, char *file, int size);
 
@@ -352,7 +362,9 @@ IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim);
 
 struct IndexBuildContext;
 
-/* Prepare context for proxies/time-codes builder. */
+/**
+ * Prepare context for proxies/time-codes builder
+ */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use,
@@ -360,13 +372,17 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          const bool overwrite,
                                                          struct GSet *file_list);
 
-/* Will rebuild all used indices and proxies at once. */
+/**
+ * Will rebuild all used indices and proxies at once.
+ */
 void IMB_anim_index_rebuild(struct IndexBuildContext *context,
                             short *stop,
                             short *do_update,
                             float *progress);
 
-/* Finish rebuilding proxies/time-codes and free temporary contexts used. */
+/**
+ * Finish rebuilding proxies/time-codes and free temporary contexts used.
+ */
 void IMB_anim_index_rebuild_finish(struct IndexBuildContext *context, short stop);
 
 /**
@@ -442,8 +458,20 @@ void IMB_free_anim(struct anim *anim);
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_mask_filter_extend(char *mask, int width, int height);
 void IMB_mask_clear(struct ImBuf *ibuf, const char *mask, int val);
+/**
+ * If alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
+ * When a mask is given, the mask will be used instead of the alpha channel, where only
+ * pixels with a mask value of 0 will be written to, and only pixels with a mask value of 1
+ * will be used for the average. The mask will be set to one for the pixels which were written.
+ */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter);
+/**
+ * Frees too (if there) and recreates new data.
+ */
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
+/**
+ * Thread-safe version, only recreates existing maps.
+ */
 void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
 
@@ -452,6 +480,9 @@ struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
  * \attention Defined in cache.c
  */
 
+/**
+ * Presumed to be called when no threads are running.
+ */
 void IMB_tile_cache_params(int totthread, int maxmem);
 unsigned int *IMB_gettile(struct ImBuf *ibuf, int tx, int ty, int thread);
 void IMB_tiles_to_rect(struct ImBuf *ibuf);
@@ -471,12 +502,17 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
 /**
  *
  * \attention Defined in scaling.c
+ *
+ * Return true if \a ibuf is modified.
  */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
  *
  * \attention Defined in scaling.c
+ */
+/**
+ * Return true if \a ibuf is modified.
  */
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
@@ -520,16 +556,27 @@ int imb_get_anim_type(const char *filepath);
  */
 bool IMB_isfloat(const struct ImBuf *ibuf);
 
-/* Do byte/float and colorspace conversions need to take alpha into account? */
+/**
+ * Test if color-space conversions of pixels in buffer need to take into account alpha.
+ */
 bool IMB_alpha_affects_rgb(const struct ImBuf *ibuf);
 
-/* create char buffer, color corrected if necessary, for ImBufs that lack one */
+/**
+ * Create char buffer, color corrected if necessary, for ImBufs that lack one.
+ */
 void IMB_rect_from_float(struct ImBuf *ibuf);
 void IMB_float_from_rect(struct ImBuf *ibuf);
+/**
+ * No profile conversion.
+ */
 void IMB_color_to_bw(struct ImBuf *ibuf);
 void IMB_saturation(struct ImBuf *ibuf, float sat);
 
-/* converting pixel buffers */
+/* Converting pixel buffers. */
+
+/**
+ * Float to byte pixels, output 4-channel RGBA.
+ */
 void IMB_buffer_byte_from_float(unsigned char *rect_to,
                                 const float *rect_from,
                                 int channels_from,
@@ -541,6 +588,9 @@ void IMB_buffer_byte_from_float(unsigned char *rect_to,
                                 int height,
                                 int stride_to,
                                 int stride_from);
+/**
+ * Float to byte pixels, output 4-channel RGBA.
+ */
 void IMB_buffer_byte_from_float_mask(unsigned char *rect_to,
                                      const float *rect_from,
                                      int channels_from,
@@ -551,6 +601,9 @@ void IMB_buffer_byte_from_float_mask(unsigned char *rect_to,
                                      int stride_to,
                                      int stride_from,
                                      char *mask);
+/**
+ * Byte to float pixels, input and output 4-channel RGBA.
+ */
 void IMB_buffer_float_from_byte(float *rect_to,
                                 const unsigned char *rect_from,
                                 int profile_to,
@@ -560,6 +613,9 @@ void IMB_buffer_float_from_byte(float *rect_to,
                                 int height,
                                 int stride_to,
                                 int stride_from);
+/**
+ * Float to float pixels, output 4-channel RGBA.
+ */
 void IMB_buffer_float_from_float(float *rect_to,
                                  const float *rect_from,
                                  int channels_from,
@@ -580,6 +636,9 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
                                           int height,
                                           int stride_to,
                                           int stride_from);
+/**
+ * Float to float pixels, output 4-channel RGBA.
+ */
 void IMB_buffer_float_from_float_mask(float *rect_to,
                                       const float *rect_from,
                                       int channels_from,
@@ -588,6 +647,9 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
                                       int stride_to,
                                       int stride_from,
                                       char *mask);
+/**
+ * Byte to byte pixels, input and output 4-channel RGBA.
+ */
 void IMB_buffer_byte_from_byte(unsigned char *rect_to,
                                const unsigned char *rect_from,
                                int profile_to,
@@ -605,6 +667,8 @@ void IMB_buffer_float_premultiply(float *buf, int width, int height);
  * rgba to abgr. size * 4 color bytes are reordered.
  *
  * \attention Defined in imageprocess.c
+ *
+ * Only this one is used liberally here, and in imbuf.
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
 
@@ -624,6 +688,9 @@ typedef void (*InterpolationColorFunction)(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bicubic_interpolation_color(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+
+/* Functions assumes out to be zero'ed, only does RGBA. */
+
 void nearest_interpolation_color_char(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color_fl(
@@ -638,12 +705,21 @@ void bilinear_interpolation_color_char(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color_fl(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
+/**
+ * Note about wrapping, the u/v still needs to be within the image bounds,
+ * just the interpolation is wrapped.
+ * This the same as bilinear_interpolation_color except it wraps
+ * rather than using empty and emptyI.
+ */
 void bilinear_interpolation_color_wrap(
     const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
 
+/**
+ * Sample pixel of image using NEAREST method.
+ */
 void IMB_sampleImageAtLocation(
     struct ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4]);
 
@@ -697,7 +773,7 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1);
 void IMB_flipx(struct ImBuf *ibuf);
 void IMB_flipy(struct ImBuf *ibuf);
 
-/* Premultiply alpha */
+/* Pre-multiply alpha. */
 
 void IMB_premultiply_alpha(struct ImBuf *ibuf);
 void IMB_unpremultiply_alpha(struct ImBuf *ibuf);
@@ -713,7 +789,27 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  *
  * \attention Defined in rectop.c
  */
+/**
+ * Replace pixels of entire image with solid color.
+ * \param ibuf: An image to be filled with color. It must be 4 channel image.
+ * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
+ */
 void IMB_rectfill(struct ImBuf *drect, const float col[4]);
+/**
+ * Blend pixels of image area with solid color.
+ *
+ * For images with `uchar` buffer use color matching image color-space.
+ * For images with float buffer use color display color-space.
+ * If display color-space can not be referenced, use color in SRGB color-space.
+ *
+ * \param ibuf: an image to be filled with color. It must be 4 channel image.
+ * \param col: RGBA color.
+ * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
+ * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
+ * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
+ * order the area between x1 and x2, and y1 and y2 is filled.
+ * \param display: color-space reference for display space.
+ */
 void IMB_rectfill_area(struct ImBuf *ibuf,
                        const float col[4],
                        int x1,
@@ -721,12 +817,23 @@ void IMB_rectfill_area(struct ImBuf *ibuf,
                        int x2,
                        int y2,
                        struct ColorManagedDisplay *display);
+/**
+ * Replace pixels of image area with solid color.
+ * \param ibuf: an image to be filled with color. It must be 4 channel image.
+ * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
+ * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
+ * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
+ * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
+ * order the area between x1 and x2, and y1 and y2 is filled.
+ */
 void IMB_rectfill_area_replace(
     const struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
-/* This should not be here, really,
- * we needed it for operating on render data, IMB_rectfill_area calls it. */
+/**
+ * This should not be here, really,
+ * we needed it for operating on render data, #IMB_rectfill_area calls it.
+ */
 void buf_rectfill_area(unsigned char *rect,
                        float *rectf,
                        int width,
@@ -738,23 +845,34 @@ void buf_rectfill_area(unsigned char *rect,
                        int x2,
                        int y2);
 
-/* exported for image tools in blender, to quickly allocate 32 bits rect */
+/**
+ * Exported for image tools in blender, to quickly allocate 32 bits rect.
+ */
 void *imb_alloc_pixels(
     unsigned int x, unsigned int y, unsigned int channels, size_t typesize, const char *name);
 
 bool imb_addrectImBuf(struct ImBuf *ibuf);
+/**
+ * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
+ */
 void imb_freerectImBuf(struct ImBuf *ibuf);
 
 bool imb_addrectfloatImBuf(struct ImBuf *ibuf);
+/**
+ * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
+ */
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
 bool imb_addtilesImBuf(struct ImBuf *ibuf);
 void imb_freetilesImBuf(struct ImBuf *ibuf);
 
+/** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(struct ImBuf *ibuf);
 
-/* threaded processors */
+/**
+ * Threaded processors.
+ */
 void IMB_processor_apply_threaded(
     int buffer_lines,
     int handle_size,
@@ -788,7 +906,8 @@ void IMB_transform(const struct ImBuf *src,
                    const float transform_matrix[4][4],
                    const struct rctf *src_crop);
 
-/* ffmpeg */
+/* FFMPEG */
+
 void IMB_ffmpeg_init(void);
 const char *IMB_ffmpeg_last_error(void);
 
@@ -801,8 +920,17 @@ struct GPUTexture *IMB_create_gpu_texture(const char *name,
                                           bool use_high_bitdepth,
                                           bool use_premult,
                                           bool limit_gl_texture_size);
+/**
+ * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
+ * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
+ */
 struct GPUTexture *IMB_touch_gpu_texture(
     const char *name, struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
+/**
+ * Will update a #GPUTexture using the content of the #ImBuf. Only one layer will be updated.
+ * Will resize the ibuf if needed.
+ * Z is the layer to update. Unused if the texture is 2D.
+ */
 void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
                                 struct ImBuf *ibuf,
                                 int x,
@@ -814,7 +942,6 @@ void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
                                 bool use_premult);
 
 /**
- *
  * \attention defined in stereoimbuf.c
  */
 void IMB_stereo3d_write_dimensions(const char mode,
@@ -841,9 +968,15 @@ float *IMB_stereo3d_from_rectf(struct ImageFormatData *im_format,
                                const size_t channels,
                                float *rectf_left,
                                float *rectf_right);
+/**
+ * Left/right are always float.
+ */
 struct ImBuf *IMB_stereo3d_ImBuf(struct ImageFormatData *im_format,
                                  struct ImBuf *ibuf_left,
                                  struct ImBuf *ibuf_right);
+/**
+ * Reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right).
+ */
 void IMB_ImBufFromStereo3d(struct Stereo3dFormat *s3d,
                            struct ImBuf *ibuf_stereo,
                            struct ImBuf **r_ibuf_left,

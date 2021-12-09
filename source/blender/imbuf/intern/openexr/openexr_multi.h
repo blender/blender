@@ -23,7 +23,7 @@
 
 #pragma once
 
-/* experiment with more advanced exr api */
+/* Experiment with more advanced EXR API. */
 
 /* XXX layer+pass name max 64? */
 /* This api also supports max 8 channels per pass now. easy to fix! */
@@ -41,6 +41,12 @@ struct StampData;
 
 void *IMB_exr_get_handle(void);
 void *IMB_exr_get_handle_name(const char *name);
+
+/**
+ * Adds flattened #ExrChannel's
+ * `xstride`, `ystride` and `rect` can be done in set_channel too, for tile writing.
+ * \param passname does not include view.
+ */
 void IMB_exr_add_channel(void *handle,
                          const char *layname,
                          const char *passname,
@@ -50,17 +56,32 @@ void IMB_exr_add_channel(void *handle,
                          float *rect,
                          bool use_half_float);
 
+/**
+ * Read from file.
+ */
 bool IMB_exr_begin_read(
     void *handle, const char *filename, int *width, int *height, const bool parse_channels);
+/**
+ * Used for output files (from #RenderResult) (single and multi-layer, single and multi-view).
+ */
 bool IMB_exr_begin_write(void *handle,
                          const char *filename,
                          int width,
                          int height,
                          int compress,
                          const struct StampData *stamp);
+/**
+ * Only used for writing temp. render results (not image files)
+ * (FSA and Save Buffers).
+ */
 void IMB_exrtile_begin_write(
     void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley);
 
+/**
+ * Still clumsy name handling, layers/channels can be ordered as list in list later.
+ *
+ * \param passname here is the raw channel name without the layer.
+ */
 void IMB_exr_set_channel(void *handle,
                          const char *layname,
                          const char *passname,
@@ -74,6 +95,10 @@ float *IMB_exr_channel_rect(void *handle,
 
 void IMB_exr_read_channels(void *handle);
 void IMB_exr_write_channels(void *handle);
+/**
+ * Temporary function, used for FSA and Save Buffers.
+ * called once per `tile * view`.
+ */
 void IMB_exrtile_write_channels(
     void *handle, int partx, int party, int level, const char *viewname, bool empty);
 void IMB_exr_clear_channels(void *handle);

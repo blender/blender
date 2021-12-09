@@ -523,7 +523,6 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
       path, uri, thumb_name, false, THUMB_DEFAULT_HASH, NULL, NULL, size, source, img);
 }
 
-/* read thumbnail for file and returns new imbuf for thumbnail */
 ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
 {
   char thumb[FILE_MAX];
@@ -540,7 +539,6 @@ ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
   return img;
 }
 
-/* delete all thumbs for the file */
 void IMB_thumb_delete(const char *path, ThumbSize size)
 {
   char thumb[FILE_MAX];
@@ -559,7 +557,6 @@ void IMB_thumb_delete(const char *path, ThumbSize size)
   }
 }
 
-/* create the thumb if necessary and manage failed and old thumbs */
 ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source)
 {
   char thumb_path[FILE_MAX];

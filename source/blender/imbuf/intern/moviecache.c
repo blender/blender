@@ -496,7 +496,6 @@ void IMB_moviecache_cleanup(MovieCache *cache,
   }
 }
 
-/* get segments of cached frames. useful for debugging cache policies */
 void IMB_moviecache_get_cache_segments(
     MovieCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points)
 {

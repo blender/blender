@@ -327,10 +327,6 @@ static half float_to_half_safe(const float value)
 
 extern "C" {
 
-/**
- * Test presence of OpenEXR file.
- * \param mem: pointer to loaded OpenEXR bitstream
- */
 bool imb_is_a_openexr(const unsigned char *mem, const size_t size)
 {
   /* No define is exposed for this size. */
@@ -781,9 +777,6 @@ static void imb_exr_insert_view_name(char *name_full, const char *passname, cons
   }
 }
 
-/* adds flattened ExrChannels */
-/* xstride, ystride and rect can be done in set_channel too, for tile writing */
-/* passname does not include view */
 void IMB_exr_add_channel(void *handle,
                          const char *layname,
                          const char *passname,
@@ -840,7 +833,6 @@ void IMB_exr_add_channel(void *handle,
   BLI_addtail(&data->channels, echan);
 }
 
-/* used for output files (from RenderResult) (single and multilayer, single and multiview) */
 bool IMB_exr_begin_write(void *handle,
                          const char *filename,
                          int width,
@@ -896,8 +888,6 @@ bool IMB_exr_begin_write(void *handle,
   return (data->ofile != nullptr);
 }
 
-/* only used for writing temp. render results (not image files)
- * (FSA and Save Buffers) */
 void IMB_exrtile_begin_write(
     void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley)
 {
@@ -963,7 +953,6 @@ void IMB_exrtile_begin_write(
   }
 }
 
-/* read from file */
 bool IMB_exr_begin_read(
     void *handle, const char *filename, int *width, int *height, const bool parse_channels)
 {
@@ -1024,8 +1013,6 @@ bool IMB_exr_begin_read(
   return true;
 }
 
-/* still clumsy name handling, layers/channels can be ordered as list in list later */
-/* passname here is the raw channel name without the layer */
 void IMB_exr_set_channel(
     void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect)
 {
@@ -1167,8 +1154,6 @@ void IMB_exr_write_channels(void *handle)
   }
 }
 
-/* temporary function, used for FSA and Save Buffers */
-/* called once per tile * view */
 void IMB_exrtile_write_channels(
     void *handle, int partx, int party, int level, const char *viewname, bool empty)
 {

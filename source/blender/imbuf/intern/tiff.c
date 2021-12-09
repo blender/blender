@@ -553,15 +553,6 @@ void imb_inittiff(void)
   }
 }
 
-/**
- * Loads a TIFF file.
- * \param mem: Memory containing the TIFF file.
- * \param size: Size of the mem buffer.
- * \param flags: If flags has IB_test set then the file is not actually loaded,
- * but all other operations take place.
- *
- * \return A newly allocated #ImBuf structure if successful, otherwise NULL.
- */
 ImBuf *imb_loadtiff(const unsigned char *mem,
                     size_t size,
                     int flags,
@@ -744,21 +735,6 @@ void imb_loadtiletiff(
 /** \name Save TIFF
  * \{ */
 
-/**
- * Saves a TIFF file.
- *
- * #ImBuf structures with 1, 3 or 4 bytes per pixel (GRAY, RGB, RGBA
- * respectively) are accepted, and interpreted correctly.  Note that the TIFF
- * convention is to use pre-multiplied alpha, which can be achieved within
- * Blender by setting "Premul" alpha handling.  Other alpha conventions are
- * not strictly correct, but are permitted anyhow.
- *
- * \param ibuf: Image buffer.
- * \param name: Name of the TIFF file to create.
- * \param flags: Currently largely ignored.
- *
- * \return 1 if the function is successful, 0 on failure.
- */
 bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
 {
   TIFF *image = NULL;

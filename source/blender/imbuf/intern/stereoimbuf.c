@@ -757,7 +757,6 @@ float *IMB_stereo3d_from_rectf(ImageFormatData *im_format,
   return r_rectf;
 }
 
-/* left/right are always float */
 ImBuf *IMB_stereo3d_ImBuf(ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *ibuf_right)
 {
   ImBuf *ibuf_stereo = NULL;
@@ -1275,7 +1274,6 @@ static void imb_stereo3d_read_topbottom(Stereo3DData *s3d)
 /** \name Preparing To Call The Read Functions
  * \{ */
 
-/* reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right) */
 void IMB_ImBufFromStereo3d(Stereo3dFormat *s3d,
                            ImBuf *ibuf_stereo3d,
                            ImBuf **r_ibuf_left,

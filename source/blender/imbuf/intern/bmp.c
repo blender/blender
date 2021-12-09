@@ -306,7 +306,6 @@ static int putShortLSB(ushort us, FILE *ofile)
   return putc((us >> 8) & 0xFF, ofile);
 }
 
-/* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
 bool imb_savebmp(ImBuf *ibuf, const char *filepath, int UNUSED(flags))
 {
   BMPINFOHEADER infoheader;
