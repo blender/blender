@@ -41,13 +41,35 @@ typedef enum eExprPyLike_EvalStatus {
   EXPR_PYLIKE_FATAL_ERROR,
 } eExprPyLike_EvalStatus;
 
+/**
+ * Free the parsed data; NULL argument is ok.
+ */
 void BLI_expr_pylike_free(struct ExprPyLike_Parsed *expr);
+/**
+ * Check if the parsing result is valid for evaluation.
+ */
 bool BLI_expr_pylike_is_valid(struct ExprPyLike_Parsed *expr);
+/**
+ * Check if the parsed expression always evaluates to the same value.
+ */
 bool BLI_expr_pylike_is_constant(struct ExprPyLike_Parsed *expr);
+/**
+ * Check if the parsed expression uses the parameter with the given index.
+ */
 bool BLI_expr_pylike_is_using_param(struct ExprPyLike_Parsed *expr, int index);
+/**
+ * Compile the expression and return the result.
+ *
+ * Parse the expression for evaluation later.
+ * Returns non-NULL even on failure; use is_valid to check.
+ */
 ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression,
                                          const char **param_names,
                                          int param_names_len);
+/**
+ * Evaluate the expression with the given parameters.
+ * The order and number of parameters must match the names given to parse.
+ */
 eExprPyLike_EvalStatus BLI_expr_pylike_eval(struct ExprPyLike_Parsed *expr,
                                             const double *param_values,
                                             int param_values_len,

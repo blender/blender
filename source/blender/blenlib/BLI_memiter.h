@@ -35,10 +35,19 @@ struct BLI_memiter;
 
 typedef struct BLI_memiter BLI_memiter;
 
-/* warning, ATTR_MALLOC flag on BLI_memiter_alloc causes crash, see: D2756 */
+/**
+ * \param chunk_size_min: Should be a power of two and
+ * significantly larger than the average element size used.
+ *
+ * While allocations of any size are supported, they won't be efficient
+ * (effectively becoming a single-linked list).
+ *
+ * Its intended that many elements can be stored per chunk.
+ */
 BLI_memiter *BLI_memiter_create(unsigned int chunk_size)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 void *BLI_memiter_alloc(BLI_memiter *mi, unsigned int size)
+    /* WARNING: `ATTR_MALLOC` attribute on #BLI_memiter_alloc causes crash, see: D2756. */
     ATTR_RETURNS_NONNULL ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1);
 void BLI_memiter_alloc_from(BLI_memiter *mi, uint elem_size, const void *data_from)
     ATTR_NONNULL(1, 3);
@@ -48,11 +57,15 @@ void BLI_memiter_destroy(BLI_memiter *mi) ATTR_NONNULL(1);
 void BLI_memiter_clear(BLI_memiter *mi) ATTR_NONNULL(1);
 unsigned int BLI_memiter_count(const BLI_memiter *mi) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-/* utils */
+/* Utilities. */
+
+/**
+ * Support direct lookup for the first item.
+ */
 void *BLI_memiter_elem_first(BLI_memiter *mi);
 void *BLI_memiter_elem_first_size(BLI_memiter *mi, unsigned int *r_size);
 
-/* private structure */
+/** Private structure. */
 typedef struct BLI_memiter_handle {
   struct BLI_memiter_elem *elem;
   uint elem_left;

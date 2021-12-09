@@ -35,7 +35,7 @@ BLI_INLINE float D(const float *data, const int res[3], int x, int y, int z)
 }
 
 /* *** nearest neighbor *** */
-/* input coordinates must be in bounding box 0.0 - 1.0 */
+
 float BLI_voxel_sample_nearest(const float *data, const int res[3], const float co[3])
 {
   int xi, yi, zi;

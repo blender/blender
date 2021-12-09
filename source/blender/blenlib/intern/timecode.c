@@ -35,19 +35,6 @@
 
 #include "BLI_strict_flags.h"
 
-/**
- * Generate time-code/frame number string and store in \a str
- *
- * \param str: destination string
- * \param maxncpy: maximum number of characters to copy `sizeof(str)`
- * \param brevity_level: special setting for #View2D grid drawing,
- *        used to specify how detailed we need to be
- * \param time_seconds: time total time in seconds
- * \param fps: frames per second, typically from the #FPS macro
- * \param timecode_style: enum from #eTimecodeStyles
- * \return length of \a str
- */
-
 size_t BLI_timecode_string_from_time(char *str,
                                      const size_t maxncpy,
                                      const int brevity_level,
@@ -195,14 +182,6 @@ size_t BLI_timecode_string_from_time(char *str,
   return rlen;
 }
 
-/**
- * Generate time string and store in \a str
- *
- * \param str: destination string
- * \param maxncpy: maximum number of characters to copy `sizeof(str)`
- * \param time_seconds: time total time in seconds
- * \return length of \a str
- */
 size_t BLI_timecode_string_from_time_simple(char *str,
                                             const size_t maxncpy,
                                             const double time_seconds)
@@ -225,18 +204,6 @@ size_t BLI_timecode_string_from_time_simple(char *str,
   return rlen;
 }
 
-/**
- * Generate time string and store in \a str
- *
- * \param str: destination string
- * \param maxncpy: maximum number of characters to copy `sizeof(str)`
- * \param brevity_level: special setting for #View2D grid drawing,
- *        used to specify how detailed we need to be
- * \param time_seconds: time total time in seconds
- * \return length of \a str
- *
- * \note in some cases this is used to print non-seconds values.
- */
 size_t BLI_timecode_string_from_time_seconds(char *str,
                                              const size_t maxncpy,
                                              const int brevity_level,

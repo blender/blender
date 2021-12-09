@@ -77,7 +77,8 @@ typedef void (*ewa_filter_read_pixel_cb)(void *userdata, int x, int y, float res
 void BLI_ewa_imp2radangle(
     float A, float B, float C, float F, float *a, float *b, float *th, float *ecc);
 
-/* TODO(sergey): Consider making this function inlined, so the pixel read callback
+/**
+ * TODO(sergey): Consider making this function inlined, so the pixel read callback
  * could also be inlined in order to avoid per-pixel function calls.
  */
 void BLI_ewa_filter(const int width,

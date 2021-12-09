@@ -1399,26 +1399,6 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 /** \name Main Array Storage API
  * \{ */
 
-/**
- * Create a new array store, which can store any number of arrays
- * as long as their stride matches.
- *
- * \param stride: `sizeof()` each element,
- *
- * \note while a stride of `1` will always work,
- * its less efficient since duplicate chunks of memory will be searched
- * at positions unaligned with the array data.
- *
- * \param chunk_count: Number of elements to split each chunk into.
- * - A small value increases the ability to de-duplicate chunks,
- *   but adds overhead by increasing the number of chunks to look up when searching for duplicates,
- *   as well as some overhead constructing the original array again, with more calls to `memcpy`.
- * - Larger values reduce the *book keeping* overhead,
- *   but increase the chance a small,
- *   isolated change will cause a larger amount of data to be duplicated.
- *
- * \return A new array store, to be freed with #BLI_array_store_destroy.
- */
 BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 {
   BArrayStore *bs = MEM_callocN(sizeof(BArrayStore), __func__);
@@ -1472,9 +1452,6 @@ static void array_store_free_data(BArrayStore *bs)
   }
 }
 
-/**
- * Free the #BArrayStore, including all states and chunks.
- */
 void BLI_array_store_destroy(BArrayStore *bs)
 {
   array_store_free_data(bs);
@@ -1486,9 +1463,6 @@ void BLI_array_store_destroy(BArrayStore *bs)
   MEM_freeN(bs);
 }
 
-/**
- * Clear all contents, allowing reuse of \a bs.
- */
 void BLI_array_store_clear(BArrayStore *bs)
 {
   array_store_free_data(bs);
@@ -1506,9 +1480,6 @@ void BLI_array_store_clear(BArrayStore *bs)
 /** \name BArrayStore Statistics
  * \{ */
 
-/**
- * \return the total amount of memory that would be used by getting the arrays for all states.
- */
 size_t BLI_array_store_calc_size_expanded_get(const BArrayStore *bs)
 {
   size_t size_accum = 0;
@@ -1518,10 +1489,6 @@ size_t BLI_array_store_calc_size_expanded_get(const BArrayStore *bs)
   return size_accum;
 }
 
-/**
- * \return the amount of memory used by all #BChunk.data
- * (duplicate chunks are only counted once).
- */
 size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
 {
   size_t size_total = 0;
@@ -1541,18 +1508,6 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
 /** \name BArrayState Access
  * \{ */
 
-/**
- *
- * \param data: Data used to create
- * \param state_reference: The state to use as a reference when adding the new state,
- * typically this is the previous state,
- * however it can be any previously created state from this \a bs.
- *
- * \return The new state,
- * which is used by the caller as a handle to get back the contents of \a data.
- * This may be removed using #BLI_array_store_state_remove,
- * otherwise it will be removed with #BLI_array_store_destroy.
- */
 BArrayState *BLI_array_store_state_add(BArrayStore *bs,
                                        const void *data,
                                        const size_t data_len,
@@ -1601,11 +1556,6 @@ BArrayState *BLI_array_store_state_add(BArrayStore *bs,
   return state;
 }
 
-/**
- * Remove a state and free any unused #BChunk data.
- *
- * The states can be freed in any order.
- */
 void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state)
 {
 #ifdef USE_PARANOID_CHECKS
@@ -1618,18 +1568,11 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state)
   MEM_freeN(state);
 }
 
-/**
- * \return the expanded size of the array,
- * use this to know how much memory to allocate #BLI_array_store_state_data_get's argument.
- */
 size_t BLI_array_store_state_size_get(BArrayState *state)
 {
   return state->chunk_list->total_size;
 }
 
-/**
- * Fill in existing allocated memory with the contents of \a state.
- */
 void BLI_array_store_state_data_get(BArrayState *state, void *data)
 {
 #ifdef USE_PARANOID_CHECKS
@@ -1648,9 +1591,6 @@ void BLI_array_store_state_data_get(BArrayState *state, void *data)
   }
 }
 
-/**
- * Allocate an array for \a state and return it.
- */
 void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len)
 {
   void *data = MEM_mallocN(state->chunk_list->total_size, __func__);

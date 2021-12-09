@@ -567,10 +567,11 @@ static void radangle2imp(float a2, float b2, float th, float *A, float *B, float
   *F = a2 * b2;
 }
 
-/* all tests here are done to make sure possible overflows are hopefully minimized */
 void BLI_ewa_imp2radangle(
     float A, float B, float C, float F, float *a, float *b, float *th, float *ecc)
 {
+  /* NOTE: all tests here are done to make sure possible overflows are hopefully minimized. */
+
   if (F <= 1e-5f) { /* use arbitrary major radius, zero minor, infinite eccentricity */
     *a = sqrtf(A > C ? A : C);
     *b = 0.0f;

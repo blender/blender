@@ -694,16 +694,6 @@ static GHash *ghash_copy(const GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopy
 /** \name GHash Public API
  * \{ */
 
-/**
- * Creates a new, empty GHash.
- *
- * \param hashfp: Hash callback.
- * \param cmpfp: Comparison callback.
- * \param info: Identifier string for the GHash.
- * \param nentries_reserve: Optionally reserve the number of members that the hash will hold.
- * Use this to avoid resizing buckets if the size is known or can be closely approximated.
- * \return  An empty GHash.
- */
 GHash *BLI_ghash_new_ex(GHashHashFP hashfp,
                         GHashCmpFP cmpfp,
                         const char *info,
@@ -712,72 +702,38 @@ GHash *BLI_ghash_new_ex(GHashHashFP hashfp,
   return ghash_new(hashfp, cmpfp, info, nentries_reserve, 0);
 }
 
-/**
- * Wraps #BLI_ghash_new_ex with zero entries reserved.
- */
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 {
   return BLI_ghash_new_ex(hashfp, cmpfp, info, 0);
 }
 
-/**
- * Copy given GHash. Keys and values are also copied if relevant callback is provided,
- * else pointers remain the same.
- */
 GHash *BLI_ghash_copy(const GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
 {
   return ghash_copy(gh, keycopyfp, valcopyfp);
 }
 
-/**
- * Reserve given amount of entries (resize \a gh accordingly if needed).
- */
 void BLI_ghash_reserve(GHash *gh, const uint nentries_reserve)
 {
   ghash_buckets_expand(gh, nentries_reserve, true);
   ghash_buckets_contract(gh, nentries_reserve, true, false);
 }
 
-/**
- * \return size of the GHash.
- */
 uint BLI_ghash_len(const GHash *gh)
 {
   return gh->nentries;
 }
 
-/**
- * Insert a key/value pair into the \a gh.
- *
- * \note Duplicates are not checked,
- * the caller is expected to ensure elements are unique unless
- * GHASH_FLAG_ALLOW_DUPES flag is set.
- */
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
   ghash_insert(gh, key, val);
 }
 
-/**
- * Inserts a new value to a key that may already be in ghash.
- *
- * Avoids #BLI_ghash_remove, #BLI_ghash_insert calls (double lookups)
- *
- * \returns true if a new key has been added.
- */
 bool BLI_ghash_reinsert(
     GHash *gh, void *key, void *val, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
   return ghash_insert_safe(gh, key, val, true, keyfreefp, valfreefp);
 }
 
-/**
- * Replaces the key of an item in the \a gh.
- *
- * Use when a key is re-allocated or its memory location is changed.
- *
- * \returns The previous key or NULL if not found, the caller may free if it's needed.
- */
 void *BLI_ghash_replace_key(GHash *gh, void *key)
 {
   const uint hash = ghash_keyhash(gh, key);
@@ -791,15 +747,6 @@ void *BLI_ghash_replace_key(GHash *gh, void *key)
   return NULL;
 }
 
-/**
- * Lookup the value of \a key in \a gh.
- *
- * \param key: The key to lookup.
- * \returns the value for \a key or NULL.
- *
- * \note When NULL is a valid value, use #BLI_ghash_lookup_p to differentiate a missing key
- * from a key with a NULL value. (Avoids calling #BLI_ghash_haskey before #BLI_ghash_lookup)
- */
 void *BLI_ghash_lookup(const GHash *gh, const void *key)
 {
   GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
@@ -807,9 +754,6 @@ void *BLI_ghash_lookup(const GHash *gh, const void *key)
   return e ? e->val : NULL;
 }
 
-/**
- * A version of #BLI_ghash_lookup which accepts a fallback argument.
- */
 void *BLI_ghash_lookup_default(const GHash *gh, const void *key, void *val_default)
 {
   GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
@@ -817,16 +761,6 @@ void *BLI_ghash_lookup_default(const GHash *gh, const void *key, void *val_defau
   return e ? e->val : val_default;
 }
 
-/**
- * Lookup a pointer to the value of \a key in \a gh.
- *
- * \param key: The key to lookup.
- * \returns the pointer to value for \a key or NULL.
- *
- * \note This has 2 main benefits over #BLI_ghash_lookup.
- * - A NULL return always means that \a key isn't in \a gh.
- * - The value can be modified in-place without further function calls (faster).
- */
 void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 {
   GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
@@ -834,20 +768,6 @@ void **BLI_ghash_lookup_p(GHash *gh, const void *key)
   return e ? &e->val : NULL;
 }
 
-/**
- * Ensure \a key is exists in \a gh.
- *
- * This handles the common situation where the caller needs ensure a key is added to \a gh,
- * constructing a new value in the case the key isn't found.
- * Otherwise use the existing value.
- *
- * Such situations typically incur multiple lookups, however this function
- * avoids them by ensuring the key is added,
- * returning a pointer to the value so it can be used or initialized by the caller.
- *
- * \returns true when the value didn't need to be added.
- * (when false, the caller _must_ initialize the value).
- */
 bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
 {
   const uint hash = ghash_keyhash(gh, key);
@@ -864,12 +784,6 @@ bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
   return haskey;
 }
 
-/**
- * A version of #BLI_ghash_ensure_p that allows caller to re-assign the key.
- * Typically used when the key is to be duplicated.
- *
- * \warning Caller _must_ write to \a r_key when returning false.
- */
 bool BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_val)
 {
   const uint hash = ghash_keyhash(gh, key);
@@ -889,14 +803,6 @@ bool BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_
   return haskey;
 }
 
-/**
- * Remove \a key from \a gh, or return false if the key wasn't found.
- *
- * \param key: The key to remove.
- * \param keyfreefp: Optional callback to free the key.
- * \param valfreefp: Optional callback to free the value.
- * \return true if \a key was removed from \a gh.
- */
 bool BLI_ghash_remove(GHash *gh,
                       const void *key,
                       GHashKeyFreeFP keyfreefp,
@@ -912,17 +818,11 @@ bool BLI_ghash_remove(GHash *gh,
   return false;
 }
 
-/* same as above but return the value,
- * no free value argument since it will be returned */
-/**
- * Remove \a key from \a gh, returning the value or NULL if the key wasn't found.
- *
- * \param key: The key to remove.
- * \param keyfreefp: Optional callback to free the key.
- * \return the value of \a key int \a gh or NULL.
- */
 void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
 {
+  /* Same as above but return the value,
+   * no free value argument since it will be returned. */
+
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
   GHashEntry *e = (GHashEntry *)ghash_remove_ex(gh, key, keyfreefp, NULL, bucket_index);
@@ -935,23 +835,11 @@ void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
   return NULL;
 }
 
-/**
- * \return true if the \a key is in \a gh.
- */
 bool BLI_ghash_haskey(const GHash *gh, const void *key)
 {
   return (ghash_lookup_entry(gh, key) != NULL);
 }
 
-/**
- * Remove a random entry from \a gh, returning true
- * if a key/value pair could be removed, false otherwise.
- *
- * \param r_key: The removed key.
- * \param r_val: The removed value.
- * \param state: Used for efficient removal.
- * \return true if there was something to pop, false if ghash was already empty.
- */
 bool BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val)
 {
   GHashEntry *e = (GHashEntry *)ghash_pop(gh, state);
@@ -970,13 +858,6 @@ bool BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val)
   return false;
 }
 
-/**
- * Reset \a gh clearing all entries.
- *
- * \param keyfreefp: Optional callback to free the key.
- * \param valfreefp: Optional callback to free the value.
- * \param nentries_reserve: Optionally reserve the number of members that the hash will hold.
- */
 void BLI_ghash_clear_ex(GHash *gh,
                         GHashKeyFreeFP keyfreefp,
                         GHashValFreeFP valfreefp,
@@ -990,21 +871,11 @@ void BLI_ghash_clear_ex(GHash *gh,
   BLI_mempool_clear_ex(gh->entrypool, nentries_reserve ? (int)nentries_reserve : -1);
 }
 
-/**
- * Wraps #BLI_ghash_clear_ex with zero entries reserved.
- */
 void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
   BLI_ghash_clear_ex(gh, keyfreefp, valfreefp, 0);
 }
 
-/**
- * Frees the GHash and its members.
- *
- * \param gh: The GHash to free.
- * \param keyfreefp: Optional callback to free the key.
- * \param valfreefp: Optional callback to free the value.
- */
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
   BLI_assert((int)gh->nentries == BLI_mempool_len(gh->entrypool));
@@ -1017,17 +888,11 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
   MEM_freeN(gh);
 }
 
-/**
- * Sets a GHash flag.
- */
 void BLI_ghash_flag_set(GHash *gh, uint flag)
 {
   gh->flag |= flag;
 }
 
-/**
- * Clear a GHash flag.
- */
 void BLI_ghash_flag_clear(GHash *gh, uint flag)
 {
   gh->flag &= ~flag;
@@ -1039,14 +904,6 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 /** \name GHash Iterator API
  * \{ */
 
-/**
- * Create a new GHashIterator. The hash table must not be mutated
- * while the iterator is in use, and the iterator will step exactly
- * #BLI_ghash_len(gh) times before becoming done.
- *
- * \param gh: The GHash to iterate over.
- * \return Pointer to a new iterator.
- */
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
   GHashIterator *ghi = MEM_mallocN(sizeof(*ghi), "ghash iterator");
@@ -1054,14 +911,6 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh)
   return ghi;
 }
 
-/**
- * Init an already allocated GHashIterator. The hash table must not
- * be mutated while the iterator is in use, and the iterator will
- * step exactly #BLI_ghash_len(gh) times before becoming done.
- *
- * \param ghi: The GHashIterator to initialize.
- * \param gh: The GHash to iterate over.
- */
 void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 {
   ghi->gh = gh;
@@ -1078,11 +927,6 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
   }
 }
 
-/**
- * Steps the iterator to the next index.
- *
- * \param ghi: The iterator.
- */
 void BLI_ghashIterator_step(GHashIterator *ghi)
 {
   if (ghi->curEntry) {
@@ -1097,11 +941,6 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
   }
 }
 
-/**
- * Free a GHashIterator.
- *
- * \param ghi: The iterator to free.
- */
 void BLI_ghashIterator_free(GHashIterator *ghi)
 {
   MEM_freeN(ghi);
@@ -1110,10 +949,7 @@ void BLI_ghashIterator_free(GHashIterator *ghi)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GSet Public API
- *
- * Use ghash API to give 'set' functionality
- * \{ */
+
 GSet *BLI_gset_new_ex(GSetHashFP hashfp,
                       GSetCmpFP cmpfp,
                       const char *info,
@@ -1127,9 +963,6 @@ GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)
   return BLI_gset_new_ex(hashfp, cmpfp, info, 0);
 }
 
-/**
- * Copy given GSet. Keys are also copied if callback is provided, else pointers remain the same.
- */
 GSet *BLI_gset_copy(const GSet *gs, GHashKeyCopyFP keycopyfp)
 {
   return (GSet *)ghash_copy((const GHash *)gs, keycopyfp, NULL);
@@ -1140,10 +973,6 @@ uint BLI_gset_len(const GSet *gs)
   return ((GHash *)gs)->nentries;
 }
 
-/**
- * Adds the key to the set (no checks for unique keys!).
- * Matching #BLI_ghash_insert
- */
 void BLI_gset_insert(GSet *gs, void *key)
 {
   const uint hash = ghash_keyhash((GHash *)gs, key);
@@ -1151,23 +980,11 @@ void BLI_gset_insert(GSet *gs, void *key)
   ghash_insert_ex_keyonly((GHash *)gs, key, bucket_index);
 }
 
-/**
- * A version of BLI_gset_insert which checks first if the key is in the set.
- * \returns true if a new key has been added.
- *
- * \note GHash has no equivalent to this because typically the value would be different.
- */
 bool BLI_gset_add(GSet *gs, void *key)
 {
   return ghash_insert_safe_keyonly((GHash *)gs, key, false, NULL);
 }
 
-/**
- * Set counterpart to #BLI_ghash_ensure_p_ex.
- * similar to BLI_gset_add, except it returns the key pointer.
- *
- * \warning Caller _must_ write to \a r_key when returning false.
- */
 bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
 {
   const uint hash = ghash_keyhash((GHash *)gs, key);
@@ -1186,23 +1003,11 @@ bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
   return haskey;
 }
 
-/**
- * Adds the key to the set (duplicates are managed).
- * Matching #BLI_ghash_reinsert
- *
- * \returns true if a new key has been added.
- */
 bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
 {
   return ghash_insert_safe_keyonly((GHash *)gs, key, true, keyfreefp);
 }
 
-/**
- * Replaces the key to the set if it's found.
- * Matching #BLI_ghash_replace_key
- *
- * \returns The old key or NULL if not found.
- */
 void *BLI_gset_replace_key(GSet *gs, void *key)
 {
   return BLI_ghash_replace_key((GHash *)gs, key);
@@ -1218,13 +1023,6 @@ bool BLI_gset_haskey(const GSet *gs, const void *key)
   return (ghash_lookup_entry((const GHash *)gs, key) != NULL);
 }
 
-/**
- * Remove a random entry from \a gs, returning true if a key could be removed, false otherwise.
- *
- * \param r_key: The removed key.
- * \param state: Used for efficient removal.
- * \return true if there was something to pop, false if gset was already empty.
- */
 bool BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key)
 {
   GSetEntry *e = (GSetEntry *)ghash_pop((GHash *)gs, (GHashIterState *)state);
@@ -1274,19 +1072,12 @@ void BLI_gset_flag_clear(GSet *gs, uint flag)
  * This can be useful when the key references data stored outside the GSet.
  * \{ */
 
-/**
- * Returns the pointer to the key if it's found.
- */
 void *BLI_gset_lookup(const GSet *gs, const void *key)
 {
   Entry *e = ghash_lookup_entry((const GHash *)gs, key);
   return e ? e->key : NULL;
 }
 
-/**
- * Returns the pointer to the key if it's found, removing it from the GSet.
- * \note Caller must handle freeing.
- */
 void *BLI_gset_pop_key(GSet *gs, const void *key)
 {
   const uint hash = ghash_keyhash((GHash *)gs, key);
@@ -1308,9 +1099,6 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
 
 #include "BLI_math.h"
 
-/**
- * \return number of buckets in the GHash.
- */
 int BLI_ghash_buckets_len(const GHash *gh)
 {
   return (int)gh->nbuckets;
@@ -1320,13 +1108,6 @@ int BLI_gset_buckets_len(const GSet *gs)
   return BLI_ghash_buckets_len((const GHash *)gs);
 }
 
-/**
- * Measure how well the hash function performs (1.0 is approx as good as random distribution),
- * and return a few other stats like load,
- * variance of the distribution of the entries in the buckets, etc.
- *
- * Smaller is better!
- */
 double BLI_ghash_calc_quality_ex(GHash *gh,
                                  double *r_load,
                                  double *r_variance,

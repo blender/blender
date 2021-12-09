@@ -91,9 +91,6 @@ BLI_Stack *BLI_stack_new_ex(const size_t elem_size,
   return stack;
 }
 
-/**
- * Create a new homogeneous stack with elements of 'elem_size' bytes.
- */
 BLI_Stack *BLI_stack_new(const size_t elem_size, const char *description)
 {
   return BLI_stack_new_ex(elem_size, description, CHUNK_SIZE_DEFAULT);
@@ -108,9 +105,6 @@ static void stack_free_chunks(struct StackChunk *data)
   }
 }
 
-/**
- * Free the stack's data and the stack itself
- */
 void BLI_stack_free(BLI_Stack *stack)
 {
   stack_free_chunks(stack->chunk_curr);
@@ -118,12 +112,6 @@ void BLI_stack_free(BLI_Stack *stack)
   MEM_freeN(stack);
 }
 
-/**
- * Push a new item onto the stack.
- *
- * \return a pointer #BLI_Stack.elem_size
- * bytes of uninitialized memory (caller must fill in).
- */
 void *BLI_stack_push_r(BLI_Stack *stack)
 {
   stack->chunk_index++;
@@ -152,26 +140,12 @@ void *BLI_stack_push_r(BLI_Stack *stack)
   return stack_get_last_elem(stack);
 }
 
-/**
- * Copies the source value onto the stack
- *
- * \note This copies #BLI_Stack.elem_size bytes from \a src,
- * (the pointer itself is not stored).
- *
- * \param src: source data to be copied to the stack.
- */
 void BLI_stack_push(BLI_Stack *stack, const void *src)
 {
   void *dst = BLI_stack_push_r(stack);
   memcpy(dst, src, stack->elem_size);
 }
 
-/**
- * Retrieves and removes the top element from the stack.
- * The value is copies to \a dst, which must be at least \a elem_size bytes.
- *
- * Does not reduce amount of allocated memory.
- */
 void BLI_stack_pop(BLI_Stack *stack, void *dst)
 {
   BLI_assert(BLI_stack_is_empty(stack) == false);
@@ -181,15 +155,6 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
   BLI_stack_discard(stack);
 }
 
-/**
- * A version of #BLI_stack_pop which fills in an array.
- *
- * \param dst: The destination array,
- * must be at least (#BLI_Stack.elem_size * \a n) bytes long.
- * \param n: The number of items to pop.
- *
- * \note The first item in the array will be last item added to the stack.
- */
 void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
 {
   BLI_assert(n <= BLI_stack_count(stack));
@@ -200,11 +165,6 @@ void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
   }
 }
 
-/**
- * A version of #BLI_stack_pop_n which fills in an array (in the reverse order).
- *
- * \note The first item in the array will be first item added to the stack.
- */
 void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, unsigned int n)
 {
   BLI_assert(n <= BLI_stack_count(stack));
@@ -224,9 +184,6 @@ void *BLI_stack_peek(BLI_Stack *stack)
   return stack_get_last_elem(stack);
 }
 
-/**
- * Removes the top element from the stack.
- */
 void BLI_stack_discard(BLI_Stack *stack)
 {
   BLI_assert(BLI_stack_is_empty(stack) == false);
@@ -247,9 +204,6 @@ void BLI_stack_discard(BLI_Stack *stack)
   }
 }
 
-/**
- * Discards all elements without freeing.
- */
 void BLI_stack_clear(BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM
@@ -304,9 +258,6 @@ size_t BLI_stack_count(const BLI_Stack *stack)
 #endif
 }
 
-/**
- * Returns true if the stack is empty, false otherwise
- */
 bool BLI_stack_is_empty(const BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM

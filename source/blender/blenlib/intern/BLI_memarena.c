@@ -179,16 +179,6 @@ void *BLI_memarena_calloc(MemArena *ma, size_t size)
   return ptr;
 }
 
-/**
- * Transfer ownership of allocated blocks from `ma_src` into `ma_dst`,
- * cleaning the contents of `ma_src`.
- *
- * \note Useful for multi-threaded tasks that need a thread-local #MemArena
- * that is kept after the multi-threaded operation is completed.
- *
- * \note Avoid accumulating memory pools where possible
- * as any unused memory in `ma_src` is wasted every merge.
- */
 void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
 {
   /* Memory arenas must be compatible. */
@@ -231,10 +221,6 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
   VALGRIND_CREATE_MEMPOOL(ma_src, 0, false);
 }
 
-/**
- * Clear for reuse, avoids re-allocation when an arena may
- * otherwise be free'd and recreated.
- */
 void BLI_memarena_clear(MemArena *ma)
 {
   if (ma->bufs) {

@@ -469,7 +469,6 @@ void mul_m4_m4m3(float R[4][4], const float A[4][4], const float B[3][3])
   R[2][2] = B_[2][0] * A_[0][2] + B_[2][1] * A_[1][2] + B_[2][2] * A_[2][2];
 }
 
-/* R = A * B, ignore the elements on the 4th row/column of A */
 void mul_m3_m3m4(float R[3][3], const float A[3][3], const float B[4][4])
 {
   float B_[4][4], A_[3][3];
@@ -493,7 +492,6 @@ void mul_m3_m3m4(float R[3][3], const float A[3][3], const float B[4][4])
   R[2][2] = B_[2][0] * A_[0][2] + B_[2][1] * A_[1][2] + B_[2][2] * A_[2][2];
 }
 
-/* R = A * B, ignore the elements on the 4th row/column of B */
 void mul_m3_m4m3(float R[3][3], const float A[4][4], const float B[3][3])
 {
   float B_[3][3], A_[4][4];
@@ -805,7 +803,6 @@ void mul_m2_v2(const float mat[2][2], float vec[2])
   mul_v2_m2v2(vec, mat, vec);
 }
 
-/** Same as #mul_m4_v3() but doesn't apply translation component. */
 void mul_mat3_m4_v3(const float M[4][4], float r[3])
 {
   const float x = r[0];
@@ -1215,16 +1212,6 @@ bool invert_m4(float m[4][4])
   return success;
 }
 
-/**
- * Computes the inverse of mat and puts it in inverse.
- * Uses Gaussian Elimination with partial (maximal column) pivoting.
- * \return true on success (i.e. can always find a pivot) and false on failure.
- * Mark Segal - 1992.
- *
- * \note this has worse performance than #EIG_invert_m4_m4 (Eigen), but e.g.
- * for non-invertible scale matrices, finding a partial solution can
- * be useful to have a valid local transform center, see T57767.
- */
 bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
 {
 #ifndef MATH_STANDALONE
@@ -1308,14 +1295,6 @@ bool invert_m4_m4(float inverse[4][4], const float mat[4][4])
 #endif
 }
 
-/**
- * Combines transformations, handling scale separately in a manner equivalent
- * to the Aligned Inherit Scale mode, in order to avoid creating shear.
- * If A scale is uniform, the result is equivalent to ordinary multiplication.
- *
- * NOTE: this effectively takes output location from simple multiplication,
- *       and uses mul_m4_m4m4_split_channels for rotation and scale.
- */
 void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B[4][4])
 {
   float loc_a[3], rot_a[3][3], size_a[3];
@@ -1332,9 +1311,6 @@ void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B
   loc_rot_size_to_mat4(R, loc_r, rot_r, size_r);
 }
 
-/**
- * Separately combines location, rotation and scale of the input matrices.
- */
 void mul_m4_m4m4_split_channels(float R[4][4], const float A[4][4], const float B[4][4])
 {
   float loc_a[3], rot_a[3][3], size_a[3];
@@ -1383,7 +1359,6 @@ void transpose_m3_m3(float R[3][3], const float M[3][3])
   R[2][2] = M[2][2];
 }
 
-/* seems obscure but in-fact a common operation */
 void transpose_m3_m4(float R[3][3], const float M[4][4])
 {
   BLI_assert(&R[0][0] != &M[0][0]);
@@ -1461,11 +1436,6 @@ bool compare_m4m4(const float mat1[4][4], const float mat2[4][4], float limit)
   return false;
 }
 
-/**
- * Make an orthonormal matrix around the selected axis of the given matrix.
- *
- * \param axis: Axis to build the orthonormal basis around.
- */
 void orthogonalize_m3(float R[3][3], int axis)
 {
   float size[3];
@@ -1550,11 +1520,6 @@ void orthogonalize_m3(float R[3][3], int axis)
   mul_v3_fl(R[2], size[2]);
 }
 
-/**
- * Make an orthonormal matrix around the selected axis of the given matrix.
- *
- * \param axis: Axis to build the orthonormal basis around.
- */
 void orthogonalize_m4(float R[4][4], int axis)
 {
   float size[3];
@@ -1692,14 +1657,6 @@ static void orthogonalize_stable(float v1[3], float v2[3], float v3[3], bool nor
   }
 }
 
-/**
- * Make an orthonormal matrix around the selected axis of the given matrix,
- * in a way that is symmetric and stable to variations in the input, and
- * preserving the value of the determinant, i.e. the overall volume change.
- *
- * \param axis: Axis to build the orthonormal basis around.
- * \param normalize: Normalize the matrix instead of preserving volume.
- */
 void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize)
 {
   switch (axis) {
@@ -1718,14 +1675,6 @@ void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize)
   }
 }
 
-/**
- * Make an orthonormal matrix around the selected axis of the given matrix,
- * in a way that is symmetric and stable to variations in the input, and
- * preserving the value of the determinant, i.e. the overall volume change.
- *
- * \param axis: Axis to build the orthonormal basis around.
- * \param normalize: Normalize the matrix instead of preserving volume.
- */
 void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
 {
   switch (axis) {
@@ -2193,10 +2142,6 @@ void mat4_to_size(float size[3], const float M[4][4])
   size[2] = len_v3(M[2]);
 }
 
-/**
- * Extract scale factors from the matrix, with correction to ensure
- * exact volume in case of a sheared matrix.
- */
 void mat4_to_size_fix_shear(float size[3], const float M[4][4])
 {
   mat4_to_size(size, M);
@@ -2208,11 +2153,6 @@ void mat4_to_size_fix_shear(float size[3], const float M[4][4])
   }
 }
 
-/**
- * This computes the overall volume scale factor of a transformation matrix.
- * For an orthogonal matrix, it is the product of all three scale values.
- * Returns a negative value if the transform is flipped by negative scale.
- */
 float mat3_to_volume_scale(const float mat[3][3])
 {
   return determinant_m3_array(mat);
@@ -2223,11 +2163,6 @@ float mat4_to_volume_scale(const float mat[4][4])
   return determinant_m4_mat3_array(mat);
 }
 
-/**
- * This gets the average scale of a matrix, only use when your scaling
- * data that has no idea of scale axis, examples are bone-envelope-radius
- * and curve radius.
- */
 float mat3_to_scale(const float mat[3][3])
 {
   /* unit length vector */
@@ -2246,7 +2181,6 @@ float mat4_to_scale(const float mat[4][4])
   return len_v3(unit_vec);
 }
 
-/** Return 2D scale (in XY plane) of given mat4. */
 float mat4_to_xy_scale(const float M[4][4])
 {
   /* unit length vector in xy plane */
@@ -2367,14 +2301,6 @@ void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
   mat[3][2] += (Tx * mat[0][2] + Ty * mat[1][2] + Tz * mat[2][2]);
 }
 
-/* TODO: enum for axis? */
-/**
- * Rotate a matrix in-place.
- *
- * \note To create a new rotation matrix see:
- * #axis_angle_to_mat4_single, #axis_angle_to_mat3_single, #angle_to_mat2
- * (axis & angle args are compatible).
- */
 void rotate_m4(float mat[4][4], const char axis, const float angle)
 {
   const float angle_cos = cosf(angle);
@@ -2412,7 +2338,6 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
   }
 }
 
-/** Scale a matrix in-place. */
 void rescale_m4(float mat[4][4], const float scale[3])
 {
   mul_v3_fl(mat[0], scale[0]);
@@ -2420,14 +2345,6 @@ void rescale_m4(float mat[4][4], const float scale[3])
   mul_v3_fl(mat[2], scale[2]);
 }
 
-/**
- * Scale or rotate around a pivot point,
- * a convenience function to avoid having to do inline.
- *
- * Since its common to make a scale/rotation matrix that pivots around an arbitrary point.
- *
- * Typical use case is to make 3x3 matrix, copy to 4x4, then pass to this function.
- */
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3])
 {
   float tmat[4][4];
@@ -2495,22 +2412,6 @@ void blend_m4_m4m4(float out[4][4],
 
 /* for builds without Eigen */
 #ifndef MATH_STANDALONE
-/**
- * A polar-decomposition-based interpolation between matrix A and matrix B.
- *
- * \note This code is about five times slower as the 'naive' interpolation done by #blend_m3_m3m3
- * (it typically remains below 2 usec on an average i74700,
- * while #blend_m3_m3m3 remains below 0.4 usec).
- * However, it gives expected results even with non-uniformly scaled matrices,
- * see T46418 for an example.
- *
- * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
- *
- * \param R: Resulting interpolated matrix.
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
- * \param t: Interpolation factor.
- */
 void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], const float t)
 {
   /* 'Rotation' component ('U' part of polar decomposition,
@@ -2556,15 +2457,6 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
   mul_m3_m3m3(R, U, P);
 }
 
-/**
- * Complete transform matrix interpolation,
- * based on polar-decomposition-based interpolation from #interp_m3_m3m3.
- *
- * \param R: Resulting interpolated matrix.
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
- * \param t: Interpolation factor.
- */
 void interp_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], const float t)
 {
   float A3[3][3], B3[3][3], R3[3][3];
@@ -2621,10 +2513,6 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4])
           equals_v4v4(mat1[2], mat2[2]) && equals_v4v4(mat1[3], mat2[3]));
 }
 
-/**
- * Make a 4x4 matrix out of 3 transform components.
- * Matrices are made in the order: `scale * rot * loc`
- */
 void loc_rot_size_to_mat4(float R[4][4],
                           const float loc[3],
                           const float rot[3][3],
@@ -2635,12 +2523,6 @@ void loc_rot_size_to_mat4(float R[4][4],
   copy_v3_v3(R[3], loc);
 }
 
-/**
- * Make a 4x4 matrix out of 3 transform components.
- * Matrices are made in the order: `scale * rot * loc`
- *
- * TODO: need to have a version that allows for rotation order...
- */
 void loc_eul_size_to_mat4(float R[4][4],
                           const float loc[3],
                           const float eul[3],
@@ -2665,10 +2547,6 @@ void loc_eul_size_to_mat4(float R[4][4],
   R[3][2] = loc[2];
 }
 
-/**
- * Make a 4x4 matrix out of 3 transform components.
- * Matrices are made in the order: `scale * rot * loc`
- */
 void loc_eulO_size_to_mat4(float R[4][4],
                            const float loc[3],
                            const float eul[3],
@@ -2694,10 +2572,6 @@ void loc_eulO_size_to_mat4(float R[4][4],
   R[3][2] = loc[2];
 }
 
-/**
- * Make a 4x4 matrix out of 3 transform components.
- * Matrices are made in the order: `scale * rot * loc`
- */
 void loc_quat_size_to_mat4(float R[4][4],
                            const float loc[3],
                            const float quat[4],
@@ -2751,18 +2625,11 @@ void print_m4(const char *str, const float m[4][4])
   printf("\n");
 }
 
-/*********************************** SVD ************************************
- * from TNT matrix library
- *
- * Compute the Single Value Decomposition of an arbitrary matrix A
- * That is compute the 3 matrices U,W,V with U column orthogonal (m,n)
- * ,W a diagonal matrix and V an orthogonal square matrix `s.t.A = U.W.Vt`.
- * From this decomposition it is trivial to compute the (pseudo-inverse)
- * of `A` as `Ainv = V.Winv.transpose(U)`.
- */
-
 void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 {
+  /* NOTE: originally from TNT (template numeric toolkit) matrix library.
+   * https://math.nist.gov/tnt */
+
   float A[4][4];
   float work1[4], work2[4];
   int m = 4;
@@ -3269,12 +3136,6 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
  * where we want to specify the length of the degenerate axes.
  * \{ */
 
-/**
- * A safe version of invert that uses valid axes, calculating the zero'd axis
- * based on the non-zero ones.
- *
- * This works well for transformation matrices, when a single axis is zerod.
- */
 void invert_m4_m4_safe_ortho(float Ainv[4][4], const float A[4][4])
 {
   if (UNLIKELY(!invert_m4_m4(Ainv, A))) {
@@ -3299,37 +3160,6 @@ void invert_m3_m3_safe_ortho(float Ainv[3][3], const float A[3][3])
 
 /** \} */
 
-/**
- * #SpaceTransform struct encapsulates all needed data to convert between two coordinate spaces
- * (where conversion can be represented by a matrix multiplication).
- *
- * A SpaceTransform is initialized using:
- * - #BLI_SPACE_TRANSFORM_SETUP(&data,  ob1, ob2)
- *
- * After that the following calls can be used:
- * - Converts a coordinate in ob1 space to the corresponding ob2 space:
- *   #BLI_space_transform_apply(&data, co);
- * - Converts a coordinate in ob2 space to the corresponding ob1 space:
- *   #BLI_space_transform_invert(&data, co);
- *
- * Same concept as #BLI_space_transform_apply and #BLI_space_transform_invert,
- * but no is normalized after conversion (and not translated at all!):
- * - #BLI_space_transform_apply_normal(&data, no);
- * - #BLI_space_transform_invert_normal(&data, no);
- */
-
-/**
- * Global-invariant transform.
- *
- * This defines a matrix transforming a point in local space to a point in target space
- * such that its global coordinates remain unchanged.
- *
- * In other words, if we have a global point P with local coordinates (x, y, z)
- * and global coordinates (X, Y, Z),
- * this defines a transform matrix TM such that (x', y', z') = TM * (x, y, z)
- * where (x', y', z') are the coordinates of P' in target space
- * such that it keeps (X, Y, Z) coordinates in global space.
- */
 void BLI_space_transform_from_matrices(SpaceTransform *data,
                                        const float local[4][4],
                                        const float target[4][4])
@@ -3340,18 +3170,6 @@ void BLI_space_transform_from_matrices(SpaceTransform *data,
   invert_m4_m4(data->target2local, data->local2target);
 }
 
-/**
- * Local-invariant transform.
- *
- * This defines a matrix transforming a point in global space
- * such that its local coordinates (from local space to target space) remain unchanged.
- *
- * In other words, if we have a local point p with local coordinates (x, y, z)
- * and global coordinates (X, Y, Z),
- * this defines a transform matrix TM such that (X', Y', Z') = TM * (X, Y, Z)
- * where (X', Y', Z') are the coordinates of p' in global space
- * such that it keeps (x, y, z) coordinates in target space.
- */
 void BLI_space_transform_global_from_matrices(SpaceTransform *data,
                                               const float local[4][4],
                                               const float target[4][4])

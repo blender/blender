@@ -86,11 +86,6 @@ float normal_quad_v3(
   return normalize_v3(n);
 }
 
-/**
- * Computes the normal of a planar
- * polygon See Graphics Gems for
- * computing newell normal.
- */
 float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
 {
   cross_poly_v3(n, verts, nr);
@@ -112,7 +107,6 @@ float area_squared_quad_v3(const float v1[3],
   return area_squared_poly_v3(verts, 4);
 }
 
-/* Triangles */
 float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 {
   float n[3];
@@ -162,12 +156,6 @@ float area_squared_poly_v3(const float verts[][3], unsigned int nr)
   return len_squared_v3(n);
 }
 
-/**
- * Scalar cross product of a 2d polygon.
- *
- * - equivalent to `area * 2`
- * - useful for checking polygon winding (a positive value is clockwise).
- */
 float cross_poly_v2(const float verts[][2], unsigned int nr)
 {
   unsigned int a;
@@ -236,28 +224,18 @@ float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float 
 
 /********************************* Planes **********************************/
 
-/**
- * Calculate a plane from a point and a direction,
- * \note \a point_no isn't required to be normalized.
- */
 void plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const float plane_no[3])
 {
   copy_v3_v3(r_plane, plane_no);
   r_plane[3] = -dot_v3v3(r_plane, plane_co);
 }
 
-/**
- * Get a point and a direction from a plane.
- */
 void plane_to_point_vector_v3(const float plane[4], float r_plane_co[3], float r_plane_no[3])
 {
   mul_v3_v3fl(r_plane_co, plane, (-plane[3] / len_squared_v3(plane)));
   copy_v3_v3(r_plane_no, plane);
 }
 
-/**
- * version of #plane_to_point_vector_v3 that gets a unit length vector.
- */
 void plane_to_point_vector_v3_normalized(const float plane[4],
                                          float r_plane_co[3],
                                          float r_plane_no[3])
@@ -268,9 +246,6 @@ void plane_to_point_vector_v3_normalized(const float plane[4],
 
 /********************************* Volume **********************************/
 
-/**
- * The volume from a tetrahedron, points can be in any order
- */
 float volume_tetrahedron_v3(const float v1[3],
                             const float v2[3],
                             const float v3[3],
@@ -283,9 +258,6 @@ float volume_tetrahedron_v3(const float v1[3],
   return fabsf(determinant_m3_array(m)) / 6.0f;
 }
 
-/**
- * The volume from a tetrahedron, normal pointing inside gives negative volume
- */
 float volume_tetrahedron_signed_v3(const float v1[3],
                                    const float v2[3],
                                    const float v3[3],
@@ -298,12 +270,6 @@ float volume_tetrahedron_signed_v3(const float v1[3],
   return determinant_m3_array(m) / 6.0f;
 }
 
-/**
- * The volume from a triangle that is made into a tetrahedron.
- * This uses a simplified formula where the tip of the tetrahedron is in the world origin.
- * Using this method, the total volume of a closed triangle mesh can be calculated.
- * Note that you need to divide the result by 6 to get the actual volume.
- */
 float volume_tri_tetrahedron_signed_v3_6x(const float v1[3], const float v2[3], const float v3[3])
 {
   float v_cross[3];
@@ -319,8 +285,6 @@ float volume_tri_tetrahedron_signed_v3(const float v1[3], const float v2[3], con
 
 /********************************* Distance **********************************/
 
-/* distance p to line v1-v2
- * using Hesse formula, NO LINE PIECE! */
 float dist_squared_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
   float closest[2];
@@ -334,7 +298,6 @@ float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
   return sqrtf(dist_squared_to_line_v2(p, l1, l2));
 }
 
-/* distance p to line-piece v1-v2 */
 float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
 {
   float closest[2];
@@ -349,7 +312,6 @@ float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l
   return sqrtf(dist_squared_to_line_segment_v2(p, l1, l2));
 }
 
-/* point closest to v1 on line v2-v3 in 2D */
 void closest_to_line_segment_v2(float r_close[2],
                                 const float p[2],
                                 const float l1[2],
@@ -371,7 +333,6 @@ void closest_to_line_segment_v2(float r_close[2],
   }
 }
 
-/* point closest to v1 on line v2-v3 in 3D */
 void closest_to_line_segment_v3(float r_close[3],
                                 const float p[3],
                                 const float l1[3],
@@ -393,15 +354,6 @@ void closest_to_line_segment_v3(float r_close[3],
   }
 }
 
-/**
- * Find the closest point on a plane.
- *
- * \param r_close: Return coordinate
- * \param plane: The plane to test against.
- * \param pt: The point to find the nearest of
- *
- * \note non-unit-length planes are supported.
- */
 void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[3])
 {
   const float len_sq = len_squared_v3(plane);
@@ -462,9 +414,6 @@ float dist_squared_to_plane3_v3(const float pt[3], const float plane[3])
   return len_sq * (fac * fac);
 }
 
-/**
- * Return the signed distance from the point to the plane.
- */
 float dist_signed_to_plane_v3(const float pt[3], const float plane[4])
 {
   const float len_sq = len_squared_v3(plane);
@@ -489,7 +438,6 @@ float dist_to_plane3_v3(const float pt[3], const float plane[3])
   return fabsf(dist_signed_to_plane3_v3(pt, plane));
 }
 
-/* distance v1 to line-piece l1-l2 in 3D */
 float dist_squared_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3])
 {
   float closest[3];
@@ -517,29 +465,6 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
   return sqrtf(dist_squared_to_line_v3(p, l1, l2));
 }
 
-/**
- * Check if \a p is inside the 2x planes defined by `(v1, v2, v3)`
- * where the 3x points define 2x planes.
- *
- * \param axis_ref: used when v1,v2,v3 form a line and to check if the corner is concave/convex.
- *
- * \note the distance from \a v1 & \a v3 to \a v2 doesn't matter
- * (it just defines the planes).
- *
- * \return the lowest squared distance to either of the planes.
- * where `(return < 0.0)` is outside.
- *
- * <pre>
- *            v1
- *            +
- *           /
- * x - out  /  x - inside
- *         /
- *        +----+
- *        v2   v3
- *           x - also outside
- * </pre>
- */
 float dist_signed_squared_to_corner_v3v3v3(const float p[3],
                                            const float v1[3],
                                            const float v2[3],
@@ -591,12 +516,6 @@ float dist_signed_squared_to_corner_v3v3v3(const float p[3],
   return max_ff(dist_a, dist_b);
 }
 
-/**
- * Compute the squared distance of a point to a line (defined as ray).
- * \param ray_origin: A point on the line.
- * \param ray_direction: Normalized direction of the line.
- * \param co: Point to which the distance is to be calculated.
- */
 float dist_squared_to_ray_v3_normalized(const float ray_origin[3],
                                         const float ray_direction[3],
                                         const float co[3])
@@ -613,12 +532,6 @@ float dist_squared_to_ray_v3_normalized(const float ray_origin[3],
   return len_squared_v3v3(co, co_projected_on_ray);
 }
 
-/**
- * Find the closest point in a seg to a ray and return the distance squared.
- * \param r_point: Is the point on segment closest to ray
- * (or to ray_origin if the ray and the segment are parallel).
- * \param r_depth: the distance of r_point projection on ray to the ray_origin.
- */
 float dist_squared_ray_to_seg_v3(const float ray_origin[3],
                                  const float ray_direction[3],
                                  const float v0[3],
@@ -655,8 +568,6 @@ float dist_squared_ray_to_seg_v3(const float ray_origin[3],
   return len_squared_v3(dvec) - square_f(depth);
 }
 
-/* Returns the coordinates of the nearest vertex and
- * the farthest vertex from a plane (or normal). */
 void aabb_get_near_far_from_plane(const float plane_no[3],
                                   const float bbmin[3],
                                   const float bbmax[3],
@@ -707,9 +618,6 @@ void dist_squared_ray_to_aabb_v3_precalc(struct DistRayAABB_Precalc *neasrest_pr
   }
 }
 
-/**
- * Returns the distance from a ray to a bound-box (projected on ray)
- */
 float dist_squared_ray_to_aabb_v3(const struct DistRayAABB_Precalc *data,
                                   const float bb_min[3],
                                   const float bb_max[3],
@@ -816,10 +724,6 @@ float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
 /** \name dist_squared_to_projected_aabb and helpers
  * \{ */
 
-/**
- * \param projmat: Projection Matrix (usually perspective
- * matrix multiplied by object matrix).
- */
 void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *precalc,
                                             const float projmat[4][4],
                                             const float winsize[2],
@@ -871,7 +775,6 @@ void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *pre
   }
 }
 
-/* Returns the distance from a 2d coordinate to a BoundBox (Projected) */
 float dist_squared_to_projected_aabb(struct DistProjectedAABBPrecalc *data,
                                      const float bbmin[3],
                                      const float bbmax[3],
@@ -1016,13 +919,12 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
 }
 /** \} */
 
-/* Adapted from "Real-Time Collision Detection" by Christer Ericson,
- * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
- *
- * Set 'r' to the point in triangle (a, b, c) closest to point 'p' */
 void closest_on_tri_to_point_v3(
     float r[3], const float p[3], const float v1[3], const float v2[3], const float v3[3])
 {
+  /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
+   * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc. */
+
   float ab[3], ac[3], ap[3], d1, d2;
   float bp[3], d3, d4, vc, cp[3], d5, d6, vb, va;
   float denom, v, w;
@@ -1100,7 +1002,6 @@ void closest_on_tri_to_point_v3(
 
 /******************************* Intersection ********************************/
 
-/* intersect Line-Line, shorts */
 int isect_seg_seg_v2_int(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
   float div, lambda, mu;
@@ -1123,7 +1024,6 @@ int isect_seg_seg_v2_int(const int v1[2], const int v2[2], const int v3[2], cons
   return ISECT_LINE_LINE_NONE;
 }
 
-/* intersect Line-Line, floats - gives intersection point */
 int isect_line_line_v2_point(
     const float v0[2], const float v1[2], const float v2[2], const float v3[2], float r_vi[2])
 {
@@ -1147,7 +1047,6 @@ int isect_line_line_v2_point(
   return ISECT_LINE_LINE_COLINEAR;
 }
 
-/* intersect Line-Line, floats */
 int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
   float div, lambda, mu;
@@ -1170,7 +1069,6 @@ int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], co
   return ISECT_LINE_LINE_NONE;
 }
 
-/* Returns a point on each segment that is closest to the other. */
 void isect_seg_seg_v3(const float a0[3],
                       const float a1[3],
                       const float b0[3],
@@ -1236,19 +1134,6 @@ void isect_seg_seg_v3(const float a0[3],
   madd_v3_v3v3fl(r_b, b0, b_dir, fac_b);
 }
 
-/**
- * Get intersection point of two 2D segments.
- *
- * \param endpoint_bias: Bias to use when testing for end-point overlap.
- * A positive value considers intersections that extend past the endpoints,
- * negative values contract the endpoints.
- * Note the bias is applied to a 0-1 factor, not scaled to the length of segments.
- *
- * \returns intersection type:
- * - -1: collinear.
- * -  1: intersection.
- * -  0: no intersection.
- */
 int isect_seg_seg_v2_point_ex(const float v0[2],
                               const float v1[2],
                               const float v2[2],
@@ -1369,18 +1254,6 @@ bool isect_seg_seg_v2_simple(const float v1[2],
 #undef CCW
 }
 
-/**
- * If intersection == ISECT_LINE_LINE_CROSS or ISECT_LINE_LINE_NONE:
- * <pre>
- * pt = v1 + lambda * (v2 - v1) = v3 + mu * (v4 - v3)
- * </pre>
- * \returns intersection type:
- * - ISECT_LINE_LINE_COLINEAR: collinear.
- * - ISECT_LINE_LINE_EXACT: intersection at an endpoint of either.
- * - ISECT_LINE_LINE_CROSS: interaction, not at an endpoint.
- * - ISECT_LINE_LINE_NONE: no intersection.
- * Also returns lambda and mu in r_lambda and r_mu.
- */
 int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
                                   const double v2[2],
                                   const double v3[2],
@@ -1415,19 +1288,6 @@ int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
   return ISECT_LINE_LINE_NONE;
 }
 
-/**
- * \param l1, l2: Coordinates (point of line).
- * \param sp, r: Coordinate and radius (sphere).
- * \return r_p1, r_p2: Intersection coordinates.
- *
- * \note The order of assignment for intersection points (\a r_p1, \a r_p2) is predictable,
- * based on the direction defined by `l2 - l1`,
- * this direction compared with the normal of each point on the sphere:
- * \a r_p1 always has a >= 0.0 dot product.
- * \a r_p2 always has a <= 0.0 dot product.
- * For example, when \a l1 is inside the sphere and \a l2 is outside,
- * \a r_p1 will always be between \a l1 and \a l2.
- */
 int isect_line_sphere_v3(const float l1[3],
                          const float l2[3],
                          const float sp[3],
@@ -1490,7 +1350,6 @@ int isect_line_sphere_v3(const float l1[3],
   return -1;
 }
 
-/* keep in sync with isect_line_sphere_v3 */
 int isect_line_sphere_v2(const float l1[2],
                          const float l2[2],
                          const float sp[2],
@@ -1498,6 +1357,8 @@ int isect_line_sphere_v2(const float l1[2],
                          float r_p1[2],
                          float r_p2[2])
 {
+  /* Keep in sync with #isect_line_sphere_v3. */
+
   const float ldir[2] = {l2[0] - l1[0], l2[1] - l1[1]};
 
   const float a = dot_v2v2(ldir, ldir);
@@ -1537,12 +1398,13 @@ int isect_line_sphere_v2(const float l1[2],
   return -1;
 }
 
-/* point in polygon (keep float and int versions in sync) */
 bool isect_point_poly_v2(const float pt[2],
                          const float verts[][2],
                          const unsigned int nr,
                          const bool UNUSED(use_holes))
 {
+  /* Keep in sync with #isect_point_poly_v2_int. */
+
   unsigned int i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
@@ -1560,6 +1422,8 @@ bool isect_point_poly_v2_int(const int pt[2],
                              const unsigned int nr,
                              const bool UNUSED(use_holes))
 {
+  /* Keep in sync with #isect_point_poly_v2. */
+
   unsigned int i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
@@ -1575,7 +1439,6 @@ bool isect_point_poly_v2_int(const int pt[2],
 
 /* point in tri */
 
-/* only single direction */
 bool isect_point_tri_v2_cw(const float pt[2],
                            const float v1[2],
                            const float v2[2],
@@ -1612,7 +1475,6 @@ int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], 
   return 0;
 }
 
-/* point in quad - only convex quads */
 int isect_point_quad_v2(
     const float pt[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
@@ -1638,10 +1500,6 @@ int isect_point_quad_v2(
   return 0;
 }
 
-/* moved from effect.c
- * test if the line starting at p1 ending at p2 intersects the triangle v0..v2
- * return non zero if it does
- */
 bool isect_line_segment_tri_v3(const float p1[3],
                                const float p2[3],
                                const float v0[3],
@@ -1692,7 +1550,6 @@ bool isect_line_segment_tri_v3(const float p1[3],
   return true;
 }
 
-/* like isect_line_segment_tri_v3, but allows epsilon tolerance around triangle */
 bool isect_line_segment_tri_epsilon_v3(const float p1[3],
                                        const float p2[3],
                                        const float v0[3],
@@ -1744,10 +1601,6 @@ bool isect_line_segment_tri_epsilon_v3(const float p1[3],
   return true;
 }
 
-/* moved from effect.c
- * test if the ray starting at p1 going in d direction intersects the triangle v0..v2
- * return non zero if it does
- */
 bool isect_ray_tri_v3(const float ray_origin[3],
                       const float ray_direction[3],
                       const float v0[3],
@@ -1799,12 +1652,6 @@ bool isect_ray_tri_v3(const float ray_origin[3],
   return true;
 }
 
-/**
- * if clip is nonzero, will only return true if lambda is >= 0.0
- * (i.e. intersection point is along positive \a ray_direction)
- *
- * \note #line_plane_factor_v3() shares logic.
- */
 bool isect_ray_plane_v3(const float ray_origin[3],
                         const float ray_direction[3],
                         const float plane[4],
@@ -2146,9 +1993,6 @@ bool isect_ray_line_v3(const float ray_origin[3],
   return true;
 }
 
-/**
- * Check if a point is behind all planes.
- */
 bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
 {
   int i;
@@ -2162,10 +2006,6 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
   return true;
 }
 
-/**
- * Check if a point is in front all planes.
- * Same as isect_point_planes_v3 but with planes facing the opposite direction.
- */
 bool isect_point_planes_v3_negated(const float (*planes)[4], const int totplane, const float p[3])
 {
   for (int i = 0; i < totplane; i++) {
@@ -2177,17 +2017,6 @@ bool isect_point_planes_v3_negated(const float (*planes)[4], const int totplane,
   return true;
 }
 
-/**
- * Intersect line/plane.
- *
- * \param r_isect_co: The intersection point.
- * \param l1: The first point of the line.
- * \param l2: The second point of the line.
- * \param plane_co: A point on the plane to intersect with.
- * \param plane_no: The direction of the plane (does not need to be normalized).
- *
- * \note #line_plane_factor_v3() shares logic.
- */
 bool isect_line_plane_v3(float r_isect_co[3],
                          const float l1[3],
                          const float l2[3],
@@ -2211,13 +2040,6 @@ bool isect_line_plane_v3(float r_isect_co[3],
   return false;
 }
 
-/**
- * Intersect three planes, return the point where all 3 meet.
- * See Graphics Gems 1 pg 305
- *
- * \param plane_a, plane_b, plane_c: Planes.
- * \param r_isect_co: The resulting intersection point.
- */
 bool isect_plane_plane_plane_v3(const float plane_a[4],
                                 const float plane_b[4],
                                 const float plane_c[4],
@@ -2251,17 +2073,6 @@ bool isect_plane_plane_plane_v3(const float plane_a[4],
   return false;
 }
 
-/**
- * Intersect two planes, return a point on the intersection and a vector
- * that runs on the direction of the intersection.
- * \note this is a slightly reduced version of #isect_plane_plane_plane_v3
- *
- * \param plane_a, plane_b: Planes.
- * \param r_isect_co: The resulting intersection point.
- * \param r_isect_no: The resulting vector of the intersection.
- *
- * \note \a r_isect_no isn't unit length.
- */
 bool isect_plane_plane_v3(const float plane_a[4],
                           const float plane_b[4],
                           float r_isect_co[3],
@@ -2296,19 +2107,6 @@ bool isect_plane_plane_v3(const float plane_a[4],
   return false;
 }
 
-/**
- * Intersect all planes, calling `callback_fn` for each point that intersects
- * 3 of the planes that isn't outside any of the other planes.
- *
- * This can be thought of as calculating a convex-hull from an array of planes.
- *
- * \param eps_coplanar: Epsilon for testing if two planes are aligned (co-planar).
- * \param eps_isect: Epsilon for testing of a point is behind any of the planes.
- *
- * \warning As complexity is a little under `O(N^3)`, this is only suitable for small arrays.
- *
- * \note This function could be optimized by some spatial structure.
- */
 bool isect_planes_v3_fn(
     const float planes[][4],
     const int planes_len,
@@ -2371,16 +2169,6 @@ bool isect_planes_v3_fn(
   return found;
 }
 
-/**
- * Intersect two triangles.
- *
- * \param r_i1, r_i2: Retrieve the overlapping edge between the 2 triangles.
- * \param r_tri_a_edge_isect_count: Indicates how many edges in the first triangle are intersected.
- * \return true when the triangles intersect.
- *
- * \note If it exists, \a r_i1 will be a point on the edge of the 1st triangle.
- * \note intersections between coplanar triangles are currently undetected.
- */
 bool isect_tri_tri_v3_ex(const float tri_a[3][3],
                          const float tri_b[3][3],
                          float r_i1[3],
@@ -2755,14 +2543,6 @@ static bool getLowestRoot(
   return false;
 }
 
-/**
- * Checks status of an AABB in relation to a list of planes.
- *
- * \returns intersection type:
- * - ISECT_AABB_PLANE_BEHIND_ONE   (0): AABB is completely behind at least 1 plane;
- * - ISECT_AABB_PLANE_CROSS_ANY    (1): AABB intersects at least 1 plane;
- * - ISECT_AABB_PLANE_IN_FRONT_ALL (2): AABB is completely in front of all planes;
- */
 int isect_aabb_planes_v3(const float (*planes)[4],
                          const int totplane,
                          const float bbmin[3],
@@ -3030,12 +2810,6 @@ bool isect_axial_line_segment_tri_v3(const int axis,
   return true;
 }
 
-/**
- * \return The number of point of interests
- * 0 - lines are collinear
- * 1 - lines are coplanar, i1 is set to intersection
- * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively
- */
 int isect_line_line_epsilon_v3(const float v1[3],
                                const float v2[3],
                                const float v3[3],
@@ -3111,10 +2885,6 @@ int isect_line_line_v3(const float v1[3],
   return isect_line_line_epsilon_v3(v1, v2, v3, v4, r_i1, r_i2, epsilon);
 }
 
-/**
- * Intersection point strictly between the two lines
- * \return false when no intersection is found.
- */
 bool isect_line_line_strict_v3(const float v1[3],
                                const float v2[3],
                                const float v3[3],
@@ -3165,12 +2935,6 @@ bool isect_line_line_strict_v3(const float v1[3],
   return false;
 }
 
-/**
- * Check if two rays are not parallel and returns a factor that indicates
- * the distance from \a ray_origin_b to the closest point on ray-a to ray-b.
- *
- * \note Neither directions need to be normalized.
- */
 bool isect_ray_ray_epsilon_v3(const float ray_origin_a[3],
                               const float ray_direction_a[3],
                               const float ray_origin_b[3],
@@ -3247,12 +3011,13 @@ void isect_ray_aabb_v3_precalc(struct IsectRayAABB_Precalc *data,
   data->sign[2] = data->ray_inv_dir[2] < 0.0f;
 }
 
-/* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
                        const float bb_min[3],
                        const float bb_max[3],
                        float *tmin_out)
 {
+  /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
+
   float bbox[2][3];
 
   copy_v3_v3(bbox[0], bb_min);
@@ -3298,13 +3063,6 @@ bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
   return true;
 }
 
-/**
- * Test a bounding box (AABB) for ray intersection.
- * Assumes the ray is already local to the boundbox space.
- *
- * \note \a direction should be normalized
- * if you intend to use the \a tmin or \a tmax distance results!
- */
 bool isect_ray_aabb_v3_simple(const float orig[3],
                               const float dir[3],
                               const float bb_min[3],
@@ -3357,10 +3115,6 @@ float closest_to_ray_v3(float r_close[3],
   return lambda;
 }
 
-/**
- * Find closest point to p on line through (l1, l2) and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2).
- */
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3])
 {
   float u[3];
@@ -3424,13 +3178,6 @@ float ray_point_factor_v3(const float p[3],
   return ray_point_factor_v3_ex(p, ray_origin, ray_direction, 0.0f, 0.0f);
 }
 
-/**
- * A simplified version of #closest_to_line_v3
- * we only need to return the `lambda`
- *
- * \param epsilon: avoid approaching divide-by-zero.
- * Passing a zero will just check for nonzero division.
- */
 float line_point_factor_v3_ex(const float p[3],
                               const float l1[3],
                               const float l2[3],
@@ -3471,9 +3218,6 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
   return line_point_factor_v2_ex(p, l1, l2, 0.0f, 0.0f);
 }
 
-/**
- * \note #isect_line_plane_v3() shares logic
- */
 float line_plane_factor_v3(const float plane_co[3],
                            const float plane_no[3],
                            const float l1[3],
@@ -3487,10 +3231,6 @@ float line_plane_factor_v3(const float plane_co[3],
   return (dot != 0.0f) ? -dot_v3v3(plane_no, h) / dot : 0.0f;
 }
 
-/**
- * Ensure the distance between these points is no greater than 'dist'.
- * If it is, scale them both into the center.
- */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)
 {
   const float dist_old = len_v3v3(v1, v2);
@@ -3508,13 +3248,6 @@ void limit_dist_v3(float v1[3], float v2[3], const float dist)
   }
 }
 
-/*
- *     x1,y2
- *     |  \
- *     |   \     .(a,b)
- *     |    \
- *     x1,y1-- x2,y1
- */
 int isect_point_tri_v2_int(
     const int x1, const int y1, const int x2, const int y2, const int a, const int b)
 {
@@ -3603,12 +3336,6 @@ bool isect_point_tri_prism_v3(const float p[3],
   return true;
 }
 
-/**
- * \param r_isect_co: The point \a p projected onto the triangle.
- * \return True when \a p is inside the triangle.
- * \note Its up to the caller to check the distance between \a p and \a r_vi
- * against an error margin.
- */
 bool isect_point_tri_v3(
     const float p[3], const float v1[3], const float v2[3], const float v3[3], float r_isect_co[3])
 {
@@ -3739,16 +3466,6 @@ bool clip_segment_v3_plane_n(const float p1[3],
 
 /****************************** Axis Utils ********************************/
 
-/**
- * \brief Normal to x,y matrix
- *
- * Creates a 3x3 matrix from a normal.
- * This matrix can be applied to vectors so their 'z' axis runs along \a normal.
- * In practice it means you can use x,y as 2d coords. \see
- *
- * \param r_mat: The matrix to return.
- * \param normal: A unit length vector.
- */
 void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 {
   BLI_ASSERT_UNIT_V3(normal);
@@ -3766,9 +3483,6 @@ void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
              is_zero_v3(normal));
 }
 
-/**
- * Same as axis_dominant_v3_to_m3, but flips the normal
- */
 void axis_dominant_v3_to_m3_negate(float r_mat[3][3], const float normal[3])
 {
   BLI_ASSERT_UNIT_V3(normal);
@@ -3888,12 +3602,6 @@ void interp_weights_quad_v3(float w[4],
   }
 }
 
-/**
- * \return
- * - 0 if the point is outside of triangle.
- * - 1 if the point is inside triangle.
- * - 2 if it's on the edge.
- */
 int barycentric_inside_triangle_v2(const float w[3])
 {
   if (IN_RANGE(w[0], 0.0f, 1.0f) && IN_RANGE(w[1], 0.0f, 1.0f) && IN_RANGE(w[2], 0.0f, 1.0f)) {
@@ -3907,9 +3615,6 @@ int barycentric_inside_triangle_v2(const float w[3])
   return 0;
 }
 
-/**
- * \return false for degenerated triangles.
- */
 bool barycentric_coords_v2(
     const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
@@ -3934,12 +3639,6 @@ bool barycentric_coords_v2(
   return false;
 }
 
-/**
- * \note Using #cross_tri_v2 means locations outside the triangle are correctly weighted.
- *
- * \note This is *exactly* the same calculation as #resolve_tri_uv_v2,
- * although it has double precision and is used for texture baking, so keep both.
- */
 void barycentric_weights_v2(
     const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
@@ -3963,11 +3662,6 @@ void barycentric_weights_v2(
   copy_v3_fl(w, 1.0f / 3.0f);
 }
 
-/**
- * A version of #barycentric_weights_v2 that doesn't allow negative weights.
- * Useful when negative values cause problems and points are only
- * ever slightly outside of the triangle.
- */
 void barycentric_weights_v2_clamped(
     const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
@@ -3991,10 +3685,6 @@ void barycentric_weights_v2_clamped(
   copy_v3_fl(w, 1.0f / 3.0f);
 }
 
-/**
- * still use 2D X,Y space but this works for verts transformed by a perspective matrix,
- * using their 4th component as a weight
- */
 void barycentric_weights_v2_persp(
     const float v1[4], const float v2[4], const float v3[4], const float co[2], float w[3])
 {
@@ -4018,11 +3708,6 @@ void barycentric_weights_v2_persp(
   copy_v3_fl(w, 1.0f / 3.0f);
 }
 
-/**
- * same as #barycentric_weights_v2 but works with a quad,
- * NOTE: untested for values outside the quad's bounds
- * this is #interp_weights_poly_v2 expanded for quads only
- */
 void barycentric_weights_v2_quad(const float v1[2],
                                  const float v2[2],
                                  const float v3[2],
@@ -4116,9 +3801,6 @@ void barycentric_weights_v2_quad(const float v1[2],
   }
 }
 
-/* given 2 triangles in 3D space, and a point in relation to the first triangle.
- * calculate the location of a point in relation to the second triangle.
- * Useful for finding relative positions with geometry */
 void transform_point_by_tri_v3(float pt_tar[3],
                                float const pt_src[3],
                                const float tri_tar_p1[3],
@@ -4163,10 +3845,6 @@ void transform_point_by_tri_v3(float pt_tar[3],
   madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
 }
 
-/**
- * Simply re-interpolates,
- * assumes p_src is between \a l_src_p1-l_src_p2
- */
 void transform_point_by_seg_v3(float p_dst[3],
                                const float p_src[3],
                                const float l_dst_p1[3],
@@ -4178,8 +3856,6 @@ void transform_point_by_seg_v3(float p_dst[3],
   interp_v3_v3v3(p_dst, l_dst_p1, l_dst_p2, t);
 }
 
-/* given an array with some invalid values this function interpolates valid values
- * replacing the invalid ones */
 int interp_sparse_array(float *array, const int list_size, const float skipval)
 {
   int found_invalid = 0;
@@ -4516,7 +4192,6 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 
 /** \} */
 
-/* (x1, v1)(t1=0)------(x2, v2)(t2=1), 0<t<1 --> (x, v)(t) */
 void interp_cubic_v3(float x[3],
                      float v[3],
                      const float x1[3],
@@ -4552,13 +4227,6 @@ void interp_cubic_v3(float x[3],
 
 #define IS_ZERO(x) ((x > (-DBL_EPSILON) && x < DBL_EPSILON) ? 1 : 0)
 
-/**
- * Barycentric reverse
- *
- * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
- *
- * \note same basic result as #barycentric_weights_v2, see its comment for details.
- */
 void resolve_tri_uv_v2(
     float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])
 {
@@ -4581,11 +4249,6 @@ void resolve_tri_uv_v2(
   }
 }
 
-/**
- * Barycentric reverse 3d
- *
- * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
- */
 void resolve_tri_uv_v3(
     float r_uv[2], const float st[3], const float st0[3], const float st1[3], const float st2[3])
 {
@@ -4617,7 +4280,6 @@ void resolve_tri_uv_v3(
   }
 }
 
-/* bilinear reverse */
 void resolve_quad_uv_v2(float r_uv[2],
                         const float st[2],
                         const float st0[2],
@@ -4628,7 +4290,6 @@ void resolve_quad_uv_v2(float r_uv[2],
   resolve_quad_uv_v2_deriv(r_uv, NULL, st, st0, st1, st2, st3);
 }
 
-/* bilinear reverse with derivatives */
 void resolve_quad_uv_v2_deriv(float r_uv[2],
                               float r_deriv[2][2],
                               const float st[2],
@@ -4719,7 +4380,6 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
   }
 }
 
-/* a version of resolve_quad_uv_v2 that only calculates the 'u' */
 float resolve_quad_u_v2(const float st[2],
                         const float st0[2],
                         const float st1[2],
@@ -4763,7 +4423,6 @@ float resolve_quad_u_v2(const float st[2],
 
 #undef IS_ZERO
 
-/* reverse of the functions above */
 void interp_bilinear_quad_v3(float data[4][3], float u, float v, float res[3])
 {
   float vec[3];
@@ -4797,9 +4456,6 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
 
 /***************************** View & Projection *****************************/
 
-/**
- * Matches `glOrtho` result.
- */
 void orthographic_m4(float matrix[4][4],
                      const float left,
                      const float right,
@@ -4825,9 +4481,6 @@ void orthographic_m4(float matrix[4][4],
   matrix[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
-/**
- * Matches `glFrustum` result.
- */
 void perspective_m4(float mat[4][4],
                     const float left,
                     const float right,
@@ -4873,8 +4526,6 @@ void perspective_m4_fov(float mat[4][4],
   mat[1][1] /= nearClip;
 }
 
-/* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords
- * (used to jitter the view) */
 void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x, const float y)
 {
   if (winmat[2][3] == -1.0f) {
@@ -4903,12 +4554,6 @@ void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x
   }
 }
 
-/**
- * Frustum planes extraction from a projection matrix
- * (homogeneous 4d vector representations of planes).
- *
- * plane parameters can be NULL if you do not need them.
- */
 void planes_from_projmat(const float mat[4][4],
                          float left[4],
                          float right[4],
@@ -5021,14 +4666,6 @@ void projmat_dimensions_db(const float winmat_fl[4][4],
   }
 }
 
-/**
- * Creates a projection matrix for a small region of the viewport.
- *
- * \param projmat: Projection Matrix.
- * \param win_size: Viewport Size.
- * \param x_min, x_max, y_min, y_max: Coordinates of the subregion.
- * \return r_projmat: Resulting Projection Matrix.
- */
 void projmat_from_subregion(const float projmat[4][4],
                             const int win_size[2],
                             const int x_min,
@@ -5363,8 +5000,6 @@ void accumulate_vertex_normals_v3(float n1[3],
   }
 }
 
-/* Add weighted face normal component into normals of the face vertices.
- * Caller must pass pre-allocated vdiffs of nverts length. */
 void accumulate_vertex_normals_poly_v3(float **vertnos,
                                        const float polyno[3],
                                        const float **vertcos,
@@ -5444,25 +5079,6 @@ void tangent_from_uv_v3(const float uv1[2],
 /****************************** Vector Clouds ********************************/
 
 /* vector clouds */
-/**
- * input
- *
- * \param list_size: 4 lists as pointer to array[list_size]
- * \param pos: current pos array of 'new' positions
- * \param weight: current weight array of 'new'weights (may be NULL pointer if you have no weights)
- * \param rpos: Reference rpos array of 'old' positions
- * \param rweight: Reference rweight array of 'old'weights
- * (may be NULL pointer if you have no weights).
- *
- * output
- *
- * \param lloc: Center of mass pos.
- * \param rloc: Center of mass rpos.
- * \param lrot: Rotation matrix.
- * \param lscale: Scale matrix.
- *
- * pointers may be NULL if not needed
- */
 
 void vcloud_estimate_transform_v3(const int list_size,
                                   const float (*pos)[3],
@@ -6057,11 +5673,6 @@ float form_factor_hemi_poly(
   return contrib;
 }
 
-/**
- * Check if the edge is convex or concave
- * (depends on face winding)
- * Copied from BM_edge_is_convex().
- */
 bool is_edge_convex_v3(const float v1[3],
                        const float v2[3],
                        const float f1_no[3],
@@ -6078,9 +5689,6 @@ bool is_edge_convex_v3(const float v1[3],
   return false;
 }
 
-/**
- * Evaluate if entire quad is a proper convex quad
- */
 bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
   /**
@@ -6176,12 +5784,6 @@ bool is_poly_convex_v2(const float verts[][2], unsigned int nr)
   return true;
 }
 
-/**
- * Check if either of the diagonals along this quad create flipped triangles
- * (normals pointing away from eachother).
- * - (1 << 0): (v1-v3) is flipped.
- * - (1 << 1): (v2-v4) is flipped.
- */
 int is_quad_flip_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
   float d_12[3], d_23[3], d_34[3], d_41[3];
@@ -6232,14 +5834,6 @@ bool is_quad_flip_v3_first_third_fast_with_normal(const float v1[3],
   return (dot_v3v3(v4, tangent) >= dot) || (dot_v3v3(v2, tangent) <= dot);
 }
 
-/**
- * Return the value which the distance between points will need to be scaled by,
- * to define a handle, given both points are on a perfect circle.
- *
- * Use when we want a bezier curve to match a circle as closely as possible.
- *
- * \note the return value will need to be divided by 0.75 for correct results.
- */
 float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
 {
   BLI_ASSERT_UNIT_V3(tan_l);
@@ -6267,14 +5861,6 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
   return ((1.0f - angle_cos) / (angle_sin * 2.0f)) / angle_sin;
 }
 
-/**
- * Utility for computing approximate geodesic distances on triangle meshes.
- *
- * Given triangle with vertex coordinates v0, v1, v2, and known geodesic distances
- * dist1 and dist2 at v1 and v2, estimate a geodesic distance at vertex v0.
- *
- * From "Dart Throwing on Surfaces", EGSR 2009. Section 7, Geodesic Dart Throwing.
- */
 float geodesic_distance_propagate_across_triangle(
     const float v0[3], const float v1[3], const float v2[3], const float dist1, const float dist2)
 {

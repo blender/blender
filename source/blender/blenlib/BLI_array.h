@@ -28,7 +28,7 @@
 /** \name Internal defines
  * \{ */
 
-/** this returns the entire size of the array, including any buffering. */
+/** This returns the entire size of the array, including any buffering. */
 #define _bli_array_totalsize_dynamic(arr) \
   (((arr) == NULL) ? 0 : MEM_allocN_len(arr) / sizeof(*(arr)))
 
@@ -44,8 +44,12 @@
 /**
  * BLI_array.c
  *
- * Doing the realloc in a macro isn't so simple,
+ * Doing the reallocation in a macro isn't so simple,
  * so use a function the macros can use.
+ *
+ * This function is only to be called via macros.
+ *
+ * \note The caller must adjust \a arr_len
  */
 void _bli_array_grow_func(void **arr_p,
                           const void *arr_static,
@@ -64,8 +68,9 @@ void _bli_array_grow_func(void **arr_p,
   void *_##arr##_static = NULL
 
 /**
- * this will use stack space, up to maxstatic array elements, before
- * switching to dynamic heap allocation */
+ * This will use stack space, up to `maxstatic` array elements,
+ * before switching to dynamic heap allocation.
+ */
 #define BLI_array_staticdeclare(arr, maxstatic) \
   int _##arr##_len = 0; \
   char _##arr##_static[maxstatic * sizeof(*(arr))]
@@ -77,7 +82,8 @@ void _bli_array_grow_func(void **arr_p,
  * Grow the array by a fixed number of items.
  *
  * Allow for a large 'num' value when the new size is more than double
- * to allocate the exact sized array. */
+ * to allocate the exact sized array.
+ */
 #define BLI_array_reserve(arr, num) \
   (void)((((void *)(arr) == NULL) && \
           ((void *)(_##arr##_static) != \
@@ -95,12 +101,16 @@ void _bli_array_grow_func(void **arr_p,
                                        num, \
                                        "BLI_array." #arr)))
 
-/** returns length of array */
+/**
+ * Returns length of array.
+ */
 #define BLI_array_grow_items(arr, num) (BLI_array_reserve(arr, num), (_##arr##_len += num))
 
 #define BLI_array_grow_one(arr) BLI_array_grow_items(arr, 1)
 
-/** appends an item to the array. */
+/**
+ * Appends an item to the array.
+ */
 #define BLI_array_append(arr, item) \
   ((void)BLI_array_grow_one(arr), (void)(arr[_##arr##_len - 1] = item))
 
@@ -111,7 +121,9 @@ void _bli_array_grow_func(void **arr_p,
 #define BLI_array_append_r(arr, item) \
   ((void)BLI_array_grow_one(arr), (void)(arr[_##arr##_len - 1] = item), (&arr[_##arr##_len - 1]))
 
-/** appends (grows) & returns a pointer to the uninitialized memory */
+/**
+ * Appends (grows) & returns a pointer to the uninitialized memory.
+ */
 #define BLI_array_append_ret(arr) (BLI_array_reserve(arr, 1), &arr[(_##arr##_len++)])
 
 #define BLI_array_free(arr) \
@@ -127,7 +139,8 @@ void _bli_array_grow_func(void **arr_p,
 
 /**
  * Resets the logical size of an array to zero, but doesn't
- * free the memory. */
+ * free the memory.
+ */
 #define BLI_array_clear(arr) \
   { \
     _##arr##_len = 0; \
@@ -135,30 +148,32 @@ void _bli_array_grow_func(void **arr_p,
   ((void)0)
 
 /**
- * Set the length of the array, doesn't actually increase the allocated array
- * size.  don't use this unless you know what you're doing. */
+ * Set the length of the array, doesn't actually increase the allocated array size.
+ * Don't use this unless you know what you're doing.
+ */
 #define BLI_array_len_set(arr, len) \
   { \
     _##arr##_len = (len); \
   } \
   ((void)0)
 
-/** only to prevent unused warnings */
+/**
+ * Only to prevent unused warnings.
+ */
 #define BLI_array_fake_user(arr) ((void)_##arr##_len, (void)_##arr##_static)
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Array Utils
- * other useful defines
- * (unrelated to the main array macros)
  *
+ * Other useful defines (unrelated to the main array macros).
  * \{ */
 
 /**
- * Not part of the 'API' but handy functions,
- * same purpose as #BLI_array_staticdeclare()
- * but use when the max size is known ahead of time */
+ * Not part of the 'API' but handy functions, same purpose as #BLI_array_staticdeclare()
+ * but use when the max size is known ahead of time.
+ */
 #define BLI_array_fixedstack_declare(arr, maxstatic, realsize, allocstr) \
   char _##arr##_static[maxstatic * sizeof(*(arr))]; \
   const bool _##arr##_is_static = ((void *)_##arr##_static) != \

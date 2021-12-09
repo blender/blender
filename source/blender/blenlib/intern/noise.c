@@ -429,15 +429,17 @@ static float orgBlenderNoise(float x, float y, float z)
   return n;
 }
 
-/* as orgBlenderNoise(), returning signed noise */
 static float orgBlenderNoiseS(float x, float y, float z)
 {
+  /* NOTE: As #orgBlenderNoise(), returning signed noise. */
+
   return (2.0f * orgBlenderNoise(x, y, z) - 1.0f);
 }
 
-/* separated from orgBlenderNoise above, with scaling */
 float BLI_noise_hnoise(float noisesize, float x, float y, float z)
 {
+  /* NOTE: Separated from orgBlenderNoise, with scaling. */
+
   if (noisesize == 0.0f) {
     return 0.0f;
   }
@@ -447,7 +449,6 @@ float BLI_noise_hnoise(float noisesize, float x, float y, float z)
   return orgBlenderNoise(x, y, z);
 }
 
-/* original turbulence functions */
 float BLI_noise_turbulence(float noisesize, float x, float y, float z, int nr)
 {
   float s, d = 0.5, div = 1.0;
@@ -926,8 +927,6 @@ static float dist_Minkovsky(float x, float y, float z, float e)
   return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f / e);
 }
 
-/* Not 'pure' Worley, but the results are virtually the same.
- * Returns distances in da and point coords in pa */
 void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype)
 {
   float (*distfunc)(float, float, float, float);
@@ -1137,13 +1136,11 @@ static float BLI_cellNoiseU(float x, float y, float z)
   return ((float)(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
 }
 
-/* idem, signed */
 float BLI_noise_cell(float x, float y, float z)
 {
   return (2.0f * BLI_cellNoiseU(x, y, z) - 1.0f);
 }
 
-/* returns a vector/point/color in ca, using point hasharray directly */
 void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
 {
   /* avoid precision issues on unit coordinates */
@@ -1166,9 +1163,6 @@ void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
 /** \name Public API's
  * \{ */
 
-/**
- * newnoise: generic noise function for use with different `noisebasis`.
- */
 float BLI_noise_generic_noise(
     float noisesize, float x, float y, float z, bool hard, int noisebasis)
 {
@@ -1226,7 +1220,6 @@ float BLI_noise_generic_noise(
   return noisefunc(x, y, z);
 }
 
-/* newnoise: generic turbulence function for use with different noisebasis */
 float BLI_noise_generic_turbulence(
     float noisesize, float x, float y, float z, int oct, bool hard, int noisebasis)
 {
@@ -1289,21 +1282,12 @@ float BLI_noise_generic_turbulence(
   return sum;
 }
 
-/*
- * The following code is based on Ken Musgrave's explanations and sample
- * source code in the book "Texturing and Modeling: A procedural approach"
- */
-
-/**
- * Procedural `fBm` evaluated at "point"; returns value stored in "value".
- *
- * \param H: is the fractal increment parameter.
- * \param lacunarity:  is the gap between successive frequencies.
- * \param octaves: is the number of frequencies in the `fBm`.
- */
 float BLI_noise_mg_fbm(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
+  /* The following code is based on Ken Musgrave's explanations and sample
+   * source code in the book "Texturing and Modeling: A procedural approach". */
+
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1358,24 +1342,13 @@ float BLI_noise_mg_fbm(
 
 } /* fBm() */
 
-/**
- * Procedural multi-fractal evaluated at "point";
- * returns value stored in "value".
- *
- * \param H: determines the highest fractal dimension.
- * \param lacunarity: is gap between successive frequencies.
- * \param octaves: is the number of frequencies in the `fBm`.
- *
- * \note There used to be a parameter called `offset`, old docs read:
- * is the zero offset, which determines multi-fractality.
- */
-
-/* this one is in fact rather confusing,
- * there seem to be errors in the original source code (in all three versions of proc.text&mod),
- * I modified it to something that made sense to me, so it might be wrong... */
 float BLI_noise_mg_multi_fractal(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
+  /* This one is in fact rather confusing,
+   * there seem to be errors in the original source code (in all three versions of proc.text&mod),
+   * I modified it to something that made sense to me, so it might be wrong. */
+
   float (*noisefunc)(float, float, float);
   switch (noisebasis) {
     case 1:
@@ -1428,15 +1401,6 @@ float BLI_noise_mg_multi_fractal(
   return value;
 }
 
-/**
- * Heterogeneous procedural terrain function: stats by altitude method.
- * Evaluated at "point"; returns value stored in "value".
- *
- * \param H: Determines the fractal dimension of the roughest areas.
- * \param lacunarity: Is the gap between successive frequencies.
- * \param octaves: Is the number of frequencies in the `fBm`.
- * \param offset: Raises the terrain from `sea level`.
- */
 float BLI_noise_mg_hetero_terrain(float x,
                                   float y,
                                   float z,
@@ -1507,13 +1471,6 @@ float BLI_noise_mg_hetero_terrain(float x,
   return value;
 }
 
-/* Hybrid additive/multiplicative multifractal terrain model.
- *
- * Some good parameter values to start with:
- *
- *      H:           0.25
- *      offset:      0.7
- */
 float BLI_noise_mg_hybrid_multi_fractal(float x,
                                         float y,
                                         float z,
@@ -1590,14 +1547,6 @@ float BLI_noise_mg_hybrid_multi_fractal(float x,
 
 } /* HybridMultifractal() */
 
-/* Ridged multifractal terrain model.
- *
- * Some good parameter values to start with:
- *
- *      H:           1.0
- *      offset:      1.0
- *      gain:        2.0
- */
 float BLI_noise_mg_ridged_multi_fractal(float x,
                                         float y,
                                         float z,
@@ -1669,9 +1618,6 @@ float BLI_noise_mg_ridged_multi_fractal(float x,
   return result;
 } /* RidgedMultifractal() */
 
-/* "Variable Lacunarity Noise"
- * A distorted variety of Perlin noise.
- */
 float BLI_noise_mg_variable_lacunarity(
     float x, float y, float z, float distortion, int nbas1, int nbas2)
 {

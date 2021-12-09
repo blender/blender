@@ -332,17 +332,6 @@ static void task_parallel_listbase_get(void *__restrict UNUSED(userdata),
   (*r_next_index)++;
 }
 
-/**
- * This function allows to parallelize for loops over ListBase items.
- *
- * \param listbase: The double linked list to loop over.
- * \param userdata: Common userdata passed to all instances of \a func.
- * \param func: Callback function.
- * \param settings: See public API doc of ParallelRangeSettings for description of all settings.
- *
- * \note There is no static scheduling here,
- * since it would need another full loop over items to count them.
- */
 void BLI_task_parallel_listbase(ListBase *listbase,
                                 void *userdata,
                                 TaskParallelIteratorFunc func,
@@ -388,16 +377,6 @@ static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata)
   }
 }
 
-/**
- * This function allows to parallelize for loops over Mempool items.
- *
- * \param mempool: The iterable BLI_mempool to loop over.
- * \param userdata: Common userdata passed to all instances of \a func.
- * \param func: Callback function.
- * \param settings: See public API doc of TaskParallelSettings for description of all settings.
- *
- * \note There is no static scheduling here.
- */
 void BLI_task_parallel_mempool(BLI_mempool *mempool,
                                void *userdata,
                                TaskParallelMempoolFunc func,

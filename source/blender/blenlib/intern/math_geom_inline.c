@@ -164,7 +164,6 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f)
   add_sh_shsh(r, r, tmp);
 }
 
-/* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
 MINLINE void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
 {
   const float xn = fabsf(axis[0]);
@@ -185,7 +184,6 @@ MINLINE void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
   }
 }
 
-/* same as axis_dominant_v3 but return the max value */
 MINLINE float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
 {
   const float xn = fabsf(axis[0]);
@@ -209,7 +207,6 @@ MINLINE float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axi
   }
 }
 
-/* get the single dominant axis value, 0==X, 1==Y, 2==Z */
 MINLINE int axis_dominant_v3_single(const float vec[3])
 {
   const float x = fabsf(vec[0]);
@@ -218,7 +215,6 @@ MINLINE int axis_dominant_v3_single(const float vec[3])
   return ((x > y) ? ((x > z) ? 0 : 2) : ((y > z) ? 1 : 2));
 }
 
-/* the dominant axis of an orthogonal vector */
 MINLINE int axis_dominant_v3_ortho_single(const float vec[3])
 {
   const float x = fabsf(vec[0]);
@@ -243,15 +239,6 @@ MINLINE int min_axis_v3(const float vec[3])
   return ((x < y) ? ((x < z) ? 0 : 2) : ((y < z) ? 1 : 2));
 }
 
-/**
- * Simple function to either:
- * - Calculate how many triangles needed from the total number of polygons + loops.
- * - Calculate the first triangle index from the polygon index & that polygons loop-start.
- *
- * \param poly_count: The number of polygons or polygon-index
- * (3+ sided faces, 1-2 sided give incorrect results).
- * \param corner_count: The number of corners (also called loop-index).
- */
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
 {
   BLI_assert(!poly_count || corner_count > poly_count * 2);
@@ -263,17 +250,10 @@ MINLINE float plane_point_side_v3(const float plane[4], const float co[3])
   return dot_v3v3(co, plane) + plane[3];
 }
 
-/* useful to calculate an even width shell, by taking the angle between 2 planes.
- * The return value is a scale on the offset.
- * no angle between planes is 1.0, as the angle between the 2 planes approaches 180d
- * the distance gets very high, 180d would be inf, but this case isn't valid */
 MINLINE float shell_angle_to_dist(const float angle)
 {
   return (UNLIKELY(angle < SMALL_NUMBER)) ? 1.0f : fabsf(1.0f / cosf(angle));
 }
-/**
- * Equivalent to `shell_angle_to_dist(angle_normalized_v3v3(a, b))`.
- */
 MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3])
 {
   const float angle_cos = fabsf(dot_v3v3(a, b));
@@ -281,9 +261,6 @@ MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3])
   BLI_ASSERT_UNIT_V3(b);
   return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 }
-/**
- * Equivalent to `shell_angle_to_dist(angle_normalized_v2v2(a, b))`.
- */
 MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
 {
   const float angle_cos = fabsf(dot_v2v2(a, b));
@@ -292,9 +269,6 @@ MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
   return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 }
 
-/**
- * Equivalent to `shell_angle_to_dist(angle_normalized_v3v3(a, b) / 2)`.
- */
 MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[3])
 {
   float angle_cos;
@@ -306,9 +280,6 @@ MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[
   return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 }
 
-/**
- * Equivalent to `shell_angle_to_dist(angle_normalized_v2v2(a, b) / 2)`.
- */
 MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[2])
 {
   float angle_cos;

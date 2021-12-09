@@ -125,15 +125,6 @@ static void memiter_init(BLI_memiter *mi)
 /** \name Public API's
  * \{ */
 
-/**
- * \param chunk_size_min: Should be a power of two and
- * significantly larger than the average element size used.
- *
- * While allocations of any size are supported, they won't be efficient
- * (effectively becoming a single-linked list).
- *
- * Its intended that many elements can be stored per chunk.
- */
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
   BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), "BLI_memiter");
@@ -261,7 +252,6 @@ uint BLI_memiter_count(const BLI_memiter *mi)
 /** \name Helper API's
  * \{ */
 
-/* Support direct lookup for first. */
 void *BLI_memiter_elem_first(BLI_memiter *mi)
 {
   if (mi->head != NULL) {

@@ -635,6 +635,9 @@ extern "C" {
 /* defined
  * in memory_utils.c for now. I do not know where we should put it actually... */
 #ifndef __BLI_MEMORY_UTILS_H__
+/**
+ * Check if memory is zeroed, as with `memset(arr, 0, arr_size)`.
+ */
 extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #endif
 

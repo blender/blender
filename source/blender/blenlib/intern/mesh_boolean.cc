@@ -3676,10 +3676,6 @@ static void dump_test_spec(IMesh &imesh)
   }
 }
 
-/**
- * Do the boolean operation op on the polygon mesh imesh_in.
- * See the header file for a complete description.
- */
 IMesh boolean_mesh(IMesh &imesh,
                    BoolOpType op,
                    int nshapes,

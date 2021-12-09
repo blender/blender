@@ -38,6 +38,10 @@ typedef void (*MemblockValFreeFP)(void *val);
 
 BLI_memblock *BLI_memblock_create_ex(uint elem_size, uint chunk_size) ATTR_WARN_UNUSED_RESULT;
 void *BLI_memblock_alloc(BLI_memblock *mblk) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Reset elem count to 0 but keep as much memory allocated needed
+ * for at least the previous elem count.
+ */
 void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP free_callback) ATTR_NONNULL(1);
 void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback) ATTR_NONNULL(1);
 
@@ -56,6 +60,11 @@ typedef struct BLI_memblock_iter {
 void BLI_memblock_iternew(BLI_memblock *mblk, BLI_memblock_iter *iter) ATTR_NONNULL();
 void *BLI_memblock_iterstep(BLI_memblock_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/**
+ * Direct access. elem is element index inside the chosen chunk.
+ * Double usage: You can set chunk to 0 and set the absolute elem index.
+ * The correct chunk will be retrieve.
+ */
 void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 

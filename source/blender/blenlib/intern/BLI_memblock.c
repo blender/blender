@@ -99,8 +99,6 @@ void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback)
   MEM_freeN(mblk);
 }
 
-/* Reset elem count to 0 but keep as much memory allocated needed for at least the previous elem
- * count. */
 void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP free_callback)
 {
   int elem_per_chunk = mblk->chunk_size / mblk->elem_size;
@@ -191,9 +189,6 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter)
   return ptr;
 }
 
-/* Direct access. elem is element index inside the chosen chunk.
- * Double usage: You can set chunk to 0 and set the absolute elem index.
- * The correct chunk will be retrieve. */
 void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem)
 {
   BLI_assert(chunk < mblk->chunk_len);

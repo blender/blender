@@ -35,11 +35,6 @@
 
 #include "BLI_array_utils.h"
 
-/**
- *In-place array reverse.
- *
- * Access via #BLI_array_reverse
- */
 void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
 {
   const uint arr_stride_uint = (uint)arr_stride;
@@ -56,12 +51,6 @@ void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
   }
 }
 
-/**
- * In-place array wrap.
- * (rotate the array one step forward or backwards).
- *
- * Access via #BLI_array_wrap
- */
 void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir)
 {
   char *arr = arr_v;
@@ -82,12 +71,6 @@ void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir)
   }
 }
 
-/**
- *In-place array permute.
- * (re-arrange elements based on an array of indices).
- *
- * Access via #BLI_array_wrap
- */
 void _bli_array_permute(
     void *arr, const uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp)
 {
@@ -117,13 +100,6 @@ void _bli_array_permute(
   }
 }
 
-/**
- * In-place array de-duplication of an ordered array.
- *
- * \return The new length of the array.
- *
- * Access via #BLI_array_deduplicate_ordered
- */
 uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
 {
   if (UNLIKELY(arr_len <= 1)) {
@@ -146,13 +122,6 @@ uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
   return j + 1;
 }
 
-/**
- * Find the first index of an item in an array.
- *
- * Access via #BLI_array_findindex
- *
- * \note Not efficient, use for error checks/asserts.
- */
 int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
   const char *arr_step = (const char *)arr;
@@ -164,9 +133,6 @@ int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const
   return -1;
 }
 
-/**
- * A version of #BLI_array_findindex that searches from the end of the list.
- */
 int _bli_array_rfindindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
   const char *arr_step = (const char *)arr + (arr_stride * arr_len);
@@ -205,22 +171,6 @@ void _bli_array_binary_or(
   }
 }
 
-/**
- * Utility function to iterate over contiguous items in an array.
- *
- * \param use_wrap: Detect contiguous ranges across the first/last points.
- * In this case the second index of \a span_step may be lower than the first,
- * which indicates the values are wrapped.
- * \param use_delimit_bounds: When false,
- * ranges that defined by the start/end indices are excluded.
- * This option has no effect when \a use_wrap is enabled.
- * \param test_fn: Function to test if the item should be included in the range.
- * \param user_data: User data for \a test_fn.
- * \param span_step: Indices to iterate over,
- * initialize both values to the array length to initialize iteration.
- * \param r_span_len: The length of the span, useful when \a use_wrap is enabled,
- * where calculating the length isn't a simple subtraction.
- */
 bool _bli_array_iter_span(const void *arr,
                           uint arr_len,
                           size_t arr_stride,
@@ -330,9 +280,6 @@ bool _bli_array_iter_span(const void *arr,
   return false;
 }
 
-/**
- * Simple utility to check memory is zeroed.
- */
 bool _bli_array_is_zeroed(const void *arr_v, uint arr_len, size_t arr_stride)
 {
   const char *arr_step = (const char *)arr_v;
@@ -345,13 +292,6 @@ bool _bli_array_is_zeroed(const void *arr_v, uint arr_len, size_t arr_stride)
   return true;
 }
 
-/**
- * Smart function to sample a rect spiraling outside.
- * Nice for selection ID.
- *
- * \param arr_shape: dimensions [w, h].
- * \param center: coordinates [x, y] indicating where to start traversing.
- */
 bool _bli_array_iter_spiral_square(const void *arr_v,
                                    const int arr_shape[2],
                                    size_t elem_size,

@@ -284,11 +284,6 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 
 /* Top level public functions. */
 
-/**
- * Compute MD5 message digest for bytes read from 'stream'.
- * The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
- * \return Non-zero if an error occurred.
- */
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {
 #define BLOCKSIZE 4096 /* Important: must be a multiple of 64. */
@@ -362,11 +357,6 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
   return 0;
 }
 
-/**
- * Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
- * The result is always in little endian byte order,
- * so that a byte-wise output yields to the wanted ASCII representation of the message digest.
- */
 void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
 {
   struct md5_ctx ctx;

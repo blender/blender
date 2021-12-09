@@ -39,13 +39,6 @@
 /* avoid including BLI_math */
 static void unit_m4(float m[4][4]);
 
-/**
- * Determine if a rect is empty. An empty
- * rect is one with a zero (or negative)
- * width or height.
- *
- * \return True if \a rect is empty.
- */
 bool BLI_rcti_is_empty(const rcti *rect)
 {
   return ((rect->xmax <= rect->xmin) || (rect->ymax <= rect->ymin));
@@ -168,10 +161,6 @@ bool BLI_rctf_isect_pt_v(const rctf *rect, const float xy[2])
   return true;
 }
 
-/**
- * \returns shortest distance from \a rect to x/y (0 if inside)
- */
-
 int BLI_rcti_length_x(const rcti *rect, const int x)
 {
   if (x < rect->xmin) {
@@ -216,9 +205,6 @@ float BLI_rctf_length_y(const rctf *rect, const float y)
   return 0.0f;
 }
 
-/**
- * is \a rct_b inside \a rct_a
- */
 bool BLI_rctf_inside_rctf(const rctf *rct_a, const rctf *rct_b)
 {
   return ((rct_a->xmin <= rct_b->xmin) && (rct_a->xmax >= rct_b->xmax) &&
@@ -454,13 +440,6 @@ void BLI_rcti_init(rcti *rect, int xmin, int xmax, int ymin, int ymax)
   BLI_rcti_sanitize(rect);
 }
 
-/**
- * Check if X-min and Y-min are less than or equal to X-max and Y-max, respectively.
- * If this returns false, #BLI_rctf_sanitize() can be called to address this.
- *
- * This is not a hard constraint or invariant for rectangles, in some cases it may be useful to
- * have max < min. Usually this is what you'd want though.
- */
 bool BLI_rctf_is_valid(const rctf *rect)
 {
   return (rect->xmin <= rect->xmax) && (rect->ymin <= rect->ymax);
@@ -471,9 +450,6 @@ bool BLI_rcti_is_valid(const rcti *rect)
   return (rect->xmin <= rect->xmax) && (rect->ymin <= rect->ymax);
 }
 
-/**
- * Ensure X-min and Y-min are less than or equal to X-max and Y-max, respectively.
- */
 void BLI_rctf_sanitize(rctf *rect)
 {
   if (rect->xmin > rect->xmax) {
@@ -566,7 +542,6 @@ void BLI_rctf_do_minmax_v(rctf *rect, const float xy[2])
   }
 }
 
-/* given 2 rectangles - transform a point from one to another */
 void BLI_rctf_transform_pt_v(const rctf *dst,
                              const rctf *src,
                              float xy_dst[2],
@@ -579,12 +554,6 @@ void BLI_rctf_transform_pt_v(const rctf *dst,
   xy_dst[1] = dst->ymin + ((dst->ymax - dst->ymin) * xy_dst[1]);
 }
 
-/**
- * Calculate a 4x4 matrix representing the transformation between two rectangles.
- *
- * \note Multiplying a vector by this matrix does *not*
- * give the same value as #BLI_rctf_transform_pt_v.
- */
 void BLI_rctf_transform_calc_m4_pivot_min_ex(
     const rctf *dst, const rctf *src, float matrix[4][4], uint x, uint y)
 {
@@ -631,7 +600,6 @@ void BLI_rctf_recenter(rctf *rect, float x, float y)
   BLI_rctf_translate(rect, dx, dy);
 }
 
-/* change width & height around the central location */
 void BLI_rcti_resize_x(rcti *rect, int x)
 {
   rect->xmin = BLI_rcti_cent_x(rect) - (x / 2);
@@ -786,14 +754,6 @@ bool BLI_rcti_clamp_pt_v(const rcti *rect, int xy[2])
   return changed;
 }
 
-/**
- * Clamp \a rect within \a rect_bounds, setting \a r_xy to the offset.
- *
- * Keeps the top left corner within the bounds, which for user interface
- * elements is typically where the most important information is.
- *
- * \return true if a change is made.
- */
 bool BLI_rctf_clamp(rctf *rect, const rctf *rect_bounds, float r_xy[2])
 {
   bool changed = false;
@@ -1115,9 +1075,6 @@ void print_rcti(const char *str, const rcti *rect)
   } \
   ((void)0)
 
-/**
- * Expand the rectangle to fit a rotated \a src.
- */
 void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 {
   const float mat2[2] = {sinf(angle), cosf(angle)};

@@ -152,10 +152,6 @@ void BLI_threadapi_exit()
 {
 }
 
-/* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
- * problem otherwise: scene render will kill of the mutex!
- */
-
 void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
   int a;
@@ -189,7 +185,6 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
   }
 }
 
-/* amount of available threads */
 int BLI_available_threads(ListBase *threadbase)
 {
   int counter = 0;
@@ -203,7 +198,6 @@ int BLI_available_threads(ListBase *threadbase)
   return counter;
 }
 
-/* returns thread number, for sample patterns or threadsafe tables */
 int BLI_threadpool_available_thread_index(ListBase *threadbase)
 {
   int counter = 0;
@@ -305,7 +299,6 @@ void BLI_threadpool_end(ListBase *threadbase)
 
 /* System Information */
 
-/* how many threads are native on this system? */
 int BLI_system_thread_count()
 {
   static int t = -1;

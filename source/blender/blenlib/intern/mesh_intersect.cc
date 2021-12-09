@@ -150,7 +150,6 @@ Plane::Plane(const double3 &norm, const double d) : norm(norm), d(d)
   norm_exact = mpq3(0, 0, 0); /* Marks as "exact not yet populated". */
 }
 
-/** This is wrong for degenerate planes, but we don't expect to call it on those. */
 bool Plane::exact_populated() const
 {
   return norm_exact[0] != 0 || norm_exact[1] != 0 || norm_exact[2] != 0;
@@ -803,11 +802,6 @@ std::ostream &operator<<(std::ostream &os, const IMesh &mesh)
   return os;
 }
 
-/**
- * Assume bounding boxes have been expanded by a sufficient epsilon on all sides
- * so that the comparisons against the bb bounds are sufficient to guarantee that
- * if an overlap or even touching could happen, this will return true.
- */
 bool bbs_might_intersect(const BoundingBox &bb_a, const BoundingBox &bb_b)
 {
   return isect_aabb_aabb_v3(bb_a.min, bb_a.max, bb_b.min, bb_b.max);
@@ -2276,12 +2270,6 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
   return ans;
 }
 
-/**
- * Return an #IMesh that is a triangulation of a mesh with general
- * polygonal faces, #IMesh.
- * Added diagonals will be distinguishable by having edge original
- * indices of #NO_INDEX.
- */
 IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena)
 {
   Vector<Face *> face_tris;
@@ -2962,7 +2950,6 @@ static IMesh remove_degenerate_tris(const IMesh &tm_in)
   return ans;
 }
 
-/* This is the main routine for calculating the self_intersection of a triangle mesh. */
 IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena)
 {
   return trimesh_nary_intersect(
@@ -3137,9 +3124,6 @@ static std::ostream &operator<<(std::ostream &os, const ITT_value &itt)
   return os;
 }
 
-/**
- * Writing the obj_mesh has the side effect of populating verts.
- */
 void write_obj_mesh(IMesh &m, const std::string &objname)
 {
   /* Would like to use #BKE_tempdir_base() here, but that brings in dependence on kernel library.

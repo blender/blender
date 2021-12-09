@@ -367,11 +367,6 @@ void *BLI_mempool_calloc(BLI_mempool *pool)
   return retval;
 }
 
-/**
- * Free an element from the mempool.
- *
- * \note doesn't protect against double frees, take care!
- */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
   BLI_freenode *newhead = addr;
@@ -475,13 +470,6 @@ void *BLI_mempool_findelem(BLI_mempool *pool, uint index)
   return NULL;
 }
 
-/**
- * Fill in \a data with pointers to each element of the mempool,
- * to create lookup table.
- *
- * \param pool: Pool to create a table from.
- * \param data: array of pointers at least the size of 'pool->totused'
- */
 void BLI_mempool_as_table(BLI_mempool *pool, void **data)
 {
   BLI_mempool_iter iter;
@@ -495,9 +483,6 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
   BLI_assert((uint)(p - data) == pool->totused);
 }
 
-/**
- * A version of #BLI_mempool_as_table that allocates and returns the data.
- */
 void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
 {
   void **data = MEM_mallocN((size_t)pool->totused * sizeof(void *), allocstr);
@@ -505,9 +490,6 @@ void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
   return data;
 }
 
-/**
- * Fill in \a data with the contents of the mempool.
- */
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
   const uint esize = pool->esize;
@@ -522,9 +504,6 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
   BLI_assert((uint)(p - (char *)data) == pool->totused * esize);
 }
 
-/**
- * A version of #BLI_mempool_as_array that allocates and returns the data.
- */
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
   char *data = MEM_malloc_arrayN(pool->totused, pool->esize, allocstr);
@@ -532,9 +511,6 @@ void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
   return data;
 }
 
-/**
- * Initialize a new mempool iterator, #BLI_MEMPOOL_ALLOW_ITER flag must be set.
- */
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -550,19 +526,6 @@ static void mempool_threadsafe_iternew(BLI_mempool *pool, BLI_mempool_threadsafe
   ts_iter->curchunk_threaded_shared = NULL;
 }
 
-/**
- * Initialize an array of mempool iterators, #BLI_MEMPOOL_ALLOW_ITER flag must be set.
- *
- * This is used in threaded code, to generate as much iterators as needed
- * (each task should have its own),
- * such that each iterator goes over its own single chunk,
- * and only getting the next chunk to iterate over has to be
- * protected against concurrency (which can be done in a lockless way).
- *
- * To be used when creating a task for each single item in the pool is totally overkill.
- *
- * See BLI_task_parallel_mempool implementation for detailed usage example.
- */
 ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -625,13 +588,8 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
   return ret;
 }
 
-#else
+#else /* Optimized version of code above. */
 
-/* optimized version of code above */
-
-/**
- * Step over the iterator, returning the mempool item or NULL.
- */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 {
   if (UNLIKELY(iter->curchunk == NULL)) {
@@ -660,11 +618,6 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
   return ret;
 }
 
-/**
- * A version of #BLI_mempool_iterstep that uses
- * #BLI_mempool_threadsafe_iter.curchunk_threaded_shared for threaded iteration support.
- * (threaded section noted in comments).
- */
 void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
 {
   BLI_mempool_iter *iter = &ts_iter->iter;
@@ -710,12 +663,6 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
 
 #endif
 
-/**
- * Empty the pool, as if it were just created.
- *
- * \param pool: The pool to clear.
- * \param totelem_reserve: Optionally reserve how many items should be kept from clearing.
- */
 void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 {
   BLI_mempool_chunk *mpchunk;
@@ -768,17 +715,11 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
   }
 }
 
-/**
- * Wrap #BLI_mempool_clear_ex with no reserve set.
- */
 void BLI_mempool_clear(BLI_mempool *pool)
 {
   BLI_mempool_clear_ex(pool, -1);
 }
 
-/**
- * Free the mempool its self (and all elements).
- */
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
   mempool_chunk_free_all(pool->chunks);

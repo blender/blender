@@ -101,6 +101,7 @@ MINLINE void copy_v4_fl(float r[4], float f)
 }
 
 /* unsigned char */
+
 MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2])
 {
   r[0] = a[0];
@@ -144,6 +145,7 @@ MINLINE void copy_v4_uchar(unsigned char r[4], const unsigned char a)
 }
 
 /* char */
+
 MINLINE void copy_v2_v2_char(char r[2], const char a[2])
 {
   r[0] = a[0];
@@ -224,6 +226,7 @@ MINLINE void copy_v4_v4_int(int r[4], const int a[4])
 }
 
 /* double */
+
 MINLINE void zero_v3_db(double r[3])
 {
   r[0] = 0.0;
@@ -252,7 +255,6 @@ MINLINE void copy_v4_v4_db(double r[4], const double a[4])
   r[3] = a[3];
 }
 
-/* int <-> float */
 MINLINE void round_v2i_v2fl(int r[2], const float a[2])
 {
   r[0] = (int)roundf(a[0]);
@@ -266,6 +268,7 @@ MINLINE void copy_v2fl_v2i(float r[2], const int a[2])
 }
 
 /* double -> float */
+
 MINLINE void copy_v2fl_v2db(float r[2], const double a[2])
 {
   r[0] = (float)a[0];
@@ -288,6 +291,7 @@ MINLINE void copy_v4fl_v4db(float r[4], const double a[4])
 }
 
 /* float -> double */
+
 MINLINE void copy_v2db_v2fl(double r[2], const float a[2])
 {
   r[0] = (double)a[0];
@@ -331,6 +335,7 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 }
 
 /* float args -> vec */
+
 MINLINE void copy_v2_fl2(float v[2], float x, float y)
 {
   v[0] = x;
@@ -639,26 +644,11 @@ MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
   r[1] = mat[1] * vec[0] + (+mat[0]) * vec[1];
 }
 
-/**
- * Convenience function to get the projected depth of a position.
- * This avoids creating a temporary 4D vector and multiplying it - only for the 4th component.
- *
- * Matches logic for:
- *
- * \code{.c}
- * float co_4d[4] = {co[0], co[1], co[2], 1.0};
- * mul_m4_v4(mat, co_4d);
- * return co_4d[3];
- * \endcode
- */
 MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3])
 {
   return (mat[0][3] * co[0]) + (mat[1][3] * co[1]) + (mat[2][3] * co[2]) + mat[3][3];
 }
 
-/**
- * Has the effect of #mul_m3_v3(), on a single axis.
- */
 MINLINE float dot_m3_v3_row_x(const float M[3][3], const float a[3])
 {
   return M[0][0] * a[0] + M[1][0] * a[1] + M[2][0] * a[2];
@@ -672,10 +662,6 @@ MINLINE float dot_m3_v3_row_z(const float M[3][3], const float a[3])
   return M[0][2] * a[0] + M[1][2] * a[1] + M[2][2] * a[2];
 }
 
-/**
- * Has the effect of #mul_mat3_m4_v3(), on a single axis.
- * (no adding translation)
- */
 MINLINE float dot_m4_v3_row_x(const float M[4][4], const float a[3])
 {
   return M[0][0] * a[0] + M[1][0] * a[1] + M[2][0] * a[2];
@@ -817,7 +803,6 @@ MINLINE void negate_v4_v4(float r[4], const float a[4])
   r[3] = -a[3];
 }
 
-/* could add more... */
 MINLINE void negate_v3_short(short r[3])
 {
   r[0] = (short)-r[0];
@@ -962,8 +947,6 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
   r[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-/* cross product suffers from severe precision loss when vectors are
- * nearly parallel or opposite; doing the computation in double helps a lot */
 MINLINE void cross_v3_v3v3_hi_prec(float r[3], const float a[3], const float b[3])
 {
   BLI_assert(r != a && r != b);
@@ -980,10 +963,6 @@ MINLINE void cross_v3_v3v3_db(double r[3], const double a[3], const double b[3])
   r[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-/* Newell's Method */
-/* excuse this fairly specific function,
- * its used for polygon normals all over the place
- * could use a better name */
 MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3])
 {
   n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
@@ -1158,9 +1137,6 @@ MINLINE float len_v4v4(const float a[4], const float b[4])
   return len_v4(d);
 }
 
-/**
- * \note any vectors containing `nan` will be zeroed out.
- */
 MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_length)
 {
   float d = dot_v2v2(a, a);
@@ -1192,9 +1168,6 @@ MINLINE float normalize_v2_length(float n[2], const float unit_length)
   return normalize_v2_v2_length(n, n, unit_length);
 }
 
-/**
- * \note any vectors containing `nan` will be zeroed out.
- */
 MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_length)
 {
   float d = dot_v3v3(a, a);
@@ -1498,18 +1471,6 @@ MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4])
 
 /** \} */
 
-/**
- * <pre>
- *        + l1
- *        |
- * neg <- | -> pos
- *        |
- *        + l2
- * </pre>
- *
- * \return Positive value when 'pt' is left-of-line
- * (looking from 'l1' -> 'l2').
- */
 MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])
 {
   return (((l1[0] - pt[0]) * (l2[1] - pt[1])) - ((l2[0] - pt[0]) * (l1[1] - pt[1])));

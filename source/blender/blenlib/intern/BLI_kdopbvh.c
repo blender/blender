@@ -867,9 +867,6 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
 /** \name BLI_bvhtree API
  * \{ */
 
-/**
- * \note many callers don't check for `NULL` return.
- */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {
   BVHTree *tree;
@@ -1013,7 +1010,6 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
   bvhtree_node_inflate(tree, node, tree->epsilon);
 }
 
-/* call before BLI_bvhtree_update_tree() */
 bool BLI_bvhtree_update_node(
     BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints)
 {
@@ -1038,9 +1034,6 @@ bool BLI_bvhtree_update_node(
   return true;
 }
 
-/**
- * Call #BLI_bvhtree_update_node() first for every node/point/triangle.
- */
 void BLI_bvhtree_update_tree(BVHTree *tree)
 {
   /* Update bottom=>top
@@ -1054,18 +1047,11 @@ void BLI_bvhtree_update_tree(BVHTree *tree)
     node_join(tree, *index);
   }
 }
-/**
- * Number of times #BLI_bvhtree_insert has been called.
- * mainly useful for asserts functions to check we added the correct number.
- */
 int BLI_bvhtree_get_len(const BVHTree *tree)
 {
   return tree->totleaf;
 }
 
-/**
- * Maximum number of children that a node can have.
- */
 int BLI_bvhtree_get_tree_type(const BVHTree *tree)
 {
   return tree->tree_type;
@@ -1076,9 +1062,6 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree)
   return tree->epsilon;
 }
 
-/**
- * This function returns the bounding box of the BVH tree.
- */
 void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3])
 {
   BVHNode *root = tree->nodes[tree->totleaf];
@@ -1264,11 +1247,6 @@ static bool tree_overlap_traverse_num(BVHOverlapData_Thread *data_thread,
   return false;
 }
 
-/**
- * Use to check the total number of threads #BLI_bvhtree_overlap will use.
- *
- * \warning Must be the first tree passed to #BLI_bvhtree_overlap!
- */
 int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
 {
   return (int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
@@ -1717,10 +1695,6 @@ static bool dfs_find_duplicate_fast_dfs(BVHNearestData *data, BVHNode *node)
   return false;
 }
 
-/**
- * Find the first node nearby.
- * Favors speed over quality since it doesn't find the best target node.
- */
 int BLI_bvhtree_find_nearest_first(BVHTree *tree,
                                    const float co[3],
                                    const float dist_sq,
@@ -2020,15 +1994,6 @@ float BLI_bvhtree_bb_raycast(const float bv[6],
   return dist;
 }
 
-/**
- * Calls the callback for every ray intersection
- *
- * \note Using a \a callback which resets or never sets the #BVHTreeRayHit index & dist works too,
- * however using this function means existing generic callbacks can be used from custom callbacks
- * without having to handle resetting the hit beforehand.
- * It also avoid redundant argument and return value which aren't meaningful
- * when collecting multiple hits.
- */
 void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
                                  const float co[3],
                                  const float dir[3],
@@ -2395,18 +2360,6 @@ static bool bvhtree_walk_dfs_recursive(BVHTree_WalkData *walk_data, const BVHNod
   return true;
 }
 
-/**
- * This is a generic function to perform a depth first search on the #BVHTree
- * where the search order and nodes traversed depend on callbacks passed in.
- *
- * \param tree: Tree to walk.
- * \param walk_parent_cb: Callback on a parents bound-box to test if it should be traversed.
- * \param walk_leaf_cb: Callback to test leaf nodes, callback must store its own result,
- * returning false exits early.
- * \param walk_order_cb: Callback that indicates which direction to search,
- * either from the node with the lower or higher K-DOP axis value.
- * \param userdata: Argument passed to all callbacks.
- */
 void BLI_bvhtree_walk_dfs(BVHTree *tree,
                           BVHTree_WalkParentCallback walk_parent_cb,
                           BVHTree_WalkLeafCallback walk_leaf_cb,

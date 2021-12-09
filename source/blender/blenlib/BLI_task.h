@@ -35,20 +35,24 @@ extern "C" {
 
 struct BLI_mempool;
 
-/* Task Scheduler
+/* -------------------------------------------------------------------- */
+/** \name Task Scheduler
  *
- * Central scheduler that holds running threads ready to execute tasks. A single
- * queue holds the task from all pools.
+ * Central scheduler that holds running threads ready to execute tasks.
+ * A single queue holds the task from all pools.
  *
- * Init/exit must be called before/after any task pools are created/freed, and
- * must be called from the main threads. All other scheduler and pool functions
- * are thread-safe. */
+ * Initialize/exit must be called before/after any task pools are created/freed, and must
+ * be called from the main threads. All other scheduler and pool functions are thread-safe.
+ * \{ */
 
 void BLI_task_scheduler_init(void);
 void BLI_task_scheduler_exit(void);
 int BLI_task_scheduler_num_threads(void);
 
-/* Task Pool
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Task Pool
  *
  * Pool of tasks that will be executed by the central task scheduler. For each
  * pool, we can wait for all tasks to be done, or cancel them before they are
@@ -60,7 +64,7 @@ int BLI_task_scheduler_num_threads(void);
  * pool with smaller tasks. When other threads are busy they will continue
  * working on their own tasks, if not they will join in, no new threads will
  * be launched.
- */
+ * \{ */
 
 typedef enum eTaskPriority {
   TASK_PRIORITY_LOW,
@@ -71,25 +75,34 @@ typedef struct TaskPool TaskPool;
 typedef void (*TaskRunFunction)(TaskPool *__restrict pool, void *taskdata);
 typedef void (*TaskFreeFunction)(TaskPool *__restrict pool, void *taskdata);
 
-/* Regular task pool that immediately starts executing tasks as soon as they
- * are pushed, either on the current or another thread. */
+/**
+ * Regular task pool that immediately starts executing tasks as soon as they
+ * are pushed, either on the current or another thread.
+ */
 TaskPool *BLI_task_pool_create(void *userdata, eTaskPriority priority);
 
-/* Background: always run tasks in a background thread, never immediately
- * execute them. For running background jobs. */
+/**
+ * Background: always run tasks in a background thread, never immediately
+ * execute them. For running background jobs.
+ */
 TaskPool *BLI_task_pool_create_background(void *userdata, eTaskPriority priority);
 
-/* Background Serial: run tasks one after the other in the background,
- * without parallelization between the tasks. */
+/**
+ * Background Serial: run tasks one after the other in the background,
+ * without parallelization between the tasks.
+ */
 TaskPool *BLI_task_pool_create_background_serial(void *userdata, eTaskPriority priority);
 
-/* Suspended: don't execute tasks until work_and_wait is called. This is slower
+/**
+ * Suspended: don't execute tasks until work_and_wait is called. This is slower
  * as threads can't immediately start working. But it can be used if the data
- * structures the threads operate on are not fully initialized until all tasks
- * are created. */
+ * structures the threads operate on are not fully initialized until all tasks are created.
+ */
 TaskPool *BLI_task_pool_create_suspended(void *userdata, eTaskPriority priority);
 
-/* No threads: immediately executes tasks on the same thread. For debugging. */
+/**
+ * No threads: immediately executes tasks on the same thread. For debugging.
+ */
 TaskPool *BLI_task_pool_create_no_threads(void *userdata);
 
 void BLI_task_pool_free(TaskPool *pool);
@@ -100,28 +113,45 @@ void BLI_task_pool_push(TaskPool *pool,
                         bool free_taskdata,
                         TaskFreeFunction freedata);
 
-/* work and wait until all tasks are done */
+/**
+ * Work and wait until all tasks are done.
+ */
 void BLI_task_pool_work_and_wait(TaskPool *pool);
-/* cancel all tasks, keep worker threads running */
+/**
+ * Cancel all tasks, keep worker threads running.
+ */
 void BLI_task_pool_cancel(TaskPool *pool);
 
-/* for worker threads, test if current task pool canceled. this function may
+/**
+ * For worker threads, test if current task pool canceled. this function may
  * only be called from worker threads and pool must be the task pool that the
- * thread is currently executing a task from. */
+ * thread is currently executing a task from.
+ */
 bool BLI_task_pool_current_canceled(TaskPool *pool);
 
-/* optional userdata pointer to pass along to run function */
+/**
+ * Optional `userdata` pointer to pass along to run function.
+ */
 void *BLI_task_pool_user_data(TaskPool *pool);
 
-/* optional mutex to use from run function */
+/**
+ * Optional mutex to use from run function.
+ */
 ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool);
 
-/* Parallel for routines */
+/** \} */
 
-/* Per-thread specific data passed to the callback. */
+/* -------------------------------------------------------------------- */
+/** \name Parallel for Routines
+ * \{ */
+
+/**
+ * Per-thread specific data passed to the callback.
+ */
 typedef struct TaskParallelTLS {
-  /* Copy of user-specifier chunk, which is copied from original chunk to all
-   * worker threads. This is similar to OpenMP's firstprivate.
+  /**
+   * Copy of user-specifier chunk, which is copied from original chunk to all worker threads.
+   * This is similar to OpenMP's `firstprivate`.
    */
   void *userdata_chunk;
 } TaskParallelTLS;
@@ -186,7 +216,8 @@ void BLI_task_parallel_range(const int start,
                              TaskParallelRangeFunc func,
                              const TaskParallelSettings *settings);
 
-/* This data is shared between all tasks, its access needs thread lock or similar protection.
+/**
+ * This data is shared between all tasks, its access needs thread lock or similar protection.
  */
 typedef struct TaskParallelIteratorStateShared {
   /* Maximum amount of items to acquire at once. */
@@ -222,6 +253,17 @@ void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorFunc func,
                                 const TaskParallelSettings *settings);
 
+/**
+ * This function allows to parallelize for loops over ListBase items.
+ *
+ * \param listbase: The double linked list to loop over.
+ * \param userdata: Common userdata passed to all instances of \a func.
+ * \param func: Callback function.
+ * \param settings: See public API doc of ParallelRangeSettings for description of all settings.
+ *
+ * \note There is no static scheduling here,
+ * since it would need another full loop over items to count them.
+ */
 void BLI_task_parallel_listbase(struct ListBase *listbase,
                                 void *userdata,
                                 TaskParallelIteratorFunc func,
@@ -232,6 +274,16 @@ typedef struct MempoolIterData MempoolIterData;
 typedef void (*TaskParallelMempoolFunc)(void *userdata,
                                         MempoolIterData *iter,
                                         const TaskParallelTLS *__restrict tls);
+/**
+ * This function allows to parallelize for loops over Mempool items.
+ *
+ * \param mempool: The iterable BLI_mempool to loop over.
+ * \param userdata: Common userdata passed to all instances of \a func.
+ * \param func: Callback function.
+ * \param settings: See public API doc of TaskParallelSettings for description of all settings.
+ *
+ * \note There is no static scheduling here.
+ */
 void BLI_task_parallel_mempool(struct BLI_mempool *mempool,
                                void *userdata,
                                TaskParallelMempoolFunc func,
@@ -252,14 +304,21 @@ BLI_INLINE void BLI_parallel_mempool_settings_defaults(TaskParallelSettings *set
   settings->use_threading = true;
 }
 
-/* Don't use this, store any thread specific data in tls->userdata_chunk instead.
- * Only here for code to be removed. */
+/**
+ * Don't use this, store any thread specific data in `tls->userdata_chunk` instead.
+ * Only here for code to be removed.
+ */
 int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
 
-/* Task Graph Scheduling */
-/* Task Graphs can be used to create a forest of directional trees and schedule work to any tree.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Task Graph Scheduling
+ *
+ * Task Graphs can be used to create a forest of directional trees and schedule work to any tree.
  * The nodes in the graph can be run in separate threads.
  *
+ * \code{.unparsed}
  *     +---- [root] ----+
  *     |                |
  *     v                v
@@ -267,55 +326,61 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
  *             |                  |
  *             v                  v
  *          [node_3]           [node_4]
+ * \endcode
  *
- *    TaskGraph *task_graph = BLI_task_graph_create();
- *    TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, NULL, NULL);
- *    TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
- *    TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
- *    TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
- *    TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ * \code{.c}
+ * TaskGraph *task_graph = BLI_task_graph_create();
+ * TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, NULL, NULL);
+ * TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ * TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ * TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
+ * TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, NULL, NULL);
  *
- *    BLI_task_graph_edge_create(root, node_1);
- *    BLI_task_graph_edge_create(root, node_2);
- *    BLI_task_graph_edge_create(node_2, node_3);
- *    BLI_task_graph_edge_create(node_2, node_4);
+ * BLI_task_graph_edge_create(root, node_1);
+ * BLI_task_graph_edge_create(root, node_2);
+ * BLI_task_graph_edge_create(node_2, node_3);
+ * BLI_task_graph_edge_create(node_2, node_4);
+ * \endcode
  *
  * Any node can be triggered to start a chain of tasks. Normally you would trigger a root node but
  * it is supported to start the chain of tasks anywhere in the forest or tree. When a node
  * completes, the execution flow is forwarded via the created edges.
  * When a child node has multiple parents the child node will be triggered once for each parent.
  *
- *    BLI_task_graph_node_push_work(root);
+ *    `BLI_task_graph_node_push_work(root);`
  *
  * In this example After `root` is finished, `node_1` and `node_2` will be started.
  * Only after `node_2` is finished `node_3` and `node_4` will be started.
  *
  * After scheduling work we need to wait until all the tasks have been finished.
  *
- *    BLI_task_graph_work_and_wait();
+ *    `BLI_task_graph_work_and_wait();`
  *
  * When finished you can clean up all the resources by freeing the task_graph. Nodes are owned by
  * the graph and are freed task_data will only be freed if a free_func was given.
  *
- *    BLI_task_graph_free(task_graph);
+ *    `BLI_task_graph_free(task_graph);`
  *
  * Work can enter a tree on any node. Normally this would be the root_node.
  * A `task_graph` can be reused, but the caller needs to make sure the task_data is reset.
  *
- * ** Task-Data **
+ * Task-Data
+ * ---------
  *
  * Typically you want give a task data to work on.
  * Task data can be shared with other nodes, but be careful not to free the data multiple times.
- * Task data is freed when calling `BLI_task_graph_free`.
+ * Task data is freed when calling #BLI_task_graph_free.
  *
- *    MyData *task_data = MEM_callocN(sizeof(MyData), __func__);
- *    TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_freeN);
- *    TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
- *    TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
- *    TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
- *    TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
- *
- */
+ * \code{.c}
+ * MyData *task_data = MEM_callocN(sizeof(MyData), __func__);
+ * TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_freeN);
+ * TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ * TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ * TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ * TaskNode *node_4 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
+ * \endcode
+ * \{ */
+
 struct TaskGraph;
 struct TaskNode;
 
@@ -332,7 +397,10 @@ struct TaskNode *BLI_task_graph_node_create(struct TaskGraph *task_graph,
 bool BLI_task_graph_node_push_work(struct TaskNode *task_node);
 void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_node);
 
-/* Task Isolation
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Task Isolation
  *
  * Task isolation helps avoid unexpected task scheduling decisions that can lead to bugs if wrong
  * assumptions were made. Typically that happens when doing "nested threading", i.e. one thread
@@ -359,8 +427,11 @@ void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_
  * multiple threads, another thread will typically run the task and avoid the deadlock. However, if
  * this situation happens on all threads at the same time, all threads will deadlock. This happened
  * in T88598.
- */
+ * \{ */
+
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata);
+
+/** \} */
 
 #ifdef __cplusplus
 }

@@ -73,9 +73,6 @@ int BLI_cpu_support_sse2(void)
 
 /* Windows stack-walk lives in system_win32.c */
 #if !defined(_MSC_VER)
-/**
- * Write a backtrace into a file for systems which support it.
- */
 void BLI_system_backtrace(FILE *fp)
 {
   /* ------------- */

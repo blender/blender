@@ -100,10 +100,6 @@ void BLI_linklist_reverse(LinkNode **listp)
   *listp = rhead;
 }
 
-/**
- * Move an item from its current position to a new one inside a single-linked list.
- * Note *listp may be modified.
- */
 void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
 {
   LinkNode *lnk, *lnk_psrc = NULL, *lnk_pdst = NULL;
@@ -171,9 +167,6 @@ void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
   }
 }
 
-/**
- * A version of prepend that takes the allocated link.
- */
 void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 {
   nlink->link = ptr;
@@ -199,9 +192,6 @@ void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool
   BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
-/**
- * A version of append that takes the allocated link.
- */
 void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
 {
   nlink->link = ptr;

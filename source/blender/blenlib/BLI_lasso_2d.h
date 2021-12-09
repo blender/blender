@@ -35,6 +35,9 @@ bool BLI_lasso_is_point_inside(const int mcoords[][2],
                                const int sx,
                                const int sy,
                                const int error_value);
+/**
+ * Edge version for lasso select. We assume bound-box check was done.
+ */
 bool BLI_lasso_is_edge_inside(const int mcoords[][2],
                               const unsigned int mcoords_len,
                               int x0,

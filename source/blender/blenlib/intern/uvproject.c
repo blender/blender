@@ -90,7 +90,6 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
   target[1] += uci->shifty;
 }
 
-/* could rv3d->persmat */
 void BLI_uvproject_from_view(float target[2],
                              float source[3],
                              float persmat[4][4],
@@ -132,8 +131,6 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-/* 'rotmat' can be `obedit->obmat` when uv project is used.
- * 'winx' and 'winy' can be from `scene->r.xsch/ysch` */
 ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float winx, float winy)
 {
   ProjCameraInfo uci;

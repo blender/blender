@@ -34,8 +34,10 @@ typedef struct {
   void *val;
 } SmallHashEntry;
 
-/* How much stack space to use before dynamically allocating memory.
- * set to match one of the values in 'hashsizes' to avoid too many mallocs. */
+/**
+ * How much stack space to use before dynamically allocating memory.
+ * set to match one of the values in 'hashsizes' to avoid too many mallocs.
+ */
 #define SMSTACKSIZE 131
 typedef struct SmallHash {
   unsigned int nbuckets;
@@ -53,8 +55,18 @@ typedef struct {
 
 void BLI_smallhash_init_ex(SmallHash *sh, const unsigned int nentries_reserve) ATTR_NONNULL(1);
 void BLI_smallhash_init(SmallHash *sh) ATTR_NONNULL(1);
+/**
+ * \note does *not* free *sh itself! only the direct data!
+ */
 void BLI_smallhash_release(SmallHash *sh) ATTR_NONNULL(1);
 void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL(1);
+/**
+ * Inserts a new value to a key that may already be in ghash.
+ *
+ * Avoids #BLI_smallhash_remove, #BLI_smallhash_insert calls (double lookups)
+ *
+ * \returns true if a new key has been added.
+ */
 bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL(1);
 bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
 void *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key)
@@ -74,6 +86,12 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
 /* void BLI_smallhash_print(SmallHash *sh); */ /* UNUSED */
 
 #ifdef DEBUG
+/**
+ * Measure how well the hash function performs
+ * (1.0 is perfect - no stepping needed).
+ *
+ * Smaller is better!
+ */
 double BLI_smallhash_calc_quality(SmallHash *sh);
 #endif
 
