@@ -45,6 +45,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
@@ -669,6 +670,11 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
 
   if (region->gizmo_map != NULL) {
     region_free_gizmomap_callback(region->gizmo_map);
+  }
+
+  if (region->runtime.block_name_map != NULL) {
+    BLI_ghash_free(region->runtime.block_name_map, NULL, NULL);
+    region->runtime.block_name_map = NULL;
   }
 
   BLI_freelistN(&region->ui_lists);
