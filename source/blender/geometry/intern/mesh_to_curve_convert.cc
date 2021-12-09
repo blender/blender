@@ -260,11 +260,6 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
   return selected_edges;
 }
 
-/**
- * Convert the mesh into one or many poly splines. Since splines cannot have branches,
- * intersections of more than three edges will become breaks in splines. Attributes that
- * are not built-in on meshes and not curves are transferred to the result curve.
- */
 std::unique_ptr<CurveEval> mesh_to_curve_convert(const MeshComponent &mesh_component,
                                                  const IndexMask selection)
 {
