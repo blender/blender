@@ -1085,14 +1085,8 @@ void RenderScheduler::update_start_resolution_divider()
                                         first_render_time_.denoise_time +
                                         first_render_time_.display_update_time;
 
-  /* Allow some percent of tolerance, so that if the render time is close enough to the higher
-   * resolution we prefer to use it instead of going way lower resolution and time way below the
-   * desired one. */
   const int resolution_divider_for_update = calculate_resolution_divider_for_time(
-      desired_update_interval_in_seconds * 1.4, actual_time_per_update);
-
-  /* TODO(sergey): Need to add hysteresis to avoid resolution divider bouncing around when actual
-   * render time is somewhere on a boundary between two resolutions. */
+      desired_update_interval_in_seconds, actual_time_per_update, start_resolution_divider_);
 
   /* Never increase resolution to higher than the pixel size (which is possible if the scene is
    * simple and compute device is fast). */
@@ -1179,12 +1173,14 @@ void RenderScheduler::check_time_limit_reached()
  * Utility functions.
  */
 
-int RenderScheduler::calculate_resolution_divider_for_time(double desired_time, double actual_time)
+int RenderScheduler::calculate_resolution_divider_for_time(double desired_time,
+                                                           double actual_time,
+                                                           int previous_resolution_divider)
 {
   /* TODO(sergey): There should a non-iterative analytical formula here. */
 
   int resolution_divider = 1;
-
+  double pre_division_time = actual_time;
   /* This algorithm iterates through resolution dividers until a divider is found that achieves
    * the desired render time. A limit of default_start_resolution_divider_ is put in place as the
    * maximum resolution divider to avoid an unreadable viewport due to a low resolution.
@@ -1192,12 +1188,26 @@ int RenderScheduler::calculate_resolution_divider_for_time(double desired_time, 
    * calculation to better predict the performance impact of changing resolution divisions as
    * the sample count can also change between resolution divisions. */
   while (actual_time > desired_time && resolution_divider < default_start_resolution_divider_) {
+    pre_division_time = actual_time;
     int pre_resolution_division_samples = get_num_samples_during_navigation(resolution_divider);
     resolution_divider = resolution_divider * 2;
     int post_resolution_division_samples = get_num_samples_during_navigation(resolution_divider);
     actual_time /= 4.0 * pre_resolution_division_samples / post_resolution_division_samples;
   }
 
+  /* Hysteresis to avoid resolution divider bouncing around when actual render time is somewhere
+   * on a boundary between two resolutions. This system allows some percentage of tolerance so
+   * that the viewport tends towards remaining at higher resolutions rather than dropping to a
+   * lower resolution if performance is close to, but not quite reaching the target frame rate.
+   * This system also tends to not increase the viewport resolution unless the hardware can
+   * exceed the performance target by a certain percentage. This is to help ensure the viewport
+   * remains responsive after increasing the resolution. */
+  if (resolution_divider > previous_resolution_divider && pre_division_time < desired_time * 1.5) {
+    return resolution_divider / 2;
+  }
+  if (resolution_divider < previous_resolution_divider && pre_division_time > desired_time / 1.3) {
+    return resolution_divider * 2;
+  }
   return resolution_divider;
 }
 
