@@ -1922,8 +1922,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
     file = new MultiPartInputFile(*membuf);
 
     Box2i dw = file->header(0).dataWindow();
-    const int width = dw.max.x - dw.min.x + 1;
-    const int height = dw.max.y - dw.min.y + 1;
+    const size_t width = dw.max.x - dw.min.x + 1;
+    const size_t height = dw.max.y - dw.min.y + 1;
 
     // printf("OpenEXR-load: image data window %d %d %d %d\n",
     //     dw.min.x, dw.min.y, dw.max.x, dw.max.y);
@@ -1986,8 +1986,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           const bool has_luma = exr_has_luma(*file);
           FrameBuffer frameBuffer;
           float *first;
-          int xstride = sizeof(float[4]);
-          int ystride = -xstride * width;
+          size_t xstride = sizeof(float[4]);
+          size_t ystride = -xstride * width;
 
           imb_addrectfloatImBuf(ibuf);
 
