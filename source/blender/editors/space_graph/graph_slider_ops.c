@@ -278,7 +278,7 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       }
 
-      /* Unhandled event - maybe it was some view manip? */
+      /* Unhandled event - maybe it was some view manipulation? */
       /* Allow to pass through. */
       return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
     }

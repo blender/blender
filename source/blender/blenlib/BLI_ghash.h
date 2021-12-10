@@ -568,8 +568,8 @@ unsigned int BLI_ghashutil_ptrhash(const void *key);
 bool BLI_ghashutil_ptrcmp(const void *a, const void *b);
 
 /**
- * This function implements the widely used "djb" hash apparently posted
- * by Daniel Bernstein to comp.lang.c some time ago.  The 32 bit
+ * This function implements the widely used `djb` hash apparently posted
+ * by Daniel Bernstein to `comp.lang.c` some time ago.  The 32 bit
  * unsigned hash value starts at 5381 and for each byte 'c' in the
  * string, is updated: `hash = hash * 33 + c`.
  * This function uses the signed value of each byte.

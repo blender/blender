@@ -34,7 +34,7 @@ void imb_exitopenexr(void);
 
 /**
  * Test presence of OpenEXR file.
- * \param mem: pointer to loaded OpenEXR bitstream
+ * \param mem: pointer to loaded OpenEXR bit-stream.
  */
 bool imb_is_a_openexr(const unsigned char *mem, const size_t size);
 

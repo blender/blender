@@ -440,7 +440,7 @@ bool ED_workspace_delete(struct WorkSpace *workspace,
  */
 void ED_workspace_scene_data_sync(struct WorkSpaceInstanceHook *hook, Scene *scene) ATTR_NONNULL();
 /**
- * Make sure there is a non-fullscreen layout to switch to that is not used yet by an other window.
+ * Make sure there is a non-full-screen layout to switch to that isn't used yet by an other window.
  * Needed for workspace or screen switching to ensure valid screens.
  *
  * \param layout_fallback_base: As last resort, this layout is duplicated and returned.

@@ -144,7 +144,7 @@ class MeshImporter : public MeshImporterBase {
    * This function is copied from source/blender/editors/mesh/mesh_data.c
    *
    * TODO: (As discussed with sergey-) :
-   * Maybe move this function to blenderkernel/intern/mesh.c
+   * Maybe move this function to `blenderkernel/intern/mesh.c`.
    * and add definition to BKE_mesh.c.
    */
   static void mesh_add_edges(Mesh *mesh, int len);

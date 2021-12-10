@@ -200,7 +200,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3]) ATTR_WARN_UNU
  * \brief BMESH TRIANGULATE FACE
  *
  * Breaks all quads and ngons down to triangles.
- * It uses polyfill for the ngons splitting, and
+ * It uses poly-fill for the ngons splitting, and
  * the beautify operator when use_beauty is true.
  *
  * \param r_faces_new: if non-null, must be an array of BMFace pointers,

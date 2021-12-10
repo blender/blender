@@ -390,13 +390,13 @@ int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
 /**
  * \brief BMESH OPSTACK PUSH
  *
- * Pushes the opstack down one level and allocates a new flag layer if appropriate.
+ * Pushes the operator-stack down one level and allocates a new flag layer if appropriate.
  */
 void BMO_push(BMesh *bm, BMOperator *op);
 /**
  * \brief BMESH OPSTACK POP
  *
- * Pops the opstack one level and frees a flag layer if appropriate
+ * Pops the operator-stack one level and frees a flag layer if appropriate
  *
  * BMESH_TODO: investigate NOT freeing flag layers.
  */

@@ -725,7 +725,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
  * Calculate isolated groups of edges with optional filtering.
  *
  * \param bm: the BMesh.
- * \param r_groups_array: Array of ints to fill in, length of bm->totedge
+ * \param r_groups_array: Array of ints to fill in, length of `bm->totedge`
  *        (or when hflag_test is set, the number of flagged edges).
  * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).
