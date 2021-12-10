@@ -911,7 +911,7 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 {
   const int do_rect = (ibuf->rect != NULL);
   const int do_float = (ibuf->rect_float != NULL);
-  const size_t rect_size = ibuf->x * ibuf->y * 4;
+  const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;
   float *rectf, *_newrectf, *newrectf;
@@ -1052,7 +1052,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 {
   const int do_rect = (ibuf->rect != NULL);
   const int do_float = (ibuf->rect_float != NULL);
-  const size_t rect_size = ibuf->x * ibuf->y * 4;
+  const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;
   float *rectf, *_newrectf, *newrectf;

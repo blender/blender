@@ -663,6 +663,11 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   return ibuf2;
 }
 
+size_t IMB_get_rect_len(const ImBuf *ibuf)
+{
+  return (size_t)ibuf->x * (size_t)ibuf->y;
+}
+
 size_t IMB_get_size_in_memory(ImBuf *ibuf)
 {
   int a;

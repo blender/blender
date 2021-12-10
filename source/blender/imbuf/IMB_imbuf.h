@@ -201,6 +201,17 @@ bool addzbuffloatImBuf(struct ImBuf *ibuf);
 size_t IMB_get_size_in_memory(struct ImBuf *ibuf);
 
 /**
+ * \brief Get the length of the rect of the given image buffer in terms of pixels.
+ *
+ * This is the width * the height of the image buffer.
+ * This function is preferred over `ibuf->x * ibuf->y` due to overflow issues when
+ * working with large resolution images (30kx30k).
+ *
+ * \attention Defined in allocimbuf.c
+ */
+size_t IMB_get_rect_len(const struct ImBuf *ibuf);
+
+/**
  *
  * \attention Defined in rectop.c
  */
