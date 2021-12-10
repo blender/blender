@@ -264,7 +264,7 @@ void nearest_interpolation_color_char(
     return;
   }
 
-  const size_t offset = (in->x * y1 + x1) * 4;
+  const size_t offset = ((size_t)in->x * y1 + x1) * 4;
   const unsigned char *dataI = (unsigned char *)in->rect + offset;
   outI[0] = dataI[0];
   outI[1] = dataI[1];
@@ -287,7 +287,7 @@ void nearest_interpolation_color_fl(
     return;
   }
 
-  const size_t offset = (in->x * y1 + x1) * 4;
+  const size_t offset = ((size_t)in->x * y1 + x1) * 4;
   const float *dataF = in->rect_float + offset;
   copy_v4_v4(outF, dataF);
 }
