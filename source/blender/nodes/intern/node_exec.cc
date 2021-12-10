@@ -34,14 +34,12 @@
 #include "node_exec.h"
 #include "node_util.h"
 
-/* supported socket types in old nodes */
 int node_exec_socket_use_stack(bNodeSocket *sock)
 {
   /* NOTE: INT supported as FLOAT. Only for EEVEE. */
   return ELEM(sock->type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
 }
 
-/* for a given socket, find the actual stack entry */
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 {
   if (stack && sock && sock->stack_index >= 0) {

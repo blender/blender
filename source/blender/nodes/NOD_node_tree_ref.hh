@@ -279,6 +279,9 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
   const NodeRef *find_node(const bNode &bnode) const;
 
+  /**
+   * \return True when there is a link cycle. Unavailable sockets are ignored.
+   */
   bool has_link_cycles() const;
   bool has_undefined_nodes_or_sockets() const;
 
@@ -297,6 +300,10 @@ class NodeTreeRef : NonCopyable, NonMovable {
     bool has_cycle = false;
   };
 
+  /**
+   * Sort nodes topologically from left to right or right to left.
+   * In the future the result if this could be cached on #NodeTreeRef.
+   */
   ToposortResult toposort(ToposortDirection direction) const;
 
   bNodeTree *btree() const;

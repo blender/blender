@@ -20,10 +20,6 @@
 
 namespace blender::nodes {
 
-/* Construct a new derived node tree for a given root node tree. The generated derived node tree
- * does not own the used node tree refs (so that those can be used by others as well). The caller
- * has to make sure that the node tree refs added to #node_tree_refs live at least as long as the
- * derived node tree. */
 DerivedNodeTree::DerivedNodeTree(bNodeTree &btree, NodeTreeRefMap &node_tree_refs)
 {
   /* Construct all possible contexts immediately. This is significantly cheaper than inlining all
@@ -73,9 +69,6 @@ void DerivedNodeTree::destruct_context_recursively(DTreeContext *context)
   context->~DTreeContext();
 }
 
-/**
- * \return True when there is a link cycle. Unavailable sockets are ignored.
- */
 bool DerivedNodeTree::has_link_cycles() const
 {
   for (const NodeTreeRef *tree_ref : used_node_tree_refs_) {
@@ -96,7 +89,6 @@ bool DerivedNodeTree::has_undefined_nodes_or_sockets() const
   return false;
 }
 
-/* Calls the given callback on all nodes in the (possibly nested) derived node tree. */
 void DerivedNodeTree::foreach_node(FunctionRef<void(DNode)> callback) const
 {
   this->foreach_node_in_context_recursive(*root_context_, callback);
@@ -184,9 +176,6 @@ DInputSocket DOutputSocket::get_active_corresponding_group_output_socket() const
   return {};
 }
 
-/* Call `origin_fn` for every "real" origin socket. "Real" means that reroutes, muted nodes
- * and node groups are handled by this function. Origin sockets are ones where a node gets its
- * inputs from. */
 void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) const
 {
   BLI_assert(*this);
@@ -233,9 +222,6 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) c
   }
 }
 
-/* Calls `target_fn` for every "real" target socket. "Real" means that reroutes, muted nodes
- * and node groups are handled by this function. Target sockets are on the nodes that use the value
- * from this socket. */
 void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn) const
 {
   TargetSocketPathInfo path_info;
@@ -342,7 +328,6 @@ static dot::Cluster *get_dot_cluster_for_context(
   });
 }
 
-/* Generates a graph in dot format. The generated graph has all node groups inlined. */
 std::string DerivedNodeTree::to_dot() const
 {
   dot::DirectedGraph digraph;

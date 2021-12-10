@@ -75,7 +75,6 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
   return nullptr;
 }
 
-/* groups display their internal tree name as label */
 void node_group_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
@@ -197,7 +196,6 @@ static void group_verify_socket_list(bNodeTree *ntree,
   }
 }
 
-/* make sure all group node in ntree, which use ngroup, are sync'd */
 void node_group_update(struct bNodeTree *ntree, struct bNode *node)
 {
   /* check inputs and outputs, and remove or insert them */
@@ -305,9 +303,6 @@ static void propagate_reroute_type_from_start_socket(
   }
 }
 
-/* Global update function for Reroute node types.
- * This depends on connected nodes, so must be done as a tree-wide update.
- */
 void ntree_update_reroute_nodes(bNodeTree *ntree)
 {
   /* Contains nodes that are linked to at least one reroute node. */

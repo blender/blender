@@ -39,8 +39,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 /* Sync functions update formula parameters for other modes, such that the result is comparable.
  * Note that the results are not exactly the same due to differences in color handling
  * (sRGB conversion happens for LGG),
- * but this keeps settings comparable.
- */
+ * but this keeps settings comparable. */
 
 void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *UNUSED(ntree), bNode *node)
 {

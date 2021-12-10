@@ -216,11 +216,6 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
   return default_type;
 }
 
-/**
- * If any of the corresponding input sockets are attributes instead of single values,
- * use the highest priority attribute domain from among them.
- * Otherwise return the default domain.
- */
 AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
     Span<std::string> names,
     const GeometryComponent &component,
