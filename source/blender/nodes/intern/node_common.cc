@@ -123,39 +123,46 @@ bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_dis
 /* used for both group nodes and interface nodes */
 static bNodeSocket *group_verify_socket(bNodeTree *ntree,
                                         bNode *gnode,
-                                        bNodeSocket *iosock,
+                                        const bNodeSocket *interface_socket,
                                         ListBase *verify_lb,
                                         eNodeSocketInOut in_out)
 {
   bNodeSocket *sock;
 
   for (sock = (bNodeSocket *)verify_lb->first; sock; sock = sock->next) {
-    if (STREQ(sock->identifier, iosock->identifier)) {
+    if (STREQ(sock->identifier, interface_socket->identifier)) {
       break;
     }
   }
   if (sock) {
-    strcpy(sock->name, iosock->name);
+    strcpy(sock->name, interface_socket->name);
 
     const int mask = SOCK_HIDE_VALUE;
-    sock->flag = (sock->flag & ~mask) | (iosock->flag & mask);
+    sock->flag = (sock->flag & ~mask) | (interface_socket->flag & mask);
 
     /* Update socket type if necessary */
-    if (sock->typeinfo != iosock->typeinfo) {
-      nodeModifySocketType(ntree, gnode, sock, iosock->idname);
+    if (sock->typeinfo != interface_socket->typeinfo) {
+      nodeModifySocketType(ntree, gnode, sock, interface_socket->idname);
       /* Flag the tree to make sure link validity is updated after type changes. */
       ntree->update |= NTREE_UPDATE_LINKS;
     }
 
-    if (iosock->typeinfo->interface_verify_socket) {
-      iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
+    if (interface_socket->typeinfo->interface_verify_socket) {
+      interface_socket->typeinfo->interface_verify_socket(
+          ntree, interface_socket, gnode, sock, "interface");
     }
   }
   else {
-    sock = nodeAddSocket(ntree, gnode, in_out, iosock->idname, iosock->identifier, iosock->name);
+    sock = nodeAddSocket(ntree,
+                         gnode,
+                         in_out,
+                         interface_socket->idname,
+                         interface_socket->identifier,
+                         interface_socket->name);
 
-    if (iosock->typeinfo->interface_init_socket) {
-      iosock->typeinfo->interface_init_socket(ntree, iosock, gnode, sock, "interface");
+    if (interface_socket->typeinfo->interface_init_socket) {
+      interface_socket->typeinfo->interface_init_socket(
+          ntree, interface_socket, gnode, sock, "interface");
     }
   }
 

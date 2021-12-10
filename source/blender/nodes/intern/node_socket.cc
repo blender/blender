@@ -548,7 +548,7 @@ void node_socket_skip_reroutes(
 }
 
 static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree),
-                                                       bNodeSocket *stemp,
+                                                       const bNodeSocket *interface_socket,
                                                        bNode *UNUSED(node),
                                                        bNodeSocket *sock,
                                                        const char *UNUSED(data_path))
@@ -559,47 +559,50 @@ static void standard_node_socket_interface_init_socket(bNodeTree *UNUSED(ntree),
   /* XXX socket interface 'type' value is not used really,
    * but has to match or the copy function will bail out
    */
-  stemp->type = stemp->typeinfo->type;
+  const_cast<bNodeSocket *>(interface_socket)->type = interface_socket->typeinfo->type;
   /* copy default_value settings */
-  node_socket_copy_default_value(sock, stemp);
+  node_socket_copy_default_value(sock, interface_socket);
 }
 
 /* copies settings that are not changed for each socket instance */
 static void standard_node_socket_interface_verify_socket(bNodeTree *UNUSED(ntree),
-                                                         bNodeSocket *stemp,
+                                                         const bNodeSocket *interface_socket,
                                                          bNode *UNUSED(node),
                                                          bNodeSocket *sock,
                                                          const char *UNUSED(data_path))
 {
   /* sanity check */
-  if (sock->type != stemp->typeinfo->type) {
+  if (sock->type != interface_socket->typeinfo->type) {
     return;
   }
 
   /* make sure both exist */
-  if (!stemp->default_value) {
+  if (!interface_socket->default_value) {
     return;
   }
   node_socket_init_default_value(sock);
 
-  switch (stemp->typeinfo->type) {
+  switch (interface_socket->typeinfo->type) {
     case SOCK_FLOAT: {
       bNodeSocketValueFloat *toval = (bNodeSocketValueFloat *)sock->default_value;
-      bNodeSocketValueFloat *fromval = (bNodeSocketValueFloat *)stemp->default_value;
+      const bNodeSocketValueFloat *fromval = (const bNodeSocketValueFloat *)
+                                                 interface_socket->default_value;
       toval->min = fromval->min;
       toval->max = fromval->max;
       break;
     }
     case SOCK_INT: {
       bNodeSocketValueInt *toval = (bNodeSocketValueInt *)sock->default_value;
-      bNodeSocketValueInt *fromval = (bNodeSocketValueInt *)stemp->default_value;
+      const bNodeSocketValueInt *fromval = (const bNodeSocketValueInt *)
+                                               interface_socket->default_value;
       toval->min = fromval->min;
       toval->max = fromval->max;
       break;
     }
     case SOCK_VECTOR: {
       bNodeSocketValueVector *toval = (bNodeSocketValueVector *)sock->default_value;
-      bNodeSocketValueVector *fromval = (bNodeSocketValueVector *)stemp->default_value;
+      const bNodeSocketValueVector *fromval = (const bNodeSocketValueVector *)
+                                                  interface_socket->default_value;
       toval->min = fromval->min;
       toval->max = fromval->max;
       break;

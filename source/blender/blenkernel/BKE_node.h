@@ -164,20 +164,20 @@ typedef struct bNodeSocketType {
   void (*interface_draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr);
   void (*interface_draw_color)(struct bContext *C, struct PointerRNA *ptr, float *r_color);
   void (*interface_register_properties)(struct bNodeTree *ntree,
-                                        struct bNodeSocket *stemp,
+                                        struct bNodeSocket *interface_socket,
                                         struct StructRNA *data_srna);
   void (*interface_init_socket)(struct bNodeTree *ntree,
-                                struct bNodeSocket *stemp,
+                                const struct bNodeSocket *interface_socket,
                                 struct bNode *node,
                                 struct bNodeSocket *sock,
                                 const char *data_path);
   void (*interface_verify_socket)(struct bNodeTree *ntree,
-                                  struct bNodeSocket *stemp,
+                                  const struct bNodeSocket *interface_socket,
                                   struct bNode *node,
                                   struct bNodeSocket *sock,
                                   const char *data_path);
   void (*interface_from_socket)(struct bNodeTree *ntree,
-                                struct bNodeSocket *stemp,
+                                struct bNodeSocket *interface_socket,
                                 struct bNode *node,
                                 struct bNodeSocket *sock);
 
