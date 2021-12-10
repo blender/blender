@@ -205,14 +205,16 @@ class RandomIntFunction : public fn::MultiFunction {
     const VArray<int> &seeds = params.readonly_single_input<int>(3, "Seed");
     MutableSpan<int> values = params.uninitialized_single_output<int>(4, "Value");
 
+    /* Add one to the maximum and use floor to produce an even
+     * distribution for the first and last values (See T93591). */
     for (int64_t i : mask) {
       const float min_value = min_values[i];
-      const float max_value = max_values[i];
+      const float max_value = max_values[i] + 1.0f;
       const int seed = seeds[i];
       const int id = ids[i];
 
       const float value = noise::hash_to_float(id, seed);
-      values[i] = round_fl_to_int(value * (max_value - min_value) + min_value);
+      values[i] = floor(value * (max_value - min_value) + min_value);
     }
   }
 };
