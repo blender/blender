@@ -192,6 +192,68 @@ class TexelPointer {
   }
 };
 
+/**
+ * \brief Wrapping mode for the uv coordinates.
+ *
+ * Subclasses have the ability to change the UV coordinates before the source buffer will be
+ * sampled.
+ */
+class BaseUVWrapping {
+ public:
+  /**
+   * \brief modify the given u coordinate.
+   */
+  virtual float modify_u(const TransformUserData &user_data, float u) = 0;
+
+  /**
+   * \brief modify the given v coordinate.
+   */
+  virtual float modify_v(const TransformUserData &user_data, float v) = 0;
+};
+
+/**
+ * \brief UVWrapping method that does not modify the UV coordinates.
+ */
+class PassThroughUV : public BaseUVWrapping {
+ public:
+  float modify_u(const TransformUserData &UNUSED(user_data), float u) override
+  {
+    return u;
+  }
+
+  float modify_v(const TransformUserData &UNUSED(user_data), float v) override
+  {
+    return v;
+  }
+};
+
+/**
+ * \brief UVWrapping method that wrap repeats the UV coordinates.
+ */
+class WrapRepeatUV : public BaseUVWrapping {
+ public:
+  float modify_u(const TransformUserData &user_data, float u) override
+
+  {
+    int x = (int)floor(u);
+    x = x % user_data.src->x;
+    if (x < 0) {
+      x += user_data.src->x;
+    }
+    return x;
+  }
+
+  float modify_v(const TransformUserData &user_data, float v) override
+  {
+    int y = (int)floor(v);
+    y = y % user_data.src->y;
+    if (y < 0) {
+      y += user_data.src->y;
+    }
+    return y;
+  }
+};
+
 template<
     /**
      * \brief Discard function to use.
@@ -209,9 +271,16 @@ template<
      * \brief Kernel to store to the destination buffer.
      * Should be an TexelPointer
      */
-    typename OutputTexelPointer>
+    typename OutputTexelPointer,
+
+    /**
+     * \brief Wrapping method to perform
+     * Should be a subclass of BaseUVWrapper
+     */
+    typename UVWrapping>
 class ScanlineProcessor {
   Discard discarder;
+  UVWrapping uv_wrapping;
   OutputTexelPointer output;
 
  public:
@@ -225,8 +294,11 @@ class ScanlineProcessor {
     output.init_pixel_pointer(user_data->dst, 0, scanline);
     for (int xi = 0; xi < width; xi++) {
       if (!discarder.should_discard(*user_data, uv)) {
-        ColorInterpolation(
-            user_data->src, output.get_uchar_pointer(), output.get_float_pointer(), uv[0], uv[1]);
+        ColorInterpolation(user_data->src,
+                           output.get_uchar_pointer(),
+                           output.get_float_pointer(),
+                           uv_wrapping.modify_u(*user_data, uv[0]),
+                           uv_wrapping.modify_v(*user_data, uv[1]));
       }
 
       add_v2_v2(uv, user_data->add_x);
@@ -242,20 +314,26 @@ template<typename Processor> void transform_scanline_function(void *custom_data,
   processor.process(user_data, scanline);
 }
 
-template<InterpolationColorFunction DefaultFunction, InterpolationColorFunction WrapRepeatFunction>
+template<InterpolationColorFunction InterpolationFunction>
 ScanlineThreadFunc get_scanline_function(const eIMBTransformMode mode)
 
 {
   switch (mode) {
     case IMB_TRANSFORM_MODE_REGULAR:
-      return transform_scanline_function<
-          ScanlineProcessor<NoDiscard, DefaultFunction, TexelPointer<float, 4>>>;
+      return transform_scanline_function<ScanlineProcessor<NoDiscard,
+                                                           InterpolationFunction,
+                                                           TexelPointer<float, 4>,
+                                                           PassThroughUV>>;
     case IMB_TRANSFORM_MODE_CROP_SRC:
-      return transform_scanline_function<
-          ScanlineProcessor<CropSource, DefaultFunction, TexelPointer<float, 4>>>;
+      return transform_scanline_function<ScanlineProcessor<CropSource,
+                                                           InterpolationFunction,
+                                                           TexelPointer<float, 4>,
+                                                           PassThroughUV>>;
     case IMB_TRANSFORM_MODE_WRAP_REPEAT:
-      return transform_scanline_function<
-          ScanlineProcessor<NoDiscard, WrapRepeatFunction, TexelPointer<float, 4>>>;
+      return transform_scanline_function<ScanlineProcessor<NoDiscard,
+                                                           InterpolationFunction,
+                                                           TexelPointer<float, 4>,
+                                                           WrapRepeatUV>>;
   }
 
   BLI_assert_unreachable();
@@ -271,15 +349,13 @@ static void transform(TransformUserData *user_data, const eIMBTransformMode mode
     constexpr InterpolationColorFunction interpolation_function =
         Filter == IMB_FILTER_NEAREST ? nearest_interpolation_color_fl :
                                        bilinear_interpolation_color_fl;
-    scanline_func =
-        get_scanline_function<interpolation_function, nearest_interpolation_color_wrap>(mode);
+    scanline_func = get_scanline_function<interpolation_function>(mode);
   }
   else if (user_data->dst->rect) {
     constexpr InterpolationColorFunction interpolation_function =
         Filter == IMB_FILTER_NEAREST ? nearest_interpolation_color_char :
                                        bilinear_interpolation_color_char;
-    scanline_func =
-        get_scanline_function<interpolation_function, nearest_interpolation_color_wrap>(mode);
+    scanline_func = get_scanline_function<interpolation_function>(mode);
   }
 
   if (scanline_func != nullptr) {
