@@ -304,8 +304,6 @@ typedef struct bNode {
 
   /** Entire boundbox (world-space). */
   rctf totr;
-  /** Optional buttons area. */
-  rctf butr;
   /** Optional preview area. */
   rctf prvr;
   /**

@@ -480,18 +480,12 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node)
   if (node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS)) {
     dy -= NODE_DYS / 2;
 
-    /* Set this for `uifunc()` that don't use layout engine yet. */
-    node.butr.xmin = 0;
-    node.butr.xmax = NODE_WIDTH(node) - 2 * NODE_DYS;
-    node.butr.ymin = 0;
-    node.butr.ymax = 0;
-
     uiLayout *layout = UI_block_layout(node.block,
                                        UI_LAYOUT_VERTICAL,
                                        UI_LAYOUT_PANEL,
                                        loc.x + NODE_DYS,
                                        dy,
-                                       node.butr.xmax,
+                                       NODE_WIDTH(node) - NODE_DY,
                                        0,
                                        0,
                                        UI_style_get_dpi());
