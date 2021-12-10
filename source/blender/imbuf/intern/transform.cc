@@ -83,22 +83,136 @@ struct TransformUserData {
   }
 };
 
-template<eIMBTransformMode Mode, InterpolationColorFunction ColorInterpolation, int ChannelLen = 4>
-class ScanlineProcessor {
- private:
-  void pixel_from_buffer(const struct ImBuf *ibuf, unsigned char **outI, float **outF, int y) const
+/**
+ * \brief Base class for source discarding.
+ *
+ * The class decides if a specific uv coordinate from the source buffer should be ignored.
+ * This is used to mix multiple images over a single output buffer. Discarded pixels will
+ * not change the output buffer.
+ */
+class BaseDiscard {
+ public:
+  virtual ~BaseDiscard() = default;
 
+  /**
+   * \brief Should the source pixel at the given uv coordinate be discarded.
+   */
+  virtual bool should_discard(const TransformUserData &user_data, const float uv[2]) = 0;
+};
+
+/**
+ * \brief Crop uv-coordinates that are outside the user data src_crop rect.
+ */
+class CropSource : public BaseDiscard {
+ public:
+  /**
+   * \brief Should the source pixel at the given uv coordinate be discarded.
+   *
+   * Uses user_data.src_crop to determine if the uv coordinate should be skipped.
+   */
+  virtual bool should_discard(const TransformUserData &user_data, const float uv[2])
   {
-    const size_t offset = ((size_t)ibuf->x) * y * ChannelLen;
+    return uv[0] < user_data.src_crop.xmin && uv[0] >= user_data.src_crop.xmax &&
+           uv[1] < user_data.src_crop.ymin && uv[1] >= user_data.src_crop.ymax;
+  }
+};
 
-    if (ibuf->rect) {
-      *outI = (unsigned char *)ibuf->rect + offset;
+/**
+ * \brief Discard that does not discard anything.
+ */
+class NoDiscard : public BaseDiscard {
+ public:
+  /**
+   * \brief Should the source pixel at the given uv coordinate be discarded.
+   *
+   * Will never discard any pixels.
+   */
+  virtual bool should_discard(const TransformUserData &UNUSED(user_data),
+                              const float UNUSED(uv[2]))
+  {
+    return false;
+  }
+};
+
+/**
+ * \brief pointer to a texel to write or read serial.
+ */
+template<
+    /**
+     * \brief Kind of buffer.
+     * Possible options: float, unsigned char.
+     */
+    typename ImBufStorageType = float,
+
+    /**
+     * \brief Number of channels of a single pixel.
+     */
+    int NumChannels = 4>
+class TexelPointer {
+  ImBufStorageType *pointer;
+
+ public:
+  void init_pixel_pointer(const ImBuf *image_buffer, int x, int y)
+  {
+    const size_t offset = (y * (size_t)image_buffer->x + x) * NumChannels;
+
+    if constexpr (std::is_same_v<ImBufStorageType, float>) {
+      pointer = image_buffer->rect_float + offset;
     }
-
-    if (ibuf->rect_float) {
-      *outF = ibuf->rect_float + offset;
+    else if constexpr (std::is_same_v<ImBufStorageType, unsigned char>) {
+      pointer = image_buffer->rect + offset;
+    }
+    else {
+      pointer = nullptr;
     }
   }
+
+  float *get_float_pointer()
+  {
+    if constexpr (std::is_same_v<ImBufStorageType, float>) {
+      return pointer;
+    }
+    else {
+      return nullptr;
+    }
+  }
+  unsigned char *get_uchar_pointer()
+  {
+    if constexpr (std::is_same_v<ImBufStorageType, unsigned char>) {
+      return pointer;
+    }
+    else {
+      return nullptr;
+    }
+  }
+
+  void increase_pixel_pointer()
+  {
+    pointer += NumChannels;
+  }
+};
+
+template<
+    /**
+     * \brief Discard function to use.
+     *
+     * \attention Should be a subclass of BaseDiscard.
+     */
+    typename Discard,
+
+    /**
+     * \brief Color interpolation function to read from the source buffer.
+     */
+    InterpolationColorFunction ColorInterpolation,
+
+    /**
+     * \brief Kernel to store to the destination buffer.
+     * Should be an TexelPointer
+     */
+    typename OutputTexelPointer>
+class ScanlineProcessor {
+  Discard discarder;
+  OutputTexelPointer output;
 
  public:
   void process(const TransformUserData *user_data, int scanline)
@@ -108,27 +222,15 @@ class ScanlineProcessor {
     float uv[2];
     madd_v2_v2v2fl(uv, user_data->start_uv, user_data->add_y, scanline);
 
-    unsigned char *outI = nullptr;
-    float *outF = nullptr;
-    pixel_from_buffer(user_data->dst, &outI, &outF, scanline);
-
+    output.init_pixel_pointer(user_data->dst, 0, scanline);
     for (int xi = 0; xi < width; xi++) {
-      if constexpr (Mode == IMB_TRANSFORM_MODE_CROP_SRC) {
-        if (uv[0] >= user_data->src_crop.xmin && uv[0] < user_data->src_crop.xmax &&
-            uv[1] >= user_data->src_crop.ymin && uv[1] < user_data->src_crop.ymax) {
-          ColorInterpolation(user_data->src, outI, outF, uv[0], uv[1]);
-        }
+      if (!discarder.should_discard(*user_data, uv)) {
+        ColorInterpolation(
+            user_data->src, output.get_uchar_pointer(), output.get_float_pointer(), uv[0], uv[1]);
       }
-      else {
-        ColorInterpolation(user_data->src, outI, outF, uv[0], uv[1]);
-      }
+
       add_v2_v2(uv, user_data->add_x);
-      if (outI) {
-        outI += ChannelLen;
-      }
-      if (outF) {
-        outF += ChannelLen;
-      }
+      output.increase_pixel_pointer();
     }
   }
 };
@@ -147,13 +249,13 @@ ScanlineThreadFunc get_scanline_function(const eIMBTransformMode mode)
   switch (mode) {
     case IMB_TRANSFORM_MODE_REGULAR:
       return transform_scanline_function<
-          ScanlineProcessor<IMB_TRANSFORM_MODE_REGULAR, DefaultFunction>>;
+          ScanlineProcessor<NoDiscard, DefaultFunction, TexelPointer<float, 4>>>;
     case IMB_TRANSFORM_MODE_CROP_SRC:
       return transform_scanline_function<
-          ScanlineProcessor<IMB_TRANSFORM_MODE_CROP_SRC, DefaultFunction>>;
+          ScanlineProcessor<CropSource, DefaultFunction, TexelPointer<float, 4>>>;
     case IMB_TRANSFORM_MODE_WRAP_REPEAT:
       return transform_scanline_function<
-          ScanlineProcessor<IMB_TRANSFORM_MODE_WRAP_REPEAT, WrapRepeatFunction>>;
+          ScanlineProcessor<NoDiscard, WrapRepeatFunction, TexelPointer<float, 4>>>;
   }
 
   BLI_assert_unreachable();
