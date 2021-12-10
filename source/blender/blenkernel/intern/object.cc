@@ -4454,7 +4454,7 @@ void BKE_object_sculpt_data_create(Object *ob)
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
 }
 
-bool BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc, float **r_size)
+bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc, float **r_size)
 {
 
   if (ob->data == nullptr) {

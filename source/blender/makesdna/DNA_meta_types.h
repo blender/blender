@@ -83,8 +83,8 @@ typedef struct MetaBall {
   char flag, flag2;
   short totcol;
   /** Used to store MB_AUTOSPACE. */
-  short texflag;
-  char _pad[1];
+  char texflag;
+  char _pad[2];
 
   /**
    * ID data is older than edit-mode data (TODO: move to edit-mode struct).

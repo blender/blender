@@ -507,7 +507,7 @@ void BKE_object_handle_update_ex(struct Depsgraph *depsgraph,
 void BKE_object_sculpt_data_create(struct Object *ob);
 
 bool BKE_object_obdata_texspace_get(struct Object *ob,
-                                    short **r_texflag,
+                                    char **r_texflag,
                                     float **r_loc,
                                     float **r_size);
 

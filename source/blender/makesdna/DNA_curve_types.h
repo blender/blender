@@ -228,9 +228,8 @@ typedef struct Curve {
   /** Creation-time type of curve datablock. */
   short type;
 
-  /** Keep a short because of BKE_object_obdata_texspace_get(). */
-  short texflag;
-  char _pad0[6];
+  char texflag;
+  char _pad0[7];
   short twist_mode;
   float twist_smooth, smallcaps_scale;
 
