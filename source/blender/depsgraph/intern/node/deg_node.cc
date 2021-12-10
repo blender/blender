@@ -311,7 +311,6 @@ Node::~Node()
   }
 }
 
-/* Generic identifier for Depsgraph Nodes. */
 string Node::identifier() const
 {
   return string(nodeTypeAsString(type)) + " : " + name;

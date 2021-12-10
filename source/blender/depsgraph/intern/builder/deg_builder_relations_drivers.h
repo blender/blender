@@ -37,14 +37,17 @@ namespace deg {
 /* Helper class for determining which relations are needed between driver evaluation nodes. */
 class DriverDescriptor {
  public:
-  /* Drivers are grouped by their RNA prefix. The prefix is the part of the RNA
+  /**
+   * Drivers are grouped by their RNA prefix. The prefix is the part of the RNA
    * path up to the last dot, the suffix is the remainder of the RNA path:
    *
+   * \code{.unparsed}
    * fcu->rna_path                     rna_prefix              rna_suffix
    * -------------------------------   ----------------------  ----------
    * 'color'                           ''                      'color'
    * 'rigidbody_world.time_scale'      'rigidbody_world'       'time_scale'
    * 'pose.bones["master"].location'   'pose.bones["master"]'  'location'
+   * \endcode
    */
   StringRef rna_prefix;
   StringRef rna_suffix;
@@ -54,7 +57,7 @@ class DriverDescriptor {
 
   bool driver_relations_needed() const;
   bool is_array() const;
-  /* Assumes that 'other' comes from the same RNA group, that is, has the same RNA path prefix. */
+  /** Assumes that 'other' comes from the same RNA group, that is, has the same RNA path prefix. */
   bool is_same_array_as(const DriverDescriptor &other) const;
   OperationKey depsgraph_key() const;
 

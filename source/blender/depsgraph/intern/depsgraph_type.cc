@@ -39,7 +39,6 @@
 
 namespace deg = blender::deg;
 
-/* Register all node types */
 void DEG_register_node_types()
 {
   /* register node types */
@@ -48,7 +47,6 @@ void DEG_register_node_types()
   deg::deg_register_operation_depsnodes();
 }
 
-/* Free registry on exit */
 void DEG_free_node_types()
 {
 }

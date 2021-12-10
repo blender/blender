@@ -182,7 +182,6 @@ void Depsgraph::clear_id_nodes()
   clear_physics_relations(this);
 }
 
-/* Add new relation between two nodes */
 Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *description, int flags)
 {
   Relation *rel = nullptr;
@@ -228,7 +227,6 @@ Relation *Depsgraph::check_nodes_connected(const Node *from,
 
 /* Low level tagging -------------------------------------- */
 
-/* Tag a specific node as needing updates. */
 void Depsgraph::add_entry_tag(OperationNode *node)
 {
   /* Sanity check. */
@@ -280,7 +278,6 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 /* **************** */
 /* Public Graph API */
 
-/* Initialize a new Depsgraph */
 Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
 {
   deg::Depsgraph *deg_depsgraph = new deg::Depsgraph(bmain, scene, view_layer, mode);
@@ -288,10 +285,6 @@ Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEval
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
 
-/* Replace the "owner" pointers (currently Main/Scene/ViewLayer) of this depsgraph.
- * Used for:
- * - Undo steps when we do want to re-use the old depsgraph data as much as possible.
- * - Rendering where we want to re-use objects between different view layers. */
 void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
@@ -313,7 +306,6 @@ void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
   }
 }
 
-/* Free graph's contents and graph itself */
 void DEG_graph_free(Depsgraph *graph)
 {
   if (graph == nullptr) {

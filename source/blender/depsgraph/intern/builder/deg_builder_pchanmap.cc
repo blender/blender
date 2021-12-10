@@ -30,7 +30,6 @@
 
 namespace blender::deg {
 
-/* Debug contents of map */
 void RootPChanMap::print_debug()
 {
   map_.foreach_item([](StringRefNull key, const Set<StringRefNull> &values) {
@@ -42,13 +41,11 @@ void RootPChanMap::print_debug()
   });
 }
 
-/* Add a mapping. */
 void RootPChanMap::add_bone(const char *bone, const char *root)
 {
   map_.lookup_or_add_default(bone).add(root);
 }
 
-/* Check if there's a common root bone between two bones. */
 bool RootPChanMap::has_common_root(const char *bone1, const char *bone2) const
 {
   const Set<StringRefNull> *bone1_roots = map_.lookup_ptr(bone1);

@@ -73,7 +73,6 @@ uint64_t IDNode::ComponentIDKey::hash() const
                                     BLI_ghashutil_strhash_p(name));
 }
 
-/* Initialize 'id' node - from pointer data given. */
 void IDNode::init(const ID *id, const char *UNUSED(subdata))
 {
   BLI_assert(id != nullptr);

@@ -200,7 +200,6 @@ ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
   return id_node->id_cow;
 }
 
-/* Get evaluated version of data pointed to by RNA pointer */
 void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
                                    PointerRNA *ptr,
                                    PointerRNA *r_ptr_eval)

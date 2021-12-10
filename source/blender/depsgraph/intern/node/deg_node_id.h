@@ -58,6 +58,7 @@ struct IDNode : public Node {
     const char *name;
   };
 
+  /** Initialize 'id' node - from pointer data given. */
   virtual void init(const ID *id, const char *subdata) override;
   void init_copy_on_write(ID *id_cow_hint = nullptr);
   ~IDNode();
