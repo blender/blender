@@ -388,6 +388,10 @@ void ED_screens_navigation_bar_tools_menu_create(struct bContext *C,
  */
 bool ED_screen_stereo3d_required(const struct bScreen *screen, const struct Scene *scene);
 Scene *ED_screen_scene_find(const struct bScreen *screen, const struct wmWindowManager *wm);
+/**
+ * Find the scene displayed in \a screen.
+ * \note Assumes \a screen to be visible/active!
+ */
 Scene *ED_screen_scene_find_with_window(const struct bScreen *screen,
                                         const struct wmWindowManager *wm,
                                         struct wmWindow **r_window);

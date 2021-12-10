@@ -123,6 +123,8 @@ void BKE_camera_view_frame(const struct Scene *scene,
 
 /**
  * \param r_scale: only valid/useful for orthographic cameras.
+ *
+ * \note Don't move the camera, just yield the fit location.
  */
 bool BKE_camera_view_frame_fit_to_scene(struct Depsgraph *depsgraph,
                                         const struct Scene *scene,

@@ -756,7 +756,6 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
   return false;
 }
 
-/* don't move the camera, just yield the fit location */
 bool BKE_camera_view_frame_fit_to_scene(
     Depsgraph *depsgraph, const Scene *scene, Object *camera_ob, float r_co[3], float *r_scale)
 {

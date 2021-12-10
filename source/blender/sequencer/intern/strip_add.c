@@ -294,17 +294,6 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 }
 
 #ifdef WITH_AUDASPACE
-/**
- * Add sound strip.
- * NOTE: Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
- *
- * \param main: Main reference
- * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
- */
-
 Sequence *SEQ_add_sound_strip(Main *bmain,
                               Scene *scene,
                               ListBase *seqbase,
@@ -373,15 +362,6 @@ Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
   return NULL;
 }
 #endif  // WITH_AUDASPACE
-
-/**
- * Add meta strip.
- *
- * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
- * \param load_data: SeqLoadData with information necessary to create strip
- * \return created strip
- */
 
 Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {

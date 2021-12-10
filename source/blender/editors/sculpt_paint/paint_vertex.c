@@ -199,8 +199,6 @@ static void paint_last_stroke_update(Scene *scene, const float location[3])
   ups->last_stroke_valid = true;
 }
 
-/* polling - retrieve whether cursor should be set or operator should be done */
-
 bool vertex_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);

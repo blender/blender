@@ -472,31 +472,6 @@ BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l)
   return l_other;
 }
 
-/**
- * Utility function to step around a fan of loops,
- * using an edge to mark the previous side.
- *
- * \note all edges must be manifold,
- * once a non manifold edge is hit, return NULL.
- *
- * <pre>
- *                ,.,-->|
- *            _,-'      |
- *          ,'          | (notice how 'e_step'
- *         /            |  and 'l' define the
- *        /             |  direction the arrow
- *       |     return   |  points).
- *       |     loop --> |
- * ---------------------+---------------------
- *         ^      l --> |
- *         |            |
- *  assign e_step       |
- *                      |
- *   begin e_step ----> |
- *                      |
- * </pre>
- */
-
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
 {
   BMEdge *e_prev = *e_step;
@@ -1420,18 +1395,6 @@ float BM_edge_calc_face_angle_signed(const BMEdge *e)
   return BM_edge_calc_face_angle_signed_ex(e, DEG2RADF(90.0f));
 }
 
-/**
- * \brief BMESH EDGE/FACE TANGENT
- *
- * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
- * This vector always points inward into the face.
- *
- * \brief BM_edge_calc_face_tangent
- * \param e:
- * \param e_loop: The loop to calculate the tangent at,
- * used to get the face and winding direction.
- * \param r_tangent: The loop corner tangent to set
- */
 void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3])
 {
   float tvec[3];
@@ -2142,7 +2105,6 @@ double BM_mesh_calc_volume(BMesh *bm, bool is_signed)
   return vol;
 }
 
-/* NOTE: almost duplicate of #BM_mesh_calc_edge_groups, keep in sync. */
 int BM_mesh_calc_face_groups(BMesh *bm,
                              int *r_groups_array,
                              int (**r_group_index)[2],
@@ -2152,6 +2114,8 @@ int BM_mesh_calc_face_groups(BMesh *bm,
                              const char hflag_test,
                              const char htype_step)
 {
+  /* NOTE: almost duplicate of #BM_mesh_calc_edge_groups, keep in sync. */
+
 #ifdef DEBUG
   int group_index_len = 1;
 #else
@@ -2290,7 +2254,6 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   return group_curr;
 }
 
-/* NOTE: almost duplicate of #BM_mesh_calc_face_groups, keep in sync. */
 int BM_mesh_calc_edge_groups(BMesh *bm,
                              int *r_groups_array,
                              int (**r_group_index)[2],
@@ -2298,6 +2261,8 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
                              void *user_data,
                              const char hflag_test)
 {
+  /* NOTE: almost duplicate of #BM_mesh_calc_face_groups, keep in sync. */
+
 #ifdef DEBUG
   int group_index_len = 1;
 #else

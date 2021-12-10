@@ -132,9 +132,6 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
   }
 }
 
-/**
- *  Returns a valid pose armature for this object, else returns NULL.
- */
 Object *poseAnim_object_get(Object *ob_)
 {
   Object *ob = BKE_object_pose_armature_get(ob_);
@@ -144,9 +141,6 @@ Object *poseAnim_object_get(Object *ob_)
   return NULL;
 }
 
-/**
- * Get sets of F-Curves providing transforms for the bones in the Pose.
- */
 void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
 {
   /* for each Pose-Channel which gets affected, get the F-Curves for that channel
@@ -192,7 +186,6 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
   }
 }
 
-/* Free F-Curve <-> PoseChannel links. */
 void poseAnim_mapping_free(ListBase *pfLinks)
 {
   tPChanFCurveLink *pfl, *pfln = NULL;
@@ -219,7 +212,6 @@ void poseAnim_mapping_free(ListBase *pfLinks)
 
 /* ------------------------- */
 
-/* helper for apply() / reset() - refresh the data */
 void poseAnim_mapping_refresh(bContext *C, Scene *UNUSED(scene), Object *ob)
 {
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -231,7 +223,6 @@ void poseAnim_mapping_refresh(bContext *C, Scene *UNUSED(scene), Object *ob)
   }
 }
 
-/* reset changes made to current pose */
 void poseAnim_mapping_reset(ListBase *pfLinks)
 {
   tPChanFCurveLink *pfl;
@@ -268,7 +259,6 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
   }
 }
 
-/* perform auto-key-framing after changes were made + confirmed */
 void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks, float cframe)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -337,9 +327,6 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 
 /* ------------------------- */
 
-/* find the next F-Curve for a PoseChannel with matching path...
- * - path is not just the pfl rna_path, since that path doesn't have property info yet
- */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path)
 {
   LinkData *first = (prev) ? prev->next : (fcuLinks) ? fcuLinks->first : NULL;

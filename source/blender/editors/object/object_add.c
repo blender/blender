@@ -3357,7 +3357,6 @@ static Base *object_add_duplicate_internal(Main *bmain,
   return basen;
 }
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 Base *ED_object_add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, const eDupli_ID_Flags dupflag)
 {

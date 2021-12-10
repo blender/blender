@@ -755,10 +755,9 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
 /* -------------------------------------------------------------------- */
 /** \name Join as Shapes
+ *
+ * Append selected meshes vertex locations as shapes of the active mesh.
  * \{ */
-
-/* Append selected meshes vertex locations as shapes of the active mesh,
- * return 0 if no join is made (error) and 1 of the join is done */
 
 int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 {
@@ -1197,8 +1196,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   return mirrorfaces;
 }
 
-/* selection, vertex and face */
-/* returns 0 if not found, otherwise 1 */
+/* Selection (vertex and face). */
 
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {

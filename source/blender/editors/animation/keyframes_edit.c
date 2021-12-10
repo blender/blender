@@ -67,10 +67,6 @@
 
 /* --------------------------- Base Functions ------------------------------------ */
 
-/* This function is used to loop over BezTriples in the given F-Curve, applying a given
- * operation on them, and optionally applies an F-Curve validation function afterwards.
- */
-/* TODO: make this function work on samples too. */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  FCurve *fcu,
                                  KeyframeEditFunc key_ok,
@@ -378,7 +374,6 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
 
 /* --- */
 
-/* This function is used to apply operation to all keyframes, regardless of the type */
 short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       bDopeSheet *ads,
                                       bAnimListElem *ale,
@@ -416,8 +411,6 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
   return 0;
 }
 
-/* This function is used to apply operation to all keyframes,
- * regardless of the type without needed an AnimListElem wrapper */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           bDopeSheet *ads,
                                           void *data,
@@ -477,8 +470,6 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
 /* ************************************************************************** */
 /* Keyframe Integrity Tools */
 
-/* Rearrange keyframes if some are out of order */
-/* used to be recalc_*_ipos() where * was object or action */
 void ANIM_editkeyframes_refresh(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -620,9 +611,6 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/**
- * Called from #ok_bezier_region_lasso and #ok_bezier_channel_lasso
- */
 bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const float xy[2])
 {
   if (BLI_rctf_isect_pt_v(data_lasso->rectf_scaled, xy)) {
@@ -683,9 +671,6 @@ static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/**
- * Called from #ok_bezier_region_circle and #ok_bezier_channel_circle
- */
 bool keyframe_region_circle_test(const KeyframeEdit_CircleData *data_circle, const float xy[2])
 {
   if (BLI_rctf_isect_pt_v(data_circle->rectf_scaled, xy)) {
@@ -787,10 +772,6 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 /* ******************************************* */
 /* Assorted Utility Functions */
 
-/**
- * Helper callback for <animeditor>_cfrasnap_exec() ->
- * used to help get the average time of all selected beztriples
- */
 short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
@@ -810,8 +791,6 @@ short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* helper callback for columnselect_<animeditor>_keys() -> populate
- * list CfraElems with frame numbers from selected beztriples */
 short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
@@ -825,9 +804,6 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* used to remap times from one range to another
- * requires:  ked->data = KeyframeEditCD_Remap
- */
 void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 {
   KeyframeEditCD_Remap *rmap = (KeyframeEditCD_Remap *)ked->data;
@@ -1024,8 +1000,6 @@ static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* NOTE: for markers and 'value', the values to use must be supplied as the first float value. */
-/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 {
   switch (mode) {
@@ -1183,8 +1157,6 @@ static short set_bezier_free(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Set all selected Bezier Handles to a single type */
-/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_handles(short mode)
 {
   switch (mode) {
@@ -1311,8 +1283,6 @@ static short set_bezt_sine(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
-/* ANIM_editkeyframes_ipocurve_ipotype() ! */
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode)
 {
   switch (mode) {
@@ -1391,7 +1361,6 @@ static short set_keytype_moving_hold(KeyframeEditData *UNUSED(ked), BezTriple *b
   return 0;
 }
 
-/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_keytype(short mode)
 {
   switch (mode) {
@@ -1447,7 +1416,6 @@ static short set_easingtype_easeauto(KeyframeEditData *UNUSED(ked), BezTriple *b
   return 0;
 }
 
-/* Set the easing type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 {
   switch (mode) {
@@ -1638,7 +1606,6 @@ static short selmap_build_bezier_less(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* Get callback for building selection map */
 KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode)
 {
   switch (mode) {
@@ -1653,7 +1620,6 @@ KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode)
 
 /* ----------- */
 
-/* flush selection map values to the given beztriple */
 short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 {
   const char *map = ked->data;

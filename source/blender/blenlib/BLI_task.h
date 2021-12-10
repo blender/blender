@@ -245,6 +245,20 @@ typedef void (*TaskParallelIteratorFunc)(void *__restrict userdata,
                                          int index,
                                          const TaskParallelTLS *__restrict tls);
 
+/**
+ * This function allows to parallelize for loops using a generic iterator.
+ *
+ * \param userdata: Common userdata passed to all instances of \a func.
+ * \param iter_func: Callback function used to generate chunks of items.
+ * \param init_item: The initial item, if necessary (may be NULL if unused).
+ * \param init_index: The initial index.
+ * \param tot_items: The total amount of items to iterate over
+ *                   (if unknown, set it to a negative number).
+ * \param func: Callback function.
+ * \param settings: See public API doc of TaskParallelSettings for description of all settings.
+ *
+ * \note Static scheduling is only available when \a tot_items is >= 0.
+ */
 void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorIterFunc iter_func,
                                 void *init_item,

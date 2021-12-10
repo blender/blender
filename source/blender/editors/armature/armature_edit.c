@@ -66,9 +66,6 @@
 
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
-/**
- * See #BKE_armature_transform for object-mode transform.
- */
 void ED_armature_edit_transform(bArmature *arm, const float mat[4][4], const bool do_props)
 {
   EditBone *ebone;
@@ -116,8 +113,6 @@ void ED_armature_transform(bArmature *arm, const float mat[4][4], const bool do_
   }
 }
 
-/* exported for use in editors/object/ */
-/* 0 == do center, 1 == center new, 2 == center cursor */
 void ED_armature_origin_set(
     Main *bmain, Object *ob, const float cursor[3], int centermode, int around)
 {
@@ -186,9 +181,6 @@ void ED_armature_origin_set(
 /** \name Bone Roll Calculate Operator
  * \{ */
 
-/* adjust bone roll to align Z axis with vector
- * vec is in local space and is normalized
- */
 float ED_armature_ebone_roll_to_vector(const EditBone *bone,
                                        const float align_axis[3],
                                        const bool axis_only)

@@ -42,9 +42,6 @@
  * \{ */
 
 /* ngon version wip, based on BM_uv_vert_map_create */
-/* this replaces the non bmesh function (in trunk) which takes MTFace's,
- * if we ever need it back we could but for now this replaces it because its unused. */
-
 UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
                                        const MLoop *mloop,
                                        const MLoopUV *mloopuv,

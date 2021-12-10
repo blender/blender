@@ -45,10 +45,10 @@
 
 #include "armature_intern.h"
 
-/* *************************************************************** */
-/* Validation */
+/* -------------------------------------------------------------------- */
+/** \name Validation
+ * \{ */
 
-/* Sync selection to parent for connected children */
 void ED_armature_edit_sync_selection(ListBase *edbo)
 {
   EditBone *ebo;
@@ -86,10 +86,6 @@ void ED_armature_edit_validate_active(struct bArmature *arm)
   }
 }
 
-/* Update the layers_used variable after bones are moved between layer
- * NOTE: Used to be done in drawing code in 2.7, but that won't work with
- *       Copy-on-Write, as drawing uses evaluated copies.
- */
 void ED_armature_edit_refresh_layer_used(bArmature *arm)
 {
   arm->layer_used = 0;
@@ -98,11 +94,12 @@ void ED_armature_edit_refresh_layer_used(bArmature *arm)
   }
 }
 
-/* *************************************************************** */
-/* Bone Operations */
+/** \} */
 
-/* XXX bone_looper is only to be used when we want to access settings
- * (i.e. editability/visibility/selected) that context doesn't offer */
+/* -------------------------------------------------------------------- */
+/** \name Bone Operations
+ * \{ */
+
 int bone_looper(Object *ob, Bone *bone, void *data, int (*bone_func)(Object *, Bone *, void *))
 {
   /* We want to apply the function bone_func to every bone
@@ -129,8 +126,11 @@ int bone_looper(Object *ob, Bone *bone, void *data, int (*bone_func)(Object *, B
   return count;
 }
 
-/* *************************************************************** */
-/* Bone Removal */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Removal
+ * \{ */
 
 void bone_free(bArmature *arm, EditBone *bone)
 {
@@ -155,9 +155,6 @@ void bone_free(bArmature *arm, EditBone *bone)
   BLI_freelinkN(arm->edbo, bone);
 }
 
-/**
- * \param clear_connected: When false caller is responsible for keeping the flag in a valid state.
- */
 void ED_armature_ebone_remove_ex(bArmature *arm, EditBone *exBone, bool clear_connected)
 {
   EditBone *curBone;
@@ -190,13 +187,6 @@ bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebon
   return false;
 }
 
-/**
- * Finds the first parent shared by \a ebone_child
- *
- * \param ebone_child: Children bones to search
- * \param ebone_child_tot: Size of the ebone_child array
- * \return The shared parent or NULL.
- */
 EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const uint ebone_child_tot)
 {
 #define EBONE_TEMP_UINT(ebone) (*((uint *)(&((ebone)->temp))))
@@ -284,20 +274,17 @@ void ED_armature_ebone_from_mat4(EditBone *ebone, const float mat[4][4])
   ED_armature_ebone_from_mat3(ebone, mat3);
 }
 
-/**
- * Return a pointer to the bone of the given name
- */
 EditBone *ED_armature_ebone_find_name(const ListBase *edbo, const char *name)
 {
   return BLI_findstring(edbo, name, offsetof(EditBone, name));
 }
 
-/* *************************************************************** */
-/* Mirroring */
+/** \} */
 
-/**
- * \see #BKE_pose_channel_get_mirrored (pose-mode, matching function)
- */
+/* -------------------------------------------------------------------- */
+/** \name Mirroring
+ * \{ */
+
 EditBone *ED_armature_ebone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 {
   char name_flip[MAXBONENAME];
@@ -317,8 +304,6 @@ EditBone *ED_armature_ebone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 
 /* ------------------------------------- */
 
-/* helper function for tools to work on mirrored parts.
- * it leaves mirrored bones selected then too, which is a good indication of what happened */
 void armature_select_mirrored_ex(bArmature *arm, const int flag)
 {
   BLI_assert((flag & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0);
@@ -375,7 +360,6 @@ void armature_tag_select_mirrored(bArmature *arm)
   }
 }
 
-/* only works when tagged */
 void armature_tag_unselect(bArmature *arm)
 {
   EditBone *curBone;
@@ -465,8 +449,6 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
   }
 }
 
-/* if editbone (partial) selected, copy data */
-/* context; editmode armature, with mirror editing enabled */
 void ED_armature_edit_transform_mirror_update(Object *obedit)
 {
   bArmature *arm = obedit->data;
@@ -475,8 +457,11 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
   }
 }
 
-/* *************************************************************** */
-/* Armature EditMode Conversions */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Armature EditMode Conversions
+ * \{ */
 
 /* converts Bones to EditBone list, used for tools as well */
 static EditBone *make_boneList_recursive(ListBase *edbo,
@@ -688,7 +673,6 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
   }
 }
 
-/* put EditMode back in Object */
 void ED_armature_from_edit(Main *bmain, bArmature *arm)
 {
   EditBone *eBone, *neBone;
@@ -838,7 +822,6 @@ void ED_armature_edit_free(struct bArmature *arm)
   }
 }
 
-/* Put armature in EditMode */
 void ED_armature_to_edit(bArmature *arm)
 {
   ED_armature_edit_free(arm);
@@ -846,10 +829,11 @@ void ED_armature_to_edit(bArmature *arm)
   arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, arm->act_bone);
 }
 
-/* *************************************************************** */
-/* Used by Undo for Armature EditMode. */
+/** \} */
 
-/* free's bones and their properties */
+/* -------------------------------------------------------------------- */
+/** \name Used by Undo for Armature EditMode
+ * \{ */
 
 void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
 {
@@ -908,10 +892,14 @@ void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
   }
 }
 
-/* *************************************************************** */
-/* Low level selection functions which hide connected-parent
- * flag behavior which gets tricky to handle in selection operators.
- * (no flushing in ED_armature_ebone_select.*, that should be explicit) */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Low Level Selection Functions
+ *
+ * which hide connected-parent flag behavior which gets tricky to handle in selection operators.
+ * (no flushing in `ED_armature_ebone_select.*`, that should be explicit).
+ * \{ */
 
 int ED_armature_ebone_selectflag_get(const EditBone *ebone)
 {
@@ -964,3 +952,5 @@ void ED_armature_ebone_select_set(EditBone *ebone, bool select)
   }
   ED_armature_ebone_selectflag_set(ebone, flag);
 }
+
+/** \} */

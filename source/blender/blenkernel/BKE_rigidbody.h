@@ -38,8 +38,9 @@ struct Object;
 struct ReportList;
 struct Scene;
 
-/* -------------- */
-/* Memory Management */
+/* -------------------------------------------------------------------- */
+/** \name Memory Management
+ * \{ */
 
 /**
  * Free rigid-body world.
@@ -61,6 +62,12 @@ void BKE_rigidbody_object_copy(struct Main *bmain,
                                const struct Object *ob_src,
                                const int flag);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Iterator
+ * \{ */
+
 /**
  * Callback format for performing operations on ID-pointers for rigid-body world.
  */
@@ -73,16 +80,27 @@ void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
                                  RigidbodyWorldIDFunc func,
                                  void *userdata);
 
-/* -------------- */
-/* Setup */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Setup
+ * \{ */
 
 /**
+ * Set up RigidBody world.
+ *
  * Create Blender-side settings data - physics objects not initialized yet.
  */
 struct RigidBodyWorld *BKE_rigidbody_create_world(struct Scene *scene);
+/**
+ * Add rigid body settings to the specified object.
+ */
 struct RigidBodyOb *BKE_rigidbody_create_object(struct Scene *scene,
                                                 struct Object *ob,
                                                 short type);
+/**
+ * Add rigid body constraint to the specified object.
+ */
 struct RigidBodyCon *BKE_rigidbody_create_constraint(struct Scene *scene,
                                                      struct Object *ob,
                                                      short type);
@@ -110,16 +128,35 @@ void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);
 /**
  * 'validate' (i.e. make new or replace old) Physics-Engine objects.
  */
+/**
+ * Create physics sim world given RigidBody world settings
+ *
+ * \note this does NOT update object references that the scene uses,
+ * in case those aren't ready yet!
+ */
 void BKE_rigidbody_validate_sim_world(struct Scene *scene,
                                       struct RigidBodyWorld *rbw,
                                       bool rebuild);
 
+/**
+ * Helper function to calculate volume of rigid-body object.
+
+ * TODO: allow a parameter to specify method used to calculate this?
+ */
 void BKE_rigidbody_calc_volume(struct Object *ob, float *r_vol);
 void BKE_rigidbody_calc_center_of_mass(struct Object *ob, float r_center[3]);
 
-/* -------------- */
-/* Utilities */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+/**
+ * Get RigidBody world for the given scene, creating one if needed
+ *
+ * \param scene: Scene to find active Rigid Body world for.
+ */
 struct RigidBodyWorld *BKE_rigidbody_get_world(struct Scene *scene);
 bool BKE_rigidbody_add_object(struct Main *bmain,
                               struct Scene *scene,
@@ -136,8 +173,11 @@ void BKE_rigidbody_remove_constraint(struct Main *bmain,
                                      struct Object *ob,
                                      const bool free_us);
 
-/* -------------- */
-/* Utility Macros */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utility Macros
+ * \{ */
 
 /**
  * Get mass of Rigid Body Object to supply to RigidBody simulators.
@@ -157,24 +197,44 @@ void BKE_rigidbody_remove_constraint(struct Main *bmain,
        ((rbo)->margin) : \
        (0.04f))
 
-/* -------------- */
-/* Simulation */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Simulation
+ * \{ */
+
+/**
+ * Used when canceling transforms - return rigidbody and object to initial states.
+ */
 void BKE_rigidbody_aftertrans_update(struct Object *ob,
                                      float loc[3],
                                      float rot[3],
                                      float quat[4],
                                      float rotAxis[3],
                                      float rotAngle);
+/**
+ * Sync rigid body and object transformations.
+ */
 void BKE_rigidbody_sync_transforms(struct RigidBodyWorld *rbw, struct Object *ob, float ctime);
 bool BKE_rigidbody_check_sim_running(struct RigidBodyWorld *rbw, float ctime);
 bool BKE_rigidbody_is_affected_by_simulation(struct Object *ob);
 void BKE_rigidbody_cache_reset(struct RigidBodyWorld *rbw);
+/**
+ * Rebuild rigid body world.
+ *
+ * NOTE: this needs to be called before frame update to work correctly.
+ */
 void BKE_rigidbody_rebuild_world(struct Depsgraph *depsgraph, struct Scene *scene, float ctime);
+/**
+ * Run RigidBody simulation for the specified physics world.
+ */
 void BKE_rigidbody_do_simulation(struct Depsgraph *depsgraph, struct Scene *scene, float ctime);
 
-/* -------------------- */
-/* Depsgraph evaluation */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Depsgraph evaluation
+ * \{ */
 
 void BKE_rigidbody_rebuild_sim(struct Depsgraph *depsgraph, struct Scene *scene);
 
@@ -183,6 +243,8 @@ void BKE_rigidbody_eval_simulation(struct Depsgraph *depsgraph, struct Scene *sc
 void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           struct Scene *scene,
                                           struct Object *ob);
+
+/** \} */
 
 #ifdef __cplusplus
 }

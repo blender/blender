@@ -357,12 +357,6 @@ std::string bc_replace_string(std::string data,
   return data;
 }
 
-/**
- * Calculate a rescale factor such that the imported scene's scale
- * is preserved. I.e. 1 meter in the import will also be
- * 1 meter in the current scene.
- */
-
 void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene)
 {
   if (scale_to_scene) {
@@ -510,7 +504,6 @@ BoneExtensionManager::~BoneExtensionManager()
  * See ArmatureImporter::fix_leaf_bones()
  * and ArmatureImporter::connect_bone_chains()
  */
-
 BoneExtended::BoneExtended(EditBone *aBone)
 {
   this->set_name(aBone->name);

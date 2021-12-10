@@ -58,13 +58,12 @@
 #include "BLI_utildefines.h"
 
 namespace blender::noise {
-/* ------------------------------
- * Jenkins Lookup3 Hash Functions
- * ------------------------------
+
+/* -------------------------------------------------------------------- */
+/** \name Jenkins Lookup3 Hash Functions
  *
  * https://burtleburtle.net/bob/c/lookup3.c
- *
- */
+ * \{ */
 
 BLI_INLINE uint32_t hash_bit_rotate(uint32_t x, uint32_t k)
 {
@@ -283,16 +282,17 @@ float4 hash_float_to_float4(float4 k)
                 hash_float_to_float(float4(k.y, k.z, k.w, k.x)));
 }
 
-/* ------------
- * Perlin Noise
- * ------------
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Perlin Noise
  *
  * Perlin, Ken. "Improving noise." Proceedings of the 29th annual conference on Computer graphics
  * and interactive techniques. 2002.
  *
  * This implementation is functionally identical to the implementations in EEVEE, OSL, and SVM. So
  * any changes should be applied in all relevant implementations.
- */
+ * \{ */
 
 /* Linear Interpolation. */
 BLI_INLINE float mix(float v0, float v1, float x)
@@ -757,19 +757,11 @@ float3 perlin_float3_fractal_distorted(float4 position,
                 perlin_fractal(position + random_float4_offset(5.0f), octaves, roughness));
 }
 
-/* --------------
- * Musgrave Noise
- * --------------
- */
+/** \} */
 
-/* 1D Musgrave fBm
- *
- * H: fractal increment parameter
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- *
- * from "Texturing and Modelling: A procedural approach"
- */
+/* -------------------------------------------------------------------- */
+/** \name Musgrave Noise
+ * \{ */
 
 float musgrave_fBm(const float co,
                    const float H,
@@ -796,13 +788,6 @@ float musgrave_fBm(const float co,
   return value;
 }
 
-/* 1D Musgrave Multifractal
- *
- * H: highest fractal dimension
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- */
-
 float musgrave_multi_fractal(const float co,
                              const float H,
                              const float lacunarity,
@@ -827,14 +812,6 @@ float musgrave_multi_fractal(const float co,
 
   return value;
 }
-
-/* 1D Musgrave Heterogeneous Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hetero_terrain(const float co,
                               const float H,
@@ -866,14 +843,6 @@ float musgrave_hetero_terrain(const float co,
 
   return value;
 }
-
-/* 1D Hybrid Additive/Multiplicative Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hybrid_multi_fractal(const float co,
                                     const float H,
@@ -912,14 +881,6 @@ float musgrave_hybrid_multi_fractal(const float co,
   return value;
 }
 
-/* 1D Ridged Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
-
 float musgrave_ridged_multi_fractal(const float co,
                                     const float H,
                                     const float lacunarity,
@@ -951,15 +912,6 @@ float musgrave_ridged_multi_fractal(const float co,
   return value;
 }
 
-/* 2D Musgrave fBm
- *
- * H: fractal increment parameter
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- *
- * from "Texturing and Modelling: A procedural approach"
- */
-
 float musgrave_fBm(const float2 co,
                    const float H,
                    const float lacunarity,
@@ -985,13 +937,6 @@ float musgrave_fBm(const float2 co,
   return value;
 }
 
-/* 2D Musgrave Multifractal
- *
- * H: highest fractal dimension
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- */
-
 float musgrave_multi_fractal(const float2 co,
                              const float H,
                              const float lacunarity,
@@ -1016,14 +961,6 @@ float musgrave_multi_fractal(const float2 co,
 
   return value;
 }
-
-/* 2D Musgrave Heterogeneous Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hetero_terrain(const float2 co,
                               const float H,
@@ -1056,14 +993,6 @@ float musgrave_hetero_terrain(const float2 co,
 
   return value;
 }
-
-/* 2D Hybrid Additive/Multiplicative Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hybrid_multi_fractal(const float2 co,
                                     const float H,
@@ -1102,14 +1031,6 @@ float musgrave_hybrid_multi_fractal(const float2 co,
   return value;
 }
 
-/* 2D Ridged Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
-
 float musgrave_ridged_multi_fractal(const float2 co,
                                     const float H,
                                     const float lacunarity,
@@ -1141,15 +1062,6 @@ float musgrave_ridged_multi_fractal(const float2 co,
   return value;
 }
 
-/* 3D Musgrave fBm
- *
- * H: fractal increment parameter
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- *
- * from "Texturing and Modelling: A procedural approach"
- */
-
 float musgrave_fBm(const float3 co,
                    const float H,
                    const float lacunarity,
@@ -1176,13 +1088,6 @@ float musgrave_fBm(const float3 co,
   return value;
 }
 
-/* 3D Musgrave Multifractal
- *
- * H: highest fractal dimension
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- */
-
 float musgrave_multi_fractal(const float3 co,
                              const float H,
                              const float lacunarity,
@@ -1208,14 +1113,6 @@ float musgrave_multi_fractal(const float3 co,
 
   return value;
 }
-
-/* 3D Musgrave Heterogeneous Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hetero_terrain(const float3 co,
                               const float H,
@@ -1248,14 +1145,6 @@ float musgrave_hetero_terrain(const float3 co,
 
   return value;
 }
-
-/* 3D Hybrid Additive/Multiplicative Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hybrid_multi_fractal(const float3 co,
                                     const float H,
@@ -1294,14 +1183,6 @@ float musgrave_hybrid_multi_fractal(const float3 co,
   return value;
 }
 
-/* 3D Ridged Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
-
 float musgrave_ridged_multi_fractal(const float3 co,
                                     const float H,
                                     const float lacunarity,
@@ -1333,15 +1214,6 @@ float musgrave_ridged_multi_fractal(const float3 co,
   return value;
 }
 
-/* 4D Musgrave fBm
- *
- * H: fractal increment parameter
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- *
- * from "Texturing and Modelling: A procedural approach"
- */
-
 float musgrave_fBm(const float4 co,
                    const float H,
                    const float lacunarity,
@@ -1368,13 +1240,6 @@ float musgrave_fBm(const float4 co,
   return value;
 }
 
-/* 4D Musgrave Multifractal
- *
- * H: highest fractal dimension
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- */
-
 float musgrave_multi_fractal(const float4 co,
                              const float H,
                              const float lacunarity,
@@ -1400,14 +1265,6 @@ float musgrave_multi_fractal(const float4 co,
 
   return value;
 }
-
-/* 4D Musgrave Heterogeneous Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hetero_terrain(const float4 co,
                               const float H,
@@ -1440,14 +1297,6 @@ float musgrave_hetero_terrain(const float4 co,
 
   return value;
 }
-
-/* 4D Hybrid Additive/Multiplicative Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
 
 float musgrave_hybrid_multi_fractal(const float4 co,
                                     const float H,
@@ -1486,14 +1335,6 @@ float musgrave_hybrid_multi_fractal(const float4 co,
   return value;
 }
 
-/* 4D Ridged Multifractal Terrain
- *
- * H: fractal dimension of the roughest area
- * lacunarity: gap between successive frequencies
- * octaves: number of frequencies in the fBm
- * offset: raises the terrain from `sea level'
- */
-
 float musgrave_ridged_multi_fractal(const float4 co,
                                     const float H,
                                     const float lacunarity,
@@ -1525,8 +1366,12 @@ float musgrave_ridged_multi_fractal(const float4 co,
   return value;
 }
 
-/*
- * Voronoi: Ported from Cycles code.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Voronoi Noise
+ *
+ * \note Ported from Cycles code.
  *
  * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
  *
@@ -1541,7 +1386,7 @@ float musgrave_ridged_multi_fractal(const float4 co,
  *
  * With optimization to change -2..2 scan window to -1..1 for better performance,
  * as explained in https://www.shadertoy.com/view/llG3zy.
- */
+ * \{ */
 
 /* **** 1D Voronoi **** */
 
@@ -2515,5 +2360,7 @@ void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *
   }
   *r_radius = float4::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
+
+/** \} */
 
 }  // namespace blender::noise

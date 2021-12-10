@@ -108,6 +108,8 @@ bool ED_view3d_has_workbench_in_texture_color(const struct Scene *scene,
                                               const struct Object *ob,
                                               const struct View3D *v3d);
 /**
+ * Cursor position in `r_cursor_co`, result in `r_cursor_co`, `mval` in region coords.
+ *
  * \note cannot use `event->mval` here, called by #object_add().
  */
 void ED_view3d_cursor3d_position(struct bContext *C,

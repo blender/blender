@@ -63,11 +63,6 @@
 
 /* **************************************************** */
 
-/**
- * Only delete the nominated keyframe from provided F-Curve.
- * Not recommended to be used many times successively. For that
- * there is #delete_fcurve_keys().
- */
 void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 {
   /* sanity check */
@@ -101,7 +96,6 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
   }
 }
 
-/* Delete selected keyframes in given F-Curve */
 bool delete_fcurve_keys(FCurve *fcu)
 {
   bool changed = false;
@@ -140,7 +134,6 @@ void clear_fcurve_keys(FCurve *fcu)
 
 /* ---------------- */
 
-/* duplicate selected keyframes for the given F-Curve */
 void duplicate_fcurve_keys(FCurve *fcu)
 {
   /* this can only work when there is an F-Curve, and also when there are some BezTriples */
@@ -176,10 +169,6 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* **************************************************** */
 /* Various Tools */
 
-/**
- * Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on
- * linear-segments only optionally clears up curve if one keyframe with default value remains.
- */
 void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
@@ -429,13 +418,6 @@ static void decimate_fcurve_segment(FCurve *fcu,
                                 target_fcurve_verts);
 }
 
-/**
- * F-Curve 'decimate' function that removes a certain ratio of curve
- * points that will affect the curves overall shape the least.
- * If you want to remove based on a error margin, set remove_ratio to 1 and
- * simply specify the desired error_sq_max. Otherwise, set the error margin to
- * FLT_MAX.
- */
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
@@ -495,8 +477,6 @@ typedef struct tSmooth_Bezt {
   float y1, y2, y3;    /* averaged before/new/after y-values */
 } tSmooth_Bezt;
 
-/* Use a weighted moving-means method to reduce intensity of fluctuations */
-/* TODO: introduce scaling factor for weighting falloff */
 void smooth_fcurve(FCurve *fcu)
 {
   int totSel = 0;
@@ -600,7 +580,6 @@ typedef struct TempFrameValCache {
   float frame, val;
 } TempFrameValCache;
 
-/* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 void sample_fcurve(FCurve *fcu)
 {
   BezTriple *bezt, *start = NULL, *end = NULL;
@@ -709,7 +688,6 @@ typedef struct tAnimCopybufItem {
   bool is_bone;  /* special flag for armature bones */
 } tAnimCopybufItem;
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ANIM_fcurves_copybuf_free(void)
 {
   tAnimCopybufItem *aci, *acn;
@@ -740,7 +718,6 @@ void ANIM_fcurves_copybuf_free(void)
 
 /* ------------------- */
 
-/* This function adds data to the keyframes copy/paste buffer, freeing existing data first */
 short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 {
   bAnimListElem *ale;
@@ -1099,8 +1076,6 @@ static void paste_animedit_keys_fcurve(
   calchandles_fcurve(fcu);
 }
 
-/* ------------------- */
-
 const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {
     {KEYFRAME_PASTE_OFFSET_CFRA_START,
      "START",
@@ -1133,11 +1108,6 @@ const EnumPropertyItem rna_enum_keyframe_paste_merge_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/**
- * This function pastes data from the keyframes copy/paste buffer
- *
- * \return Status code is whether the method FAILED to do anything
- */
 short paste_animedit_keys(bAnimContext *ac,
                           ListBase *anim_data,
                           const eKeyPasteOffset offset_mode,

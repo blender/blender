@@ -139,7 +139,6 @@ Base *ED_armature_base_and_pchan_from_select_buffer(Base **bases,
   return base;
 }
 
-/* For callers that don't need the pose channel. */
 Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
                                                    uint bases_len,
                                                    int hit,
@@ -1080,7 +1079,6 @@ bool ED_armature_edit_select_pick_bone(bContext *C,
   return true;
 }
 
-/* context: editmode armature in view3d */
 bool ED_armature_edit_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
@@ -1175,18 +1173,6 @@ static bool armature_edit_select_op_apply(bArmature *arm,
   return changed;
 }
 
-/**
- * Perform a selection operation on elements which have been 'touched',
- * use for lasso & border select but can be used elsewhere too.
- *
- * Tagging is done via #EditBone.temp.i using: #BONESEL_ROOT, #BONESEL_TIP, #BONESEL_BONE
- * And optionally ignoring end-points using the #BONESEL_ROOT, #BONESEL_TIP right shifted 16 bits.
- * (used when the values are clipped outside the view).
- *
- * \param sel_op: #eSelectOp type.
- *
- * \note Visibility checks must be done by the caller.
- */
 bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
 {
   bool changed = false;
