@@ -3418,40 +3418,39 @@ void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
 
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
-  if (ntree) {
-    /* Make full copy outside of Main database.
-     * NOTE: previews are not copied here.
-     */
-    bNodeTree *ltree = (bNodeTree *)BKE_id_copy_ex(
-        nullptr, &ntree->id, nullptr, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
-
-    ltree->id.tag |= LIB_TAG_LOCALIZED;
-
-    LISTBASE_FOREACH (bNode *, node, &ltree->nodes) {
-      if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
-        node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
-      }
-    }
-
-    /* ensures only a single output node is enabled */
-    ntreeSetOutput(ntree);
-
-    bNode *node_src = (bNode *)ntree->nodes.first;
-    bNode *node_local = (bNode *)ltree->nodes.first;
-    while (node_src != nullptr) {
-      node_local->original = node_src;
-      node_src = node_src->next;
-      node_local = node_local->next;
-    }
-
-    if (ntree->typeinfo->localize) {
-      ntree->typeinfo->localize(ltree, ntree);
-    }
-
-    return ltree;
+  if (ntree == nullptr) {
+    return nullptr;
   }
 
-  return nullptr;
+  /* Make full copy outside of Main database.
+   * NOTE: previews are not copied here. */
+  bNodeTree *ltree = (bNodeTree *)BKE_id_copy_ex(
+      nullptr, &ntree->id, nullptr, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
+
+  ltree->id.tag |= LIB_TAG_LOCALIZED;
+
+  LISTBASE_FOREACH (bNode *, node, &ltree->nodes) {
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
+      node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
+    }
+  }
+
+  /* ensures only a single output node is enabled */
+  ntreeSetOutput(ntree);
+
+  bNode *node_src = (bNode *)ntree->nodes.first;
+  bNode *node_local = (bNode *)ltree->nodes.first;
+  while (node_src != nullptr) {
+    node_local->original = node_src;
+    node_src = node_src->next;
+    node_local = node_local->next;
+  }
+
+  if (ntree->typeinfo->localize) {
+    ntree->typeinfo->localize(ltree, ntree);
+  }
+
+  return ltree;
 }
 
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
