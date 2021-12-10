@@ -31,6 +31,10 @@ struct Text;
 struct bContext;
 
 /* bpy_interface_run.c */
+
+/**
+ * Can run a file or text block.
+ */
 bool BPY_run_filepath(struct bContext *C, const char *filepath, struct ReportList *reports);
 bool BPY_run_text(struct bContext *C,
                   struct Text *text,
@@ -39,7 +43,14 @@ bool BPY_run_text(struct bContext *C,
 
 /* Use the 'eval' for simple single-line expressions,
  * otherwise 'exec' for full multi-line scripts. */
+
+/**
+ * Run an entire script, matches: `exec(compile(..., "exec"))`
+ */
 bool BPY_run_string_exec(struct bContext *C, const char *imports[], const char *expr);
+/**
+ * Run an expression, matches: `exec(compile(..., "eval"))`
+ */
 bool BPY_run_string_eval(struct bContext *C, const char *imports[], const char *expr);
 
 /**
@@ -59,16 +70,28 @@ struct BPy_RunErrInfo {
 };
 
 /* Run, evaluating to fixed type result. */
+
+/**
+ * \return success
+ */
 bool BPY_run_string_as_number(struct bContext *C,
                               const char *imports[],
                               const char *expr,
                               struct BPy_RunErrInfo *err_info,
                               double *r_value);
+/**
+ * Support both int and pointers.
+ *
+ * \return success
+ */
 bool BPY_run_string_as_intptr(struct bContext *C,
                               const char *imports[],
                               const char *expr,
                               struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value);
+/**
+ * \return success
+ */
 bool BPY_run_string_as_string_and_size(struct bContext *C,
                                        const char *imports[],
                                        const char *expr,
