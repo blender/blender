@@ -17,14 +17,17 @@
 #include "stdcycles.h"
 
 /* Magic */
-
-color magic(point p, int n, float distortion)
+color magic(point p, float scale, int n, float distortion)
 {
   float dist = distortion;
 
-  float x = sin((p[0] + p[1] + p[2]) * 5.0);
-  float y = cos((-p[0] + p[1] - p[2]) * 5.0);
-  float z = -cos((-p[0] - p[1] + p[2]) * 5.0);
+  float a = mod(p.x * scale, M_2PI);
+  float b = mod(p.y * scale, M_2PI);
+  float c = mod(p.z * scale, M_2PI);
+
+  float x = sin((a + b + c) * 5.0);
+  float y = cos((-a + b - c) * 5.0);
+  float z = -cos((-a - b + c) * 5.0);
 
   if (n > 0) {
     x *= dist;
@@ -103,6 +106,6 @@ shader node_magic_texture(int use_mapping = 0,
   if (use_mapping)
     p = transform(mapping, p);
 
-  Color = magic(p * Scale, depth, Distortion);
+  Color = magic(p, Scale, depth, Distortion);
   Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
 }

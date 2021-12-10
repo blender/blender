@@ -20,11 +20,27 @@ CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-ccl_device_noinline_cpu float3 svm_magic(float3 p, int n, float distortion)
+ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float distortion)
 {
-  float x = sinf((p.x + p.y + p.z) * 5.0f);
-  float y = cosf((-p.x + p.y - p.z) * 5.0f);
-  float z = -cosf((-p.x - p.y + p.z) * 5.0f);
+  /*
+   * Prevent NaNs due to input p
+   * Sin and Cosine are periodic about [0 2*PI) so the following
+   * will yeild a more accurate result. As it stops the input values
+   * going out of range for floats which caused a NaN. The
+   * calculation of (px + py + pz)*5 can cause an Inf when one or more
+   * values are very large the cos or sin of this results in a NaN
+   * It also addresses the case where one dimension is large relative
+   * to another which caused banding due to the loss of precision in the
+   * smaller value. This is due to the value in the -2*PI to 2*PI range
+   * effectively being lost due to floating point precision.
+   */
+  float px = fmodf(p.x, M_2PI_F);
+  float py = fmodf(p.y, M_2PI_F);
+  float pz = fmodf(p.z, M_2PI_F);
+
+  float x = sinf((px + py + pz) * 5.0f * scale);
+  float y = cosf((-px + py - pz) * 5.0f * scale);
+  float z = -cosf((-px - py + pz) * 5.0f * scale);
 
   if (n > 0) {
     x *= distortion;
@@ -103,7 +119,7 @@ ccl_device_noinline int svm_node_tex_magic(
   float scale = stack_load_float_default(stack, scale_offset, node2.x);
   float distortion = stack_load_float_default(stack, distortion_offset, node2.y);
 
-  float3 color = svm_magic(co * scale, depth, distortion);
+  float3 color = svm_magic(co, scale, depth, distortion);
 
   if (stack_valid(fac_offset))
     stack_store_float(stack, fac_offset, average(color));
