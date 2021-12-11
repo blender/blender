@@ -176,7 +176,7 @@ typedef struct BrushTex {
   MTex __mtex;  // do not access directly. except for the actual evaluation code.
 } BrushTex;
 
-BrushTex *BKE_brush_tex_create();
+BrushTex *BKE_brush_tex_create(void);
 void BKE_brush_tex_free(BrushTex *btex);
 void BKE_brush_tex_patch_channels(BrushTex *btex);
 void BKE_brush_tex_from_mtex(BrushTex *btex, MTex *mtex);
@@ -350,7 +350,7 @@ extern void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset,
 void BKE_brush_init_toolsettings(struct Sculpt *sd);
 void BKE_brush_builtin_create(struct Brush *brush, int tool);
 
-BrushCommandList *BKE_brush_commandlist_create();
+BrushCommandList *BKE_brush_commandlist_create(void);
 void BKE_brush_commandlist_start(BrushCommandList *list,
                                  struct Brush *brush,
                                  BrushChannelSet *chset_final);
@@ -411,8 +411,8 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply);
 const char *BKE_brush_channel_category_get(BrushChannel *ch);
 void BKE_brush_channel_category_set(BrushChannel *ch, const char *str);
 
-void BKE_brush_channel_system_init();
-void BKE_brush_channel_system_exit();
+void BKE_brush_channel_system_init(void);
+void BKE_brush_channel_system_exit(void);
 
 /*
 set up static type checker for BRUSHSET_XXX macros

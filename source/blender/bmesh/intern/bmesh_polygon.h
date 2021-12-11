@@ -254,7 +254,7 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_
  * faster alternative to:
  * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
  */
-BLI_INLINE void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]) ATTR_NONNULL()
+BLI_INLINE void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
 

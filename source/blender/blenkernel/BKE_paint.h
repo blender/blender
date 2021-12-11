@@ -923,7 +923,7 @@ void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, struct PBVH *pbvh, int totvert);
 void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
-struct BMesh *BKE_sculptsession_empty_bmesh_create();
+struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
 bool BKE_sculptsession_customlayer_get(struct Object *ob,
                                        AttributeDomain domain,

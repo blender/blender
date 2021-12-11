@@ -45,11 +45,6 @@ BLI_mempool *BLI_mempool_create_ex(unsigned int esize,
 
 //#define DEBUG_MEMPOOL_LEAKS
 
-BLI_mempool *BLI_mempool_create(unsigned int esize,
-                                unsigned int totelem,
-                                unsigned int pchunk,
-                                unsigned int flag);
-
 #ifdef DEBUG_MEMPOOL_LEAKS
 ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 
